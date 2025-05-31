@@ -27,7 +27,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO loginRequest) {
         logger.info("Login attempt for user: " + loginRequest.getUsername());
-        
+        logger.info("hihi");
+
         var accountMember = authService.login(loginRequest);
         if (accountMember == null) {
             logger.warning("Login failed for user: " + loginRequest.getUsername());
