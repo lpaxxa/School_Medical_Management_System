@@ -19,6 +19,20 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import "./styles/global.css";
 import Footer from "./components/Footer/Footer";
+import Notifications from "./Pages/Parent/Notifications";
+import ParentContact from "./Pages/Parent/Contact";
+import HealthGuide from "./Pages/Parent/HealthGuide";
+import HealthGuideDetail from "./Pages/Parent/HealthGuideDetail";
+import HealthDeclaration from "./Pages/Parent/HealthDeclaration";
+import SendMedicine from "./Pages/Parent/SendMedicine";
+// Thêm import cho trang Hồ sơ bệnh án
+import MedicalRecords from "./Pages/Parent/MedicalRecords";
+// Thêm import cho trang Cộng đồng
+import Community from "./Pages/Parent/Community";
+import CommunityPost from "./Pages/Parent/CommunityPost";
+
+// Thêm context để đồng bộ dữ liệu học sinh
+import { StudentDataProvider } from "./context/StudentDataContext";
 
 // Thêm layout cho những trang có header, footer, navigation
 const MainLayout = ({ children }) => (
@@ -98,7 +112,8 @@ function AppRoutes() {
       />
 
       {/* Trang chủ cho y tá */}
-      <Route path="/nurse"
+      <Route
+        path="/nurse"
         element={
           <ProtectedRoute allowedRoles={["nurse"]}>
             <AdminLayout>
@@ -109,7 +124,8 @@ function AppRoutes() {
       />
 
       {/* Các routes chung */}
-      <Route path="/introduction"
+      <Route
+        path="/parent/introduction"
         element={
           <ProtectedRoute>
             <MainLayout>
@@ -120,11 +136,114 @@ function AppRoutes() {
       />
 
       <Route
-        path="/student-profile"
+        path="/parent/student-profile"
         element={
           <ProtectedRoute allowedRoles={["parent", "admin", "nurse"]}>
             <MainLayout>
               <StudentProfile />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/parent/notifications"
+        element={
+          <ProtectedRoute allowedRoles={["parent", "admin", "nurse"]}>
+            <MainLayout>
+              <Notifications />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Thêm route cho trang Contact */}
+      <Route
+        path="/parent/contact"
+        element={
+          <ProtectedRoute allowedRoles={["parent"]}>
+            <MainLayout>
+              <ParentContact />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Thêm route cho trang Health Guide */}
+      <Route
+        path="/parent/health-guide"
+        element={
+          <ProtectedRoute allowedRoles={["parent"]}>
+            <MainLayout>
+              <HealthGuide />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/parent/health-guide/:articleId"
+        element={
+          <ProtectedRoute allowedRoles={["parent"]}>
+            <MainLayout>
+              <HealthGuideDetail />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Thêm route cho trang Khai báo sức khỏe */}
+      <Route
+        path="/parent/health-declaration"
+        element={
+          <ProtectedRoute allowedRoles={["parent"]}>
+            <MainLayout>
+              <HealthDeclaration />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Thêm route cho trang Gửi Thuốc */}
+      <Route
+        path="/parent/send-medicine"
+        element={
+          <ProtectedRoute allowedRoles={["parent"]}>
+            <MainLayout>
+              <SendMedicine />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Thêm route cho trang Hồ sơ bệnh án học sinh */}
+      <Route
+        path="/parent/medical-records"
+        element={
+          <ProtectedRoute allowedRoles={["parent"]}>
+            <MainLayout>
+              <MedicalRecords />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Thêm route cho trang Cộng đồng */}
+      <Route
+        path="/parent/community"
+        element={
+          <ProtectedRoute allowedRoles={["parent", "nurse", "admin"]}>
+            <MainLayout>
+              <Community />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/parent/community/post/:postId"
+        element={
+          <ProtectedRoute allowedRoles={["parent", "nurse", "admin"]}>
+            <MainLayout>
+              <CommunityPost />
             </MainLayout>
           </ProtectedRoute>
         }
@@ -140,9 +259,11 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="app">
-          <AppRoutes />
-        </div>
+        <StudentDataProvider>
+          <div className="app">
+            <AppRoutes />
+          </div>
+        </StudentDataProvider>
       </AuthProvider>
     </Router>
   );

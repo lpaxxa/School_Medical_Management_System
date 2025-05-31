@@ -37,25 +37,26 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link to="/introduction" className="nav-link">
+              <Link to="/parent/introduction" className="nav-link">
                 Giới thiệu
               </Link>
             </li>
             <li>
-              <a href="#guide" className="nav-link">
+              <Link to="/parent/health-guide" className="nav-link">
                 Cẩm nang
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#community" className="nav-link">
+              {/* Thay đổi từ anchor sang Link để chuyển đến trang cộng đồng */}
+              <Link to="/parent/community" className="nav-link">
                 Cộng đồng
-              </a>
+              </Link>
             </li>
-            <li>
+            {/* <li>
               <a href="#vaccination" className="nav-link">
                 Lịch tiêm chủng
               </a>
-            </li>
+            </li> */}
           </ul>
 
           <div className="header-actions">
@@ -63,10 +64,10 @@ const Header = () => {
               <i className="fas fa-calendar-alt"></i> Đặt lịch tư vấn
             </a>
 
-            <a href="#notifications" className="notification-btn">
+            <Link to="/parent/notifications" className="notification-btn">
               <i className="fas fa-bell"></i>
               <span className="notification-badge">3</span>
-            </a>
+            </Link>
 
             {currentUser ? (
               <div className="user-menu">

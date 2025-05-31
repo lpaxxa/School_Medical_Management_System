@@ -177,27 +177,40 @@
   font-size: 0.95rem;
 }
 
-/* Sửa style cho input có icon */
-.input-container {
+.input-with-icon {
   position: relative;
-  margin-bottom: 20px;
+  transition: all 0.3s ease;
 }
 
-.input-container input {
-  width: 100%;
-  padding: 10px 15px 10px 40px; /* Tăng padding bên trái để có chỗ cho icon */
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.input-container i {
+.input-with-icon i {
   position: absolute;
-  left: 12px;        /* Đặt icon cách lề trái */
-  top: 50%;         /* Đặt icon ở giữa theo chiều dọc */
+  left: 15px;
+  top: 50%;
   transform: translateY(-50%);
-  color: #6c757d;
-  pointer-events: none; /* Để icon không chặn người dùng click vào input */
+  color: #a0aec0;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-with-icon input {
+  width: 100%;
+  padding: 12px 12px 12px 42px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background-color: #f8fafc;
+}
+
+.input-with-icon input:focus {
+  border-color: #3498db;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+  outline: none;
+}
+
+.input-with-icon input:focus + i {
+  color: #3498db;
 }
 
 .remember-forgot {

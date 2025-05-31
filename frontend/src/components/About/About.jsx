@@ -39,10 +39,10 @@ export default function About() {
                 alt="Chăm sóc sức khỏe toàn diện"
                 className="about-img"
               />
-              <div className="experience-badge">
+              {/* <div className="experience-badge">
                 <span className="years">5+</span>
                 <span className="text">Năm kinh nghiệm</span>
-              </div>
+              </div> */}
             </div>
           </div>
 

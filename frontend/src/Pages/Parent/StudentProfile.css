@@ -186,28 +186,48 @@
   transform: translateY(-2px);
 }
 
-/* Loading styles */
+/* Loading styles - improved version */
 .loading-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   height: 400px;
-  gap: 20px;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin: 20px auto;
+  max-width: 1000px;
+  padding: 40px;
 }
 
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #3498db;
+.spinner-container {
+  margin-bottom: 20px;
+}
+
+.spinner-border {
+  display: inline-block;
+  width: 60px;
+  height: 60px;
+  border: 5px solid rgba(52, 152, 219, 0.2);
   border-radius: 50%;
+  border-top-color: #3498db;
   animation: spin 1s linear infinite;
+  box-sizing: border-box;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  font-size: 1.1rem;
+  color: #4a5568;
+  margin-top: 15px;
+  font-weight: 500;
 }
 
 /* Error styles */
@@ -219,10 +239,16 @@
   height: 300px;
   gap: 15px;
   color: #e74c3c;
+  text-align: center;
 }
 
 .error-container i {
   font-size: 3rem;
+}
+
+.error-container p {
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 .error-container button {
@@ -233,6 +259,11 @@
   border-radius: 5px;
   cursor: pointer;
   margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.error-container button:hover {
+  background-color: #2980b9;
 }
 
 /* Hiệu ứng hover cho tất cả các section */
@@ -356,4 +387,183 @@
 .health-status {
   color: #2ecc71; /* Màu xanh lá cho text */
   font-weight: 600;
+}
+
+/* Thêm style cho thông tin gia đình mở rộng */
+.family-member {
+  border: 1px solid #e1f0fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #f8fdff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+}
+
+.family-member:hover {
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.1);
+}
+
+.family-member-title {
+  font-size: 1.1rem;
+  color: #3498db;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e1f0fa;
+}
+
+.family-member-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-item a {
+  color: #3498db;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.info-item a:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+/* Điều chỉnh grid cho thông tin gia đình */
+.profile-section.family-info .info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Đảm bảo phần địa chỉ chiếm đủ chiều rộng */
+.profile-section.family-info .full-width {
+  grid-column: 1 / -1;
+  padding: 15px;
+  margin-top: 10px;
+  background-color: #f8fdff;
+  border-radius: 8px;
+  border: 1px solid #e1f0fa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-section.family-info .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Style cho demo banner */
+.demo-banner {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.demo-banner i {
+  color: #f39c12;
+}
+
+/* Style cho student selector */
+.student-selector {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-selector label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.student-select {
+  padding: 8px 12px;
+  border: 2px solid #e0e6ed;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background-color: white;
+  color: #2c3e50;
+  min-width: 200px;
+  transition: all 0.3s ease;
+}
+
+.student-select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Style cho thông tin phụ huynh */
+.parent-info {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  margin-top: 5px;
+}
+
+/* Style cho container không có học sinh */
+.no-students-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  min-height: 400px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  margin: 50px auto;
+  max-width: 500px;
+}
+
+.no-students-container i {
+  font-size: 4rem;
+  color: #bdc3c7;
+  margin-bottom: 20px;
+}
+
+.no-students-container p {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+}
+
+/* Style cho nút khai báo sức khỏe */
+.action-button.health-declaration {
+  background-color: #e74c3c;
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-button.health-declaration:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+}
+
+/* Responsive cho student selector */
+@media (max-width: 768px) {
+  .student-selector {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .student-select {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .profile-header {
+    gap: 20px;
+  }
 }
