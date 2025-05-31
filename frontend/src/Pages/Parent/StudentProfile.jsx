@@ -9,7 +9,7 @@ import { useStudentData } from "../../context/StudentDataContext";
 const MOCK_PARENTS = [
   {
     id: "PH001",
-    fullName: "Nguyễn Văn Bình",
+    fullName: "Nguyễn Văn An",
     email: "nguyenvanbinh@gmail.com",
     phone: "0912345678",
   },
