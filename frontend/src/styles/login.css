@@ -1,19 +1,31 @@
-/* Thiết lập cơ bản */
+/* Base styles and resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f5f8fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Main login page layout */
 .login-page {
   display: flex;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  font-family: 'Roboto', sans-serif;
+  min-height: 100vh;
+  width: 100%;
   background-color: #f5f8fa;
 }
 
-/* Container ảnh bên trái - chiếm 60% */
-.login-image-container {
-  flex: 6; /* Thay đổi tỉ lệ thành 6 */
+/* Left side - Image section */
+.login-image-section {
+  flex: 6;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
 }
 
 .login-image {
@@ -22,11 +34,11 @@
   object-fit: cover;
   object-position: center;
   transition: transform 1.5s ease;
-  transform: scale(1.03);
+  display: block;
 }
 
-.login-image-container:hover .login-image {
-  transform: scale(1);
+.login-image-section:hover .login-image {
+  transform: scale(1.03);
 }
 
 .login-image-overlay {
@@ -40,66 +52,40 @@
   justify-content: center;
   align-items: center;
   padding: 2rem;
-  background: linear-gradient(to bottom, 
+  background: linear-gradient(
+    to bottom,
     rgba(0, 0, 0, 0.3) 0%,
     rgba(0, 0, 0, 0.6) 50%,
-    rgba(0, 0, 0, 0.8) 100%);
+    rgba(0, 0, 0, 0.8) 100%
+  );
   color: white;
   text-align: center;
-  opacity: 0;
-  animation: fadeIn 1s ease forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .login-image-overlay h1 {
-  font-size: 2.8rem; /* Tăng kích thước chữ */
+  font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  animation: slideDown 1s ease forwards;
-  animation-delay: 0.3s;
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .login-image-overlay h2 {
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   font-weight: 400;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 2px;
-  animation: slideDown 1s ease forwards;
-  opacity: 0;
-  transform: translateY(-20px);
 }
 
 .login-image-overlay p {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   max-width: 600px;
   line-height: 1.6;
-  animation: slideUp 1s ease forwards;
-  animation-delay: 0.6s;
-  opacity: 0;
-  transform: translateY(20px);
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Container form bên phải - chiếm 40% */
-.login-form-container {
-  flex: 4; /* Thay đổi tỉ lệ thành 4 */
+/* Right side - Form section */
+.login-form-section {
+  flex: 4;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -108,12 +94,10 @@
   overflow-y: auto;
 }
 
-.login-form-wrapper {
+.login-form-container {
   width: 100%;
-  max-width: 420px; /* Tăng kích thước max-width lên cho phù hợp với không gian rộng hơn */
-  animation: fadeIn 0.8s ease forwards;
-  animation-delay: 0.5s;
-  opacity: 0;
+  max-width: 400px;
+  padding: 1rem;
 }
 
 .login-header {
@@ -123,7 +107,7 @@
 
 .login-header h2 {
   color: #2c3e50;
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 0.7rem;
   position: relative;
@@ -133,10 +117,10 @@
 .login-header h2::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 50px;
+  width: 40px;
   height: 3px;
   background-color: #3498db;
   border-radius: 2px;
@@ -148,6 +132,7 @@
   margin-top: 1rem;
 }
 
+/* Error message */
 .error-message {
   background-color: #fff5f5;
   color: #e53e3e;
@@ -156,15 +141,9 @@
   border-radius: 4px;
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
-  animation: shake 0.5s linear;
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
+/* Form elements */
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -177,31 +156,44 @@
   font-size: 0.95rem;
 }
 
+/* Form elements with icons outside of input fields */
+
+/* Updated input-with-icon styling */
 .input-with-icon {
   position: relative;
-  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
 }
 
+/* Move icons outside the input */
 .input-with-icon i {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: static; /* Changed from absolute */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 42px;
+  height: 42px;
+  background-color: #f0f4f8;
+  border: 1.5px solid #e2e8f0;
+  border-right: none;
+  border-radius: 8px 0 0 8px;
   color: #a0aec0;
   font-size: 1rem;
   transition: all 0.3s ease;
 }
 
+/* Update input to accommodate external icon */
 .input-with-icon input {
   width: 100%;
-  padding: 12px 12px 12px 42px;
+  padding: 12px;
   border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0 8px 8px 0;
   font-size: 0.95rem;
   transition: all 0.3s ease;
   background-color: #f8fafc;
 }
 
+/* Fix focus state for both elements */
 .input-with-icon input:focus {
   border-color: #3498db;
   background-color: #fff;
@@ -209,10 +201,13 @@
   outline: none;
 }
 
-.input-with-icon input:focus + i {
+.input-with-icon input:focus + i,
+.input-with-icon i:has(+ input:focus) {
+  border-color: #3498db;
   color: #3498db;
 }
 
+/* Remember me and Forgot password */
 .remember-forgot {
   display: flex;
   justify-content: space-between;
@@ -226,33 +221,10 @@
 }
 
 .remember-me input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
+  margin-right: 8px;
   width: 16px;
   height: 16px;
-  border: 1.5px solid #cbd5e0;
-  border-radius: 4px;
-  margin-right: 8px;
-  position: relative;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.remember-me input[type="checkbox"]:checked {
-  background-color: #3498db;
-  border-color: #3498db;
-}
-
-.remember-me input[type="checkbox"]:checked::after {
-  content: '\f00c';
-  font-family: 'Font Awesome 5 Free';
-  font-weight: 900;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 9px;
 }
 
 .remember-me label {
@@ -274,6 +246,7 @@
   text-decoration: underline;
 }
 
+/* Login button */
 .login-button {
   width: 100%;
   padding: 12px;
@@ -289,39 +262,19 @@
   justify-content: center;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 6px rgba(52, 152, 219, 0.15);
-  margin-bottom: 1.5rem; /* Thêm margin dưới cho nút đăng nhập */
+  margin-bottom: 1.5rem;
 }
 
 .login-button:hover {
   background: linear-gradient(to right, #2980b9, #2473a5);
-  transform: translateY(-2px);
-  box-shadow: 0 7px 14px rgba(52, 152, 219, 0.2);
-}
-
-.login-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 5px rgba(52, 152, 219, 0.2);
 }
 
 .login-button:disabled {
   background: #a0aec0;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
-.login-button i {
-  font-size: 1rem;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* Phần chia tách giữa các phương thức đăng nhập */
+/* Divider */
 .login-divider {
   position: relative;
   text-align: center;
@@ -346,7 +299,7 @@
   font-size: 0.9rem;
 }
 
-/* Nút đăng nhập bằng Google */
+/* Google login button */
 .google-login-button {
   width: 100%;
   padding: 12px;
@@ -375,6 +328,7 @@
   height: 20px;
 }
 
+/* Footer */
 .login-footer {
   margin-top: 2rem;
   text-align: center;
@@ -395,7 +349,16 @@
 }
 
 /* Responsive styles */
-@media (max-width: 1100px) {
+@media (max-width: 992px) {
+  .login-page {
+    flex-direction: column;
+  }
+  
+  .login-image-section {
+    flex: none;
+    height: 300px;
+  }
+  
   .login-image-overlay h1 {
     font-size: 2rem;
   }
@@ -403,76 +366,40 @@
   .login-image-overlay h2 {
     font-size: 1.3rem;
   }
-}
-
-@media (max-width: 992px) {
-  .login-page {
-    flex-direction: column;
-    height: auto;
-    overflow-y: auto;
-  }
   
-  .login-image-container {
-    flex: none;
-    height: 35vh;
-    min-height: 250px;
-  }
-  
-  .login-form-container {
-    flex: none;
-    min-height: 65vh;
-    padding: 2rem 1.5rem;
-  }
-  
-  .login-form-wrapper {
-    max-width: 450px;
+  .login-form-section {
+    padding: 2rem 1rem;
   }
 }
 
 @media (max-width: 576px) {
+  .login-image-section {
+    height: 200px;
+  }
+  
   .login-image-overlay h1 {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
   }
   
   .login-image-overlay h2 {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
   
   .login-image-overlay p {
     font-size: 0.9rem;
   }
   
-  .login-image-container {
-    height: 30vh;
-    min-height: 180px;
-  }
-  
-  .login-form-wrapper {
-    padding: 0;
-  }
-  
-  .login-header h2 {
-    font-size: 1.8rem;
-  }
-  
-  .login-header p {
-    font-size: 0.95rem;
-  }
-  
   .remember-forgot {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
-  }
-}
-
-/* Hiệu ứng chuyển động mượt mà */
-@media (prefers-reduced-motion: no-preference) {
-  .login-form-container {
-    transition: flex 0.3s ease;
+    gap: 0.75rem;
   }
   
-  .login-image-container {
-    transition: flex 0.3s ease;
+  .login-header h2 {
+    font-size: 1.6rem;
+  }
+  
+  .login-form-container {
+    padding: 0;
   }
 }

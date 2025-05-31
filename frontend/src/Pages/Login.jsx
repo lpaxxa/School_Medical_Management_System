@@ -3,13 +3,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/login.css";
 import loginImage from "../assets/A1.jpg";
-import googleIcon from "../assets/google.png"; // Thêm icon Google
+import googleIcon from "../assets/google.png";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const Login = () => {
 
   return (
     <div className="login-page">
-      <div className="login-image-container">
+      <div className="login-image-section">
         <img src={loginImage} alt="School Healthcare" className="login-image" />
         <div className="login-image-overlay">
           <h2>Chào mừng đến với</h2>
@@ -51,8 +52,8 @@ const Login = () => {
         </div>
       </div>
 
-      <div className="login-form-container">
-        <div className="login-form-wrapper">
+      <div className="login-form-section">
+        <div className="login-form-container">
           <div className="login-header">
             <h2>Đăng nhập</h2>
             <p>Vui lòng đăng nhập để tiếp tục</p>
@@ -95,7 +96,12 @@ const Login = () => {
 
             <div className="remember-forgot">
               <div className="remember-me">
-                <input type="checkbox" id="remember" />
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
                 <label htmlFor="remember">Ghi nhớ đăng nhập</label>
               </div>
               <a href="#forgot-password" className="forgot-password">
@@ -114,7 +120,6 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Phần đăng nhập bằng Google */}
           <div className="login-divider">
             <span>Hoặc đăng nhập bằng</span>
           </div>
