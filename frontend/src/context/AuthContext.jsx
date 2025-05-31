@@ -1,5 +1,32 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { mockUsers } from "../mockData/users";
+
+// Mock users data (trong thực tế sẽ thay bằng API calls)
+const mockUsers = [
+  {
+    id: 1,
+    username: "admin",
+    password: "admin123",
+    name: "Admin Hệ thống",
+    role: "admin",
+    email: "admin@school.edu.vn",
+  },
+  {
+    id: 2,
+    username: "parent",
+    password: "parent123",
+    name: "Nguyễn Văn A",
+    role: "parent",
+    email: "parent@example.com",
+  },
+  {
+    id: 3,
+    username: "nurse",
+    password: "nurse123",
+    name: "Y tá Trường",
+    role: "nurse",
+    email: "nurse@school.edu.vn",
+  },
+];
 
 const AuthContext = createContext();
 

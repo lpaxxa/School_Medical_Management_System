@@ -8,11 +8,11 @@ export default function Navigation() {
 
   // Cập nhật danh sách navItems để thêm đường dẫn đến trang hồ sơ học sinh
   const navItems = [
-    { title: "Hồ sơ bệnh án học sinh", path: "/medical-records" },
-    { title: "Hồ sơ học sinh", path: "/student-profile" },
-    { title: "Gửi thuốc", path: "/send-medicine" },
-    { title: "Khai báo sức khỏe học sinh", path: "/health-declaration" },
-    { title: "Hồ sơ phụ huynh", path: "/parent-profile" },
+    { title: "Hồ sơ bệnh án học sinh", path: "/parent/medical-records" },
+    { title: "Hồ sơ học sinh", path: "/parent/student-profile" },
+    { title: "Gửi thuốc", path: "/parent/send-medicine" },
+    { title: "Khai báo sức khỏe học sinh", path: "/parent/health-declaration" }, // Cập nhật path để phù hợp với cấu trúc thư mục
+    // { title: "Hồ sơ phụ huynh", path: "/parent-profile" },
   ];
 
   return (

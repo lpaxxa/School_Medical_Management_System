@@ -1,5 +1,5 @@
 import React from "react";
-// import "../styles/IntroductionPage.css";
+import "./IntroductionPage.css";
 
 export default function IntroductionPage() {
   return (

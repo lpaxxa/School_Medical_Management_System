@@ -61,28 +61,36 @@ const Login = () => {
           {error && <div className="error-message">{error}</div>}
 
           <form onSubmit={handleSubmit} className="login-form">
-            <div className="input-container">
-              <i className="fas fa-user"></i>
-              <input
-                type="text"
-                placeholder="Tên đăng nhập"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={isLoading}
-                required
-              />
+            <div className="form-group">
+              <label htmlFor="username">Tên đăng nhập</label>
+              <div className="input-with-icon">
+                <i className="fas fa-user"></i>
+                <input
+                  type="text"
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Nhập tên đăng nhập"
+                  disabled={isLoading}
+                  required
+                />
+              </div>
             </div>
 
-            <div className="input-container">
-              <i className="fas fa-lock"></i>
-              <input
-                type="password"
-                placeholder="Mật khẩu"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                required
-              />
+            <div className="form-group">
+              <label htmlFor="password">Mật khẩu</label>
+              <div className="input-with-icon">
+                <i className="fas fa-lock"></i>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Nhập mật khẩu"
+                  disabled={isLoading}
+                  required
+                />
+              </div>
             </div>
 
             <div className="remember-forgot">
