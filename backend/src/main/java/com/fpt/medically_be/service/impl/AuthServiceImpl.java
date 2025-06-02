@@ -1,4 +1,4 @@
-package com.fpt.medically_be.service.impl;
+﻿package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.auth.LoginRequestDTO;
 import com.fpt.medically_be.entity.AccountMember;
@@ -39,5 +39,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AccountMember findById(String id) {
         return accountMemberRepos.findAccountMemberById(id).orElse(null);
+    }
+    
+    @Override
+    public AccountMember findByEmail(String email) {
+        return accountMemberRepos.findAccountMemberByEmail(email).orElse(null);
     }
 }

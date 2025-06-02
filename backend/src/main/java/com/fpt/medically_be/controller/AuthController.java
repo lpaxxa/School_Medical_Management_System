@@ -48,8 +48,13 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<MemberRole> getCurrentUser() {
         var email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Logger.getAnonymousLogger().info(email);
-        var accountMember = authService.findById(email);
+        Logger.getAnonymousLogger().info("Current user email: " + email);
+        
+        var accountMember = authService.findByEmail(email);
+        
+        if (accountMember == null) {
+            return ResponseEntity.status(404).build();
+        }
 
         return ResponseEntity.ok(accountMember.getRole());
     }

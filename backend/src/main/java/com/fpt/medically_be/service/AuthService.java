@@ -10,4 +10,6 @@ public interface AuthService {
 
     AccountMember findById(String id);
 
+    AccountMember findByEmail(String email);
+
 }

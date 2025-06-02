@@ -68,16 +68,14 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(Customizer.withDefaults())
+            .httpBasic(Customizer.withDefaults())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-//            .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/dashboard", true)
-//                .failureUrl("/login?error"))
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
             )
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
@@ -96,10 +94,10 @@ public class SecurityConfig {
         return source;
     }
 
-//    @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

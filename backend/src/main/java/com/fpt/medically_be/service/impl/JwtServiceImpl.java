@@ -34,8 +34,9 @@ public class JwtServiceImpl implements JwtService {
                 .issuer(issuer)
                 .issuedAt(now)
                 .expiresAt(now.plus(expirationTime, ChronoUnit.SECONDS))
-                .subject(accountId)
+                .subject(email)
                 .claim("role", role.name())
+                .claim("accountId", accountId)
                 .build();
 
         return encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
