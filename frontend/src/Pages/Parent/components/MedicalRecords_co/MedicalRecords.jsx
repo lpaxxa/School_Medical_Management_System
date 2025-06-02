@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./MedicalRecords.css";
-import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
-import { useStudentData } from "../../context/StudentDataContext";
+import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
+import { useStudentData } from "../../../../context/StudentDataContext";
 
 const MedicalRecords = () => {
   const { students, healthMetrics, medicalRecords, isLoading } =

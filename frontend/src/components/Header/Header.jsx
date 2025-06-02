@@ -60,9 +60,9 @@ const Header = () => {
           </ul>
 
           <div className="header-actions">
-            <a href="#appointment" className="appointment-btn">
+            {/* <a href="#appointment" className="appointment-btn">
               <i className="fas fa-calendar-alt"></i> Đặt lịch tư vấn
-            </a>
+            </a> */}
 
             <Link to="/parent/notifications" className="notification-btn">
               <i className="fas fa-bell"></i>

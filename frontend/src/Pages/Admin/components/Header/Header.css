@@ -1,0 +1,71 @@
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  height: 60px;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  z-index: 100;
+}
+
+.admin-header-logo h1 {
+  font-size: 1.4rem;
+  color: #4361ee;
+  margin: 0;
+}
+
+.admin-header-user {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.admin-header-username {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.admin-header-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.admin-header-profile {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #555;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.admin-header-dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #fff;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.admin-header-dropdown-content button {
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-header-dropdown-content button:hover {
+  background-color: #f1f1f1;
+}
+
+.admin-header-dropdown:hover .admin-header-dropdown-content {
+  display: block;
+}

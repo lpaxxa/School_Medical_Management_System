@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Notifications.css";
-import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
+import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);

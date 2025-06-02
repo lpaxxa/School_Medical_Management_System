@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import "./CommunityPost.css";
-import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
-import { useAuth } from "../../context/AuthContext";
+import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
+import { useAuth } from "../../../../context/AuthContext";
 
 const CommunityPost = () => {
   const { postId } = useParams();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./SendMedicine.css";
-import { useStudentData } from "../../context/StudentDataContext";
+import { useStudentData } from "../../../../context/StudentDataContext";
 
 const SendMedicine = () => {
   const navigate = useNavigate();

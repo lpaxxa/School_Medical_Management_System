@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { useStudentData } from "../../context/StudentDataContext"; // Thêm import
+import { useAuth } from "../../../../context/AuthContext";
+import { useStudentData } from "../../../../context/StudentDataContext"; // Thêm import
 import "./HealthDeclaration.css";
 
 // Mock data cho trường học - giữ lại vì hiện tại context chưa quản lý thông tin trường học
