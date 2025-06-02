@@ -1,0 +1,243 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.admin-welcome {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 0.5rem;
+}
+
+.admin-welcome h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin: 0 0 0.75rem 0;
+}
+
+.admin-welcome p {
+  color: #64748b;
+  margin: 0;
+}
+
+/* Stats cards */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.admin-stat-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(67, 97, 238, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  color: #4361ee;
+  font-size: 1.5rem;
+}
+
+.stat-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-details h3 {
+  font-size: 1.5rem;
+  margin: 0 0 0.25rem 0;
+  color: #2c3e50;
+}
+
+.stat-details p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Recent information grid */
+.admin-recent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Card styling for recent activities and notifications */
+.admin-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.admin-card h3 {
+  font-size: 1.2rem;
+  margin: 0 0 1.25rem 0;
+  color: #2c3e50;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+/* Activities list */
+.activity-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-list li {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.activity-list li:last-child {
+  border-bottom: none;
+}
+
+.activity-time {
+  width: 70px;
+  font-size: 0.85rem;
+  color: #64748b;
+  padding-top: 2px;
+}
+
+.activity-details {
+  flex: 1;
+}
+
+.activity-user {
+  font-weight: 500;
+  margin-right: 0.5rem;
+  color: #2c3e50;
+}
+
+.activity-action {
+  color: #475569;
+}
+
+/* Notification list */
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  background-color: #f8fafc;
+}
+
+.notification-item i {
+  font-size: 1.1rem;
+  margin-right: 1rem;
+}
+
+.notification-item.urgent {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.notification-item.urgent i {
+  color: #ef4444;
+}
+
+.notification-item.info {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.notification-item.info i {
+  color: #3b82f6;
+}
+
+.notification-item.success {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.notification-item.success i {
+  color: #22c55e;
+}
+
+.notification-content p {
+  margin: 0 0 0.35rem 0;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.notification-content span {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Loading spinner */
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(67, 97, 238, 0.1);
+  border-top-color: #4361ee;
+  border-radius: 50%;
+  animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive styles */
+@media screen and (max-width: 1200px) {
+  .admin-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .admin-recent {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .admin-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-welcome,
+  .admin-card {
+    padding: 1.25rem;
+  }
+}

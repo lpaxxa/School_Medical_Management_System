@@ -65,6 +65,10 @@
   gap: 18px;
 }
 
+.fas.fa-bell{
+  color: #fff700;
+}
+
 .appointment-btn {
   display: flex;
   align-items: center;

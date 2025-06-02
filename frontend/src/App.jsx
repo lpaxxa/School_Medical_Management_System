@@ -44,7 +44,7 @@ const MainLayout = ({ children }) => (
   </>
 );
 
-// Layout riêng cho admin/y tá (có thể tùy chỉnh giao diện khác)
+// Layout riêng cho admin/y tá (không có header, footer hoặc navigation chung)
 const AdminLayout = ({ children }) => (
   <div className="admin-layout">{children}</div>
 );
@@ -87,6 +87,31 @@ function AppRoutes() {
       {/* Redirect trang chủ dựa trên vai trò */}
       <Route path="/" element={redirectBasedOnRole()} />
 
+      {/* ===== ADMIN ROUTES ===== */}
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ===== NURSE ROUTES ===== */}
+      <Route
+        path="/nurse/*"
+        element={
+          <ProtectedRoute allowedRoles={["nurse"]}>
+            <AdminLayout>
+              <NurseDashboard />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ===== PARENT ROUTES ===== */}
       {/* Trang chủ cho phụ huynh */}
       <Route
         path="/parent"
@@ -99,35 +124,10 @@ function AppRoutes() {
         }
       />
 
-      {/* Trang chủ cho admin */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminLayout>
-              <AdminDashboard />
-            </AdminLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Trang chủ cho y tá */}
-      <Route
-        path="/nurse"
-        element={
-          <ProtectedRoute allowedRoles={["nurse"]}>
-            <AdminLayout>
-              <NurseDashboard />
-            </AdminLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Các routes chung */}
       <Route
         path="/parent/introduction"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["parent"]}>
             <MainLayout>
               <IntroductionPage />
             </MainLayout>

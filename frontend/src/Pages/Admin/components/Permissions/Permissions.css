@@ -1,0 +1,256 @@
+.permissions-management {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Role tabs */
+.role-tabs {
+  display: flex;
+  background-color: #f8fafc;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  margin-bottom: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.role-tab {
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+  flex: 1;
+  text-align: center;
+}
+
+.role-tab:hover {
+  background-color: #f1f5f9;
+  color: #4361ee;
+}
+
+.role-tab.active {
+  background-color: white;
+  color: #4361ee;
+  position: relative;
+}
+
+.role-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #4361ee;
+}
+
+/* Role permissions */
+.role-permissions {
+  background-color: white;
+  border-radius: 0 0 8px 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.role-permissions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.role-permissions-header h3 {
+  font-size: 1.25rem;
+  color: #2c3e50;
+  margin: 0;
+  font-weight: 600;
+}
+
+.save-permissions-button {
+  background-color: #4361ee;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.save-permissions-button:hover {
+  background-color: #3a56d4;
+}
+
+.save-permissions-button:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+/* Permission groups */
+.permissions-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.permission-group {
+  background-color: #f8fafc;
+  border-radius: 6px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.group-header h4 {
+  font-size: 1.1rem;
+  color: #334155;
+  margin: 0;
+}
+
+.group-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-all {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-all input {
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+/* Permissions list */
+.permissions-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.permission-item {
+  background-color: white;
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom checkbox */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: 28px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #334155;
+  user-select: none;
+}
+
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  left: 0;
+  height: 18px;
+  width: 18px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+  background-color: #e2e8f0;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+  background-color: #4361ee;
+  border-color: #4361ee;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.checkbox-container .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Responsive styles */
+@media screen and (max-width: 992px) {
+  .role-permissions {
+    padding: 1.5rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .role-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .role-tab {
+    flex-basis: 50%;
+    padding: 0.75rem 1rem;
+  }
+  
+  .role-permissions-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .save-permissions-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .permissions-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .role-tab {
+    flex-basis: 100%;
+  }
+}
