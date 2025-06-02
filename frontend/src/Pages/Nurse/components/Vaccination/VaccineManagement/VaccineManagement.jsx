@@ -3,15 +3,20 @@ import vaccinationService from '../../../../../services/vaccinationService';
 import './VaccineManagement.css';
 // Import component VaccineForm từ thư mục mới
 import VaccineForm from './VaccineManagement_Components/VaccineForm';
+import BatchManagement from './VaccineManagement_Components/BatchManagement';
+import InventoryStatus from './VaccineManagement_Components/InventoryStatus';
 
 const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
   const [vaccines, setVaccines] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ keyword: '' });
+  const [filters, setFilters] = useState({ keyword: '', status: 'all' });
   const [selectedVaccine, setSelectedVaccine] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [vaccineToDelete, setVaccineToDelete] = useState(null);
+  const [showBatchManagement, setShowBatchManagement] = useState(false);
+  const [showInventoryStatus, setShowInventoryStatus] = useState(false);
+  const [activeTab, setActiveTab] = useState('list');
   
   // Thêm state cho modal thêm mới vaccine
   const [showAddModal, setShowAddModal] = useState(false);
@@ -42,11 +47,10 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
       [name]: value
     });
   };
-
   const handleSearch = async () => {
     try {
       setLoading(true);
-      const filteredVaccines = await vaccinationService.searchVaccines(filters.keyword);
+      const filteredVaccines = await vaccinationService.searchVaccines(filters.keyword, filters.status);
       setVaccines(filteredVaccines);
     } catch (error) {
       console.error("Error searching vaccines:", error);
@@ -56,8 +60,13 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
   };
 
   const handleReset = () => {
-    setFilters({ keyword: '' });
+    setFilters({ keyword: '', status: 'all' });
     fetchVaccines();
+  };
+  
+  const handleBatchManagement = (vaccine) => {
+    setSelectedVaccine(vaccine);
+    setShowBatchManagement(true);
   };
 
   const handleViewDetails = (vaccine) => {
@@ -135,10 +144,11 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
     
     try {
       setLoading(true);
-      // Thêm ID của vaccine vào dữ liệu cập nhật
+      // Thêm ID của vaccine và mức tồn kho tối thiểu vào dữ liệu cập nhật
       await vaccinationService.updateVaccine({
         ...updatedData,
-        id: vaccineToEdit.id
+        id: vaccineToEdit.id,
+        minStockLevel: updatedData.minStockLevel || 20 // Thêm minStockLevel nếu được cung cấp, mặc định là 20
       });
       fetchVaccines();
       setShowEditModal(false);
@@ -151,39 +161,104 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
       setLoading(false);
     }
   };
-
   return (
     <div className="vaccine-management">
       <div className="header-actions">
         <h3>Quản lý Vaccine</h3>
-        <button className="add-btn" onClick={handleOpenAddModal}>
-          <i className="fas fa-plus"></i> Thêm Vaccine mới
-        </button>
-      </div>
-
-      <div className="filter-section compact">
-        <div className="filter-row">
-          <div className="filter-item">
-            <input
-              type="text"
-              name="keyword"
-              placeholder="Tìm theo tên vaccine hoặc mã..."
-              value={filters.keyword}
-              onChange={handleFilterChange}
-            />
-          </div>
-          <div className="filter-actions">
-            <button className="btn-search" onClick={handleSearch}>
-              <i className="fas fa-search"></i> Tìm kiếm
-            </button>
-            <button className="btn-reset" onClick={handleReset}>
-              <i className="fas fa-redo"></i> Đặt lại
-            </button>
-          </div>
+        <div className="action-buttons">
+          <button 
+            className="btn-inventory" 
+            onClick={() => setShowInventoryStatus(!showInventoryStatus)}
+            title="Xem trạng thái tồn kho"
+          >
+            <i className="fas fa-chart-pie"></i> Thống kê tồn kho
+          </button>
+          <button className="add-btn" onClick={handleOpenAddModal}>
+            <i className="fas fa-plus"></i> Thêm Vaccine mới
+          </button>
         </div>
       </div>
 
-      {loading ? (
+      {showInventoryStatus && <InventoryStatus />}
+
+      <div className="vaccine-tabs">
+        <button 
+          className={`tab-button ${activeTab === 'list' ? 'active' : ''}`}
+          onClick={() => setActiveTab('list')}
+        >
+          <i className="fas fa-list"></i> Danh sách vaccine
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'batches' ? 'active' : ''}`}
+          onClick={() => setActiveTab('batches')}
+        >
+          <i className="fas fa-boxes"></i> Quản lý lô vaccine
+        </button>
+      </div>
+
+      {activeTab === 'list' && (
+        <>
+          <div className="filter-section compact">
+            <div className="filter-row">
+              <div className="filter-item">
+                <input
+                  type="text"
+                  name="keyword"
+                  placeholder="Tìm theo tên vaccine hoặc mã..."
+                  value={filters.keyword}
+                  onChange={handleFilterChange}
+                />
+              </div>
+              <div className="filter-item">
+                <select 
+                  name="status" 
+                  value={filters.status} 
+                  onChange={handleFilterChange}
+                >
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="active">Đang sử dụng</option>
+                  <option value="inactive">Ngừng sử dụng</option>
+                  <option value="mandatory">Bắt buộc</option>
+                  <option value="optional">Không bắt buộc</option>
+                </select>
+              </div>
+              <div className="filter-actions">
+                <button className="btn-search" onClick={handleSearch}>
+                  <i className="fas fa-search"></i> Tìm kiếm
+                </button>
+                <button className="btn-reset" onClick={handleReset}>
+                  <i className="fas fa-redo"></i> Đặt lại
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {activeTab === 'batches' && (
+        <div className="batch-management-container">
+          <div className="select-vaccine-section">
+            <h4>Chọn vaccine để quản lý lô</h4>
+            <select 
+              className="vaccine-selector"
+              onChange={(e) => {
+                const selected = vaccines.find(v => v.id === Number(e.target.value));
+                setSelectedVaccine(selected || null);
+              }}
+              value={selectedVaccine?.id || ''}
+            >
+              <option value="">-- Chọn vaccine --</option>
+              {vaccines.map(vaccine => (
+                <option key={vaccine.id} value={vaccine.id}>
+                  {vaccine.code} - {vaccine.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {selectedVaccine && <BatchManagement vaccineId={selectedVaccine.id} />}
+        </div>
+      )}      {activeTab === 'list' && (loading ? (
         <div className="loading">
           <i className="fas fa-spinner fa-spin"></i>
           <p>Đang tải dữ liệu vaccine...</p>
@@ -200,13 +275,14 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
                 <th>Số mũi</th>
                 <th>Loại</th>
                 <th>Trạng thái</th>
+                <th>Số lượng</th>
                 <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {vaccines.length > 0 ? (
                 vaccines.map((vaccine, index) => (
-                  <tr key={vaccine.id}>
+                  <tr key={vaccine.id} className={vaccine.quantity === 0 ? 'out-of-stock' : vaccine.quantity < vaccine.minStockLevel ? 'low-stock' : ''}>
                     <td>{index + 1}</td>
                     <td>{vaccine.code}</td>
                     <td>{vaccine.name}</td>
@@ -220,6 +296,18 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
                     <td>
                       <span className={`status ${vaccine.active ? 'active' : 'inactive'}`}>
                         {vaccine.active ? 'Đang sử dụng' : 'Ngừng sử dụng'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`stock-status ${
+                        vaccine.quantity === 0 
+                          ? 'out-of-stock' 
+                          : vaccine.quantity < vaccine.minStockLevel 
+                            ? 'low-stock' 
+                            : 'in-stock'
+                      }`}>
+                        {vaccine.quantity || 0}
+                        {vaccine.quantity === 0 && <i className="fas fa-exclamation-triangle"></i>}
                       </span>
                     </td>
                     <td className="actions">
@@ -237,7 +325,13 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
                       >
                         <i className="fas fa-edit"></i>
                       </button>
-                      {/* Thêm nút xóa vào đây */}
+                      <button
+                        className="btn-batch"
+                        onClick={() => handleBatchManagement(vaccine)}
+                        title="Quản lý lô vaccine"
+                      >
+                        <i className="fas fa-boxes"></i>
+                      </button>
                       <button
                         className="btn-delete"
                         onClick={() => handleDeleteClick(vaccine)}
@@ -250,7 +344,7 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="no-data">
+                  <td colSpan="9" className="no-data">
                     Không tìm thấy vaccine nào
                   </td>
                 </tr>
@@ -258,7 +352,7 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
             </tbody>
           </table>
         </div>
-      )}
+      ))}
 
       {/* Modal thêm mới vaccine */}
       {showAddModal && (
@@ -303,8 +397,7 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
         </div>
       )}
 
-      {/* Modal xem chi tiết vaccine */}
-      {showDetailModal && selectedVaccine && (
+      {/* Modal xem chi tiết vaccine */}      {showDetailModal && selectedVaccine && (
         <div className="modal-overlay">
           <div className="modal-container">
             <div className="modal-header">
@@ -354,9 +447,44 @@ const VaccineManagement = ({ refreshData, openAddVaccineModal }) => {
                   </div>
                 </div>
                 <div className="detail-row">
+                  <div className="detail-label">Số lượng hiện có:</div>
+                  <div className="detail-value">
+                    <span className={`stock-status ${
+                      selectedVaccine.quantity === 0 
+                        ? 'out-of-stock' 
+                        : selectedVaccine.quantity < selectedVaccine.minStockLevel 
+                          ? 'low-stock' 
+                          : 'in-stock'
+                    }`}>
+                      {selectedVaccine.quantity || 0}
+                      {selectedVaccine.quantity === 0 && <i className="fas fa-exclamation-triangle"></i>}
+                    </span>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-label">Mức tồn kho tối thiểu:</div>
+                  <div className="detail-value">{selectedVaccine.minStockLevel || 0}</div>
+                </div>
+                <div className="detail-row">
                   <div className="detail-label">Mô tả:</div>
                   <div className="detail-value description">{selectedVaccine.description || 'Không có mô tả'}</div>
                 </div>
+              </div>
+              
+              {/* Hiển thị thông tin lô vaccine */}
+              <div className="detail-section">
+                <h4>Lô vaccine hiện có</h4>
+                {showDetailModal && selectedVaccine && (
+                  <BatchManagement 
+                    vaccineId={selectedVaccine.id} 
+                    onBatchChange={(totalQuantity) => {
+                      setSelectedVaccine({
+                        ...selectedVaccine,
+                        quantity: totalQuantity
+                      });
+                    }}
+                  />
+                )}
               </div>
             </div>
             <div className="modal-footer">
