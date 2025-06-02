@@ -2,11 +2,7 @@ import React from "react";
 import { Route } from "react-router-dom";
 import AdminDashboard from "../Pages/Admin/components/AdminHome/AdminDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
-
-// Layout riêng cho admin (không có header, footer hoặc navigation chung)
-const AdminLayout = ({ children }) => (
-  <div className="admin-layout">{children}</div>
-);
+import { AdminLayout } from "../components/layouts/SharedLayouts";
 
 const AdminRoutes = () => {
   return [
