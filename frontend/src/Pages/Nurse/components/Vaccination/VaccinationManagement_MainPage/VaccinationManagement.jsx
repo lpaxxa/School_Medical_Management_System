@@ -3,12 +3,12 @@ import './VaccinationManagement.css';
 import vaccinationService from '../../../../../services/vaccinationService';
 
 // Sub-components (import từ các thư mục mới)
-import VaccinationDashboard from '../Dashboard';
-import VaccineManagement from '../VaccineManagement';
-import StudentVaccinationRecords from '../StudentRecords';
-import VaccinationRecordManagement from '../VaccinationRecords';
-import VaccinationPlanManagement from '../PlanManagement';
-import VaccinationReports from '../Reports';
+import VaccinationDashboard from '../Dashboard/VaccinationDashboard';
+import VaccineManagement from '../VaccineManagement/VaccineManagement';
+import StudentVaccinationRecords from '../StudentRecords/StudentVaccinationRecords';
+import VaccinationRecordManagement from '../VaccinationRecords/VaccinationRecordManagement';
+import VaccinationPlanManagement from '../PlanManagement/VaccinationPlanManagement';
+import VaccinationReports from '../Reports/VaccinationReports';
 
 const VaccinationManagement = () => {
   // State for active tab

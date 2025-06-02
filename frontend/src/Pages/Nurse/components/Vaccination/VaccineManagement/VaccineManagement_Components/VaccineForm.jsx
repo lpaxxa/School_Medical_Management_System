@@ -10,12 +10,12 @@ const VaccineForm = ({ vaccine, onSubmit, onCancel, isEdit = false }) => {
     interval: '',
     description: '',
     mandatory: false,
-    active: true
+    active: true,
+    minStockLevel: '20' // Thêm mức tồn kho tối thiểu
   });
   
   const [errors, setErrors] = useState({});
-  
-  // Nếu là chỉnh sửa và có dữ liệu vaccine, cập nhật formData
+    // Nếu là chỉnh sửa và có dữ liệu vaccine, cập nhật formData
   useEffect(() => {
     if (isEdit && vaccine) {
       setFormData({
@@ -26,7 +26,8 @@ const VaccineForm = ({ vaccine, onSubmit, onCancel, isEdit = false }) => {
         interval: vaccine.interval || '',
         description: vaccine.description || '',
         mandatory: vaccine.mandatory || false,
-        active: vaccine.active || true
+        active: vaccine.active || true,
+        minStockLevel: vaccine.minStockLevel || '20' // Thêm mức tồn kho tối thiểu
       });
     }
   }, [isEdit, vaccine]);
@@ -68,8 +69,14 @@ const VaccineForm = ({ vaccine, onSubmit, onCancel, isEdit = false }) => {
     
     if (Number(formData.dosages) > 1 && (!formData.interval || formData.interval === '')) {
       newErrors.interval = 'Khoảng cách giữa các mũi không được để trống khi có nhiều hơn 1 mũi';
-    } else if (formData.interval && (isNaN(formData.interval) || Number(formData.interval) < 0)) {
+    } else    if (formData.interval && (isNaN(formData.interval) || Number(formData.interval) < 0)) {
       newErrors.interval = 'Khoảng cách phải là số dương';
+    }
+    
+    if (!formData.minStockLevel) {
+      newErrors.minStockLevel = 'Mức tồn kho tối thiểu không được để trống';
+    } else if (isNaN(formData.minStockLevel) || Number(formData.minStockLevel) < 0) {
+      newErrors.minStockLevel = 'Mức tồn kho tối thiểu phải là số dương';
     }
     
     return newErrors;
@@ -83,13 +90,13 @@ const VaccineForm = ({ vaccine, onSubmit, onCancel, isEdit = false }) => {
       setErrors(newErrors);
       return;
     }
-    
-    // Chuyển đổi dữ liệu từ string sang số
+      // Chuyển đổi dữ liệu từ string sang số
     const vaccineData = {
       ...formData,
       recommendedAge: Number(formData.recommendedAge),
       dosages: Number(formData.dosages),
-      interval: formData.interval ? Number(formData.interval) : null
+      interval: formData.interval ? Number(formData.interval) : null,
+      minStockLevel: Number(formData.minStockLevel)
     };
     
     // Gọi callback để xử lý submit
@@ -180,6 +187,21 @@ const VaccineForm = ({ vaccine, onSubmit, onCancel, isEdit = false }) => {
             onChange={handleChange}
             rows="4"
           />
+        </div>
+        
+        <div className="form-group">
+          <label htmlFor="minStockLevel">Mức tồn kho tối thiểu *</label>
+          <input
+            id="minStockLevel"
+            name="minStockLevel"
+            type="number"
+            min="1"
+            value={formData.minStockLevel}
+            onChange={handleChange}
+            className={errors.minStockLevel ? 'error' : ''}
+          />
+          {errors.minStockLevel && <span className="error-message">{errors.minStockLevel}</span>}
+          <small className="hint">Cảnh báo khi số lượng tồn kho thấp hơn giá trị này</small>
         </div>
         
         <div className="form-row checkbox-group">
