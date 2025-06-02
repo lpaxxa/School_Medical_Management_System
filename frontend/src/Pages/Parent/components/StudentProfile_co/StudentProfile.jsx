@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./StudentProfile.css";
-import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
-import { useAuth } from "../../context/AuthContext";
-import { useStudentData } from "../../context/StudentDataContext";
+import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
+import { useAuth } from "../../../../context/AuthContext";
+import { useStudentData } from "../../../../context/StudentDataContext";
 
 // Mock data cho phụ huynh - có thể dùng từ AuthContext sau này
 const MOCK_PARENTS = [

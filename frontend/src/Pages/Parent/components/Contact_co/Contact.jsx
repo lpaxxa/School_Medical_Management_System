@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Contact.css";
-import { useAuth } from "../../context/AuthContext";
-import { useStudentData } from "../../context/StudentDataContext";
+import { useAuth } from "../../../../context/AuthContext";
+import { useStudentData } from "../../../../context/StudentDataContext";
 
 // Mock data cho lịch sử liên hệ (giữ nguyên vì không có trong StudentDataContext)
 const MOCK_CONTACT_HISTORY = [

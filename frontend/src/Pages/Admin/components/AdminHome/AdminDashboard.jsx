@@ -1,6 +1,11 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import Header from "./components/Header/Header";
+import Sidebar from "./components/Sidebar/Sidebar";
+import DashboardContent from "./components/Dashboard/Dashboard";
+import UserManagement from "./components/UserManagement/UserManagement";
+import PermissionsManagement from "./components/Permissions/PermissionsManagement";
+import ReportGenerator from "./components/Reports/ReportGenerator";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
