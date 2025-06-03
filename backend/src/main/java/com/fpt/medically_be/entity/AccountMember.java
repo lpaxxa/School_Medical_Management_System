@@ -15,6 +15,8 @@ public class AccountMember {
 
     private String email;
 
+    private String username;
+
 
 @Column(name = "phone_number")
     private String phoneNumber;
