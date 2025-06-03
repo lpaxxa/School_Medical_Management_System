@@ -36,6 +36,9 @@ services:
       - medically_network
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/medically_db
+      - SPRING_DATASOURCE_USERNAME=medically_user
+      - SPRING_DATASOURCE_PASSWORD=medically_password
     restart: unless-stopped
 
 volumes:
