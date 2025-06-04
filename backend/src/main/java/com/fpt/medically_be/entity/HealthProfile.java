@@ -49,4 +49,5 @@ public class HealthProfile {
 
     @OneToMany(mappedBy = "healthProfile", cascade = CascadeType.ALL)
     private List<MedicationInstruction> medicationInstructions;
+
 }

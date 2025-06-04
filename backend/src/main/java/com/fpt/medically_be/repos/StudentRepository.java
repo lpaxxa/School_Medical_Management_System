@@ -17,4 +17,5 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     @Query("SELECT s FROM Student s JOIN s.healthProfile hp WHERE hp.id = :healthProfileId")
     Optional<Student> findByHealthProfileId(Long healthProfileId);
+
 }

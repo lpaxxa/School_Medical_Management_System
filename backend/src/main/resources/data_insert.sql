@@ -85,3 +85,4 @@ VALUES
     (4, N'Vắc xin phòng cúm', '2023-10-16', '2024-10-16', 1, N'Bác sĩ Trần Thị Bình', N'Trung tâm Y tế trường học', N'Tiêm không có phản ứng phụ', 1),
     (5, N'Vắc xin phòng cúm', '2023-10-16', '2024-10-16', 1, N'Bác sĩ Trần Thị Bình', N'Trung tâm Y tế trường học', N'Tiêm không có phản ứng phụ', 1);
 
+
