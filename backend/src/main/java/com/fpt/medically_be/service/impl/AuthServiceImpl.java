@@ -36,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AccountMember login(LoginRequestDTO loginRequest) {
         // Find user by email or username
-        Optional<AccountMember> accountMemberOpt = accountMemberRepos.findAccountMemberByEmailOrUsername(
+        Optional<AccountMember> accountMemberOpt = accountMemberRepos.findAccountMemberByEmailOrPassword(
                 loginRequest.getUsername(),
                 loginRequest.getUsername()
         );
