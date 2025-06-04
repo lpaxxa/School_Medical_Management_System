@@ -15,4 +15,5 @@ public interface MedicationInstructionService {
     MedicationInstructionDTO createMedicationInstruction(MedicationInstructionDTO medicationInstructionDTO);
     MedicationInstructionDTO updateMedicationInstruction(Long id, MedicationInstructionDTO medicationInstructionDTO);
     void deleteMedicationInstruction(Long id);
+
 }
