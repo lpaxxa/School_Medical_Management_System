@@ -12,5 +12,8 @@ public interface AccountMemberRepos extends JpaRepository<AccountMember, String>
     Optional<AccountMember> findAccountMemberByEmail(String email);
 
     Optional<AccountMember> findAccountMemberById(String id);
+    Optional<AccountMember> findAccountMemberByEmailAndPassword(String email, String password);
+    Optional<AccountMember> findAccountMemberByEmailOrUsername(String email, String username);
+
 
 }
