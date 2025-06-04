@@ -21,13 +21,13 @@ public class ParentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<List<ParentDTO>> getAllParents() {
         return ResponseEntity.ok(parentService.getAllParents());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<ParentDTO> getParentById(@PathVariable Long id) {
         return ResponseEntity.ok(parentService.getParentById(id));
     }

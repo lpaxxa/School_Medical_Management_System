@@ -66,6 +66,15 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**","v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll() // Allow actuator endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .requestMatchers("/api/students/**").permitAll()
+                    .requestMatchers("/api/parents/**").permitAll()
+                    .requestMatchers("/api/vaccinations/**").permitAll()
+                    .requestMatchers("/api/health-profiles/**").permitAll()
+                    .requestMatchers("/api/medical-checkups/**").permitAll()
+                    .requestMatchers("/api/medication-instructions/**").permitAll()
+
+
+
                 .anyRequest().permitAll()
             )
             .csrf(AbstractHttpConfigurer::disable)
