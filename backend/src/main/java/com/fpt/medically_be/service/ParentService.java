@@ -12,4 +12,5 @@ public interface ParentService {
     ParentDTO createParent(ParentDTO parentDTO);
     ParentDTO updateParent(Long id, ParentDTO parentDTO);
     void deleteParent(Long id);
+
 }

@@ -17,4 +17,5 @@ public class ParentDTO {
     private String address;
     private String relationshipType;
     private String accountId;
+
 }
