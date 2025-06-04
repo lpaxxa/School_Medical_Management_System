@@ -9,18 +9,21 @@ import lombok.Data;
 public class AccountMember {
 
     @Id
+    @Column(columnDefinition = "NVARCHAR(50)")
     private String id;
 
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String password;
 
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String email;
 
-    private String username;
 
-
-@Column(name = "phone_number")
+    @Column(name = "phone_number")
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "NVARCHAR(20)")
     private MemberRole role;
 }
+
