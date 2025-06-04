@@ -66,7 +66,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**","v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll() // Allow actuator endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))

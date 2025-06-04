@@ -12,6 +12,9 @@ public class AccountMember {
     @Column(columnDefinition = "NVARCHAR(50)")
     private String id;
 
+    @Column(name = "user_name", columnDefinition = "NVARCHAR(50)")
+    private String username;
+
     @Column(columnDefinition = "NVARCHAR(255)")
     private String password;
 
