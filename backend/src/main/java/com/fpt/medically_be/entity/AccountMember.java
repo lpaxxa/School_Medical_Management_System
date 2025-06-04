@@ -18,8 +18,13 @@ public class AccountMember {
     @Column(columnDefinition = "NVARCHAR(255)")
     private String email;
 
+
     @Column(name = "phone_number")
-    private String phoneNumber;
+    private String username;
+
+
+//     @Column(name = "phone_number")
+//     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "NVARCHAR(20)")
