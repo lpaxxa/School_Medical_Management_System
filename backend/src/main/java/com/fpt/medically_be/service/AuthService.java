@@ -9,6 +9,8 @@ public interface AuthService {
     AccountMember login(LoginRequestDTO loginRequest);
 
     AccountMember findById(String id);
+    void initiatePasswordReset(String email);
+    void resetPassword(String token, String newPassword);
 
 
 }
