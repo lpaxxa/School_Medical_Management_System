@@ -45,4 +45,5 @@ public class Student {
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private Parent parent;
+
 }

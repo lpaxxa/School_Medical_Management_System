@@ -34,4 +34,5 @@ public class Parent {
     @OneToOne
     @JoinColumn(name = "account_id")
     private AccountMember account;
+
 }

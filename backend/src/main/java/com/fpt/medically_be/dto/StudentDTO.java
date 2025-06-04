@@ -22,4 +22,5 @@ public class StudentDTO {
     private String schoolYear;
     private Long healthProfileId;
     private Long parentId;
+
 }

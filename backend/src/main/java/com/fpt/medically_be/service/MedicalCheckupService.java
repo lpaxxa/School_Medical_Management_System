@@ -16,4 +16,5 @@ public interface MedicalCheckupService {
     MedicalCheckupDTO createMedicalCheckup(MedicalCheckupDTO medicalCheckupDTO);
     MedicalCheckupDTO updateMedicalCheckup(Long id, MedicalCheckupDTO medicalCheckupDTO);
     void deleteMedicalCheckup(Long id);
+
 }

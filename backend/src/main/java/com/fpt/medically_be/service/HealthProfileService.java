@@ -9,4 +9,5 @@ public interface HealthProfileService {
     HealthProfileDTO createHealthProfile(HealthProfileDTO healthProfileDTO);
     HealthProfileDTO updateHealthProfile(Long id, HealthProfileDTO healthProfileDTO);
     void deleteHealthProfile(Long id);
+
 }
