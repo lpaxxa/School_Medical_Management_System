@@ -1,0 +1,43 @@
+# Ignore target directory (will be built inside container)
+target/
+
+# Ignore IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore version control
+.git/
+.gitignore
+
+# Ignore test files (if not needed for build)
+src/test/
+
+# Ignore documentation
+*.md
+docs/
+
+# Ignore environment files
+*.env
+.env.*
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore temporary files
+*.tmp
+*.temp
+.cache/
+
+# Ignore node modules (if any)
+node_modules/
+
+# Ignore Docker files
+Dockerfile*
+docker-compose*.yml 
