@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 
-// API URL từ mockapi.io
+//Get API URL từ mockapi.io
 const API_URL = "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1";
 
 const AuthContext = createContext();
