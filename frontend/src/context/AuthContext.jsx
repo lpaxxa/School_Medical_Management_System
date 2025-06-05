@@ -1,7 +1,32 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-// Import data từ mockData
-import { mockUsers, mockLogin } from "../mockData/users";
-import { getStudentsByParentId } from "../mockData/students";
+
+// Mock users data (trong thực tế sẽ thay bằng API calls)
+const mockUsers = [
+  {
+    id: 1,
+    username: "admin",
+    password: "admin123",
+    name: "Admin Hệ thống",
+    role: "admin",
+    email: "admin@school.edu.vn",
+  },
+  {
+    id: 2,
+    username: "parent",
+    password: "parent123",
+    name: "Nguyễn Văn A",
+    role: "parent",
+    email: "parent@example.com",
+  },
+  {
+    id: 3,
+    username: "nurse",
+    password: "nurse123",
+    name: "Y tá Trường",
+    role: "nurse",
+    email: "nurse@school.edu.vn",
+  },
+];
 
 const AuthContext = createContext();
 
@@ -12,132 +37,54 @@ export function useAuth() {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
+  // Kiểm tra trạng thái đăng nhập khi component mount
   useEffect(() => {
-    // Check if we have a token in localStorage
-    const authToken = localStorage.getItem("authToken");
-    const userData = localStorage.getItem("userData");
-
-    const initializeAuth = async () => {
-      if (authToken && userData) {
-        try {
-          // Simulate API delay
-          await new Promise((resolve) => setTimeout(resolve, 500));
-
-          // Parse stored user data
-          const parsedUserData = JSON.parse(userData);
-          setCurrentUser(parsedUserData);
-          console.log("Auth initialized with user:", parsedUserData);
-        } catch (error) {
-          console.error("Token validation failed:", error);
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("userData");
-        }
-      }
-      setLoading(false);
-    };
-
-    initializeAuth();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
-  // Login function using mockLogin from users.js
+  // Hàm đăng nhập
   const login = async (username, password) => {
-    try {
-      // Sử dụng mockLogin từ users.js
-      const response = await mockLogin(username, password);
+    return new Promise((resolve, reject) => {
+      // Mô phỏng API call
+      setTimeout(() => {
+        const user = mockUsers.find(
+          (u) => u.username === username && u.password === password
+        );
 
-      if (response.success) {
-        const { user, token } = response.data;
-
-        // Nếu user là parent, lấy thông tin về con cái
-        let enhancedUser = { ...user };
-
-        if (user.role === "parent") {
-          // Nếu dữ liệu con đã có trong mockUsers, không cần lấy thêm
-          if (!user.children) {
-            const children = getStudentsByParentId(user.id);
-            enhancedUser = {
-              ...user,
-              children,
-            };
-          }
+        if (user) {
+          // Không lưu mật khẩu vào state và localStorage
+          const { password, ...userWithoutPassword } = user;
+          setCurrentUser(userWithoutPassword);
+          localStorage.setItem("user", JSON.stringify(userWithoutPassword));
+          resolve(userWithoutPassword);
+        } else {
+          reject({ message: "Tên đăng nhập hoặc mật khẩu không đúng" });
         }
-
-        // Store token and user data
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("userData", JSON.stringify(enhancedUser));
-
-        // Set current user
-        setCurrentUser(enhancedUser);
-
-        console.log("Login successful:", enhancedUser);
-        return enhancedUser;
-      } else {
-        throw new Error(response.message || "Đăng nhập thất bại");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      throw error;
-    }
+      }, 800);
+    });
   };
 
-  // Logout function
+  // Hàm đăng xuất
   const logout = () => {
     setCurrentUser(null);
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
-    console.log("Logout successful");
-  };
-
-  // Function to get current user
-  const getCurrentUser = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        throw new Error("No token found");
-      }
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      const userData = localStorage.getItem("userData");
-      if (userData) {
-        return JSON.parse(userData);
-      } else {
-        throw new Error("User data not found");
-      }
-    } catch (error) {
-      console.error("Get current user error:", error);
-      throw error;
-    }
-  };
-
-  // Hàm để lấy thông tin học sinh từ id
-  const getChildrenData = async (parentId) => {
-    try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      return getStudentsByParentId(parentId);
-    } catch (error) {
-      console.error("Error fetching children data:", error);
-      throw error;
-    }
+    localStorage.removeItem("user");
   };
 
   const value = {
     currentUser,
     login,
     logout,
-    getCurrentUser,
-    getChildrenData,
-    loading,
-    // Cung cấp một danh sách user đơn giản cho mục đích debug (chỉ tên và vai trò)
-    availableUsers: mockUsers.map(({ username, role, name }) => ({
-      username,
-      role,
-      name,
-    })),
+    error,
+    setError,
+    isAdmin: currentUser?.role === "admin",
+    isNurse: currentUser?.role === "nurse",
+    isParent: currentUser?.role === "parent",
   };
 
   return (
