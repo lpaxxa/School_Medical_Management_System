@@ -24,6 +24,7 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
     MedicalIncidentMapper medicalIncidentMapper;
     @Autowired
     private MedicalIncidentRepository medicalIncidentRepository;
+
     @Override
     public List<MedicalIncidentDTO> getAllMedicalIncidents() {
         return medicalIncidentRepository.findAll()
