@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-// import axios from "axios"; // Comment out axios for now
+// Import data từ mockData
+import { mockUsers, mockLogin } from "../mockData/users";
+import { getStudentsByParentId } from "../mockData/students";
 
 const AuthContext = createContext();
 
@@ -7,78 +9,29 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-// Mock user data for testing
-const MOCK_USERS = [
-  {
-    id: 1,
-    username: "admin",
-    password: "admin123",
-    name: "Quản trị viên",
-    email: "admin@school.edu.vn",
-    role: "admin",
-    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    permissions: ["all"],
-  },
-  {
-    id: 2,
-    username: "nurse1",
-    password: "nurse123",
-    name: "Y tá Nguyễn Thị Hoa",
-    email: "nurse1@school.edu.vn",
-    role: "nurse",
-    avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-    permissions: ["health_records", "medical_reports", "notifications"],
-  },
-  {
-    id: 3,
-    username: "parent1",
-    password: "parent123",
-    name: "Phụ huynh Trần Văn An",
-    email: "parent1@gmail.com",
-    role: "parent",
-    avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    studentIds: [101, 102], // IDs of their children
-    permissions: ["view_child_health", "submit_health_declaration"],
-  },
-  {
-    id: 4,
-    username: "parent2",
-    password: "parent123",
-    name: "Phụ huynh Lê Thị Bình",
-    email: "parent2@gmail.com",
-    role: "parent",
-    avatar: "https://randomuser.me/api/portraits/women/4.jpg",
-    studentIds: [103],
-    permissions: ["view_child_health", "submit_health_declaration"],
-  },
-];
-
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Mock API URL - commented out for now
-  // const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
-
   useEffect(() => {
-    // Check if we have a mock token in localStorage
-    const mockToken = localStorage.getItem("mockAuthToken");
-    const mockUser = localStorage.getItem("mockUser");
+    // Check if we have a token in localStorage
+    const authToken = localStorage.getItem("authToken");
+    const userData = localStorage.getItem("userData");
 
     const initializeAuth = async () => {
-      if (mockToken && mockUser) {
+      if (authToken && userData) {
         try {
           // Simulate API delay
           await new Promise((resolve) => setTimeout(resolve, 500));
 
           // Parse stored user data
-          const userData = JSON.parse(mockUser);
-          setCurrentUser(userData);
-          console.log("Mock auth initialized with user:", userData);
+          const parsedUserData = JSON.parse(userData);
+          setCurrentUser(parsedUserData);
+          console.log("Auth initialized with user:", parsedUserData);
         } catch (error) {
-          console.error("Mock token validation failed:", error);
-          localStorage.removeItem("mockAuthToken");
-          localStorage.removeItem("mockUser");
+          console.error("Token validation failed:", error);
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("userData");
         }
       }
       setLoading(false);
@@ -87,47 +40,43 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Mock login function
+  // Login function using mockLogin from users.js
   const login = async (username, password) => {
     try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Sử dụng mockLogin từ users.js
+      const response = await mockLogin(username, password);
 
-      // Find user in mock data
-      const user = MOCK_USERS.find(
-        (u) => u.username === username && u.password === password
-      );
+      if (response.success) {
+        const { user, token } = response.data;
 
-      if (!user) {
-        throw new Error("Tên đăng nhập hoặc mật khẩu không chính xác");
+        // Nếu user là parent, lấy thông tin về con cái
+        let enhancedUser = { ...user };
+
+        if (user.role === "parent") {
+          // Nếu dữ liệu con đã có trong mockUsers, không cần lấy thêm
+          if (!user.children) {
+            const children = getStudentsByParentId(user.id);
+            enhancedUser = {
+              ...user,
+              children,
+            };
+          }
+        }
+
+        // Store token and user data
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("userData", JSON.stringify(enhancedUser));
+
+        // Set current user
+        setCurrentUser(enhancedUser);
+
+        console.log("Login successful:", enhancedUser);
+        return enhancedUser;
+      } else {
+        throw new Error(response.message || "Đăng nhập thất bại");
       }
-
-      // Create mock token
-      const mockToken = `mock_jwt_token_${user.id}_${Date.now()}`;
-
-      // Remove password from user data before storing
-      const userDataToStore = {
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-        permissions: user.permissions,
-        studentIds: user.studentIds || [],
-      };
-
-      // Store mock token and user data
-      localStorage.setItem("mockAuthToken", mockToken);
-      localStorage.setItem("mockUser", JSON.stringify(userDataToStore));
-
-      // Set current user
-      setCurrentUser(userDataToStore);
-
-      console.log("Mock login successful:", userDataToStore);
-      return userDataToStore;
     } catch (error) {
-      console.error("Mock login error:", error);
+      console.error("Login error:", error);
       throw error;
     }
   };
@@ -135,25 +84,25 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = () => {
     setCurrentUser(null);
-    localStorage.removeItem("mockAuthToken");
-    localStorage.removeItem("mockUser");
-    console.log("Mock logout successful");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+    console.log("Logout successful");
   };
 
-  // Mock function to get current user (simulate API call)
+  // Function to get current user
   const getCurrentUser = async () => {
     try {
-      const mockToken = localStorage.getItem("mockAuthToken");
-      if (!mockToken) {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
         throw new Error("No token found");
       }
 
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      const mockUser = localStorage.getItem("mockUser");
-      if (mockUser) {
-        return JSON.parse(mockUser);
+      const userData = localStorage.getItem("userData");
+      if (userData) {
+        return JSON.parse(userData);
       } else {
         throw new Error("User data not found");
       }
@@ -163,17 +112,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Hàm để lấy thông tin học sinh từ id
+  const getChildrenData = async (parentId) => {
+    try {
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      return getStudentsByParentId(parentId);
+    } catch (error) {
+      console.error("Error fetching children data:", error);
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     login,
     logout,
     getCurrentUser,
+    getChildrenData,
     loading,
-    // Add mock users for testing purposes (remove in production)
-    mockUsers: MOCK_USERS.map((user) => ({
-      username: user.username,
-      role: user.role,
-      name: user.name,
+    // Cung cấp một danh sách user đơn giản cho mục đích debug (chỉ tên và vai trò)
+    availableUsers: mockUsers.map(({ username, role, name }) => ({
+      username,
+      role,
+      name,
     })),
   };
 
