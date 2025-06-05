@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 
-//Get API URL từ mockapi.io
+// API URL từ mockapi.io
 const API_URL = "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1";
 
 const AuthContext = createContext();
@@ -13,135 +13,73 @@ export function useAuth() {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [mockUsers, setMockUsers] = useState([]); // Lưu trữ danh sách người dùng từ API
+  const [authError, setAuthError] = useState(null);
 
-  // Tải danh sách user từ mockapi.io khi khởi tạo
+  // Kiểm tra nếu người dùng đã đăng nhập (từ localStorage)
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+    const checkLoggedInUser = () => {
+      const token = localStorage.getItem("authToken");
+      const userData = localStorage.getItem("userData");
 
-        const response = await axios.get(`${API_URL}/users`, {
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        // Lưu danh sách user không chứa mật khẩu để hiển thị trên UI
-        const usersForUI = response.data.map(({ password, ...user }) => user);
-        setMockUsers(usersForUI);
-        console.log("Mock API connected successfully");
-      } catch (err) {
-        console.error("Error fetching users from mockapi.io:", err);
-        console.log("Using fallback mock users");
-
-        // Dữ liệu dự phòng nếu API không hoạt động
-        const fallbackUsers = [
-          {
-            id: "1",
-            username: "admin",
-            name: "Admin Hệ thống",
-            role: "admin",
-          },
-          {
-            id: "2",
-            username: "phuhuynh1",
-            name: "Nguyễn Văn A",
-            role: "parent",
-          },
-          {
-            id: "3",
-            username: "yta1",
-            name: "Y Tá Trường",
-            role: "nurse",
-          },
-        ];
-
-        setMockUsers(fallbackUsers);
+      if (token && userData) {
+        setCurrentUser(JSON.parse(userData));
       }
+
+      setLoading(false);
     };
 
-    fetchUsers();
+    checkLoggedInUser();
   }, []);
 
-  // Kiểm tra trạng thái đăng nhập khi component mount
-  useEffect(() => {
-    const storedToken = localStorage.getItem("authToken");
-    const storedUser = localStorage.getItem("userData");
-
-    if (storedToken && storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
-
-  // Hàm đăng nhập
+  // Hàm đăng nhập sử dụng mockAPI.io
   const login = async (username, password) => {
     try {
-      // Gọi API từ mockapi.io để lấy danh sách người dùng
+      setAuthError(null);
+
+      // Gọi API để lấy danh sách users
       const response = await axios.get(`${API_URL}/users`);
       const users = response.data;
 
-      // Tìm user tương ứng với username và password đã nhập
+      // Tìm user phù hợp với thông tin đăng nhập
       const user = users.find(
         (u) => u.username === username && u.password === password
       );
 
       if (user) {
-        // Không lưu mật khẩu vào state và localStorage
+        // Loại bỏ mật khẩu khỏi object user
         const { password, ...userWithoutPassword } = user;
 
-        // Tạo token giả lập
+        // Tạo token mô phỏng
         const token = `mock-jwt-${Date.now()}`;
 
-        // Lưu token và thông tin người dùng
+        // Lưu thông tin đăng nhập
         localStorage.setItem("authToken", token);
         localStorage.setItem("userData", JSON.stringify(userWithoutPassword));
 
         // Cập nhật state
         setCurrentUser(userWithoutPassword);
-
         return userWithoutPassword;
       } else {
         throw new Error("Tên đăng nhập hoặc mật khẩu không đúng");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      setAuthError(error.message || "Đăng nhập thất bại");
       throw error;
     }
   };
 
   // Hàm đăng xuất
   const logout = () => {
-    setCurrentUser(null);
     localStorage.removeItem("authToken");
     localStorage.removeItem("userData");
-  };
-
-  // Hàm tạo user mới (nếu cần)
-  const registerUser = async (userData) => {
-    try {
-      const response = await axios.post(`${API_URL}/users`, userData);
-      return response.data;
-    } catch (error) {
-      console.error("Registration error:", error);
-      throw error;
-    }
+    setCurrentUser(null);
   };
 
   const value = {
     currentUser,
     login,
     logout,
-    registerUser,
-    error,
-    setError,
-    mockUsers, // Cung cấp danh sách người dùng cho UI
-    isAdmin: currentUser?.role === "admin",
-    isNurse: currentUser?.role === "nurse",
-    isParent: currentUser?.role === "parent",
+    authError,
   };
 
   return (

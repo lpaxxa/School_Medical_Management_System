@@ -1,0 +1,318 @@
+/* Reset và thiết lập cơ bản */
+.student-selection {
+  width: 100%;
+  margin-bottom: 25px;
+}
+
+/* Chọn học sinh và tab */
+.selection-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* Container cho tabs học sinh */
+.student-tabs-container {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.student-tabs {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 10px;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+/* Thanh cuộn cho student tabs */
+.student-tabs::-webkit-scrollbar {
+  height: 5px;
+}
+
+.student-tabs::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.student-tabs::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+}
+
+/* Tab học sinh */
+.student-tab {
+  display: flex;
+  align-items: center;
+  width: 200px;
+  height: 64px;
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.student-tab.active {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.student-tab:hover:not(.active) {
+  border-color: #94a3b8;
+}
+
+/* Avatar học sinh */
+.student-avatar {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 12px;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
+}
+
+/* Thông tin trong tab */
+.student-tab-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  width: calc(100% - 56px);
+}
+
+.student-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1e293b;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-class {
+  font-size: 0.85rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Nếu chỉ có một học sinh */
+.single-student-info {
+  display: flex;
+  align-items: center;
+  background-color: #f0f9ff;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #2563eb;
+  margin-bottom: 20px;
+}
+
+.student-details {
+  margin-left: 15px;
+}
+
+.student-details h4 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.student-details p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Chi tiết học sinh đã chọn */
+.selected-student-details {
+  background-color: #f8fafc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.student-profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
+  border: 2px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.profile-basic-info {
+  flex: 1;
+}
+
+.profile-basic-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.profile-basic-info p {
+  margin: 0 0 4px 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.school-name {
+  color: #2563eb !important;
+  font-weight: 500;
+}
+
+/* Bảng thông tin chi tiết */
+.student-profile-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.detail-item {
+  display: flex;
+  padding-bottom: 10px;
+}
+
+.detail-item .label {
+  width: 100px;
+  min-width: 100px;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.detail-item .value {
+  flex: 1;
+  color: #1e293b;
+  font-size: 0.9rem;
+}
+
+.health-status-item {
+  grid-column: 1 / -1;
+}
+
+.value.health-status {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* Khai báo gần đây */
+.recent-declaration {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.recent-declaration h5 {
+  margin: 0 0 8px 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.recent-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.recent-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.recent-date i {
+  color: #64748b;
+}
+
+.status-approved {
+  background-color: #f0fdf4;
+  border-left: 3px solid #22c55e;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  border-left: 3px solid #f59e0b;
+}
+
+.status-rejected {
+  background-color: #fee2e2;
+  border-left: 3px solid #ef4444;
+}
+
+.recent-decision {
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .student-profile-details {
+    grid-template-columns: 1fr;
+  }
+
+  .health-status-item {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .student-tab {
+    width: 180px;
+  }
+
+  .student-profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-avatar {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+
+  .profile-basic-info {
+    text-align: center;
+    width: 100%;
+  }
+
+  .detail-item {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .detail-item .label {
+    width: 100%;
+  }
+}
