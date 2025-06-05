@@ -1,32 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-
-// Mock users data (trong thực tế sẽ thay bằng API calls)
-const mockUsers = [
-  {
-    id: 1,
-    username: "admin",
-    password: "admin123",
-    name: "Admin Hệ thống",
-    role: "admin",
-    email: "admin@school.edu.vn",
-  },
-  {
-    id: 2,
-    username: "parent",
-    password: "parent123",
-    name: "Nguyễn Văn A",
-    role: "parent",
-    email: "parent@example.com",
-  },
-  {
-    id: 3,
-    username: "nurse",
-    password: "nurse123",
-    name: "Y tá Trường",
-    role: "nurse",
-    email: "nurse@school.edu.vn",
-  },
-];
+import axios from "axios";
 
 const AuthContext = createContext();
 
@@ -37,54 +10,102 @@ export function useAuth() {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  // Kiểm tra trạng thái đăng nhập khi component mount
+  // Fix this line - replace process.env with import.meta.env
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1/auth/login";
+
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
+    // Check if we have a token in localStorage
+    const token = localStorage.getItem("authToken");
 
-  // Hàm đăng nhập
-  const login = async (username, password) => {
-    return new Promise((resolve, reject) => {
-      // Mô phỏng API call
-      setTimeout(() => {
-        const user = mockUsers.find(
-          (u) => u.username === username && u.password === password
-        );
+    const initializeAuth = async () => {
+      if (token) {
+        try {
+          // Set the auth header
+          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        if (user) {
-          // Không lưu mật khẩu vào state và localStorage
-          const { password, ...userWithoutPassword } = user;
-          setCurrentUser(userWithoutPassword);
-          localStorage.setItem("user", JSON.stringify(userWithoutPassword));
-          resolve(userWithoutPassword);
-        } else {
-          reject({ message: "Tên đăng nhập hoặc mật khẩu không đúng" });
+          // Verify token validity and get user data
+          const response = await axios.get(`${API_URL}/auth/me`);
+          setCurrentUser(response.data);
+        } catch (error) {
+          // If token is invalid or expired
+          console.error("Token validation failed:", error);
+          localStorage.removeItem("authToken");
+          delete axios.defaults.headers.common["Authorization"];
         }
-      }, 800);
-    });
+      }
+      setLoading(false);
+    };
+
+    initializeAuth();
+  }, [API_URL]);
+
+  // Login function - used by Login component
+  const login = async (userData) => {
+    setCurrentUser(userData);
   };
 
-  // Hàm đăng xuất
+  // Logout function
   const logout = () => {
     setCurrentUser(null);
-    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    delete axios.defaults.headers.common["Authorization"];
   };
+
+  // Create an axios interceptor to handle token expiration
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+
+        // If error is 401 Unauthorized and not already retrying
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            // Try to refresh the token
+            const refreshToken = localStorage.getItem("refreshToken");
+            if (refreshToken) {
+              const response = await axios.post(`${API_URL}/auth/refresh`, {
+                refreshToken,
+              });
+
+              const { token } = response.data;
+              localStorage.setItem("authToken", token);
+              axios.defaults.headers.common[
+                "Authorization"
+              ] = `Bearer ${token}`;
+
+              // Retry the original request
+              return axios(originalRequest);
+            } else {
+              // No refresh token, logout the user
+              logout();
+              return Promise.reject(error);
+            }
+          } catch (refreshError) {
+            // Refresh failed, logout the user
+            logout();
+            return Promise.reject(refreshError);
+          }
+        }
+
+        return Promise.reject(error);
+      }
+    );
+
+    // Clean up interceptor on unmount
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [API_URL]);
 
   const value = {
     currentUser,
     login,
     logout,
-    error,
-    setError,
-    isAdmin: currentUser?.role === "admin",
-    isNurse: currentUser?.role === "nurse",
-    isParent: currentUser?.role === "parent",
+    loading,
   };
 
   return (
