@@ -1,7 +1,7 @@
 import React from "react";
 import "./Vision.css";
 // Import trực tiếp hình ảnh từ folder assets
-import visionImage from "../../assets/vision.jpg";
+import visionImage from "../../../../assets/vision.jpg";
 
 export default function Vision() {
   const visionPoints = [

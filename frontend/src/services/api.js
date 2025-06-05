@@ -1,6 +1,8 @@
+// Mock implementation - comment out real API calls for now
+/*
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api/v1/auth/login";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -24,3 +26,30 @@ api.interceptors.request.use(
 );
 
 export default api;
+*/
+
+// Mock API service for development
+const mockApi = {
+  // Simulate successful responses
+  get: async (url) => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { data: { message: 'Mock GET response', url } };
+  },
+  
+  post: async (url, data) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return { data: { message: 'Mock POST response', url, data } };
+  },
+  
+  put: async (url, data) => {
+    await new Promise(resolve => setTimeout(resolve, 400));
+    return { data: { message: 'Mock PUT response', url, data } };
+  },
+  
+  delete: async (url) => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { data: { message: 'Mock DELETE response', url } };
+  }
+};
+
+export default mockApi;

@@ -1,0 +1,26 @@
+.admin-layout {
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.admin-main {
+  display: flex;
+  min-height: calc(100vh - 70px);
+}
+
+.admin-content {
+  flex: 1;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-main {
+    flex-direction: column;
+  }
+  
+  .admin-content {
+    min-height: calc(100vh - 130px);
+  }
+}

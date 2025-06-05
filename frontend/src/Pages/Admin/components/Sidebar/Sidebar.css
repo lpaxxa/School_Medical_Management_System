@@ -1,13 +1,34 @@
 .admin-sidebar {
-  background-color: #2c3e50;
-  color: #fff;
-  width: 250px;
-  height: calc(100vh - 60px);
+  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+  color: #ecf0f1;
+  width: 280px;
+  min-height: calc(100vh - 60px);
   overflow-y: auto;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.admin-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2980b9, #e74c3c, #f39c12);
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .sidebar-nav {
-  padding: 20px 0;
+  padding: 25px 0;
 }
 
 .sidebar-nav ul {
@@ -17,34 +38,261 @@
 }
 
 .sidebar-nav li {
-  padding: 15px 20px;
+  margin: 8px 15px;
+  padding: 0;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-nav li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.sidebar-nav li:hover::before {
+  left: 100%;
+}
+
+.sidebar-nav li > div,
+.sidebar-nav li {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
+  padding: 16px 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar-nav li:hover {
-  background-color: #34495e;
+  background: rgba(52, 152, 219, 0.2);
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
 }
 
 .sidebar-nav li.active {
-  background-color: #3498db;
-  position: relative;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  transform: translateX(8px);
+  box-shadow: 
+    0 6px 20px rgba(52, 152, 219, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .sidebar-nav li.active::after {
   content: '';
   position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 5px;
-  background-color: #fff;
+  right: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 8px solid #3498db;
 }
 
 .sidebar-nav i {
-  width: 20px;
+  width: 24px;
+  height: 24px;
   text-align: center;
+  font-size: 16px;
+  line-height: 24px;
+  color: #bdc3c7;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.sidebar-nav li:hover i,
+.sidebar-nav li.active i {
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.sidebar-nav li.active i {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.sidebar-nav span {
+  font-size: 15px;
+  font-weight: 500;
+  color: #ecf0f1;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-nav li:hover span {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.sidebar-nav li.active span {
+  color: #ffffff;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Add a subtle separator between menu groups */
+.sidebar-nav li:nth-child(2)::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(189, 195, 199, 0.3), transparent);
+}
+
+/* Custom scrollbar */
+.admin-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+  background: rgba(44, 62, 80, 0.1);
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3498db, #2980b9);
+  border-radius: 10px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #5dade2, #3498db);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 70px;
+    min-width: 70px;
+  }
+  
+  .sidebar-nav li {
+    margin: 8px 5px;
+    justify-content: center;
+  }
+  
+  .sidebar-nav span {
+    display: none;
+  }
+  
+  .sidebar-nav i {
+    margin: 0;
+    font-size: 18px;
+  }
+  
+  .sidebar-nav li.active::after {
+    display: none;
+  }
+  
+  .sidebar-nav li:hover,
+  .sidebar-nav li.active {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-sidebar {
+    width: 60px;
+    min-width: 60px;
+  }
+  
+  .sidebar-nav {
+    padding: 20px 0;
+  }
+  
+  .sidebar-nav li {
+    margin: 6px 3px;
+    padding: 12px 8px;
+  }
+  
+  .sidebar-nav i {
+    font-size: 16px;
+  }
+}
+
+/* Add hover tooltips for mobile */
+@media (max-width: 768px) {
+  .sidebar-nav li {
+    position: relative;
+  }
+  
+  .sidebar-nav li::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(44, 62, 80, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .sidebar-nav li:hover::after {
+    opacity: 1;
+    visibility: visible;
+    left: 75px;
+  }
+}
+
+/* Loading animation for menu items */
+.sidebar-nav li {
+  animation: slideInLeft 0.5s ease forwards;
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.sidebar-nav li:nth-child(1) { animation-delay: 0.1s; }
+.sidebar-nav li:nth-child(2) { animation-delay: 0.2s; }
+.sidebar-nav li:nth-child(3) { animation-delay: 0.3s; }
+.sidebar-nav li:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes slideInLeft {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Active section indicator glow effect */
+.sidebar-nav li.active {
+  position: relative;
+}
+
+.sidebar-nav li.active::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #3498db, #2980b9, #3498db);
+  border-radius: 14px;
+  z-index: -1;
+  animation: activeGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes activeGlow {
+  from {
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+  }
+  to {
+    box-shadow: 0 0 20px rgba(52, 152, 219, 0.6);
+  }
 }

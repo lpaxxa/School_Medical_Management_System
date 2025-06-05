@@ -6,18 +6,18 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import { MainLayout, HomeLayout } from "../components/layouts/SharedLayouts";
 
 // Import Parent Pages
-import MainPage from "../Pages/Parent/components/Home_co/index";
-import IntroductionPage from "../Pages/Parent/components/Introduction_co/IntroductionPage";
-import StudentProfile from "../Pages/Parent/components/StudentProfile_co/StudentProfile";
-import Notifications from "../Pages/Parent/components/Notifications_co/Notifications";
-import ParentContact from "../Pages/Parent/components/Contact_co/Contact";
-import HealthGuide from "../Pages/Parent/components/HealthGuide_co/HealthGuide";
-import HealthGuideDetail from "../Pages/Parent/components/HealthGuide_co/HealthGuideDetail";
-import HealthDeclaration from "../Pages/Parent/components/HealthDeclaration_co/HealthDeclaration";
-import SendMedicine from "../Pages/Parent/components/SendMedicine_co/SendMedicine";
-import MedicalRecords from "../Pages/Parent/components/MedicalRecords_co/MedicalRecords";
-import Community from "../Pages/Parent/components/Community_co/Community";
-import CommunityPost from "../Pages/Parent/components/Community_co/CommunityPost";
+import MainPage from "../Pages/Parent/pages/Home_co/index";
+import IntroductionPage from "../Pages/Parent/pages/Introduction_co/IntroductionPage";
+import StudentProfile from "../Pages/Parent/pages/StudentProfile_co/StudentProfile";
+import Notifications from "../Pages/Parent/pages/Notifications_co/Notifications";
+import ParentContact from "../Pages/Parent/pages/Contact_co/Contact";
+import HealthGuide from "../Pages/Parent/pages/HealthGuide_co/HealthGuide";
+import HealthGuideDetail from "../Pages/Parent/pages/HealthGuide_co/HealthGuideDetail";
+import HealthDeclaration from "../Pages/Parent/pages/HealthDeclaration_co/HealthDeclaration";
+import SendMedicine from "../Pages/Parent/pages/SendMedicine_co/SendMedicine";
+import MedicalRecords from "../Pages/Parent/pages/MedicalRecords_co/MedicalRecords";
+import Community from "../Pages/Parent/pages/Community_co/Community";
+import CommunityPost from "../Pages/Parent/pages/Community_co/CommunityPost";
 
 // Parent routes including all parent-specific pages
 const ParentRoutes = () => {
