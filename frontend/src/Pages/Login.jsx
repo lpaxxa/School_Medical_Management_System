@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import "../styles/login.css";
 import loginImage from "../assets/A1.jpg";
 import googleIcon from "../assets/google.png";
-// import axios from "axios"; // Comment out axios for mock implementation
+import axios from "axios"; // Sử dụng axios
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -12,13 +12,12 @@ const Login = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login, mockUsers } = useAuth(); // Get mockUsers for development
+  const { login, mockUsers } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
 
-  // Mock API URL - commented out for now
-  // const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
+  const API_URL = "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1/users";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,13 +25,13 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Use mock login function instead of real API call
+      // Sử dụng hàm login từ AuthContext đã được cập nhật để gọi đến MockAPI
       const user = await login(username, password);
 
       console.log("Login successful, user:", user);
       console.log("Redirecting to:", from);
 
-      // Navigate based on user role
+      // Chuyển hướng dựa trên vai trò người dùng
       let redirectPath = from;
       if (from === "/") {
         switch (user.role) {
@@ -57,80 +56,39 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
-
-    /* 
-    // Real API implementation - uncomment when backend is ready
-    try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        username,
-        password,
-      });
-
-      const { token, user } = response.data;
-
-      if (!token) {
-        throw new Error("Token not received from server");
-      }
-
-      localStorage.setItem("authToken", token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      await login(user);
-      
-      console.log("Login successful, redirecting to:", from);
-      navigate(from, { replace: true });
-    } catch (err) {
-      console.error("Login error:", err);
-
-      if (err.response) {
-        const serverError = err.response.data?.message || "Invalid credentials";
-        setError(serverError);
-      } else if (err.request) {
-        setError("Không thể kết nối đến máy chủ. Vui lòng thử lại sau.");
-      } else {
-        setError(
-          err.message ||
-            "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập."
-        );
-      }
-    } finally {
-      setIsLoading(false);
-    }
-    */
   };
 
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
 
-      // Mock Google login - simulate successful login with a parent account
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Gọi API để lấy danh sách người dùng
+      const response = await axios.get(`${API_URL}/users`);
+      const users = response.data;
 
-      const mockGoogleUser = {
-        id: 99,
-        username: "google_user",
-        name: "Người dùng Google",
-        email: "user@gmail.com",
-        role: "parent",
-        avatar: "https://randomuser.me/api/portraits/women/5.jpg",
-        permissions: ["view_child_health", "submit_health_declaration"],
-        studentIds: [104],
-      };
+      // Tìm một người dùng có role là "parent" để giả lập đăng nhập Google
+      const parentUser = users.find((user) => user.role === "parent");
 
-      // Store mock token and user data
-      const mockToken = `mock_google_token_${Date.now()}`;
-      localStorage.setItem("mockAuthToken", mockToken);
-      localStorage.setItem("mockUser", JSON.stringify(mockGoogleUser));
+      if (parentUser) {
+        // Không sử dụng mật khẩu
+        const { password, ...userWithoutPassword } = parentUser;
 
-      // Redirect to parent dashboard
-      navigate("/parent", { replace: true });
+        // Tạo token giả lập cho đăng nhập Google
+        const googleToken = `google-mock-token-${Date.now()}`;
 
-      /*
-      // Real Google OAuth implementation - uncomment when backend is ready
-      window.location.href = `${API_URL}/auth/google`;
-      */
+        // Lưu token và thông tin người dùng
+        localStorage.setItem("authToken", googleToken);
+        localStorage.setItem("userData", JSON.stringify(userWithoutPassword));
+
+        // Chuyển hướng đến trang phụ huynh
+        navigate("/parent", { replace: true });
+      } else {
+        throw new Error("Không tìm thấy tài khoản phụ huynh để đăng nhập");
+      }
     } catch (error) {
       console.error("Google login error:", error);
-      setError("Không thể kết nối với Google. Vui lòng thử lại sau.");
+      setError("Đăng nhập Google thất bại. Vui lòng thử lại sau.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -153,8 +111,8 @@ const Login = () => {
             <p>Vui lòng đăng nhập để tiếp tục</p>
           </div>
 
-          {/* Development helper - show available accounts */}
-          {mockUsers && (
+          {/* Hiển thị danh sách tài khoản từ MockAPI */}
+          {mockUsers && mockUsers.length > 0 && (
             <div
               className="mock-accounts"
               style={{
@@ -169,21 +127,22 @@ const Login = () => {
               <br />
               {mockUsers.map((user, index) => (
                 <span key={index}>
-                  <strong>{user.role}:</strong> {user.username}/
-                  {user.username === "admin"
-                    ? "admin123"
-                    : user.username.includes("nurse")
-                    ? "nurse123"
-                    : "parent123"}
+                  <strong>{user.role}:</strong> {user.username}
                   {index < mockUsers.length - 1 ? " | " : ""}
                 </span>
               ))}
+              <p>
+                <small>
+                  Mật khẩu mặc định: <strong>123456</strong>
+                </small>
+              </p>
             </div>
           )}
 
           {error && <div className="error-message">{error}</div>}
 
           <form onSubmit={handleSubmit} className="login-form">
+            {/* Form không thay đổi */}
             <div className="form-group">
               <label htmlFor="username">Tên đăng nhập</label>
               <div className="input-with-icon">
@@ -248,7 +207,7 @@ const Login = () => {
             disabled={isLoading}
           >
             <img src={googleIcon} alt="Google" />
-            Đăng nhập với Google (Mock)
+            Đăng nhập với Google
           </button>
 
           <div className="login-footer">
