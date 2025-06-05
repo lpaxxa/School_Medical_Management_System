@@ -13,14 +13,11 @@ COPY pom.xml .
 # Make Maven wrapper executable
 RUN chmod +x ./mvnw
 
-# Download dependencies (this layer will be cached if pom.xml doesn't change)
-RUN ./mvnw dependency:go-offline -B
-
 # Copy source code
 COPY src src
 
-# Build the application
-RUN ./mvnw clean package -DskipTests
+# Build the application (skip tests and dependency download)
+RUN ./mvnw clean package -DskipTests -Dmaven.test.skip=true
 
 # Production stage
 FROM eclipse-temurin:21-jre-alpine AS production
