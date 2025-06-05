@@ -1,2 +1,2 @@
-import MedicalEventsManagement from './MedicalEventsManagement';
-export default MedicalEventsManagement;
+import MedicalEventsMain from './MedicalEventsMain';
+export default MedicalEventsMain;
