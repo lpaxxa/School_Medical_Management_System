@@ -21,6 +21,9 @@ const NurseDashboard = () => {
   };
 
   // Xác định tiêu đề dựa trên tab đang active
+    // Xác định tiêu đề dựa trên tab đang active
+  // Xác định tiêu đề dựa trên tab đang active
+
   const getPageTitle = () => {
     switch(activeTab) {
       case "inventory":
