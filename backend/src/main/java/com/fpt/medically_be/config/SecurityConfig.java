@@ -73,6 +73,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/medical-checkups/**").permitAll()
                     .requestMatchers("/api/medication-instructions/**").permitAll()
                     .requestMatchers("/api/usersController/**").permitAll()
+                    .requestMatchers("/api/medical-incidents/**").permitAll()
 
 
 

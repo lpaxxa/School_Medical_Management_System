@@ -44,9 +44,6 @@ public class MedicalIncident {
     @Column(name = "follow_up_notes",columnDefinition = "NVARCHAR(150)")
     private String followUpNotes;
 
-    @Column(name = "handled_by")
-    private Long handledBy;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -56,4 +53,9 @@ public class MedicalIncident {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false) // trỏ đến Student.studentId
     private Student student;
-}
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "handled_by")
+    private MedicalStaff handledBy;
+
+    }

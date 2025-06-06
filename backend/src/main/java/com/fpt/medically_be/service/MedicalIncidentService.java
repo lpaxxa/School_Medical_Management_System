@@ -15,4 +15,29 @@ public interface MedicalIncidentService {
     List<MedicalIncidentDTO> getFilteredIncidents(LocalDate startDate, LocalDate endDate, String severityLevel);
 
     MedicalIncidentDTO findMedicalIncidentDtoByIncidentId(Long id);
+
+    MedicalIncidentDTO createMedicalIncident(MedicalIncidentDTO medicalIncidentDTO);
+
+    MedicalIncidentDTO updateMedicalIncident(Long id, MedicalIncidentDTO medicalIncidentDTO);
+
+    void deleteMedicalIncident(Long id);
+    List<MedicalIncidentDTO> getMedicalIncidentsByStudentId(Long studentId);
+
+    List<MedicalIncidentDTO> getMedicalIncidentsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<MedicalIncidentDTO> getMedicalIncidentsBySeverityLevel(String severityLevel);
+    List<MedicalIncidentDTO> getMedicalIncidentsByStudentIdAndDateRange(Long studentId, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<MedicalIncidentDTO> getMedicalIncidentsNeedingFollowUp();
+
+    List<MedicalIncidentDTO> getMedicalIncidentsByType(String incidentType);
+
+    List<MedicalIncidentDTO> getMedicalIncidentsByStaffId(Long staffId);
+
+    List<MedicalIncidentDTO> getMedicalIncidentsByStudentIdAndType(Long studentId, String incidentType);
+
+
+    List<MedicalIncidentDTO> getMedicalIncidentsByStaffIdAndType(Long staffId, String incidentType);
+
+
 }

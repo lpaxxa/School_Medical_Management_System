@@ -68,4 +68,67 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
                 .orElseThrow(() -> new RuntimeException("Medical Incident not found with id: " + id));
     }
 
+    @Override
+    public MedicalIncidentDTO createMedicalIncident(MedicalIncidentDTO medicalIncidentDTO) {
+        MedicalIncident medicalIncident = medicalIncidentMapper.toMedicalIncident(medicalIncidentDTO);
+        MedicalIncident savedIncident = medicalIncidentRepository.save(medicalIncident);
+        return medicalIncidentMapper.toMedicalIncidentDto(savedIncident);
+    }
+
+    @Override
+    public MedicalIncidentDTO updateMedicalIncident(Long id, MedicalIncidentDTO medicalIncidentDTO) {
+        return null;
+    }
+
+    @Override
+    public void deleteMedicalIncident(Long id) {
+
+    }
+
+    @Override
+    public List<MedicalIncidentDTO> getMedicalIncidentsByStudentId(Long studentId) {
+        return List.of();
+    }
+
+    @Override
+    public List<MedicalIncidentDTO> getMedicalIncidentsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return List.of();
+    }
+
+    @Override
+    public List<MedicalIncidentDTO> getMedicalIncidentsBySeverityLevel(String severityLevel) {
+        return List.of();
+    }
+
+    @Override
+    public List<MedicalIncidentDTO> getMedicalIncidentsByStudentIdAndDateRange(Long studentId, LocalDateTime startDate, LocalDateTime endDate) {
+        return List.of();
+    }
+
+    @Override
+    public List<MedicalIncidentDTO> getMedicalIncidentsNeedingFollowUp() {
+        return List.of();
+    }
+
+    @Override
+    public List<MedicalIncidentDTO> getMedicalIncidentsByType(String incidentType) {
+        return List.of();
+    }
+
+    @Override
+    public List<MedicalIncidentDTO> getMedicalIncidentsByStaffId(Long staffId) {
+        return List.of();
+    }
+
+    @Override
+    public List<MedicalIncidentDTO> getMedicalIncidentsByStudentIdAndType(Long studentId, String incidentType) {
+        return List.of();
+    }
+
+    @Override
+    public List<MedicalIncidentDTO> getMedicalIncidentsByStaffIdAndType(Long staffId, String incidentType) {
+        return List.of();
+    }
+
+
 }

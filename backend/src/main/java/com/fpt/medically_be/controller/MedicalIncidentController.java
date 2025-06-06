@@ -46,5 +46,9 @@ public class MedicalIncidentController {
         return medicalIncidentService.findMedicalIncidentDtoByIncidentId(id);
     }
 
+    @PostMapping("/create")
+    public MedicalIncidentDTO createMedicalIncident(@RequestBody MedicalIncidentDTO medicalIncidentDTO) {
+        return medicalIncidentService.createMedicalIncident(medicalIncidentDTO);
+    }
 }
 
