@@ -50,5 +50,9 @@ public class MedicalIncidentController {
     public MedicalIncidentDTO createMedicalIncident(@RequestBody MedicalIncidentDTO medicalIncidentDTO) {
         return medicalIncidentService.createMedicalIncident(medicalIncidentDTO);
     }
+    @PutMapping("update/{id}")
+    public MedicalIncidentDTO updateMedicalIncident(@PathVariable("id") Long id, @RequestBody MedicalIncidentDTO medicalIncidentDTO) {
+        return medicalIncidentService.updateMedicalIncident(id, medicalIncidentDTO);
+    }
 }
 

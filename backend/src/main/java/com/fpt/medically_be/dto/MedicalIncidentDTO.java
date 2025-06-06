@@ -1,5 +1,6 @@
 package com.fpt.medically_be.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,8 +21,12 @@ public class MedicalIncidentDTO {
     @Size(max = 150)
     private String incidentType;
 
-    @NotNull(message = "Date time is required")
+    @Column(name = "date_time")
     private LocalDateTime dateTime;
+
+//    private LocalDateTime createdAt;
+//
+//    private LocalDateTime updatedAt;
 
     @NotBlank(message = "Description is required")
     @Size(max = 250)
@@ -47,6 +52,8 @@ public class MedicalIncidentDTO {
     private String followUpNotes;
 
     private Long handledById;
+
+    private Long studentId;
 
 
 
