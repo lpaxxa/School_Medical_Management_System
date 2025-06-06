@@ -46,4 +46,7 @@ public class Student {
     @JoinColumn(name = "parent_id")
     private Parent parent;
 
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+    private List<MedicalIncident> medicalIncidents;
+
 }

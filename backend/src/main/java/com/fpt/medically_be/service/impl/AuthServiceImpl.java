@@ -36,9 +36,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AccountMember login(LoginRequestDTO loginRequest) {
         // Find user by email or username
-        Optional<AccountMember> accountMemberOpt = accountMemberRepos.findAccountMemberByEmailOrPassword(
+        Optional<AccountMember> accountMemberOpt = accountMemberRepos.findAccountMemberByPhoneNumberAndPassword(
                 loginRequest.getUsername(),
-                loginRequest.getUsername()
+                loginRequest.getPassword()
         );
 
         if (accountMemberOpt.isEmpty()) {
@@ -48,11 +48,12 @@ public class AuthServiceImpl implements AuthService {
         AccountMember member = accountMemberOpt.get();
         
         // CRITICAL FIX: Check password before allowing login
-        if (passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
-            return member; // Password correct - login successful
-        } else {
-            return null; // Password incorrect - login failed
-        }
+//        if (passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
+//            return member; // Password correct - login successful
+//        } else {
+//            return null; // Password incorrect - login failed
+//        }
+        return member;
     }
 
     @Override
