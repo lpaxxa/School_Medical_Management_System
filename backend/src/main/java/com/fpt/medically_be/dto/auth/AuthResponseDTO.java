@@ -16,14 +16,16 @@ public class AuthResponseDTO extends BaseMapper<AccountMember, AuthResponseDTO> 
     private String memberId;
     private String email;
     private String role;
+    private String phoneNumber;
     private String token;
 
     public AuthResponseDTO() {
     }
 
-    public AuthResponseDTO(String id, String email, String role, String token) {
+    public AuthResponseDTO(String id, String email, String phoneNumber, String role, String token) {
         this.memberId = id;
         this.email = email;
+        this.phoneNumber = phoneNumber;
         this.role = role;
         this.token = token;
     }
@@ -36,6 +38,7 @@ public class AuthResponseDTO extends BaseMapper<AccountMember, AuthResponseDTO> 
 
         this.memberId = entity.getId();
         this.email = entity.getEmail();
+        this.phoneNumber = entity.getPhoneNumber();
         this.role = entity.getRole().name();
 
         return this;

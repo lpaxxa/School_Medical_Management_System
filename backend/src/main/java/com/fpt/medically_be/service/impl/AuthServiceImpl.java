@@ -13,7 +13,11 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -98,6 +102,32 @@ public class AuthServiceImpl implements AuthService {
         accountMemberRepos.save(member);
         passwordResetTokenRepos.delete(resetToken);
     }
+
+    @Override
+    public AccountMember processOAuth2Callback(String code, String state) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        
+        if(auth instanceof OAuth2AuthenticationToken){
+            OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) auth;
+            OAuth2User oauth2User = token.getPrincipal();
+            String email = oauth2User.getAttribute("email");
+            System.out.println("DEBUG: OAuth2 email: " + email);
+            
+            Optional<AccountMember> existingUser = accountMemberRepos.findAccountMemberByEmail(email);
+            if (existingUser.isPresent()) {
+                System.out.println("DEBUG: Found existing user: " + existingUser.get().getEmail());
+                return existingUser.get();
+            } else {
+                System.out.println("DEBUG: No user found for email: " + email);
+                return null;
+            }
+        } else {
+            System.out.println("DEBUG: Not an OAuth2AuthenticationToken");
+            return null;
+        }
+    }
+
 
     private void sendPasswordResetEmail(String email, String token) {
         try {
