@@ -1,7 +1,6 @@
-package com.fpt.medically_be.dto;
+package com.fpt.medically_be.dto.response;
 
 import com.fpt.medically_be.base.BaseMapper;
-import com.fpt.medically_be.dto.auth.AuthResponseDTO;
 import com.fpt.medically_be.entity.Nurse;
 import lombok.*;
 
