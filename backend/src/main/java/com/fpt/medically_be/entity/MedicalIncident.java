@@ -59,7 +59,7 @@ public class MedicalIncident {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "handled_by")
-    private MedicalStaff handledBy;
+    private Nurse handledBy;
 
     @PrePersist
     protected void onCreate() {

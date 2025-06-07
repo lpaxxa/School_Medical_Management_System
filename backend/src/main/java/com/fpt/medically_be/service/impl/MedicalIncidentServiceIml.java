@@ -3,11 +3,11 @@ package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.MedicalIncidentDTO;
 import com.fpt.medically_be.entity.MedicalIncident;
-import com.fpt.medically_be.entity.MedicalStaff;
+import com.fpt.medically_be.entity.Nurse;
 import com.fpt.medically_be.entity.Student;
 import com.fpt.medically_be.mapper.MedicalIncidentMapper;
 import com.fpt.medically_be.repos.MedicalIncidentRepository;
-import com.fpt.medically_be.repos.MedicalStaffRepository;
+import com.fpt.medically_be.repos.NurseRepository;
 import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.MedicalIncidentService;
 import org.apache.catalina.User;
@@ -32,7 +32,7 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
     @Autowired
     private StudentRepository studentRepository;
     @Autowired
-    private MedicalStaffRepository medicalStaffRepository;
+    private NurseRepository nurseRepository;
 
 
     @Override
@@ -93,7 +93,7 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
         }
 
         if (medicalIncidentDTO.getHandledById() != null) {
-            MedicalStaff handledBy = medicalStaffRepository.findById(medicalIncidentDTO.getHandledById()).orElseThrow(() -> new RuntimeException("Medical Staff not found with id: " + medicalIncidentDTO.getHandledById()));
+            Nurse handledBy = nurseRepository.findById(medicalIncidentDTO.getHandledById()).orElseThrow(() -> new RuntimeException("Medical Staff not found with id: " + medicalIncidentDTO.getHandledById()));
 
             incident.setHandledBy(handledBy);
         }
@@ -109,7 +109,7 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
     public MedicalIncidentDTO updateMedicalIncident(Long id, MedicalIncidentDTO medicalIncidentDTO) {
         MedicalIncident medicalIncident = medicalIncidentRepository.findById(id).orElseThrow(() -> new RuntimeException("Medical Incident not found with id: " + id));
 
-        if (!medicalStaffRepository.existsById(medicalIncidentDTO.getHandledById())) {
+        if (!nurseRepository.existsById(medicalIncidentDTO.getHandledById())) {
             throw new RuntimeException("HandledById không tồn tại");
         }
         if (!studentRepository.existsById(medicalIncidentDTO.getStudentId())) {
