@@ -8,7 +8,7 @@ import java.util.List;
 @Entity
 @Table(name = "Medical_Staff")
 @Data
-public class MedicalStaff {
+public class Nurse {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,10 +20,7 @@ public class MedicalStaff {
     @Column(columnDefinition = "NVARCHAR(255)")
     private String qualification;
 
-    @Column(columnDefinition = "NVARCHAR(255)")
-    private String specialization;
-
-    @Column(name = "phone_number", columnDefinition = "NVARCHAR(20)")
+    @Column(name = "phone_number", columnDefinition = "NVARCHAR(11)")
     private String phoneNumber;
 
     @Column(columnDefinition = "NVARCHAR(255)")

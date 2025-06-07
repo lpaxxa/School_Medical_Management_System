@@ -2,10 +2,10 @@ package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.MedicalCheckupDTO;
 import com.fpt.medically_be.entity.MedicalCheckup;
-import com.fpt.medically_be.entity.MedicalStaff;
+import com.fpt.medically_be.entity.Nurse;
 import com.fpt.medically_be.entity.Student;
 import com.fpt.medically_be.repos.MedicalCheckupRepository;
-import com.fpt.medically_be.repos.MedicalStaffRepository;
+import com.fpt.medically_be.repos.NurseRepository;
 import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.MedicalCheckupService;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,12 +21,12 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
 
     private final MedicalCheckupRepository medicalCheckupRepository;
     private final StudentRepository studentRepository;
-    private final MedicalStaffRepository medicalStaffRepository;
+    private final NurseRepository medicalStaffRepository;
 
     @Autowired
     public MedicalCheckupServiceImpl(MedicalCheckupRepository medicalCheckupRepository,
                                     StudentRepository studentRepository,
-                                    MedicalStaffRepository medicalStaffRepository) {
+                                    NurseRepository medicalStaffRepository) {
         this.medicalCheckupRepository = medicalCheckupRepository;
         this.studentRepository = studentRepository;
         this.medicalStaffRepository = medicalStaffRepository;
@@ -126,7 +126,7 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
 
         // Cập nhật medical staff nếu có
         if (medicalCheckupDTO.getMedicalStaffId() != null) {
-            MedicalStaff medicalStaff = medicalStaffRepository.findById(medicalCheckupDTO.getMedicalStaffId())
+            Nurse medicalStaff = medicalStaffRepository.findById(medicalCheckupDTO.getMedicalStaffId())
                     .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy nhân viên y tế với ID: " + medicalCheckupDTO.getMedicalStaffId()));
             existingMedicalCheckup.setMedicalStaff(medicalStaff);
         }
