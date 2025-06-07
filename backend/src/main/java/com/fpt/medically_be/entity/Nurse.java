@@ -2,10 +2,11 @@ package com.fpt.medically_be.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.util.List;
 
 @Entity
-@Table(name = "medical_staff")
+@Table(name = "Medical_Staff")
 @Data
 public class Nurse {
 
@@ -31,4 +32,9 @@ public class Nurse {
     @OneToOne
     @JoinColumn(name = "account_id")
     private AccountMember account;
+
+    @OneToMany(mappedBy = "handledBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MedicalIncident> handledIncidents;
+
+
 }

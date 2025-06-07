@@ -23,31 +23,31 @@ public class MedicalCheckupController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<List<MedicalCheckupDTO>> getAllMedicalCheckups() {
         return ResponseEntity.ok(medicalCheckupService.getAllMedicalCheckups());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<MedicalCheckupDTO> getMedicalCheckupById(@PathVariable Long id) {
         return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupById(id));
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByStudentId(@PathVariable Long studentId) {
         return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByStudentId(studentId));
     }
 
     @GetMapping("/staff/{staffId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByStaffId(@PathVariable Long staffId) {
         return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByStaffId(staffId));
     }
 
     @GetMapping("/date-range")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
@@ -55,7 +55,7 @@ public class MedicalCheckupController {
     }
 
     @GetMapping("/student/{studentId}/date-range")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByStudentAndDateRange(
             @PathVariable Long studentId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
@@ -64,31 +64,31 @@ public class MedicalCheckupController {
     }
 
     @GetMapping("/type/{checkupType}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByType(@PathVariable String checkupType) {
         return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByType(checkupType));
     }
 
     @GetMapping("/follow-up-needed")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsNeedingFollowUp() {
         return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsNeedingFollowUp());
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<MedicalCheckupDTO> createMedicalCheckup(@RequestBody MedicalCheckupDTO medicalCheckupDTO) {
         return ResponseEntity.ok(medicalCheckupService.createMedicalCheckup(medicalCheckupDTO));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<MedicalCheckupDTO> updateMedicalCheckup(@PathVariable Long id, @RequestBody MedicalCheckupDTO medicalCheckupDTO) {
         return ResponseEntity.ok(medicalCheckupService.updateMedicalCheckup(id, medicalCheckupDTO));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteMedicalCheckup(@PathVariable Long id) {
         medicalCheckupService.deleteMedicalCheckup(id);
         return ResponseEntity.noContent().build();
