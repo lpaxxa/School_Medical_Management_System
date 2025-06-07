@@ -45,10 +45,41 @@ public class AuthController {
             authResponseDTO.setToken(jwtService.generateToken(
                     accountMember.getId(),
                     accountMember.getEmail(),
+                    accountMember.getPhoneNumber(),
                     accountMember.getRole()
+
+
             ));
             return ResponseEntity.ok(authResponseDTO);
         }
+    }
+
+    @GetMapping("/oauth2/success")
+    public ResponseEntity<AuthResponseDTO> oauth2Success(@RequestParam (required = false) String code, @RequestParam (required = false) String state, @RequestParam (required = false) String error ) {
+        if(error != null) {
+            logger.warning("OAuth2 login failed: " + error);
+            return ResponseEntity.badRequest().body(null);
+        }
+       var accountMember = authService.processOAuth2Callback(code, state);
+        if(accountMember == null) {
+            return ResponseEntity.status(401).body(null);
+        }
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO().toObject(accountMember);
+        authResponseDTO.setToken(jwtService.generateToken(
+                accountMember.getId(),
+                accountMember.getEmail(),
+                accountMember.getPhoneNumber(),
+                accountMember.getRole()
+        ));
+        return ResponseEntity.ok(authResponseDTO);
+
+
+
+
+    }
+    @GetMapping("/oauth2/failure")
+    public ResponseEntity<String> oauth2Failure() {
+        return ResponseEntity.status(401).body("OAuth2 authentication failed");
     }
 
     @GetMapping("/me")

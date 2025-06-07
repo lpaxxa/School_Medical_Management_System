@@ -11,6 +11,8 @@ public interface AuthService {
     AccountMember findById(String id);
     void initiatePasswordReset(String email);
     void resetPassword(String token, String newPassword);
+    AccountMember processOAuth2Callback(String code, String state);
+
 
 
 }
