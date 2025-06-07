@@ -13,5 +13,5 @@ public interface NurseRepository extends JpaRepository<Nurse, Long> {
     Optional<Nurse> findByAccountId(String accountId);
     Optional<Nurse> findByAccount(AccountMember account);
     Optional<Nurse> findByFullName(String fullName);
-
+    Optional<Nurse> findNurseById(Long nurseId);
 }

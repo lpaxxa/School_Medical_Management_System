@@ -2,14 +2,15 @@ package com.fpt.medically_be.controller;
 
 
 
-import com.fpt.medically_be.dto.MedicalIncidentDTO;
-import com.fpt.medically_be.entity.MedicalIncident;
+import com.fpt.medically_be.dto.response.MedicalIncidentResponseDTO;
+import com.fpt.medically_be.dto.request.MedicalIncidentCreateDTO;
+import com.fpt.medically_be.dto.response.MedicalIncidentStudentDTO;
 import com.fpt.medically_be.service.MedicalIncidentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -24,13 +25,13 @@ public class MedicalIncidentController {
      */
 
     @GetMapping()
-    public List<MedicalIncidentDTO> getAllMedicalIncidents() {
+    public List<MedicalIncidentResponseDTO> getAllMedicalIncidents() {
         return medicalIncidentService.getAllMedicalIncidents();
     }
 
 
     @GetMapping("/filter")
-    public List<MedicalIncidentDTO> filterIncidents(
+    public List<MedicalIncidentResponseDTO> filterIncidents(
             @RequestParam(value = "startDate", required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate,
             @RequestParam(value = "severityLevel", required = false) String severityLevel) {
@@ -42,17 +43,29 @@ public class MedicalIncidentController {
     }
 
     @GetMapping("/{id}")
-    public MedicalIncidentDTO findMedicalIncidentDtoByIncidentId(@PathVariable Long id) {
+    public MedicalIncidentResponseDTO findMedicalIncidentDtoByIncidentId(@PathVariable Long id) {
         return medicalIncidentService.findMedicalIncidentDtoByIncidentId(id);
     }
 
     @PostMapping("/create")
-    public MedicalIncidentDTO createMedicalIncident(@RequestBody MedicalIncidentDTO medicalIncidentDTO) {
-        return medicalIncidentService.createMedicalIncident(medicalIncidentDTO);
+    public MedicalIncidentResponseDTO createMedicalIncident(@RequestBody MedicalIncidentCreateDTO medicalIncidentCreateDTO) {
+        return medicalIncidentService.createMedicalIncident(medicalIncidentCreateDTO);
     }
     @PutMapping("update/{id}")
-    public MedicalIncidentDTO updateMedicalIncident(@PathVariable("id") Long id, @RequestBody MedicalIncidentDTO medicalIncidentDTO) {
-        return medicalIncidentService.updateMedicalIncident(id, medicalIncidentDTO);
+    public MedicalIncidentResponseDTO updateMedicalIncident(@PathVariable("id") Long id, @RequestBody MedicalIncidentCreateDTO  medicalIncidentCreateDTO) {
+        return medicalIncidentService.updateMedicalIncident(id, medicalIncidentCreateDTO);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteMedicalIncident(@PathVariable("id") Long id) {
+        medicalIncidentService.deleteMedicalIncident(id);
+
+        return ResponseEntity.ok("Deleted successfully");
+    }
+
+    @GetMapping("/details/{id}")
+    public List<MedicalIncidentStudentDTO> getMedicalIncidentDetails(@PathVariable("id") Long incidentId) {
+        return medicalIncidentService.getMedicalIncidentDetails(incidentId);
     }
 }
 

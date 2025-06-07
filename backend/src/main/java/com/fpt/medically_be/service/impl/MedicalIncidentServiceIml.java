@@ -1,7 +1,9 @@
 package com.fpt.medically_be.service.impl;
 
 
-import com.fpt.medically_be.dto.MedicalIncidentDTO;
+import com.fpt.medically_be.dto.response.MedicalIncidentResponseDTO;
+import com.fpt.medically_be.dto.request.MedicalIncidentCreateDTO;
+import com.fpt.medically_be.dto.response.MedicalIncidentStudentDTO;
 import com.fpt.medically_be.entity.MedicalIncident;
 import com.fpt.medically_be.entity.Nurse;
 import com.fpt.medically_be.entity.Student;
@@ -10,7 +12,6 @@ import com.fpt.medically_be.repos.MedicalIncidentRepository;
 import com.fpt.medically_be.repos.NurseRepository;
 import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.MedicalIncidentService;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,18 +36,20 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
     private NurseRepository nurseRepository;
 
 
+
+
     @Override
-    public List<MedicalIncidentDTO> getAllMedicalIncidents() {
+    public List<MedicalIncidentResponseDTO> getAllMedicalIncidents() {
         return medicalIncidentRepository.findAll()
                 .stream()
-                .map(medicalIncidentMapper::toMedicalIncidentDto)
+                .map(medicalIncidentMapper::toMedicalIncidentResponseDto)
                 .collect(Collectors.toList());
     }
 
 
 
     @Override
-    public List<MedicalIncidentDTO> getFilteredIncidents(LocalDate startDate, LocalDate endDate, String severityLevel) {
+    public List<MedicalIncidentResponseDTO> getFilteredIncidents(LocalDate startDate, LocalDate endDate, String severityLevel) {
 
         List<MedicalIncident> incidents = new ArrayList<>();
 
@@ -67,33 +70,35 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
             incidents = medicalIncidentRepository.findAll();
         }
         return incidents.stream()
-                .map(medicalIncidentMapper::toMedicalIncidentDto)
+                .map(medicalIncidentMapper::toMedicalIncidentResponseDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public MedicalIncidentDTO findMedicalIncidentDtoByIncidentId(Long id) {
+    public MedicalIncidentResponseDTO findMedicalIncidentDtoByIncidentId(Long id) {
         return medicalIncidentRepository.findById(id)
-                .map(medicalIncidentMapper::toMedicalIncidentDto)
+                .map(medicalIncidentMapper::toMedicalIncidentResponseDto)
                 .orElseThrow(() -> new RuntimeException("Medical Incident not found with id: " + id));
     }
 
     @Override
-    public MedicalIncidentDTO createMedicalIncident(MedicalIncidentDTO medicalIncidentDTO) {
+    public MedicalIncidentResponseDTO createMedicalIncident(MedicalIncidentCreateDTO medicalIncidentCreateDTO) {
         // Map DTO sang entity (các trường cơ bản)
-        MedicalIncident incident = medicalIncidentMapper.toMedicalIncident(medicalIncidentDTO);
+        MedicalIncident incident = medicalIncidentMapper.toMedicalIncidentCreate(medicalIncidentCreateDTO);
 
 
-        if (medicalIncidentDTO.getStudentId() != null) {
-            Student student = studentRepository.findById(medicalIncidentDTO.getStudentId())
-                    .orElseThrow(() -> new RuntimeException("Student not found with id: " + medicalIncidentDTO.getStudentId()));
+        if (medicalIncidentCreateDTO.getStudentId() != null) {
+            Student student = studentRepository.findById(medicalIncidentCreateDTO.getStudentId())
+                    .orElseThrow(() -> new RuntimeException("Student not found with id: " + medicalIncidentCreateDTO.getStudentId()));
             incident.setStudent(student);
         } else {
             throw new RuntimeException("StudentId is required");
         }
 
-        if (medicalIncidentDTO.getHandledById() != null) {
-            Nurse handledBy = nurseRepository.findById(medicalIncidentDTO.getHandledById()).orElseThrow(() -> new RuntimeException("Medical Staff not found with id: " + medicalIncidentDTO.getHandledById()));
+        if (medicalIncidentCreateDTO.getHandledById() != null) {
+            Nurse handledBy = nurseRepository.findById(medicalIncidentCreateDTO.getHandledById())
+                    .orElseThrow(() -> new RuntimeException("Medical Staff not found with id: "
+                            + medicalIncidentCreateDTO.getHandledById()));
 
             incident.setHandledBy(handledBy);
         }
@@ -101,75 +106,54 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
         MedicalIncident savedIncident = medicalIncidentRepository.save(incident);
 
         // Map lại entity thành DTO trả về
-        return medicalIncidentMapper.toMedicalIncidentDto(savedIncident);
+        return medicalIncidentMapper.toMedicalIncidentResponseDto(savedIncident);
     }
 
 
+
+
+
     @Override
-    public MedicalIncidentDTO updateMedicalIncident(Long id, MedicalIncidentDTO medicalIncidentDTO) {
+    public MedicalIncidentResponseDTO updateMedicalIncident(Long id, MedicalIncidentCreateDTO medicalIncidentCreateDTO) {
         MedicalIncident medicalIncident = medicalIncidentRepository.findById(id).orElseThrow(() -> new RuntimeException("Medical Incident not found with id: " + id));
 
-        if (!nurseRepository.existsById(medicalIncidentDTO.getHandledById())) {
+        if (!nurseRepository.existsById(medicalIncidentCreateDTO.getHandledById())) {
             throw new RuntimeException("HandledById không tồn tại");
         }
-        if (!studentRepository.existsById(medicalIncidentDTO.getStudentId())) {
+        if (!studentRepository.existsById(medicalIncidentCreateDTO.getStudentId())) {
             throw new RuntimeException("StudentId không tồn tại");
         }
 
-        medicalIncidentMapper.updateMedicalIncident(medicalIncident, medicalIncidentDTO);
+        medicalIncidentMapper.updateMedicalIncident(medicalIncident, medicalIncidentCreateDTO);
 
-        return medicalIncidentMapper.toMedicalIncidentDto(medicalIncident);
+        return medicalIncidentMapper.toMedicalIncidentResponseDto(medicalIncident);
     }
 
     @Override
     public void deleteMedicalIncident(Long id) {
 
+        if(!medicalIncidentRepository.existsById(id)) {
+            throw new RuntimeException("Medical Incident not found with id: " + id);
+        }
+        medicalIncidentRepository.deleteById(id);
     }
 
     @Override
-    public List<MedicalIncidentDTO> getMedicalIncidentsByStudentId(Long studentId) {
-        return List.of();
+    public List<MedicalIncidentStudentDTO> getMedicalIncidentDetails(Long studentId) {
+
+        MedicalIncident medicalIncident = medicalIncidentRepository.findByIncidentId(studentId)
+                .orElseThrow(() -> new RuntimeException("Medical Incident not found with id: " + studentId));
+
+        return medicalIncidentRepository.findByIncidentId(studentId)
+                .stream()
+                .map(medicalIncidentMapper::toMedicalIncidentStudentDTO)
+                .collect(Collectors.toList());
+
     }
 
-    @Override
-    public List<MedicalIncidentDTO> getMedicalIncidentsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return List.of();
-    }
 
-    @Override
-    public List<MedicalIncidentDTO> getMedicalIncidentsBySeverityLevel(String severityLevel) {
-        return List.of();
-    }
 
-    @Override
-    public List<MedicalIncidentDTO> getMedicalIncidentsByStudentIdAndDateRange(Long studentId, LocalDateTime startDate, LocalDateTime endDate) {
-        return List.of();
-    }
 
-    @Override
-    public List<MedicalIncidentDTO> getMedicalIncidentsNeedingFollowUp() {
-        return List.of();
-    }
-
-    @Override
-    public List<MedicalIncidentDTO> getMedicalIncidentsByType(String incidentType) {
-        return List.of();
-    }
-
-    @Override
-    public List<MedicalIncidentDTO> getMedicalIncidentsByStaffId(Long staffId) {
-        return List.of();
-    }
-
-    @Override
-    public List<MedicalIncidentDTO> getMedicalIncidentsByStudentIdAndType(Long studentId, String incidentType) {
-        return List.of();
-    }
-
-    @Override
-    public List<MedicalIncidentDTO> getMedicalIncidentsByStaffIdAndType(Long staffId, String incidentType) {
-        return List.of();
-    }
 
 
 }
