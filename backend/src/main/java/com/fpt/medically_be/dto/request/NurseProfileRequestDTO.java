@@ -1,4 +1,4 @@
-package com.fpt.medically_be.dto;
+package com.fpt.medically_be.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
