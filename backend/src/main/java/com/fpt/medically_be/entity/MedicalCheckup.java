@@ -61,5 +61,5 @@ public class MedicalCheckup {
 
     @ManyToOne
     @JoinColumn(name = "staff_id")
-    private MedicalStaff medicalStaff;
+    private Nurse medicalStaff;
 }
