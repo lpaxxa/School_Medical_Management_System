@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../../context/AuthContext";
-import { useStudentData } from "../../../../context/StudentDataContext"; // Thêm import
+import { useStudentData } from "../../../../context/StudentDataContext";
+// Thay thế các import CSS cũ bằng CSS mới
+import "./HealthDeclarationFix.css";
 import "./HealthDeclaration.css";
 
-// Mock data cho trường học - giữ lại vì hiện tại context chưa quản lý thông tin trường học
+// Mock data cho trường học
 const MOCK_SCHOOL = {
   id: "SCH001",
   name: "THCS Nguyễn Đình Chiểu",
@@ -13,10 +15,7 @@ const MOCK_SCHOOL = {
   logo: "/school-logo.png",
 };
 
-// Xóa MOCK_STUDENTS, sẽ dùng context thay thế
-
 // Mock data cho user hiện tại - sẽ được thay thế bằng AuthContext thực tế
-// Có thể xóa MOCK_CURRENT_USER nếu đã có AuthContext đầy đủ
 const MOCK_CURRENT_USER = {
   id: "PH001",
   fullName: "Nguyễn Văn Bình",
@@ -28,7 +27,7 @@ const MOCK_CURRENT_USER = {
 const MOCK_DECLARATIONS = [
   {
     id: "DEC001",
-    studentId: "ST001", // Cập nhật ID học sinh để khớp với context
+    studentId: "ST001",
     studentName: "Nguyễn Văn An",
     date: "2023-05-15",
     status: "approved",
@@ -65,11 +64,9 @@ const MOCK_DECLARATIONS = [
     reviewedBy: null,
     reviewedAt: null,
   },
-  // Giữ các declaration khác
 ];
-// ===== KẾT THÚC MOCK DATA =====
 
-// Danh sách triệu chứng - giữ nguyên
+// Danh sách triệu chứng
 const SYMPTOM_OPTIONS = [
   { id: "fever", label: "Sốt" },
   { id: "cough", label: "Ho" },
@@ -87,13 +84,11 @@ const SYMPTOM_OPTIONS = [
 
 const HealthDeclaration = () => {
   const { currentUser } = useAuth();
-  // Sử dụng context để lấy dữ liệu học sinh
   const { students, isLoading: studentsLoading } = useStudentData();
 
   // Giả lập user hiện tại là phụ huynh nếu chưa đăng nhập
   const user = currentUser || MOCK_CURRENT_USER;
 
-  // Không cần state students riêng vì đã có trong context
   const [declarations, setDeclarations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,15 +114,13 @@ const HealthDeclaration = () => {
   // Load mock declarations data
   useEffect(() => {
     setIsLoading(true);
-
-    // Simulate API delay
     setTimeout(() => {
       setDeclarations(MOCK_DECLARATIONS);
       setIsLoading(false);
     }, 800);
   }, []);
 
-  // Theo dõi thay đổi từ context students và cập nhật form nếu cần
+  // Theo dõi thay đổi từ context students và cập nhật form
   useEffect(() => {
     if (students.length > 0 && !formData.studentId) {
       setFormData((prev) => ({
@@ -145,7 +138,7 @@ const HealthDeclaration = () => {
       [name]: value,
     }));
 
-    // Clear error for this field when user makes changes
+    // Clear error for this field
     if (formErrors[name]) {
       setFormErrors((prev) => ({
         ...prev,
@@ -159,17 +152,27 @@ const HealthDeclaration = () => {
     setFormData((prev) => {
       const currentSymptoms = [...prev.symptoms];
 
-      if (currentSymptoms.includes(symptomId)) {
-        // Remove the symptom if already selected
+      if (symptomId === "none") {
+        // If "none" is selected, clear all other symptoms
         return {
           ...prev,
-          symptoms: currentSymptoms.filter((id) => id !== symptomId),
+          symptoms: currentSymptoms.includes("none") ? [] : ["none"],
         };
       } else {
-        // Add the symptom if not selected
+        // If any other symptom is selected, remove "none" if present
+        let newSymptoms = currentSymptoms.filter((id) => id !== "none");
+
+        if (newSymptoms.includes(symptomId)) {
+          // Remove the symptom if already selected
+          newSymptoms = newSymptoms.filter((id) => id !== symptomId);
+        } else {
+          // Add the symptom if not selected
+          newSymptoms.push(symptomId);
+        }
+
         return {
           ...prev,
-          symptoms: [...currentSymptoms, symptomId],
+          symptoms: newSymptoms,
         };
       }
     });
@@ -202,7 +205,8 @@ const HealthDeclaration = () => {
 
     if (
       formData.temperature &&
-      (formData.temperature < 35 || formData.temperature > 42)
+      (parseFloat(formData.temperature) < 35 ||
+        parseFloat(formData.temperature) > 42)
     ) {
       errors.temperature = "Nhiệt độ phải nằm trong khoảng 35°C đến 42°C";
     }
@@ -224,21 +228,24 @@ const HealthDeclaration = () => {
     // Submit form
     setIsSubmitting(true);
 
-    // Simulate API call - sẽ thay thế bằng fetch/axios call thực tế
+    // Simulate API call
     setTimeout(() => {
       try {
         // Generate a new declaration
         const newDeclaration = {
-          id: `DEC${Math.floor(Math.random() * 10000)}`, // Backend sẽ tự generate ID
+          id: `DEC${Math.floor(Math.random() * 10000)}`,
           studentId: formData.studentId,
           studentName:
             students.find((s) => s.id === formData.studentId)?.name || "",
           date: formData.date,
           status: "pending",
-          symptoms: formData.symptoms.map(
-            (id) =>
-              SYMPTOM_OPTIONS.find((option) => option.id === id)?.label || id
-          ),
+          symptoms: formData.symptoms.includes("none")
+            ? ["Không có triệu chứng"]
+            : formData.symptoms.map(
+                (id) =>
+                  SYMPTOM_OPTIONS.find((option) => option.id === id)?.label ||
+                  id
+              ),
           temperature: parseFloat(formData.temperature) || 0,
           notes: formData.notes,
           attendanceDecision: "Chờ xác nhận",
@@ -246,7 +253,7 @@ const HealthDeclaration = () => {
           reviewedAt: null,
         };
 
-        // Add to declarations list (trong thực tế sẽ refetch từ server)
+        // Add to declarations list
         setDeclarations((prev) => [newDeclaration, ...prev]);
 
         // Show success message
@@ -279,11 +286,11 @@ const HealthDeclaration = () => {
           });
         }, 5000);
 
-        // Chuyển tab sang lịch sử sau 1 giây nếu là khai báo đầu tiên của học sinh
+        // Switch to history tab after successful submission
         if (getStudentDeclarations(studentId).length === 1) {
           setTimeout(() => {
             setActiveTab("history");
-          }, 1000);
+          }, 2000);
         }
       } catch (error) {
         console.error("Error submitting health declaration:", error);
@@ -300,31 +307,17 @@ const HealthDeclaration = () => {
   // Get the selected student
   const selectedStudent = students.find((s) => s.id === formData.studentId);
 
-  // Get status badge class
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case "approved":
-        return "status-approved";
-      case "rejected":
-        return "status-rejected";
-      case "pending":
-        return "status-pending";
-      default:
-        return "";
-    }
-  };
-
   // Format date for display
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString("vi-VN", options);
   };
 
-  // Calculate age from birthdate (YYYY-MM-DD)
+  // Calculate age from birthdate
   const calculateAge = (dob) => {
     if (!dob) return "";
 
-    // Nếu dob chỉ là năm (ví dụ: "2010"), thêm tháng và ngày
+    // Handle year-only format
     const fullDob = dob.length === 4 ? `${dob}-01-01` : dob;
 
     const birthDate = new Date(fullDob);
@@ -394,7 +387,7 @@ const HealthDeclaration = () => {
                 className={`fas ${
                   formSubmitStatus.success
                     ? "fa-check-circle"
-                    : "fa-exclamation-circle"
+                    : "fa-exclamation-triangle"
                 }`}
               ></i>
               {formSubmitStatus.message}
@@ -403,7 +396,9 @@ const HealthDeclaration = () => {
 
           <form className="health-declaration-form" onSubmit={handleSubmit}>
             <div className="form-section">
-              <h3>1. Thông tin học sinh</h3>
+              <h3>
+                <i className="fas fa-user-graduate"></i> 1. Thông tin học sinh
+              </h3>
 
               {studentsLoading ? (
                 <div className="loading-container form-loading">
@@ -419,9 +414,8 @@ const HealthDeclaration = () => {
                       <p className="selection-label">Chọn học sinh:</p>
                       <div className="student-tabs">
                         {students.map((student) => (
-                          <button
+                          <div
                             key={student.id}
-                            type="button"
                             className={`student-tab ${
                               formData.studentId === student.id ? "active" : ""
                             }`}
@@ -448,7 +442,7 @@ const HealthDeclaration = () => {
                                 Lớp {student.class}
                               </span>
                             </div>
-                          </button>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -465,7 +459,7 @@ const HealthDeclaration = () => {
                       <div className="student-details">
                         <h4>{students[0].name}</h4>
                         <p>
-                          Lớp {students[0].class} - {MOCK_SCHOOL.name}
+                          Lớp {students[0].class} • {MOCK_SCHOOL.name}
                         </p>
                       </div>
                     </div>
@@ -492,24 +486,27 @@ const HealthDeclaration = () => {
                       <div className="student-profile-details">
                         <div className="detail-item">
                           <span className="label">Ngày sinh:</span>
-                          <span className="value">{selectedStudent.dob}</span>
+                          <span className="value">
+                            {selectedStudent.dob || "Chưa cập nhật"}
+                          </span>
                         </div>
                         <div className="detail-item">
                           <span className="label">Tuổi:</span>
                           <span className="value">
                             {selectedStudent.age ||
-                              calculateAge(selectedStudent.dob)}{" "}
+                              calculateAge(selectedStudent.dob) ||
+                              "N/A"}{" "}
                             tuổi
                           </span>
                         </div>
                         <div className="detail-item">
                           <span className="label">Giới tính:</span>
                           <span className="value">
-                            {selectedStudent.gender}
+                            {selectedStudent.gender || "Chưa cập nhật"}
                           </span>
                         </div>
                         <div className="detail-item health-status-item">
-                          <span className="label">Tình trạng sức khỏe:</span>
+                          <span className="label">Tình trạng:</span>
                           <span className="value health-status">
                             {selectedStudent.healthStatus ||
                               "Cập nhật từ hồ sơ y tế"}
@@ -606,19 +603,7 @@ const HealthDeclaration = () => {
                       type="checkbox"
                       id="symptom-none"
                       checked={formData.symptoms.includes("none")}
-                      onChange={() => {
-                        if (!formData.symptoms.includes("none")) {
-                          setFormData((prev) => ({
-                            ...prev,
-                            symptoms: ["none"],
-                          }));
-                        } else {
-                          setFormData((prev) => ({
-                            ...prev,
-                            symptoms: [],
-                          }));
-                        }
-                      }}
+                      onChange={() => handleSymptomChange("none")}
                     />
                     <label htmlFor="symptom-none">Không có triệu chứng</label>
                   </div>
@@ -849,6 +834,20 @@ const HealthDeclaration = () => {
       )}
     </div>
   );
+};
+
+// Helper function for status badge classes
+const getStatusBadgeClass = (status) => {
+  switch (status) {
+    case "approved":
+      return "status-approved";
+    case "rejected":
+      return "status-rejected";
+    case "pending":
+      return "status-pending";
+    default:
+      return "";
+  }
 };
 
 export default HealthDeclaration;

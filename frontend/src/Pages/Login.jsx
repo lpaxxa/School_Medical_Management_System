@@ -1,20 +1,39 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/login.css";
 import loginImage from "../assets/A1.jpg";
-import googleIcon from "../assets/google.png"; // Thêm icon Google
+import googleIcon from "../assets/google.png";
+import axios from "axios";
+
+const API_URL =
+  "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1/users";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
 
-  const { login } = useAuth();
+  const { login, mockUsers, authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
+
+  // Kích hoạt animation sau khi component mount
+  useEffect(() => {
+    setShowAnimation(true);
+    const remembered = localStorage.getItem("rememberMe") === "true";
+    setRememberMe(remembered);
+
+    // Nếu có thông tin ghi nhớ đăng nhập, tự động điền username
+    if (remembered) {
+      const savedUsername = localStorage.getItem("savedUsername");
+      if (savedUsername) setUsername(savedUsername);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,48 +41,128 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await login(username, password);
-      navigate(from, { replace: true });
+      const user = await login(username, password);
+      console.log("Login successful, user:", user);
+
+      // Lưu trạng thái "ghi nhớ đăng nhập" và username
+      if (rememberMe) {
+        localStorage.setItem("rememberMe", "true");
+        localStorage.setItem("savedUsername", username);
+      } else {
+        localStorage.removeItem("rememberMe");
+        localStorage.removeItem("savedUsername");
+      }
+
+      // Điều hướng dựa trên vai trò người dùng
+      let redirectPath = from;
+      if (from === "/") {
+        switch (user.role) {
+          case "admin":
+            redirectPath = "/admin";
+            break;
+          case "nurse":
+            redirectPath = "/nurse";
+            break;
+          case "parent":
+            redirectPath = "/parent";
+            break;
+          default:
+            redirectPath = "/";
+        }
+      }
+
+      navigate(redirectPath, { replace: true });
     } catch (err) {
       console.error("Login error:", err);
-      setError(
-        err.message ||
-          "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập."
-      );
+      setError(err.message || "Đăng nhập thất bại. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Xử lý đăng nhập bằng Google - sẽ thay thế bằng API thực tế
-    alert("Chức năng đang được phát triển");
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+
+      const response = await axios.get(`${API_URL}/users`);
+      const users = response.data;
+
+      const parentUser = users.find((user) => user.role === "parent");
+
+      if (parentUser) {
+        const { password, ...userWithoutPassword } = parentUser;
+        const googleToken = `google-mock-token-${Date.now()}`;
+
+        localStorage.setItem("authToken", googleToken);
+        localStorage.setItem("userData", JSON.stringify(userWithoutPassword));
+
+        navigate("/parent", { replace: true });
+      } else {
+        throw new Error("Không tìm thấy tài khoản phụ huynh để đăng nhập");
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      setError("Đăng nhập Google thất bại. Vui lòng thử lại sau.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="login-page">
-      <div className="login-image-container">
-        <img src={loginImage} alt="School Healthcare" className="login-image" />
-        <div className="login-image-overlay">
+    <div className={`login-container ${showAnimation ? "animate" : ""}`}>
+      {/* Phần banner bên trái */}
+      <div className="login-banner">
+        <img
+          src={loginImage}
+          className="login-banner-image"
+          alt="School Healthcare"
+        />
+        <div className="login-banner-content">
           <h2>Chào mừng đến với</h2>
           <h1>HỆ THỐNG CHĂM SÓC SỨC KHỎE HỌC ĐƯỜNG</h1>
           <p>Cùng chăm sóc sức khỏe con em chúng ta</p>
         </div>
       </div>
 
-      <div className="login-form-container">
+      {/* Phần form đăng nhập bên phải */}
+      <div className="login-form-section">
         <div className="login-form-wrapper">
-          <div className="login-header">
+          <div className="login-form-header">
             <h2>Đăng nhập</h2>
             <p>Vui lòng đăng nhập để tiếp tục</p>
           </div>
 
-          {error && <div className="error-message">{error}</div>}
+          {/* Hiển thị tài khoản thử nghiệm */}
+          {mockUsers && mockUsers.length > 0 && (
+            <div className="test-accounts">
+              <strong>Tài khoản thử nghiệm:</strong>
+              <br />
+              {mockUsers.map((user, index) => (
+                <span key={index}>
+                  <strong>{user.role}:</strong> {user.username}
+                  {index < mockUsers.length - 1 ? " | " : ""}
+                </span>
+              ))}
+              <p>
+                <small>
+                  Mật khẩu mặc định: <strong>123456</strong>
+                </small>
+              </p>
+            </div>
+          )}
+
+          {/* Thông báo lỗi */}
+          {(error || authError) && (
+            <div className="error-message">
+              <i className="fas fa-exclamation-circle"></i>
+              {error || authError}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="login-form">
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="username">Tên đăng nhập</label>
-              <div className="input-with-icon">
+              <div className="input-control">
                 <i className="fas fa-user"></i>
                 <input
                   type="text"
@@ -77,9 +176,9 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="password">Mật khẩu</label>
-              <div className="input-with-icon">
+              <div className="input-control">
                 <i className="fas fa-lock"></i>
                 <input
                   type="password"
@@ -93,17 +192,26 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="remember-forgot">
+            <div className="form-actions">
               <div className="remember-me">
-                <input type="checkbox" id="remember" />
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
                 <label htmlFor="remember">Ghi nhớ đăng nhập</label>
               </div>
-              <a href="#forgot-password" className="forgot-password">
+              <Link to="/forgot-password" className="forgot-password">
                 Quên mật khẩu?
-              </a>
+              </Link>
             </div>
 
-            <button type="submit" className="login-button" disabled={isLoading}>
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <i className="fas fa-spinner fa-spin"></i> Đang đăng nhập...
@@ -112,21 +220,21 @@ const Login = () => {
                 "Đăng nhập"
               )}
             </button>
+
+            <div className="divider">
+              <span>Hoặc đăng nhập bằng</span>
+            </div>
+
+            <button
+              type="button"
+              className="social-button"
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+            >
+              <img src={googleIcon} alt="Google" />
+              Đăng nhập với Google
+            </button>
           </form>
-
-          {/* Phần đăng nhập bằng Google */}
-          <div className="login-divider">
-            <span>Hoặc đăng nhập bằng</span>
-          </div>
-
-          <button
-            type="button"
-            className="google-login-button"
-            onClick={handleGoogleLogin}
-          >
-            <img src={googleIcon} alt="Google" />
-            Đăng nhập với Google
-          </button>
 
           <div className="login-footer">
             <p>

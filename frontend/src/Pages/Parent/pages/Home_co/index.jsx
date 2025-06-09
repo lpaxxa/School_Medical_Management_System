@@ -1,10 +1,10 @@
 import React from "react";
 import "./index.css";
-import Hero from "../../../../components/Hero/Hero";
-import Features from "../../../../components/Features/Features";
-import About from "../../../../components/About/About";
-import Vision from "../../../../components/Vision/Vision";
-import CallToAction from "../../../../components/CallToAction/CallToAction";
+import Hero from "../../components/Hero/Hero";
+import Features from "../../components/Features/Features";
+import About from "../../components/About/About";
+import Vision from "../../components/Vision/Vision";
+import CallToAction from "../../components/CallToAction/CallToAction";
 
 export default function Main() {
   return (
