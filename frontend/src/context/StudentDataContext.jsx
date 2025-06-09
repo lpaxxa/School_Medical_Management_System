@@ -1,244 +1,108 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
 import { useAuth } from "./AuthContext";
 
-// Tạo context
+// API URL từ mockapi.io của bạn
+const API_URL = "https://68425631e1347494c31c7892.mockapi.io/api/vi";
+
 const StudentDataContext = createContext();
 
-export const useStudentData = () => useContext(StudentDataContext);
+export function useStudentData() {
+  return useContext(StudentDataContext);
+}
 
 export const StudentDataProvider = ({ children }) => {
-  const { currentUser } = useAuth();
   const [students, setStudents] = useState([]);
-  const [healthMetrics, setHealthMetrics] = useState({});
-  const [medicalRecords, setMedicalRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const { currentUser } = useAuth();
 
+  // Lấy danh sách học sinh của phụ huynh
   useEffect(() => {
-    // Chỉ tải dữ liệu khi người dùng đã đăng nhập
-    if (currentUser) {
-      fetchStudentData();
-    }
+    const fetchStudents = async () => {
+      if (!currentUser) {
+        setStudents([]);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Gọi API để lấy danh sách học sinh
+        // Giả sử API hocsinh của bạn là endpoint chính
+        const response = await axios.get(`${API_URL}/hocsinh/hocsinh`);
+        
+        // Lọc học sinh theo parentId nếu đang đăng nhập là phụ huynh
+        let studentsList = response.data;
+        
+        if (currentUser.role === 'parent') {
+          studentsList = studentsList.filter(
+            student => student.parentId === currentUser.id
+          );
+        }
+        
+        setStudents(studentsList);
+      } catch (err) {
+        console.error("Error fetching student data:", err);
+        setError("Không thể tải thông tin học sinh. Vui lòng thử lại sau.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStudents();
   }, [currentUser]);
 
-  const fetchStudentData = async () => {
-    setIsLoading(true);
+  // Hàm lấy thông tin chi tiết của học sinh
+  const getStudentDetails = async (studentId) => {
     try {
-      // Thực tế sẽ gọi API thật
-      // fetch(`/api/parents/${currentUser.id}/students`)
-
-      // Mock data cho phát triển
-      setTimeout(() => {
-        // Danh sách học sinh của phụ huynh
-        const mockStudents = [
-          {
-            id: "ST001",
-            name: "Nguyễn Văn An",
-            class: "3A",
-            age: 9,
-            gender: "Nam",
-            dob: "2014-08-15",
-            classTeacher: "Nguyễn Thị Hương",
-            parentPhone: "0901234567",
-            address: "123 Đường Lê Lợi, Quận 1, TP.HCM",
-          },
-          {
-            id: "ST002",
-            name: "Nguyễn Thảo Vy",
-            class: "5B",
-            age: 11,
-            gender: "Nữ",
-            dob: "2012-03-20",
-            classTeacher: "Trần Văn Minh",
-            parentPhone: "0901234567",
-            address: "123 Đường Lê Lợi, Quận 1, TP.HCM",
-          },
-        ];
-
-        // Dữ liệu chỉ số sức khỏe
-        const mockHealthMetrics = {
-          ST001: {
-            height: [
-              { date: "2022-09-05", value: 130 },
-              { date: "2023-01-10", value: 132 },
-              { date: "2023-05-10", value: 134 },
-            ],
-            weight: [
-              { date: "2022-09-05", value: 28 },
-              { date: "2023-01-10", value: 29 },
-              { date: "2023-05-10", value: 30 },
-            ],
-            vision: [
-              { date: "2022-09-05", left: "10/10", right: "10/10" },
-              { date: "2023-05-10", left: "10/10", right: "10/10" },
-            ],
-            bmi: [
-              { date: "2022-09-05", value: 16.6, status: "Bình thường" },
-              { date: "2023-01-10", value: 16.7, status: "Bình thường" },
-              { date: "2023-05-10", value: 16.7, status: "Bình thường" },
-            ],
-            allergies: ["Không có"],
-            chronicConditions: ["Không có"],
-            bloodType: "A+",
-            immunizations: [
-              {
-                name: "Vắc-xin COVID-19",
-                date: "2022-12-10",
-                status: "Hoàn thành",
-              },
-              {
-                name: "Vắc-xin Viêm gan B",
-                date: "2018-05-15",
-                status: "Hoàn thành",
-              },
-            ],
-          },
-          ST002: {
-            height: [
-              { date: "2022-09-05", value: 140 },
-              { date: "2023-01-10", value: 142 },
-              { date: "2023-05-10", value: 143 },
-            ],
-            weight: [
-              { date: "2022-09-05", value: 35 },
-              { date: "2023-01-10", value: 36 },
-              { date: "2023-05-10", value: 37 },
-            ],
-            vision: [
-              { date: "2022-09-05", left: "10/10", right: "10/10" },
-              { date: "2023-05-10", left: "9/10", right: "9/10" },
-            ],
-            bmi: [
-              { date: "2022-09-05", value: 17.9, status: "Bình thường" },
-              { date: "2023-01-10", value: 17.9, status: "Bình thường" },
-              { date: "2023-05-10", value: 18.1, status: "Bình thường" },
-            ],
-            allergies: ["Phấn hoa"],
-            chronicConditions: ["Không có"],
-            bloodType: "B+",
-            immunizations: [
-              {
-                name: "Vắc-xin COVID-19",
-                date: "2022-12-15",
-                status: "Hoàn thành",
-              },
-              {
-                name: "Vắc-xin Sởi-Quai bị-Rubella",
-                date: "2019-07-20",
-                status: "Hoàn thành",
-              },
-            ],
-          },
-        };
-
-        // Dữ liệu bệnh án
-        const mockMedicalRecords = [
-          {
-            id: "MR001",
-            studentId: "ST001",
-            date: "2023-05-10",
-            type: "examination",
-            title: "Khám sức khỏe định kỳ",
-            description: "Khám sức khỏe tổng quát định kỳ học kỳ 1",
-            notes: "Học sinh khỏe mạnh, không phát hiện vấn đề",
-            doctor: "Bác sĩ Nguyễn Văn Khoa",
-            attachments: ["health_report_ST001_20230510.pdf"],
-          },
-          {
-            id: "MR002",
-            studentId: "ST001",
-            date: "2023-04-15",
-            type: "illness",
-            title: "Cảm cúm",
-            description: "Học sinh có triệu chứng sốt, ho",
-            treatment: "Thuốc hạ sốt, nghỉ ngơi",
-            notes: "Cho học sinh nghỉ học 2 ngày",
-            doctor: "Bác sĩ Lê Thị Hà",
-            attachments: [],
-          },
-          {
-            id: "MR003",
-            studentId: "ST001",
-            date: "2023-03-20",
-            type: "vaccination",
-            title: "Tiêm chủng định kỳ",
-            description: "Tiêm vắc-xin phòng ngừa theo lịch",
-            notes: "Đã tiêm đủ mũi theo quy định",
-            doctor: "Y tá Phạm Thu Thủy",
-            attachments: ["vaccination_cert_ST001.pdf"],
-          },
-          {
-            id: "MR004",
-            studentId: "ST002",
-            date: "2023-05-12",
-            type: "examination",
-            title: "Khám sức khỏe định kỳ",
-            description: "Khám sức khỏe tổng quát định kỳ học kỳ 1",
-            notes: "Phát hiện cận thị nhẹ, cần theo dõi",
-            doctor: "Bác sĩ Nguyễn Văn Khoa",
-            attachments: ["health_report_ST002_20230512.pdf"],
-          },
-          {
-            id: "MR005",
-            studentId: "ST002",
-            date: "2023-02-05",
-            type: "injury",
-            title: "Tai nạn nhẹ",
-            description: "Trầy xước đầu gối khi chơi thể thao",
-            treatment: "Vệ sinh vết thương, băng kín",
-            notes: "Vết thương nhẹ, đã sơ cứu tại trường",
-            doctor: "Y tá Trần Minh Tuấn",
-            attachments: [],
-          },
-        ];
-
-        setStudents(mockStudents);
-        setHealthMetrics(mockHealthMetrics);
-        setMedicalRecords(mockMedicalRecords);
-        setIsLoading(false);
-      }, 1500);
-    } catch (error) {
-      console.error("Lỗi khi tải dữ liệu học sinh:", error);
-      setIsLoading(false);
+      const response = await axios.get(`${API_URL}/hocsinh/hocsinh/${studentId}`);
+      return response.data;
+    } catch (err) {
+      console.error(`Error fetching details for student ${studentId}:`, err);
+      throw new Error("Không thể lấy thông tin chi tiết học sinh");
     }
   };
 
-  const addMedicalRecord = (newRecord) => {
-    setMedicalRecords((prev) => [...prev, newRecord]);
+  // Hàm lấy hồ sơ y tế của học sinh
+  const getMedicalRecords = async (studentId) => {
+    try {
+      const response = await axios.get(`${API_URL}/medicalRecords?studentId=${studentId}`);
+      return response.data;
+    } catch (err) {
+      console.error(`Error fetching medical records for student ${studentId}:`, err);
+      throw new Error("Không thể lấy hồ sơ y tế");
+    }
   };
 
-  const updateHealthMetric = (studentId, metricType, newData) => {
-    setHealthMetrics((prev) => ({
-      ...prev,
-      [studentId]: {
-        ...prev[studentId],
-        [metricType]: [...(prev[studentId][metricType] || []), newData],
-      },
-    }));
+  // Hàm lấy lịch sử khai báo sức khỏe của học sinh
+  const getHealthDeclarations = async (studentId) => {
+    try {
+      const response = await axios.get(`${API_URL}/declarations?studentId=${studentId}`);
+      return response.data;
+    } catch (err) {
+      console.error(`Error fetching declarations for student ${studentId}:`, err);
+      throw new Error("Không thể lấy lịch sử khai báo sức khỏe");
+    }
   };
 
-  const getStudentById = (id) => {
-    return students.find((student) => student.id === id);
-  };
-
-  const getMedicalRecordsByStudentId = (studentId) => {
-    return medicalRecords.filter((record) => record.studentId === studentId);
+  const value = {
+    students,
+    isLoading,
+    error,
+    getStudentDetails,
+    getMedicalRecords,
+    getHealthDeclarations
   };
 
   return (
-    <StudentDataContext.Provider
-      value={{
-        students,
-        healthMetrics,
-        medicalRecords,
-        isLoading,
-        addMedicalRecord,
-        updateHealthMetric,
-        getStudentById,
-        getMedicalRecordsByStudentId,
-        refreshData: fetchStudentData,
-      }}
-    >
+    <StudentDataContext.Provider value={value}>
       {children}
     </StudentDataContext.Provider>
   );
 };
+
+export default StudentDataContext;

@@ -4,16 +4,10 @@ import "./StudentProfile.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
+import axios from "axios";
 
-// Mock data cho phụ huynh - có thể dùng từ AuthContext sau này
-const MOCK_PARENTS = [
-  {
-    id: "PH001",
-    fullName: "Nguyễn Văn Bình",
-    email: "nguyenvanbinh@gmail.com",
-    phone: "0912345678",
-  },
-];
+// API URL từ mockapi.io của bạn
+const API_URL = "https://68425631e1347494c31c7892.mockapi.io/api/vi";
 
 export default function StudentProfile() {
   const { currentUser } = useAuth();
@@ -22,20 +16,109 @@ export default function StudentProfile() {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [error, setError] = useState(null);
   const [currentParent, setCurrentParent] = useState(null);
+  const [extendedStudent, setExtendedStudent] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
-  // TODO: Thay thế bằng useAuth() khi có AuthContext thực tế
-  const parentId = currentUser?.id || "PH001"; // Sử dụng ID từ AuthContext nếu có, nếu không dùng ID mẫu
-
+  // Lấy thông tin phụ huynh từ API
   useEffect(() => {
-    // Lấy thông tin phụ huynh
-    const parent = MOCK_PARENTS.find((p) => p.id === parentId);
-    setCurrentParent(parent);
+    const fetchParentInfo = async () => {
+      if (!currentUser) return;
 
-    // Tự động chọn học sinh đầu tiên khi dữ liệu được tải
+      try {
+        const response = await axios.get(`${API_URL}/users/${currentUser.id}`);
+        setCurrentParent(response.data);
+      } catch (err) {
+        console.error("Error fetching parent info:", err);
+        // Nếu API lỗi, sử dụng currentUser làm fallback
+        setCurrentParent(currentUser);
+      }
+    };
+
+    fetchParentInfo();
+  }, [currentUser]);
+
+  // Tự động chọn học sinh đầu tiên khi dữ liệu được tải
+  useEffect(() => {
     if (!isLoading && students.length > 0 && !selectedStudentId) {
       setSelectedStudentId(students[0].id);
     }
-  }, [isLoading, students, selectedStudentId, parentId]);
+  }, [isLoading, students, selectedStudentId]);
+
+  // Lấy thông tin chi tiết của học sinh đã chọn
+  useEffect(() => {
+    const fetchStudentDetails = async () => {
+      if (!selectedStudentId) return;
+
+      try {
+        setLoadingDetails(true);
+        // Gọi API để lấy thông tin chi tiết học sinh
+        const studentResponse = await axios.get(
+          `${API_URL}/hocsinh/hocsinh/${selectedStudentId}`
+        );
+        let studentData = studentResponse.data;
+
+        // Lấy thông tin trường học
+        try {
+          const schoolResponse = await axios.get(
+            `${API_URL}/schools/${studentData.schoolId}`
+          );
+          studentData.schoolName = schoolResponse.data.name;
+        } catch (err) {
+          console.warn("Error fetching school info:", err);
+          studentData.schoolName = "THCS Nguyễn Đình Chiểu"; // Fallback
+        }
+
+        // Lấy thông tin y tế
+        try {
+          const medicalResponse = await axios.get(
+            `${API_URL}/medicalRecords?studentId=${selectedStudentId}`
+          );
+          if (medicalResponse.data.length > 0) {
+            const medicalRecord = medicalResponse.data[0];
+            studentData = { ...studentData, ...medicalRecord };
+          }
+        } catch (err) {
+          console.warn("Error fetching medical records:", err);
+        }
+
+        // Lấy thông tin phụ huynh bổ sung
+        try {
+          if (studentData.parentId) {
+            const parentResponse = await axios.get(
+              `${API_URL}/users/${studentData.parentId}`
+            );
+            const parentData = parentResponse.data;
+
+            studentData = {
+              ...studentData,
+              father: parentData.name,
+              fatherPhone: parentData.phone,
+              fatherEmail: parentData.email,
+              fatherOccupation: parentData.occupation || "Chưa cập nhật",
+              mother: parentData.spouseName || "Chưa cập nhật",
+              motherPhone: parentData.spousePhone || "Chưa cập nhật",
+              motherEmail: parentData.spouseEmail || "Chưa cập nhật",
+              motherOccupation: parentData.spouseOccupation || "Chưa cập nhật",
+              address: parentData.address || "Chưa cập nhật",
+            };
+          }
+        } catch (err) {
+          console.warn("Error fetching parent details:", err);
+        }
+
+        setExtendedStudent(studentData);
+      } catch (err) {
+        console.error("Error fetching student details:", err);
+        setError(
+          "Không thể tải thông tin chi tiết học sinh. Vui lòng thử lại sau."
+        );
+      } finally {
+        setLoadingDetails(false);
+      }
+    };
+
+    fetchStudentDetails();
+  }, [selectedStudentId]);
 
   // Tính tuổi từ ngày sinh
   const calculateAge = (dob) => {
@@ -93,30 +176,6 @@ export default function StudentProfile() {
     );
   }
 
-  // Dữ liệu bổ sung để hiển thị chi tiết học sinh (giả lập từ data context)
-  const getExtendedStudentInfo = (student) => {
-    if (!student) return null;
-
-    return {
-      ...student,
-      schoolName: "THCS Nguyễn Đình Chiểu",
-      healthStatus: "Khỏe mạnh",
-      father: "Nguyễn Văn Bình",
-      fatherPhone: "0912345678",
-      fatherEmail: "nguyenvanbinh@gmail.com",
-      fatherOccupation: "Kỹ sư xây dựng",
-      mother: "Trần Thị Cúc",
-      motherPhone: "0923456789",
-      motherEmail: "tranthicuc@gmail.com",
-      motherOccupation: "Giáo viên",
-      address: "123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
-    };
-  };
-
-  const extendedStudent = selectedStudent
-    ? getExtendedStudentInfo(selectedStudent)
-    : null;
-
   return (
     <div className="main-content-container">
       <div className="student-profile-container">
@@ -125,7 +184,12 @@ export default function StudentProfile() {
           <div className="profile-info">
             <h1>Hồ sơ học sinh</h1>
             <p className="parent-info">
-              Phụ huynh: <strong>{currentParent?.fullName}</strong>
+              Phụ huynh:{" "}
+              <strong>
+                {currentParent?.name ||
+                  currentParent?.fullName ||
+                  "Đang tải..."}
+              </strong>
             </p>
 
             {/* Selector để chọn con */}
@@ -148,15 +212,22 @@ export default function StudentProfile() {
             )}
           </div>
 
-          {extendedStudent && (
+          {selectedStudent && (
             <div className="profile-avatar-container">
               <div className="profile-avatar">
-                <img
-                  src={
-                    extendedStudent.avatar || "https://i.pravatar.cc/150?img=11"
-                  }
-                  alt={extendedStudent.name}
-                />
+                {loadingDetails ? (
+                  <div className="avatar-loading">
+                    <i className="fas fa-spinner fa-pulse"></i>
+                  </div>
+                ) : (
+                  <img
+                    src={
+                      selectedStudent.avatar ||
+                      "https://i.pravatar.cc/150?img=11"
+                    }
+                    alt={selectedStudent.name}
+                  />
+                )}
               </div>
               <div className="avatar-edit-button" title="Thay đổi ảnh đại diện">
                 <i className="fas fa-camera"></i>
@@ -165,170 +236,227 @@ export default function StudentProfile() {
           )}
         </div>
 
-        {extendedStudent && (
-          <div className="profile-content">
-            {/* Banner thông báo sử dụng dữ liệu giả */}
-            <div className="demo-banner">
-              <i className="fas fa-info-circle"></i>
-              <span>
-                Đang sử dụng dữ liệu mẫu trong quá trình phát triển. Dữ liệu
-                thực tế sẽ được kết nối từ server.
-              </span>
-            </div>
-
-            {/* Thông tin cơ bản */}
-            <div className="profile-section basic-info">
-              <h2>Thông tin cơ bản</h2>
-              <div className="info-grid">
-                <div className="info-item">
-                  <span className="info-label">Mã học sinh:</span>
-                  <span className="info-value">{extendedStudent.id}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Họ tên học sinh:</span>
-                  <span className="info-value">{extendedStudent.name}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Giới tính:</span>
-                  <span className="info-value">{extendedStudent.gender}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Ngày sinh:</span>
-                  <span className="info-value">
-                    {formatDate(extendedStudent.dob)}
-                  </span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Tuổi:</span>
-                  <span className="info-value">
-                    {extendedStudent.age || calculateAge(extendedStudent.dob)}{" "}
-                    tuổi
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Thông tin gia đình */}
-            <div className="profile-section family-info">
-              <h2>Thông tin gia đình</h2>
-              <div className="info-grid">
-                {/* Thông tin về cha */}
-                <div className="family-member">
-                  <h3 className="family-member-title">Thông tin cha</h3>
-                  <div className="family-member-details">
-                    <div className="info-item">
-                      <span className="info-label">Họ tên:</span>
-                      <span className="info-value">
-                        {extendedStudent.father}
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Số điện thoại:</span>
-                      <span className="info-value">
-                        <a href={`tel:${extendedStudent.fatherPhone}`}>
-                          {extendedStudent.fatherPhone}
-                        </a>
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Email:</span>
-                      <span className="info-value">
-                        <a href={`mailto:${extendedStudent.fatherEmail}`}>
-                          {extendedStudent.fatherEmail}
-                        </a>
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Nghề nghiệp:</span>
-                      <span className="info-value">
-                        {extendedStudent.fatherOccupation}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Thông tin về mẹ */}
-                <div className="family-member">
-                  <h3 className="family-member-title">Thông tin mẹ</h3>
-                  <div className="family-member-details">
-                    <div className="info-item">
-                      <span className="info-label">Họ tên:</span>
-                      <span className="info-value">
-                        {extendedStudent.mother}
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Số điện thoại:</span>
-                      <span className="info-value">
-                        <a href={`tel:${extendedStudent.motherPhone}`}>
-                          {extendedStudent.motherPhone}
-                        </a>
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Email:</span>
-                      <span className="info-value">
-                        <a href={`mailto:${extendedStudent.motherEmail}`}>
-                          {extendedStudent.motherEmail}
-                        </a>
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Nghề nghiệp:</span>
-                      <span className="info-value">
-                        {extendedStudent.motherOccupation}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Địa chỉ */}
-                <div className="info-item full-width">
-                  <span className="info-label">Địa chỉ:</span>
-                  <span className="info-value">{extendedStudent.address}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Thông tin học tập */}
-            <div className="profile-section study-info">
-              <h2>Thông tin học tập</h2>
-              <div className="info-grid">
-                <div className="info-item">
-                  <span className="info-label">Lớp:</span>
-                  <span className="info-value">{extendedStudent.class}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Trường:</span>
-                  <span className="info-value">
-                    {extendedStudent.schoolName}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Thông tin sức khỏe */}
-            <div className="profile-section health-info">
-              <div className="section-header-with-action">
-                <h2>Thông tin sức khỏe</h2>
-                <Link
-                  to="/parent/medical-records"
-                  className="edit-medical-record"
-                  title="Xem hồ sơ bệnh án"
-                >
-                  <i className="fas fa-file-medical"></i>
-                </Link>
-              </div>
-              <div className="info-grid single-column">
-                <div className="info-item">
-                  <span className="info-label">Tình trạng sức khỏe:</span>
-                  <span className="info-value health-status">
-                    {extendedStudent.healthStatus}
-                  </span>
-                </div>
-              </div>
-            </div>
+        {loadingDetails ? (
+          <div className="loading-details">
+            <LoadingSpinner text="Đang tải thông tin chi tiết..." />
           </div>
+        ) : (
+          extendedStudent && (
+            <div className="profile-content">
+              {/* Banner thông báo kết nối API */}
+              <div className="api-banner">
+                <i className="fas fa-cloud"></i>
+                <span>Dữ liệu được tải từ API: {API_URL}/hocsinh/hocsinh</span>
+              </div>
+
+              {/* Thông tin cơ bản */}
+              <div className="profile-section basic-info">
+                <h2>Thông tin cơ bản</h2>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Mã học sinh:</span>
+                    <span className="info-value">{extendedStudent.id}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Họ tên học sinh:</span>
+                    <span className="info-value">{extendedStudent.name}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Giới tính:</span>
+                    <span className="info-value">
+                      {extendedStudent.gender || "Chưa cập nhật"}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Ngày sinh:</span>
+                    <span className="info-value">
+                      {formatDate(extendedStudent.dob) || "Chưa cập nhật"}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Tuổi:</span>
+                    <span className="info-value">
+                      {extendedStudent.age ||
+                        calculateAge(extendedStudent.dob) ||
+                        "Chưa cập nhật"}{" "}
+                      tuổi
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Thông tin gia đình */}
+              <div className="profile-section family-info">
+                <h2>Thông tin gia đình</h2>
+                <div className="info-grid">
+                  {/* Thông tin về cha */}
+                  <div className="family-member">
+                    <h3 className="family-member-title">Thông tin cha</h3>
+                    <div className="family-member-details">
+                      <div className="info-item">
+                        <span className="info-label">Họ tên:</span>
+                        <span className="info-value">
+                          {extendedStudent.father || "Chưa cập nhật"}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Số điện thoại:</span>
+                        <span className="info-value">
+                          {extendedStudent.fatherPhone ? (
+                            <a href={`tel:${extendedStudent.fatherPhone}`}>
+                              {extendedStudent.fatherPhone}
+                            </a>
+                          ) : (
+                            "Chưa cập nhật"
+                          )}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Email:</span>
+                        <span className="info-value">
+                          {extendedStudent.fatherEmail ? (
+                            <a href={`mailto:${extendedStudent.fatherEmail}`}>
+                              {extendedStudent.fatherEmail}
+                            </a>
+                          ) : (
+                            "Chưa cập nhật"
+                          )}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Nghề nghiệp:</span>
+                        <span className="info-value">
+                          {extendedStudent.fatherOccupation || "Chưa cập nhật"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Thông tin về mẹ */}
+                  <div className="family-member">
+                    <h3 className="family-member-title">Thông tin mẹ</h3>
+                    <div className="family-member-details">
+                      <div className="info-item">
+                        <span className="info-label">Họ tên:</span>
+                        <span className="info-value">
+                          {extendedStudent.mother || "Chưa cập nhật"}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Số điện thoại:</span>
+                        <span className="info-value">
+                          {extendedStudent.motherPhone ? (
+                            <a href={`tel:${extendedStudent.motherPhone}`}>
+                              {extendedStudent.motherPhone}
+                            </a>
+                          ) : (
+                            "Chưa cập nhật"
+                          )}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Email:</span>
+                        <span className="info-value">
+                          {extendedStudent.motherEmail ? (
+                            <a href={`mailto:${extendedStudent.motherEmail}`}>
+                              {extendedStudent.motherEmail}
+                            </a>
+                          ) : (
+                            "Chưa cập nhật"
+                          )}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Nghề nghiệp:</span>
+                        <span className="info-value">
+                          {extendedStudent.motherOccupation || "Chưa cập nhật"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Địa chỉ */}
+                  <div className="info-item full-width">
+                    <span className="info-label">Địa chỉ:</span>
+                    <span className="info-value">
+                      {extendedStudent.address || "Chưa cập nhật"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Thông tin học tập */}
+              <div className="profile-section study-info">
+                <h2>Thông tin học tập</h2>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Lớp:</span>
+                    <span className="info-value">
+                      {extendedStudent.class || "Chưa cập nhật"}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Trường:</span>
+                    <span className="info-value">
+                      {extendedStudent.schoolName || "Chưa cập nhật"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Thông tin sức khỏe */}
+              <div className="profile-section health-info">
+                <div className="section-header-with-action">
+                  <h2>Thông tin sức khỏe</h2>
+                  <Link
+                    to="/parent/medical-records"
+                    className="edit-medical-record"
+                    title="Xem hồ sơ bệnh án"
+                  >
+                    <i className="fas fa-file-medical"></i>
+                  </Link>
+                </div>
+                <div className="info-grid single-column">
+                  <div className="info-item">
+                    <span className="info-label">Tình trạng sức khỏe:</span>
+                    <span className="info-value health-status">
+                      {extendedStudent.healthStatus || "Chưa cập nhật"}
+                    </span>
+                  </div>
+                  {extendedStudent.bloodType && (
+                    <div className="info-item">
+                      <span className="info-label">Nhóm máu:</span>
+                      <span className="info-value">
+                        {extendedStudent.bloodType}
+                      </span>
+                    </div>
+                  )}
+                  {extendedStudent.allergies &&
+                    extendedStudent.allergies.length > 0 && (
+                      <div className="info-item full-width">
+                        <span className="info-label">Dị ứng:</span>
+                        <span className="info-value">
+                          {Array.isArray(extendedStudent.allergies)
+                            ? extendedStudent.allergies.join(", ")
+                            : extendedStudent.allergies}
+                        </span>
+                      </div>
+                    )}
+                  {extendedStudent.chronicConditions &&
+                    extendedStudent.chronicConditions.length > 0 && (
+                      <div className="info-item full-width">
+                        <span className="info-label">Bệnh mãn tính:</span>
+                        <span className="info-value">
+                          {Array.isArray(extendedStudent.chronicConditions)
+                            ? extendedStudent.chronicConditions.join(", ")
+                            : extendedStudent.chronicConditions}
+                        </span>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+          )
         )}
 
         <div className="profile-actions">
