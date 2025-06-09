@@ -10,6 +10,7 @@ import "aos/dist/aos.css";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { StudentDataProvider } from "./context/StudentDataContext";
 import "./styles/global.css";
+import "./App.css";
 
 // Import routes from the route files
 import AppRoutes from "./routes";
