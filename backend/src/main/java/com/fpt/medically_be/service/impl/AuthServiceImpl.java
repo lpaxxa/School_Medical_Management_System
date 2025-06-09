@@ -1,10 +1,21 @@
 package com.fpt.medically_be.service.impl;
 
+import com.fpt.medically_be.dto.auth.AuthResponseDTO;
 import com.fpt.medically_be.dto.auth.LoginRequestDTO;
+import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
+import com.fpt.medically_be.dto.request.ParentRegistrationRequestDTO;
 import com.fpt.medically_be.entity.AccountMember;
+import com.fpt.medically_be.entity.HealthProfile;
+import com.fpt.medically_be.entity.Nurse;
+import com.fpt.medically_be.entity.Parent;
 import com.fpt.medically_be.entity.PasswordResetToken;
+import com.fpt.medically_be.entity.Student;
 import com.fpt.medically_be.repos.AccountMemberRepos;
+import com.fpt.medically_be.repos.HealthProfileRepository;
+import com.fpt.medically_be.repos.NurseRepository;
+import com.fpt.medically_be.repos.ParentRepository;
 import com.fpt.medically_be.repos.PasswordResetTokenRepos;
+import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.AuthService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +31,10 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import com.fpt.medically_be.entity.MemberRole;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,6 +46,11 @@ public class AuthServiceImpl implements AuthService {
     private final AccountMemberRepos accountMemberRepos;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepos passwordResetTokenRepos;
+    private final JwtServiceImpl jwtServiceImpl;
+    private final NurseRepository nurseRepository;
+    private final ParentRepository parentRepository;
+    private final StudentRepository studentRepository;
+    private final HealthProfileRepository healthProfileRepository;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -46,10 +64,25 @@ public class AuthServiceImpl implements AuthService {
         );
 
         if (accountMemberOpt.isEmpty()) {
-            return null; // User not found
+            accountMemberOpt = accountMemberRepos.findAccountMemberByEmail(
+                    loginRequest.getUsername()
+
+            );
+        }
+        if (accountMemberOpt.isEmpty()) {
+            accountMemberOpt = accountMemberRepos.findAccountMemberByUsernameAndPassword(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+
+
+            );
+        }
+        if(accountMemberOpt.isPresent()) {
+            AccountMember member = accountMemberOpt.get();
+            return member;
         }
 
-        AccountMember member = accountMemberOpt.get();
+
         
         // CRITICAL FIX: Check password before allowing login
 //        if (passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
@@ -57,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
 //        } else {
 //            return null; // Password incorrect - login failed
 //        }
-        return member;
+        return null;
     }
 
     @Override
@@ -128,6 +161,100 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
+    @Transactional
+    public AuthResponseDTO registerParent(ParentRegistrationRequestDTO parentRegistrationRequestDTO) {
+        if(accountMemberRepos.findByEmail(parentRegistrationRequestDTO.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        } else if (accountMemberRepos.findByPhoneNumber(parentRegistrationRequestDTO.getEmergencyPhoneNumber()).isPresent()) {
+            throw new RuntimeException("Phone number already exists");
+        }
+        
+        // Create AccountMember
+        AccountMember member = new AccountMember();
+        member.setId(generateCustomId(MemberRole.PARENT));
+        member.setEmail(parentRegistrationRequestDTO.getEmail());
+        member.setPhoneNumber(parentRegistrationRequestDTO.getEmergencyPhoneNumber());
+        member.setUsername(generateUsername(parentRegistrationRequestDTO.getFullName()));
+       // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
+        member.setPassword(parentRegistrationRequestDTO.getPassword());
+        member.setRole(MemberRole.PARENT);
+        member = accountMemberRepos.save(member);
+        
+        // Create Parent profile
+        Parent parent = new Parent();
+        parent.setFullName(parentRegistrationRequestDTO.getFullName());
+        parent.setEmail(parentRegistrationRequestDTO.getEmail());
+        parent.setOccupation(parentRegistrationRequestDTO.getOccupation());
+        parent.setPhoneNumber(parentRegistrationRequestDTO.getEmergencyPhoneNumber());
+        parent.setAddress(parentRegistrationRequestDTO.getAddress());
+        parent.setRelationshipType(parentRegistrationRequestDTO.getRelationshipType());
+        parent.setAccount(member);
+        parent = parentRepository.save(parent);
+        
+        // Create students if provided
+        if (parentRegistrationRequestDTO.getStudents() != null && !parentRegistrationRequestDTO.getStudents().isEmpty()) {
+            createStudentsForParent(parent, parentRegistrationRequestDTO.getStudents());
+        }
+        
+        String token = jwtServiceImpl.generateToken(
+                member.getId(),
+                member.getEmail(),
+                member.getPhoneNumber(),
+                member.getRole()
+        );
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+        authResponseDTO.setMemberId(member.getId());
+        authResponseDTO.setEmail(member.getEmail());
+        authResponseDTO.setPhoneNumber(member.getPhoneNumber());
+        authResponseDTO.setRole(member.getRole().name());
+        authResponseDTO.setToken(token);
+        return authResponseDTO;
+    }
+
+    @Override
+    public AuthResponseDTO registerNurse(NurseRegistrationRequestDTO nurseRegistrationRequestDTO) {
+        if(accountMemberRepos.findByEmail(nurseRegistrationRequestDTO.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        } else if (accountMemberRepos.findByPhoneNumber(nurseRegistrationRequestDTO.getPhoneNumber()).isPresent()) {
+            throw new RuntimeException("Phone number already exists");
+        }
+        
+        // Create AccountMember
+        AccountMember member = new AccountMember();
+        member.setId(generateCustomId(MemberRole.NURSE));
+        member.setEmail(nurseRegistrationRequestDTO.getEmail());
+        member.setPhoneNumber(nurseRegistrationRequestDTO.getPhoneNumber());
+        member.setUsername(generateUsername(nurseRegistrationRequestDTO.getFullName()));
+        // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
+        member.setPassword(nurseRegistrationRequestDTO.getPassword());
+        member.setRole(MemberRole.NURSE);
+        member = accountMemberRepos.save(member);
+        
+        // Create Nurse profile
+        Nurse nurse = new Nurse();
+        nurse.setFullName(nurseRegistrationRequestDTO.getFullName());
+        nurse.setEmail(nurseRegistrationRequestDTO.getEmail());
+        nurse.setPhoneNumber(nurseRegistrationRequestDTO.getPhoneNumber());
+        nurse.setQualification(nurseRegistrationRequestDTO.getQualification());
+        nurse.setAccount(member);
+        nurseRepository.save(nurse);
+        
+        String token = jwtServiceImpl.generateToken(
+                member.getId(),
+                member.getEmail(),
+                member.getPhoneNumber(),
+                member.getRole()
+        );
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+        authResponseDTO.setMemberId(member.getId());
+        authResponseDTO.setEmail(member.getEmail());
+        authResponseDTO.setPhoneNumber(member.getPhoneNumber());
+        authResponseDTO.setRole(member.getRole().name());
+        authResponseDTO.setToken(token);
+        return authResponseDTO;
+    }
+
 
     private void sendPasswordResetEmail(String email, String token) {
         try {
@@ -168,6 +295,66 @@ public class AuthServiceImpl implements AuthService {
             System.err.println("Failed to send email: " + e.getMessage());
             e.printStackTrace();
             // Don't throw exception - let password reset continue even if email fails
+        }
+    }
+
+    public String generateUsername(String fullName) {
+        String noAccent = java.text.Normalizer.normalize(fullName, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", ""); // loại bỏ dấu
+
+        String[] parts = noAccent.toLowerCase().replaceAll("[^a-z0-9 ]", "").trim().split("\\s+");
+
+        if (parts.length >= 2) {
+            return parts[parts.length - 1] + parts[0]; // tên + họ
+        } else if (parts.length == 1) {
+            return parts[0];
+        }
+        return "user";
+    }
+
+    private String generateCustomId(MemberRole role) {
+        String prefix;
+        switch (role) {
+            case NURSE:
+                prefix = "NU";
+                break;
+            case PARENT:
+                prefix = "PA";
+                break;
+            case ADMIN:
+                prefix = "AD";
+                break;
+            default:
+                prefix = "US";
+        }
+
+
+        // Generate 3-digit suffix: 2 from timestamp + 1 random
+        int timestampPart = (int)(System.currentTimeMillis() % 100); // Last 2 digits of timestamp
+        int randomPart = (int)(Math.random() * 10); // Random 1-digit number
+
+        return String.format("%s%02d%01d", prefix, timestampPart, randomPart);
+    }
+    
+    private void createStudentsForParent(Parent parent, List<ParentRegistrationRequestDTO.StudentRegistrationInfo> studentInfos) {
+        for (ParentRegistrationRequestDTO.StudentRegistrationInfo studentInfo : studentInfos) {
+            // Create HealthProfile first
+            HealthProfile healthProfile = new HealthProfile();
+            healthProfile = healthProfileRepository.save(healthProfile);
+            
+            // Create Student
+            Student student = new Student();
+            student.setFullName(studentInfo.getFullName());
+            student.setDateOfBirth(studentInfo.getDateOfBirth());
+            student.setGender(studentInfo.getGender());
+            student.setStudentId(studentInfo.getStudentId());
+            student.setClassName(studentInfo.getClassName());
+            student.setGradeLevel(studentInfo.getGradeLevel());
+            student.setSchoolYear(studentInfo.getSchoolYear());
+            student.setParent(parent);
+            student.setHealthProfile(healthProfile);
+            
+            studentRepository.save(student);
         }
     }
 

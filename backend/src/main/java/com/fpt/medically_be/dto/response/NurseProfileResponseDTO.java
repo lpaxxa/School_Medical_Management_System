@@ -20,19 +20,5 @@ public class NurseProfileResponseDTO extends BaseMapper<Nurse, NurseProfileRespo
     private String phoneNumber;
     private String qualification;
 
-    @Override
-    public NurseProfileResponseDTO toObject(Nurse entity) {
-        if (entity == null) {
-            return null;
-        }
-
-        this.id = entity.getId();
-        this.accountId = entity.getAccount() != null ? entity.getAccount().getId() : null;
-        this.email = entity.getEmail();
-        this.fullName = entity.getFullName();
-        this.phoneNumber = entity.getPhoneNumber();
-        this.qualification = entity.getQualification();
-
-        return this;
-    }
+     
 }

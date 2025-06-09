@@ -1,7 +1,11 @@
 package com.fpt.medically_be.service;
 
+import com.fpt.medically_be.dto.auth.AuthResponseDTO;
 import com.fpt.medically_be.dto.auth.LoginRequestDTO;
+import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
+import com.fpt.medically_be.dto.request.ParentRegistrationRequestDTO;
 import com.fpt.medically_be.entity.AccountMember;
+import com.fpt.medically_be.entity.Nurse;
 
 
 public interface AuthService {
@@ -12,6 +16,8 @@ public interface AuthService {
     void initiatePasswordReset(String email);
     void resetPassword(String token, String newPassword);
     AccountMember processOAuth2Callback(String code, String state);
+    AuthResponseDTO registerParent(ParentRegistrationRequestDTO parentRegistrationRequestDTO);
+    AuthResponseDTO registerNurse(NurseRegistrationRequestDTO nurseRegistrationRequestDTO);
 
 
 
