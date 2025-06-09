@@ -37,6 +37,36 @@
   border-radius: 2px;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-inventory {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.2);
+}
+
+.btn-inventory:hover {
+  background-color: #1976d2;
+  box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-inventory i {
+  margin-right: 8px;
+}
+
 .add-btn {
   background-color: #4caf50;
   color: white;
@@ -500,6 +530,148 @@
   margin-right: 8px;
 }
 
+/* CSS cho hiển thị tab */
+.vaccine-tabs {
+  display: flex;
+  gap: 2px;
+  background-color: #e9ecef;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 4px;
+}
+
+.tab-button {
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tab-button.active {
+  background-color: white;
+  color: #4caf50;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button i {
+  font-size: 16px;
+}
+
+/* CSS cho hiển thị số lượng tồn kho */
+.stock-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  min-width: 50px;
+  gap: 8px;
+}
+
+.stock-status.out-of-stock {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
+}
+
+.stock-status.low-stock {
+  background-color: #fff8e1;
+  color: #ff8f00;
+  border: 1px solid #ffe082;
+}
+
+.stock-status.in-stock {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.stock-status i {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+/* CSS cho nút quản lý lô */
+.btn-batch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background-color: #e8f0fe;
+  color: #4285f4;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-batch:hover {
+  background-color: #4285f4;
+  color: white;
+  box-shadow: 0 3px 8px rgba(66, 133, 244, 0.3);
+  transform: translateY(-2px);
+}
+
+/* CSS cho phần chọn vaccine trong tab Quản lý lô */
+.batch-management-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.select-vaccine-section {
+  margin-bottom: 24px;
+}
+
+.select-vaccine-section h4 {
+  font-size: 16px;
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.vaccine-selector {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
+.vaccine-selector:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* CSS cho phần hiển thị chi tiết lô trong modal */
+.detail-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+.detail-section h4 {
+  font-size: 16px;
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
 /* Responsive styles */
 @media (max-width: 992px) {
   .header-actions {
@@ -548,6 +720,16 @@
   
   .detail-label {
     width: 100%;
+  }
+  
+  .vaccine-tabs {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .tab-button {
+    border-radius: 6px;
   }
 }
 

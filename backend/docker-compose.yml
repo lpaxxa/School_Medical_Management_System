@@ -1,0 +1,51 @@
+services:
+  # Microsoft SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: medically_sqlserver
+    environment:
+      SA_PASSWORD: "YourStrong@Passw0rd"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+    ports:
+      - "1434:1433"  # Changed external port to avoid conflict
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - medically_network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1' -C -l 5"]
+      timeout: 10s
+      retries: 15
+      interval: 5s
+      start_period: 30s
+
+  # Spring Boot Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medically_app
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    networks:
+      - medically_network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=medically_db;encrypt=true;trustServerCertificate=true;connectRetryCount=3;connectRetryInterval=10
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=YourStrong@Passw0rd
+      - SPRING_DATASOURCE_HIKARI_CONNECTION-TIMEOUT=30000
+      - SPRING_DATASOURCE_HIKARI_INITIALIZATION-FAIL-TIMEOUT=60000
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+
+networks:
+  medically_network:
+    external: true  # Mark it as external
+    name: medically_network  # Specify exact name
