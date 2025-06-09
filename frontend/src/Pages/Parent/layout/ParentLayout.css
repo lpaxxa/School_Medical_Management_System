@@ -9,6 +9,16 @@
   color: #37474f;
   font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   position: relative;
+  padding-top: 130px; /* Updated: 70px (header) + 60px (navigation) */
+}
+
+/* Thêm div đóng vai trò content-wrapper vào giữa header/navigation và content */
+.content-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  flex: 1;
+  padding-top: 0; /* Đảm bảo không có padding-top trùng lặp */
 }
 
 /* Layout Background Pattern */
@@ -39,6 +49,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 2rem;
+  /* Remove the padding-top here as it's now in parent-layout */
 }
 
 /* Layout with sidebar (if necessary) */

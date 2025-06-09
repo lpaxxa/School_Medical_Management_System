@@ -1,3 +1,13 @@
+/* Update these CSS variables to match your global.css */
+/* :root {
+  --primary: #154082;
+  --secondary: #075a64;
+  --primary-light: #3a75c4;
+  --text-dark: #000000;
+  --text-medium: #666666;
+  --bg-white: #ffffff;
+} */
+
 .main-navigation {
   background: var(--bg-white); /* Sửa thành biến đúng */
   padding: 15px 0;
@@ -65,39 +75,58 @@
   color: var(--primary-light); /* Sửa thành biến đúng */
 }
 
-/* Modern Navigation */
+/* Container để đảm bảo navigation cố định có vị trí đúng */
+.navigation-wrapper {
+  position: relative;
+  height: 60px; /* Chiều cao của navigation */
+  width: 100%;
+}
+
+/* Modern Navigation - Styling hoàn toàn mới */
 .modern-navigation {
   background-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  position: sticky;
-  top: 70px;
-  z-index: 900;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: fixed !important; /* Sử dụng fixed thay vì sticky */
+  top: 70px; /* Vị trí cố định dưới header */
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 9999; /* Z-index cao để hiển thị trên các phần tử khác */
+  height: 60px;
   border-bottom: 1px solid #eaeaea;
-  height: auto;
-  overflow: hidden !important; /* Ẩn thanh cuộn */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  
+  /* Loại bỏ các thuộc tính có thể gây xung đột */
+  transform: none !important;
+  -webkit-transform: none !important;
+  -ms-transform: none !important;
+  
+  /* Đảm bảo không có margin và padding bị ảnh hưởng */
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
+/* Ẩn thanh cuộn cho navigation */
 .modern-navigation::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
+/* Style khi cuộn trang */
 .modern-navigation.scrolled {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   background-color: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(10px);
 }
 
+/* Container cho menu */
 .nav-container {
   max-width: 1360px;
   margin: 0 auto;
   padding: 0;
-  height: auto;
+  height: 100%;
   overflow: visible !important;
 }
 
+/* Menu chính */
 .nav-menu {
   display: flex;
   list-style: none;
@@ -105,9 +134,10 @@
   padding: 0;
   justify-content: space-around;
   width: 100%;
-  height: auto;
+  height: 100%;
 }
 
+/* Item trong menu */
 .nav-item {
   position: relative;
   display: flex;
@@ -115,65 +145,73 @@
   flex: 1;
   margin: 0;
   padding: 0;
+  height: 100%;
 }
 
+/* Style cho link */
 .modern-link {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1rem 0.5rem;
+  padding: 0.5rem;
   width: 100%;
   text-align: center;
-  color: var(--text-dark);
+  color: var(--text-dark, #000000);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
   transition: all 0.2s ease;
   position: relative;
   gap: 5px;
+  height: 100%;
 }
 
+/* Icon trong link */
 .modern-link i {
   font-size: 1.2rem;
   margin-bottom: 4px;
   transition: all 0.3s ease;
-  color: var(--text-medium);
 }
 
+/* Tiêu đề navigation */
 .nav-title {
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
+  display: block;
+  white-space: nowrap;
 }
 
+/* Hiệu ứng hover */
 .modern-link:hover {
-  color: var(--primary);
+  color: var(--primary-light, #3a75c4);
+  background-color: rgba(240, 244, 248, 0.5);
 }
 
+/* Hiệu ứng hover cho icon */
 .modern-link:hover i {
-  color: var(--primary);
   transform: translateY(-2px);
 }
 
+/* Style cho link active */
 .modern-link.active {
-  color: var(--primary);
+  color: var(--primary-color, #154082);
+  font-weight: 600;
+  position: relative;
 }
 
+/* Style cho icon khi active */
 .modern-link.active i {
-  color: var(--primary);
-  transform: translateY(-2px);
+  color: var(--primary-color, #154082);
 }
 
+/* Indicator cho active link */
 .active-indicator {
   position: absolute;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
+  left: 10%;
+  width: 80%;
   height: 3px;
-  background-color: var(--primary);
-  border-radius: 10px;
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  background-color: var(--primary-color, #154082);
+  border-radius: 1.5px;
 }
 
 /* Responsive adjustments */

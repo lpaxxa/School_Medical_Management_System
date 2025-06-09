@@ -1,9 +1,19 @@
+/* Thêm phần này vào global.css để đảm bảo các ảnh hưởng đến position: fixed */
+body {
+  position: relative !important;
+  overflow-x: hidden;
+}
+
+/* Đảm bảo các biến CSS chính toàn cục */
 :root {
   --primary-color: #154082;
   --secondary-color: #075a64;
   --accent-color: #ffffff;
   --text-dark: #000000;
   --text-light: #ffffff;
+  --primary-light: #3a75c4; /* Thêm biến này từ Navigation.css */
+  --text-medium: #666666; /* Thêm biến này từ Navigation.css */
+  --bg-white: #ffffff; /* Thêm biến này từ Navigation.css */
   --background-light: #fbfbf8;
   --shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
   --border-radius: 20px;
