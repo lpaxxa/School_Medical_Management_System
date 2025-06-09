@@ -1,152 +1,65 @@
-/* Reset và thiết lập chung */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
-}
-
+/* Component specific styles for Nurse Dashboard */
 .nurse-dashboard {
-  min-height: 100vh;
+  width: 100%;
+  padding: 0;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-/* Main Navigation Bar */
-.main-navbar {
-  display: flex;
-  align-items: center;
-  background-color: #0056b3; /* Giữ nguyên màu nền */
-  padding: 0 20px;
-  height: 60px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  margin-right: 20px;
-}
-
-.logo {
-  height: 40px;
-}
-
-.nav-container {
-  flex-grow: 1;
-  overflow-x: auto;
-}
-
-.nav-menu {
-  display: flex;
-  list-style: none;
-  gap: 5px;
-}
-
-.nav-item {
-  padding: 0 15px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  color: white; /* Đảm bảo màu chữ là trắng */
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 0.3s, color 0.3s;
-  font-weight: 500; /* Làm chữ đậm hơn */
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); /* Thêm bóng để tăng độ tương phản */
-}
-
-.nav-item i {
-  margin-right: 8px;
-  font-size: 1.1rem; /* Tăng kích thước icon */
-}
-
-.nav-item:hover, .nav-item.active {
-  background-color: #003d7e;
-  color: #ffffff; /* Đảm bảo màu chữ là trắng khi hover/active */
-}
-
-/* Thêm hiệu ứng gạch dưới khi hover để dễ nhận biết */
-.nav-item:hover {
-  box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.7);
-}
-
-/* Tạo hiệu ứng nổi bật hơn cho mục active */
-.nav-item.active {
-  background-color: #00347a;
-  box-shadow: inset 0 -3px 0 white;
-  font-weight: 600;
-}
-
-.user-container {
-  display: flex;
-  align-items: center;
-  color: white;
-  gap: 15px;
-  margin-left: 20px;
-  font-weight: 500; /* Đậm hơn */
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); /* Thêm bóng cho text */
-}
-
-.logout-btn {
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid white;
-  border-radius: 4px;
-  color: white;
-  padding: 7px 12px; /* Tăng padding để dễ nhìn và click hơn */
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.3s;
-  font-weight: 500;
-}
-
-.logout-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-}
-
 /* Page Title Container */
 .page-title-container {
-  background-color: #f0f0f0;
+  background-color: #f8f9fa;
   padding: 15px 20px;
   border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
 }
 
 .page-title-container h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: #333;
+  color: #2c3e50;
 }
 
 /* Content Container */
 .content-container {
-  flex-grow: 1;
-  padding: 20px;
+  padding: 0 20px 20px 20px;
+  flex: 1;
 }
 
-.nurse-content {
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+/* Dashboard Content */
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* Dashboard styles */
+/* Welcome Section */
 .nurse-welcome {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
 }
 
+.nurse-welcome h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+}
+
+.nurse-welcome p {
+  color: #7f8c8d;
+  margin-bottom: 0;
+}
+
+/* Dashboard Cards */
 .nurse-overview {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .overview-card {
@@ -156,6 +69,12 @@ body {
   display: flex;
   align-items: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.overview-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .today-visits {
@@ -178,16 +97,23 @@ body {
   font-size: 2.5rem;
   margin-right: 20px;
   color: #555;
+  transition: transform 0.2s;
+}
+
+.overview-card:hover .overview-icon {
+  transform: scale(1.1);
 }
 
 .overview-info h3 {
   font-size: 1.8rem;
   margin-bottom: 5px;
+  color: #333;
 }
 
 .overview-info p {
   font-size: 0.9rem;
   color: #666;
+  margin: 0;
 }
 
 .nurse-sections {
@@ -204,10 +130,12 @@ body {
 }
 
 .nurse-section h3 {
+  margin-top: 0;
   margin-bottom: 15px;
   color: #333;
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
+  font-size: 1.2rem;
 }
 
 .student-list table {
@@ -231,6 +159,7 @@ body {
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.85rem;
+  display: inline-block;
 }
 
 .waiting {
@@ -245,6 +174,7 @@ body {
 
 .notification-list {
   list-style: none;
+  padding-left: 0;
 }
 
 .notification-list li {
@@ -364,34 +294,39 @@ body {
   .nurse-sections {
     grid-template-columns: 1fr;
   }
-  
-  .nav-menu {
-    overflow-x: auto;
-    padding-bottom: 5px;
-  }
 }
 
 @media (max-width: 768px) {
   .nurse-overview {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .overview-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+  }
+  
+  .overview-info h3 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .nurse-overview {
     grid-template-columns: 1fr;
   }
   
-  .main-navbar {
+  .inventory-tools {
     flex-direction: column;
-    height: auto;
-    padding: 10px;
+    gap: 10px;
   }
   
-  .nav-menu {
-    flex-wrap: nowrap;
-    overflow-x: auto;
+  .search-box,
+  .action-buttons {
     width: 100%;
-    margin: 10px 0;
   }
   
-  .user-container {
-    margin-top: 10px;
-    flex-direction: column;
-    align-items: flex-end;
+  .action-buttons {
+    justify-content: space-between;
   }
 }

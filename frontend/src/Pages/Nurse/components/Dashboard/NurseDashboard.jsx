@@ -1,24 +1,23 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { AdminLayout } from "../../components/layouts/SharedLayouts";
-import InventoryManagement from "./components/Inventory";
-import MedicalEventsManagement from "./components/MedicalEvents";
-import VaccinationManagement from "./components/Vaccination";
-import StudentRecords from "./components/StudentRecords/index";
-import ConsultationManagement from "./components/Consultation/index.jsx";
-import HealthCheckups from "./components/HealthCheckups/index";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../../../context/AuthContext";
+import InventoryManagement from "../Inventory";
+import MedicalEventsManagement from "../MedicalEvents";
+import VaccinationManagement from "../Vaccination";
+import StudentRecords from "../StudentRecords";
+import ConsultationManagement from "../Consultation";
+import HealthCheckups from "../HealthCheckups";
+import DebugComponent from "../Debug/DebugComponent";
 import "./NurseDashboard.css";
 
 const NurseDashboard = () => {
-  const { currentUser, logout } = useAuth();
-  const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  // Log when component mounts
+  useEffect(() => {
+    console.log("NurseDashboard mounted");
+    console.log("Current user:", currentUser);
+  }, [currentUser]);
 
   // Xác định tiêu đề dựa trên tab đang active
   const getPageTitle = () => {
@@ -44,63 +43,6 @@ const NurseDashboard = () => {
 
   const dashboardContent = (
     <>
-      {/* Main navigation bar */}
-      <div className="main-navbar">
-        <div className="logo-container">
-          <img src="/logo.png" alt="Logo" className="logo" />
-        </div>
-        <nav className="nav-container">
-          <ul className="nav-menu">
-            <li className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`} 
-                onClick={() => setActiveTab("dashboard")}>
-              <i className="fas fa-home"></i>
-              <span>Dashboard</span>
-            </li>
-            <li className={`nav-item ${activeTab === "inventory" ? "active" : ""}`}
-                onClick={() => setActiveTab("inventory")}>
-              <i className="fas fa-warehouse"></i>
-              <span>Quản lý kho</span>
-            </li>
-            <li className={`nav-item ${activeTab === "medical-events" ? "active" : ""}`}
-                onClick={() => setActiveTab("medical-events")}>
-              <i className="fas fa-calendar-plus"></i>
-              <span>Sự kiện y tế</span>
-            </li>
-            <li className={`nav-item ${activeTab === "vaccination" ? "active" : ""}`}
-                onClick={() => setActiveTab("vaccination")}>
-              <i className="fas fa-syringe"></i>
-              <span>Quản lý tiêm chủng</span>
-            </li>
-            <li className={`nav-item ${activeTab === "health-checkups" ? "active" : ""}`}
-                onClick={() => setActiveTab("health-checkups")}>
-              <i className="fas fa-stethoscope"></i>
-              <span>Khám sức khỏe định kỳ</span>
-            </li>
-            <li className={`nav-item ${activeTab === "student-records" ? "active" : ""}`}
-                onClick={() => setActiveTab("student-records")}>
-              <i className="fas fa-file-medical"></i>
-              <span>Hồ sơ y tế học sinh</span>
-            </li>
-            <li className={`nav-item ${activeTab === "consultation" ? "active" : ""}`}
-                onClick={() => setActiveTab("consultation")}>
-              <i className="fas fa-comments"></i>
-              <span>Hỗ trợ tư vấn</span>
-            </li>
-            <li className={`nav-item ${activeTab === "blog-management" ? "active" : ""}`}
-                onClick={() => setActiveTab("blog-management")}>
-              <i className="fas fa-blog"></i>
-              <span>Quản lý blog</span>
-            </li>
-          </ul>
-        </nav>
-        <div className="user-container">
-          <span>Xin chào, {currentUser?.name}</span>
-          <button className="logout-btn" onClick={handleLogout}>
-            <i className="fas fa-sign-out-alt"></i> Đăng xuất
-          </button>
-        </div>
-      </div>
-
       {/* Page title - only appears for specific tabs */}
       {getPageTitle() && (
         <div className="page-title-container">
@@ -111,16 +53,19 @@ const NurseDashboard = () => {
       {/* Main content area */}
       <div className="content-container">
         {activeTab === "dashboard" && (
-          <main className="nurse-content">
+          <main className="dashboard-content">
             {/* Dashboard content */}
             <div className="nurse-welcome">
-              <h2>Xin chào, {currentUser?.name}!</h2>
+              <h2>Xin chào, {currentUser?.name || "Y tá"}!</h2>
               <p>
                 Ngày hôm nay là ngày {new Date().toLocaleDateString("vi-VN")}.
               </p>
+              
+              {/* Debug component */}
+              <DebugComponent />
             </div>
 
-            {/* Dashboard overview cards and other content */}
+            {/* Dashboard overview cards */}
             <div className="nurse-overview">
               <div className="overview-card today-visits">
                 <div className="overview-icon">
@@ -256,7 +201,10 @@ const NurseDashboard = () => {
               </div>
             </div>
           </main>
-        )}        {/* Các chức năng đã hoàn thành */}        {activeTab === "inventory" && <InventoryManagement />}
+        )}
+        
+        {/* Các chức năng đã hoàn thành */}
+        {activeTab === "inventory" && <InventoryManagement />}
         {activeTab === "medical-events" && <MedicalEventsManagement />}
         {activeTab === "vaccination" && <VaccinationManagement />}
         {activeTab === "student-records" && <StudentRecords />}
@@ -277,11 +225,9 @@ const NurseDashboard = () => {
   );
 
   return (
-    <AdminLayout>
-      <div className="nurse-dashboard">
-        {dashboardContent}
-      </div>
-    </AdminLayout>
+    <div className="nurse-dashboard">
+      {dashboardContent}
+    </div>
   );
 };
 

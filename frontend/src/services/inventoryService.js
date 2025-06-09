@@ -69,7 +69,7 @@ const mockItems = [
     quantity: 25,
     category: "Thuốc",
     expDate: "2024-05-15",
-    warning: "Cảnh báo"
+    warning: "Bình thường"
   },
   {
     id: 8,

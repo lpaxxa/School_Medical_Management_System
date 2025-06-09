@@ -1,32 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
+import { mockUsers } from "../mockData/users";
 
-// Mock users data (trong thực tế sẽ thay bằng API calls)
-const mockUsers = [
-  {
-    id: 1,
-    username: "admin",
-    password: "admin123",
-    name: "Admin Hệ thống",
-    role: "admin",
-    email: "admin@school.edu.vn",
-  },
-  {
-    id: 2,
-    username: "parent",
-    password: "parent123",
-    name: "Nguyễn Văn A",
-    role: "parent",
-    email: "parent@example.com",
-  },
-  {
-    id: 3,
-    username: "nurse",
-    password: "nurse123",
-    name: "Y tá Trường",
-    role: "nurse",
-    email: "nurse@school.edu.vn",
-  },
-];
+// Fallback to local mock data since API might not be working
+// API URL từ mockapi.io
+const API_URL = "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1";
 
 const AuthContext = createContext();
 
@@ -38,7 +16,6 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   // Kiểm tra trạng thái đăng nhập khi component mount
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -47,27 +24,46 @@ export const AuthProvider = ({ children }) => {
     }
     setLoading(false);
   }, []);
-
-  // Hàm đăng nhập
+  // Hàm đăng nhập sử dụng mockAPI.io hoặc local data
   const login = async (username, password) => {
-    return new Promise((resolve, reject) => {
-      // Mô phỏng API call
-      setTimeout(() => {
-        const user = mockUsers.find(
-          (u) => u.username === username && u.password === password
-        );
+    try {
+      let users = [];
+      
+      try {
+        // Gọi API để lấy danh sách users
+        const response = await axios.get(`${API_URL}/users`);
+        users = response.data;
+      } catch (apiError) {
+        console.log("API không có sẵn, chuyển sang dùng local mock data");
+        users = mockUsers;
+      }
 
-        if (user) {
-          // Không lưu mật khẩu vào state và localStorage
-          const { password, ...userWithoutPassword } = user;
-          setCurrentUser(userWithoutPassword);
-          localStorage.setItem("user", JSON.stringify(userWithoutPassword));
-          resolve(userWithoutPassword);
-        } else {
-          reject({ message: "Tên đăng nhập hoặc mật khẩu không đúng" });
-        }
-      }, 800);
-    });
+      // Tìm user phù hợp với thông tin đăng nhập
+      const user = users.find(
+        (u) => u.username === username && u.password === password
+      );
+
+      if (user) {
+        // Loại bỏ mật khẩu khỏi object user
+        const { password, ...userWithoutPassword } = user;
+
+        // Tạo token mô phỏng
+        const token = `mock-jwt-${Date.now()}`;
+
+        // Lưu thông tin đăng nhập
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("user", JSON.stringify(userWithoutPassword));
+
+        // Cập nhật state
+        setCurrentUser(userWithoutPassword);
+        return userWithoutPassword;
+      } else {
+        throw new Error("Tên đăng nhập hoặc mật khẩu không đúng");
+      }
+    } catch (error) {
+      setError(error.message || "Đăng nhập thất bại");
+      throw error;
+    }
   };
 
   // Hàm đăng xuất

@@ -1,0 +1,47 @@
+.nurse-sidebar {
+  width: 250px;
+  height: calc(100vh - 130px); /* Adjust based on header/footer height */
+  background-color: #2c3e50; /* Darker background */
+  padding: 0;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 60px; /* Adjust based on header height */
+}
+
+.nurse-sidebar nav {
+  padding: 1rem 0;
+}
+
+.nurse-sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nurse-sidebar nav ul li {
+  padding: 0.5rem 0;
+  margin: 0.25rem 0;
+}
+
+.nurse-sidebar nav ul li a {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: #ecf0f1; /* Light text color */
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.nurse-sidebar nav ul li a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #3498db;
+  color: white;
+}
+
+.nurse-sidebar nav ul li a.active {
+  background-color: rgba(52, 152, 219, 0.2);
+  border-left: 4px solid #3498db;
+  font-weight: bold;
+  color: white;
+}

@@ -148,7 +148,6 @@ const EditItem = ({ item, onClose, onItemUpdated }) => {
               >
                 <option value="Bình thường">Bình thường</option>
                 <option value="Thấp">Thấp</option>
-                <option value="Cảnh báo">Cảnh báo</option>
               </select>
             </div>
             <div className="form-actions">
