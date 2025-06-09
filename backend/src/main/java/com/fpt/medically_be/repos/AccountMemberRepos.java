@@ -1,6 +1,7 @@
 package com.fpt.medically_be.repos;
 
 import com.fpt.medically_be.entity.AccountMember;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,4 +20,7 @@ public interface AccountMemberRepos extends JpaRepository<AccountMember, String>
 
 
     Optional<AccountMember> findByEmail(String email);
+    Optional<AccountMember> findByPhoneNumber(String phoneNumber);
+
+    Optional<AccountMember> findAccountMemberByUsernameAndPassword(String username, String password);
 }

@@ -25,6 +25,9 @@ public class Parent {
     @Column(columnDefinition = "NVARCHAR(255)")
     private String address;
 
+    @Column(columnDefinition = "NVARCHAR(255)")
+    private String occupation;
+
     @Column(name = "relationship_type", columnDefinition = "NVARCHAR(255)")
     private String relationshipType;  // Father, Mother, Guardian, etc.
 

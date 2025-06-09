@@ -3,8 +3,10 @@ package com.fpt.medically_be.service.impl;
 import com.fpt.medically_be.dto.ParentDTO;
 import com.fpt.medically_be.entity.AccountMember;
 import com.fpt.medically_be.entity.Parent;
+import com.fpt.medically_be.entity.Student;
 import com.fpt.medically_be.repos.AccountMemberRepos;
 import com.fpt.medically_be.repos.ParentRepository;
+import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.ParentService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +20,13 @@ public class ParentServiceImpl implements ParentService {
 
     private final ParentRepository parentRepository;
     private final AccountMemberRepos accountMemberRepos;
+    private final StudentRepository studentRepository;
 
     @Autowired
-    public ParentServiceImpl(ParentRepository parentRepository, AccountMemberRepos accountMemberRepos) {
+    public ParentServiceImpl(ParentRepository parentRepository, AccountMemberRepos accountMemberRepos, StudentRepository studentRepository) {
         this.parentRepository = parentRepository;
         this.accountMemberRepos = accountMemberRepos;
+        this.studentRepository = studentRepository;
     }
 
     @Override
@@ -100,6 +104,20 @@ public class ParentServiceImpl implements ParentService {
             throw new EntityNotFoundException("Không tìm thấy phụ huynh với ID: " + id);
         }
         parentRepository.deleteById(id);
+    }
+
+    @Override
+    public void linkStudentsToParent(Long parentId, List<Long> studentIds) {
+        Parent parent = parentRepository.findById(parentId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy phụ huynh với ID: " + parentId));
+        
+        for (Long studentId : studentIds) {
+            Student student = studentRepository.findById(studentId)
+                    .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với ID: " + studentId));
+            
+            student.setParent(parent);
+            studentRepository.save(student);
+        }
     }
 
     // Phương thức chuyển đổi từ Entity sang DTO

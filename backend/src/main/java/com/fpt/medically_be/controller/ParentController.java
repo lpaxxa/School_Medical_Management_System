@@ -68,4 +68,19 @@ public class ParentController {
         parentService.deleteParent(id);
         return ResponseEntity.noContent().build();
     }
+
+
+
+    @PostMapping("/{parentId}/link-existing-students")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> linkExistingStudentsToParent(
+            @PathVariable Long parentId, 
+            @RequestBody List<Long> studentIds) {
+        try {
+            parentService.linkStudentsToParent(parentId, studentIds);
+            return ResponseEntity.ok("Students successfully linked to parent");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to link students: " + e.getMessage());
+        }
+    }
 }

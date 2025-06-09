@@ -13,4 +13,6 @@ public interface ParentService {
     ParentDTO updateParent(Long id, ParentDTO parentDTO);
     void deleteParent(Long id);
 
+    void linkStudentsToParent(Long id, List<Long> studentIds);
+
 }
