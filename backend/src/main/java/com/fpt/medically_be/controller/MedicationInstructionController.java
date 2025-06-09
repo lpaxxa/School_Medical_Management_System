@@ -23,7 +23,7 @@ public class MedicationInstructionController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<List<MedicationInstructionDTO>> getAllMedicationInstructions() {
         return ResponseEntity.ok(medicationInstructionService.getAllMedicationInstructions());
     }
