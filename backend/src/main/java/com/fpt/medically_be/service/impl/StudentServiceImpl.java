@@ -101,6 +101,11 @@ public class StudentServiceImpl implements StudentService {
         existingStudent.setGradeLevel(studentDTO.getGradeLevel());
         existingStudent.setSchoolYear(studentDTO.getSchoolYear());
 
+        // Cập nhật trường imageUrl khi có giá trị
+        if (studentDTO.getImageUrl() != null) {
+            existingStudent.setImageUrl(studentDTO.getImageUrl());
+        }
+
         // Cập nhật thông tin parent nếu có thay đổi
         if (studentDTO.getParentId() != null) {
             Parent parent = parentRepository.findById(studentDTO.getParentId())
