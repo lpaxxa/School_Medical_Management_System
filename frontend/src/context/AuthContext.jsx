@@ -1,32 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
 
-// Mock users data (trong thực tế sẽ thay bằng API calls)
-const mockUsers = [
-  {
-    id: 1,
-    username: "admin",
-    password: "admin123",
-    name: "Admin Hệ thống",
-    role: "admin",
-    email: "admin@school.edu.vn",
-  },
-  {
-    id: 2,
-    username: "parent",
-    password: "parent123",
-    name: "Nguyễn Văn A",
-    role: "parent",
-    email: "parent@example.com",
-  },
-  {
-    id: 3,
-    username: "nurse",
-    password: "nurse123",
-    name: "Y tá Trường",
-    role: "nurse",
-    email: "nurse@school.edu.vn",
-  },
-];
+// API URL từ mockapi.io
+const API_URL = "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1";
 
 const AuthContext = createContext();
 
@@ -37,54 +13,73 @@ export function useAuth() {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [authError, setAuthError] = useState(null);
 
-  // Kiểm tra trạng thái đăng nhập khi component mount
+  // Kiểm tra nếu người dùng đã đăng nhập (từ localStorage)
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const checkLoggedInUser = () => {
+      const token = localStorage.getItem("authToken");
+      const userData = localStorage.getItem("userData");
+
+      if (token && userData) {
+        setCurrentUser(JSON.parse(userData));
+      }
+
+      setLoading(false);
+    };
+
+    checkLoggedInUser();
   }, []);
 
-  // Hàm đăng nhập
+  // Hàm đăng nhập sử dụng mockAPI.io
   const login = async (username, password) => {
-    return new Promise((resolve, reject) => {
-      // Mô phỏng API call
-      setTimeout(() => {
-        const user = mockUsers.find(
-          (u) => u.username === username && u.password === password
-        );
+    try {
+      setAuthError(null);
 
-        if (user) {
-          // Không lưu mật khẩu vào state và localStorage
-          const { password, ...userWithoutPassword } = user;
-          setCurrentUser(userWithoutPassword);
-          localStorage.setItem("user", JSON.stringify(userWithoutPassword));
-          resolve(userWithoutPassword);
-        } else {
-          reject({ message: "Tên đăng nhập hoặc mật khẩu không đúng" });
-        }
-      }, 800);
-    });
+      // Gọi API để lấy danh sách users
+      const response = await axios.get(`${API_URL}/users`);
+      const users = response.data;
+
+      // Tìm user phù hợp với thông tin đăng nhập
+      const user = users.find(
+        (u) => u.username === username && u.password === password
+      );
+
+      if (user) {
+        // Loại bỏ mật khẩu khỏi object user
+        const { password, ...userWithoutPassword } = user;
+
+        // Tạo token mô phỏng
+        const token = `mock-jwt-${Date.now()}`;
+
+        // Lưu thông tin đăng nhập
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("userData", JSON.stringify(userWithoutPassword));
+
+        // Cập nhật state
+        setCurrentUser(userWithoutPassword);
+        return userWithoutPassword;
+      } else {
+        throw new Error("Tên đăng nhập hoặc mật khẩu không đúng");
+      }
+    } catch (error) {
+      setAuthError(error.message || "Đăng nhập thất bại");
+      throw error;
+    }
   };
 
   // Hàm đăng xuất
   const logout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
     setCurrentUser(null);
-    localStorage.removeItem("user");
   };
 
   const value = {
     currentUser,
     login,
     logout,
-    error,
-    setError,
-    isAdmin: currentUser?.role === "admin",
-    isNurse: currentUser?.role === "nurse",
-    isParent: currentUser?.role === "parent",
+    authError,
   };
 
   return (
@@ -93,3 +88,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthContext;

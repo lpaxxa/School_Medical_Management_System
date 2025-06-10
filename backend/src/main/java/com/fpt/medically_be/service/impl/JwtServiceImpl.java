@@ -28,7 +28,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateToken(String accountId, String email, MemberRole role) {
+    public String generateToken(String accountId, String email,String phoneNumber, MemberRole role) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(issuer)

@@ -35,6 +35,9 @@ public class Student {
     @Column(name = "school_year", columnDefinition = "NVARCHAR(50)")
     private String schoolYear;
 
+    @Column(name = "image_url", columnDefinition = "NVARCHAR(255)")
+    private String imageUrl;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "health_profile_id")
     private HealthProfile healthProfile;

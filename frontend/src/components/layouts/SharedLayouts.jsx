@@ -1,7 +1,7 @@
 import React from "react";
-import Header from "../Header/Header";
-import Navigation from "../Navigation/Navigation";
-import Footer from "../Footer/Footer";
+import Header from "../../Pages/Parent/components/Header/Header";
+import Navigation from "../../Pages/Parent/components/Navigation/Navigation";
+import Footer from "../../Pages/Parent/components/Footer/Footer";
 
 // Layout for parent pages - only include structural elements
 export const MainLayout = ({ children }) => (
@@ -27,4 +27,23 @@ export const HomeLayout = ({ children }) => (
     <main className="main-content">{children}</main>
     <Footer />
   </>
+);
+
+// Layout cho các trang cơ bản không thuộc Admin hay Parent
+export const BasicLayout = ({ children }) => (
+  <main className="basic-content">{children}</main>
+);
+
+// Layout cho trang lỗi
+export const ErrorLayout = ({ children }) => (
+  <div className="error-layout">
+    <div className="error-content">{children}</div>
+  </div>
+);
+
+// Layout cho trang đăng nhập/đăng ký
+export const AuthLayout = ({ children }) => (
+  <div className="auth-layout">
+    <div className="auth-content">{children}</div>
+  </div>
 );

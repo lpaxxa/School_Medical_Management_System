@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Entity
-@Table(name = "Medical_Staff")
+@Table(name = "Nurse")
 @Data
 public class Nurse {
 
