@@ -41,14 +41,15 @@ public class MedicalIncidentStudentDTO {
     @Size(max = 150)
 
     private String followUpNotes;
-    private Long handledById;
-    private Long studentId;
+    private Long staffId;
     private String fullName;
     private LocalDate dateOfBirth;
     private String gender;
     private String className;
     private String gradeLevel;
     private String schoolYear;
-    private String medicationName;
+    private String staffName;
+    private String studentId;
+
 
 }

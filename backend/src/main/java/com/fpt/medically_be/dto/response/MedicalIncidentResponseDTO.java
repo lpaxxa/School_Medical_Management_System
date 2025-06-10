@@ -41,8 +41,8 @@ public class MedicalIncidentResponseDTO {
     @Size(max = 150)
     private String treatment;
 
-    @Size(max = 150)
-    private String medicationsUsed;
+//    @Size(max = 150)
+//    private String medicationsUsed;
 
     private Boolean parentNotified;
     private Boolean requiresFollowUp;
@@ -50,9 +50,12 @@ public class MedicalIncidentResponseDTO {
     @Size(max = 150)
     private String followUpNotes;
 
-    private Long handledById;
+    private Long staffId;
+    private String staffName;
+    private String studentId;
+    private String studentName;
+    private String medicationsUsed;
 
-    private Long studentId;
 
 
 

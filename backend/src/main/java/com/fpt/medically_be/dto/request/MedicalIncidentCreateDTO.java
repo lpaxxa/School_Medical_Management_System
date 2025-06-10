@@ -1,12 +1,11 @@
 package com.fpt.medically_be.dto.request;
 
-
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.List;
+
 @Data
 public class MedicalIncidentCreateDTO {
 
@@ -28,9 +27,6 @@ public class MedicalIncidentCreateDTO {
     @Size(max = 150)
     private String treatment;
 
-    @Size(max = 150)
-    private String medicationsUsed;
-
     private Boolean parentNotified;
     private Boolean requiresFollowUp;
 
@@ -39,5 +35,7 @@ public class MedicalIncidentCreateDTO {
 
     private Long handledById;
     private Long studentId;
+
+    private List<MedicationUsedDTO> medicationsUsed;
 
 }

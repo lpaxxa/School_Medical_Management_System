@@ -1,15 +1,19 @@
 package com.fpt.medically_be.service;
 
-import com.fpt.medically_be.dto.response.MedicalIncidentResponseDTO;
+
+
+
+
 import com.fpt.medically_be.dto.request.MedicalIncidentCreateDTO;
+import com.fpt.medically_be.dto.response.MedicalIncidentResponseDTO;
 import com.fpt.medically_be.dto.response.MedicalIncidentStudentDTO;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface MedicalIncidentService {
 
+public interface MedicalIncidentService {
 
     List<MedicalIncidentResponseDTO> getAllMedicalIncidents();
 
@@ -17,13 +21,16 @@ public interface MedicalIncidentService {
 
     MedicalIncidentResponseDTO findMedicalIncidentDtoByIncidentId(Long id);
 
+    boolean deleteMedicalIncidentById(Long id);
+
+
+        List<MedicalIncidentResponseDTO> getTypesOfMedicalIncidents(String incidentType);
+
+        List<MedicalIncidentResponseDTO> getMedicalIncidentsByRequiresFollowUp(boolean requiredFollowUpNotes);
+
+    MedicalIncidentResponseDTO updateMedicalIncident( Long id, MedicalIncidentCreateDTO medicalIncidentDTO);
+
     MedicalIncidentResponseDTO createMedicalIncident(MedicalIncidentCreateDTO medicalIncidentDTO);
 
-    MedicalIncidentResponseDTO updateMedicalIncident(Long id, MedicalIncidentCreateDTO medicalIncidentResponseDTO);
-
-    void deleteMedicalIncident(Long id);
-    List<MedicalIncidentStudentDTO> getMedicalIncidentDetails(Long studentId);
-
-
-
-}
+    MedicalIncidentStudentDTO getMedicalIncidentDetails(Long incidentId);
+    }

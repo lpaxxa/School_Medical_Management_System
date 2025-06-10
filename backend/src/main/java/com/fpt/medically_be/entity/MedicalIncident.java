@@ -6,6 +6,8 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -34,8 +36,6 @@ public class MedicalIncident {
     @Column(name = "treatment",columnDefinition = "NVARCHAR(150)")
     private String treatment;
 
-    @Column(name = "medications_used" ,columnDefinition = "NVARCHAR(150)")
-    private String medicationsUsed;
 
     @Column(name = "parent_notified")
     private Boolean parentNotified;
@@ -46,12 +46,7 @@ public class MedicalIncident {
     @Column(name = "follow_up_notes",columnDefinition = "NVARCHAR(150)")
     private String followUpNotes;
 
-//    @Column(name = "created_at")
-//    private LocalDateTime createdAt;
 
-
-//    @Column(name = "updated_at", nullable = false)
-//    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false) // trỏ đến Student.studentId
@@ -61,21 +56,18 @@ public class MedicalIncident {
     @JoinColumn(name = "handled_by")
     private Nurse handledBy;
 
+    @OneToMany(mappedBy = "incidentId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MedicationUsed> medications = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
         if (this.dateTime == null) {
             this.dateTime = now;
         }
-//        if (this.createdAt == null) {
-//            this.createdAt = now;
-//        }
-//        this.updatedAt = now;
+
     }
-//    @PreUpdate
-//    protected void onUpdate() {
-//        this.updatedAt = LocalDateTime.now();
-//    }
+
 
     }
 
