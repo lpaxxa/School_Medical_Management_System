@@ -1,11 +1,14 @@
 .hero {
-  background: linear-gradient(135deg, #f0f5ff 0%, #e6f0fd 50%, #f0f7ff 100%);
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%);
   padding: 100px 0;
   min-height: 650px;
   display: flex;
   align-items: center;
   position: relative;
   overflow: hidden;
+  width: 100vw; /* Use viewport width */
+  margin-left: calc(-50vw + 50%); /* Negative margin technique */
+  margin-right: calc(-50vw + 50%);
 }
 
 /* Hiệu ứng wave nhẹ nhàng ở background */
@@ -23,6 +26,21 @@
   z-index: 1;
 }
 
+.hero.full-width {
+  margin-left: calc(-50vw + 50%); /* Override any existing margins */
+  margin-right: calc(-50vw + 50%);
+  width: 100vw;
+  padding: 100px 0;
+  box-sizing: border-box;
+}
+
+.hero-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
 .hero-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -30,9 +48,9 @@
   align-items: center;
   position: relative;
   z-index: 2;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 5%; /* Keep this padding for content only */
 }
 
 /* Thiết kế text hiện đại với animation */

@@ -8,21 +8,23 @@ import CallToAction from "../../components/CallToAction/CallToAction";
 
 export default function Main() {
   return (
-    <div className="home-container">
-      {/* Hero Section - Hiển thị banner chính */}
-      <Hero />
+    <>
+      <div className="home-page">
+        <div className="home-container">
+          <Hero />
+          <Features />
+          <About />
+        </div>
+      </div>
 
-      {/* Features Section - Hiển thị các tính năng nổi bật */}
-      <Features />
-
-      {/* About Section - Giới thiệu về dịch vụ */}
-      <About />
-
-      {/* Vision Section - Tầm nhìn và sứ mệnh */}
+      {/* Tách Vision ra khỏi container chung để tránh xung đột style */}
       <Vision />
 
-      {/* Call to Action - Kêu gọi hành động */}
-      <CallToAction />
-    </div>
+      <div className="home-page">
+        <div className="home-container">
+          <CallToAction />
+        </div>
+      </div>
+    </>
   );
 }
