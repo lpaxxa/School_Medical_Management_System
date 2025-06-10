@@ -1,15 +1,13 @@
-import React from 'react';
-import './Hero.css';
+import React from "react";
+import "./Hero.css";
 
 export default function Hero() {
   return (
-    <section className="hero">
-      <div className="container">
+    <section className="hero full-width">
+      <div className="hero-container">
         <div className="hero-content">
           <div className="hero-text">
-            <h1 className="hero-title">
-              Hệ thống Quản lý Y tế Học đường
-            </h1>
+            <h1 className="hero-title">Hệ thống Quản lý Y tế Học đường</h1>
             <div className="hero-description">
               <h2 className="hero-subtitle">
                 Vì sao nên chọn School Medical để quản lý y tế học đường?
@@ -25,8 +23,8 @@ export default function Hero() {
             </div>
           </div>
           <div className="hero-image">
-            <img 
-              src="https://codia-f2c.s3.us-west-1.amazonaws.com/image/2025-05-27/3nTekDHd9c.png" 
+            <img
+              src="https://codia-f2c.s3.us-west-1.amazonaws.com/image/2025-05-27/3nTekDHd9c.png"
               alt="School Medical System"
               className="hero-img"
             />
@@ -36,10 +34,10 @@ export default function Hero() {
               </h3>
               <p className="card-text">
                 Ngay tại trường học của bạn, hệ thống School Medical cung cấp
-                các giải pháp chăm sóc sức khỏe học đường tiện lợi, hiện đại
-                và chất lượng. Chúng tôi mang đến sự an tâm cho học sinh, phụ
-                huynh và giáo viên thông qua dịch vụ y tế toàn diện, chuyên
-                nghiệp và luôn sẵn sàng hỗ trợ.
+                các giải pháp chăm sóc sức khỏe học đường tiện lợi, hiện đại và
+                chất lượng. Chúng tôi mang đến sự an tâm cho học sinh, phụ huynh
+                và giáo viên thông qua dịch vụ y tế toàn diện, chuyên nghiệp và
+                luôn sẵn sàng hỗ trợ.
               </p>
             </div>
           </div>

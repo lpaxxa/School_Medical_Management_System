@@ -10,6 +10,7 @@
   font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   position: relative;
   padding-top: 130px; /* Updated: 70px (header) + 60px (navigation) */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Thêm div đóng vai trò content-wrapper vào giữa header/navigation và content */
@@ -19,6 +20,8 @@
   width: 100%;
   flex: 1;
   padding-top: 0; /* Đảm bảo không có padding-top trùng lặp */
+  padding: 0; /* Remove padding for full-width sections */
+  overflow-x: hidden;
 }
 
 /* Layout Background Pattern */
@@ -46,10 +49,38 @@
   padding: 0 2.5rem;
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 2rem;
-  /* Remove the padding-top here as it's now in parent-layout */
+  display: flex;
+  flex-direction: column;
+}
+
+.parent-content.no-bottom-margin {
+  margin-bottom: 0; /* Loại bỏ margin bottom */
+}
+
+/* Đặc biệt cho trang Home */
+.home-container {
+  margin-bottom: 0 !important; 
+  padding-bottom: 0 !important;
+}
+
+/* Đảm bảo Vision (phần tử cuối cùng trong home-container) không có margin-bottom */
+.vision-section, 
+.vision-container, 
+.rectangle-13 {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Đảm bảo content và footer kết nối chặt chẽ */
+.parent-content > *:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* If you want padding on regular content but not on hero */
+.parent-content > *:not(.hero) {
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 /* Layout with sidebar (if necessary) */

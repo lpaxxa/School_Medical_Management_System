@@ -3,7 +3,7 @@
 .header {
   padding: 0;
   height: 70px; /* Chiều cao cố định */
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
   color: #fff;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   position: sticky;
@@ -65,6 +65,7 @@
 }
 
 .logo-text {
+  font-family: var(--font-heading);
   font-size: 1.25rem;
   font-weight: 700;
   color: #fff;
@@ -85,7 +86,7 @@
   padding: 0;
   gap: 1rem; /* Tăng khoảng cách giữa các item */
   flex: 1;
-  justify-content: center; /* Căn giữa menu */
+  justify-content: left; /* Căn trái cho menu */
   height: 100%;
   align-items: center;
 }
@@ -194,7 +195,7 @@
   height: 40px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: yellow;
   text-decoration: none;
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -236,20 +237,82 @@
   height: 40px; /* Đảm bảo chiều cao đồng nhất */
 }
 
+/* Cải thiện user-greeting */
 .user-greeting {
   display: flex;
   align-items: center;
-  justify-content: center; /* Căn giữa nội dung */
+  justify-content: center;
   gap: 10px;
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0 1.2rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  height: 42px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Thêm hiệu ứng gradient nhẹ bên trong */
+.user-greeting::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Hiệu ứng hover */
+.user-greeting:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Làm phần chữ chào đẹp hơn */
+.greeting-text {
+  font-family: var(--font-body);
+  color: #e1eeff;
   font-size: 0.95rem;
-  background: rgba(255, 255, 255, 0.12);
-  padding: 0 1.1rem;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  height: 40px; /* Chiều cao cố định */
+  font-weight: 400;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* Làm tên user nổi bật */
+.user-name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  position: relative;
+  padding-bottom: 2px;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+/* Hiệu ứng gạch chân cho tên user */
+.user-name::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #64B5F6, rgba(100, 181, 246, 0.3));
+  border-radius: 1px;
+}
+
+/* Thêm icon user */
+.user-greeting i {
+  color: #64B5F6;
+  font-size: 1.1rem;
+  margin-right: 2px;
 }
 
 /* Login and Logout Buttons */

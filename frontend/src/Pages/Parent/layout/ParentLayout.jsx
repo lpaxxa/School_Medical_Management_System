@@ -12,9 +12,7 @@ const ParentLayout = ({ children }) => {
     <div className="parent-layout">
       <Header user={currentUser} />
       <Navigation />
-      <div className="content-wrapper">
-        <main className="parent-content">{children}</main>
-      </div>
+      <main className="parent-content no-bottom-margin">{children}</main>
       <Footer />
     </div>
   );

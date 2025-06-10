@@ -19,13 +19,6 @@ export default function Navigation() {
     <nav className="main-navigation">
       <div className="container">
         <div className="nav-wrapper">
-          <div className="logo">
-            <img
-              src="/logo.png"
-              alt="School Medical Logo"
-              className="logo-img"
-            />
-          </div>
           <ul className="main-nav-list">
             {navItems.map((item, index) => (
               <li key={index} className="main-nav-item">
