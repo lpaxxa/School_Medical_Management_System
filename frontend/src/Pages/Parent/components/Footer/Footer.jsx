@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
+import logoImage from "../../../../assets/A1.jpg";
 import "./Footer.css";
 
 export default function Footer() {
-  // Animation effect for footer content
   useEffect(() => {
     const footerContent = document.querySelector(".footer-content");
     if (footerContent) {
@@ -13,66 +13,88 @@ export default function Footer() {
 
   return (
     <footer className="footer">
-      <div className="container">
+      <div className="footer-inner">
         <div className="footer-content">
-          {/* Thông tin trường học */}
-          <div className="footer-column">
+          <div className="footer-column info-column">
             <Link to="/" className="footer-logo">
-              <img src="/logo-white.png" alt="School Medical System" />
+              <img src={logoImage} alt="School Medical System" />
             </Link>
             <p className="footer-description">
               Hệ thống quản lý y tế học đường hỗ trợ chăm sóc sức khỏe toàn diện
               cho học sinh, tạo nền tảng vững chắc cho tương lai.
             </p>
             <address className="school-address">
-              <p>
-                <i className="fas fa-map-marker-alt"></i> 123 Võ Văn Tần, Phường
-                11, Quận 3, TP.HCM
-              </p>
-              <p>
-                <i className="fas fa-phone"></i> Hotline:{" "}
-                <a href="tel:+84982345678">0982 345 678</a>
-              </p>
-              <p>
-                <i className="fas fa-envelope"></i> Email:{" "}
-                <a href="mailto:info@medicalschool.edu.vn">
-                  info@medicalschool.edu.vn
-                </a>
-              </p>
+              <div className="address-item">
+                <i className="fas fa-map-marker-alt"></i>
+                <span>123 Võ Văn Tần, Phường 11, Quận 3, TP.HCM</span>
+              </div>
+              <div className="address-item">
+                <i className="fas fa-phone"></i>
+                <span>
+                  Hotline: <a href="tel:+84982345678">0982 345 678</a>
+                </span>
+              </div>
+              <div className="address-item">
+                <i className="fas fa-envelope"></i>
+                <span>
+                  Email:{" "}
+                  <a href="mailto:info@medicalschool.edu.vn">
+                    info@medicalschool.edu.vn
+                  </a>
+                </span>
+              </div>
             </address>
           </div>
 
-          {/* Kết nối với chúng tôi - với icon đẹp hơn */}
-          <div className="footer-column">
+          <div className="footer-column connect-column">
             <h3 className="footer-title">Kết nối với chúng tôi</h3>
-            <div className="social-icons-enhanced">
-              <a href="#" className="social-link" aria-label="Facebook">
-                <i className="fab fa-facebook-f"></i>
-              </a>
-              <a href="#" className="social-link" aria-label="Twitter">
-                <i className="fab fa-twitter"></i>
-              </a>
-              <a href="#" className="social-link" aria-label="Instagram">
-                <i className="fab fa-instagram"></i>
-              </a>
-              <a href="#" className="social-link" aria-label="LinkedIn">
-                <i className="fab fa-linkedin-in"></i>
-              </a>
-              <a href="#" className="social-link" aria-label="YouTube">
-                <i className="fab fa-youtube"></i>
-              </a>
+            <div className="social-icons-container">
+              <div className="social-icons">
+                <a
+                  href="#"
+                  className="social-icon facebook"
+                  aria-label="Facebook"
+                >
+                  <i className="fab fa-facebook-f"></i>
+                </a>
+                <a
+                  href="#"
+                  className="social-icon twitter"
+                  aria-label="Twitter"
+                >
+                  <i className="fab fa-twitter"></i>
+                </a>
+                <a
+                  href="#"
+                  className="social-icon instagram"
+                  aria-label="Instagram"
+                >
+                  <i className="fab fa-instagram"></i>
+                </a>
+                <a
+                  href="#"
+                  className="social-icon linkedin"
+                  aria-label="LinkedIn"
+                >
+                  <i className="fab fa-linkedin-in"></i>
+                </a>
+                <a
+                  href="#"
+                  className="social-icon youtube"
+                  aria-label="YouTube"
+                >
+                  <i className="fab fa-youtube"></i>
+                </a>
+              </div>
             </div>
 
-            <div className="connect-description">
-              <p>
-                Theo dõi chúng tôi trên các kênh mạng xã hội để cập nhật thông
-                tin mới nhất về y tế học đường.
-              </p>
-            </div>
+            <p className="connect-description">
+              Theo dõi chúng tôi trên các kênh mạng xã hội để cập nhật thông tin
+              mới nhất về y tế học đường.
+            </p>
           </div>
 
-          {/* Thông tin liên hệ - chuyển xuống cột 3 */}
-          <div className="footer-column">
+          <div className="footer-column contact-column">
             <h3 className="footer-title">Thông tin liên hệ</h3>
             <div className="contact-info">
               <div className="contact-item">
@@ -113,6 +135,8 @@ export default function Footer() {
             </div>
           </div>
         </div>
+
+        <div className="footer-divider"></div>
 
         <div className="footer-bottom">
           <p className="copyright">

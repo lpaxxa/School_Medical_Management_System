@@ -233,8 +233,15 @@
   background-color: #fff;
   border-radius: 12px;
   padding-bottom: 30px;
-  margin-bottom: 50px;
+  margin-bottom: 0; /* Thay đổi từ 50px xuống 0 */
   margin-top: 20px;
+}
+
+/* Đảm bảo CallToAction không có margin-bottom lớn */
+.rectangle-15, 
+.cta {
+  margin-bottom: 0 !important;
+  padding-bottom: 40px !important; /* Giảm padding từ 60px xuống 40px */
 }
 
 /* Ensure content is properly aligned */
@@ -500,8 +507,15 @@
   background-color: #fff;
   border-radius: 12px;
   padding-bottom: 30px;
-  margin-bottom: 50px;
+  margin-bottom: 0; /* Thay đổi từ 50px xuống 0 */
   margin-top: 20px;
+}
+
+/* Đảm bảo CallToAction không có margin-bottom lớn */
+.rectangle-15, 
+.cta {
+  margin-bottom: 0 !important;
+  padding-bottom: 40px !important; /* Giảm padding từ 60px xuống 40px */
 }
 
 /* Ensure content is properly aligned */
@@ -533,269 +547,19 @@
   overflow: hidden;
 }
 
-/* Hero Section */
-.hero-banner {
-  position: relative;
-  width: 100%;
-  height: 500px;
-  background: linear-gradient(135deg, rgba(52, 152, 219, 0.9), rgba(26, 82, 118, 0.9)),
-              url("../assets/hero-bg.jpg") no-repeat center center;
-  background-size: cover;
-  color: white;
+/* Thêm trực tiếp vào đầu file index.css */
+.home-page {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 0 20px;
+  flex-direction: column;
 }
 
-.he-thong-quan-ly-y-te {
-  max-width: 800px;
+.home-container {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
-.he-thong-quan-ly-y-te h1 {
-  font-size: 3rem;
-  margin-bottom: 20px;
-  font-weight: 700;
+.home-cta-wrapper {
+  margin-top: 0;
 }
 
-.he-thong-quan-ly-y-te p {
-  font-size: 1.5rem;
-  font-weight: 300;
-}
-
-/* Giới thiệu Section */
-.flex-row-d {
-  display: flex;
-  padding: 80px 20px;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  background-color: #f9f9f9;
-}
-
-.vi-sao-nen-chon {
-  flex: 1;
-  min-width: 300px;
-  padding-right: 30px;
-}
-
-.vi-sao-nen-chon-9 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2c3e50;
-  display: block;
-  margin-bottom: 20px;
-}
-
-.khi-su-dung-school-medical {
-  font-size: 1rem;
-  line-height: 1.6;
-  color: #666;
-}
-
-.image {
-  flex: 0 0 350px;
-  height: 350px;
-  background-size: cover;
-  background-position: center;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  margin: 0 20px;
-}
-
-.rectangle-a {
-  flex: 1;
-  min-width: 300px;
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  color: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
-}
-
-.start-health-care {
-  font-size: 1.5rem;
-  font-weight: 700;
-  display: block;
-  margin-bottom: 15px;
-}
-
-.convenient-modern-quality {
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-/* Features Section */
-.rectangle-b {
-  padding: 80px 0;
-}
-
-.flex-row-bfad,
-.flex-row-f,
-.flex-row-eb {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto 30px;
-}
-
-/* About Section */
-.flex-row-11 {
-  display: flex;
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 60px 0;
-}
-
-.image-12 {
-  width: 45%;
-  max-width: 500px;
-  height: auto;
-  position: relative;
-  left: auto;
-  right: auto;
-}
-
-.comprehensive-health-care {
-  width: 50%;
-  position: relative;
-  left: auto;
-  right: auto;
-  margin-left: 5%;
-}
-
-/* Vision Section */
-.rectangle-13 {
-  padding: 60px 0;
-}
-
-.vision-mission {
-  width: 80%;
-  max-width: 900px;
-  margin: 0 auto;
-  position: relative;
-  left: auto;
-  right: auto;
-}
-
-/* CTA Section */
-.rectangle-15 {
-  width: 100%;
-  padding: 60px 0;
-}
-
-.student-health-top-priority {
-  width: 80%;
-  max-width: 900px;
-  margin: 0 auto;
-  position: relative;
-  left: auto;
-}
-
-/* Footer */
-.rectangle-17 {
-  width: 100%;
-  padding: 40px 0;
-}
-
-.flex-row-18 {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-  .main-container {
-    width: 90%;
-  }
-}
-
-@media (max-width: 992px) {
-  .main-container {
-    width: 95%;
-  }
-  
-  .flex-row-11 {
-    flex-direction: column;
-  }
-  
-  .image-12,
-  .comprehensive-health-care {
-    width: 100%;
-    max-width: 100%;
-    margin: 20px 0;
-  }
-}
-
-@media (max-width: 768px) {
-  .main-container {
-    width: 100%;
-    padding: 0 15px;
-  }
-  
-  .vision-mission,
-  .student-health-top-priority {
-    width: 90%;
-  }
-}
-
-/* Add rounded corners to the main sections */
-.rectangle,
-.rectangle-b,
-.rectangle-13,
-.rectangle-15,
-.rectangle-17 {
-  border-radius: 10px;
-  margin-bottom: 20px;
-  overflow: hidden;
-}
-
-/* Add some spacing between sections */
-.rectangle-b,
-.rectangle-13,
-.flex-row-11,
-.rectangle-15 {
-  margin-top: 30px;
-}
-
-/* Add box shadow for depth */
-.main-container {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  background-color: #fff;
-  border-radius: 12px;
-  padding-bottom: 30px;
-  margin-bottom: 50px;
-  margin-top: 20px;
-}
-
-/* Ensure content is properly aligned */
-.he-thong-quan-ly-y-te,
-.vi-sao-nen-chon,
-.vision-mission-14,
-.comprehensive-health-care-for-students {
-  text-align: left;
-  padding: 0 20px;
-}
-
-/* Fix image aspects */
-.image,
-.image-12,
-.image-1f {
-  object-fit: cover;
-  background-size: cover;
-}
-
-/* Fix rectangle cards to use flexbox */
-.rectangle-c,
-.rectangle-d,
-.rectangle-e,
-.rectangle-f,
-.rectangle-10 {
-  width: 45%;
-  margin: 0 auto;
-  border-radius: 15px;
-  overflow: hidden;
-}
+/* Xóa bỏ các phần CSS trùng lặp trong file này */
