@@ -1,6 +1,6 @@
 package com.fpt.medically_be.controller;
 
-import com.fpt.medically_be.dto.ParentDTO;
+import com.fpt.medically_be.dto.response.ParentDTO;
 import com.fpt.medically_be.service.ParentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

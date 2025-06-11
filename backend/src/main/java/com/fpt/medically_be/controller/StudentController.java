@@ -34,7 +34,7 @@ public class StudentController {
 
     @GetMapping("/student-id/{studentId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
-    public ResponseEntity<StudentDTO> getStudentByStudentId(@PathVariable String studentId) {
+    public ResponseEntity<StudentDTO> getStudentByStudentId(@PathVariable Long studentId) {
         return ResponseEntity.ok(studentService.getStudentByStudentId(studentId));
     }
 

@@ -3,6 +3,7 @@ package com.fpt.medically_be.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -42,12 +43,24 @@ public class MedicationInstruction {
     @Column(name = "parent_provided")
     private Boolean parentProvided;
 
-    @Column(name = "prescribed_by", columnDefinition = "NVARCHAR(255)")
-    private String prescribedBy;
 
     @Column(name = "created_date")
     private LocalDate createdDate;
 
     @Column(name = "status", columnDefinition = "NVARCHAR(50)")
-    private String status; // Active, Completed, Cancelled
+    private String status; // Pending_Approval, Approved, Rejected
+
+    @Column(name = "rejection_reason", columnDefinition = "NVARCHAR(MAX)")
+    private String rejectionReason;
+
+    @ManyToOne
+    @JoinColumn(name = "approved_by")
+    private Nurse approvedBy;
+
+    @Column(name = "approved_date")
+    private LocalDateTime approvedDate;
+
+    @ManyToOne
+    @JoinColumn(name = "requested_by")
+    private Parent requestedBy;
 }

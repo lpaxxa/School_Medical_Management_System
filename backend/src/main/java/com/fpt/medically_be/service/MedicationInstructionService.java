@@ -1,6 +1,14 @@
 package com.fpt.medically_be.service;
 
-import com.fpt.medically_be.dto.MedicationInstructionDTO;
+import com.fpt.medically_be.dto.request.MedicationRequestDTO;
+import com.fpt.medically_be.dto.request.NurseMedicationApprovalRequestDTO;
+import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import org.springframework.security.core.Authentication;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -16,4 +24,15 @@ public interface MedicationInstructionService {
     MedicationInstructionDTO updateMedicationInstruction(Long id, MedicationInstructionDTO medicationInstructionDTO);
     void deleteMedicationInstruction(Long id);
 
+    //for sending-medication flow
+    MedicationInstructionDTO createParentMedicationRequest(MedicationRequestDTO request, Authentication auth);
+    List<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth);
+    List<MedicationInstructionDTO> getMedicationRequestsByChild(Long studentId, Authentication auth);
+    MedicationInstructionDTO updateParentMedicationRequest(Long requestId, MedicationRequestDTO request, Authentication auth);
+    List<MedicationInstructionDTO> getPendingMedicationRequests();
+
+    MedicationInstructionDTO processApprovalRequest(Long requestId, @Valid NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication);
+
+    void sendApprovalNotificationToParent(Long requestId, @NotBlank(message = "Decision is required") @Pattern(regexp = "APPROVED|REJECTED", message = "Decision must be APPROVED or REJECTED") String decision, @Size(max = 500, message = "Reason cannot exceed 500 characters") String reason);
 }
+

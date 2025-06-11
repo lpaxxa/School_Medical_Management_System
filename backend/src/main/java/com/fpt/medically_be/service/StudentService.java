@@ -6,7 +6,10 @@ import java.util.List;
 public interface StudentService {
     List<StudentDTO> getAllStudents();
     StudentDTO getStudentById(Long id);
-    StudentDTO getStudentByStudentId(String studentId);
+
+
+    StudentDTO getStudentByStudentId(Long studentId);
+
     List<StudentDTO> getStudentsByClass(String className);
     List<StudentDTO> getStudentsByGradeLevel(String gradeLevel);
     List<StudentDTO> getStudentsByParentId(Long parentId);

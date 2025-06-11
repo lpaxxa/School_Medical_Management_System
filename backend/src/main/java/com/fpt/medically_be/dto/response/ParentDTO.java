@@ -1,8 +1,6 @@
-package com.fpt.medically_be.dto;
+package com.fpt.medically_be.dto.response;
 
 import com.fpt.medically_be.base.BaseMapper;
-import com.fpt.medically_be.dto.response.NurseProfileResponseDTO;
-import com.fpt.medically_be.entity.Nurse;
 import com.fpt.medically_be.entity.Parent;
 import lombok.*;
 

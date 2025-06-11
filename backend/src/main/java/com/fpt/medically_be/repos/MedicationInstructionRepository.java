@@ -14,4 +14,5 @@ public interface MedicationInstructionRepository extends JpaRepository<Medicatio
     List<MedicationInstruction> findByEndDateBefore(LocalDate date);
     List<MedicationInstruction> findByStartDateBetween(LocalDate startDate, LocalDate endDate);
     List<MedicationInstruction> findByParentProvided(Boolean parentProvided);
+    List<MedicationInstruction> findByRequestedById(Long parentId);
 }
