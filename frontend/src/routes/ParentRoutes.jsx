@@ -27,7 +27,7 @@ const ParentRoutes = () => {
       key="parent-home"
       path="/parent"
       element={
-        <ProtectedRoute allowedRoles={["parent"]}>
+        <ProtectedRoute allowedRoles={["PARENT"]}>
           <HomeLayout>
             <MainPage />
           </HomeLayout>
@@ -39,7 +39,7 @@ const ParentRoutes = () => {
       key="parent-introduction"
       path="/parent/introduction"
       element={
-        <ProtectedRoute allowedRoles={["parent"]}>
+        <ProtectedRoute allowedRoles={["PARENT"]}>
           <MainLayout>
             <IntroductionPage />
           </MainLayout>
@@ -51,7 +51,7 @@ const ParentRoutes = () => {
       key="parent-student-profile"
       path="/parent/student-profile"
       element={
-        <ProtectedRoute allowedRoles={["parent", "admin", "nurse"]}>
+        <ProtectedRoute allowedRoles={["PARENT", "ADMIN", "NURSE"]}>
           <MainLayout>
             <StudentProfile />
           </MainLayout>
@@ -63,7 +63,7 @@ const ParentRoutes = () => {
       key="parent-notifications"
       path="/parent/notifications"
       element={
-        <ProtectedRoute allowedRoles={["parent", "admin", "nurse"]}>
+        <ProtectedRoute allowedRoles={["PARENT", "ADMIN", "NURSE"]}>
           <MainLayout>
             <Notifications />
           </MainLayout>
@@ -75,7 +75,7 @@ const ParentRoutes = () => {
       key="parent-contact"
       path="/parent/contact"
       element={
-        <ProtectedRoute allowedRoles={["parent"]}>
+        <ProtectedRoute allowedRoles={["PARENT"]}>
           <MainLayout>
             <ParentContact />
           </MainLayout>
@@ -87,7 +87,7 @@ const ParentRoutes = () => {
       key="parent-health-guide"
       path="/parent/health-guide"
       element={
-        <ProtectedRoute allowedRoles={["parent"]}>
+        <ProtectedRoute allowedRoles={["PARENT"]}>
           <MainLayout>
             <HealthGuide />
           </MainLayout>
@@ -99,7 +99,7 @@ const ParentRoutes = () => {
       key="parent-health-guide-detail"
       path="/parent/health-guide/:articleId"
       element={
-        <ProtectedRoute allowedRoles={["parent"]}>
+        <ProtectedRoute allowedRoles={["PARENT"]}>
           <MainLayout>
             <HealthGuideDetail />
           </MainLayout>
@@ -111,7 +111,7 @@ const ParentRoutes = () => {
       key="parent-health-declaration"
       path="/parent/health-declaration"
       element={
-        <ProtectedRoute allowedRoles={["parent"]}>
+        <ProtectedRoute allowedRoles={["PARENT"]}>
           <MainLayout>
             <HealthDeclaration />
           </MainLayout>
@@ -123,7 +123,7 @@ const ParentRoutes = () => {
       key="parent-send-medicine"
       path="/parent/send-medicine"
       element={
-        <ProtectedRoute allowedRoles={["parent"]}>
+        <ProtectedRoute allowedRoles={["PARENT"]}>
           <MainLayout>
             <SendMedicine />
           </MainLayout>
@@ -135,7 +135,7 @@ const ParentRoutes = () => {
       key="parent-medical-records"
       path="/parent/medical-records"
       element={
-        <ProtectedRoute allowedRoles={["parent"]}>
+        <ProtectedRoute allowedRoles={["PARENT"]}>
           <MainLayout>
             <MedicalRecords />
           </MainLayout>
@@ -147,7 +147,7 @@ const ParentRoutes = () => {
       key="parent-community"
       path="/parent/community"
       element={
-        <ProtectedRoute allowedRoles={["parent", "nurse", "admin"]}>
+        <ProtectedRoute allowedRoles={["PARENT", "NURSE", "ADMIN"]}>
           <MainLayout>
             <Community />
           </MainLayout>
@@ -159,7 +159,7 @@ const ParentRoutes = () => {
       key="parent-community-post"
       path="/parent/community/post/:postId"
       element={
-        <ProtectedRoute allowedRoles={["parent", "nurse", "admin"]}>
+        <ProtectedRoute allowedRoles={["PARENT", "NURSE", "ADMIN"]}>
           <MainLayout>
             <CommunityPost />
           </MainLayout>

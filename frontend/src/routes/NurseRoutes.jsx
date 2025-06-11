@@ -14,7 +14,7 @@ const NurseRoutes = () => {
       key="nurse-dashboard"
       path="/nurse/*"
       element={
-        <ProtectedRoute allowedRoles={["nurse"]}>
+        <ProtectedRoute allowedRoles={["NURSE"]}>
           <AdminLayout>
             <NurseDashboard />
           </AdminLayout>

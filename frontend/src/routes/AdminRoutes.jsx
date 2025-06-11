@@ -10,7 +10,7 @@ const AdminRoutes = () => {
       key="admin-dashboard"
       path="/admin/*"
       element={
-        <ProtectedRoute allowedRoles={["admin"]}>
+        <ProtectedRoute allowedRoles={["ADMIN"]}>
           <AdminLayout>
             <AdminDashboard />
           </AdminLayout>

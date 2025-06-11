@@ -52,14 +52,14 @@ const Login = () => {
       // Điều hướng dựa trên vai trò người dùng
       let redirectPath = from;
       if (from === "/") {
-        switch (user.role?.toLowerCase()) {
-          case "admin":
+        switch (user.role?.toUpperCase()) {
+          case "ADMIN":
             redirectPath = "/admin";
             break;
-          case "nurse":
+          case "NURSE":
             redirectPath = "/nurse";
             break;
-          case "parent":
+          case "PARENT":
             redirectPath = "/parent";
             break;
           default:
@@ -118,11 +118,11 @@ const Login = () => {
             <strong>Tài khoản thử nghiệm:</strong>
             <br />
             <span>
-              <strong>Admin:</strong> admin | <strong>Y tá:</strong> nurse | <strong>Phụ huynh:</strong> parent
+              <strong>Admin:</strong> admin1 (12345) | <strong>Parent:</strong> smithmary (mySecurePass456)
             </span>
             <p>
               <small>
-                Mật khẩu mặc định: <strong>123456</strong>
+                Hoặc đăng nhập bằng email/số điện thoại
               </small>
             </p>
           </div>

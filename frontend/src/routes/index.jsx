@@ -11,14 +11,16 @@ const AppRoutes = ({ currentUser }) => {
   const redirectBasedOnRole = () => {
     if (!currentUser) return <Navigate to="/login" replace />;
 
-    switch (currentUser.role) {
-      case "admin":
+    const role = currentUser.role?.toUpperCase();
+    switch (role) {
+      case "ADMIN":
         return <Navigate to="/admin" replace />;
-      case "nurse":
+      case "NURSE":
         return <Navigate to="/nurse" replace />;
-      case "parent":
+      case "PARENT":
         return <Navigate to="/parent" replace />;
       default:
+        console.warn("Unknown role:", currentUser.role);
         return <Navigate to="/login" replace />;
     }
   };

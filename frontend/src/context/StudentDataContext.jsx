@@ -1,9 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { useAuth } from "./AuthContext";
-
-// API URL từ mockapi.io của bạn
-const API_URL = "https://68425631e1347494c31c7892.mockapi.io/api/vi";
 
 const StudentDataContext = createContext();
 
@@ -31,35 +28,38 @@ export const StudentDataProvider = ({ children }) => {
         setIsLoading(true);
         setError(null);
         
-        // Gọi API để lấy danh sách học sinh
-        // Giả sử API hocsinh của bạn là endpoint chính
-        const response = await axios.get(`${API_URL}/hocsinh/hocsinh`);
+        // Gọi API để lấy danh sách học sinh từ backend
+        const response = await api.get('/students');
         
         // Lọc học sinh theo parentId nếu đang đăng nhập là phụ huynh
         let studentsList = response.data;
         
         if (currentUser.role === 'parent') {
           studentsList = studentsList.filter(
-            student => student.parentId === currentUser.id
+            student => student.parentId === currentUser.memberId
           );
         }
         
         setStudents(studentsList);
       } catch (err) {
         console.error("Error fetching student data:", err);
-        setError("Không thể tải thông tin học sinh. Vui lòng thử lại sau.");
+        // Don't show error for now, just set empty array
+        setStudents([]);
+        setError(null); // Temporarily disable error to prevent blocking
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchStudents();
+    // Add a small delay to prevent blocking initial render
+    const timeoutId = setTimeout(fetchStudents, 100);
+    return () => clearTimeout(timeoutId);
   }, [currentUser]);
 
   // Hàm lấy thông tin chi tiết của học sinh
   const getStudentDetails = async (studentId) => {
     try {
-      const response = await axios.get(`${API_URL}/hocsinh/hocsinh/${studentId}`);
+      const response = await api.get(`/students/${studentId}`);
       return response.data;
     } catch (err) {
       console.error(`Error fetching details for student ${studentId}:`, err);
@@ -70,7 +70,7 @@ export const StudentDataProvider = ({ children }) => {
   // Hàm lấy hồ sơ y tế của học sinh
   const getMedicalRecords = async (studentId) => {
     try {
-      const response = await axios.get(`${API_URL}/medicalRecords?studentId=${studentId}`);
+      const response = await api.get(`/medical-records?studentId=${studentId}`);
       return response.data;
     } catch (err) {
       console.error(`Error fetching medical records for student ${studentId}:`, err);
@@ -81,7 +81,7 @@ export const StudentDataProvider = ({ children }) => {
   // Hàm lấy lịch sử khai báo sức khỏe của học sinh
   const getHealthDeclarations = async (studentId) => {
     try {
-      const response = await axios.get(`${API_URL}/declarations?studentId=${studentId}`);
+      const response = await api.get(`/health-declarations?studentId=${studentId}`);
       return response.data;
     } catch (err) {
       console.error(`Error fetching declarations for student ${studentId}:`, err);
