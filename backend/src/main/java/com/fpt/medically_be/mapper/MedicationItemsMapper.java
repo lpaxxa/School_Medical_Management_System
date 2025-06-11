@@ -1,13 +1,21 @@
 package com.fpt.medically_be.mapper;
 
+
 import com.fpt.medically_be.dto.request.MedicationItemsRequest;
+import com.fpt.medically_be.dto.response.MedicationItemsResponse;
 import com.fpt.medically_be.entity.MedicationItems;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "String")
+@Mapper(componentModel = "spring")
+
 public interface MedicationItemsMapper {
 
-//    MedicationItemsRequest toMedicationItems(MedicationItems medicationItems);
-//
-//    MedicationItems toMedicationItemss(MedicationItemsRequest medicationItemsRequest);
+    MedicationItems toMedicationItems(MedicationItemsRequest medicationItemsRequest);
+
+    MedicationItemsResponse toMedicationItemsResponse(MedicationItems medicationItems);
+
+
+    void updateMedicationItems(@MappingTarget MedicationItems medicationItems, MedicationItemsRequest medicationItemsRequest);
 }

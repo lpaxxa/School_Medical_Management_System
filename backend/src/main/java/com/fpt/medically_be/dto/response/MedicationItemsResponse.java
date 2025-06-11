@@ -7,6 +7,8 @@ import java.util.Date;
 
 @Data
 public class MedicationItemsResponse {
+
+    private int itemId;
     private String itemName;
     private Date manufactureDate;
     private Date expiryDate;

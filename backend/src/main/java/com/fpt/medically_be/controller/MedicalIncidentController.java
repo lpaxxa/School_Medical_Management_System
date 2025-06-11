@@ -6,6 +6,7 @@ import com.fpt.medically_be.dto.response.MedicalIncidentResponseDTO;
 import com.fpt.medically_be.dto.request.MedicalIncidentCreateDTO;
 import com.fpt.medically_be.dto.response.MedicalIncidentStudentDTO;
 import com.fpt.medically_be.service.MedicalIncidentService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,18 +47,15 @@ public class MedicalIncidentController {
 
 
 
-//        @GetMapping("/details/{id}")
-//    public List<MedicalIncidentStudentDTO> getMedicalIncidentDetails(@PathVariable("id") Long incidentId) {
-//        return medicalIncidentService.get(incidentId);
-//    }
+
 
     @PostMapping("/create")
-    public MedicalIncidentResponseDTO createMedicalIncident(@RequestBody MedicalIncidentCreateDTO medicalIncidentDTO) {
+    public MedicalIncidentResponseDTO createMedicalIncident(@Valid @RequestBody MedicalIncidentCreateDTO medicalIncidentDTO) {
         return medicalIncidentService.createMedicalIncident(medicalIncidentDTO);
     }
     @PutMapping("update/{id}")
     public
-    MedicalIncidentResponseDTO updateMedicalIncident(@PathVariable("id") Long id, @RequestBody MedicalIncidentCreateDTO medicalIncidentCreateDTO) {
+    MedicalIncidentResponseDTO updateMedicalIncident(@PathVariable("id") Long id,@Valid @RequestBody MedicalIncidentCreateDTO medicalIncidentCreateDTO) {
         return medicalIncidentService.updateMedicalIncident(id, medicalIncidentCreateDTO);
     }
     @DeleteMapping("/delete/{id}")
@@ -90,29 +88,6 @@ public class MedicalIncidentController {
         return medicalIncidentService.getMedicalIncidentDetails(incidentId);
     }
 
-
-
-
-
-
-//    @DeleteMapping("/delete/{id}")
-//    public ResponseEntity<String> deleteMedicalIncident(@PathVariable("id") Long id) {
-//        medicalIncidentService.deleteMedicalIncident(id);
-//
-//        return ResponseEntity.ok("Deleted successfully");
-//    }
-//
-//    @GetMapping("/details/{id}")
-//    public List<MedicalIncidentStudentDTO> getMedicalIncidentDetails(@PathVariable("id") Long incidentId) {
-//        return medicalIncidentService.getMedicalIncidentDetails(incidentId);
-//    }
-//
-
-//
-
-//
-
-//
 
 }
 
