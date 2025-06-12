@@ -3,7 +3,10 @@ package com.fpt.medically_be.controller;
 import com.fpt.medically_be.dto.request.MedicationRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
 import com.fpt.medically_be.service.MedicationInstructionService;
+import com.fpt.medically_be.service.NotificationService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,41 +25,49 @@ import java.util.List;
 @PreAuthorize("hasRole('PARENT')")
 public class ParentMedicationRequestController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ParentMedicationRequestController.class);
+    
     private final MedicationInstructionService medicationInstructionService;
+    private final NotificationService notificationService;
 
     @Autowired
-    public ParentMedicationRequestController(MedicationInstructionService medicationInstructionService) {
+    public ParentMedicationRequestController(MedicationInstructionService medicationInstructionService, 
+                                           NotificationService notificationService) {
         this.medicationInstructionService = medicationInstructionService;
+        this.notificationService = notificationService;
     }
 
-    /**
-     * Submit a new medication request for a child
-     * POST /api/parent-medication-requests
-     */
-    @PostMapping
+
+    @PostMapping("/submit-request")
+    @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<MedicationInstructionDTO> submitMedicationRequest(
             @Valid @RequestBody MedicationRequestDTO request, 
             Authentication auth) {
         
-        MedicationInstructionDTO result = medicationInstructionService.createParentMedicationRequest(request, auth);
-        return ResponseEntity.ok(result);
+        try {
+            MedicationInstructionDTO result = medicationInstructionService.createParentMedicationRequest(request, auth);
+            
+            // Notify nurses about the new medication request
+            notificationService.sendNotificationToNurses(result);
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("Error submitting medication request for parent: {}", auth.getName(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    /**
-     * Get all medication requests submitted by the current parent
-     * GET /api/parent-medication-requests
-     */
-    @GetMapping
+
+    @GetMapping("/my-requests")
+    @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<List<MedicationInstructionDTO>> getMyMedicationRequests(Authentication auth) {
         List<MedicationInstructionDTO> requests = medicationInstructionService.getParentMedicationRequests(auth);
         return ResponseEntity.ok(requests);
     }
 
-    /**
-     * Get medication requests for a specific child
-     * GET /api/parent-medication-requests/child/{studentId}
-     */
+//view requests by specific child
     @GetMapping("/child/{studentId}")
+    @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<List<MedicationInstructionDTO>> getMedicationRequestsByChild(
             @PathVariable Long studentId, 
             Authentication auth) {
@@ -65,11 +76,9 @@ public class ParentMedicationRequestController {
         return ResponseEntity.ok(requests);
     }
 
-    /**
-     * Update an existing medication request (only if status is PENDING_APPROVAL)
-     * PUT /api/parent-medication-requests/{requestId}
-     */
+   //update medication request
     @PutMapping("/{requestId}")
+    @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<MedicationInstructionDTO> updateMedicationRequest(
             @PathVariable Long requestId,
             @Valid @RequestBody MedicationRequestDTO request, 
@@ -79,29 +88,22 @@ public class ParentMedicationRequestController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * Get a specific medication request by ID
-     * GET /api/parent-medication-requests/{requestId}
-     */
+   //view medication request by ID
     @GetMapping("/{requestId}")
+    @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<MedicationInstructionDTO> getMedicationRequestById(@PathVariable Long requestId) {
         MedicationInstructionDTO request = medicationInstructionService.getMedicationInstructionById(requestId);
         return ResponseEntity.ok(request);
     }
 
-    /**
-     * Cancel a medication request (only if status is PENDING_APPROVAL)
-     * DELETE /api/parent-medication-requests/{requestId}
-     */
-    @DeleteMapping("/{requestId}")
+    //cancel medication request
+    @DeleteMapping("/cancel-request/{requestId}")
+    @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<Void> cancelMedicationRequest(
             @PathVariable Long requestId, 
             Authentication auth) {
-        
-        // TODO: Implement cancel functionality in service
-        // For now, this would require adding a new service method
-        // medicationInstructionService.cancelParentMedicationRequest(requestId, auth);
-        
+        medicationInstructionService.cancelMedicationRequest(requestId, auth);
+
         return ResponseEntity.noContent().build();
     }
 } 

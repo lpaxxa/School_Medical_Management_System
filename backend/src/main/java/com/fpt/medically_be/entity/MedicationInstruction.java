@@ -43,12 +43,11 @@ public class MedicationInstruction {
     @Column(name = "parent_provided")
     private Boolean parentProvided;
 
-
-    @Column(name = "created_date")
-    private LocalDate createdDate;
+    @Column(name = "submitted_at")
+    private LocalDate submittedAt;
 
     @Column(name = "status", columnDefinition = "NVARCHAR(50)")
-    private String status; // Pending_Approval, Approved, Rejected
+    private Status status;
 
     @Column(name = "rejection_reason", columnDefinition = "NVARCHAR(MAX)")
     private String rejectionReason;
@@ -57,8 +56,8 @@ public class MedicationInstruction {
     @JoinColumn(name = "approved_by")
     private Nurse approvedBy;
 
-    @Column(name = "approved_date")
-    private LocalDateTime approvedDate;
+    @Column(name = "response_date")
+    private LocalDateTime responseDate;
 
     @ManyToOne
     @JoinColumn(name = "requested_by")

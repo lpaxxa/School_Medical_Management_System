@@ -3,8 +3,11 @@ package com.fpt.medically_be.controller;
 import com.fpt.medically_be.dto.request.NurseMedicationApprovalRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
 import com.fpt.medically_be.service.MedicationInstructionService;
+import com.fpt.medically_be.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,38 +26,37 @@ import java.util.List;
 @PreAuthorize("hasRole('NURSE') or hasRole('ADMIN')")
 public class NurseMedicationApprovalController {
 
+    private static final Logger logger = LoggerFactory.getLogger(NurseMedicationApprovalController.class);
+    
     private final MedicationInstructionService medicationInstructionService;
+    private final NotificationService notificationService;
 
     @Autowired
-    public NurseMedicationApprovalController(MedicationInstructionService medicationInstructionService) {
+    public NurseMedicationApprovalController(MedicationInstructionService medicationInstructionService,
+                                             NotificationService notificationService)  {
         this.medicationInstructionService = medicationInstructionService;
+        this.notificationService = notificationService;
     }
 
-    /**
-     * Get all pending medication requests awaiting approval
-     * GET /api/nurse-medication-approvals/pending
-     */
+  // Get all pending medication requests for review
     @GetMapping("/pending")
+    @PreAuthorize("hasRole('NURSE')")
     public ResponseEntity<List<MedicationInstructionDTO>> getPendingMedicationRequests() {
         List<MedicationInstructionDTO> pendingRequests = medicationInstructionService.getPendingMedicationRequests();
         return ResponseEntity.ok(pendingRequests);
     }
 
-    /**
-     * Get a specific medication request for review
-     * GET /api/nurse-medication-approvals/{requestId}
-     */
+   //view medication request details for review
     @GetMapping("/{requestId}")
+    @PreAuthorize("hasRole('NURSE')")
     public ResponseEntity<MedicationInstructionDTO> getMedicationRequestForReview(@PathVariable Long requestId) {
         MedicationInstructionDTO request = medicationInstructionService.getMedicationInstructionById(requestId);
         return ResponseEntity.ok(request);
     }
 
-    /**
-     * Approve or reject a medication request (without notification)
-     * PUT /api/nurse-medication-approvals/{requestId}/process
-     */
+    //Approval or rejection of medication requests
     @PutMapping("/{requestId}/process")
+    @PreAuthorize("hasRole('NURSE')")
     public ResponseEntity<MedicationInstructionDTO> processApprovalRequest(
             @PathVariable Long requestId,
             @Valid @RequestBody NurseMedicationApprovalRequestDTO approvalRequest,
@@ -63,33 +65,21 @@ public class NurseMedicationApprovalController {
         try {
             MedicationInstructionDTO result = medicationInstructionService.processApprovalRequest(
                 requestId, approvalRequest, authentication);
+
+            // Send notification to the specific parent who made the request
+            notificationService.sendNotificationToParent(result);
+            
             return ResponseEntity.ok(result);
             
         } catch (EntityNotFoundException e) {
+            logger.error("Medication request not found with ID: {}", requestId, e);
             return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
+            logger.error("Invalid state for processing request with ID: {}", requestId, e);
             return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            logger.error("Unexpected error processing approval request with ID: {}", requestId, e);
+            return ResponseEntity.internalServerError().build();
         }
     }
-
-    /**
-     * Approve or reject a medication request (notification functionality removed)
-     * PUT /api/nurse-medication-approvals/{requestId}/process-with-notification
-     * @deprecated Notification functionality has been removed, use /process endpoint instead
-     */
-    @PutMapping("/{requestId}/process-with-notification")
-    @Deprecated
-    public ResponseEntity<MedicationInstructionDTO> processApprovalRequestWithNotification(
-            @PathVariable Long requestId,
-            @Valid @RequestBody NurseMedicationApprovalRequestDTO approvalRequest,
-            Authentication authentication) {
-        
-        // Notification functionality has been removed, just process the approval
-        return processApprovalRequest(requestId, approvalRequest, authentication);
-    }
-
-
-
-
-
 } 

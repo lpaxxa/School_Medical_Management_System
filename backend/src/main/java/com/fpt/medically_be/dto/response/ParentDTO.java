@@ -39,4 +39,21 @@ public class ParentDTO extends BaseMapper<Parent, ParentDTO> {
 
         return this;
     }
+    @Override
+    public Parent toEntity(ParentDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        Parent entity = new Parent();
+        entity.setId(dto.getId());
+        entity.setFullName(dto.getFullName());
+        entity.setPhoneNumber(dto.getPhoneNumber());
+        entity.setEmail(dto.getEmail());
+        entity.setAddress(dto.getAddress());
+        entity.setOccupation(dto.getOccupation());
+        entity.setRelationshipType(dto.getRelationshipType());
+
+        return entity;
+    }
 }

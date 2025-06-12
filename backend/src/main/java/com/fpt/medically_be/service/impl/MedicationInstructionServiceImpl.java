@@ -68,7 +68,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     }
 
     @Override
-    public List<MedicationInstructionDTO> getMedicationInstructionsByStatus(String status) {
+    public List<MedicationInstructionDTO> getMedicationInstructionsByStatus(Status status) {
         return medicationInstructionRepository.findByStatus(status).stream()
                 .map(entity -> new MedicationInstructionDTO().toObject(entity))
                 .collect(Collectors.toList());
@@ -126,7 +126,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         existingMedicationInstruction.setTimeOfDay(medicationInstructionDTO.getTimeOfDay());
         existingMedicationInstruction.setSpecialInstructions(medicationInstructionDTO.getSpecialInstructions());
         existingMedicationInstruction.setParentProvided(medicationInstructionDTO.getParentProvided());
-        existingMedicationInstruction.setCreatedDate(medicationInstructionDTO.getCreatedDate());
+        existingMedicationInstruction.setSubmittedAt(medicationInstructionDTO.getSubmittedAt());
 
         // Cập nhật health profile nếu có thay đổi
         if (medicationInstructionDTO.getHealthProfileId() != null &&
@@ -158,6 +158,11 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         if (healthProfile == null) {
             throw new EntityNotFoundException("Học sinh không có hồ sơ sức khỏe.");
         }
+        
+        // Get the Parent entity to set requestedBy relationship
+        Parent parentEntity = parentRepository.findById(currentParent.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy phụ huynh với ID: " + currentParent.getId()));
+        
         MedicationInstruction medicationInstruction = new MedicationInstruction();
         medicationInstruction.setMedicationName(request.getMedicationName());
         medicationInstruction.setDosageInstructions(request.getDosageInstructions());
@@ -167,11 +172,12 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         medicationInstruction.setTimeOfDay(request.getTimeOfDay());
         medicationInstruction.setSpecialInstructions(request.getSpecialInstructions());
 
-        // 6. Set parent-specific fields
+        // Set parent-specific fields
         medicationInstruction.setParentProvided(true);
-        medicationInstruction.setStatus("PENDING_APPROVAL");
-        medicationInstruction.setCreatedDate(LocalDate.now());
+        medicationInstruction.setStatus(Status.PENDING_APPROVAL);
+        medicationInstruction.setSubmittedAt(LocalDate.now());
         medicationInstruction.setHealthProfile(healthProfile);
+        medicationInstruction.setRequestedBy(parentEntity); // Set the parent who made the request
 
         MedicationInstruction savedMedicationInstruction = medicationInstructionRepository.save(medicationInstruction);
         return new MedicationInstructionDTO().toObject(savedMedicationInstruction);
@@ -201,7 +207,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         // 5. Filter by parentProvided = true (only parent requests)
         List<MedicationInstruction> parentRequests = instructions.stream()
                 .filter(MedicationInstruction::getParentProvided)
-                .collect(Collectors.toList());
+                .toList();
         // 6. Convert entities to DTOs
         return parentRequests.stream()
                 .map(entity -> new MedicationInstructionDTO().toObject(entity))
@@ -221,13 +227,10 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
             throw new EntityNotFoundException("Bạn không phải là người tạo yêu cầu này.");
         }
         // 4. Check request status is "PENDING_APPROVAL"
-        if (!"PENDING_APPROVAL".equals(existingRequest.get().getStatus())) {
+        if (!Status.PENDING_APPROVAL.equals(existingRequest.get().getStatus())) {
             throw new IllegalStateException("Yêu cầu này không thể cập nhật vì trạng thái không phải là PENDING_APPROVAL.");
         }
-        // 5. If status is "APPROVED" or "REJECTED", throw exception
-        if ("APPROVED".equals(existingRequest.get().getStatus()) || "REJECTED".equals(existingRequest.get().getStatus())) {
-            throw new IllegalStateException("Yêu cầu này đã được xử lý và không thể cập nhật.");
-        }
+
         // 6. Validate parent owns the student (if studentId changed)
         if (request.getStudentId() != null) {
             parentService.validateParentOwnsStudent(request.getStudentId(), auth);
@@ -251,8 +254,8 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     @Override
     public List<MedicationInstructionDTO> getPendingMedicationRequests() {
         // 1. Find all medication instructions where:
-        MedicationInstruction medication = new MedicationInstruction();
-        List<MedicationInstruction> pendingRequests = medicationInstructionRepository.findByStatus("PENDING_APPROVAL")
+
+        List<MedicationInstruction> pendingRequests = medicationInstructionRepository.findByStatus(Status.PENDING_APPROVAL)
                 .stream()
                 .filter(m -> m.getParentProvided() != null && m.getParentProvided())
                 .collect(Collectors.toList());
@@ -271,7 +274,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         MedicationInstruction request = medicationInstructionRepository.findById(requestId)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy yêu cầu hướng dẫn thuốc với ID: " + requestId));
         //2.validate the request is pending approval
-        if (!"PENDING_APPROVAL".equals(request.getStatus())) {
+        if (!Status.PENDING_APPROVAL.equals(request.getStatus())) {
             throw new IllegalStateException("Yêu cầu này không thể xử lý vì trạng thái không phải là PENDING_APPROVAL.");
         }
         //3.validate the nurse is authenticated
@@ -280,13 +283,13 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         }
         //4.update the request status based on approvalRequest
         if ("APPROVED".equals(approvalRequest.getDecision())) {
-            request.setStatus("APPROVED");
+            request.setStatus(Status.APPROVED);
         } else if ("REJECTED".equals(approvalRequest.getDecision())) {
-            request.setStatus("REJECTED");
+            request.setStatus(Status.REJECTED);
             request.setRejectionReason(approvalRequest.getReason());
         }
 
-        request.setApprovedDate(LocalDateTime.now());
+        request.setResponseDate(LocalDateTime.now());
         Nurse nurse = nurseRepository.findByAccountId(authentication.getName())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy y tá với ID: " + authentication.getName()));
         request.setApprovedBy(nurse);
@@ -297,11 +300,33 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     }
 
     @Override
-    public void sendApprovalNotificationToParent(Long requestId, String decision, String nurseNotes) {
-        // TODO: Notification functionality has been removed
-        // This method is kept for interface compatibility but does nothing
-        System.out.println("Notification functionality has been removed - no notification sent");
+    public void cancelMedicationRequest(Long requestId, Authentication auth) {
+        // 1. Get current parent from authentication
+        ParentDTO currentParent = parentService.getCurretParent(auth);
+        
+        // 2. Find existing medication instruction by requestId
+        MedicationInstruction existingRequest = medicationInstructionRepository.findById(requestId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy yêu cầu hướng dẫn thuốc với ID: " + requestId));
+        
+        // 3. Validate parent owns this request (requestedBy = current parent)
+        if (!existingRequest.getRequestedBy().getId().equals(currentParent.getId())) {
+            throw new EntityNotFoundException("Bạn không phải là người tạo yêu cầu này.");
+        }
+        
+        // 4. Check request status is "PENDING_APPROVAL"
+        if (!Status.PENDING_APPROVAL.equals(existingRequest.getStatus())) {
+            throw new IllegalStateException("Yêu cầu này không thể hủy vì trạng thái không phải là PENDING_APPROVAL.");
+        }
+        
+        // 5. Set status to "CANCELLED"
+        existingRequest.setStatus(Status.CANCELLED);
+        existingRequest.setResponseDate(LocalDateTime.now());
+        
+        // 6. Save updated entity
+        medicationInstructionRepository.save(existingRequest);
     }
+
+
 }
 
 

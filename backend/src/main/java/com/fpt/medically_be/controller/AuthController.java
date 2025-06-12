@@ -41,6 +41,7 @@ public class AuthController {
     private final ObjectMapper objectMapper;
 
     @PostMapping("/register")
+  //  @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> register(@RequestBody Map<String, Object> requestData) {
         try {
             String role = (String) requestData.get("role");
@@ -59,15 +60,15 @@ public class AuthController {
         }
     }
     //
-    // Example request body for registration(NURSE):{
-    //  "email": "nurse@hospital.com",
-    //  "password": "secure123",
-    //  "fullName": "Jane Smith",
-    //  "phoneNumber": "1234567890",
-    //  "role": "NURSE",
-    //  "qualification": "RN, BSN, 5 years experience"
-    //
-    //}
+//     Example request body for registration(NURSE):{
+//      "email": "nurse@hospital.com",
+//      "password": "secure123",
+//      "fullName": "Jane Smith",
+//      "phoneNumber": "1234567890",
+//      "role": "NURSE",
+//      "qualification": "RN, BSN, 5 years experience"
+//
+//    }
 
     //Example request body for registration(Parent):
 //     {

@@ -3,6 +3,7 @@ package com.fpt.medically_be.service;
 import com.fpt.medically_be.dto.request.MedicationRequestDTO;
 import com.fpt.medically_be.dto.request.NurseMedicationApprovalRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
+import com.fpt.medically_be.entity.Status;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -16,7 +17,7 @@ public interface MedicationInstructionService {
     List<MedicationInstructionDTO> getAllMedicationInstructions();
     MedicationInstructionDTO getMedicationInstructionById(Long id);
     List<MedicationInstructionDTO> getMedicationInstructionsByHealthProfileId(Long healthProfileId);
-    List<MedicationInstructionDTO> getMedicationInstructionsByStatus(String status);
+    List<MedicationInstructionDTO> getMedicationInstructionsByStatus(Status status);
     List<MedicationInstructionDTO> getExpiredMedicationInstructions(LocalDate date);
     List<MedicationInstructionDTO> getMedicationInstructionsByDateRange(LocalDate startDate, LocalDate endDate);
     List<MedicationInstructionDTO> getParentProvidedMedicationInstructions(Boolean parentProvided);
@@ -32,7 +33,8 @@ public interface MedicationInstructionService {
     List<MedicationInstructionDTO> getPendingMedicationRequests();
 
     MedicationInstructionDTO processApprovalRequest(Long requestId, @Valid NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication);
+    void cancelMedicationRequest(Long requestId, Authentication auth);
 
-    void sendApprovalNotificationToParent(Long requestId, @NotBlank(message = "Decision is required") @Pattern(regexp = "APPROVED|REJECTED", message = "Decision must be APPROVED or REJECTED") String decision, @Size(max = 500, message = "Reason cannot exceed 500 characters") String reason);
+
 }
 

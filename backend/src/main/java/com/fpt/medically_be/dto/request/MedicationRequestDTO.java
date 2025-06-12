@@ -12,8 +12,6 @@ import java.time.LocalDate;
 public class MedicationRequestDTO {
     @NotNull(message = "Student ID is required")
     private Long studentId;
-    @NotNull(message = "Health profile ID is required")
-    private Long healthProfileId;
 
     @NotBlank(message = "Medication name is required")
     @Size(max = 255, message = "Medication name cannot exceed 255 characters")
@@ -40,10 +38,6 @@ public class MedicationRequestDTO {
     private String specialInstructions;
 
 
-    // Custom validation
-    @AssertTrue(message = "End date must be after start date")
-    public boolean isValidDateRange() {
-        return endDate == null || startDate == null || endDate.isAfter(startDate);
-    }
+
 
 }

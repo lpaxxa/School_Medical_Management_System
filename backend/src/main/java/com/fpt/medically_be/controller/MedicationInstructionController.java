@@ -1,6 +1,7 @@
 package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
+import com.fpt.medically_be.entity.Status;
 import com.fpt.medically_be.service.MedicationInstructionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,7 +15,6 @@ import java.util.List;
 /**
  * Controller for basic Medication Instruction CRUD operations
  * Handles admin/nurse management of medication instructions
- * 
  * For parent medication requests: @see ParentMedicationRequestController
  * For nurse approvals: @see NurseMedicationApprovalController
  */
@@ -66,7 +66,7 @@ public class MedicationInstructionController {
      */
     @GetMapping("/status/{status}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    public ResponseEntity<List<MedicationInstructionDTO>> getMedicationInstructionsByStatus(@PathVariable String status) {
+    public ResponseEntity<List<MedicationInstructionDTO>> getMedicationInstructionsByStatus(@PathVariable Status status) {
         return ResponseEntity.ok(medicationInstructionService.getMedicationInstructionsByStatus(status));
     }
 

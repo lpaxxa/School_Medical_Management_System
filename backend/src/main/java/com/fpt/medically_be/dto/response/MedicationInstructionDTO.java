@@ -2,6 +2,7 @@ package com.fpt.medically_be.dto.response;
 
 import com.fpt.medically_be.base.BaseMapper;
 import com.fpt.medically_be.entity.MedicationInstruction;
+import com.fpt.medically_be.entity.Status;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -17,13 +18,14 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         private static final Logger logger = Logger.getLogger(MedicationInstructionDTO.class.getName());
         // System fields
         private Long id;
-        private LocalDate createdDate;
+        private LocalDate submittedAt; // Date when the request was created
 
         // Student/Parent info (for display)
         private Long healthProfileId;
         private String studentName;
-        private String parentName;
-        private Long requestedBy;
+
+        private String requestedBy; // Parent's name who made the request
+        private String requestedByAccountId; // Parent's account ID for notifications
 
         // Medication details
         private String medicationName;
@@ -38,11 +40,11 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         private Boolean parentProvided; // Always true for parent requests
 
         // Approval workflow
-        private String approvalStatus; // PENDING_APPROVAL, APPROVED, REJECTED, NEEDS_MORE_INFO
+        private Status status; // PENDING_APPROVAL, APPROVED, REJECTED, NEEDS_MORE_INFO
         private String rejectionReason;
-        private Long approvedBy;
-        private String approverName; // For display
-        private LocalDateTime approvedDate;
+
+        private String approvedBy; // For display
+        private LocalDateTime responseDate; // Date when the request was approved or rejected
 
     @Override
     public MedicationInstruction toEntity(MedicationInstructionDTO dto) {
@@ -60,10 +62,11 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         entity.setTimeOfDay(dto.getTimeOfDay());
         entity.setSpecialInstructions(dto.getSpecialInstructions());
         entity.setParentProvided(dto.getParentProvided());
-        entity.setCreatedDate(dto.getCreatedDate());
-        entity.setStatus(dto.getApprovalStatus()); // Note: DTO has approvalStatus, entity has status
+        entity.setSubmittedAt(dto.getSubmittedAt());
+        entity.setStatus(dto.getStatus());
         entity.setRejectionReason(dto.getRejectionReason());
-        entity.setApprovedDate(dto.getApprovedDate());
+        entity.setResponseDate(dto.getResponseDate());
+
 
         // Note: Relationships (healthProfile, requestedBy, approvedBy) need to be set separately
         // because you need to fetch them from repositories
@@ -77,7 +80,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
                         return null;
                 }
                 this.id = entity.getId();
-                this.createdDate = entity.getCreatedDate();
+                this.submittedAt = entity.getSubmittedAt();
 
                 // Health profile and related information
                 if (entity.getHealthProfile() != null) {
@@ -89,8 +92,13 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
 
 
                if( entity.getRequestedBy() != null) {
-                        this.requestedBy = entity.getRequestedBy().getId();
-                        this.parentName = entity.getRequestedBy().getFullName();
+                        this.requestedBy = entity.getRequestedBy().getFullName(); // Set parent's name
+
+                        
+                        // Set parent's account ID for notifications
+                        if (entity.getRequestedBy().getAccount() != null) {
+                                this.requestedByAccountId = entity.getRequestedBy().getAccount().getId();
+                        }
                 }
 
                 // Medication details
@@ -104,13 +112,13 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
                 this.parentProvided = entity.getParentProvided();
 
                 // Approval workflow
-                this.approvalStatus = entity.getStatus();
+                this.status = entity.getStatus();
                 this.rejectionReason = entity.getRejectionReason();
                 if (entity.getApprovedBy() != null) {
-                        this.approvedBy = entity.getApprovedBy().getId();
-                        this.approverName = entity.getApprovedBy().getFullName();
+
+                        this.approvedBy = entity.getApprovedBy().getFullName();
                 }
-                this.approvedDate = entity.getApprovedDate();
+                this.responseDate = entity.getResponseDate();
 
                 return this;
 
