@@ -44,9 +44,11 @@ public class StudentServiceImpl implements StudentService {
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với ID: " + id));
     }
 
+
+
     @Override
-    public StudentDTO getStudentByStudentId(String studentId) {
-        return studentRepository.findByStudentId(studentId)
+    public StudentDTO getStudentByStudentId(Long studentId) {
+        return studentRepository.findById(studentId)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với Mã học sinh: " + studentId));
     }

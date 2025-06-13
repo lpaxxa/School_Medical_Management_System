@@ -1,6 +1,6 @@
 package com.fpt.medically_be.service.impl;
 
-import com.fpt.medically_be.dto.ParentDTO;
+import com.fpt.medically_be.dto.response.ParentDTO;
 import com.fpt.medically_be.entity.AccountMember;
 import com.fpt.medically_be.entity.Parent;
 import com.fpt.medically_be.entity.Student;
@@ -10,6 +10,7 @@ import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.ParentService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +28,23 @@ public class ParentServiceImpl implements ParentService {
         this.parentRepository = parentRepository;
         this.accountMemberRepos = accountMemberRepos;
         this.studentRepository = studentRepository;
+    }
+
+    @Override
+    public ParentDTO getCurretParent(Authentication authentication) {
+        String accountId = authentication.getName();
+        return getParentByAccountId(accountId);
+    }
+
+    @Override
+    public void validateParentOwnsStudent(Long studentId, Authentication authentication) {
+        ParentDTO getCurrentParent = getCurretParent(authentication);
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với ID: " + studentId));
+        if(!student.getParent().getId().equals(getCurrentParent.getId())) {
+            throw new EntityNotFoundException("Phụ huynh không sở hữu học sinh với ID: " + studentId);
+        }
+
     }
 
     @Override

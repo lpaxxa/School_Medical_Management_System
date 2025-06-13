@@ -4,10 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import "../styles/login.css";
 import loginImage from "../assets/A1.jpg";
 import googleIcon from "../assets/google.png";
-import axios from "axios";
-
-const API_URL =
-  "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1/users";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -17,7 +13,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
 
-  const { login, mockUsers, authError } = useAuth();
+  const { login, authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
@@ -56,7 +52,7 @@ const Login = () => {
       // Điều hướng dựa trên vai trò người dùng
       let redirectPath = from;
       if (from === "/") {
-        switch (user.role) {
+        switch (user.role?.toLowerCase()) {
           case "admin":
             redirectPath = "/admin";
             break;
@@ -83,23 +79,8 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
-
-      const response = await axios.get(`${API_URL}/users`);
-      const users = response.data;
-
-      const parentUser = users.find((user) => user.role === "parent");
-
-      if (parentUser) {
-        const { password, ...userWithoutPassword } = parentUser;
-        const googleToken = `google-mock-token-${Date.now()}`;
-
-        localStorage.setItem("authToken", googleToken);
-        localStorage.setItem("userData", JSON.stringify(userWithoutPassword));
-
-        navigate("/parent", { replace: true });
-      } else {
-        throw new Error("Không tìm thấy tài khoản phụ huynh để đăng nhập");
-      }
+      setError("Tính năng đăng nhập Google đang được phát triển.");
+      // TODO: Implement Google OAuth2 login with backend
     } catch (error) {
       console.error("Google login error:", error);
       setError("Đăng nhập Google thất bại. Vui lòng thử lại sau.");
@@ -132,24 +113,19 @@ const Login = () => {
             <p>Vui lòng đăng nhập để tiếp tục</p>
           </div>
 
-          {/* Hiển thị tài khoản thử nghiệm */}
-          {mockUsers && mockUsers.length > 0 && (
-            <div className="test-accounts">
-              <strong>Tài khoản thử nghiệm:</strong>
-              <br />
-              {mockUsers.map((user, index) => (
-                <span key={index}>
-                  <strong>{user.role}:</strong> {user.username}
-                  {index < mockUsers.length - 1 ? " | " : ""}
-                </span>
-              ))}
-              <p>
-                <small>
-                  Mật khẩu mặc định: <strong>123456</strong>
-                </small>
-              </p>
-            </div>
-          )}
+          {/* Test accounts information */}
+          <div className="test-accounts">
+            <strong>Tài khoản thử nghiệm:</strong>
+            <br />
+            <span>
+              <strong>Admin:</strong> admin | <strong>Y tá:</strong> nurse | <strong>Phụ huynh:</strong> parent
+            </span>
+            <p>
+              <small>
+                Mật khẩu mặc định: <strong>123456</strong>
+              </small>
+            </p>
+          </div>
 
           {/* Thông báo lỗi */}
           {(error || authError) && (

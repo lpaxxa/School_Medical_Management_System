@@ -1,6 +1,13 @@
 package com.fpt.medically_be.service;
 
-import com.fpt.medically_be.dto.MedicationInstructionDTO;
+import com.fpt.medically_be.dto.request.MedicationRequestDTO;
+import com.fpt.medically_be.dto.request.NurseMedicationApprovalRequestDTO;
+import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
+import com.fpt.medically_be.entity.Status;
+import jakarta.validation.Valid;
+
+import org.springframework.security.core.Authentication;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -8,7 +15,7 @@ public interface MedicationInstructionService {
     List<MedicationInstructionDTO> getAllMedicationInstructions();
     MedicationInstructionDTO getMedicationInstructionById(Long id);
     List<MedicationInstructionDTO> getMedicationInstructionsByHealthProfileId(Long healthProfileId);
-    List<MedicationInstructionDTO> getMedicationInstructionsByStatus(String status);
+    List<MedicationInstructionDTO> getMedicationInstructionsByStatus(Status status);
     List<MedicationInstructionDTO> getExpiredMedicationInstructions(LocalDate date);
     List<MedicationInstructionDTO> getMedicationInstructionsByDateRange(LocalDate startDate, LocalDate endDate);
     List<MedicationInstructionDTO> getParentProvidedMedicationInstructions(Boolean parentProvided);
@@ -16,4 +23,16 @@ public interface MedicationInstructionService {
     MedicationInstructionDTO updateMedicationInstruction(Long id, MedicationInstructionDTO medicationInstructionDTO);
     void deleteMedicationInstruction(Long id);
 
+    //for sending-medication flow
+    MedicationInstructionDTO createParentMedicationRequest(MedicationRequestDTO request, Authentication auth);
+    List<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth);
+    List<MedicationInstructionDTO> getMedicationRequestsByChild(Long studentId, Authentication auth);
+    MedicationInstructionDTO updateParentMedicationRequest(Long requestId, MedicationRequestDTO request, Authentication auth);
+    List<MedicationInstructionDTO> getPendingMedicationRequests();
+
+    MedicationInstructionDTO processApprovalRequest(Long requestId, @Valid NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication);
+    void cancelMedicationRequest(Long requestId, Authentication auth);
+
+
 }
+

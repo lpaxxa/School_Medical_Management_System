@@ -1,8 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import axios from "axios";
-
-// API URL từ mockapi.io
-const API_URL = "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1";
+import api from "../services/api";
 
 const AuthContext = createContext();
 
@@ -31,40 +28,37 @@ export const AuthProvider = ({ children }) => {
     checkLoggedInUser();
   }, []);
 
-  // Hàm đăng nhập sử dụng mockAPI.io
+  // Hàm đăng nhập sử dụng backend API
   const login = async (username, password) => {
     try {
       setAuthError(null);
 
-      // Gọi API để lấy danh sách users
-      const response = await axios.get(`${API_URL}/users`);
-      const users = response.data;
+      // Gọi API đăng nhập của backend
+      const response = await api.post("/auth/login", {
+        username,
+        password
+      });
 
-      // Tìm user phù hợp với thông tin đăng nhập
-      const user = users.find(
-        (u) => u.username === username && u.password === password
-      );
+      const authData = response.data;
+      
+      if (authData && authData.token) {
+        // Lưu token và thông tin user
+        localStorage.setItem("authToken", authData.token);
+        localStorage.setItem("userData", JSON.stringify(authData));
 
-      if (user) {
-        // Loại bỏ mật khẩu khỏi object user
-        const { password, ...userWithoutPassword } = user;
-
-        // Tạo token mô phỏng
-        const token = `mock-jwt-${Date.now()}`;
-
-        // Lưu thông tin đăng nhập
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("userData", JSON.stringify(userWithoutPassword));
-
-        // Cập nhật state
-        setCurrentUser(userWithoutPassword);
-        return userWithoutPassword;
+        // Cập nhật state với thông tin user
+        setCurrentUser(authData);
+        return authData;
       } else {
-        throw new Error("Tên đăng nhập hoặc mật khẩu không đúng");
+        throw new Error("Phản hồi không hợp lệ từ server");
       }
     } catch (error) {
-      setAuthError(error.message || "Đăng nhập thất bại");
-      throw error;
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.statusText || 
+                          error.message || 
+                          "Đăng nhập thất bại";
+      setAuthError(errorMessage);
+      throw new Error(errorMessage);
     }
   };
 

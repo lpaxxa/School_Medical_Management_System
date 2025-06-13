@@ -1,5 +1,3 @@
-// Mock implementation - comment out real API calls for now
-/*
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
@@ -25,31 +23,20 @@ api.interceptors.request.use(
   }
 );
 
-export default api;
-*/
-
-// Mock API service for development
-const mockApi = {
-  // Simulate successful responses
-  get: async (url) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return { data: { message: 'Mock GET response', url } };
+// Response interceptor - handle auth errors
+api.interceptors.response.use(
+  (response) => {
+    return response;
   },
-  
-  post: async (url, data) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return { data: { message: 'Mock POST response', url, data } };
-  },
-  
-  put: async (url, data) => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    return { data: { message: 'Mock PUT response', url, data } };
-  },
-  
-  delete: async (url) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return { data: { message: 'Mock DELETE response', url } };
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid, clear auth data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
   }
-};
+);
 
-export default mockApi;
+export default api;

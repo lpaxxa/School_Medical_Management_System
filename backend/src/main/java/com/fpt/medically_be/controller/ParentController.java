@@ -1,7 +1,10 @@
 package com.fpt.medically_be.controller;
 
-import com.fpt.medically_be.dto.ParentDTO;
+
+
 import com.fpt.medically_be.dto.StudentDTO;
+import com.fpt.medically_be.dto.response.ParentDTO;
+
 import com.fpt.medically_be.service.ParentService;
 import com.fpt.medically_be.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
