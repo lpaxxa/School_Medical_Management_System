@@ -59,7 +59,7 @@ public class StudentController {
     }
 
     @GetMapping("/parent/{parentId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<List<StudentDTO>> getStudentsByParentId(@PathVariable Long parentId) {
         return ResponseEntity.ok(studentService.getStudentsByParentId(parentId));
     }

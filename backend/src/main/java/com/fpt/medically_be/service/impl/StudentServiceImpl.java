@@ -72,6 +72,7 @@ public class StudentServiceImpl implements StudentService {
                 .collect(Collectors.toList());
     }
 
+    // Đảm bảo mỗi học sinh đều có 1 hồ sơ sức khỏe
     @Override
     public StudentDTO createStudent(StudentDTO studentDTO) {
         Student student = convertToEntity(studentDTO);
