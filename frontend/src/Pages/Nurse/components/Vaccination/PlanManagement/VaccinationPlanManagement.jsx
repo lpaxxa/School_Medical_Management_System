@@ -16,24 +16,22 @@ const VaccinationPlanManagement = ({ refreshData }) => {
   const [classOptions, setClassOptions] = useState([]);
   const [classFilter, setClassFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-    // Form state for creating/editing plans
+  // Form state for creating/editing plans
   const [formData, setFormData] = useState({
     title: '',
     planDate: new Date().toISOString().split('T')[0],
     vaccineId: '',
-    targetClass: 'all',
     targetGrade: 'all',
     priority: 'medium',
     description: '',
-    status: 'scheduled',
-    estimatedStudents: 0
+    status: 'scheduled'
   });
   
   // Fetch initial data
   useEffect(() => {
     fetchData();
   }, []);
-    const fetchData = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
       
@@ -45,14 +43,9 @@ const VaccinationPlanManagement = ({ refreshData }) => {
       ]);
       
       console.log('Vaccines data fetched:', vaccinesData); // Kiểm tra dữ liệu vaccine
-      console.log('Classes data fetched:', classesData); // Kiểm tra dữ liệu lớp học
       
       if (!vaccinesData || vaccinesData.length === 0) {
         console.error('Vaccines data is empty');
-      }
-      
-      if (!classesData || classesData.length === 0) {
-        console.error('Classes data is empty');
       }
       
       setPlans(plansData);
@@ -173,38 +166,32 @@ const VaccinationPlanManagement = ({ refreshData }) => {
     setErrors({});
     setShowModal(true);
   };
-  
-  const handleEditPlan = (plan) => {
+    const handleEditPlan = (plan) => {
     setModalMode('edit');
     setSelectedPlan(plan);
     setFormData({
       title: plan.title,
       planDate: new Date(plan.planDate).toISOString().split('T')[0],
       vaccineId: plan.vaccineId.toString(),
-      targetClass: plan.targetClass || 'all',
       targetGrade: plan.targetGrade || 'all',
       priority: plan.priority || 'medium',
       description: plan.description || '',
-      status: plan.status || 'scheduled',
-      estimatedStudents: plan.estimatedStudents || 0
+      status: plan.status || 'scheduled'
     });
     setErrors({});
     setShowModal(true);
   };
-  
-  const handleViewPlan = (plan) => {
+    const handleViewPlan = (plan) => {
     setModalMode('view');
     setSelectedPlan(plan);
     setFormData({
       title: plan.title,
       planDate: new Date(plan.planDate).toISOString().split('T')[0],
       vaccineId: plan.vaccineId.toString(),
-      targetClass: plan.targetClass || 'all',
       targetGrade: plan.targetGrade || 'all',
       priority: plan.priority || 'medium',
       description: plan.description || '',
-      status: plan.status || 'scheduled',
-      estimatedStudents: plan.estimatedStudents || 0
+      status: plan.status || 'scheduled'
     });
     setShowModal(true);
   };
@@ -489,12 +476,10 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                       <div className="plan-detail">
                         <span className="detail-label">Vaccine:</span>
                         <span className="detail-value">{getVaccineName(plan.vaccineId)}</span>
-                      </div>
-                      <div className="plan-detail">
+                      </div>                      <div className="plan-detail">
                         <span className="detail-label">Đối tượng:</span>
                         <span className="detail-value">
-                          {plan.targetClass === 'all' ? 'Tất cả các lớp' : `Lớp ${plan.targetClass}`}
-                          {plan.targetGrade === 'all' ? '' : `, Khối ${plan.targetGrade}`}
+                          {plan.targetGrade === 'all' ? 'Tất cả các khối' : `Khối ${plan.targetGrade}`}
                         </span>
                       </div>
                       <div className="plan-detail">
@@ -553,20 +538,18 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                   <option value="cancelled">Đã hủy</option>
                 </select>
               </div>
-              <button className="btn-primary" onClick={handleAddPlan}>
+              {/* <button className="btn-primary" onClick={handleAddPlan}>
                 <i className="fas fa-plus"></i> Thêm kế hoạch
-              </button>
+              </button> */}
             </div>
             
             <div className="plans-table-container">
               <table className="plans-table">
-                <thead>
-                  <tr>
+                <thead>                  <tr>
                     <th>Tiêu đề</th>
                     <th>Ngày</th>
                     <th>Vaccine</th>
                     <th>Đối tượng</th>
-                    <th>Ước tính học sinh</th>
                     <th>Mức độ ưu tiên</th>
                     <th>Trạng thái</th>
                     <th>Thao tác</th>
@@ -575,15 +558,12 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                 <tbody>
                   {getFilteredPlans().length > 0 ? (
                     getFilteredPlans().map(plan => (
-                      <tr key={plan.id}>
-                        <td>{plan.title}</td>
+                      <tr key={plan.id}>                        <td>{plan.title}</td>
                         <td>{new Date(plan.planDate).toLocaleDateString('vi-VN')}</td>
                         <td>{getVaccineName(plan.vaccineId)}</td>
                         <td>
-                          {plan.targetClass === 'all' ? 'Tất cả các lớp' : `Lớp ${plan.targetClass}`}
-                          {plan.targetGrade === 'all' ? '' : `, Khối ${plan.targetGrade}`}
+                          {plan.targetGrade === 'all' ? 'Tất cả các khối' : `Khối ${plan.targetGrade}`}
                         </td>
-                        <td>{plan.estimatedStudents || 'N/A'}</td>
                         <td>
                           <span className={`priority-badge ${plan.priority}`}>
                             {plan.priority === 'high' ? 'Cao' : plan.priority === 'medium' ? 'Trung bình' : 'Thấp'}
@@ -732,8 +712,7 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                       {errors.vaccineId && <div className="error-message">{errors.vaccineId}</div>}
                     </div>
                   </div>
-                  
-                  <div className="form-row">
+                    <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="targetGrade">Khối lớp</label>
                       <select
@@ -753,29 +732,7 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                         <option value="12">Khối 12</option>
                       </select>
                     </div>
-                      <div className="form-group">
-                      <label htmlFor="targetClass">Lớp</label>
-                      <select
-                        id="targetClass"
-                        name="targetClass"
-                        value={formData.targetClass}
-                        onChange={handleFormChange}
-                        disabled={modalMode === 'view'}
-                      >
-                        <option value="all">Tất cả lớp</option>
-                        {Array.isArray(classOptions) && classOptions.filter(c => 
-                          formData.targetGrade === 'all' || 
-                          (c && c.name && c.name.startsWith(formData.targetGrade))
-                        ).map(classItem => (
-                          <option key={classItem.id} value={classItem.name}>
-                            {classItem.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="form-row">
+                    
                     <div className="form-group">
                       <label htmlFor="priority">Mức độ ưu tiên</label>
                       <select
@@ -789,40 +746,24 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                         <option value="medium">Trung bình</option>
                         <option value="low">Thấp</option>
                       </select>
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="status">Trạng thái</label>
-                      <select
-                        id="status"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleFormChange}
-                        disabled={modalMode === 'view'}
-                      >
-                        <option value="scheduled">Dự kiến</option>
-                        <option value="in_progress">Đang thực hiện</option>
-                        <option value="completed">Đã hoàn thành</option>
-                        <option value="cancelled">Đã hủy</option>
-                      </select>
-                    </div>
-                  </div>
+                    </div>                  </div>
                   
                   <div className="form-group">
-                    <label htmlFor="estimatedStudents">Ước tính số học sinh</label>
-                    <input
-                      type="number"
-                      id="estimatedStudents"
-                      name="estimatedStudents"
-                      value={formData.estimatedStudents}
+                    <label htmlFor="status">Trạng thái</label>
+                    <select
+                      id="status"
+                      name="status"
+                      value={formData.status}
                       onChange={handleFormChange}
                       disabled={modalMode === 'view'}
-                      min="0"
-                      placeholder="Số học sinh dự kiến tham gia"
-                    />
+                    >
+                      <option value="scheduled">Dự kiến</option>
+                      <option value="in_progress">Đang thực hiện</option>
+                      <option value="completed">Đã hoàn thành</option>
+                      <option value="cancelled">Đã hủy</option>
+                    </select>
                   </div>
-                  
-                  <div className="form-group">
+                    <div className="form-group">
                     <label htmlFor="description">Mô tả chi tiết</label>
                     <textarea
                       id="description"
