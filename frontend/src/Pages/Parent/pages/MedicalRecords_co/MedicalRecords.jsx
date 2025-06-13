@@ -1,357 +1,121 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import "./MedicalRecords.css";
-import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useStudentData } from "../../../../context/StudentDataContext";
+import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
+import axios from "axios";
+import "./MedicalRecords.css";
 
 const MedicalRecords = () => {
-  const { students, healthMetrics, medicalRecords, isLoading } =
-    useStudentData();
+  const { students, isLoading: studentsLoading } = useStudentData();
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [activeTab, setActiveTab] = useState("medical");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterDate, setFilterDate] = useState("");
-  const [filterType, setFilterType] = useState("all");
+  const [medicalRecord, setMedicalRecord] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // API URL cho hồ sơ y tế
+  const HEALTH_API =
+    "https://684684387dbda7ee7aaf4ac1.mockapi.io/api/v1/khaibaosuckhoe/khaibaosuckhoehosinh";
 
   useEffect(() => {
-    // Tự động chọn học sinh đầu tiên khi dữ liệu được tải
-    if (!isLoading && students.length > 0 && !selectedStudent) {
-      setSelectedStudent(students[0].id);
+    // Chọn học sinh đầu tiên khi danh sách học sinh được tải xong
+    if (students.length > 0 && !selectedStudent) {
+      setSelectedStudent(students[0]);
     }
-  }, [isLoading, students, selectedStudent]);
+  }, [students, selectedStudent]);
 
-  const handleStudentChange = (e) => {
-    setSelectedStudent(e.target.value);
-  };
+  // Khi chọn học sinh mới, tải hồ sơ y tế
+  useEffect(() => {
+    const fetchMedicalRecord = async () => {
+      if (!selectedStudent) return;
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+      setLoading(true);
+      setError(null);
 
-  const handleDateChange = (e) => {
-    setFilterDate(e.target.value);
-  };
+      try {
+        // Lấy tất cả dữ liệu từ API và lọc theo studentId
+        const response = await axios.get(`${HEALTH_API}`);
+        const allRecords = response.data;
 
-  const handleFilterTypeChange = (e) => {
-    setFilterType(e.target.value);
-  };
+        // Lọc các bản ghi có chứa trường y tế như height, weight, bmi
+        const medicalRecords = allRecords.filter(
+          (record) =>
+            record.studentId === selectedStudent.id &&
+            record.height &&
+            record.weight &&
+            record.bmi
+        );
 
-  const getFilteredRecords = () => {
-    if (!selectedStudent) return [];
-
-    return medicalRecords.filter((record) => {
-      // Lọc theo học sinh
-      if (record.studentId !== selectedStudent) return false;
-
-      // Lọc theo từ khóa tìm kiếm
-      if (
-        searchTerm &&
-        !record.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !record.description.toLowerCase().includes(searchTerm.toLowerCase())
-      ) {
-        return false;
+        if (medicalRecords.length > 0) {
+          setMedicalRecord(medicalRecords[0]); // Lấy bản ghi đầu tiên
+        } else {
+          setError("Không tìm thấy hồ sơ y tế cho học sinh này");
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải hồ sơ y tế:", err);
+        setError("Không thể tải hồ sơ y tế. Vui lòng thử lại sau.");
+      } finally {
+        setLoading(false);
       }
-
-      // Lọc theo ngày
-      if (filterDate && record.date !== filterDate) return false;
-
-      // Lọc theo loại bệnh án
-      if (filterType !== "all" && record.type !== filterType) return false;
-
-      return true;
-    });
-  };
-
-  const getRecordTypeText = (type) => {
-    switch (type) {
-      case "examination":
-        return "Khám định kỳ";
-      case "illness":
-        return "Bệnh tật";
-      case "injury":
-        return "Chấn thương";
-      case "vaccination":
-        return "Tiêm chủng";
-      default:
-        return "Khác";
-    }
-  };
-
-  const getRecordTypeIcon = (type) => {
-    switch (type) {
-      case "examination":
-        return "fa-stethoscope";
-      case "illness":
-        return "fa-virus";
-      case "injury":
-        return "fa-band-aid";
-      case "vaccination":
-        return "fa-syringe";
-      default:
-        return "fa-notes-medical";
-    }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN");
-  };
-
-  const getCurrentHealthMetrics = (studentId) => {
-    if (!healthMetrics || !healthMetrics[studentId]) return null;
-
-    const metrics = healthMetrics[studentId];
-    const currentHeight =
-      metrics.height.length > 0
-        ? metrics.height[metrics.height.length - 1]
-        : null;
-    const currentWeight =
-      metrics.weight.length > 0
-        ? metrics.weight[metrics.weight.length - 1]
-        : null;
-    const currentBMI =
-      metrics.bmi.length > 0 ? metrics.bmi[metrics.bmi.length - 1] : null;
-    const currentVision =
-      metrics.vision.length > 0
-        ? metrics.vision[metrics.vision.length - 1]
-        : null;
-
-    return {
-      height: currentHeight,
-      weight: currentWeight,
-      bmi: currentBMI,
-      vision: currentVision,
-      allergies: metrics.allergies,
-      chronicConditions: metrics.chronicConditions,
-      bloodType: metrics.bloodType,
-      immunizations: metrics.immunizations,
     };
+
+    fetchMedicalRecord();
+  }, [selectedStudent]);
+
+  // Xử lý chọn học sinh
+  const handleStudentSelect = (student) => {
+    setSelectedStudent(student);
+    setMedicalRecord(null); // Reset hồ sơ y tế khi chọn học sinh mới
   };
 
-  const renderHealthMetricsTab = () => {
-    if (!selectedStudent || !healthMetrics || !healthMetrics[selectedStudent]) {
-      return <p>Không có dữ liệu sức khỏe cho học sinh này.</p>;
+  // Format ngày tháng
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+
+    try {
+      return new Date(dateString).toLocaleDateString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    } catch (e) {
+      return dateString;
     }
-
-    const metrics = healthMetrics[selectedStudent];
-    const currentMetrics = getCurrentHealthMetrics(selectedStudent);
-
-    if (!currentMetrics) return null;
-
-    return (
-      <div className="health-metrics-container">
-        <div className="metrics-summary">
-          <div className="metric-card">
-            <div className="metric-icon">
-              <i className="fas fa-ruler-vertical"></i>
-            </div>
-            <div className="metric-data">
-              <span className="metric-value">
-                {currentMetrics.height?.value} cm
-              </span>
-              <span className="metric-label">Chiều cao</span>
-              <span className="metric-date">
-                Cập nhật: {formatDate(currentMetrics.height?.date)}
-              </span>
-            </div>
-          </div>
-
-          <div className="metric-card">
-            <div className="metric-icon">
-              <i className="fas fa-weight"></i>
-            </div>
-            <div className="metric-data">
-              <span className="metric-value">
-                {currentMetrics.weight?.value} kg
-              </span>
-              <span className="metric-label">Cân nặng</span>
-              <span className="metric-date">
-                Cập nhật: {formatDate(currentMetrics.weight?.date)}
-              </span>
-            </div>
-          </div>
-
-          <div className="metric-card">
-            <div className="metric-icon">
-              <i className="fas fa-calculator"></i>
-            </div>
-            <div className="metric-data">
-              <span className="metric-value">{currentMetrics.bmi?.value}</span>
-              <span className="metric-label">
-                BMI - {currentMetrics.bmi?.status}
-              </span>
-              <span className="metric-date">
-                Cập nhật: {formatDate(currentMetrics.bmi?.date)}
-              </span>
-            </div>
-          </div>
-
-          <div className="metric-card">
-            <div className="metric-icon">
-              <i className="fas fa-eye"></i>
-            </div>
-            <div className="metric-data">
-              <span className="metric-value">
-                T: {currentMetrics.vision?.left} | P:{" "}
-                {currentMetrics.vision?.right}
-              </span>
-              <span className="metric-label">Thị lực</span>
-              <span className="metric-date">
-                Cập nhật: {formatDate(currentMetrics.vision?.date)}
-              </span>
-            </div>
-          </div>
-
-          <div className="metric-card">
-            <div className="metric-icon">
-              <i className="fas fa-tint"></i>
-            </div>
-            <div className="metric-data">
-              <span className="metric-value">{currentMetrics.bloodType}</span>
-              <span className="metric-label">Nhóm máu</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="health-details">
-          <h3>Thông tin sức khỏe chi tiết</h3>
-
-          <div className="health-detail-section">
-            <h4>
-              <i className="fas fa-exclamation-triangle"></i> Dị ứng
-            </h4>
-            <ul>
-              {currentMetrics.allergies.map((allergy, index) => (
-                <li key={index}>{allergy}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="health-detail-section">
-            <h4>
-              <i className="fas fa-heartbeat"></i> Bệnh mãn tính
-            </h4>
-            <ul>
-              {currentMetrics.chronicConditions.map((condition, index) => (
-                <li key={index}>{condition}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="health-detail-section">
-            <h4>
-              <i className="fas fa-syringe"></i> Tiêm chủng
-            </h4>
-            <ul className="immunization-list">
-              {currentMetrics.immunizations?.map((vaccine, index) => (
-                <li key={index}>
-                  <span className="vaccine-name">{vaccine.name}</span>
-                  <span className="vaccine-date">
-                    {formatDate(vaccine.date)}
-                  </span>
-                  <span
-                    className={`vaccine-status ${
-                      vaccine.status === "Hoàn thành" ? "completed" : "pending"
-                    }`}
-                  >
-                    {vaccine.status}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="health-detail-section">
-            <h4>
-              <i className="fas fa-chart-line"></i> Biểu đồ phát triển
-            </h4>
-            <div className="chart-placeholder">
-              <p>
-                [Biểu đồ phát triển chiều cao và cân nặng sẽ được hiển thị tại
-                đây]
-              </p>
-              <button className="view-history-btn">
-                <i className="fas fa-history"></i> Xem lịch sử chỉ số
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
-  const renderMedicalRecordsTab = () => {
-    const filteredRecords = getFilteredRecords();
-
-    if (filteredRecords.length === 0) {
+  // Hiển thị danh sách học sinh
+  const renderStudentList = () => {
+    if (studentsLoading) {
       return (
-        <div className="no-records-message">
-          <i className="fas fa-file-medical-alt"></i>
-          <p>
-            Không tìm thấy hồ sơ bệnh án nào phù hợp với điều kiện tìm kiếm.
-          </p>
-          {searchTerm || filterDate || filterType !== "all" ? (
-            <button
-              className="clear-filters-btn"
-              onClick={() => {
-                setSearchTerm("");
-                setFilterDate("");
-                setFilterType("all");
-              }}
-            >
-              <i className="fas fa-sync"></i> Xóa bộ lọc
-            </button>
-          ) : null}
+        <div className="loading-container">
+          <LoadingSpinner />
+          <p className="loading-text">Đang tải danh sách học sinh...</p>
         </div>
       );
     }
 
+    if (students.length === 0) {
+      return <p className="no-data">Không có thông tin học sinh.</p>;
+    }
+
     return (
-      <div className="records-list">
-        {filteredRecords.map((record) => (
-          <div className="record-card" key={record.id}>
-            <div className="record-header">
-              <div className="record-type">
-                <i className={`fas ${getRecordTypeIcon(record.type)}`}></i>
-                <span>{getRecordTypeText(record.type)}</span>
-              </div>
-              <span className="record-date">{formatDate(record.date)}</span>
+      <div className="student-list">
+        <h3>Chọn học sinh</h3>
+        {students.map((student) => (
+          <div
+            key={student.id}
+            className={`student-card ${
+              selectedStudent?.id === student.id ? "selected" : ""
+            }`}
+            onClick={() => handleStudentSelect(student)}
+          >
+            <div className="student-avatar">
+              <img
+                src={student.avatar || "https://i.pravatar.cc/150?img=11"}
+                alt={`${student.name}`}
+              />
             </div>
-
-            <div className="record-body">
-              <h3 className="record-title">{record.title}</h3>
-              <p className="record-description">{record.description}</p>
-
-              {record.treatment && (
-                <div className="record-treatment">
-                  <strong>
-                    <i className="fas fa-pills"></i> Điều trị:
-                  </strong>{" "}
-                  {record.treatment}
-                </div>
-              )}
-
-              {record.notes && (
-                <div className="record-notes">
-                  <strong>
-                    <i className="fas fa-clipboard"></i> Ghi chú:
-                  </strong>{" "}
-                  {record.notes}
-                </div>
-              )}
-            </div>
-
-            <div className="record-footer">
-              <div className="record-doctor">
-                <i className="fas fa-user-md"></i> {record.doctor}
-              </div>
-
-              {record.attachments && record.attachments.length > 0 && (
-                <div className="record-attachments">
-                  <i className="fas fa-paperclip"></i>
-                  <span>Tài liệu đính kèm ({record.attachments.length})</span>
-                </div>
-              )}
+            <div className="student-info">
+              <h4>{student.name}</h4>
+              <p>Lớp: {student.class}</p>
             </div>
           </div>
         ))}
@@ -359,152 +123,360 @@ const MedicalRecords = () => {
     );
   };
 
-  if (isLoading) {
-    return <LoadingSpinner text="Đang tải dữ liệu hồ sơ bệnh án..." />;
-  }
+  // Hiển thị hồ sơ y tế
+  const renderMedicalRecord = () => {
+    if (!selectedStudent) {
+      return (
+        <p className="select-prompt">
+          Vui lòng chọn học sinh để xem hồ sơ y tế.
+        </p>
+      );
+    }
+
+    if (loading) {
+      return (
+        <div className="loading-container">
+          <LoadingSpinner />
+          <p className="loading-text">Đang tải hồ sơ y tế...</p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="error-container">
+          <i className="fas fa-exclamation-triangle"></i>
+          <p>{error}</p>
+          <button
+            className="retry-button"
+            onClick={() => handleStudentSelect(selectedStudent)}
+          >
+            <i className="fas fa-redo"></i> Thử lại
+          </button>
+        </div>
+      );
+    }
+
+    if (!medicalRecord) {
+      return (
+        <div className="no-record-container">
+          <i className="fas fa-file-medical-alt"></i>
+          <p>Chưa có hồ sơ y tế cho học sinh này.</p>
+          <p className="hint">
+            Hồ sơ y tế được cập nhật sau các đợt khám sức khỏe định kỳ tại
+            trường.
+          </p>
+        </div>
+      );
+    }
+
+    // Helper function để phân loại BMI
+    const getBMIClass = (bmi) => {
+      if (!bmi) return "";
+      if (bmi < 18.5) return "bmi-underweight";
+      if (bmi < 25) return "bmi-normal";
+      if (bmi < 30) return "bmi-overweight";
+      return "bmi-obese";
+    };
+
+    // Helper function để mô tả BMI
+    const getBMIDescription = (bmi) => {
+      if (!bmi) return "Không xác định";
+      if (bmi < 18.5) return "Thiếu cân";
+      if (bmi < 25) return "Bình thường";
+      if (bmi < 30) return "Thừa cân";
+      return "Béo phì";
+    };
+
+    return (
+      <div className="medical-record-container">
+        <div className="record-header">
+          <h2>Hồ sơ y tế - {selectedStudent.name}</h2>
+          <div className="school-year">
+            <span>Năm học: {medicalRecord.schoolYear || "2023-2024"}</span>
+          </div>
+        </div>
+
+        <div className="updated-info">
+          <p>
+            <i className="fas fa-sync-alt"></i> Cập nhật lần cuối:
+            {formatDate(medicalRecord.lastUpdated)} bởi{" "}
+            {medicalRecord.updatedBy || "Nhân viên y tế"}
+          </p>
+        </div>
+
+        <div className="medical-record-section">
+          <h3>
+            <i className="fas fa-user-alt"></i> Thông tin cơ bản
+          </h3>
+          <div className="info-grid">
+            <div className="info-item">
+              <span className="label">Họ tên:</span>
+              <span className="value">{selectedStudent.name}</span>
+            </div>
+            <div className="info-item">
+              <span className="label">Ngày sinh:</span>
+              <span className="value">
+                {selectedStudent.birthday || "Chưa có thông tin"}
+              </span>
+            </div>
+            <div className="info-item">
+              <span className="label">Lớp:</span>
+              <span className="value">{selectedStudent.class}</span>
+            </div>
+            <div className="info-item">
+              <span className="label">Nhóm máu:</span>
+              <span className="value">
+                {medicalRecord.bloodType || "Chưa xác định"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="medical-record-section">
+          <h3>
+            <i className="fas fa-weight"></i> Chỉ số thể chất
+          </h3>
+          <div className="metrics-container">
+            <div className="metric-card">
+              <div className="metric-value">{medicalRecord.height} cm</div>
+              <div className="metric-label">Chiều cao</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-value">{medicalRecord.weight} kg</div>
+              <div className="metric-label">Cân nặng</div>
+            </div>
+            <div className="metric-card">
+              <div className={`metric-value ${getBMIClass(medicalRecord.bmi)}`}>
+                {medicalRecord.bmi.toFixed(2)}
+              </div>
+              <div className="metric-label">
+                BMI - {getBMIDescription(medicalRecord.bmi)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="medical-record-section">
+          <h3>
+            <i className="fas fa-eye"></i> Thị lực
+          </h3>
+          <div className="vision-container">
+            <div className="vision-card left">
+              <div className="eye-icon">L</div>
+              <div className="vision-value">
+                {medicalRecord.visionLeft || "Chưa kiểm tra"}
+              </div>
+              <div className="vision-label">Mắt trái</div>
+            </div>
+            <div className="vision-card right">
+              <div className="eye-icon">R</div>
+              <div className="vision-value">
+                {medicalRecord.visionRight || "Chưa kiểm tra"}
+              </div>
+              <div className="vision-label">Mắt phải</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="medical-record-section">
+          <h3>
+            <i className="fas fa-notes-medical"></i> Tiền sử bệnh lý
+          </h3>
+
+          <div className="health-details">
+            <div className="health-detail-item">
+              <span className="label">Dị ứng:</span>
+              <div className="tags-container">
+                {medicalRecord.allergies &&
+                medicalRecord.allergies.length > 0 ? (
+                  Array.isArray(medicalRecord.allergies) ? (
+                    medicalRecord.allergies.map((allergy, index) => (
+                      <span key={index} className="health-tag allergy-tag">
+                        {allergy}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="health-tag allergy-tag">
+                      {medicalRecord.allergies}
+                    </span>
+                  )
+                ) : (
+                  <span className="empty-tag">Không có</span>
+                )}
+              </div>
+            </div>
+
+            <div className="health-detail-item">
+              <span className="label">Bệnh mãn tính:</span>
+              <div className="tags-container">
+                {medicalRecord.chronicConditions &&
+                medicalRecord.chronicConditions.length > 0 ? (
+                  Array.isArray(medicalRecord.chronicConditions) ? (
+                    medicalRecord.chronicConditions.map((condition, index) => (
+                      <span key={index} className="health-tag chronic-tag">
+                        {condition}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="health-tag chronic-tag">
+                      {medicalRecord.chronicConditions}
+                    </span>
+                  )
+                ) : (
+                  <span className="empty-tag">Không có</span>
+                )}
+              </div>
+            </div>
+
+            <div className="health-detail-item">
+              <span className="label">Thuốc đang dùng:</span>
+              <div className="tags-container">
+                {medicalRecord.medications &&
+                medicalRecord.medications.length > 0 ? (
+                  Array.isArray(medicalRecord.medications) ? (
+                    medicalRecord.medications.map((medication, index) => (
+                      <span key={index} className="health-tag medication-tag">
+                        {medication}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="health-tag medication-tag">
+                      {medicalRecord.medications}
+                    </span>
+                  )
+                ) : (
+                  <span className="empty-tag">Không có</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="medical-record-section">
+          <h3>
+            <i className="fas fa-syringe"></i> Lịch sử tiêm chủng
+          </h3>
+          {medicalRecord.vaccinations &&
+          medicalRecord.vaccinations.length > 0 ? (
+            <div className="vaccinations-container">
+              <table className="vaccinations-table">
+                <thead>
+                  <tr>
+                    <th>Tên vắc-xin</th>
+                    <th>Ngày tiêm</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {medicalRecord.vaccinations.map((vaccine, index) => (
+                    <tr key={index}>
+                      <td>{vaccine.name}</td>
+                      <td>{formatDate(vaccine.date)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="no-data-small">Chưa có thông tin tiêm chủng</p>
+          )}
+        </div>
+
+        <div className="medical-record-section">
+          <h3>
+            <i className="fas fa-stethoscope"></i> Lịch sử khám sức khỏe định kỳ
+          </h3>
+          {medicalRecord.healthExams && medicalRecord.healthExams.length > 0 ? (
+            <div className="health-exams-container">
+              <table className="health-exams-table">
+                <thead>
+                  <tr>
+                    <th>Ngày khám</th>
+                    <th>Loại khám</th>
+                    <th>Cơ sở y tế</th>
+                    <th>Kết quả</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {medicalRecord.healthExams.map((exam, index) => (
+                    <tr key={index}>
+                      <td>{formatDate(exam.date)}</td>
+                      <td>{exam.type || "Khám sức khỏe định kỳ"}</td>
+                      <td>{exam.facility || "Y tế trường học"}</td>
+                      <td>
+                        <span
+                          className={`exam-result ${
+                            exam.result === "Đạt"
+                              ? "result-pass"
+                              : "result-review"
+                          }`}
+                        >
+                          {exam.result || "Khỏe mạnh"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="no-exams-container">
+              <p className="no-data-small">
+                <i className="fas fa-info-circle"></i> Chưa có thông tin khám
+                sức khỏe định kỳ
+              </p>
+              <p className="health-exam-schedule">
+                Đợt khám sức khỏe định kỳ tiếp theo:{" "}
+                {medicalRecord.nextExamDate
+                  ? formatDate(medicalRecord.nextExamDate)
+                  : "Chưa lên lịch"}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {medicalRecord.notes && (
+          <div className="medical-record-section">
+            <h3>
+              <i className="fas fa-comment-medical"></i> Ghi chú
+            </h3>
+            <div className="notes-container">
+              <p className="medical-notes">{medicalRecord.notes}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div className="medical-records-container">
-      <div className="medical-records-header">
-        <h1>Hồ sơ bệnh án học sinh</h1>
-        <p>
-          Thông tin y tế và lịch sử bệnh án của học sinh do nhà trường theo dõi
+    <>
+      <div className="content-section">
+        <div className="section-header">
+          <h2 className="section-title">
+            <i className="fas fa-file-medical-alt"></i>
+            Hồ sơ y tế học sinh
+          </h2>
+          <div className="section-actions">
+            <button
+              className="btn-action btn-outline"
+              onClick={() => window.print()}
+            >
+              <i className="fas fa-print"></i> In hồ sơ
+            </button>
+          </div>
+        </div>
+        <p className="section-description">
+          Thông tin sức khỏe và kết quả khám định kỳ tại trường
         </p>
       </div>
 
-      <div className="medical-records-content">
-        <div className="student-selector">
-          <label htmlFor="student-select">Chọn học sinh:</label>
-          <select
-            id="student-select"
-            value={selectedStudent || ""}
-            onChange={handleStudentChange}
-            disabled={students.length === 0}
-          >
-            {students.length === 0 && (
-              <option value="">Không có học sinh</option>
-            )}
-            {students.map((student) => (
-              <option key={student.id} value={student.id}>
-                {student.name} - Lớp {student.class}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="parent-content with-sidebar">
+        <div className="content-section">{renderStudentList()}</div>
 
-        {selectedStudent && (
-          <>
-            <div className="student-info">
-              <div className="student-avatar">
-                <i className="fas fa-user-graduate"></i>
-              </div>
-              <div className="student-details">
-                <h2>{students.find((s) => s.id === selectedStudent)?.name}</h2>
-                <div className="student-meta">
-                  <span>
-                    <i className="fas fa-graduation-cap"></i> Lớp:{" "}
-                    {students.find((s) => s.id === selectedStudent)?.class}
-                  </span>
-                  <span>
-                    <i className="fas fa-birthday-cake"></i> Tuổi:{" "}
-                    {students.find((s) => s.id === selectedStudent)?.age}
-                  </span>
-                  <span>
-                    <i className="fas fa-venus-mars"></i> Giới tính:{" "}
-                    {students.find((s) => s.id === selectedStudent)?.gender}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="tabs-container">
-              <div className="tabs-header">
-                <button
-                  className={`tab-btn ${
-                    activeTab === "medical" ? "active" : ""
-                  }`}
-                  onClick={() => setActiveTab("medical")}
-                >
-                  <i className="fas fa-file-medical"></i> Hồ sơ bệnh án
-                </button>
-                <button
-                  className={`tab-btn ${
-                    activeTab === "health" ? "active" : ""
-                  }`}
-                  onClick={() => setActiveTab("health")}
-                >
-                  <i className="fas fa-heartbeat"></i> Thông tin sức khỏe
-                </button>
-              </div>
-
-              {activeTab === "medical" && (
-                <>
-                  <div className="filters-container">
-                    <div className="filter-group">
-                      <div className="search-box">
-                        <input
-                          type="text"
-                          placeholder="Tìm kiếm bệnh án..."
-                          value={searchTerm}
-                          onChange={handleSearchChange}
-                        />
-                        <button className="search-btn">
-                          <i className="fas fa-search"></i>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="filter-group">
-                      <label htmlFor="date-filter">Ngày:</label>
-                      <input
-                        type="date"
-                        id="date-filter"
-                        value={filterDate}
-                        onChange={handleDateChange}
-                      />
-                    </div>
-
-                    <div className="filter-group">
-                      <label htmlFor="type-filter">Loại:</label>
-                      <select
-                        id="type-filter"
-                        value={filterType}
-                        onChange={handleFilterTypeChange}
-                      >
-                        <option value="all">Tất cả</option>
-                        <option value="examination">Khám định kỳ</option>
-                        <option value="illness">Bệnh tật</option>
-                        <option value="injury">Chấn thương</option>
-                        <option value="vaccination">Tiêm chủng</option>
-                      </select>
-                    </div>
-
-                    {(searchTerm || filterDate || filterType !== "all") && (
-                      <button
-                        className="clear-filters-btn"
-                        onClick={() => {
-                          setSearchTerm("");
-                          setFilterDate("");
-                          setFilterType("all");
-                        }}
-                      >
-                        <i className="fas fa-times"></i> Xóa bộ lọc
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="tab-content">{renderMedicalRecordsTab()}</div>
-                </>
-              )}
-
-              {activeTab === "health" && (
-                <div className="tab-content">{renderHealthMetricsTab()}</div>
-              )}
-            </div>
-          </>
-        )}
+        <div className="main-content">{renderMedicalRecord()}</div>
       </div>
-    </div>
+    </>
   );
 };
 

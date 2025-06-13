@@ -1,20 +1,15 @@
-package com.fpt.medically_be.dto;
+package com.fpt.medically_be.dto.response;
 
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class MedicalIncidentDTO {
-
-
+public class MedicalIncidentNurseDTO {
     private Long incidentId;
 
     @NotBlank(message = "Incident type is required")
@@ -23,10 +18,6 @@ public class MedicalIncidentDTO {
 
     @Column(name = "date_time")
     private LocalDateTime dateTime;
-
-//    private LocalDateTime createdAt;
-//
-//    private LocalDateTime updatedAt;
 
     @NotBlank(message = "Description is required")
     @Size(max = 250)
@@ -47,14 +38,6 @@ public class MedicalIncidentDTO {
 
     private Boolean parentNotified;
     private Boolean requiresFollowUp;
-
-    @Size(max = 150)
-    private String followUpNotes;
-
-    private Long handledById;
-
-    private Long studentId;
-
 
 
 }

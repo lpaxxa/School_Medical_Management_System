@@ -20,6 +20,7 @@ public class StudentDTO {
     private String className;
     private String gradeLevel;
     private String schoolYear;
+    private String imageUrl;
     private Long healthProfileId;
     private Long parentId;
 

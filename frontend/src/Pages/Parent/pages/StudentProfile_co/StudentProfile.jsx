@@ -419,21 +419,37 @@ export default function StudentProfile() {
                 <div className="info-grid single-column">
                   <div className="info-item">
                     <span className="info-label">Tình trạng sức khỏe:</span>
-                    <span className="info-value health-status">
+                    <span
+                      className={`info-value health-status ${
+                        extendedStudent.healthStatus
+                          ?.toLowerCase()
+                          .includes("khỏe mạnh")
+                          ? "healthy"
+                          : extendedStudent.healthStatus
+                              ?.toLowerCase()
+                              .includes("cần theo dõi")
+                          ? "monitor"
+                          : extendedStudent.healthStatus
+                              ?.toLowerCase()
+                              .includes("cần điều trị")
+                          ? "needs-treatment"
+                          : ""
+                      }`}
+                    >
                       {extendedStudent.healthStatus || "Chưa cập nhật"}
                     </span>
                   </div>
                   {extendedStudent.bloodType && (
                     <div className="info-item">
                       <span className="info-label">Nhóm máu:</span>
-                      <span className="info-value">
+                      <span className="info-value blood-type">
                         {extendedStudent.bloodType}
                       </span>
                     </div>
                   )}
                   {extendedStudent.allergies &&
                     extendedStudent.allergies.length > 0 && (
-                      <div className="info-item full-width">
+                      <div className="info-item full-width allergies">
                         <span className="info-label">Dị ứng:</span>
                         <span className="info-value">
                           {Array.isArray(extendedStudent.allergies)
@@ -444,7 +460,7 @@ export default function StudentProfile() {
                     )}
                   {extendedStudent.chronicConditions &&
                     extendedStudent.chronicConditions.length > 0 && (
-                      <div className="info-item full-width">
+                      <div className="info-item full-width chronic">
                         <span className="info-label">Bệnh mãn tính:</span>
                         <span className="info-value">
                           {Array.isArray(extendedStudent.chronicConditions)

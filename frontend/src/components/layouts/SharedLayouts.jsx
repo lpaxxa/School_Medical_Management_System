@@ -24,7 +24,7 @@ export const HomeLayout = ({ children }) => (
   <>
     <Header />
     <Navigation />
-    <main className="main-content">{children}</main>
+    <main className="parent-content">{children}</main>
     <Footer />
   </>
 );
