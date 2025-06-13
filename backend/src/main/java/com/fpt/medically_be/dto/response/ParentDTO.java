@@ -1,8 +1,6 @@
-package com.fpt.medically_be.dto;
+package com.fpt.medically_be.dto.response;
 
 import com.fpt.medically_be.base.BaseMapper;
-import com.fpt.medically_be.dto.response.NurseProfileResponseDTO;
-import com.fpt.medically_be.entity.Nurse;
 import com.fpt.medically_be.entity.Parent;
 import lombok.*;
 
@@ -40,5 +38,22 @@ public class ParentDTO extends BaseMapper<Parent, ParentDTO> {
         this.accountId = entity.getAccount() != null ? entity.getAccount().getId() : null;
 
         return this;
+    }
+    @Override
+    public Parent toEntity(ParentDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        Parent entity = new Parent();
+        entity.setId(dto.getId());
+        entity.setFullName(dto.getFullName());
+        entity.setPhoneNumber(dto.getPhoneNumber());
+        entity.setEmail(dto.getEmail());
+        entity.setAddress(dto.getAddress());
+        entity.setOccupation(dto.getOccupation());
+        entity.setRelationshipType(dto.getRelationshipType());
+
+        return entity;
     }
 }

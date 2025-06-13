@@ -1,9 +1,14 @@
 package com.fpt.medically_be.service;
 
-import com.fpt.medically_be.dto.ParentDTO;
+import com.fpt.medically_be.dto.response.ParentDTO;
+import org.springframework.security.core.Authentication;
+
 import java.util.List;
 
 public interface ParentService {
+    ParentDTO getCurretParent(Authentication authentication);
+    void validateParentOwnsStudent(Long studentId, Authentication authentication);
+
     List<ParentDTO> getAllParents();
     ParentDTO getParentById(Long id);
     ParentDTO getParentByEmail(String email);

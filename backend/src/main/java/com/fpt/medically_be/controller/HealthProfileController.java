@@ -26,7 +26,7 @@ public class HealthProfileController {
         return ResponseEntity.ok(healthProfileService.getAllHealthProfiles());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{studentId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<HealthProfileDTO> getHealthProfileById(@PathVariable Long id) {
         return ResponseEntity.ok(healthProfileService.getHealthProfileById(id));
