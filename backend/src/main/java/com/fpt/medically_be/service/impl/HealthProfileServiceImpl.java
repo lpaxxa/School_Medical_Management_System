@@ -36,6 +36,21 @@ public class HealthProfileServiceImpl implements HealthProfileService {
     }
 
     @Override
+    public HealthProfileDTO getHealthProfileByStudentId(Long studentId) {
+        return healthProfileRepository.findByStudentId(studentId)
+                .map(this::convertToDTO)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe cho học sinh có ID: " + studentId));
+    }
+
+    @Override
+    public List<HealthProfileDTO> getHealthProfilesByStudentIds(List<Long> studentIds) {
+        List<HealthProfile> profiles = healthProfileRepository.findByStudentIdIn(studentIds);
+        return profiles.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public HealthProfileDTO createHealthProfile(HealthProfileDTO healthProfileDTO) {
         HealthProfile healthProfile = convertToEntity(healthProfileDTO);
         HealthProfile savedHealthProfile = healthProfileRepository.save(healthProfile);
@@ -47,7 +62,7 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         HealthProfile existingHealthProfile = healthProfileRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe với ID: " + id));
 
-        // Cập nhật thông tin hồ sơ sức khỏe
+        // Cập nhật thông tin hồ s�� sức khỏe
         existingHealthProfile.setBloodType(healthProfileDTO.getBloodType());
         existingHealthProfile.setHeight(healthProfileDTO.getHeight());
         existingHealthProfile.setWeight(healthProfileDTO.getWeight());

@@ -6,8 +6,9 @@ import java.util.List;
 public interface HealthProfileService {
     List<HealthProfileDTO> getAllHealthProfiles();
     HealthProfileDTO getHealthProfileById(Long id);
+    HealthProfileDTO getHealthProfileByStudentId(Long studentId);
+    List<HealthProfileDTO> getHealthProfilesByStudentIds(List<Long> studentIds);
     HealthProfileDTO createHealthProfile(HealthProfileDTO healthProfileDTO);
     HealthProfileDTO updateHealthProfile(Long id, HealthProfileDTO healthProfileDTO);
     void deleteHealthProfile(Long id);
-
 }

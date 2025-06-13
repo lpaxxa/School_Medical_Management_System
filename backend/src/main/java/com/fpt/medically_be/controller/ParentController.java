@@ -6,6 +6,7 @@ import com.fpt.medically_be.dto.StudentDTO;
 import com.fpt.medically_be.dto.response.ParentDTO;
 import com.fpt.medically_be.service.ParentService;
 import com.fpt.medically_be.service.StudentService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,7 +67,7 @@ public class ParentController {
      */
     @GetMapping("/my-students")
     @PreAuthorize("hasRole('PARENT')")
-
+    @Operation(summary = "Lấy danh sách học sinh theo nick của phụ huynh đang đăng nhập hiện tại")
     public ResponseEntity<List<StudentDTO>> getCurrentParentStudents(Authentication authentication) {
 
         String accountId = authentication.getName(); // Lấy memberId từ token
