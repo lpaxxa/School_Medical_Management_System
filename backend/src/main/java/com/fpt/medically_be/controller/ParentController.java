@@ -4,7 +4,6 @@ package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.StudentDTO;
 import com.fpt.medically_be.dto.response.ParentDTO;
-
 import com.fpt.medically_be.service.ParentService;
 import com.fpt.medically_be.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,17 +58,22 @@ public class ParentController {
     }
 
     /**
+
      * Lấy danh sách học sinh của phụ huynh hiện tại (dựa trên tài khoản đăng nhập)
+
      * @param authentication Thông tin xác thực từ token
      * @return Danh sách học sinh của phụ huynh
      */
     @GetMapping("/my-students")
     @PreAuthorize("hasRole('PARENT')")
+
     public ResponseEntity<List<StudentDTO>> getCurrentParentStudents(Authentication authentication) {
+
         String accountId = authentication.getName(); // Lấy memberId từ token
         ParentDTO parent = parentService.getParentByAccountId(accountId);
         return ResponseEntity.ok(studentService.getStudentsByParentId(parent.getId()));
     }
+
 
     /**
      * Lấy danh sách học sinh của một phụ huynh cụ thể theo ID
@@ -81,6 +85,7 @@ public class ParentController {
     public ResponseEntity<List<StudentDTO>> getParentStudents(@PathVariable Long parentId) {
         return ResponseEntity.ok(studentService.getStudentsByParentId(parentId));
     }
+
 
     @PostMapping
 //    @PreAuthorize("hasRole('ADMIN')")
