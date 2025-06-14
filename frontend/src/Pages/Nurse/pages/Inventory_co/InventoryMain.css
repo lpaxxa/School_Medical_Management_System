@@ -1,0 +1,445 @@
+/* InventoryMain.css - Styles for inventory management */
+
+/* Overall layout */
+.inventory-page {
+  width: 100%;
+  background-color: #f8f9fa;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden; /* Ngăn thanh cuộn ở mức page và chỉ cho phép thanh cuộn ở inventory-container */
+}
+
+.inventory-container {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Cho phép cuộn theo chiều dọc */
+  overflow-x: hidden; /* Ngăn cuộn theo chiều ngang */
+}
+
+/* Header section */
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.inventory-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #3c4b64;
+}
+
+/* Action bar with filters and search */
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: nowrap;
+  gap: 15px;
+}
+
+.button-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-button {
+  background-color: #f1f1f1;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.filter-button:hover {
+  background-color: #e0e0e0;
+}
+
+.filter-button.active {
+  background-color: #4dabf7;
+  color: white;
+}
+
+/* Search area */
+.search-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-grow: 1; /* Allow search area to grow and fill available space */
+}
+
+.search-input-container {
+  position: relative;
+  width: 100%; /* Use full width within search area */
+  max-width: 300px; /* But limit maximum width */
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 35px 10px 15px;
+  border-radius: 30px;
+  border: 1px solid #ddd;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.search-input:focus {
+  border-color: #4dabf7;
+  box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.2);
+}
+
+.clear-search {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-search:hover {
+  color: #555;
+}
+
+/* Table styling */
+.table-container {
+  flex: 1;
+  overflow: visible; /* Không tạo thanh cuộn riêng */
+  margin-bottom: 20px;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.inventory-table th {
+  font-weight: 600;
+  color: #333;
+  background-color: #f8f9fa;
+  position: relative; /* Ensure headers scroll with content */
+}
+
+.inventory-table tr:hover {
+  background-color: #f5f8ff;
+}
+
+/* Status badges */
+.status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.status.available {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status.low {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status.out {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Status dots for filter dropdown */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-dot.available {
+  background-color: #28a745;
+}
+
+.status-dot.low {
+  background-color: #ffc107;
+}
+
+.status-dot.out {
+  background-color: #dc3545;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.edit-button, .delete-button {
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+  color: white;
+  white-space: nowrap;
+  min-width: 45px;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.edit-button {
+  background-color: #4dabf7;
+}
+
+.edit-button:hover {
+  background-color: #339af0;
+}
+
+.delete-button {
+  background-color: #dc3545;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+/* Loading and error states */
+.loading, .error, .no-items {
+  text-align: center;
+  padding: 20px;
+  font-size: 1rem;
+}
+
+.loading {
+  color: #4dabf7;
+}
+
+.error {
+  color: #dc3545;
+}
+
+.no-items {
+  color: #6c757d;
+}
+
+/* Button styles */
+button.add-button {
+  background-color: #4dabf7;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  white-space: nowrap; /* Prevent button text from wrapping */
+  margin-left: 10px; /* Add some spacing between buttons */
+}
+
+button.add-button:hover {
+  background-color: #339af0;
+}
+
+button.export-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  white-space: nowrap; /* Prevent button text from wrapping */
+  margin-left: 10px; /* Add some spacing between buttons */
+}
+
+button.export-button:hover {
+  background-color: #218838;
+}
+
+button.filter-btn {
+  background-color: #6c757d;
+}
+
+button.filter-btn:hover {
+  background-color: #5a6268;
+}
+
+button.search-button {
+  background-color: #4dabf7;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.search-button:hover {
+  background-color: #339af0;
+}
+
+/* Dropdown styles for Filter button */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropbtn {
+  background-color: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #f9f9f9;
+  min-width: 180px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 10;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.dropdown-content a:hover {
+  background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown:hover .dropbtn {
+  background-color: #5a6268;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .action-bar {
+    flex-wrap: wrap; /* Allow wrapping on medium screens */
+  }
+  
+  .button-group {
+    margin-top: 10px; /* Add spacing between rows when wrapped */
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .action-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .search-input-container {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .search-area {
+    width: 100%;
+  }
+  
+  .button-group {
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  button.add-button,
+  button.export-button {
+    margin-top: 10px;
+    flex: 1 0 auto;
+  }
+  
+  .inventory-table {
+    font-size: 0.9rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .edit-button, .delete-button {
+    width: 100%;
+  }
+  .inventory-container {
+    padding: 15px;
+    height: calc(100vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  
+  .table-container {
+    overflow: visible;
+  }
+}

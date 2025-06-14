@@ -1,0 +1,77 @@
+.nurse-sidebar {
+  width: 250px;
+  height: calc(100vh - 60px); /* Adjust only for header height since footer was removed */
+  background-color: #1d5d86; /* Medical blue theme */
+  background-image: linear-gradient(to bottom, #1d5d86, #1a4e72);
+  padding: 0;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 60px; /* Matches the header height */
+  left: 0;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar for the sidebar */
+.nurse-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nurse-sidebar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.nurse-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.nurse-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.nurse-sidebar nav {
+  padding: 1rem 0;
+}
+
+.nurse-sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nurse-sidebar nav ul li {
+  padding: 0.5rem 0;
+  margin: 0.25rem 0;
+}
+
+.nurse-sidebar nav ul li a {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: #ecf0f1; /* Light text color */
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+  font-size: 0.95rem;
+}
+
+.nurse-sidebar nav ul li a i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #a3dfff; /* Light blue for icons */
+}
+
+.nurse-sidebar nav ul li a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #4cc1a9; /* Mint green/teal - medical color */
+  color: white;
+}
+
+.nurse-sidebar nav ul li a.active {
+  background-color: rgba(76, 193, 169, 0.2); /* Mint green/teal with opacity */
+  border-left: 4px solid #4cc1a9;
+  font-weight: bold;
+  color: white;
+}

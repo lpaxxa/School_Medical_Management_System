@@ -1,19 +1,19 @@
-import React, { useState } from "react";
-import { useAuth } from "../../../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import "./Header.css";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../../context/AuthContext';
+import './Header.css';
 
 const Header = ({ user }) => {
-  const { logout, currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-
+  
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate('/login');
   };
-
+  
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
     setNotificationsOpen(false);
@@ -28,46 +28,47 @@ const Header = ({ user }) => {
   const notifications = [
     {
       id: 1,
-      title: "Báo cáo mới",
-      message: "3 báo cáo y tế cần phê duyệt",
+      title: "Lịch khám",
+      message: "3 học sinh cần được khám sức khỏe hôm nay",
       time: "5 phút trước",
       type: "urgent",
       icon: "fas fa-exclamation-circle",
     },
     {
       id: 2,
-      title: "Cập nhật hệ thống",
-      message: "Hệ thống sẽ bảo trì lúc 23:00",
+      title: "Thuốc mới",
+      message: "Phụ huynh đã gửi đơn thuốc mới",
       time: "1 giờ trước",
       type: "info",
-      icon: "fas fa-info-circle",
+      icon: "fas fa-pills",
     },
     {
       id: 3,
-      title: "Đăng ký thuốc",
-      message: "Phụ huynh đã gửi đơn thuốc mới",
+      title: "Cập nhật hệ thống",
+      message: "Hệ thống sẽ bảo trì lúc 23:00",
       time: "2 giờ trước",
       type: "normal",
-      icon: "fas fa-pills",
+      icon: "fas fa-info-circle",
     },
   ];
 
   return (
-    <header className="admin-header">
-      <div className="admin-header-left">
-        <div className="admin-header-logo">
+    <header className="nurse-header">
+      <div className="nurse-header-left">
+        <div className="nurse-header-logo">
           <div className="logo-icon">
             <i className="fas fa-heartbeat"></i>
           </div>
           <div className="logo-text">
             <h1>MediCare</h1>
-            <span>School Management</span>
+            <span>School Medical System</span>
           </div>
-        </div>{" "}
-        
-      </div>      <div className="admin-header-right">
+        </div>
+      </div>
+      <div className="nurse-header-right">
         {/* Notifications */}
-        <div className="header-notifications">          <button
+        <div className="header-notifications">
+          <button
             className={`notification-btn ${notificationsOpen ? "active" : ""}`}
             onClick={toggleNotifications}
             title="Thông báo"
@@ -109,17 +110,10 @@ const Header = ({ user }) => {
         </div>
 
         {/* User Profile */}
-        <div className="admin-header-user">
-          {/* <div className="user-info">
-            <span className="user-greeting">Xin chào,</span>
-            <span className="user-name">
-              {currentUser?.name || user?.name || "Admin"}
-            </span>
-          </div> */}
-
-          <div className="admin-header-dropdown">
+        <div className="nurse-header-user">
+          <div className="nurse-header-dropdown">
             <button
-              className={`admin-header-profile ${dropdownOpen ? "active" : ""}`}
+              className={`nurse-header-profile ${dropdownOpen ? "active" : ""}`}
               onClick={toggleDropdown}
             >
               <div className="profile-avatar">
@@ -133,7 +127,7 @@ const Header = ({ user }) => {
             </button>
 
             {dropdownOpen && (
-              <div className="admin-header-dropdown-content">
+              <div className="nurse-header-dropdown-content">
                 <div className="dropdown-user-info">
                   <div className="dropdown-avatar">
                     {currentUser?.avatar ? (
@@ -143,10 +137,10 @@ const Header = ({ user }) => {
                     )}
                   </div>
                   <div className="dropdown-user-details">
-                    <h4>{currentUser?.name || "Admin"}</h4>
-                    <p>{currentUser?.email || "admin@school.edu.vn"}</p>
+                    <h4>{currentUser?.name || "Y Tá"}</h4>
+                    <p>{currentUser?.email || "nurse@school.edu.vn"}</p>
                     <span className="user-role">
-                      {currentUser?.role || "Administrator"}
+                      {currentUser?.role || "Nurse"}
                     </span>
                   </div>
                 </div>
