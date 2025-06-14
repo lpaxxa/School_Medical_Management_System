@@ -1,11 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import axios from "axios";
 import { useAuth } from "./AuthContext";
-
-// API URL từ mockapi.io của bạn
-const API_URL = "https://68425631e1347494c31c7892.mockapi.io/api/vi";
+import axios from "axios";
 
 const StudentDataContext = createContext();
+
+// API URLs
+const STUDENTS_API_URL = "http://localhost:8080/api/parents/my-students";
+const PARENT_API_URL = "http://localhost:8080/api/parents/";
 
 export function useStudentData() {
   return useContext(StudentDataContext);
@@ -13,15 +14,17 @@ export function useStudentData() {
 
 export const StudentDataProvider = ({ children }) => {
   const [students, setStudents] = useState([]);
+  const [parentInfo, setParentInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingParent, setIsLoadingParent] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [parentError, setParentError] = useState(null);
   const { currentUser } = useAuth();
 
-  // Lấy danh sách học sinh của phụ huynh
+  // Fetch student data
   useEffect(() => {
-    const fetchStudents = async () => {
-      if (!currentUser) {
+    const fetchStudentData = async () => {
+      if (!currentUser || currentUser.role !== "parent") {
         setStudents([]);
         setIsLoading(false);
         return;
@@ -30,72 +33,103 @@ export const StudentDataProvider = ({ children }) => {
       try {
         setIsLoading(true);
         setError(null);
-        
-        // Gọi API để lấy danh sách học sinh
-        // Giả sử API hocsinh của bạn là endpoint chính
-        const response = await axios.get(`${API_URL}/hocsinh/hocsinh`);
-        
-        // Lọc học sinh theo parentId nếu đang đăng nhập là phụ huynh
-        let studentsList = response.data;
-        
-        if (currentUser.role === 'parent') {
-          studentsList = studentsList.filter(
-            student => student.parentId === currentUser.id
-          );
+
+        // Get token from localStorage
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          throw new Error("Authentication token not found");
         }
-        
-        setStudents(studentsList);
+
+        // Call the exact API URL with the JWT token
+        const response = await axios.get(STUDENTS_API_URL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("Student data received:", response.data);
+        const studentsData = response.data || [];
+        setStudents(studentsData);
+
+        // If students data is available, fetch parent info
+        if (studentsData.length > 0) {
+          fetchParentInfo(studentsData[0].parentId);
+        }
       } catch (err) {
         console.error("Error fetching student data:", err);
-        setError("Không thể tải thông tin học sinh. Vui lòng thử lại sau.");
+        setError(err.message || "Failed to fetch student data");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchStudents();
+    fetchStudentData();
   }, [currentUser]);
 
-  // Hàm lấy thông tin chi tiết của học sinh
-  const getStudentDetails = async (studentId) => {
+  // Function to fetch parent information
+  const fetchParentInfo = async (parentId) => {
+    if (!parentId) return;
+
     try {
-      const response = await axios.get(`${API_URL}/hocsinh/hocsinh/${studentId}`);
-      return response.data;
+      setIsLoadingParent(true);
+      setParentError(null);
+
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      const response = await axios.get(`${PARENT_API_URL}${parentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("Parent data received:", response.data);
+      setParentInfo(response.data);
     } catch (err) {
-      console.error(`Error fetching details for student ${studentId}:`, err);
-      throw new Error("Không thể lấy thông tin chi tiết học sinh");
+      console.error("Error fetching parent info:", err);
+      setParentError(err.message || "Failed to fetch parent information");
+    } finally {
+      setIsLoadingParent(false);
     }
   };
 
-  // Hàm lấy hồ sơ y tế của học sinh
-  const getMedicalRecords = async (studentId) => {
-    try {
-      const response = await axios.get(`${API_URL}/medicalRecords?studentId=${studentId}`);
-      return response.data;
-    } catch (err) {
-      console.error(`Error fetching medical records for student ${studentId}:`, err);
-      throw new Error("Không thể lấy hồ sơ y tế");
-    }
-  };
+  const refreshStudents = async () => {
+    if (!currentUser || currentUser.role !== "parent") return;
 
-  // Hàm lấy lịch sử khai báo sức khỏe của học sinh
-  const getHealthDeclarations = async (studentId) => {
+    setIsLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/declarations?studentId=${studentId}`);
-      return response.data;
+      const token = localStorage.getItem("authToken");
+      const response = await axios.get(STUDENTS_API_URL, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setStudents(response.data || []);
+      setError(null);
+
+      // Refresh parent info too
+      if (response.data && response.data.length > 0) {
+        fetchParentInfo(response.data[0].parentId);
+      }
     } catch (err) {
-      console.error(`Error fetching declarations for student ${studentId}:`, err);
-      throw new Error("Không thể lấy lịch sử khai báo sức khỏe");
+      console.error("Error refreshing student data:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const value = {
     students,
+    parentInfo,
     isLoading,
+    isLoadingParent,
     error,
-    getStudentDetails,
-    getMedicalRecords,
-    getHealthDeclarations
+    parentError,
+    refreshStudents,
+    fetchParentInfo,
   };
 
   return (

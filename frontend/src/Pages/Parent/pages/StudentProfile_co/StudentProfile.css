@@ -3,7 +3,8 @@
 /* Container chính */
 .student-profile-container {
   max-width: 1000px;
-  margin: 2rem auto 3rem;
+  margin: 0 auto;
+  padding: 20px;
   background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -96,39 +97,29 @@
 
 /* Student selector */
 .student-selector {
-  margin-top: 1.2rem;
+  margin-bottom: 25px;
   display: flex;
   align-items: center;
   gap: 1rem;
+  background-color: #f5f7fa;
+  padding: 15px;
+  border-radius: 8px;
 }
 
 .student-selector label {
   font-weight: 500;
-  color: var(--primary-color);
+  margin-right: 15px;
+  color: #2c3e50;
 }
 
-.student-select {
-  background: #ffffff;
-  border: 2px solid rgba(58, 117, 196, 0.2);
-  border-radius: 12px;
-  padding: 0.7rem 1.2rem;
-  min-width: 280px;
-  font-size: 1rem;
-  color: var(--primary-color);
-  font-weight: 500;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23154082' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: calc(100% - 1rem) center;
-  background-size: 12px;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.student-select:focus {
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(58, 117, 196, 0.15);
-  outline: none;
+.student-selector select {
+  padding: 8px 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background-color: white;
+  flex-grow: 1;
+  font-size: 15px;
+  color: #333;
 }
 
 /* Content area */
@@ -570,6 +561,24 @@
     width: 100%;
     justify-content: center;
   }
+  
+  .profile-student-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .student-avatar {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
 }
 
 /* Animation for buttons */
@@ -588,4 +597,208 @@
 
 .profile-actions .health-declaration {
   animation-delay: 1.4s;
+}
+
+/* Add these styles to your existing CSS file */
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  color: #7f8c8d;
+}
+
+.loading-indicator i {
+  margin-right: 10px;
+  color: #3498db;
+}
+
+.error-message {
+  color: #e74c3c;
+  padding: 10px 15px;
+  background-color: #fdecea;
+  border-radius: 4px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+}
+
+.error-message i {
+  margin-right: 8px;
+}
+
+.info-section {
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.info-section h3 {
+  position: relative;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.info-section h3:after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 50px;
+  height: 3px;
+  background-color: #3498db;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-item .label {
+  font-weight: 500;
+  color: #7f8c8d;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.info-item span:not(.label) {
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  border-top: 1px solid #eaeaea;
+  background-color: #f9f9f9;
+  justify-content: flex-end;
+}
+
+.primary-button, .secondary-button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  font-size: 15px;
+}
+
+.primary-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+}
+
+.primary-button:hover {
+  background-color: #2980b9;
+}
+
+.secondary-button {
+  background-color: white;
+  color: #3498db;
+  border: 1px solid #3498db;
+}
+
+.secondary-button:hover {
+  background-color: #ebf5fb;
+}
+
+.primary-button i, .secondary-button i {
+  margin-right: 8px;
+}
+
+.health-profile-actions {
+  margin-top: 15px;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  color: #7f8c8d;
+}
+
+.loading-indicator i {
+  margin-right: 10px;
+  color: #3498db;
+}
+
+.error-message {
+  color: #e74c3c;
+  padding: 10px 15px;
+  background-color: #fdecea;
+  border-radius: 4px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+}
+
+.error-message i {
+  margin-right: 8px;
+}
+
+.no-students-container {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+}
+
+.no-students-container i {
+  font-size: 48px;
+  margin-bottom: 15px;
+  color: #bdc3c7;
+}
+
+/* Rename student-header to profile-student-header to avoid conflicts */
+.profile-student-header {
+  display: flex;
+  align-items: center;
+  padding: 25px;
+  background-color: #f5f7fa;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.student-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #e0e6ed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 25px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.student-basic-info {
+  flex: 1;
+}
+
+/* Media query for responsive design */
+@media (max-width: 768px) {
+  .profile-student-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .student-avatar {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
 }

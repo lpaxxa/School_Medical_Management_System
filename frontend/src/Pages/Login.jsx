@@ -76,17 +76,12 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      setIsLoading(true);
-      setError("Tính năng đăng nhập Google đang được phát triển.");
-      // TODO: Implement Google OAuth2 login with backend
-    } catch (error) {
-      console.error("Google login error:", error);
-      setError("Đăng nhập Google thất bại. Vui lòng thử lại sau.");
-    } finally {
-      setIsLoading(false);
-    }
+
+  const handleGoogleLogin = () => {
+    // Implementation for Google login would go here
+    // For now, just showing an alert
+    alert("Tính năng đăng nhập Google đang được phát triển");
+
   };
 
   return (
@@ -113,6 +108,7 @@ const Login = () => {
             <p>Vui lòng đăng nhập để tiếp tục</p>
           </div>
 
+
           {/* Test accounts information */}
           <div className="test-accounts">
             <strong>Tài khoản thử nghiệm:</strong>
@@ -127,6 +123,7 @@ const Login = () => {
             </p>
           </div>
 
+
           {/* Thông báo lỗi */}
           {(error || authError) && (
             <div className="error-message">
@@ -137,7 +134,7 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="input-group">
-              <label htmlFor="username">Tên đăng nhập</label>
+              <label htmlFor="username">Email đăng nhập</label>
               <div className="input-control">
                 <i className="fas fa-user"></i>
                 <input
@@ -145,7 +142,7 @@ const Login = () => {
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Nhập tên đăng nhập"
+                  placeholder="Nhập email đăng nhập"
                   disabled={isLoading}
                   required
                 />

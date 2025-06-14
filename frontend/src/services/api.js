@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
+// Base API URL for your backend
+const API_URL = "http://localhost:8080";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -23,20 +24,13 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle auth errors
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid, clear auth data
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+
+// Define specific API endpoints
+const endpoints = {
+  login: "http://localhost:8080/api/v1/auth/login",
+  getStudents: "http://localhost:8080/api/parents/my-students"
+};
+
+export { endpoints };
 
 export default api;

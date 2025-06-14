@@ -1,5 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import api from "../services/api";
+
+import axios from "axios";
+
+// Exact API URL for authentication
+const API_URL = "http://localhost:8080/api/v1/auth/login";
+
 
 const AuthContext = createContext();
 
@@ -28,37 +33,49 @@ export const AuthProvider = ({ children }) => {
     checkLoggedInUser();
   }, []);
 
-  // Hàm đăng nhập sử dụng backend API
+
+  // Hàm đăng nhập sử dụng exact API URL
+
   const login = async (username, password) => {
     try {
       setAuthError(null);
 
-      // Gọi API đăng nhập của backend
-      const response = await api.post("/auth/login", {
+
+      // Gọi API thực tế để đăng nhập với exact URL
+      const response = await axios.post(API_URL, {
         username,
-        password
+        password,
       });
 
-      const authData = response.data;
-      
-      if (authData && authData.token) {
-        // Lưu token và thông tin user
-        localStorage.setItem("authToken", authData.token);
-        localStorage.setItem("userData", JSON.stringify(authData));
+      // Xử lý phản hồi từ API
+      const userData = response.data;
 
-        // Cập nhật state với thông tin user
-        setCurrentUser(authData);
-        return authData;
+      if (userData && userData.token) {
+        // Tạo object user từ dữ liệu response
+        const user = {
+          id: userData.memberId,
+          email: userData.email,
+          role: userData.role.toLowerCase(), // Chuyển về lowercase để phù hợp với các role đã định nghĩa
+          phoneNumber: userData.phoneNumber,
+        };
+
+        // Lưu thông tin đăng nhập
+        localStorage.setItem("authToken", userData.token);
+        localStorage.setItem("userData", JSON.stringify(user));
+
+        // Cập nhật state
+        setCurrentUser(user);
+        return user;
       } else {
-        throw new Error("Phản hồi không hợp lệ từ server");
+        throw new Error("Đăng nhập thất bại, không nhận được token");
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.statusText || 
-                          error.message || 
-                          "Đăng nhập thất bại";
-      setAuthError(errorMessage);
-      throw new Error(errorMessage);
+      const errorMsg =
+        error.response?.data?.message ||
+        "Tên đăng nhập hoặc mật khẩu không đúng";
+      setAuthError(errorMsg);
+      throw new Error(errorMsg);
+
     }
   };
 
