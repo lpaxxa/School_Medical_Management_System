@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medication Notification Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <h2>Medication Notification Test</h2>
+    
+    <div>
+        <h3>Parent Section</h3>
+        <div>
+            <label for="parentId">Parent Account ID:</label>
+            <input type="text" id="parentId" placeholder="Enter parent account ID">
+        </div>
+        <button onclick="connectAsParent()">Connect as Parent</button>
+        <div id="parentNotifications"></div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <h3>Nurse Section</h3>
+        <button onclick="connectAsNurse()">Connect as Nurse</button>
+        <div id="nurseNotifications"></div>
+    </div>
+
+    <script>
+        let stompClient = null;
+
+        function connectAsParent() {
+            const parentId = document.getElementById('parentId').value;
+            if (!parentId) {
+                alert('Please enter parent account ID');
+                return;
+            }
+
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                console.log('Connected as parent: ' + frame);
+                
+                // Subscribe to parent's personal queue
+                stompClient.subscribe('/user/queue/medication-approval', function(notification) {
+                    showParentNotification(JSON.parse(notification.body));
+                });
+            });
+        }
+
+        function connectAsNurse() {
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                console.log('Connected as nurse: ' + frame);
+                
+                // Subscribe to nurse topic
+                stompClient.subscribe('/topic/parent-medication-requests', function(notification) {
+                    showNurseNotification(JSON.parse(notification.body));
+                });
+            });
+        }
+
+        function showParentNotification(notification) {
+            const notificationDiv = document.getElementById('parentNotifications');
+            notificationDiv.innerHTML += `
+                <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                    <p><strong>Medication:</strong> ${notification.medicationName}</p>
+                    <p><strong>Status:</strong> ${notification.status}</p>
+                    <p><strong>Response Date:</strong> ${notification.responseDate}</p>
+                    <p><strong>Dosage:</strong> ${notification.dosage}</p>
+                    <p><strong>Frequency:</strong> ${notification.frequency} times per day</p>
+                    <p><strong>Special Instructions:</strong> ${notification.specialInstructions || 'None'}</p>
+                </div>
+            `;
+        }
+
+        function showNurseNotification(notification) {
+            const notificationDiv = document.getElementById('nurseNotifications');
+            notificationDiv.innerHTML += `
+                <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                    <p><strong>Medication:</strong> ${notification.medicationName}</p>
+                    <p><strong>Dosage:</strong> ${notification.dosage}</p>
+                    <p><strong>Frequency:</strong> ${notification.frequency} times per day</p>
+                    <p><strong>Time of Day:</strong> ${notification.timeOfDay}</p>
+                    <p><strong>Special Instructions:</strong> ${notification.specialInstructions || 'None'}</p>
+                    <p><strong>Submitted Date:</strong> ${notification.submittedDate}</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html> 

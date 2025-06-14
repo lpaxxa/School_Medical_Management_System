@@ -3,13 +3,11 @@ package com.fpt.medically_be.controller;
 import com.fpt.medically_be.dto.request.NurseMedicationApprovalRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
 import com.fpt.medically_be.service.MedicationInstructionService;
-import com.fpt.medically_be.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -26,16 +24,14 @@ import java.util.List;
 @PreAuthorize("hasRole('NURSE') or hasRole('ADMIN')")
 public class NurseMedicationApprovalController {
 
-    private static final Logger logger = LoggerFactory.getLogger(NurseMedicationApprovalController.class);
-    
     private final MedicationInstructionService medicationInstructionService;
-    private final NotificationService notificationService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    @Autowired
+
     public NurseMedicationApprovalController(MedicationInstructionService medicationInstructionService,
-                                             NotificationService notificationService)  {
+                                             SimpMessagingTemplate messagingTemplate)  {
         this.medicationInstructionService = medicationInstructionService;
-        this.notificationService = notificationService;
+        this.messagingTemplate = messagingTemplate;
     }
 
   // Get all pending medication requests for review
@@ -66,20 +62,21 @@ public class NurseMedicationApprovalController {
             MedicationInstructionDTO result = medicationInstructionService.processApprovalRequest(
                 requestId, approvalRequest, authentication);
 
-            // Send notification to the specific parent who made the request
-            notificationService.sendNotificationToParent(result);
-            
+            // Notify clients about the approval/rejection
+            messagingTemplate.convertAndSendToUser("parentID", "/queue/medication-approval", result);
             return ResponseEntity.ok(result);
             
         } catch (EntityNotFoundException e) {
-            logger.error("Medication request not found with ID: {}", requestId, e);
             return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
-            logger.error("Invalid state for processing request with ID: {}", requestId, e);
             return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            logger.error("Unexpected error processing approval request with ID: {}", requestId, e);
-            return ResponseEntity.internalServerError().build();
         }
     }
+
+
+
+
+
+
+
 } 

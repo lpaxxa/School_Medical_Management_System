@@ -57,7 +57,6 @@ public class ParentMedicationRequestController {
         }
     }
 
-
     @GetMapping("/my-requests")
     @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<List<MedicationInstructionDTO>> getMyMedicationRequests(Authentication auth) {
@@ -65,7 +64,7 @@ public class ParentMedicationRequestController {
         return ResponseEntity.ok(requests);
     }
 
-//view requests by specific child
+    //view requests by specific child
     @GetMapping("/child/{studentId}")
     @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<List<MedicationInstructionDTO>> getMedicationRequestsByChild(
@@ -76,7 +75,18 @@ public class ParentMedicationRequestController {
         return ResponseEntity.ok(requests);
     }
 
-   //update medication request
+    //cancel medication request - moved before generic {requestId} mapping
+    @DeleteMapping("/cancel-request/{requestId}")
+    @PreAuthorize("hasRole('PARENT')")
+    public ResponseEntity<Void> cancelMedicationRequest(
+            @PathVariable Long requestId, 
+            Authentication auth) {
+        medicationInstructionService.cancelMedicationRequest(requestId, auth);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    //update medication request
     @PutMapping("/{requestId}")
     @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<MedicationInstructionDTO> updateMedicationRequest(
@@ -88,22 +98,11 @@ public class ParentMedicationRequestController {
         return ResponseEntity.ok(result);
     }
 
-   //view medication request by ID
+    //view medication request by ID - moved to end to avoid conflicts
     @GetMapping("/{requestId}")
     @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<MedicationInstructionDTO> getMedicationRequestById(@PathVariable Long requestId) {
         MedicationInstructionDTO request = medicationInstructionService.getMedicationInstructionById(requestId);
         return ResponseEntity.ok(request);
-    }
-
-    //cancel medication request
-    @DeleteMapping("/cancel-request/{requestId}")
-    @PreAuthorize("hasRole('PARENT')")
-    public ResponseEntity<Void> cancelMedicationRequest(
-            @PathVariable Long requestId, 
-            Authentication auth) {
-        medicationInstructionService.cancelMedicationRequest(requestId, auth);
-
-        return ResponseEntity.noContent().build();
     }
 } 

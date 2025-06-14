@@ -62,4 +62,11 @@ public class MedicationInstruction {
     @ManyToOne
     @JoinColumn(name = "requested_by")
     private Parent requestedBy;
+
+    // Prescription image fields
+    @Column(columnDefinition = "TEXT")
+    private String prescriptionImageBase64;
+
+    @Column(length = 50)
+    private String prescriptionImageType;
 }
