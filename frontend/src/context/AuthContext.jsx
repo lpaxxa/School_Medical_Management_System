@@ -2,9 +2,63 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 
 import axios from "axios";
 
-// Exact API URL for authentication
-const API_URL = "http://localhost:8080/api/v1/auth/login";
+// Base API URL
+const BASE_URL = "http://localhost:8080/api";
 
+// Comprehensive API endpoints configuration
+const API_ENDPOINTS = {
+  // Authentication
+  auth: {
+    login: `${BASE_URL}/v1/auth/login`,
+    logout: `${BASE_URL}/v1/auth/logout`,
+    refresh: `${BASE_URL}/v1/auth/refresh-token`,
+  },
+  
+  // Parent/Medication related
+  parent: {
+    submitMedicationRequest: `${BASE_URL}/parent-medication-requests/submit-request`,
+    getMedicationRequests: `${BASE_URL}/parent-medication-requests`,
+    updateMedicationRequest: `${BASE_URL}/parent-medication-requests`,
+    deleteMedicationRequest: `${BASE_URL}/parent-medication-requests`,
+  },
+  
+  // Student related
+  student: {
+    getAll: `${BASE_URL}/students`,
+    getById: `${BASE_URL}/students`,
+    create: `${BASE_URL}/students`,
+    update: `${BASE_URL}/students`,
+    delete: `${BASE_URL}/students`,
+    getByParent: `${BASE_URL}/students/parent`,
+  },
+  
+  // Nurse/Medical related
+  nurse: {
+    getMedicationRequests: `${BASE_URL}/nurse/medication-requests`,
+    approveMedicationRequest: `${BASE_URL}/nurse/medication-requests/approve`,
+    rejectMedicationRequest: `${BASE_URL}/nurse/medication-requests/reject`,
+    recordMedication: `${BASE_URL}/nurse/medication-records`,
+  },
+  
+  // Admin related
+  admin: {
+    getUsers: `${BASE_URL}/admin/users`,
+    createUser: `${BASE_URL}/admin/users`,
+    updateUser: `${BASE_URL}/admin/users`,
+    deleteUser: `${BASE_URL}/admin/users`,
+    getStatistics: `${BASE_URL}/admin/statistics`,
+  },
+  
+  // Profile related
+  profile: {
+    get: `${BASE_URL}/profile`,
+    update: `${BASE_URL}/profile`,
+    changePassword: `${BASE_URL}/profile/change-password`,
+  }
+};
+
+// Exact API URL for authentication (keeping for backward compatibility)
+const API_URL = API_ENDPOINTS.auth.login;
 
 const AuthContext = createContext();
 
@@ -91,6 +145,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     authError,
+    API_ENDPOINTS, // Make API endpoints available throughout the app
   };
 
   return (
