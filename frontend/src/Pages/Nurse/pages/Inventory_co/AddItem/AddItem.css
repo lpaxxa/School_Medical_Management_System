@@ -1,0 +1,46 @@
+/* AddItem.css */
+.auto-status-display {
+  margin-top: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  width: fit-content;
+}
+
+.status.available {
+  background-color: #dff6e4;
+  color: #159843;
+  border: 1px solid #a7e9c3;
+}
+
+.status.low {
+  background-color: #fff3d3;
+  color: #e89c0e;
+  border: 1px solid #ffdb8a;
+}
+
+.status.out {
+  background-color: #ffe2e2;
+  color: #e53935;
+  border: 1px solid #ffb4b4;
+}
+
+.status-help-text {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+.quantity-warning {
+  color: #e53935;
+  font-weight: bold;
+}

@@ -1,12 +1,16 @@
 import React from "react";
-import { Route } from "react-router-dom";
-import NurseDashboard from "../Pages/Nurse/NurseDashboard";
+import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
+import NurseLayout from "../Pages/Nurse/layout/NurseLayout";
+import Dashboard from "../Pages/Nurse/pages/Dashboard_co";
+import Consultation from "../Pages/Nurse/pages/Consultation_co/ConsultationMain";
+import StudentRecordsPage from "../Pages/Nurse/pages/StudentRecords_co";
+import HealthCheckupsPage from "../Pages/Nurse/pages/HealthCheckups_co";
+import InventoryPage from "../Pages/Nurse/pages/Inventory_co";
+import MedicalEventsPage from "../Pages/Nurse/pages/MedicalEvents_co";
+import VaccinationPage from "../Pages/Nurse/pages/Vaccination_co";
 
-// Layout riêng cho y tá (không có header, footer hoặc navigation chung)
-const AdminLayout = ({ children }) => (
-  <div className="admin-layout">{children}</div>
-);
+// NurseLayout đã được import từ file riêng
 
 const NurseRoutes = () => {
   return [
@@ -15,9 +19,18 @@ const NurseRoutes = () => {
       path="/nurse/*"
       element={
         <ProtectedRoute allowedRoles={["nurse"]}>
-          <AdminLayout>
-            <NurseDashboard />
-          </AdminLayout>
+          <NurseLayout>
+            <Routes>
+              <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="consultations" element={<Consultation />} />
+              <Route path="student-records" element={<StudentRecordsPage />} />
+              <Route path="health-checkups" element={<HealthCheckupsPage />} />
+              <Route path="inventory" element={<InventoryPage />} />
+              <Route path="medical-events" element={<MedicalEventsPage />} />
+              <Route path="vaccination" element={<VaccinationPage />} />
+            </Routes>
+          </NurseLayout>
         </ProtectedRoute>
       }
     />,
