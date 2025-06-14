@@ -2,208 +2,173 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  backdrop-filter: blur(20px);
-  height: 86px;
-  padding: 0 30px;
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.1),
-    0 1px 0 rgba(255, 255, 255, 0.1) inset;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #2A7FB8, #1A5E8C);
+  height: 60px;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(26, 94, 140, 0.2);
+  width: 100%;
+  z-index: 100;
+  position: relative;
 }
 
 .admin-header-left {
   display: flex;
   align-items: center;
-  gap: 40px;
 }
 
 .admin-header-logo {
   display: flex;
   align-items: center;
-  gap: 15px;
-  color: white;
+  margin-right: 30px;
 }
 
 .logo-icon {
-  width: 45px;
-  height: 45px;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(238, 90, 82, 0.3);
+  margin-right: 10px;
+  color: #FFFFFF;
+  font-size: 20px;
 }
 
 .logo-icon i {
-  font-size: 20px;
-  color: white;
+  color: #FFFFFF;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
 }
 
 .logo-text h1 {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 1.2rem;
+  color: #FFFFFF;
   margin: 0;
-  background: linear-gradient(135deg, #fff, #f8f9fa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
 }
 
 .logo-text span {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
-  margin-top: -5px;
-  display: block;
+  font-size: 0.7rem;
+  color: #E6F3FA;
+  font-weight: 400;
 }
 
 .breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 0.9rem;
+  color: #E6F3FA;
 }
 
 .breadcrumb i {
-  font-size: 16px;
+  margin-right: 8px;
+  font-size: 0.8rem;
 }
 
 .admin-header-right {
   display: flex;
   align-items: center;
-  gap: 25px;
 }
 
 .header-search {
   position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.header-search i {
-  position: absolute;
-  left: 15px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
-  z-index: 1;
+  margin-right: 20px;
 }
 
 .header-search input {
-  width: 300px;
-  height: 40px;
-  padding: 0 15px 0 45px;
-  border: none;
+  background-color: #f8f9fa;
+  border: 1px solid #eef0f2;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  color: white;
-  font-size: 14px;
+  padding: 8px 15px 8px 35px;
+  font-size: 0.9rem;
+  width: 220px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.header-search input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
 }
 
 .header-search input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  border-color: #67B7DC;
+  box-shadow: 0 0 0 2px rgba(42, 127, 184, 0.2);
+  width: 250px;
+}
+
+.header-search i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 14px;
 }
 
 .header-notifications {
   position: relative;
+  margin-right: 20px;
 }
 
 .notification-btn {
-  position: relative;
-  width: 45px;
-  height: 45px;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: #FFFFFF;
+  font-size: 1.2rem;
+  position: relative;
   cursor: pointer;
-  transition: all 0.3s ease;
+  padding: 8px 10px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 }
 
-.notification-btn:hover,
+.notification-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.25);
+}
+
 .notification-btn.active {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.notification-btn i {
-  font-size: 18px;
+  background: #1A5E8C;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
 }
 
 .notification-badge {
   position: absolute;
   top: -5px;
   right: -5px;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  background: linear-gradient(135deg, #4CB8C4, #3CD3AD);
   color: white;
-  border-radius: 10px;
-  padding: 2px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  min-width: 18px;
-  height: 18px;
+  font-size: 10px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  border-radius: 50%;
+  font-weight: bold;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .notifications-dropdown {
   position: absolute;
-  top: 55px;
-  right: 0;
-  width: 380px;
-  max-height: 500px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  top: 45px;
+  right: -10px;
+  width: 320px;
+  background-color: #fff;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
   overflow: hidden;
-  z-index: 1000;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  z-index: 100;
+  border: 1px solid #eef0f2;
 }
 
 .dropdown-header {
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f0f0f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -211,16 +176,17 @@
 
 .dropdown-header h4 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
 }
 
 .notification-count {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4px 8px;
+  background-color: rgba(64, 184, 196, 0.1);
+  color: #2a7fb8;
+  padding: 3px 10px;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 0.7rem;
+  font-weight: 600;
 }
 
 .notifications-list {
@@ -241,7 +207,56 @@
 }
 
 .notification-item.urgent .notification-icon {
-  color: #e74c3c;
+  color: #E74C3C;
+  background-color: rgba(231, 76, 60, 0.1);
+}
+
+.notification-item.info .notification-icon {
+  color: #3498DB;
+  background-color: rgba(52, 152, 219, 0.1);
+}
+
+.notification-item.normal .notification-icon {
+  color: #4CB8C4;
+  background-color: rgba(76, 184, 196, 0.1);
+}
+
+.admin-header-dropdown-content {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 280px;
+  background-color: #fff;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 100;
+  border: 1px solid #eef0f2;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: #555;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(42, 127, 184, 0.05);
+}
+
+.dropdown-item i {
+  color: #2A7FB8;
+  width: 20px;
+  text-align: center;
+  margin-right: 10px;
+  font-size: 0.9rem;
 }
 
 .notification-item.info .notification-icon {
@@ -273,6 +288,67 @@
   font-size: 14px;
   font-weight: 600;
   color: #2c3e50;
+}
+
+.admin-header-user {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: 10px;
+}
+
+.user-greeting {
+  font-size: 0.7rem;
+  color: #E6F3FA;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 0.9rem;
+}
+
+.admin-header-profile {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar i {
+  font-size: 1.5rem;
+  color: #aaa;
+}
+
+.dropdown-arrow {
+  margin-left: 5px;
+  font-size: 0.7rem;
+  color: #E6F3FA;
 }
 
 .notification-content p {
@@ -312,13 +388,13 @@
 
 .user-info {
   text-align: right;
-  color: white;
+  color: #333;
 }
 
 .user-greeting {
   display: block;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #666;
   margin-bottom: 2px;
 }
 
@@ -326,37 +402,41 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
+  color: #2a7fb8;
 }
 
 .admin-header-profile {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   border: none;
-  border-radius: 25px;
-  padding: 8px 12px 8px 8px;
+  font-size: 1.2rem;
+  color: #555;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  padding: 5px;
+  border-radius: 50px;
 }
 
 .admin-header-profile:hover,
 .admin-header-profile.active {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  background: rgba(42, 127, 184, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(33, 212, 253, 0.1);
 }
 
 .profile-avatar {
-  width: 35px;
-  height: 35px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  background: linear-gradient(135deg, #2a7fb8, #21D4FD);
+  box-shadow: 0 2px 10px rgba(33, 212, 253, 0.3);
+  border: 2px solid white;
 }
 
 .profile-avatar img {
@@ -366,12 +446,12 @@
 }
 
 .profile-avatar i {
-  font-size: 20px;
+  font-size: 22px;
   color: white;
 }
 
 .dropdown-arrow {
-  color: rgba(255, 255, 255, 0.8);
+  color: #666;
   font-size: 12px;
   transition: transform 0.3s ease;
 }
@@ -384,27 +464,11 @@
   position: absolute;
   top: 55px;
   right: 0;
-  width: 280px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  z-index: 1000;
-  animation: slideDown 0.3s ease;
-}
-
-.dropdown-user-info {
-  padding: 20px;
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.dropdown-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  background-color: #fff;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 5px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -459,82 +523,12 @@
   background: none;
   text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #2c3e50;
-  font-size: 14px;
 }
 
-.dropdown-item:hover {
-  background: #f8f9fa;
+.admin-header-dropdown-content button:hover {
+  background-color: #f1f1f1;
 }
 
-.dropdown-item.logout {
-  color: #e74c3c;
-}
-
-.dropdown-item.logout:hover {
-  background: #fee;
-}
-
-.dropdown-item i {
-  width: 16px;
-  text-align: center;
-  color: #666;
-}
-
-.dropdown-item.logout i {
-  color: #e74c3c;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .admin-header {
-    padding: 0 15px;
-    height: 60px;
-  }
-  
-  .admin-header-left {
-    gap: 20px;
-  }
-  
-  .breadcrumb {
-    display: none;
-  }
-  
-  .header-search {
-    display: none;
-  }
-  
-  .user-info {
-    display: none;
-  }
-  
-  .logo-text span {
-    display: none;
-  }
-  
-  .notifications-dropdown,
-  .admin-header-dropdown-content {
-    width: 300px;
-    right: -20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .admin-header-right {
-    gap: 15px;
-  }
-  
-  .logo-text h1 {
-    font-size: 18px;
-  }
-  
-  .notifications-dropdown,
-  .admin-header-dropdown-content {
-    width: 280px;
-    right: -40px;
-  }
+.admin-header-dropdown:hover .admin-header-dropdown-content {
+  display: block;
 }

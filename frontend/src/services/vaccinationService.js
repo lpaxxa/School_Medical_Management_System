@@ -71,8 +71,7 @@ const mockVaccines = [
     active: true,
     description: 'Phòng bệnh bạch hầu, uốn ván và ho gà.',
     createdAt: '2024-01-01T00:00:00Z'
-  },
-  {
+  },  {
     id: 5,
     code: 'Hib',
     name: 'Vaccine Hib',
@@ -84,6 +83,52 @@ const mockVaccines = [
     description: 'Phòng bệnh viêm màng não mủ, viêm phổi, viêm tai giữa do vi khuẩn Hib.',
     createdAt: '2024-01-01T00:00:00Z'
   },
+];
+
+// Dữ liệu mẫu cho kế hoạch tiêm chủng
+const mockVaccinationPlans = [
+  {
+    id: 1,
+    planCode: 'KH2025-01',
+    title: 'Tiêm chủng Viêm gan B khối 10',
+    planDate: '2025-06-20',
+    vaccineId: 2,
+    targetGrade: '10',
+    priority: 'high',
+    description: 'Kế hoạch tiêm chủng vaccine Viêm gan B cho học sinh khối 10',
+    status: 'scheduled',
+    totalStudents: 120,
+    completedStudents: 0,
+    createdAt: '2025-06-01T08:00:00Z'
+  },
+  {
+    id: 2,
+    planCode: 'KH2025-02',
+    title: 'Tiêm chủng bạch hầu - uốn ván - ho gà khối 6',
+    planDate: '2025-07-05',
+    vaccineId: 4,
+    targetGrade: '6',
+    priority: 'medium',
+    description: 'Kế hoạch tiêm chủng vaccine DTP cho học sinh khối 6',
+    status: 'scheduled',
+    totalStudents: 100,
+    completedStudents: 0,
+    createdAt: '2025-06-02T10:30:00Z'
+  },
+  {
+    id: 3,
+    planCode: 'KH2025-03',
+    title: 'Tiêm chủng Hib toàn trường',
+    planDate: '2025-06-10',
+    vaccineId: 5,
+    targetGrade: 'all',
+    priority: 'low',
+    description: 'Kế hoạch tiêm chủng vaccine Hib cho học sinh toàn trường',
+    status: 'in_progress',
+    totalStudents: 800,
+    completedStudents: 320,
+    createdAt: '2025-05-15T09:15:00Z'
+  }
 ];
 
 const mockStudents = [

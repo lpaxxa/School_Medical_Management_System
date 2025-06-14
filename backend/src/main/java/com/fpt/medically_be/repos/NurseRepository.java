@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface NurseRepository extends JpaRepository<Nurse, Long> {
+    Optional<Nurse> findById(Long id);
     Optional<Nurse> findByEmail(String email);
     Optional<Nurse> findByAccountId(String accountId);
     Optional<Nurse> findByAccount(AccountMember account);

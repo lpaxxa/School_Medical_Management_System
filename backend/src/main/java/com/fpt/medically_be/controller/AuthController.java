@@ -1,14 +1,12 @@
 package com.fpt.medically_be.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fpt.medically_be.dto.ParentDTO;
 import com.fpt.medically_be.dto.auth.AuthResponseDTO;
 import com.fpt.medically_be.dto.auth.LoginRequestDTO;
 import com.fpt.medically_be.dto.auth.PasswordResetDTO;
 import com.fpt.medically_be.dto.auth.PasswordResetRequestDTO;
 import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
 import com.fpt.medically_be.dto.request.ParentRegistrationRequestDTO;
-import com.fpt.medically_be.dto.request.RegistrationDTO;
 import com.fpt.medically_be.entity.MemberRole;
 import com.fpt.medically_be.service.AuthService;
 import com.fpt.medically_be.service.JwtService;
@@ -18,6 +16,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -41,6 +41,7 @@ public class AuthController {
     private final ObjectMapper objectMapper;
 
     @PostMapping("/register")
+  //  @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> register(@RequestBody Map<String, Object> requestData) {
         try {
             String role = (String) requestData.get("role");
@@ -59,48 +60,48 @@ public class AuthController {
         }
     }
     //
-    // Example request body for registration(NURSE):{
-    //  "email": "nurse@hospital.com",
-    //  "password": "secure123",
-    //  "fullName": "Jane Smith",
-    //  "phoneNumber": "1234567890",
-    //  "role": "NURSE",
-    //  "qualification": "RN, BSN, 5 years experience"
-    //
-    //}
+//     Example request body for registration(NURSE):{
+//      "email": "nurse@hospital.com",
+//      "password": "secure123",
+//      "fullName": "Jane Smith",
+//      "phoneNumber": "1234567890",
+//      "role": "NURSE",
+//      "qualification": "RN, BSN, 5 years experience"
+//
+//    }
 
     //Example request body for registration(Parent):
-    // {
-    //"email": "mary.smith@yahoo.com",
-    //  "password": "mySecurePass456",
-    //  "fullName": "Mary Smith",
-    //  "phoneNumber": "0111222333",
-    //  "role": "PARENT",
-    //  "address": "456 Oak Avenue, Downtown, NY 10001",
-    //  "emergencyPhoneNumber": "0444555666",
-    //  "relationshipType": "Mother",
-    //  "occupation": "Teacher",
-    //  "students": [
-    //    {
-    //      "fullName": "John Smith",
-    //      "dateOfBirth": "2010-05-15",
-    //      "gender": "Male",
-    //      "studentId": "STU2024001",
-    //      "className": "5A",
-    //      "gradeLevel": "Grade 5",
-    //      "schoolYear": "2024-2025"
-    //    },
-    //    {
-    //      "fullName": "Jane Smith", 
-    //      "dateOfBirth": "2012-08-22",
-    //      "gender": "Female",
-    //      "studentId": "STU2024002",
-    //      "className": "3B",
-    //      "gradeLevel": "Grade 3",
-    //      "schoolYear": "2024-2025"
-    //    }
-    //  ]
-    //}
+//     {
+//    "email": "mary.smith@yahoo.com",
+//      "password": "mySecurePass456",
+//      "fullName": "Mary Smith",
+//      "phoneNumber": "0111222333",
+//      "role": "PARENT",
+//      "address": "456 Oak Avenue, Downtown, NY 10001",
+//      "emergencyPhoneNumber": "0444555666",
+//      "relationshipType": "Mother",
+//      "occupation": "Teacher",
+//      "students": [
+//        {
+//          "fullName": "John Smith",
+//          "dateOfBirth": "2010-05-15",
+//          "gender": "Male",
+//          "studentId": "STU2024001",
+//          "className": "5A",
+//          "gradeLevel": "Grade 5",
+//          "schoolYear": "2024-2025"
+//        },
+//        {
+//          "fullName": "Jane Smith",
+//          "dateOfBirth": "2012-08-22",
+//          "gender": "Female",
+//          "studentId": "STU2024002",
+//          "className": "3B",
+//          "gradeLevel": "Grade 3",
+//          "schoolYear": "2024-2025"
+//        }
+//      ]
+//    }
 
 
     @PostMapping("/login")
@@ -163,6 +164,12 @@ public class AuthController {
         return ResponseEntity.ok(accountMember.getRole());
     }
 
+    @GetMapping("/test-current-user")
+    @PreAuthorize("hasRole('PARENT')")
+    public ResponseEntity<String> testCurrentUser(Authentication authentication) {
+        return ResponseEntity.ok("Current user name: " + authentication.getName());
+
+    }
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@Valid @RequestBody PasswordResetRequestDTO requestDTO) {
         authService.initiatePasswordReset(requestDTO.getEmail());

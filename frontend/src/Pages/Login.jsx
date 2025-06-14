@@ -52,7 +52,7 @@ const Login = () => {
       // Điều hướng dựa trên vai trò người dùng
       let redirectPath = from;
       if (from === "/") {
-        switch (user.role) {
+        switch (user.role?.toLowerCase()) {
           case "admin":
             redirectPath = "/admin";
             break;
@@ -76,10 +76,12 @@ const Login = () => {
     }
   };
 
+
   const handleGoogleLogin = () => {
     // Implementation for Google login would go here
     // For now, just showing an alert
     alert("Tính năng đăng nhập Google đang được phát triển");
+
   };
 
   return (
@@ -105,6 +107,22 @@ const Login = () => {
             <h2>Đăng nhập</h2>
             <p>Vui lòng đăng nhập để tiếp tục</p>
           </div>
+
+
+          {/* Test accounts information */}
+          <div className="test-accounts">
+            <strong>Tài khoản thử nghiệm:</strong>
+            <br />
+            <span>
+              <strong>Admin:</strong> admin | <strong>Y tá:</strong> nurse | <strong>Phụ huynh:</strong> parent
+            </span>
+            <p>
+              <small>
+                Mật khẩu mặc định: <strong>123456</strong>
+              </small>
+            </p>
+          </div>
+
 
           {/* Thông báo lỗi */}
           {(error || authError) && (

@@ -1,8 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
+
 import axios from "axios";
 
 // Exact API URL for authentication
 const API_URL = "http://localhost:8080/api/v1/auth/login";
+
 
 const AuthContext = createContext();
 
@@ -31,10 +33,13 @@ export const AuthProvider = ({ children }) => {
     checkLoggedInUser();
   }, []);
 
+
   // Hàm đăng nhập sử dụng exact API URL
+
   const login = async (username, password) => {
     try {
       setAuthError(null);
+
 
       // Gọi API thực tế để đăng nhập với exact URL
       const response = await axios.post(API_URL, {
@@ -70,6 +75,7 @@ export const AuthProvider = ({ children }) => {
         "Tên đăng nhập hoặc mật khẩu không đúng";
       setAuthError(errorMsg);
       throw new Error(errorMsg);
+
     }
   };
 

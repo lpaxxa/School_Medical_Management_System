@@ -44,9 +44,11 @@ public class StudentServiceImpl implements StudentService {
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với ID: " + id));
     }
 
+
+
     @Override
-    public StudentDTO getStudentByStudentId(String studentId) {
-        return studentRepository.findByStudentId(studentId)
+    public StudentDTO getStudentByStudentId(Long studentId) {
+        return studentRepository.findById(studentId)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với Mã học sinh: " + studentId));
     }
@@ -72,6 +74,7 @@ public class StudentServiceImpl implements StudentService {
                 .collect(Collectors.toList());
     }
 
+    // Đảm bảo mỗi học sinh đều có 1 hồ sơ sức khỏe
     @Override
     public StudentDTO createStudent(StudentDTO studentDTO) {
         Student student = convertToEntity(studentDTO);

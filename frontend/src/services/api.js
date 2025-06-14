@@ -24,6 +24,7 @@ api.interceptors.request.use(
   }
 );
 
+
 // Define specific API endpoints
 const endpoints = {
   login: "http://localhost:8080/api/v1/auth/login",
@@ -31,4 +32,5 @@ const endpoints = {
 };
 
 export { endpoints };
+
 export default api;
