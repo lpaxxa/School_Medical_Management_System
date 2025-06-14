@@ -5,6 +5,9 @@ import { useStudentData } from "../../../../context/StudentDataContext";
 import { useAuth } from "../../../../context/AuthContext";
 import axios from "axios";
 
+//http://localhost:8080/api/parent-medication-requests/my-requests
+//lịch sử gửi thuốc của phụ huynh
+
 const SendMedicine = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -176,9 +179,9 @@ const SendMedicine = () => {
         requestData,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -199,9 +202,10 @@ const SendMedicine = () => {
       });
     } catch (error) {
       console.error("Lỗi khi gửi:", error);
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error || 
-                          "Có lỗi xảy ra, vui lòng thử lại sau.";
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Có lỗi xảy ra, vui lòng thử lại sau.";
       alert(errorMessage);
     } finally {
       setLoading(false);

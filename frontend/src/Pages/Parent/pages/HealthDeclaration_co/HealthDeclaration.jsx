@@ -5,6 +5,12 @@ import { useStudentData } from "../../../../context/StudentDataContext";
 import "./HealthDeclarationFix.css";
 import "./HealthDeclaration.css";
 
+//http://localhost:8080/api/parent-medication-requests/my-requests
+//xem lịch sử khai báo sức khỏe của học sinh
+
+//put cập nhật khai báo sức khỏe của học sinh
+//delete xóa khai báo sức khỏe của học sinh
+
 // Mock data cho trường học
 const MOCK_SCHOOL = {
   id: "SCH001",
