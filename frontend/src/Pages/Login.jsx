@@ -4,10 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import "../styles/login.css";
 import loginImage from "../assets/A1.jpg";
 import googleIcon from "../assets/google.png";
-import axios from "axios";
-
-const API_URL =
-  "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1/users";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -17,7 +13,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
 
-  const { login, mockUsers, authError } = useAuth();
+  const { login, authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
@@ -80,32 +76,10 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      setIsLoading(true);
-
-      const response = await axios.get(`${API_URL}/users`);
-      const users = response.data;
-
-      const parentUser = users.find((user) => user.role === "parent");
-
-      if (parentUser) {
-        const { password, ...userWithoutPassword } = parentUser;
-        const googleToken = `google-mock-token-${Date.now()}`;
-
-        localStorage.setItem("authToken", googleToken);
-        localStorage.setItem("userData", JSON.stringify(userWithoutPassword));
-
-        navigate("/parent", { replace: true });
-      } else {
-        throw new Error("Không tìm thấy tài khoản phụ huynh để đăng nhập");
-      }
-    } catch (error) {
-      console.error("Google login error:", error);
-      setError("Đăng nhập Google thất bại. Vui lòng thử lại sau.");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    // Implementation for Google login would go here
+    // For now, just showing an alert
+    alert("Tính năng đăng nhập Google đang được phát triển");
   };
 
   return (
@@ -132,25 +106,6 @@ const Login = () => {
             <p>Vui lòng đăng nhập để tiếp tục</p>
           </div>
 
-          {/* Hiển thị tài khoản thử nghiệm */}
-          {mockUsers && mockUsers.length > 0 && (
-            <div className="test-accounts">
-              <strong>Tài khoản thử nghiệm:</strong>
-              <br />
-              {mockUsers.map((user, index) => (
-                <span key={index}>
-                  <strong>{user.role}:</strong> {user.username}
-                  {index < mockUsers.length - 1 ? " | " : ""}
-                </span>
-              ))}
-              <p>
-                <small>
-                  Mật khẩu mặc định: <strong>123456</strong>
-                </small>
-              </p>
-            </div>
-          )}
-
           {/* Thông báo lỗi */}
           {(error || authError) && (
             <div className="error-message">
@@ -161,7 +116,7 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="input-group">
-              <label htmlFor="username">Tên đăng nhập</label>
+              <label htmlFor="username">Email đăng nhập</label>
               <div className="input-control">
                 <i className="fas fa-user"></i>
                 <input
@@ -169,7 +124,7 @@ const Login = () => {
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Nhập tên đăng nhập"
+                  placeholder="Nhập email đăng nhập"
                   disabled={isLoading}
                   required
                 />

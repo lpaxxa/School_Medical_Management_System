@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
+import { useStudentData } from "../../../../context/StudentDataContext";
 import logoImage from "../../../../assets/A1.jpg"; // Import logo từ thư mục assets
 import "./Header.css";
 
 const Header = () => {
   const { currentUser, logout } = useAuth();
+  const { parentInfo } = useStudentData(); // Lấy thông tin phụ huynh từ context
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   // Xử lý scroll để thêm class .scrolled
   useEffect(() => {
@@ -34,10 +38,23 @@ const Header = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+    setNotificationsOpen(false);
+  };
+
+  const toggleNotifications = () => {
+    setNotificationsOpen(!notificationsOpen);
+    setDropdownOpen(false);
+  };
+
   // Kiểm tra path hiện tại để áp dụng class active
   const isActive = (path) => {
     return location.pathname === path ? "active" : "";
   };
+
+  // Xác định tên hiển thị ưu tiên sử dụng từ parentInfo
+  const displayName = parentInfo?.fullName || currentUser?.email || "Phụ huynh";
 
   return (
     <header className="header">
@@ -106,7 +123,7 @@ const Header = () => {
               <div className="user-menu">
                 <span className="user-greeting">
                   <i className="fas fa-user-circle"></i>
-                  Xin chào, {currentUser.name}
+                  Xin chào, {displayName}
                 </span>
                 <button className="logout-btn" onClick={handleLogout}>
                   <i className="fas fa-sign-out-alt"></i> <span>Đăng xuất</span>

@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useStudentData } from "../../../../context/StudentDataContext";
 import "./Header.css";
 
 const Header = ({ user }) => {
   const { logout, currentUser } = useAuth();
+  const { parentInfo } = useStudentData(); // Lấy thông tin phụ huynh từ context
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
+  // Hàm xử lý đăng xuất
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -24,7 +27,16 @@ const Header = ({ user }) => {
     setDropdownOpen(false);
   };
 
-  // Mock notifications
+  // Xác định tên hiển thị ưu tiên sử dụng từ parentInfo
+  const displayName =
+    parentInfo?.fullName ||
+    currentUser?.fullName ||
+    user?.fullName ||
+    currentUser?.email ||
+    user?.email ||
+    "Phụ huynh";
+
+  // Mock notifications (giữ nguyên như cũ)
   const notifications = [
     {
       id: 1,
@@ -120,13 +132,11 @@ const Header = ({ user }) => {
           )}
         </div>
 
-        {/* User Profile */}
+        {/* User Profile - Phần này được cập nhật */}
         <div className="admin-header-user">
           <div className="user-info">
             <span className="user-greeting">Xin chào,</span>
-            <span className="user-name">
-              {currentUser?.name || user?.name || "Admin"}
-            </span>
+            <span className="user-name">{displayName}</span>
           </div>
 
           <div className="admin-header-dropdown">
@@ -155,10 +165,15 @@ const Header = ({ user }) => {
                     )}
                   </div>
                   <div className="dropdown-user-details">
-                    <h4>{currentUser?.name || "Admin"}</h4>
-                    <p>{currentUser?.email || "admin@school.edu.vn"}</p>
+                    <h4>{displayName}</h4>
+                    <p>
+                      {parentInfo?.email ||
+                        currentUser?.email ||
+                        user?.email ||
+                        ""}
+                    </p>
                     <span className="user-role">
-                      {currentUser?.role || "Administrator"}
+                      {parentInfo?.relationshipType || "Phụ huynh"}
                     </span>
                   </div>
                 </div>

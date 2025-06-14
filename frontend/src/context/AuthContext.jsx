@@ -1,8 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 
-// API URL từ mockapi.io
-const API_URL = "https://68419fdad48516d1d35c4cf6.mockapi.io/api/login/v1";
+// Exact API URL for authentication
+const API_URL = "http://localhost:8080/api/v1/auth/login";
 
 const AuthContext = createContext();
 
@@ -31,40 +31,45 @@ export const AuthProvider = ({ children }) => {
     checkLoggedInUser();
   }, []);
 
-  // Hàm đăng nhập sử dụng mockAPI.io
+  // Hàm đăng nhập sử dụng exact API URL
   const login = async (username, password) => {
     try {
       setAuthError(null);
 
-      // Gọi API để lấy danh sách users
-      const response = await axios.get(`${API_URL}/users`);
-      const users = response.data;
+      // Gọi API thực tế để đăng nhập với exact URL
+      const response = await axios.post(API_URL, {
+        username,
+        password,
+      });
 
-      // Tìm user phù hợp với thông tin đăng nhập
-      const user = users.find(
-        (u) => u.username === username && u.password === password
-      );
+      // Xử lý phản hồi từ API
+      const userData = response.data;
 
-      if (user) {
-        // Loại bỏ mật khẩu khỏi object user
-        const { password, ...userWithoutPassword } = user;
-
-        // Tạo token mô phỏng
-        const token = `mock-jwt-${Date.now()}`;
+      if (userData && userData.token) {
+        // Tạo object user từ dữ liệu response
+        const user = {
+          id: userData.memberId,
+          email: userData.email,
+          role: userData.role.toLowerCase(), // Chuyển về lowercase để phù hợp với các role đã định nghĩa
+          phoneNumber: userData.phoneNumber,
+        };
 
         // Lưu thông tin đăng nhập
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("userData", JSON.stringify(userWithoutPassword));
+        localStorage.setItem("authToken", userData.token);
+        localStorage.setItem("userData", JSON.stringify(user));
 
         // Cập nhật state
-        setCurrentUser(userWithoutPassword);
-        return userWithoutPassword;
+        setCurrentUser(user);
+        return user;
       } else {
-        throw new Error("Tên đăng nhập hoặc mật khẩu không đúng");
+        throw new Error("Đăng nhập thất bại, không nhận được token");
       }
     } catch (error) {
-      setAuthError(error.message || "Đăng nhập thất bại");
-      throw error;
+      const errorMsg =
+        error.response?.data?.message ||
+        "Tên đăng nhập hoặc mật khẩu không đúng";
+      setAuthError(errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
