@@ -584,6 +584,98 @@
   border-left: 3px solid var(--primary);
 }
 
+/* Error và no-data message */
+.error-message {
+  background-color: #fff8f8;
+  color: #d32f2f;
+  padding: 12px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 3px solid #d32f2f;
+}
+
+.no-data-message {
+  background-color: #f5f5f5;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.last-checkup-info {
+  margin-bottom: 20px;
+  color: #666;
+  background-color: #f9f9f9;
+  padding: 10px 15px;
+  border-radius: 4px;
+  border-left: 3px solid #3498db;
+}
+
+.follow-up-notice {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.follow-up-notice i {
+  color: #f39c12;
+}
+
+/* Student Selector */
+.student-selector {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.student-selector select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 8px 30px 8px 35px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  font-size: 15px;
+  color: #333;
+  background: transparent;
+  width: 100%;
+  cursor: pointer;
+}
+
+.student-selector select:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.selector-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 18px;
+  color: #3498db;
+}
+
+.selector-arrow {
+  position: absolute;
+  right: 12px;
+  font-size: 16px;
+  color: #777;
+  pointer-events: none;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
   .medical-records-layout {
@@ -1783,5 +1875,208 @@
   .info-grid,
   .health-details {
     page-break-after: auto;
+  }
+}
+
+/* Thêm vào file MedicalRecords.css */
+
+/* Coming Soon Feature */
+.feature-coming-soon {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+  margin: 20px 0;
+}
+
+.coming-soon-icon {
+  font-size: 60px;
+  color: #3498db;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.feature-coming-soon h3 {
+  color: #444;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.feature-coming-soon p {
+  color: #666;
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Coming Soon Tab Button */
+.coming-soon {
+  opacity: 0.6;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.coming-soon::after {
+  content: "Sắp ra mắt";
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff9800;
+  color: white;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+/* Checkups Panel Styling */
+.checkups-panel h3 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 20px;
+}
+
+.checkups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.checkup-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #eaeaea;
+}
+
+.checkup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.checkup-date {
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkup-date i {
+  color: #3498db;
+}
+
+.checkup-type {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.checkup-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+  padding: 15px;
+  background-color: #fafafa;
+}
+
+.checkup-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stat-label {
+  color: #666;
+  font-size: 13px;
+}
+
+.stat-value {
+  font-weight: 500;
+  color: #333;
+  font-size: 16px;
+}
+
+.checkup-details {
+  padding: 15px;
+}
+
+.vision-hearing {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 15px;
+}
+
+.vision-info, .hearing-info {
+  flex: 1;
+}
+
+.vision-info h5, .hearing-info h5 {
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.vision-info p, .hearing-info p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.diagnosis-section, .recommendations-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eaeaea;
+}
+
+.diagnosis-section h5, .recommendations-section h5 {
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.follow-up-alert {
+  margin-top: 10px;
+  padding: 10px 15px;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 15px 15px 15px;
+}
+
+.follow-up-alert i {
+  color: #f39c12;
+}
+
+.staff-info {
+  padding: 10px 15px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #eaeaea;
+  color: #666;
+  font-size: 14px;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .vision-hearing {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .checkup-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

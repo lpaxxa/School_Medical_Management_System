@@ -13,7 +13,7 @@ const API_ENDPOINTS = {
     logout: `${BASE_URL}/v1/auth/logout`,
     refresh: `${BASE_URL}/v1/auth/refresh-token`,
   },
-  
+
   // Parent/Medication related
   parent: {
     submitMedicationRequest: `${BASE_URL}/parent-medication-requests/submit-request`,
@@ -21,7 +21,7 @@ const API_ENDPOINTS = {
     updateMedicationRequest: `${BASE_URL}/parent-medication-requests`,
     deleteMedicationRequest: `${BASE_URL}/parent-medication-requests`,
   },
-  
+
   // Student related
   student: {
     getAll: `${BASE_URL}/students`,
@@ -31,7 +31,7 @@ const API_ENDPOINTS = {
     delete: `${BASE_URL}/students`,
     getByParent: `${BASE_URL}/students/parent`,
   },
-  
+
   // Nurse/Medical related
   nurse: {
     getMedicationRequests: `${BASE_URL}/nurse/medication-requests`,
@@ -39,7 +39,19 @@ const API_ENDPOINTS = {
     rejectMedicationRequest: `${BASE_URL}/nurse/medication-requests/reject`,
     recordMedication: `${BASE_URL}/nurse/medication-records`,
   },
-  
+
+  // Health profiles - mới thêm
+  healthProfiles: {
+    getByStudentId: (studentId) =>
+      `${BASE_URL}/health-profiles/student/${studentId}`,
+  },
+
+  // Medical checkups
+  medicalCheckups: {
+    getByStudentId: (studentId) =>
+      `${BASE_URL}/medical-checkups/student/${studentId}`,
+  },
+
   // Admin related
   admin: {
     getUsers: `${BASE_URL}/admin/users`,
@@ -48,13 +60,13 @@ const API_ENDPOINTS = {
     deleteUser: `${BASE_URL}/admin/users`,
     getStatistics: `${BASE_URL}/admin/statistics`,
   },
-  
+
   // Profile related
   profile: {
     get: `${BASE_URL}/profile`,
     update: `${BASE_URL}/profile`,
     changePassword: `${BASE_URL}/profile/change-password`,
-  }
+  },
 };
 
 // Exact API URL for authentication (keeping for backward compatibility)
@@ -87,13 +99,11 @@ export const AuthProvider = ({ children }) => {
     checkLoggedInUser();
   }, []);
 
-
   // Hàm đăng nhập sử dụng exact API URL
 
   const login = async (username, password) => {
     try {
       setAuthError(null);
-
 
       // Gọi API thực tế để đăng nhập với exact URL
       const response = await axios.post(API_URL, {
@@ -129,7 +139,6 @@ export const AuthProvider = ({ children }) => {
         "Tên đăng nhập hoặc mật khẩu không đúng";
       setAuthError(errorMsg);
       throw new Error(errorMsg);
-
     }
   };
 

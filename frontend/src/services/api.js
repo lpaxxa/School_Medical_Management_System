@@ -28,7 +28,17 @@ api.interceptors.request.use(
 // Define specific API endpoints
 const endpoints = {
   login: "http://localhost:8080/api/v1/auth/login",
-  getStudents: "http://localhost:8080/api/parents/my-students"
+  getStudents: "http://localhost:8080/api/parents/my-students",
+  
+  // Health profile endpoints
+  healthProfiles: {
+    getByStudentId: (studentId) => `${API_URL}/api/health-profiles/student/${studentId}`
+  },
+  
+  // Medical checkups endpoints
+  medicalCheckups: {
+    getByStudentId: (studentId) => `${API_URL}/api/medical-checkups/student/${studentId}`
+  }
 };
 
 export { endpoints };
