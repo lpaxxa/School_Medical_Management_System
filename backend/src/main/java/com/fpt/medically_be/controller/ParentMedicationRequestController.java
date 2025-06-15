@@ -21,7 +21,7 @@ import java.util.List;
  * Handles parent-initiated medication requests for their children
  */
 @RestController
-@RequestMapping("/api/parent-medication-requests")
+@RequestMapping("/api/v1/parent-medication-requests")
 @CrossOrigin(origins = "*")
 @PreAuthorize("hasRole('PARENT')")
 public class ParentMedicationRequestController {

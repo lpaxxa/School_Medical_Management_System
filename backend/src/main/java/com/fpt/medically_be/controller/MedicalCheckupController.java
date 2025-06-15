@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/medical-checkups")
+@RequestMapping("/api/v1/medical-checkups")
 public class MedicalCheckupController {
 
     private final MedicalCheckupService medicalCheckupService;

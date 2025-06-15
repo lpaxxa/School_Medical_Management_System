@@ -19,7 +19,7 @@ import java.util.List;
  * For nurse approvals: @see NurseMedicationApprovalController
  */
 @RestController
-@RequestMapping("/api/medication-instructions")
+@RequestMapping("/api/v1/medication-instructions")
 @CrossOrigin(origins = "*")
 public class MedicationInstructionController {
 
@@ -32,7 +32,7 @@ public class MedicationInstructionController {
 
     /**
      * Get all medication instructions (Admin/Nurse view)
-     * GET /api/medication-instructions
+     * GET /api/v1/medication-instructions
      */
     @GetMapping
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
@@ -42,7 +42,7 @@ public class MedicationInstructionController {
 
     /**
      * Get medication instruction by ID
-     * GET /api/medication-instructions/{id}
+     * GET /api/v1/medication-instructions/{id}
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
@@ -52,7 +52,7 @@ public class MedicationInstructionController {
 
     /**
      * Get medication instructions by health profile ID
-     * GET /api/medication-instructions/health-profile/{healthProfileId}
+     * GET /api/v1/medication-instructions/health-profile/{healthProfileId}
      */
     @GetMapping("/health-profile/{healthProfileId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
@@ -62,7 +62,7 @@ public class MedicationInstructionController {
 
     /**
      * Get medication instructions by status
-     * GET /api/medication-instructions/status/{status}
+     * GET /api/v1/medication-instructions/status/{status}
      */
     @GetMapping("/status/{status}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
@@ -72,7 +72,7 @@ public class MedicationInstructionController {
 
     /**
      * Get expired medication instructions
-     * GET /api/medication-instructions/expired?date=2024-01-01
+     * GET /api/v1/medication-instructions/expired?date=2024-01-01
      */
     @GetMapping("/expired")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
@@ -83,7 +83,7 @@ public class MedicationInstructionController {
 
     /**
      * Get medication instructions by date range
-     * GET /api/medication-instructions/date-range?startDate=2024-01-01&endDate=2024-01-31
+     * GET /api/v1/medication-instructions/date-range?startDate=2024-01-01&endDate=2024-01-31
      */
     @GetMapping("/date-range")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
@@ -95,7 +95,7 @@ public class MedicationInstructionController {
 
     /**
      * Get medication instructions by parent provided status
-     * GET /api/medication-instructions/parent-provided/{parentProvided}
+     * GET /api/v1/medication-instructions/parent-provided/{parentProvided}
      */
     @GetMapping("/parent-provided/{parentProvided}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
@@ -105,7 +105,7 @@ public class MedicationInstructionController {
 
     /**
      * Create a new medication instruction (Admin/Nurse only)
-     * POST /api/medication-instructions
+     * POST /api/v1/medication-instructions
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
@@ -115,7 +115,7 @@ public class MedicationInstructionController {
 
     /**
      * Update a medication instruction (Admin/Nurse only)
-     * PUT /api/medication-instructions/{id}
+     * PUT /api/v1/medication-instructions/{id}
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
@@ -125,7 +125,7 @@ public class MedicationInstructionController {
 
     /**
      * Delete a medication instruction (Admin only)
-     * DELETE /api/medication-instructions/{id}
+     * DELETE /api/v1/medication-instructions/{id}
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
