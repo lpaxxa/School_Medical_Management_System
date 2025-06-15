@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/health-profiles")
+@RequestMapping("/api/v1/health-profiles")
 public class HealthProfileController {
 
     private final HealthProfileService healthProfileService;

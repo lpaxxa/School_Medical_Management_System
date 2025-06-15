@@ -19,7 +19,7 @@ import java.util.List;
  * Handles nurse review and approval/rejection of parent medication requests
  */
 @RestController
-@RequestMapping("/api/nurse-medication-approvals")
+@RequestMapping("/api/v1/nurse-medication-approvals")
 @CrossOrigin(origins = "*")
 @PreAuthorize("hasRole('NURSE') or hasRole('ADMIN')")
 public class NurseMedicationApprovalController {
