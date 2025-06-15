@@ -442,16 +442,23 @@ const AddEditRecord = ({ student, onBack, onSave, students, mode }) => {  const 
                     <option value="AB-">AB-</option>
                     <option value="Chưa xác định">Chưa xác định</option>
                   </select>
-                </div>
-                
-                <div className="form-group">
+                </div>                  <div className="form-group">
                   <label>Ảnh học sinh:</label>
                   <input 
                     type="file" 
                     accept="image/*" 
                     onChange={handleImageChange}
                     className="form-input file-input"
+                    id="student-image-upload"
+                    style={{ display: 'none' }}
                   />
+                  <label 
+                    htmlFor="student-image-upload"
+                    className="upload-button"
+                    style={{ display: 'inline-block', cursor: 'pointer' }}
+                  >
+                    <i className="fas fa-upload"></i> Chọn ảnh
+                  </label>
                   {formData.imageUrl && (
                     <div className="image-preview">
                       <img src={formData.imageUrl} alt="Ảnh học sinh" />

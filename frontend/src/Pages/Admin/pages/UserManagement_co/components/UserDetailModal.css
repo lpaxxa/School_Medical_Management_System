@@ -1,0 +1,286 @@
+.user-detail-modal {
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  animation: modal-scale-in 0.3s ease;
+}
+
+@keyframes modal-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.user-detail-content {
+  padding: 25px 30px 30px;
+}
+
+.user-main-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0f0ff;
+}
+
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #1a7bb5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-right: 20px;
+}
+
+.user-primary-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-primary-info h3 {
+  margin: 0 0 10px;
+  font-size: 1.5rem;
+  color: #2c3e50;
+}
+
+.user-primary-info .role-badge,
+.user-primary-info .status-badge {
+  margin-bottom: 5px;
+}
+
+.detail-section {
+  margin-bottom: 25px;
+}
+
+.detail-section h4 {
+  color: #1a7bb5;
+  margin: 0 0 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0f0ff;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px 30px;
+}
+
+.detail-item {
+  margin-bottom: 5px;
+}
+
+.detail-label {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin-bottom: 5px;
+}
+
+.detail-value {
+  font-size: 1rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.detail-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+/* Shared classes with UserModal */
+.role-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-right: 10px;
+}
+
+.role-badge.admin {
+  background-color: rgba(63, 81, 181, 0.15);
+  color: #3f51b5;
+}
+
+.role-badge.nurse {
+  background-color: rgba(0, 150, 136, 0.15);
+  color: #009688;
+}
+
+.role-badge.parent {
+  background-color: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.status-badge.inactive {
+  background-color: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+}
+
+/* Additional button styles */
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background-color: #1a7bb5;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0a5d8f;
+}
+
+.btn-secondary {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+.btn-warning {
+  background-color: #ff9800;
+  color: white;
+}
+
+.btn-warning:hover {
+  background-color: #e67e00;
+}
+
+/* Password detail with toggle button */
+.password-detail {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  position: relative;
+}
+
+.password-detail span {
+  margin-right: 10px;
+}
+
+.password-detail .password-toggle-btn {
+  background: #e9f7ff;
+  border: 1px solid #c5e1f9;
+  border-radius: 4px;
+  color: #1a7bb5;
+  cursor: pointer;
+  height: 28px;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 0;
+  margin-left: 8px;
+}
+
+/* Highlight the toggle button when activated */
+.password-detail .password-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+/* Add box shadow to the button when focused */
+.password-detail .password-toggle-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 123, 181, 0.25);
+}
+
+.password-detail .password-toggle-btn:hover {
+  background-color: #d5ebff;
+  color: #0056a8;
+  box-shadow: 0 2px 4px rgba(26, 123, 181, 0.2);
+}
+
+.actual-password {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  background-color: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #1a7bb5;
+  letter-spacing: 0.5px;
+  border: 1px solid #e0f0ff;
+  min-width: 120px;
+  display: inline-block;
+}
+
+/* Make the password field and toggle button more prominent */
+.detail-item:has(.password-detail) {
+  position: relative;
+}
+
+.detail-item:has(.password-detail)::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 6px;
+  background-color: rgba(229, 246, 253, 0.4);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .user-detail-modal {
+    max-width: 95%;
+  }
+  
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .user-main-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .user-avatar {
+    margin: 0 0 15px;
+  }
+}

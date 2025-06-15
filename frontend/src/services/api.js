@@ -1,12 +1,15 @@
 import axios from 'axios';
 
+// Define API_URL with fallbacks
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
 
+// Create axios instance with timeout to prevent hanging
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 seconds timeout
 });
 
 // Request interceptor - add auth token to requests

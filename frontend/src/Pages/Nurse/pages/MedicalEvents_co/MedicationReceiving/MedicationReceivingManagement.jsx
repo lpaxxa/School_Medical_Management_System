@@ -103,11 +103,14 @@ const MedicationReceivingManagement = () => {
       setSelectedMedication(medicationData);
       setIsDetailView(true);
       setShowModal(true);
-    }
-  };
+    }  };
   
   // Xử lý mở form thêm mới
   const handleAddNew = () => {
+    const now = new Date();
+    const formattedDate = now.toISOString().split('T')[0];
+    const formattedDateTime = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
+    
     setFormData({
       studentId: '',
       studentName: '',
@@ -115,13 +118,14 @@ const MedicationReceivingManagement = () => {
       medicationName: '',
       dosage: '',
       frequency: '',
-      startDate: new Date().toISOString().split('T')[0],
+      startDate: formattedDate,
       endDate: '',
       parentName: '',
       parentPhone: '',
       specialInstructions: '',
       medicationStatus: 'Mới nhận',
-      handledBy: ''
+      handledBy: '',
+      createdAt: formattedDateTime // Thêm thời gian tạo
     });
     setSelectedMedication(null);
     setIsDetailView(false);
@@ -461,9 +465,10 @@ const MedicationReceivingManagement = () => {
                     <td>{medication.medicationName}</td>
                     <td>{medication.dosage}</td>
                     <td>{formatDate(medication.startDate)}</td>
-                    <td>{formatDate(medication.endDate)}</td>
-                    <td className={getStatusClass(medication.medicationStatus)}>
-                      {medication.medicationStatus}
+                    <td>{formatDate(medication.endDate)}</td>                    <td>
+                      <span className={`status-badge ${getStatusClass(medication.medicationStatus)}`}>
+                        {medication.medicationStatus}
+                      </span>
                     </td>
                     <td className="action-cell">
                       <button 

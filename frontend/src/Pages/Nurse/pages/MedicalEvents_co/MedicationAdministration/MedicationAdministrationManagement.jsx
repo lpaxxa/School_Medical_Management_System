@@ -140,11 +140,13 @@ const MedicationAdministrationManagement = () => {
       setSelectedRecord(recordData);
       setIsDetailView(true);
       setShowModal(true);
-    }
-  };
+    }  };
   
   // Xử lý mở form thêm mới
   const handleAddNew = () => {
+    const now = new Date();
+    const formattedDateTime = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
+    
     setFormData({
       studentId: '',
       studentName: '',
@@ -152,10 +154,11 @@ const MedicationAdministrationManagement = () => {
       medicationId: '',
       medicationName: '',
       dosage: '',
-      administrationTime: new Date().toISOString().slice(0, 16), // Format YYYY-MM-DDThh:mm
+      administrationTime: formattedDateTime, // Format YYYY-MM-DDThh:mm
       administeredBy: '',
       remarks: '',
-      administrationStatus: 'Đã cho uống'
+      administrationStatus: 'Đã cho uống',
+      createdAt: formattedDateTime // Thêm thời gian tạo
     });
     setSelectedRecord(null);
     setIsDetailView(false);
@@ -534,9 +537,10 @@ const MedicationAdministrationManagement = () => {
                     <td>{record.medicationName}</td>
                     <td>{record.dosage}</td>
                     <td>{formatDateTime(record.administrationTime)}</td>
-                    <td>{record.administeredBy}</td>
-                    <td className={getStatusClass(record.administrationStatus)}>
-                      {record.administrationStatus}
+                    <td>{record.administeredBy}</td>                    <td>
+                      <span className={`status-badge ${getStatusClass(record.administrationStatus)}`}>
+                        {record.administrationStatus}
+                      </span>
                     </td>
                     <td className="action-cell">
                       <button 
