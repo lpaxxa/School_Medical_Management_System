@@ -7,7 +7,11 @@ import axios from "axios";
 
 //http://localhost:8080/api/parent-medication-requests/my-requests
 //lịch sử gửi thuốc của phụ huynh
+//http://localhost:8080/api/parent-medication-requests/my-requests
+//xem lịch sử khai báo sức khỏe của học sinh
 
+//put cập nhật khai báo sức khỏe của học sinh
+//delete xóa khai báo sức khỏe của học sinh
 const SendMedicine = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
