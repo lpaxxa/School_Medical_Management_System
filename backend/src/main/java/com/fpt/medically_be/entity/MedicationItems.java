@@ -12,7 +12,7 @@ import java.util.List;
 public class MedicationItems {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int itemId;
+    private int itemId;
 
     @Column(columnDefinition = "NVARCHAR(150)", nullable = false)
     private String itemName;
