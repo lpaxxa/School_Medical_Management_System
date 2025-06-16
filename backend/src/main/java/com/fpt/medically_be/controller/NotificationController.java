@@ -3,6 +3,8 @@ package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.request.Notification2RequestDTO;
 import com.fpt.medically_be.dto.request.Notification2UpdateDTO;
+import com.fpt.medically_be.dto.response.Notification2ReceiveResponse;
+import com.fpt.medically_be.dto.response.Notification2ResponseDTO;
 import com.fpt.medically_be.service.Notification2Service;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +20,10 @@ public class NotificationController {
     public Notification2Service notification2Service;
 
     @PostMapping("/create")
-    public ResponseEntity<String> createNotification(@Valid @RequestBody Notification2RequestDTO notification2RequestDTO) {
+    public ResponseEntity<Notification2ResponseDTO> createNotification(@Valid @RequestBody Notification2RequestDTO notification2RequestDTO) {
 
-        notification2Service.createNotification(notification2RequestDTO);
-        return ResponseEntity.ok("Notification2 created successfully");
+
+        return ResponseEntity.ok(notification2Service.createNotification(notification2RequestDTO));
         }
 
     @GetMapping("/getTitlesByParentId/{parentId}")
@@ -42,10 +44,10 @@ public class NotificationController {
 
 
     @PutMapping("/notifications/respond")
-    public ResponseEntity<String> respondToNotification(@RequestBody Notification2UpdateDTO request) {
-        notification2Service.respondToNotification(request);
+    public ResponseEntity<Notification2ReceiveResponse> respondToNotification(@RequestBody Notification2UpdateDTO request) {
 
-        return ResponseEntity.ok("Response to notification updated successfully");
+
+        return ResponseEntity.ok(notification2Service.respondToNotification(request));
     }
 
 

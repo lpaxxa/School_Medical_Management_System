@@ -18,7 +18,8 @@ public interface MedicationItemsService {
     boolean deleteMedicationItem(int id);
 
     List<MedicationItemsResponse> filterMedicationItems(LocalDate manufacturer, LocalDate expiryDate);
-    MedicationItemsResponse getMedicationItemByName(String name);
+    List<MedicationItemsResponse> getMedicationItemByName(String name);
+
 
 
 }
