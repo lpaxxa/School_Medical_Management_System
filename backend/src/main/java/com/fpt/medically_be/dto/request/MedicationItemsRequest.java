@@ -17,7 +17,6 @@ import java.util.List;
 @Data
 public class MedicationItemsRequest {
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
     private String itemName;
     @Column(nullable = false)
     private LocalDate manufactureDate;

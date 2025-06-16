@@ -56,8 +56,8 @@ public class MedicationItemController {
     }
 
     @GetMapping("get-by-name/{name}")
-    public ResponseEntity<MedicationItemsResponse> getMedicationItemByName(@PathVariable String name) {
-        MedicationItemsResponse response = medicationItemsService.getMedicationItemByName(name);
+    public ResponseEntity<List<MedicationItemsResponse>> getMedicationItemByName(@PathVariable String name) {
+        List<MedicationItemsResponse> response = medicationItemsService.getMedicationItemByName(name);
 
         return ResponseEntity.ok(response);
     }

@@ -8,13 +8,18 @@ import com.fpt.medically_be.entity.MedicationItems;
 import com.fpt.medically_be.mapper.MedicationItemsMapper;
 import com.fpt.medically_be.repos.MedicationItemsRepository;
 import com.fpt.medically_be.service.MedicationItemsService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+
 
 @Service
 public class MedicationItemIml implements MedicationItemsService {
@@ -25,6 +30,7 @@ public class MedicationItemIml implements MedicationItemsService {
     MedicationItemsRepository medicationItemsRepository;
 
 
+    @Transactional
     @Override
     public MedicationItemsResponse createMedicationItem(MedicationItemsRequest medicationItems) {
 
@@ -34,14 +40,14 @@ public class MedicationItemIml implements MedicationItemsService {
             }
         }
 
-        if(medicationItemsRepository.findMedicationItemsByItemName(medicationItems.getItemName())!=null) {
+        if(medicationItemsRepository.findMedicationItemsByItemNameIgnoreCase(medicationItems.getItemName())!=null) {
             throw new IllegalArgumentException("Medication item with this name already exists");
         }
 
 
         MedicationItems medication = medicationItemsMapper.toMedicationItems(medicationItems);
 
-
+        medication.setCreatedAt(LocalDateTime.now());
         return medicationItemsMapper.toMedicationItemsResponse(medicationItemsRepository.save(medication));
     }
 
@@ -65,15 +71,20 @@ public class MedicationItemIml implements MedicationItemsService {
 
 
 
+    @Transactional
     @Override
     public MedicationItemsResponse updateMedicationItem(int id, MedicationItemsRequest medicationItemsRequest) {
 
         MedicationItems existingMedicationItem = medicationItemsRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Medication item not found with id: " + id));
 
-        if(medicationItemsRepository.findMedicationItemsByItemName(medicationItemsRequest.getItemName())!=null) {
+        Optional<MedicationItems> sameNameItem = medicationItemsRepository
+                .findByItemNameIgnoreCase(medicationItemsRequest.getItemName());
+
+        if (sameNameItem.isPresent() && sameNameItem.get().getItemId() != id) {
             throw new IllegalArgumentException("Medication item with this name already exists");
         }
+
         if (medicationItemsRequest.getManufactureDate() != null && medicationItemsRequest.getExpiryDate() != null) {
             if (medicationItemsRequest.getManufactureDate().isAfter(medicationItemsRequest.getExpiryDate())) {
                 throw new IllegalArgumentException("Manufacture date must be before or equal to expiry date");
@@ -88,6 +99,7 @@ public class MedicationItemIml implements MedicationItemsService {
         return medicationItemsMapper.toMedicationItemsResponse(existingMedicationItem);
     }
 
+    @Transactional
     @Override
     public boolean deleteMedicationItem(int id) {
 
@@ -114,13 +126,17 @@ public class MedicationItemIml implements MedicationItemsService {
     }
 
     @Override
-    public MedicationItemsResponse getMedicationItemByName(String name) {
+    public List<MedicationItemsResponse> getMedicationItemByName(String name) {
 
-        MedicationItems medicationItems = medicationItemsRepository.findMedicationItemsByItemNameContainingIgnoreCase(name);
+        List<MedicationItems> medicationItems = medicationItemsRepository.findMedicationItemsByItemNameContainingIgnoreCase(name);
         if (medicationItems == null) {
             throw new IllegalArgumentException("Medication item not found with name: " + name);
         }
-        return medicationItemsMapper.toMedicationItemsResponse(medicationItems);
+        return medicationItems.stream().map(
+                medicationItemsMapper::toMedicationItemsResponse
+        ).collect(Collectors.toList());
+
+
 
     }
 }
