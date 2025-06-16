@@ -36,5 +36,7 @@ public class Nurse {
     @OneToMany(mappedBy = "handledBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MedicalIncident> handledIncidents;
 
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification2> notification2s;
 
 }
