@@ -164,7 +164,7 @@ const MedicalRecord = () => {
 
         // Sử dụng API endpoint mới cho health profile
         const response = await api.get(
-          `/api/health-profiles/student/${selectedStudentId}`
+          `health-profiles/student/${selectedStudentId}`
         );
         console.log("Health profile response:", response);
 
@@ -203,7 +203,7 @@ const MedicalRecord = () => {
 
         // Sử dụng API endpoint cho medical checkups
         const response = await api.get(
-          `/api/medical-checkups/student/${selectedStudentId}`
+          `medical-checkups/student/${selectedStudentId}`
         );
         console.log("Checkups data response:", response.data);
 
