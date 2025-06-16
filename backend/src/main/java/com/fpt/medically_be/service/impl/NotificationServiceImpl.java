@@ -35,7 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
             // Send broadcast notification to all nurses
             messagingTemplate.convertAndSend(notificationMapper.getNurseDestination(), notification);
             
-            logger.info("Notification sent successfully to nurses for new medication request: {}", medicationRequest.getId());
+            logger.info("Notification2 sent successfully to nurses for new medication request: {}", medicationRequest.getId());
             
         } catch (Exception e) {
             logger.error("Failed to send notification to nurses for medication request: {}", medicationRequest.getId(), e);
@@ -64,7 +64,7 @@ public class NotificationServiceImpl implements NotificationService {
                     messagingTemplate.convertAndSend(notificationMapper.getParentDestination(), notification);
                 }
                 
-                logger.info("Notification sent successfully to parent with account ID: {} for medication request: {}", 
+                logger.info("Notification2 sent successfully to parent with account ID: {} for medication request: {}",
                            parentAccountId, medicationRequest.getId());
             } else {
                 logger.warn("Cannot send notification - parent account ID is missing for medication request: {}", medicationRequest.getId());

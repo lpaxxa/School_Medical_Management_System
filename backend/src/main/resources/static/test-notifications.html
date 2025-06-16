@@ -41,8 +41,8 @@
                 console.log('Connected as parent: ' + frame);
                 
                 // Subscribe to parent's personal queue
-                stompClient.subscribe('/user/queue/medication-approval', function(notification) {
-                    showParentNotification(JSON.parse(notification.body));
+                stompClient.subscribe('/user/queue/medication-approval', function(notification2) {
+                    showParentNotification(JSON.parse(notification2.body));
                 });
             });
         }
@@ -55,36 +55,36 @@
                 console.log('Connected as nurse: ' + frame);
                 
                 // Subscribe to nurse topic
-                stompClient.subscribe('/topic/parent-medication-requests', function(notification) {
-                    showNurseNotification(JSON.parse(notification.body));
+                stompClient.subscribe('/topic/parent-medication-requests', function(notification2) {
+                    showNurseNotification(JSON.parse(notification2.body));
                 });
             });
         }
 
-        function showParentNotification(notification) {
+        function showParentNotification(notification2) {
             const notificationDiv = document.getElementById('parentNotifications');
             notificationDiv.innerHTML += `
                 <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
-                    <p><strong>Medication:</strong> ${notification.medicationName}</p>
-                    <p><strong>Status:</strong> ${notification.status}</p>
-                    <p><strong>Response Date:</strong> ${notification.responseDate}</p>
-                    <p><strong>Dosage:</strong> ${notification.dosage}</p>
-                    <p><strong>Frequency:</strong> ${notification.frequency} times per day</p>
-                    <p><strong>Special Instructions:</strong> ${notification.specialInstructions || 'None'}</p>
+                    <p><strong>Medication:</strong> ${notification2.medicationName}</p>
+                    <p><strong>Status:</strong> ${notification2.status}</p>
+                    <p><strong>Response Date:</strong> ${notification2.responseDate}</p>
+                    <p><strong>Dosage:</strong> ${notification2.dosage}</p>
+                    <p><strong>Frequency:</strong> ${notification2.frequency} times per day</p>
+                    <p><strong>Special Instructions:</strong> ${notification2.specialInstructions || 'None'}</p>
                 </div>
             `;
         }
 
-        function showNurseNotification(notification) {
+        function showNurseNotification(notification2) {
             const notificationDiv = document.getElementById('nurseNotifications');
             notificationDiv.innerHTML += `
                 <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
-                    <p><strong>Medication:</strong> ${notification.medicationName}</p>
-                    <p><strong>Dosage:</strong> ${notification.dosage}</p>
-                    <p><strong>Frequency:</strong> ${notification.frequency} times per day</p>
-                    <p><strong>Time of Day:</strong> ${notification.timeOfDay}</p>
-                    <p><strong>Special Instructions:</strong> ${notification.specialInstructions || 'None'}</p>
-                    <p><strong>Submitted Date:</strong> ${notification.submittedDate}</p>
+                    <p><strong>Medication:</strong> ${notification2.medicationName}</p>
+                    <p><strong>Dosage:</strong> ${notification2.dosage}</p>
+                    <p><strong>Frequency:</strong> ${notification2.frequency} times per day</p>
+                    <p><strong>Time of Day:</strong> ${notification2.timeOfDay}</p>
+                    <p><strong>Special Instructions:</strong> ${notification2.specialInstructions || 'None'}</p>
+                    <p><strong>Submitted Date:</strong> ${notification2.submittedDate}</p>
                 </div>
             `;
         }
