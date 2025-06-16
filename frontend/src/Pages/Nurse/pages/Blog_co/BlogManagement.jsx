@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './BlogManagement.css';
 
-// Debugging: Log when module is imported
-console.log('BlogManagement module is being imported');
-
 // Mock data based on the schema from the provided image
 const mockBlogs = [
   {
     blogId: 1,
     title: "Cách phòng ngừa bệnh cúm mùa cho học sinh",
     content: "Cúm mùa là một bệnh truyền nhiễm phổ biến ở trẻ em trong độ tuổi đi học. Để phòng ngừa hiệu quả, phụ huynh cần đảm bảo con em mình được tiêm vắc-xin cúm hàng năm, rửa tay thường xuyên bằng xà phòng, tránh tiếp xúc gần với người bệnh, và giữ vệ sinh cá nhân sạch sẽ. Khi phát hiện các triệu chứng như sốt cao, ho, đau họng, nhức đầu, đau nhức cơ thể, hãy cho trẻ nghỉ học và đến cơ sở y tế để được thăm khám kịp thời.",
-    thumbnailImage: "https://example.com/images/flu-prevention.jpg",
+    thumbnailImage: "https://via.placeholder.com/800x450/4caf50/ffffff?text=Phòng+ngừa+bệnh+cúm+mùa",
     tags: "cúm mùa, phòng bệnh, học sinh",
     createdByUser: {
       id: 2,
@@ -27,7 +24,7 @@ const mockBlogs = [
     blogId: 2,
     title: "Dinh dưỡng hợp lý cho học sinh trong mùa thi",
     content: "Mùa thi là giai đoạn học sinh cần một chế độ dinh dưỡng đặc biệt để duy trì năng lượng và khả năng tập trung. Nên ăn đầy đủ các nhóm thực phẩm như protein (thịt, cá, trứng, đậu), carbohydrate phức hợp (gạo lứt, khoai lang), rau xanh và trái cây giàu vitamin. Tránh thức ăn nhanh, đồ ngọt và caffeine. Uống đủ nước và chia nhỏ bữa ăn trong ngày để duy trì năng lượng ổn định. Bổ sung omega-3 từ cá, hạt chia và óc chó giúp cải thiện trí nhớ và khả năng tập trung.",
-    thumbnailImage: "https://example.com/images/exam-nutrition.jpg",
+    thumbnailImage: "https://via.placeholder.com/800x450/2196f3/ffffff?text=Dinh+dưỡng+học+sinh",
     tags: "dinh dưỡng, mùa thi, học sinh, sức khỏe",
     createdByUser: {
       id: 2,
@@ -44,7 +41,7 @@ const mockBlogs = [
     blogId: 3,
     title: "Dấu hiệu nhận biết trẻ bị rối loạn tâm lý học đường",
     content: "Rối loạn tâm lý học đường đang ngày càng phổ biến và cần được phát hiện sớm. Một số dấu hiệu cần lưu ý: thay đổi đột ngột về kết quả học tập, né tránh đến trường, cô lập bản thân, thay đổi thói quen ăn uống hoặc ngủ nghỉ, cáu gắt hoặc buồn chán kéo dài, mất hứng thú với các hoạt động yêu thích trước đây. Phụ huynh và giáo viên cần quan sát và lắng nghe học sinh, tạo môi trường an toàn để trẻ chia sẻ và tìm kiếm sự hỗ trợ từ chuyên gia tâm lý nếu cần.",
-    thumbnailImage: "https://example.com/images/mental-health.jpg",
+    thumbnailImage: "https://via.placeholder.com/800x450/f44336/ffffff?text=Sức+khỏe+tâm+lý",
     tags: "tâm lý học đường, sức khỏe tâm thần, học sinh",
     createdByUser: {
       id: 3,
@@ -61,7 +58,7 @@ const mockBlogs = [
     blogId: 4,
     title: "Hướng dẫn sơ cứu cơ bản tại trường học",
     content: "Sơ cứu đúng cách và kịp thời tại trường học có thể cứu sống học sinh trong trường hợp khẩn cấp. Bài viết này cung cấp hướng dẫn chi tiết về cách xử lý các tình huống thường gặp như: xử trí vết thương hở, cầm máu, sơ cứu gãy xương, xử trí khi học sinh bị ngất, cách thực hiện hô hấp nhân tạo và ép tim ngoài lồng ngực, xử trí khi học sinh bị hóc dị vật, bỏng và say nắng. Mỗi trường học nên có bộ dụng cụ sơ cứu và đảm bảo nhân viên được đào tạo về kỹ năng sơ cứu cơ bản.",
-    thumbnailImage: "https://example.com/images/first-aid.jpg",
+    thumbnailImage: "https://via.placeholder.com/800x450/ff9800/ffffff?text=Sơ+cứu+học+đường",
     tags: "sơ cứu, an toàn trường học, y tế học đường",
     createdByUser: {
       id: 2,
@@ -78,7 +75,7 @@ const mockBlogs = [
     blogId: 5,
     title: "Các bài tập thể dục đơn giản giúp học sinh tăng cường sức khỏe",
     content: "Hoạt động thể chất đóng vai trò quan trọng trong sự phát triển toàn diện của học sinh. Các bài tập đơn giản có thể thực hiện tại trường hoặc tại nhà bao gồm: bài tập khởi động cơ bản (xoay cổ, xoay vai, gập người), các bài tập cardio nhẹ nhàng (nhảy dây, đi bộ nhanh), các động tác tăng cường sức mạnh cơ bắp (chống đẩy, gập bụng), và các bài tập kéo giãn. Mỗi ngày chỉ cần 15-30 phút tập luyện sẽ giúp tăng cường sức đề kháng, cải thiện tập trung và giảm stress học tập.",
-    thumbnailImage: "https://example.com/images/exercise.jpg",
+    thumbnailImage: "https://via.placeholder.com/800x450/9c27b0/ffffff?text=Thể+dục+tăng+cường",
     tags: "thể dục, sức khỏe, học sinh",
     createdByUser: {
       id: 3,
@@ -90,40 +87,41 @@ const mockBlogs = [
     isActive: false,
     viewCount: 98,
     notes: "Đang chờ thêm tư vấn từ giáo viên thể dục"
-  }
+  },
+  {
+    blogId: 6,
+    title: "Tác động của thời gian ngủ đến kết quả học tập",
+    content: "Giấc ngủ đủ và chất lượng có ảnh hưởng trực tiếp đến khả năng học tập và phát triển trí tuệ của học sinh. Nghiên cứu cho thấy học sinh cần đủ 8-10 giờ ngủ mỗi ngày để não bộ có thời gian củng cố trí nhớ và kiến thức mới học. Thiếu ngủ không chỉ ảnh hưởng đến khả năng tập trung mà còn làm giảm khả năng xử lý thông tin, suy giảm trí nhớ và kiểm soát cảm xúc kém. Phụ huynh nên tạo thói quen ngủ đều đặn cho con, hạn chế thiết bị điện tử trước giờ đi ngủ và đảm bảo môi trường ngủ tối, yên tĩnh và mát mẻ.",
+    thumbnailImage: "https://via.placeholder.com/800x450/3f51b5/ffffff?text=Giấc+ngủ+và+học+tập",
+    tags: "giấc ngủ, học tập, sức khỏe, học sinh",
+    createdByUser: {
+      id: 2,
+      name: "Nguyễn Thị Bình",
+      role: "Y tá trưởng"
+    },
+    createdAt: "2025-06-15T10:00:00",
+    updatedAt: null,
+    isActive: true,
+    viewCount: 105,
+    notes: ""
+  },
 ];
 
-// Placeholder URLs for thumbnail images
-const placeholderImages = [
-  "https://via.placeholder.com/800x450/4caf50/ffffff?text=Phòng+ngừa+bệnh+cúm+mùa",
-  "https://via.placeholder.com/800x450/2196f3/ffffff?text=Dinh+dưỡng+học+sinh",
-  "https://via.placeholder.com/800x450/f44336/ffffff?text=Sức+khỏe+tâm+lý",
-  "https://via.placeholder.com/800x450/ff9800/ffffff?text=Sơ+cứu+học+đường",
-  "https://via.placeholder.com/800x450/9c27b0/ffffff?text=Thể+dục+tăng+cường",
-];
-
-// Fix mock data with placeholder images - ensure they're using valid URLs
-mockBlogs.forEach((blog, index) => {
-  blog.thumbnailImage = placeholderImages[index % placeholderImages.length];
-  
-  // Log for debugging
-  console.log(`Assigned image URL to blog ${blog.blogId}:`, blog.thumbnailImage);
-});
-
+// Very simple test component that should definitely render
 const BlogManagement = () => {
+  // Log when component renders
   console.log('BlogManagement component is rendering');
   
-  // Add an effect to log when the component mounts
+  // Add effect to log when component mounts
   useEffect(() => {
     console.log('BlogManagement component mounted');
-    // Alert for immediate feedback when component mounts
-    alert('Blog Management Component Loaded');
-    
     return () => {
       console.log('BlogManagement component unmounted');
     };
   }, []);
-  
+
+  // Simple state to show the component is functioning
+  const [count, setCount] = useState(0);
   const [blogs, setBlogs] = useState(mockBlogs);
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -189,7 +187,7 @@ const BlogManagement = () => {
     setFormData({
       title: '',
       content: '',
-      thumbnailImage: placeholderImages[Math.floor(Math.random() * placeholderImages.length)],
+      thumbnailImage: `https://via.placeholder.com/800x450/${Math.floor(Math.random()*16777215).toString(16)}/ffffff?text=Bài+viết+mới`,
       tags: '',
       isActive: true,
       notes: ''
@@ -367,6 +365,7 @@ const BlogManagement = () => {
                 src={blog.thumbnailImage} 
                 alt={blog.title} 
                 className="blog-image" 
+                onError={(e) => {e.target.src = `https://via.placeholder.com/800x450/cccccc/333333?text=Ảnh+lỗi`}}
               />
               <div className="blog-content">
                 <h3 className="blog-title">{blog.title}</h3>
@@ -456,8 +455,10 @@ const BlogManagement = () => {
                     src={currentBlog.thumbnailImage} 
                     alt={currentBlog.title} 
                     className="blog-detail-image"
+                    onError={(e) => {e.target.src = `https://via.placeholder.com/800x450/cccccc/333333?text=Ảnh+lỗi`}}
                   />
                   
+
                   <div className="blog-detail-header">
                     <h2 className="blog-detail-title">{currentBlog.title}</h2>
                     <div className="blog-detail-meta">
@@ -565,6 +566,7 @@ const BlogManagement = () => {
                           src={formData.thumbnailImage} 
                           alt="Preview" 
                           style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'cover' }}
+                          onError={(e) => {e.target.src = `https://via.placeholder.com/800x450/cccccc/333333?text=Ảnh+lỗi`}}
                         />
                       </div>
                     )}

@@ -9,9 +9,8 @@ import HealthCheckupsPage from "../Pages/Nurse/pages/HealthCheckups_co";
 import InventoryPage from "../Pages/Nurse/pages/Inventory_co";
 import MedicalEventsPage from "../Pages/Nurse/pages/MedicalEvents_co";
 import VaccinationPage from "../Pages/Nurse/pages/Vaccination_co";
-// Import BlogManagement directly from the file to avoid potential issues with index.js
-import BlogManagement from "../Pages/Nurse/pages/Blog_co/BlogManagement";
-import SimpleBlogManagement from "../Pages/Nurse/pages/Blog_co/SimpleBlogManagement";
+// Import BlogManagement from index.js which is the correct approach
+import BlogManagement from "../Pages/Nurse/pages/Blog_co";
 
 // NurseLayout đã được import từ file riêng
 
