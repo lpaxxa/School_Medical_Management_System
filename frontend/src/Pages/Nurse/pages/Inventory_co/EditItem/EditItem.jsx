@@ -1,18 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './EditItem.css';
-import inventoryService from '../../../../../services/inventoryService';
+
+// Hàm định dạng ngày từ form input sang định dạng API yêu cầu (yyyy-MM-dd)
+const formatDateForApi = (dateString) => {
+  if (!dateString) return '';
+  
+  try {
+    // Nếu đã đúng định dạng yyyy-MM-dd rồi thì giữ nguyên
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    
+    // Chuyển đổi từ các định dạng khác sang yyyy-MM-dd
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString; // Trả về nguyên bản nếu không phải date hợp lệ
+    
+    return date.toISOString().split('T')[0]; // Trả về yyyy-MM-dd
+  } catch (err) {
+    console.error('Lỗi khi định dạng ngày:', err);
+    return dateString;
+  }
+};
 
 const EditItem = ({ item, onClose, onEditItem }) => {
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  // Khởi tạo trạng thái edit từ dữ liệu gốc
+    // Map fields from different possible structures to a consistent one
   const [editedItem, setEditedItem] = useState({
-    id: item.id,
-    name: item.name,
-    unit: item.unit,
-    quantity: item.quantity,
-    category: item.category,
+    itemId: item.itemId, // Sử dụng itemId thay vì id
+    itemName: item.itemName || item.name || '',
+    unit: item.unit || '',
+    stockQuantity: item.stockQuantity || item.quantity || 0,
+    itemType: item.itemType || item.category || '',
     expiryDate: item.expiryDate || '',
-    dateAdded: item.dateAdded
+    manufactureDate: item.manufactureDate || item.dateAdded || '',
+    itemDescription: item.itemDescription || item.description || ''
   });
 
   // Hàm tính toán trạng thái dựa trên số lượng
@@ -25,44 +47,39 @@ const EditItem = ({ item, onClose, onEditItem }) => {
       return 'Sẵn có';
     }
   };
-
-  // Lấy danh sách danh mục
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const cats = await inventoryService.getCategories();
-        setCategories(cats || ['Thuốc', 'Thiết bị y tế', 'Vật tư tiêu hao', 'Khác']);
-      } catch (err) {
-        console.error("Lỗi khi lấy danh mục:", err);
-        setCategories(['Thuốc', 'Thiết bị y tế', 'Vật tư tiêu hao', 'Khác']);
-      }
-    };
-
-    fetchCategories();
-  }, []);
   // Xử lý thay đổi trong form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditedItem({
       ...editedItem,
-      [name]: name === 'quantity' ? (value === '' ? '' : parseInt(value)) : value
+      [name]: name === 'stockQuantity' ? (value === '' ? '' : parseInt(value)) : value
     });
-  };
-
-  // Xử lý submit form
+  };  // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!editedItem.name || !editedItem.unit || !editedItem.quantity || !editedItem.category) {
+    if (!editedItem.itemName || !editedItem.unit || editedItem.stockQuantity === '' || !editedItem.itemType) {
       alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
       return;
     }
     
     try {
-      setLoading(true);
+      setLoading(true);      // Format dates to 'yyyy-MM-dd' format before submitting
+      const formattedItem = {
+        ...editedItem,
+        itemId: item.itemId, // Đảm bảo itemId luôn được lấy từ item gốc
+        manufactureDate: editedItem.manufactureDate ? formatDateForApi(editedItem.manufactureDate) : undefined,
+        expiryDate: editedItem.expiryDate ? formatDateForApi(editedItem.expiryDate) : undefined
+      };
+      
+      // Đảm bảo không có trường id để tránh xung đột với itemId
+      if (formattedItem.id !== undefined) {
+        delete formattedItem.id;
+      }
+        // Gửi dữ liệu đã được định dạng lên server
       
       // Status được tính toán tự động dựa vào số lượng sản phẩm nên không cần truyền
-      await onEditItem(editedItem);
+      await onEditItem(formattedItem);
       onClose();
     } catch (err) {
       console.error("Lỗi khi cập nhật vật phẩm:", err);
@@ -72,7 +89,7 @@ const EditItem = ({ item, onClose, onEditItem }) => {
     }
   };
   // Xác định trạng thái hiện tại dựa trên số lượng đã nhập
-  const currentStatus = editedItem.quantity !== '' ? getItemStatus(editedItem.quantity) : '';
+  const currentStatus = editedItem.stockQuantity !== '' ? getItemStatus(editedItem.stockQuantity) : '';
   
   // Xác định class CSS cho trạng thái
   const statusClass = 
@@ -87,47 +104,43 @@ const EditItem = ({ item, onClose, onEditItem }) => {
           <h3>Sửa thông tin vật phẩm</h3>
           <button className="close-button" onClick={onClose}>&times;</button>
         </div>
-        
-        <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="name">Tên vật phẩm *</label>
+            <label htmlFor="itemName">Tên vật phẩm *</label>
             <input 
               type="text" 
-              id="name" 
-              name="name" 
+              id="itemName" 
+              name="itemName" 
               className="form-control"
-              value={editedItem.name}
+              value={editedItem.itemName}
               onChange={handleInputChange}
               required
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="category">Loại *</label>
-            <select 
-              id="category" 
-              name="category" 
+            <label htmlFor="itemType">Loại *</label>
+            <input 
+              type="text" 
+              id="itemType" 
+              name="itemType" 
               className="form-control"
-              value={editedItem.category}
+              value={editedItem.itemType}
               onChange={handleInputChange}
+              placeholder="Thuốc, Thiết bị y tế, Vật tư tiêu hao, v.v..."
               required
-            >
-              <option value="">-- Chọn loại --</option>
-              {categories.map((cat, index) => (
-                <option key={index} value={cat}>{cat}</option>
-              ))}
-            </select>
+            />
           </div>
           
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="quantity">Số lượng *</label>
+              <label htmlFor="stockQuantity">Số lượng *</label>
               <input 
                 type="number" 
-                id="quantity" 
-                name="quantity" 
+                id="stockQuantity" 
+                name="stockQuantity" 
                 className="form-control"
-                value={editedItem.quantity}
+                value={editedItem.stockQuantity}
                 onChange={handleInputChange}
                 min="0"
                 required
@@ -148,6 +161,17 @@ const EditItem = ({ item, onClose, onEditItem }) => {
               />
             </div>
           </div>
+            <div className="form-group">
+            <label htmlFor="manufactureDate">Ngày sản xuất</label>
+            <input 
+              type="date" 
+              id="manufactureDate" 
+              name="manufactureDate" 
+              className="form-control"
+              value={editedItem.manufactureDate ? formatDateForApi(editedItem.manufactureDate) : ''}
+              onChange={handleInputChange}
+            />
+          </div>
           
           <div className="form-group">
             <label htmlFor="expiryDate">Ngày hết hạn</label>
@@ -156,12 +180,24 @@ const EditItem = ({ item, onClose, onEditItem }) => {
               id="expiryDate" 
               name="expiryDate" 
               className="form-control"
-              value={editedItem.expiryDate}
+              value={editedItem.expiryDate ? formatDateForApi(editedItem.expiryDate) : ''}
               onChange={handleInputChange}
             />
           </div>
-            {/* Hiển thị trạng thái tự động dựa trên số lượng */}
-          {editedItem.quantity !== '' && (
+          
+          <div className="form-group">
+            <label htmlFor="itemDescription">Mô tả</label>
+            <textarea 
+              id="itemDescription" 
+              name="itemDescription" 
+              className="form-control"
+              value={editedItem.itemDescription}
+              onChange={handleInputChange}
+              rows="3"
+              placeholder="Nhập mô tả về vật phẩm..."
+            />
+          </div>            {/* Hiển thị trạng thái tự động dựa trên số lượng */}
+          {editedItem.stockQuantity !== '' && (
             <div className="form-group">
               <label>Trạng thái (tự động):</label>
               <div className="auto-status-display">

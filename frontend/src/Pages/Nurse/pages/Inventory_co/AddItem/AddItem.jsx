@@ -7,12 +7,13 @@ const AddItem = ({ onClose, onAddItem }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newItem, setNewItem] = useState({
-    name: '',
+    itemName: '',
     unit: '',
-    quantity: '',
-    category: '',
+    stockQuantity: 0,
+    itemType: '',
     expiryDate: '',
-    dateAdded: new Date().toISOString().split('T')[0]
+    manufactureDate: new Date().toISOString().split('T')[0],
+    itemDescription: ''
   });
 
   // Hàm tính toán trạng thái dựa trên số lượng
@@ -28,47 +29,52 @@ const AddItem = ({ onClose, onAddItem }) => {
 
   // Lấy danh sách danh mục
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const cats = await inventoryService.getCategories();
-        setCategories(cats || ['Thuốc', 'Thiết bị y tế', 'Vật tư tiêu hao', 'Khác']);
-      } catch (err) {
-        console.error("Lỗi khi lấy danh mục:", err);
-        setCategories(['Thuốc', 'Thiết bị y tế', 'Vật tư tiêu hao', 'Khác']);
-      }
-    };
-
-    fetchCategories();
+    // Sử dụng danh sách cố định thay vì gọi API
+    setCategories(['Thuốc', 'Thiết bị y tế', 'Vật tư tiêu hao', 'Khác']);
   }, []);
+
   // Xử lý thay đổi trong form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewItem({
       ...newItem,
-      [name]: name === 'quantity' ? (value === '' ? '' : parseInt(value)) : value
+      [name]: name === 'stockQuantity' ? (value === '' ? 0 : parseInt(value)) : value
     });
   };
+
   // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!newItem.name || !newItem.unit || !newItem.quantity || !newItem.category) {
+    if (!newItem.itemName || !newItem.unit || !newItem.stockQuantity || !newItem.itemType) {
       alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
       return;
     }
     
     // Kiểm tra số lượng phải lớn hơn 0 khi thêm mới
-    if (newItem.quantity <= 0) {
+    if (newItem.stockQuantity <= 0) {
       alert("Số lượng phải lớn hơn 0 khi thêm vật phẩm mới!");
       return;
     }
     
     try {
       setLoading(true);
-      // Tự động tính toán trạng thái dựa trên số lượng
+      
+      // Định dạng dữ liệu theo cấu trúc API
       const itemToAdd = {
         ...newItem,
+        // createdAt sẽ được tạo tự động ở backend
       };
+      
+      // Format ngày tháng để phù hợp với API
+      if (itemToAdd.manufactureDate) {
+        itemToAdd.manufactureDate = itemToAdd.manufactureDate.split('T')[0];
+      }
+      
+      if (itemToAdd.expiryDate) {
+        itemToAdd.expiryDate = itemToAdd.expiryDate.split('T')[0];
+      }
+      
       await onAddItem(itemToAdd);
       onClose();
     } catch (err) {
@@ -78,9 +84,8 @@ const AddItem = ({ onClose, onAddItem }) => {
       setLoading(false);
     }
   };
-
   // Xác định trạng thái hiện tại dựa trên số lượng đã nhập
-  const currentStatus = newItem.quantity !== '' ? getItemStatus(newItem.quantity) : '';
+  const currentStatus = getItemStatus(newItem.stockQuantity);
   
   // Xác định class CSS cho trạng thái
   const statusClass = 
@@ -98,25 +103,25 @@ const AddItem = ({ onClose, onAddItem }) => {
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="name">Tên vật phẩm *</label>
+            <label htmlFor="itemName">Tên vật phẩm *</label>
             <input 
               type="text" 
-              id="name" 
-              name="name" 
+              id="itemName" 
+              name="itemName" 
               className="form-control"
-              value={newItem.name}
+              value={newItem.itemName}
               onChange={handleInputChange}
               required
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="category">Loại *</label>
+            <label htmlFor="itemType">Loại *</label>
             <select 
-              id="category" 
-              name="category" 
+              id="itemType" 
+              name="itemType" 
               className="form-control"
-              value={newItem.category}
+              value={newItem.itemType}
               onChange={handleInputChange}
               required
             >
@@ -128,13 +133,14 @@ const AddItem = ({ onClose, onAddItem }) => {
           </div>
           
           <div className="form-row">
-            <div className="form-group">              <label htmlFor="quantity">Số lượng * (Lớn hơn 0)</label>
+            <div className="form-group">
+              <label htmlFor="stockQuantity">Số lượng * (Lớn hơn 0)</label>
               <input 
                 type="number" 
-                id="quantity" 
-                name="quantity" 
+                id="stockQuantity" 
+                name="stockQuantity" 
                 className="form-control"
-                value={newItem.quantity}
+                value={newItem.stockQuantity}
                 onChange={handleInputChange}
                 min="1"
                 required
@@ -155,6 +161,17 @@ const AddItem = ({ onClose, onAddItem }) => {
               />
             </div>
           </div>
+            <div className="form-group">
+            <label htmlFor="manufactureDate">Ngày sản xuất</label>
+            <input 
+              type="date" 
+              id="manufactureDate" 
+              name="manufactureDate" 
+              className="form-control"
+              value={newItem.manufactureDate}
+              onChange={handleInputChange}
+            />
+          </div>
           
           <div className="form-group">
             <label htmlFor="expiryDate">Ngày hết hạn</label>
@@ -167,21 +184,31 @@ const AddItem = ({ onClose, onAddItem }) => {
               onChange={handleInputChange}
             />
           </div>
-            {/* Hiển thị trạng thái tự động dựa trên số lượng */}
-          {newItem.quantity !== '' && (
-            <div className="form-group">
-              <label>Trạng thái (tự động):</label>
-              <div className="auto-status-display">
-                <span className={`status ${statusClass}`}>
-                  {currentStatus}
-                </span>
-                <small className="status-help-text">
-                  Trạng thái được tính tự động dựa vào số lượng
-                  {newItem.quantity <= 0 && <span className="quantity-warning"> - Số lượng phải lớn hơn 0 khi thêm mới!</span>}
-                </small>
-              </div>
+          
+          <div className="form-group">
+            <label htmlFor="itemDescription">Mô tả</label>
+            <textarea 
+              id="itemDescription" 
+              name="itemDescription" 
+              className="form-control"
+              value={newItem.itemDescription}
+              onChange={handleInputChange}
+              placeholder="Nhập mô tả về vật phẩm..."
+              rows="3"
+            />
+          </div>          {/* Hiển thị trạng thái tự động dựa trên số lượng */}
+          <div className="form-group">
+            <label>Trạng thái (tự động):</label>
+            <div className="auto-status-display">
+              <span className={`status ${statusClass}`}>
+                {currentStatus}
+              </span>
+              <small className="status-help-text">
+                Trạng thái được tính tự động dựa vào số lượng
+                {newItem.stockQuantity <= 0 && <span className="quantity-warning"> - Số lượng phải lớn hơn 0 khi thêm mới!</span>}
+              </small>
             </div>
-          )}
+          </div>
           
           <div className="form-actions">
             <button 
