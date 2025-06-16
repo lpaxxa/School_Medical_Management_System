@@ -59,7 +59,7 @@ public class SecurityConfig {
         // @formatter:off
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/v1/v1/auth/**").permitAll() // Allow all auth endpoints
+                .requestMatchers("/api/v1/auth/**").permitAll() // Allow all auth endpoints
                 .requestMatchers("/api/v1/mock/**").permitAll()
                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll() // Allow actuator endpoints
@@ -84,8 +84,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .oauth2Login(oauth2Login -> oauth2Login
-                        .defaultSuccessUrl("/api/v1/v1/auth/oauth2/success", true)
-                        .failureUrl("/api/v1/v1/auth/oauth2/failure")
+                        .defaultSuccessUrl("/api/v1/auth/oauth2/success", true)
+                        .failureUrl("/api/v1/auth/oauth2/failure")
                         .permitAll()
                 )
             .oauth2ResourceServer(oauth2 -> oauth2
