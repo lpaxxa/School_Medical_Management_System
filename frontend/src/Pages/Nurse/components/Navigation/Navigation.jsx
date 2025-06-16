@@ -19,11 +19,6 @@ const Navigation = () => {
             </Link>
           </li>
           <li>
-            <Link to="/nurse/student-list" className={isActive('/nurse/student-list')}>
-              <i className="fas fa-users"></i> Danh sách học sinh
-            </Link>
-          </li>
-          <li>
             <Link to="/nurse/inventory" className={isActive('/nurse/inventory')}>
               <i className="fas fa-warehouse"></i> Quản lý kho
             </Link>

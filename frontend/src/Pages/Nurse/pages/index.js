@@ -5,6 +5,7 @@ import InventoryPage from './Inventory_co';
 import MedicalEventsPage from './MedicalEvents_co';
 import StudentRecordsPage from './StudentRecords_co';
 import VaccinationPage from './Vaccination_co';
+import BlogManagement from './Blog_co';
 
 export {
   Dashboard,
@@ -13,5 +14,6 @@ export {
   InventoryPage,
   MedicalEventsPage,
   StudentRecordsPage,
-  VaccinationPage
+  VaccinationPage,
+  BlogManagement
 };
