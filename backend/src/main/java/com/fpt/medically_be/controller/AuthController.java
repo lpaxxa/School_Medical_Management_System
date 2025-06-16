@@ -72,30 +72,30 @@ public class AuthController {
 
     //Example request body for registration(Parent):
 //     {
-//    "email": "mary.smith@yahoo.com",
-//      "password": "mySecurePass456",
-//      "fullName": "Mary Smith",
-//      "phoneNumber": "0111222333",
+//    "email": "mimi.smith@yahoo.com",
+//      "password": "12345",
+//      "fullName": "Mimi Smith",
+//      "phoneNumber": "0211222333",
 //      "role": "PARENT",
 //      "address": "456 Oak Avenue, Downtown, NY 10001",
-//      "emergencyPhoneNumber": "0444555666",
+//      "emergencyPhoneNumber": "0544555666",
 //      "relationshipType": "Mother",
 //      "occupation": "Teacher",
 //      "students": [
 //        {
-//          "fullName": "John Smith",
+//          "fullName": "Haha Smith",
 //          "dateOfBirth": "2010-05-15",
 //          "gender": "Male",
-//          "studentId": "STU2024001",
+//          "studentId": "STU2024003",
 //          "className": "5A",
 //          "gradeLevel": "Grade 5",
 //          "schoolYear": "2024-2025"
 //        },
 //        {
-//          "fullName": "Jane Smith",
+//          "fullName": "Hihi Smith",
 //          "dateOfBirth": "2012-08-22",
 //          "gender": "Female",
-//          "studentId": "STU2024002",
+//          "studentId": "STU2024004",
 //          "className": "3B",
 //          "gradeLevel": "Grade 3",
 //          "schoolYear": "2024-2025"

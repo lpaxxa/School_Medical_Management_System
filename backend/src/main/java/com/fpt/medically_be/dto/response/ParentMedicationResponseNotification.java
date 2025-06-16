@@ -17,7 +17,7 @@ public class ParentMedicationResponseNotification extends BaseMapper<MedicationI
     private Long Id;
     private String medicationName;
     private String dosage;
-    private Integer frequency;
+    private String frequency;
     private String specialInstructions;
     private String responseDate;
     private Status status;

@@ -168,14 +168,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         medicationInstruction.setDosageInstructions(request.getDosage());
         medicationInstruction.setStartDate(request.getStartDate());
         medicationInstruction.setEndDate(request.getEndDate());
-        
-        // Convert frequency string to integer (e.g., "2 lần/ngày" -> 2)
-        String frequencyStr = request.getFrequency().replaceAll("[^0-9]", "");
-        int frequency = Integer.parseInt(frequencyStr);
-        if (frequency < 1 || frequency > 6) {
-            throw new IllegalArgumentException("Tần suất phải từ 1-6 lần/ngày");
-        }
-        medicationInstruction.setFrequencyPerDay(frequency);
+        medicationInstruction.setFrequencyPerDay(request.getFrequency());
         
         // Convert timeToTake list to JSON string
         medicationInstruction.setTimeOfDay(request.getTimeToTake().toString());
@@ -255,14 +248,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         medicationInstruction.setDosageInstructions(request.getDosage());
         medicationInstruction.setStartDate(request.getStartDate());
         medicationInstruction.setEndDate(request.getEndDate());
-        
-        // Convert frequency string to integer (e.g., "2 lần/ngày" -> 2)
-        String frequencyStr = request.getFrequency().replaceAll("[^0-9]", "");
-        int frequency = Integer.parseInt(frequencyStr);
-        if (frequency < 1 || frequency > 6) {
-            throw new IllegalArgumentException("Tần suất phải từ 1-6 lần/ngày");
-        }
-        medicationInstruction.setFrequencyPerDay(frequency);
+        medicationInstruction.setFrequencyPerDay(request.getFrequency());
         
         // Convert timeToTake list to string
         medicationInstruction.setTimeOfDay(request.getTimeToTake().toString());
@@ -332,27 +318,21 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     public void cancelMedicationRequest(Long requestId, Authentication auth) {
         // 1. Get current parent from authentication
         ParentDTO currentParent = parentService.getCurretParent(auth);
-        
         // 2. Find existing medication instruction by requestId
-        MedicationInstruction existingRequest = medicationInstructionRepository.findById(requestId)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy yêu cầu hướng dẫn thuốc với ID: " + requestId));
-        
+        Optional<MedicationInstruction> existingRequest = medicationInstructionRepository.findById(requestId);
+
         // 3. Validate parent owns this request (requestedBy = current parent)
-        if (!existingRequest.getRequestedBy().getId().equals(currentParent.getId())) {
+        if (existingRequest.isEmpty() || !existingRequest.get().getRequestedBy().getId().equals(currentParent.getId())) {
             throw new EntityNotFoundException("Bạn không phải là người tạo yêu cầu này.");
         }
-        
         // 4. Check request status is "PENDING_APPROVAL"
-        if (!Status.PENDING_APPROVAL.equals(existingRequest.getStatus())) {
-            throw new IllegalStateException("Yêu cầu này không thể hủy vì trạng thái không phải là PENDING_APPROVAL.");
+        if (!Status.PENDING_APPROVAL.equals(existingRequest.get().getStatus())) {
+            throw new IllegalStateException("Yêu cầu này không thể cập nhật vì trạng thái không phải là PENDING_APPROVAL.");
         }
-        
-        // 5. Set status to "CANCELLED"
-        existingRequest.setStatus(Status.CANCELLED);
-        existingRequest.setResponseDate(LocalDateTime.now());
-        
-        // 6. Save updated entity
-        medicationInstructionRepository.save(existingRequest);
+
+        // 7. Update medication details from request
+      medicationInstructionRepository.deleteById(requestId);
+
     }
 
 

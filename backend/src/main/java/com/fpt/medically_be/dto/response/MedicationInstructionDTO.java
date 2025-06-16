@@ -32,7 +32,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         private String dosageInstructions;
         private LocalDate startDate;
         private LocalDate endDate;
-        private Integer frequencyPerDay;
+        private String frequencyPerDay;
         private String timeOfDay; // morning afternoon before lunch....
         private String specialInstructions;
 
