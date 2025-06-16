@@ -164,24 +164,38 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy phụ huynh với ID: " + currentParent.getId()));
         
         MedicationInstruction medicationInstruction = new MedicationInstruction();
-        medicationInstruction.setMedicationName(request.getMedicationName());
-        medicationInstruction.setDosageInstructions(request.getDosageInstructions());
+        medicationInstruction.setMedicationName(request.getMedicineName());
+        medicationInstruction.setDosageInstructions(request.getDosage());
         medicationInstruction.setStartDate(request.getStartDate());
         medicationInstruction.setEndDate(request.getEndDate());
-        medicationInstruction.setFrequencyPerDay(request.getFrequencyPerDay());
-        medicationInstruction.setTimeOfDay(request.getTimeOfDay());
-        medicationInstruction.setSpecialInstructions(request.getSpecialInstructions());
+        
+        // Convert frequency string to integer (e.g., "2 lần/ngày" -> 2)
+        String frequencyStr = request.getFrequency().replaceAll("[^0-9]", "");
+        int frequency = Integer.parseInt(frequencyStr);
+        if (frequency < 1 || frequency > 6) {
+            throw new IllegalArgumentException("Tần suất phải từ 1-6 lần/ngày");
+        }
+        medicationInstruction.setFrequencyPerDay(frequency);
+        
+        // Convert timeToTake list to JSON string
+        medicationInstruction.setTimeOfDay(request.getTimeToTake().toString());
+        medicationInstruction.setSpecialInstructions(request.getNotes());
 
         // Set parent-specific fields
         medicationInstruction.setParentProvided(true);
         medicationInstruction.setStatus(Status.PENDING_APPROVAL);
         medicationInstruction.setSubmittedAt(LocalDate.now());
         medicationInstruction.setHealthProfile(healthProfile);
-        medicationInstruction.setRequestedBy(parentEntity); // Set the parent who made the request
+        medicationInstruction.setRequestedBy(parentEntity);
+
+        // Handle prescription image if present
+        if (request.getPrescriptionImageBase64() != null && request.getPrescriptionImageType() != null) {
+            medicationInstruction.setPrescriptionImageBase64(request.getPrescriptionImageBase64());
+            medicationInstruction.setPrescriptionImageType(request.getPrescriptionImageType());
+        }
 
         MedicationInstruction savedMedicationInstruction = medicationInstructionRepository.save(medicationInstruction);
         return new MedicationInstructionDTO().toObject(savedMedicationInstruction);
-
     }
 
     @Override
@@ -237,13 +251,28 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         }
         // 7. Update medication details from request
         MedicationInstruction medicationInstruction = existingRequest.get();
-        medicationInstruction.setMedicationName(request.getMedicationName());
-        medicationInstruction.setDosageInstructions(request.getDosageInstructions());
+        medicationInstruction.setMedicationName(request.getMedicineName());
+        medicationInstruction.setDosageInstructions(request.getDosage());
         medicationInstruction.setStartDate(request.getStartDate());
         medicationInstruction.setEndDate(request.getEndDate());
-        medicationInstruction.setFrequencyPerDay(request.getFrequencyPerDay());
-        medicationInstruction.setTimeOfDay(request.getTimeOfDay());
-        medicationInstruction.setSpecialInstructions(request.getSpecialInstructions());
+        
+        // Convert frequency string to integer (e.g., "2 lần/ngày" -> 2)
+        String frequencyStr = request.getFrequency().replaceAll("[^0-9]", "");
+        int frequency = Integer.parseInt(frequencyStr);
+        if (frequency < 1 || frequency > 6) {
+            throw new IllegalArgumentException("Tần suất phải từ 1-6 lần/ngày");
+        }
+        medicationInstruction.setFrequencyPerDay(frequency);
+        
+        // Convert timeToTake list to string
+        medicationInstruction.setTimeOfDay(request.getTimeToTake().toString());
+        medicationInstruction.setSpecialInstructions(request.getNotes());
+
+        // Handle prescription image if present
+        if (request.getPrescriptionImageBase64() != null && request.getPrescriptionImageType() != null) {
+            medicationInstruction.setPrescriptionImageBase64(request.getPrescriptionImageBase64());
+            medicationInstruction.setPrescriptionImageType(request.getPrescriptionImageType());
+        }
 
         // 8. Save updated entity
         MedicationInstruction updatedMedicationInstruction = medicationInstructionRepository.save(medicationInstruction);

@@ -1,5 +1,64 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import api from "../services/api";
+
+import axios from "axios";
+
+// Base API URL
+const BASE_URL = "http://localhost:8080/api";
+
+// Comprehensive API endpoints configuration
+const API_ENDPOINTS = {
+  // Authentication
+  auth: {
+    login: `${BASE_URL}/v1/auth/login`,
+    logout: `${BASE_URL}/v1/auth/logout`,
+    refresh: `${BASE_URL}/v1/auth/refresh-token`,
+  },
+  
+  // Parent/Medication related
+  parent: {
+    submitMedicationRequest: `${BASE_URL}/parent-medication-requests/submit-request`,
+    getMedicationRequests: `${BASE_URL}/parent-medication-requests`,
+    updateMedicationRequest: `${BASE_URL}/parent-medication-requests`,
+    deleteMedicationRequest: `${BASE_URL}/parent-medication-requests`,
+  },
+  
+  // Student related
+  student: {
+    getAll: `${BASE_URL}/students`,
+    getById: `${BASE_URL}/students`,
+    create: `${BASE_URL}/students`,
+    update: `${BASE_URL}/students`,
+    delete: `${BASE_URL}/students`,
+    getByParent: `${BASE_URL}/students/parent`,
+  },
+  
+  // Nurse/Medical related
+  nurse: {
+    getMedicationRequests: `${BASE_URL}/nurse/medication-requests`,
+    approveMedicationRequest: `${BASE_URL}/nurse/medication-requests/approve`,
+    rejectMedicationRequest: `${BASE_URL}/nurse/medication-requests/reject`,
+    recordMedication: `${BASE_URL}/nurse/medication-records`,
+  },
+  
+  // Admin related
+  admin: {
+    getUsers: `${BASE_URL}/admin/users`,
+    createUser: `${BASE_URL}/admin/users`,
+    updateUser: `${BASE_URL}/admin/users`,
+    deleteUser: `${BASE_URL}/admin/users`,
+    getStatistics: `${BASE_URL}/admin/statistics`,
+  },
+  
+  // Profile related
+  profile: {
+    get: `${BASE_URL}/profile`,
+    update: `${BASE_URL}/profile`,
+    changePassword: `${BASE_URL}/profile/change-password`,
+  }
+};
+
+// Exact API URL for authentication (keeping for backward compatibility)
+const API_URL = API_ENDPOINTS.auth.login;
 
 const AuthContext = createContext();
 
@@ -54,61 +113,46 @@ export const AuthProvider = ({ children }) => {
     checkLoggedInUser();
   }, []);
 
-  // Hàm đăng nhập sử dụng mock data (tạm thời)
+// Hàm đăng nhập sử dụng exact API URL
+
   const login = async (username, password) => {
     try {
       setAuthError(null);
-      
-      // Kiểm tra với mock data (để dùng tạm)
-      const user = mockUserData.find(user => user.username === username);
-      
-      if (user && password === "123456") {
-        // Tạo dữ liệu xác thực giả
-        const authData = {
-          ...user,
-          token: `mock-token-${user.role}-${Date.now()}`
-        };
-        
-        // Lưu token và thông tin user vào localStorage
-        localStorage.setItem("authToken", authData.token);
-        localStorage.setItem("userData", JSON.stringify(authData));
-        
-        // Cập nhật state
-        setCurrentUser(authData);
-        return authData;
-      }
-      
-      // Nếu thông tin đăng nhập không đúng
-      throw new Error("Tên đăng nhập hoặc mật khẩu không đúng");
-      
-      // Code gọi API thật (đã bị comment để sử dụng mock data tạm thời)
-      /*
-      const response = await api.post("/auth/login", {
+
+      // Gọi API thực tế để đăng nhập với exact URL
+      const response = await axios.post(API_URL, {
         username,
-        password
+        password,
       });
 
-      const authData = response.data;
-      
-      if (authData && authData.token) {
-        // Lưu token và thông tin user
-        localStorage.setItem("authToken", authData.token);
-        localStorage.setItem("userData", JSON.stringify(authData));
+      // Xử lý phản hồi từ API
+      const userData = response.data;
 
-        // Cập nhật state với thông tin user
-        setCurrentUser(authData);
-        return authData;
+      if (userData && userData.token) {
+        // Tạo object user từ dữ liệu response
+        const user = {
+          id: userData.memberId,
+          email: userData.email,
+          role: userData.role.toLowerCase(), // Chuyển về lowercase để phù hợp với các role đã định nghĩa
+          phoneNumber: userData.phoneNumber,
+        };
+
+        // Lưu thông tin đăng nhập
+        localStorage.setItem("authToken", userData.token);
+        localStorage.setItem("userData", JSON.stringify(user));
+
+        // Cập nhật state
+        setCurrentUser(user);
+        return user;
       } else {
-        throw new Error("Phản hồi không hợp lệ từ server");
+        throw new Error("Đăng nhập thất bại, không nhận được token");
       }
-      */
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.statusText || 
-                          error.message || 
-                          "Đăng nhập thất bại";
-      setAuthError(errorMessage);
-      throw new Error(errorMessage);
+      const errorMsg =
+        error.response?.data?.message ||
+        "Tên đăng nhập hoặc mật khẩu không đúng";
+      setAuthError(errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
@@ -118,12 +162,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("userData");
     setCurrentUser(null);
   };
+
   const value = {
     currentUser,
     login,
     logout,
     authError,
-    mockUsers  // Add mockUsers to the context value
+    API_ENDPOINTS, // Make API endpoints available throughout the app
   };
 
   return (

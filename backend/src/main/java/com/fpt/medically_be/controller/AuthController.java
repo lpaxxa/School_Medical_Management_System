@@ -3,10 +3,10 @@ package com.fpt.medically_be.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fpt.medically_be.dto.auth.AuthResponseDTO;
 import com.fpt.medically_be.dto.auth.LoginRequestDTO;
-import com.fpt.medically_be.dto.auth.PasswordResetDTO;
-import com.fpt.medically_be.dto.auth.PasswordResetRequestDTO;
+
 import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
 import com.fpt.medically_be.dto.request.ParentRegistrationRequestDTO;
+import com.fpt.medically_be.entity.AccountMember;
 import com.fpt.medically_be.entity.MemberRole;
 import com.fpt.medically_be.service.AuthService;
 import com.fpt.medically_be.service.JwtService;
@@ -106,37 +106,37 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        logger.info("Login attempt for user: " + loginRequest.getUsername());
-        
-        var accountMember = authService.login(loginRequest);
-        if (accountMember == null) {
-            logger.warning("Login failed for user: " + loginRequest.getUsername());
-            return ResponseEntity.status(401).body(null);
-        } else {
-            logger.info("Login successful for user: " + loginRequest.getUsername());
-            AuthResponseDTO authResponseDTO = new AuthResponseDTO().toObject(accountMember);
-            authResponseDTO.setToken(jwtService.generateToken(
-                    accountMember.getId(),
-                    accountMember.getEmail(),
-                    accountMember.getPhoneNumber(),
-                    accountMember.getRole()
-
-
-            ));
-            return ResponseEntity.ok(authResponseDTO);
+        AccountMember member = authService.login(loginRequest);
+        if (member == null) {
+            return ResponseEntity.badRequest().build();
         }
+        String token = jwtService.generateToken(
+            member.getId(),
+            member.getEmail(),
+            member.getPhoneNumber(),
+            member.getRole()
+        );
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO().toObject(member);
+        authResponseDTO.setToken(token);
+        return ResponseEntity.ok(authResponseDTO);
     }
 
     @GetMapping("/oauth2/success")
-    public ResponseEntity<AuthResponseDTO> oauth2Success(@RequestParam (required = false) String code, @RequestParam (required = false) String state, @RequestParam (required = false) String error ) {
-        if(error != null) {
+    public ResponseEntity<AuthResponseDTO> oauth2Success(
+            @RequestParam(required = false) String code, 
+            @RequestParam(required = false) String state, 
+            @RequestParam(required = false) String error) {
+        
+        if (error != null) {
             logger.warning("OAuth2 login failed: " + error);
             return ResponseEntity.badRequest().body(null);
         }
-       var accountMember = authService.processOAuth2Callback(code, state);
-        if(accountMember == null) {
+
+        AccountMember accountMember = authService.processOAuth2Callback(code, state);
+        if (accountMember == null) {
             return ResponseEntity.status(401).body(null);
         }
+
         AuthResponseDTO authResponseDTO = new AuthResponseDTO().toObject(accountMember);
         authResponseDTO.setToken(jwtService.generateToken(
                 accountMember.getId(),
@@ -145,11 +145,8 @@ public class AuthController {
                 accountMember.getRole()
         ));
         return ResponseEntity.ok(authResponseDTO);
-
-
-
-
     }
+
     @GetMapping("/oauth2/failure")
     public ResponseEntity<String> oauth2Failure() {
         return ResponseEntity.status(401).body("OAuth2 authentication failed");
@@ -169,17 +166,6 @@ public class AuthController {
     public ResponseEntity<String> testCurrentUser(Authentication authentication) {
         return ResponseEntity.ok("Current user name: " + authentication.getName());
 
-    }
-    @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@Valid @RequestBody PasswordResetRequestDTO requestDTO) {
-        authService.initiatePasswordReset(requestDTO.getEmail());
-        return ResponseEntity.ok("Password reset email sent successfully");
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetDTO requestDTO) {
-        authService.resetPassword(requestDTO.getToken(), requestDTO.getNewPassword());
-        return ResponseEntity.ok("Password has been reset successfully");
     }
 
     @GetMapping("/test-email")

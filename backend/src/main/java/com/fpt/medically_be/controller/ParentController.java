@@ -6,6 +6,7 @@ import com.fpt.medically_be.dto.StudentDTO;
 import com.fpt.medically_be.dto.response.ParentDTO;
 import com.fpt.medically_be.service.ParentService;
 import com.fpt.medically_be.service.StudentService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/parents")
+@RequestMapping("/api/v1/parents")
 public class ParentController {
 
     private final ParentService parentService;
@@ -57,16 +58,11 @@ public class ParentController {
         return ResponseEntity.ok(parentService.getParentByAccountId(accountId));
     }
 
-    /**
 
-     * Lấy danh sách học sinh của phụ huynh hiện tại (dựa trên tài khoản đăng nhập)
 
-     * @param authentication Thông tin xác thực từ token
-     * @return Danh sách học sinh của phụ huynh
-     */
     @GetMapping("/my-students")
     @PreAuthorize("hasRole('PARENT')")
-
+    @Operation(summary = "Lấy danh sách học sinh của phụ huynh hiện tại (dựa trên tài khoản đăng nhập)")
     public ResponseEntity<List<StudentDTO>> getCurrentParentStudents(Authentication authentication) {
 
         String accountId = authentication.getName(); // Lấy memberId từ token
@@ -75,16 +71,13 @@ public class ParentController {
     }
 
 
-    /**
-     * Lấy danh sách học sinh của một phụ huynh cụ thể theo ID
-     * @param parentId ID của phụ huynh
-     * @return Danh sách học sinh của phụ huynh
-     */
-    @GetMapping("/{parentId}/students")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or (hasRole('PARENT') and #parentId == authentication.principal.accountId)")
-    public ResponseEntity<List<StudentDTO>> getParentStudents(@PathVariable Long parentId) {
-        return ResponseEntity.ok(studentService.getStudentsByParentId(parentId));
-    }
+
+//    @GetMapping("/{parentId}/students")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or (hasRole('PARENT') and #parentId.toString() == authentication.name)")
+//    @Operation(summary = "Lấy danh sách học sinh của một phụ huynh cụ thể theo ID, riêng phụ huynh chỉ được lấy danh sách con của chính họ")
+//    public ResponseEntity<List<StudentDTO>> getParentStudents(@PathVariable Long parentId) {
+//        return ResponseEntity.ok(studentService.getStudentsByParentId(parentId));
+//    }
 
 
     @PostMapping

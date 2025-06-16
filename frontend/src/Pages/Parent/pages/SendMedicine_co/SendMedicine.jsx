@@ -2,11 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./SendMedicine.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
+import { useAuth } from "../../../../context/AuthContext";
+import axios from "axios";
 
 const SendMedicine = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const { API_ENDPOINTS } = useAuth();
 
   const [formData, setFormData] = useState({
     studentId: "",
@@ -145,10 +148,41 @@ const SendMedicine = () => {
     setLoading(true);
 
     try {
-      // Giả lập gọi API gửi dữ liệu
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Get authentication token
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        alert("Vui lòng đăng nhập lại");
+        return;
+      }
 
-      console.log("Dữ liệu gửi đi:", formData);
+      // Prepare data for API
+      const requestData = {
+        studentId: parseInt(formData.studentId),
+        medicineName: formData.medicineName,
+        dosage: formData.dosage,
+        frequency: formData.frequency,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        timeToTake: formData.timeToTake, // Keep as array - DTO expects List<String>
+        notes: formData.notes || "",
+        // Note: prescriptionImage handling would need multipart form data
+      };
+
+      console.log("Dữ liệu gửi đi:", requestData);
+
+      // Call real API
+      const response = await axios.post(
+        API_ENDPOINTS.parent.submitMedicationRequest,
+        requestData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log("API Response:", response.data);
       setFormSubmitted(true);
 
       // Reset form sau khi gửi thành công
@@ -165,7 +199,10 @@ const SendMedicine = () => {
       });
     } catch (error) {
       console.error("Lỗi khi gửi:", error);
-      alert("Có lỗi xảy ra, vui lòng thử lại sau.");
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          "Có lỗi xảy ra, vui lòng thử lại sau.";
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }

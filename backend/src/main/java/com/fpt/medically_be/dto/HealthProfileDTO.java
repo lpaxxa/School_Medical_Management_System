@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -21,4 +22,6 @@ public class HealthProfileDTO {
     private String visionLeft;
     private String visionRight;
     private String hearingStatus;
+    private String dentalStatus;
+    private LocalDateTime lastUpdated;
 }

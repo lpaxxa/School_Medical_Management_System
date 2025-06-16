@@ -1,5 +1,6 @@
 package com.fpt.medically_be.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,5 +24,16 @@ public class StudentDTO {
     private String imageUrl;
     private Long healthProfileId;
     private Long parentId;
+    
+    // Frontend compatibility fields
+    @JsonProperty("name")
+    public String getName() {
+        return this.fullName;
+    }
+    
+    @JsonProperty("class")
+    public String getClass_() {
+        return this.className;
+    }
 
 }

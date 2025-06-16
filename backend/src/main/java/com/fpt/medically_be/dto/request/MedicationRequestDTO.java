@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -13,31 +14,29 @@ public class MedicationRequestDTO {
     @NotNull(message = "Student ID is required")
     private Long studentId;
 
-    @NotBlank(message = "Medication name is required")
-    @Size(max = 255, message = "Medication name cannot exceed 255 characters")
-    private String medicationName;
+    @NotBlank(message = "Medicine name is required")
+    @Size(max = 255, message = "Medicine name cannot exceed 255 characters")
+    private String medicineName;
 
-    @NotBlank(message = "Dosage instructions are required")
-    private String dosageInstructions;
+    @NotBlank(message = "Dosage is required")
+    private String dosage;
+
+    @NotBlank(message = "Frequency is required")
+    private String frequency;
 
     @NotNull(message = "Start date is required")
-    @Future(message = "Start date must be in the future")
+    @FutureOrPresent(message = "Start date must be today or in the future")
     private LocalDate startDate;
 
     @NotNull(message = "End date is required")
     private LocalDate endDate;
 
-    @NotNull(message = "Frequency per day is required")
-    @Min(value = 1, message = "Frequency must be at least 1")
-    @Max(value = 6, message = "Frequency cannot exceed 6 times per day")
-    private Integer frequencyPerDay;
+    @NotEmpty(message = "Time to take is required")
+    private List<String> timeToTake;
 
-    @NotBlank(message = "Time of day is required")
-    private String timeOfDay; // JSON array: ["morning", "afternoon", "evening"]
+    private String notes;
 
-    private String specialInstructions;
-
-
-
-
+    // Optional fields for image upload
+    private String prescriptionImageBase64; // Base64 encoded image
+    private String prescriptionImageType; // Image MIME type
 }

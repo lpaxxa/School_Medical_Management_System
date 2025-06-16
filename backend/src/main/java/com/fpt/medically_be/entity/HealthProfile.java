@@ -44,6 +44,12 @@ public class HealthProfile {
     @Column(name = "hearing_status", columnDefinition = "NVARCHAR(50)")
     private String hearingStatus;
 
+    @Column(name = "dental_status", columnDefinition = "NVARCHAR(MAX)")
+    private String dentalStatus;
+
+    @Column(name = "last_updated")
+    private java.time.LocalDateTime lastUpdated;
+
     @OneToMany(mappedBy = "healthProfile", cascade = CascadeType.ALL)
     private List<Vaccination> vaccinations;
 
