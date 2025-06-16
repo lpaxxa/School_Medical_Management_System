@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
-import Dashboard from "../pages/Dashboard/Dashboard";
-import UserManagement from "../pages/UserManagement/UserManagement";
-import PermissionManagement from "../pages/PermissionManagement/PermissionManagement";
-import Reports from "../pages/Reports/Reports";
+import Dashboard from "../pages/Dashboard_co/Dashboard";
+import UserManagement from "../pages/UserManagement_co/UserManagement";
+import PermissionManagement from "../pages/Permissions_co/PermissionsManagement";
+import Reports from "../pages/Reports_co";
 import "./AdminLayout.css";
 
 const AdminLayout = () => {

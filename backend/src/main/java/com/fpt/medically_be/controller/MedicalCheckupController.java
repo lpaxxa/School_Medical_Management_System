@@ -2,6 +2,7 @@ package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.MedicalCheckupDTO;
 import com.fpt.medically_be.service.MedicalCheckupService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/medical-checkups")
+@RequestMapping("/api/v1/medical-checkups")
 public class MedicalCheckupController {
 
     private final MedicalCheckupService medicalCheckupService;
@@ -36,6 +37,7 @@ public class MedicalCheckupController {
 
     @GetMapping("/student/{studentId}")
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+    @Operation(summary = "Lấy lịch sử kiểm tra định kì theo studentId")
     public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByStudentId(@PathVariable Long studentId) {
         return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByStudentId(studentId));
     }

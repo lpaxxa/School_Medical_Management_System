@@ -59,19 +59,19 @@ public class SecurityConfig {
         // @formatter:off
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/v1/auth/**").permitAll() // Allow all auth endpoints
-                .requestMatchers("/api/mock/**").permitAll()
+                .requestMatchers("/api/v1/v1/auth/**").permitAll() // Allow all auth endpoints
+                .requestMatchers("/api/v1/mock/**").permitAll()
                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll() // Allow actuator endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .requestMatchers("/api/students/**").permitAll()
-                    .requestMatchers("/api/parents/**").permitAll()
-                    .requestMatchers("/api/vaccinations/**").permitAll()
-                    .requestMatchers("/api/health-profiles/**").permitAll()
-                    .requestMatchers("/api/medical-checkups/**").permitAll()
-                    .requestMatchers("/api/medication-instructions/**").permitAll()
-                    .requestMatchers("/api/usersController/**").permitAll()
-                    .requestMatchers("/api/medical-incidents/**").permitAll()
+                    .requestMatchers("/api/v1/students/**").permitAll()
+                    .requestMatchers("/api/v1/parents/**").permitAll()
+                    .requestMatchers("/api/v1/vaccinations/**").permitAll()
+                    .requestMatchers("/api/v1/health-profiles/**").permitAll()
+                    .requestMatchers("/api/v1/medical-checkups/**").permitAll()
+                    .requestMatchers("/api/v1/medication-instructions/**").permitAll()
+                    .requestMatchers("/api/v1/usersController/**").permitAll()
+                    .requestMatchers("/api/v1/medical-incidents/**").permitAll()
 
 
 
@@ -80,8 +80,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .oauth2Login(oauth2Login -> oauth2Login
-                        .defaultSuccessUrl("/api/v1/auth/oauth2/success", true)
-                        .failureUrl("/api/v1/auth/oauth2/failure")
+                        .defaultSuccessUrl("/api/v1/v1/auth/oauth2/success", true)
+                        .failureUrl("/api/v1/v1/auth/oauth2/failure")
                         .permitAll()
                 )
             .oauth2ResourceServer(oauth2 -> oauth2

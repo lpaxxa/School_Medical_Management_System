@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.request.MedicationRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
 import com.fpt.medically_be.service.MedicationInstructionService;
 import com.fpt.medically_be.service.NotificationService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ import java.util.List;
  * Handles parent-initiated medication requests for their children
  */
 @RestController
-@RequestMapping("/api/parent-medication-requests")
+@RequestMapping("/api/v1/parent-medication-requests")
 @CrossOrigin(origins = "*")
 @PreAuthorize("hasRole('PARENT')")
 public class ParentMedicationRequestController {
@@ -40,6 +41,7 @@ public class ParentMedicationRequestController {
 
     @PostMapping("/submit-request")
     @PreAuthorize("hasRole('PARENT')")
+    @Operation(summary = "Điền form gửi thuốc cho học sinh")
     public ResponseEntity<MedicationInstructionDTO> submitMedicationRequest(
             @Valid @RequestBody MedicationRequestDTO request, 
             Authentication auth) {
@@ -59,6 +61,7 @@ public class ParentMedicationRequestController {
 
     @GetMapping("/my-requests")
     @PreAuthorize("hasRole('PARENT')")
+    @Operation(summary = "Xem danh sách Tất Cả yêu cầu gửi thuốc của phụ huynh (history)")
     public ResponseEntity<List<MedicationInstructionDTO>> getMyMedicationRequests(Authentication auth) {
         List<MedicationInstructionDTO> requests = medicationInstructionService.getParentMedicationRequests(auth);
         return ResponseEntity.ok(requests);
@@ -67,6 +70,7 @@ public class ParentMedicationRequestController {
     //view requests by specific child
     @GetMapping("/child/{studentId}")
     @PreAuthorize("hasRole('PARENT')")
+    @Operation(summary = "Xem danh sách yêu cầu gửi thuốc bằng id học sinh")
     public ResponseEntity<List<MedicationInstructionDTO>> getMedicationRequestsByChild(
             @PathVariable Long studentId, 
             Authentication auth) {
@@ -78,6 +82,7 @@ public class ParentMedicationRequestController {
     //cancel medication request - moved before generic {requestId} mapping
     @DeleteMapping("/cancel-request/{requestId}")
     @PreAuthorize("hasRole('PARENT')")
+    @Operation(summary = "Hủy yêu cầu gửi thuốc, nếu status vẫn là PENDING_APPROVAL")
     public ResponseEntity<Void> cancelMedicationRequest(
             @PathVariable Long requestId, 
             Authentication auth) {
@@ -89,6 +94,7 @@ public class ParentMedicationRequestController {
     //update medication request
     @PutMapping("/{requestId}")
     @PreAuthorize("hasRole('PARENT')")
+    @Operation(summary = "Cập nhật yêu cầu gửi thuố, nếu status vẫn là PENDING_APPROVAL")
     public ResponseEntity<MedicationInstructionDTO> updateMedicationRequest(
             @PathVariable Long requestId,
             @Valid @RequestBody MedicationRequestDTO request, 
@@ -101,6 +107,7 @@ public class ParentMedicationRequestController {
     //view medication request by ID - moved to end to avoid conflicts
     @GetMapping("/{requestId}")
     @PreAuthorize("hasRole('PARENT')")
+    @Operation(summary = "Xem chi tiết yêu cầu gửi thuốc bằng ID")
     public ResponseEntity<MedicationInstructionDTO> getMedicationRequestById(@PathVariable Long requestId) {
         MedicationInstructionDTO request = medicationInstructionService.getMedicationInstructionById(requestId);
         return ResponseEntity.ok(request);

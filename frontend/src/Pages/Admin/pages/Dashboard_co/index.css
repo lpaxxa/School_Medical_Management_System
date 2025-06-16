@@ -1,0 +1,6 @@
+.dashboard-page {
+  width: 100%;
+  background-color: #f0f9ff; /* Light medical blue background */
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(26, 123, 181, 0.1); /* Medical blue shadow */
+}

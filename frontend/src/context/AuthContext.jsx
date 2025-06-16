@@ -78,10 +78,36 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+// Mock users for testing
+const mockUserData = [
+  {
+    id: "1",
+    username: "admin",
+    role: "admin",
+    name: "Admin User",
+    token: "mock-token-admin"
+  },
+  {
+    id: "2", 
+    username: "yta1",
+    role: "nurse",
+    name: "Y tá 1",
+    token: "mock-token-nurse"
+  },
+  {
+    id: "3",
+    username: "phuhuynh",
+    role: "parent",
+    name: "Phụ huynh",
+    token: "mock-token-parent"
+  }
+];
+
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const [mockUsers, setMockUsers] = useState(mockUserData);
 
   // Kiểm tra nếu người dùng đã đăng nhập (từ localStorage)
   useEffect(() => {

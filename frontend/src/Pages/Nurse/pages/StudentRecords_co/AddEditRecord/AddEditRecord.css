@@ -231,3 +231,20 @@
   border-radius: 5px;
   border: 1px solid #ddd;
 }
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #333;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.upload-button:hover {
+  background-color: #e0e0e0;
+}

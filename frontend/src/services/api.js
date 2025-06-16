@@ -3,11 +3,13 @@ import axios from 'axios';
 // Base API URL for your backend
 const API_URL = "http://localhost:8080";
 
+// Create axios instance with timeout to prevent hanging
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 seconds timeout
 });
 
 // Request interceptor - add auth token to requests

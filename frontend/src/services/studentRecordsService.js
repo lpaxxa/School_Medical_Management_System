@@ -507,50 +507,39 @@ const studentsData = [
   }
 ];
 
-// Phân loại BMI
-const calculateBMICategory = (bmi) => {
-  if (bmi < 18.5) return { category: "Gầy", color: "#FFA500" };
-  if (bmi >= 18.5 && bmi < 25) return { category: "Bình thường", color: "#4CAF50" };
-  if (bmi >= 25 && bmi < 30) return { category: "Thừa cân", color: "#FF9800" };
-  return { category: "Béo phì", color: "#F44336" };
+// Hàm tính toán chỉ số BMI và phân loại
+export const calculateBMICategory = (bmi) => {
+  if (bmi < 16) {
+    return { category: "Thiếu cân nặng", color: "#ff9800" };
+  } else if (bmi >= 16 && bmi < 18.5) {
+    return { category: "Gầy", color: "#ffeb3b" };
+  } else if (bmi >= 18.5 && bmi < 25) {
+    return { category: "Bình thường", color: "#4caf50" };
+  } else if (bmi >= 25 && bmi < 30) {
+    return { category: "Thừa cân", color: "#ff9800" };
+  } else {
+    return { category: "Béo phì", color: "#f44336" };
+  }
 };
 
-// Chuẩn BMI theo độ tuổi cho trẻ em và thiếu niên
-const getBMIStandardByAgeGender = (age, gender) => {
-  const standards = {
-    male: {
-      8: { min: 14.0, max: 18.0 },
-      9: { min: 14.2, max: 18.6 },
-      10: { min: 14.5, max: 19.3 },
-      11: { min: 14.9, max: 20.2 },
-      12: { min: 15.4, max: 21.0 },
-      13: { min: 16.0, max: 21.9 },
-      14: { min: 16.6, max: 22.7 },
-      15: { min: 17.2, max: 23.4 },
-      16: { min: 17.8, max: 24.2 },
-      17: { min: 18.4, max: 24.9 },
-      18: { min: 18.5, max: 24.9 }
-    },
-    female: {
-      8: { min: 13.8, max: 18.3 },
-      9: { min: 14.0, max: 19.0 },
-      10: { min: 14.2, max: 19.8 },
-      11: { min: 14.6, max: 20.7 },
-      12: { min: 15.0, max: 21.6 },
-      13: { min: 15.5, max: 22.5 },
-      14: { min: 16.0, max: 23.3 },
-      15: { min: 16.4, max: 24.0 },
-      16: { min: 16.8, max: 24.5 },
-      17: { min: 17.1, max: 24.9 },
-      18: { min: 17.5, max: 24.9 }
+// Lấy chuẩn BMI dựa trên tuổi và giới tính
+export const getBMIStandardByAgeGender = (age, gender) => {
+  // Đây là ví dụ đơn giản, trong thực tế sẽ phức tạp hơn dựa trên nghiên cứu y tế
+  if (age < 13) {
+    return { min: 15, max: 21 };
+  } else if (age < 18) {
+    if (gender === "Nam") {
+      return { min: 16, max: 23 };
+    } else {
+      return { min: 15, max: 22 };
     }
-  };
-
-  const genderKey = gender.toLowerCase() === "nam" ? "male" : "female";
-  
-  if (age < 8) return standards[genderKey][8];
-  if (age > 18) return standards[genderKey][18];
-  return standards[genderKey][age];
+  } else {
+    if (gender === "Nam") {
+      return { min: 18.5, max: 25 };
+    } else {
+      return { min: 18.5, max: 24 };
+    }
+  }
 };
 
 // Lấy danh sách tất cả học sinh
@@ -757,7 +746,5 @@ export {
   updateStudentRecord,
   addStudentNote,
   getClassList,
-  getBloodTypes,
-  calculateBMICategory,
-  getBMIStandardByAgeGender
+  getBloodTypes
 };

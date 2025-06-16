@@ -1,26 +1,29 @@
-/* Merged styles from index.css */
+﻿/* 
+  MedicalEventsMain.css
+  CSS for title and navigation tabs only
+*/
+
 .medical-events-page {
   width: 100%;
 }
 
-/* Styles cho tab navigation */
 .medical-events-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  font-family: 'Roboto', 'Segoe UI', sans-serif;
-  position: relative;
   padding: 20px;
   color: #333;
 }
 
-/* Styles nav3 dựa trên thanh điều hướng của trang quản lý tiêm chủng */
+.page-title {
+  margin: 0 0 20px 0;
+  font-size: 26px;
+  font-weight: 600;
+  color: #333;
+}
+
 .medical-events-tabs {
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  margin-bottom: 20px;
 }
 
 .medical-events-nav {
@@ -29,22 +32,6 @@
   margin: 0;
   padding: 0;
   background-color: #f8f9fa;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.medical-events-nav::-webkit-scrollbar {
-  height: 4px;
-}
-
-.medical-events-nav::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.medical-events-nav::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 10px;
 }
 
 .tab-button {
@@ -58,13 +45,12 @@
   border-bottom: 3px solid transparent;
   transition: all 0.2s ease;
   color: #555;
-  white-space: nowrap;
   background: none;
+  white-space: nowrap;
 }
 
 .tab-button i {
   margin-right: 5px;
-  font-size: 16px;
 }
 
 .tab-button:hover {
@@ -72,138 +58,185 @@
   color: #007bff;
 }
 
-/* Style cho tab đang active */
 .tab-button.active {
   background-color: #ffffff;
   color: #007bff;
   border-bottom: 3px solid #007bff;
-  font-weight: 600;
 }
 
-/* Hiệu ứng hover cho các tab không active */
-.tab-button:hover:not(.active) {
-  color: #3498db;
-}
-
-/* Thêm hiệu ứng chuyển đổi tab */
-.tab-indicator {
-  position: absolute;
-  height: 3px;
-  background-color: #3498db;
-  bottom: -2px;
-  transition: all 0.3s ease-in-out;
-  z-index: 2;
-  border-radius: 2px;
+.tab-button.active i {
+  color: #2180de;
 }
 
 .medical-events-content {
   padding: 20px;
-  background-color: #fff;
-  border-radius: 0 0 8px 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  animation: fadeIn 0.3s ease-out;
-  border: 1px solid #f0f0f0;
-  border-top: none;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0.8;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Common table styling for all events tables */
+.events-table-container {
+  flex: 1;
+  overflow: visible;
+  margin-bottom: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* Styles cho trạng thái thuốc */
-.status-active {
-  color: #2563eb;
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.events-table th {
+  padding: 12px 15px;
+  text-align: left;
   font-weight: 600;
+  color: #333;
+  background-color: #f8f9fa;
+  position: relative;
+  border-bottom: 1px solid #eee;
 }
 
+.events-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  color: #37474f;
+}
+
+.events-table tr:last-child td {
+  border-bottom: none;
+}
+
+.events-table tr:hover {
+  background-color: #f5f8ff;
+}
+
+/* Status badges for all tables */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  margin: 0 auto;
+}
+
+/* Status badges for MedicationReceiving */
 .status-new {
-  color: #6366f1;
-  font-weight: 600;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-active {
+  background-color: #e3f2fd;
+  color: #1565c0;
 }
 
 .status-completed {
-  color: #10b981;
-  font-weight: 600;
+  background-color: #e0f2f1;
+  color: #00796b;
 }
 
 .status-expired {
-  color: #ef4444;
-  font-weight: 600;
+  background-color: #ffebee;
+  color: #c62828;
 }
 
-/* Badge cho trạng thái */
-.status-badge {
+/* Status badges for MedicationAdministration */
+.status-given {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-refused {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-absent {
+  background-color: #f3e5f5;
+  color: #6a1b9a;
+}
+
+/* Status badges for MedicalIncidents */
+.severity-low {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.severity-medium {
+  background-color: #fff8e1;
+  color: #f57f17;
+}
+
+.severity-high {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* Common action buttons for all medical event components */
+.btn-view, .btn-edit, .btn-delete {
+  border: none;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
-  padding: 6px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 2px;
+  transition: all 0.2s;
 }
 
-.status-badge:before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 6px;
+.btn-view {
+  background-color: #e3f2fd;
+  color: #1565c0;
 }
 
-.status-badge.status-new {
-  background-color: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+.btn-view:hover {
+  background-color: #bbdefb;
 }
 
-.status-badge.status-new:before {
-  background-color: #6366f1;
+.btn-edit {
+  background-color: #e8f5e9;
+  color: #2e7d32;
 }
 
-.status-badge.status-active {
-  background-color: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
+.btn-edit:hover {
+  background-color: #c8e6c9;
 }
 
-.status-badge.status-active:before {
-  background-color: #2563eb;
+.btn-delete {
+  background-color: #ffebee;
+  color: #c62828;
 }
 
-.status-badge.status-completed {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+.btn-delete:hover {
+  background-color: #ffcdd2;
 }
 
-.status-badge.status-completed:before {
-  background-color: #10b981;
+.action-cell {
+  white-space: nowrap;
+  text-align: center !important;
 }
 
-.status-badge.status-expired {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+.tab-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
 }
 
-.status-badge.status-expired:before {
-  background-color: #ef4444;
+.tab-button.active:focus {
+  box-shadow: 0 0 0 2px rgba(33, 128, 222, 0.3);
 }
 
-/* Hiệu ứng hover cho status badge */
-.status-badge:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+.tab-button:active {
+  transform: translateY(1px);
 }
 
-/* Responsive styles cho navigation - dựa trên style tiêm chủng */
 @media (max-width: 992px) {
   .tab-button i {
     margin-right: 0;
@@ -211,7 +244,6 @@
   
   .tab-button {
     padding: 15px;
-    font-size: 14px;
   }
   
   .tab-button span {
@@ -219,19 +251,13 @@
   }
 }
 
-@media (max-width: 768px) {
-  .medical-events-content {
-    padding: 16px;
-  }
-  
-  .status-badge {
-    padding: 4px 8px;
-  }
-}
-
 @media (max-width: 576px) {
   .medical-events-container {
     padding: 10px;
+  }
+  
+  .page-title {
+    font-size: 22px;
   }
   
   .tab-button {
@@ -242,42 +268,10 @@
   .medical-events-content {
     padding: 10px;
   }
-  
-  .status-badge {
-    padding: 3px 6px;
-    font-size: 12px;
-  }
 }
 
-/* Hiệu ứng focus cho tab navigation */
-.tab-button:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
-}
-
-/* Hiệu ứng active ring */
-.tab-button.active:focus {
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
-}
-
-/* Hiệu ứng khi click tab */
-.tab-button:active {
-  transform: translateY(1px);
-}
-
-/* Đổi màu cho biểu tượng trong tab active */
-.tab-button.active i {
-  color: #3498db;
-}
-
-/* Cải thiện khả năng tiếp cận */
 @media (prefers-reduced-motion: reduce) {
   .tab-button, .medical-events-content {
     transition: none;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0.9; }
-    to { opacity: 1; }
   }
 }

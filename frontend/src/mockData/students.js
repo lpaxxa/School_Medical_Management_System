@@ -6,14 +6,60 @@ export const MOCK_STUDENTS = [
     class: "3A",
     parentId: 3,
     dateOfBirth: "2015-03-15",
+    gender: "Nam",
     bloodType: "A+",
+    homeRoomTeacher: "Nguyễn Thị Mai",
+    lastUpdated: "2023-09-01",
+    status: "Đã hoàn thành",
+    imageUrl: "https://via.placeholder.com/150",
     allergies: ["Đậu phộng", "Sữa"],
     medicalConditions: [],
     emergencyContact: {
-      name: "Trần Văn An",
+      parentName: "Trần Văn An",
       phone: "0901234567",
       relationship: "Cha"
-    }
+    },
+    healthIndices: {
+      height: 135,
+      weight: 32,
+      bmi: 17.6,
+      vision: "10/10",
+      hearing: "Bình thường",
+      bloodPressure: "90/60"
+    },
+    medicalHistory: {
+      allergies: "Đậu phộng, Sữa",
+      chronicDiseases: "Không có",
+      medicalHistory: "Từng phẫu thuật ruột thừa năm 2021"
+    },
+    healthRecords: [
+      {
+        date: "2023-05-15",
+        height: 132,
+        weight: 30,
+        bmi: 17.2
+      },
+      {
+        date: "2023-09-01",
+        height: 135,
+        weight: 32,
+        bmi: 17.6
+      }
+    ],
+    notes: [
+      {
+        id: 1,
+        date: "2023-05-15",
+        content: "Học sinh có biểu hiện mệt mỏi trong giờ thể dục, đã cho nghỉ ngơi và theo dõi.",
+        author: "Y tá"
+      },
+      {
+        id: 2,
+        date: "2023-09-01",
+        content: "Đã khám sức khỏe định kỳ, các chỉ số đều trong ngưỡng bình thường.",
+        author: "Bác sĩ Nguyễn Văn B"
+      }
+    ]
   },
   {
     id: 102,
