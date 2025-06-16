@@ -98,9 +98,13 @@ const HealthCheckups = () => {
       setActiveTab('dashboard');
     }
   };
-
   return (
     <div className="health-checkups-container">
+      {/* Tiêu đề trang */}
+      <div className="health-checkups-header">
+        <h1 className="health-checkups-title">Quản lý khám sức khỏe</h1>
+      </div>
+      
       {/* Tabs điều hướng các chức năng */}
       <div className="health-checkups-tabs">
         <button 

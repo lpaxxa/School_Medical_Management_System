@@ -9,6 +9,9 @@ import HealthCheckupsPage from "../Pages/Nurse/pages/HealthCheckups_co";
 import InventoryPage from "../Pages/Nurse/pages/Inventory_co";
 import MedicalEventsPage from "../Pages/Nurse/pages/MedicalEvents_co";
 import VaccinationPage from "../Pages/Nurse/pages/Vaccination_co";
+// Import BlogManagement directly from the file to avoid potential issues with index.js
+import BlogManagement from "../Pages/Nurse/pages/Blog_co/BlogManagement";
+import SimpleBlogManagement from "../Pages/Nurse/pages/Blog_co/SimpleBlogManagement";
 
 // NurseLayout đã được import từ file riêng
 
@@ -24,11 +27,12 @@ const NurseRoutes = () => {
               <Route index element={<Dashboard />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="consultations" element={<Consultation />} />
-              <Route path="student-records" element={<StudentRecordsPage />} />
-              <Route path="health-checkups" element={<HealthCheckupsPage />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="medical-events" element={<MedicalEventsPage />} />
-              <Route path="vaccination" element={<VaccinationPage />} />
+              <Route path="student-records" element={<StudentRecordsPage />} />              <Route path="health-checkups" element={<HealthCheckupsPage />} />
+              <Route path="inventory" element={<InventoryPage />} />              <Route path="medical-events" element={<MedicalEventsPage />} />
+              <Route path="vaccination" element={<VaccinationPage />} />              <Route 
+                path="blog-management" 
+                element={<BlogManagement />} 
+              />
             </Routes>
           </NurseLayout>
         </ProtectedRoute>

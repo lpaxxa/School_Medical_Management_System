@@ -114,7 +114,6 @@ const VaccinationRecordManagement = ({ refreshData }) => {
     });
     fetchInitialData();
   };
-
   // Form handling
   const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -132,20 +131,6 @@ const VaccinationRecordManagement = ({ refreshData }) => {
       });
     }
     
-    // If student changes, update student info
-    if (name === 'studentId') {
-      const selectedStudent = students.find(s => s.id === parseInt(value));
-      if (selectedStudent) {
-        setFormData(prev => ({
-          ...prev,
-          studentId: value,
-          studentName: selectedStudent.name,
-          studentCode: selectedStudent.studentCode,
-          className: selectedStudent.className
-        }));
-      }
-    }
-    
     // If vaccine changes, update vaccine info
     if (name === 'vaccineId') {
       const selectedVaccine = vaccines.find(v => v.id === parseInt(value));
@@ -159,12 +144,13 @@ const VaccinationRecordManagement = ({ refreshData }) => {
       }
     }
   };
-  
-  // Validate form
+    // Validate form
   const validateForm = () => {
     const errors = {};
     
-    if (!formData.studentId) errors.studentId = "Vui lòng chọn học sinh";
+    if (!formData.studentName) errors.studentName = "Vui lòng nhập tên học sinh";
+    if (!formData.studentCode) errors.studentCode = "Vui lòng nhập mã học sinh";
+    if (!formData.className) errors.className = "Vui lòng nhập lớp";
     if (!formData.vaccineId) errors.vaccineId = "Vui lòng chọn vaccine";
     if (!formData.dose || formData.dose < 1) errors.dose = "Mũi tiêm phải lớn hơn 0";
     
@@ -206,13 +192,14 @@ const VaccinationRecordManagement = ({ refreshData }) => {
       setLoading(false);
     }
   };
-
   // Modal handlers
   const openAddModal = () => {
     setModalType('add');
     setSelectedRecord(null);
     setFormData({
-      studentId: '',
+      studentName: '',
+      studentCode: '',
+      className: '',
       vaccineId: '',
       dose: 1,
       dateAdministered: new Date().toISOString().split('T')[0], // Today's date
@@ -225,12 +212,14 @@ const VaccinationRecordManagement = ({ refreshData }) => {
     setFormErrors({});
     setShowModal(true);
   };
-
   const handleViewRecord = (record) => {
     setModalType('view');
     setSelectedRecord(record);
     setFormData({
       ...record,
+      studentName: record.studentName || '',
+      studentCode: record.studentCode || '',
+      className: record.className || '',
       dateAdministered: record.dateAdministered ? new Date(record.dateAdministered).toISOString().split('T')[0] : ''
     });
     setShowModal(true);
@@ -241,7 +230,9 @@ const VaccinationRecordManagement = ({ refreshData }) => {
     setSelectedRecord(record);
     setFormData({
       ...record,
-      studentId: record.studentId.toString(),
+      studentName: record.studentName || '',
+      studentCode: record.studentCode || '',
+      className: record.className || '',
       vaccineId: record.vaccineId.toString(),
       dateAdministered: record.dateAdministered ? new Date(record.dateAdministered).toISOString().split('T')[0] : ''
     });
@@ -281,8 +272,7 @@ const VaccinationRecordManagement = ({ refreshData }) => {
   };
 
   return (
-    <div className="vaccination-record-management">
-      <div className="section-header">
+    <div className="vaccination-record-management">      <div className="section-header">
         <div className="header-title">
           <h2>Ghi nhận Tiêm chủng</h2>
           <p className="subtitle">Quản lý việc tiêm chủng cho học sinh</p>
@@ -290,6 +280,55 @@ const VaccinationRecordManagement = ({ refreshData }) => {
         <button className="btn-primary add-record" onClick={openAddModal}>
           <i className="fas fa-plus"></i> Thêm mũi tiêm mới
         </button>
+      </div>
+      
+      {/* Records summary - moved above filters section */}
+      <div className="records-summary">
+        <div className="summary-card total">
+          <div className="summary-icon">
+            <i className="fas fa-user-graduate"></i>
+          </div>
+          <div className="summary-info">
+            <p>Tổng số học sinh</p>
+            <h3>{totalRecords}</h3>
+          </div>
+        </div>
+        
+        <div className="summary-card completed">
+          <div className="summary-icon">
+            <i className="fas fa-syringe"></i>
+          </div>
+          <div className="summary-info">
+            <p>Đã tiêm chủng</p>
+            <h3>{records.filter(r => r.status === 'Hoàn thành').length}</h3>
+            <span className="percentage">
+              {totalRecords > 0 ? `(${Math.round((records.filter(r => r.status === 'Hoàn thành').length / totalRecords) * 100)}%)` : '(0%)'}
+            </span>
+          </div>
+        </div>
+        
+        <div className="summary-card scheduled">
+          <div className="summary-icon">
+            <i className="fas fa-user-times"></i>
+          </div>
+          <div className="summary-info">
+            <p>Chưa tiêm chủng</p>
+            <h3>{records.filter(r => r.status !== 'Hoàn thành').length}</h3>
+            <span className="percentage">
+              {totalRecords > 0 ? `(${Math.round((records.filter(r => r.status !== 'Hoàn thành').length / totalRecords) * 100)}%)` : '(0%)'}
+            </span>
+          </div>
+        </div>
+        
+        <div className="summary-card other">
+          <div className="summary-icon">
+            <i className="fas fa-calendar-plus"></i>
+          </div>
+          <div className="summary-info">
+            <p>Tiêm chủng sắp tới</p>
+            <h3>{records.filter(r => r.status === 'Dự kiến').length}</h3>
+          </div>
+        </div>
       </div>
 
       <div className="filters-section">
@@ -351,51 +390,7 @@ const VaccinationRecordManagement = ({ refreshData }) => {
               <i className="fas fa-undo"></i> Đặt lại
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Records summary */}
-      <div className="records-summary">
-        <div className="summary-card total">
-          <div className="summary-icon">
-            <i className="fas fa-syringe"></i>
-          </div>
-          <div className="summary-info">
-            <h3>{totalRecords}</h3>
-            <p>Tổng số mũi tiêm</p>
-          </div>
-        </div>
-        
-        <div className="summary-card completed">
-          <div className="summary-icon">
-            <i className="fas fa-check-circle"></i>
-          </div>
-          <div className="summary-info">
-            <h3>{records.filter(r => r.status === 'Hoàn thành').length}</h3>
-            <p>Đã tiêm</p>
-          </div>
-        </div>
-        
-        <div className="summary-card scheduled">
-          <div className="summary-icon">
-            <i className="fas fa-calendar"></i>
-          </div>
-          <div className="summary-info">
-            <h3>{records.filter(r => r.status === 'Dự kiến').length}</h3>
-            <p>Dự kiến</p>
-          </div>
-        </div>
-        
-        <div className="summary-card other">
-          <div className="summary-icon">
-            <i className="fas fa-exclamation-triangle"></i>
-          </div>
-          <div className="summary-info">
-            <h3>{records.filter(r => r.status !== 'Hoàn thành' && r.status !== 'Dự kiến').length}</h3>
-            <p>Hoãn/Từ chối</p>
-          </div>
-        </div>
-      </div>
+        </div>      </div>
 
       {/* Records Table */}
       {loading && !showModal ? (
@@ -406,10 +401,10 @@ const VaccinationRecordManagement = ({ refreshData }) => {
       ) : (
         <div className="table-container">
           <table className="data-table records-table">
-            <thead>
-              <tr>
+            <thead>              <tr>
                 <th>STT</th>
                 <th>Học sinh</th>
+                <th>Mã học sinh</th>
                 <th>Lớp</th>
                 <th>Vaccine</th>
                 <th>Mũi số</th>
@@ -424,10 +419,8 @@ const VaccinationRecordManagement = ({ refreshData }) => {
                 getCurrentRecords().map((record, index) => (
                   <tr key={record.id} className={`status-${getStatusClass(record.status)}`}>
                     <td>{(currentPage - 1) * recordsPerPage + index + 1}</td>
-                    <td>
-                      {record.studentName}
-                      <div className="record-code">{record.studentCode}</div>
-                    </td>
+                    <td>{record.studentName}</td>
+                    <td>{record.studentCode}</td>
                     <td>{record.className}</td>
                     <td>
                       {record.vaccineName}
@@ -460,10 +453,9 @@ const VaccinationRecordManagement = ({ refreshData }) => {
                       </button>
                     </td>
                   </tr>
-                ))
-              ) : (
+                ))              ) : (
                 <tr>
-                  <td colSpan="9" className="empty-table">
+                  <td colSpan="10" className="empty-table">
                     Không tìm thấy bản ghi tiêm chủng nào
                   </td>
                 </tr>
@@ -524,25 +516,51 @@ const VaccinationRecordManagement = ({ refreshData }) => {
             </div>
             
             <div className="modal-body">
-              <form onSubmit={handleSubmit}>
-                <div className="form-row">                  <div className="form-group">
-                    <label htmlFor="studentId">Học sinh:</label>
-                    <select
-                      id="studentId"
-                      name="studentId"
-                      value={formData.studentId}
+              <form onSubmit={handleSubmit}>                <div className="form-row">                  <div className="form-group">
+                    <label htmlFor="studentName">Học sinh:</label>
+                    <input
+                      type="text"
+                      id="studentName"
+                      name="studentName"
+                      placeholder="Nhập tên học sinh"
+                      value={formData.studentName || ''}
                       onChange={handleFormChange}
                       disabled={modalType === 'view'}
-                      className={formErrors.studentId ? 'error' : ''}
-                    >
-                      <option value="">-- Chọn học sinh --</option>
-                      {Array.isArray(students) && students.map(student => (
-                        <option key={student.id} value={student.id}>
-                          {student.name} - {student.studentCode || 'N/A'} ({student.className || 'N/A'})
-                        </option>
-                      ))}
-                    </select>
-                    {formErrors.studentId && <div className="error-message">{formErrors.studentId}</div>}
+                      className={formErrors.studentName ? 'error' : ''}
+                    />
+                    {formErrors.studentName && <div className="error-message">{formErrors.studentName}</div>}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="studentCode">Mã học sinh:</label>
+                    <input
+                      type="text"
+                      id="studentCode"
+                      name="studentCode"
+                      placeholder="Nhập mã học sinh"
+                      value={formData.studentCode || ''}
+                      onChange={handleFormChange}
+                      disabled={modalType === 'view'}
+                      className={formErrors.studentCode ? 'error' : ''}
+                    />
+                    {formErrors.studentCode && <div className="error-message">{formErrors.studentCode}</div>}
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="className">Lớp:</label>
+                    <input
+                      type="text"
+                      id="className"
+                      name="className"
+                      placeholder="Nhập tên lớp"
+                      value={formData.className || ''}
+                      onChange={handleFormChange}
+                      disabled={modalType === 'view'}
+                      className={formErrors.className ? 'error' : ''}
+                    />
+                    {formErrors.className && <div className="error-message">{formErrors.className}</div>}
                   </div>
                     <div className="form-group">
                     <label htmlFor="vaccineId">Vaccine:</label>
