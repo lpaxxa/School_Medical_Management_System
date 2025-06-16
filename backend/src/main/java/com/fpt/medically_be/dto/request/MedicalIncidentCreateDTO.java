@@ -43,6 +43,7 @@ public class MedicalIncidentCreateDTO {
     @Max(value = 1000000, message = "Student ID must not exceed 1000000")
     private Long studentId;
 
+    // xem lai
     @Valid
     private List<MedicationUsedDTO> medicationsUsed;
 

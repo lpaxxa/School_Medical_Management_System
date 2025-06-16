@@ -17,8 +17,9 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
-@Controller
-@RestController("/api/medication-items")
+@RestController
+@RequestMapping("/api/medication-items")
+// coi sửa chỗ này thành requestMapping("/api/medication-items") nếu không được
 public class MedicationItemController {
 
     @Autowired
