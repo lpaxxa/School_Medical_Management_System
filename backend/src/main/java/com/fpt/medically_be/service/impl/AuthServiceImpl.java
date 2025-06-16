@@ -58,8 +58,10 @@ public class AuthServiceImpl implements AuthService {
         );
 
         if (accountMemberOpt.isEmpty()) {
-            accountMemberOpt = accountMemberRepos.findAccountMemberByEmail(
-                    loginRequest.getUsername()
+            accountMemberOpt = accountMemberRepos.findAccountMemberByEmailAndPassword(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+
             );
         }
         if (accountMemberOpt.isEmpty()) {
