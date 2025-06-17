@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import '../InventoryMain.css';
 import './EditItem.css';
+import inventoryService from '../../../../../services/inventoryService';
 
 // Hàm định dạng ngày từ form input sang định dạng API yêu cầu (yyyy-MM-dd)
 const formatDateForApi = (dateString) => {
@@ -22,8 +24,10 @@ const formatDateForApi = (dateString) => {
   }
 };
 
+// Component chỉnh sửa vật phẩm
 const EditItem = ({ item, onClose, onEditItem }) => {
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   // Khởi tạo trạng thái edit từ dữ liệu gốc
     // Map fields from different possible structures to a consistent one
   const [editedItem, setEditedItem] = useState({
@@ -47,24 +51,83 @@ const EditItem = ({ item, onClose, onEditItem }) => {
       return 'Sẵn có';
     }
   };
-  // Xử lý thay đổi trong form
+  
+  // Kiểm tra lỗi khi người dùng nhập liệu
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Kiểm tra các trường bắt buộc
+    if (!editedItem.itemName) {
+      newErrors.itemName = "Tên vật phẩm là bắt buộc";
+    }
+    
+    if (!editedItem.itemType) {
+      newErrors.itemType = "Loại vật phẩm là bắt buộc";
+    }
+    
+    if (!editedItem.unit) {
+      newErrors.unit = "Đơn vị là bắt buộc";
+    }
+    
+    // Kiểm tra số lượng
+    if (editedItem.stockQuantity < 0) {
+      newErrors.stockQuantity = "Số lượng không được nhỏ hơn 0";
+    } else if (editedItem.stockQuantity > 10000) {
+      newErrors.stockQuantity = "Số lượng không được vượt quá 10000";
+    }
+    
+    // Kiểm tra ngày hết hạn và ngày sản xuất
+    if (editedItem.expiryDate && editedItem.manufactureDate) {
+      const expiryDate = new Date(editedItem.expiryDate);
+      const manufactureDate = new Date(editedItem.manufactureDate);
+      
+      if (expiryDate < manufactureDate) {
+        newErrors.expiryDate = "Ngày hết hạn không được trước ngày sản xuất";
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+    // Xử lý thay đổi trong form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    let parsedValue = value;
+    if (name === 'stockQuantity') {
+      parsedValue = value === '' ? '' : parseInt(value);
+    }
+    
     setEditedItem({
       ...editedItem,
-      [name]: name === 'stockQuantity' ? (value === '' ? '' : parseInt(value)) : value
+      [name]: parsedValue
     });
-  };  // Xử lý submit form
+    
+    // Xóa lỗi khi người dùng sửa
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: null
+      });
+    }  };
+
+  // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!editedItem.itemName || !editedItem.unit || editedItem.stockQuantity === '' || !editedItem.itemType) {
-      alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
+    // Validate form trước khi submit
+    if (!validateForm()) {
+      return;
+    }
+    
+    // Kiểm tra nếu đã có lỗi tên vật phẩm, thì không submit
+    if (errors.itemName) {
       return;
     }
     
     try {
-      setLoading(true);      // Format dates to 'yyyy-MM-dd' format before submitting
+      setLoading(true);      
+      // Format dates to 'yyyy-MM-dd' format before submitting
       const formattedItem = {
         ...editedItem,
         itemId: item.itemId, // Đảm bảo itemId luôn được lấy từ item gốc
@@ -76,15 +139,52 @@ const EditItem = ({ item, onClose, onEditItem }) => {
       if (formattedItem.id !== undefined) {
         delete formattedItem.id;
       }
-        // Gửi dữ liệu đã được định dạng lên server
       
       // Status được tính toán tự động dựa vào số lượng sản phẩm nên không cần truyền
       await onEditItem(formattedItem);
       onClose();
     } catch (err) {
       console.error("Lỗi khi cập nhật vật phẩm:", err);
-      alert("Có lỗi xảy ra khi cập nhật vật phẩm. Vui lòng thử lại.");
-    } finally {
+      
+      // Kiểm tra các trường hợp lỗi cụ thể từ API
+      if (err.response && err.response.data) {
+        // Xử lý lỗi từ backend Spring Boot
+        if (typeof err.response.data === 'string') {
+          if (err.response.data.includes("already exists") || 
+              err.response.data.includes("đã tồn tại")) {
+            setErrors({
+              ...errors,
+              itemName: "Tên vật phẩm đã tồn tại trong hệ thống"
+            });
+            setLoading(false);
+            return; // Dừng xử lý sau khi đã set lỗi
+          }
+        }
+      }
+      
+      // Xử lý lỗi từ message
+      if (err.message) {
+        if (err.message.includes("already exists") || 
+            err.message.includes("đã tồn tại") || 
+            err.message.includes("trùng") || 
+            err.message.includes("tồn tại")) {
+          setErrors({
+            ...errors,
+            itemName: "Tên vật phẩm đã tồn tại trong hệ thống"
+          });
+        } else {
+          setErrors({
+            ...errors,
+            submit: err.message
+          });
+        }
+      } else {
+        // Lỗi không xác định
+        setErrors({
+          ...errors,
+          submit: "Có lỗi xảy ra khi cập nhật vật phẩm."
+        });
+      }
       setLoading(false);
     }
   };
@@ -104,61 +204,66 @@ const EditItem = ({ item, onClose, onEditItem }) => {
           <h3>Sửa thông tin vật phẩm</h3>
           <button className="close-button" onClick={onClose}>&times;</button>
         </div>
-          <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="itemName">Tên vật phẩm *</label>
-            <input 
-              type="text" 
-              id="itemName" 
-              name="itemName" 
-              className="form-control"
-              value={editedItem.itemName}
-              onChange={handleInputChange}
-              required
-            />
+          <form onSubmit={handleSubmit}>          <div className="form-group">            <label htmlFor="itemName">Tên vật phẩm <span className="required-mark">*</span></label>
+            <div>
+              <input 
+                type="text" 
+                id="itemName" 
+                name="itemName" 
+                className={`form-control ${errors.itemName ? 'is-invalid' : ''}`}
+                value={editedItem.itemName}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            {errors.itemName && <div className="invalid-feedback">{errors.itemName}</div>}
           </div>
           
           <div className="form-group">
-            <label htmlFor="itemType">Loại *</label>
+            <label htmlFor="itemType">Loại <span className="required-mark">*</span></label>
             <input 
               type="text" 
               id="itemType" 
               name="itemType" 
-              className="form-control"
+              className={`form-control ${errors.itemType ? 'is-invalid' : ''}`}
               value={editedItem.itemType}
               onChange={handleInputChange}
-              placeholder="Thuốc, Thiết bị y tế, Vật tư tiêu hao, v.v..."
+              placeholder="Thuốc, Thiết bị y tế, v.v..."
               required
             />
+            {errors.itemType && <div className="invalid-feedback">{errors.itemType}</div>}
           </div>
           
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="stockQuantity">Số lượng *</label>
+              <label htmlFor="stockQuantity">Số lượng <span className="required-mark">*</span></label>
               <input 
                 type="number" 
                 id="stockQuantity" 
                 name="stockQuantity" 
-                className="form-control"
+                className={`form-control ${errors.stockQuantity ? 'is-invalid' : ''}`}
                 value={editedItem.stockQuantity}
                 onChange={handleInputChange}
                 min="0"
+                max="10000"
                 required
               />
+              {errors.stockQuantity && <div className="invalid-feedback">{errors.stockQuantity}</div>}
             </div>
             
             <div className="form-group">
-              <label htmlFor="unit">Đơn vị *</label>
+              <label htmlFor="unit">Đơn vị <span className="required-mark">*</span></label>
               <input 
                 type="text" 
                 id="unit" 
                 name="unit" 
-                className="form-control"
+                className={`form-control ${errors.unit ? 'is-invalid' : ''}`}
                 value={editedItem.unit}
                 onChange={handleInputChange}
                 placeholder="hộp, tuýp, cái..."
                 required
               />
+              {errors.unit && <div className="invalid-feedback">{errors.unit}</div>}
             </div>
           </div>
             <div className="form-group">
@@ -167,10 +272,11 @@ const EditItem = ({ item, onClose, onEditItem }) => {
               type="date" 
               id="manufactureDate" 
               name="manufactureDate" 
-              className="form-control"
+              className={`form-control ${errors.manufactureDate ? 'is-invalid' : ''}`}
               value={editedItem.manufactureDate ? formatDateForApi(editedItem.manufactureDate) : ''}
               onChange={handleInputChange}
             />
+            {errors.manufactureDate && <div className="invalid-feedback">{errors.manufactureDate}</div>}
           </div>
           
           <div className="form-group">
@@ -179,10 +285,11 @@ const EditItem = ({ item, onClose, onEditItem }) => {
               type="date" 
               id="expiryDate" 
               name="expiryDate" 
-              className="form-control"
+              className={`form-control ${errors.expiryDate ? 'is-invalid' : ''}`}
               value={editedItem.expiryDate ? formatDateForApi(editedItem.expiryDate) : ''}
               onChange={handleInputChange}
             />
+            {errors.expiryDate && <div className="invalid-feedback">{errors.expiryDate}</div>}
           </div>
           
           <div className="form-group">
@@ -210,7 +317,10 @@ const EditItem = ({ item, onClose, onEditItem }) => {
               </div>
             </div>
           )}
-          
+            {errors.submit && (
+            <div className="alert alert-danger">{errors.submit}</div>
+          )}
+
           <div className="form-actions">
             <button 
               type="button" 

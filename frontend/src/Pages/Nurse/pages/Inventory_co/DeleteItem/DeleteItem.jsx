@@ -41,20 +41,12 @@ const DeleteItem = ({ item, onClose, onDeleteItem }) => {
           
           <div className="item-details">
             <div className="item-detail">
+              <span>ID:</span>
+              <span>{item.itemId}</span>
+            </div>
+            <div className="item-detail">
               <span>Tên vật tư:</span>
               <span>{item.itemName || item.name}</span>
-            </div>
-            <div className="item-detail">
-              <span>Đơn vị:</span>
-              <span>{item.unit}</span>
-            </div>
-            <div className="item-detail">
-              <span>Số lượng:</span>
-              <span>{item.quantity}</span>
-            </div>
-            <div className="item-detail">
-              <span>Danh mục:</span>
-              <span>{item.category}</span>
             </div>
           </div>
           

@@ -24,6 +24,10 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);  // Hiển thị 10 vật phẩm mỗi trang
+
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -36,8 +40,7 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
     // Call fetchItems only once on component mount
     fetchItems();
   }, [fetchItems]);
-  
-  // Update filtered items when inventory items or search term changes
+    // Update filtered items when inventory items or search term changes
   useEffect(() => {
     if (!searchTerm.trim()) {
       // No search term, just use all items
@@ -69,6 +72,9 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
         setFilteredItems([]);
       }
     }
+    
+    // Reset về trang đầu tiên khi thay đổi bộ lọc hoặc searchTerm
+    setCurrentPage(1);
   }, [searchTerm, inventoryItems]);
   
   // Handlers cho việc thêm, sửa, xóa item
@@ -222,7 +228,7 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
     } else {
       return 'Sẵn có';
     }
-  };  // Render inventory table with memoization to prevent unnecessary re-renders
+  };  // Render inventory table with pagination
   const renderInventoryTable = () => {
     // Only show loading on initial load, not during filtering or other operations
     if (loading && (!inventoryItems || inventoryItems.length === 0)) {
@@ -235,61 +241,121 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
       return <div className="no-items">Không tìm thấy vật phẩm nào phù hợp.</div>;
     }
     
-    return (<div className="table-container">
-        <table className="inventory-table">        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Tên vật phẩm</th>
-            <th>Loại</th>
-            <th>Số lượng</th>
-            <th>Đơn vị</th>
-            <th>Ngày sản xuất</th>
-            <th>Ngày hết hạn</th>
-            <th>Mô tả</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>        <tbody>
-          {filteredItems.map((item, index) => (
-            <tr key={item.itemId || index}>
-              <td className="id-column">{item.itemId || 'N/A'}</td>
-              <td>{item.itemName || item.name}</td>
-              <td>{item.itemType || item.category}</td>              <td>{item.stockQuantity || item.quantity}</td>
-              <td>{item.unit}</td>              
-              <td>{formatDate(item.manufactureDate || item.dateAdded)}</td>
-              <td>{formatDate(item.expiryDate) || 'N/A'}</td>
-              <td>{item.itemDescription || item.description || '-'}</td>
-              <td>
-                {(() => {
-                  const quantity = item.stockQuantity || item.quantity;
-                  const status = getItemStatus(quantity);
-                  return (
-                    <span className={`status ${status === 'Sẵn có' ? 'available' : 
-                                            status === 'Sắp hết' ? 'low' : 
-                                            status === 'Hết hàng' ? 'out' : ''}`}>
-                      {status}
-                    </span>
-                  );
-                })()}
-              </td>
-              <td className="action-buttons">
-                <button 
-                  className="edit-button"
-                  onClick={() => openEditModal(item)}
-                >
-                  <i className="fas fa-edit"></i> Sửa
-                </button>
-                <button 
-                  className="delete-button"
-                  onClick={() => openDeleteModal(item)}
-                >
-                  <i className="fas fa-trash-alt"></i> Xóa
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>      </table>
-      </div>
+    // Logic phân trang
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+    
+    // Tổng số trang
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    
+    return (
+      <>
+        <div className="table-container">
+          <table className="inventory-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tên vật phẩm</th>
+                <th>Loại</th>
+                <th>Số lượng</th>
+                <th>Đơn vị</th>
+                <th>Ngày sản xuất</th>
+                <th>Ngày hết hạn</th>
+                <th>Mô tả</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map((item, index) => (
+                <tr key={item.itemId || index}>
+                  <td className="id-column">{item.itemId || 'N/A'}</td>
+                  <td>{item.itemName || item.name}</td>
+                  <td>{item.itemType || item.category}</td>
+                  <td>{item.stockQuantity || item.quantity}</td>
+                  <td>{item.unit}</td>              
+                  <td>{formatDate(item.manufactureDate || item.dateAdded)}</td>
+                  <td>{formatDate(item.expiryDate) || 'N/A'}</td>
+                  <td>{item.itemDescription || item.description || '-'}</td>
+                  <td>
+                    {(() => {
+                      const quantity = item.stockQuantity || item.quantity;
+                      const status = getItemStatus(quantity);
+                      return (
+                        <span className={`status ${status === 'Sẵn có' ? 'available' : 
+                                                status === 'Sắp hết' ? 'low' : 
+                                                status === 'Hết hàng' ? 'out' : ''}`}>
+                          {status}
+                        </span>
+                      );
+                    })()}
+                  </td>
+                  <td className="action-buttons">
+                    <button 
+                      className="edit-button"
+                      onClick={() => openEditModal(item)}
+                    >
+                      <i className="fas fa-edit"></i> Sửa
+                    </button>
+                    <button 
+                      className="delete-button"
+                      onClick={() => openDeleteModal(item)}
+                    >
+                      <i className="fas fa-trash-alt"></i> Xóa
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Phân trang */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button 
+              onClick={() => setCurrentPage(1)} 
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              <i className="fas fa-angle-double-left"></i>
+            </button>
+            
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              <i className="fas fa-angle-left"></i>
+            </button>
+            
+            <div className="pagination-info">
+              Trang {currentPage} / {totalPages}
+            </div>
+            
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              <i className="fas fa-angle-right"></i>
+            </button>
+            
+            <button 
+              onClick={() => setCurrentPage(totalPages)} 
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              <i className="fas fa-angle-double-right"></i>
+            </button>
+            
+            <div className="pagination-text">
+              Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredItems.length)} trên {filteredItems.length} vật phẩm
+            </div>
+          </div>
+        )}
+      </>
     );
   };
 
@@ -351,8 +417,7 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
             </button>
             <button className="export-button" onClick={() => setShowExportModal(true)}>
               <i className="fas fa-file-export"></i> Xuất báo cáo
-            </button>
-            <div className="dropdown">
+            </button>            <div className="dropdown">
               <button className="dropbtn filter-btn">
                 <i className="fas fa-filter"></i> Lọc
               </button>              <div className="dropdown-content">                
@@ -362,6 +427,7 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
                     const quantity = item.stockQuantity || item.quantity;
                     return getItemStatus(quantity) === 'Sẵn có';
                   }));
+                  setCurrentPage(1); // Reset về trang 1 khi lọc
                 }}>
                   <span className="status-dot available"></span> Sẵn có
                 </a>
@@ -371,6 +437,7 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
                     const quantity = item.stockQuantity || item.quantity;
                     return getItemStatus(quantity) === 'Sắp hết';
                   }));
+                  setCurrentPage(1); // Reset về trang 1 khi lọc
                 }}>
                   <span className="status-dot low"></span> Sắp hết
                 </a>
@@ -380,12 +447,14 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
                     const quantity = item.stockQuantity || item.quantity;
                     return getItemStatus(quantity) === 'Hết hàng';
                   }));
+                  setCurrentPage(1); // Reset về trang 1 khi lọc
                 }}>
                   <span className="status-dot out"></span> Hết hàng
                 </a>
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
-                  setFilteredItems(inventoryItems);                
+                  setFilteredItems(inventoryItems);
+                  setCurrentPage(1); // Reset về trang 1 khi lọc
                 }}>
                   <i className="fas fa-redo-alt"></i> Hiển thị tất cả
                 </a>
