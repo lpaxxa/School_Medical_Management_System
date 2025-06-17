@@ -2,6 +2,7 @@ package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.HealthProfileDTO;
 import com.fpt.medically_be.service.HealthProfileService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +24,7 @@ public class HealthProfileController {
         this.healthProfileService = healthProfileService;
     }
 
+
     @GetMapping("/all-health-profiles")
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     public ResponseEntity<Page<HealthProfileDTO>> getAllHealthProfiles(@RequestParam (defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
@@ -34,22 +36,33 @@ public class HealthProfileController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<HealthProfileDTO> getHealthProfileById(@PathVariable Long studentId) {
         return ResponseEntity.ok(healthProfileService.getHealthProfileById(studentId));
+
+    }
+
+    @GetMapping("/student/{studentId}")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+    @Operation(summary = "Lấy hồ sơ sức khỏe theo studentId")
+    public ResponseEntity<HealthProfileDTO> getHealthProfileByStudentId(@PathVariable Long studentId) {
+        return ResponseEntity.ok(healthProfileService.getHealthProfileByStudentId(studentId));
     }
 
     @PostMapping
+
     @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+
     public ResponseEntity<HealthProfileDTO> createHealthProfile(@RequestBody HealthProfileDTO healthProfileDTO) {
         return ResponseEntity.ok(healthProfileService.createHealthProfile(healthProfileDTO));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+
     public ResponseEntity<HealthProfileDTO> updateHealthProfile(@PathVariable Long id, @RequestBody HealthProfileDTO healthProfileDTO) {
         return ResponseEntity.ok(healthProfileService.updateHealthProfile(id, healthProfileDTO));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteHealthProfile(@PathVariable Long id) {
         healthProfileService.deleteHealthProfile(id);
         return ResponseEntity.noContent().build();

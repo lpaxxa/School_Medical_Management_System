@@ -118,7 +118,7 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
             throw new RuntimeException("No medical incidents found for type: " + type);
         }
         return incidents.stream()
-                .map(medicalIncidentMapper::toMedicalIncidentResponseDto)
+                .map(medicalIncidentMapper::toMedicalIncidentDto)
                 .collect(Collectors.toList());
 
     }
@@ -133,7 +133,7 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
         }
 
         return incidents.stream()
-                .map(medicalIncidentMapper::toMedicalIncidentResponseDto)
+                .map(medicalIncidentMapper::toMedicalIncidentDto)
                 .collect(Collectors.toList());
     }
 
@@ -273,6 +273,8 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
 
                     return medicalIncidentMapper.toMedicalIncidentDto(incident);
                 }
+
+
 
 
 

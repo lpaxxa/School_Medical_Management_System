@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 import java.time.LocalDate;
 
@@ -32,10 +33,14 @@ private Double bmi;
 
     private String visionRight;
     private String hearingStatus;
+
     private String dietaryRestrictions;
 
     private String emergencyContactInfo;
     private String immunizationStatus;
     private LocalDate lastPhysicalExamDate;
     private String specialNeeds;
+   
+    private LocalDateTime lastUpdated;
+
 }

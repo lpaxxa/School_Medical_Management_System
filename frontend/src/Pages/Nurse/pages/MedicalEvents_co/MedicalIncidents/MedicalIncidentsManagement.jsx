@@ -83,14 +83,16 @@ const MedicalIncidentsManagement = () => {
       setLoading(false);
     }
   };
-  
-  // Xử lý mở form thêm mới
+    // Xử lý mở form thêm mới
   const handleAddNew = () => {
+    const now = new Date();
+    const formattedDateTime = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
+    
     setFormData({
       studentId: '',
       studentName: '',
       eventType: eventTypes.length > 0 ? eventTypes[0] : '',
-      dateTime: new Date().toISOString().slice(0, 16), // Format YYYY-MM-DDThh:mm
+      dateTime: formattedDateTime, // Format YYYY-MM-DDThh:mm
       severity: severityLevels.length > 0 ? severityLevels[0] : '',
       notifiedParent: false,
       needsFollowUp: false,
@@ -98,7 +100,8 @@ const MedicalIncidentsManagement = () => {
       treatment: '',
       medication: '',
       notes: '',
-      handledBy: ''
+      handledBy: '',
+      createdAt: formattedDateTime // Thêm thời gian tạo
     });
     setSelectedEvent(null);
     setIsDetailView(false);
@@ -417,8 +420,11 @@ const MedicalIncidentsManagement = () => {
                     <td>{event.studentId}</td>
                     <td>{event.studentName}</td>
                     <td>{event.eventType}</td>
-                    <td>{formatDateTime(event.dateTime)}</td>
-                    <td className={getSeverityClass(event.severity)}>{event.severity}</td>
+                    <td>{formatDateTime(event.dateTime)}</td>                    <td>
+                      <span className={`status-badge ${getSeverityClass(event.severity)}`}>
+                        {event.severity}
+                      </span>
+                    </td>
                     <td className="status-cell">
                       {event.notifiedParent ? 
                         <i className="fas fa-check-circle status-icon notified"></i> : 

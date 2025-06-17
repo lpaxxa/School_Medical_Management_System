@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import vaccinationService from '../../../../../services/vaccinationService';
+import { getAllStudents, searchStudents } from '../../../../../services/studentRecordsService';
+import StudentDetail from '../../StudentRecords_co/StudentDetail/StudentDetail';
+import VaccinationStudentDetail from './VaccinationStudentDetail';
 import './VaccinationPlanManagement.css';
 
 const VaccinationPlanManagement = ({ refreshData }) => {
@@ -14,9 +17,11 @@ const VaccinationPlanManagement = ({ refreshData }) => {
   const [vaccines, setVaccines] = useState([]);
   const [errors, setErrors] = useState({});
   const [classOptions, setClassOptions] = useState([]);
-  const [classFilter, setClassFilter] = useState('all');
+  const [classFilter, setClassFilter] = useState('all');  
   const [statusFilter, setStatusFilter] = useState('all');
-    // Form state for creating/editing plans
+  const [approvalFilter, setApprovalFilter] = useState('all');
+  
+  // Form state for creating/editing plans 
   const [formData, setFormData] = useState({
     title: '',
     planDate: new Date().toISOString().split('T')[0],
@@ -26,8 +31,17 @@ const VaccinationPlanManagement = ({ refreshData }) => {
     priority: 'medium',
     description: '',
     status: 'scheduled',
-    estimatedStudents: 0
+    approvalStatus: 'pending', // pending, approved, rejected
+    approvalNote: ''
   });
+  
+  // Student list state
+  const [students, setStudents] = useState([]);
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [studentSearchKeyword, setStudentSearchKeyword] = useState('');
+  const [studentClassFilter, setStudentClassFilter] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showStudentDetail, setShowStudentDetail] = useState(false);
   
   // Fetch initial data
   useEffect(() => {
@@ -45,19 +59,15 @@ const VaccinationPlanManagement = ({ refreshData }) => {
       ]);
       
       console.log('Vaccines data fetched:', vaccinesData); // Kiểm tra dữ liệu vaccine
-      console.log('Classes data fetched:', classesData); // Kiểm tra dữ liệu lớp học
-      
-      if (!vaccinesData || vaccinesData.length === 0) {
-        console.error('Vaccines data is empty');
-      }
-      
-      if (!classesData || classesData.length === 0) {
-        console.error('Classes data is empty');
-      }
+        // Fetch students data
+      const studentsData = await getAllStudents();
+      console.log('Students data fetched:', studentsData); // Ghi log để kiểm tra dữ liệu
       
       setPlans(plansData);
       setVaccines(vaccinesData || []);
       setClassOptions(classesData || []);
+      setStudents(studentsData);
+      setFilteredStudents(studentsData);
     } catch (error) {
       console.error("Failed to fetch data:", error);
       // Set empty arrays as fallback if data fetch fails
@@ -293,8 +303,7 @@ const VaccinationPlanManagement = ({ refreshData }) => {
       setLoading(false);
     }
   };
-  
-  const getFilteredPlans = () => {
+    const getFilteredPlans = () => {
     let filtered = [...plans];
     
     // Apply class filter
@@ -310,6 +319,14 @@ const VaccinationPlanManagement = ({ refreshData }) => {
       filtered = filtered.filter(plan => plan.status === statusFilter);
     }
     
+    // Apply approval status filter
+    if (approvalFilter !== 'all') {
+      filtered = filtered.filter(plan => 
+        (plan.approvalStatus === approvalFilter) || 
+        (!plan.approvalStatus && approvalFilter === 'pending')
+      );
+    }
+    
     // Sort by date, then by priority
     return filtered.sort((a, b) => {
       // First sort by date
@@ -323,14 +340,22 @@ const VaccinationPlanManagement = ({ refreshData }) => {
       return priorityOrder[a.priority] - priorityOrder[b.priority];
     });
   };
-  
-  const getStatusLabel = (status) => {
+    const getStatusLabel = (status) => {
     switch (status) {
       case 'completed': return 'Đã hoàn thành';
       case 'in_progress': return 'Đang thực hiện';
       case 'scheduled': return 'Dự kiến';
       case 'cancelled': return 'Đã hủy';
       default: return status;
+    }
+  };
+  
+  const getApprovalStatusLabel = (status) => {
+    switch (status) {
+      case 'approved': return 'Đã chấp thuận';
+      case 'rejected': return 'Đã từ chối';
+      case 'pending': return 'Đang chờ xét duyệt';
+      default: return 'Đang chờ xét duyệt';
     }
   };
   
@@ -348,6 +373,197 @@ const VaccinationPlanManagement = ({ refreshData }) => {
   // Debug: Hiển thị giá trị vaccines khi component render
   console.log('Rendering component with vaccines:', vaccines);
 
+  // Xử lý gửi thông báo cho admin
+  const handleSendNotification = (plan) => {
+    // Có thể mở modal hoặc hiển thị form gửi thông báo
+    const confirmSend = window.confirm(
+      `Bạn có muốn gửi thông báo về kế hoạch "${plan.title}" cho Admin để phê duyệt không?`
+    );
+    
+    if (confirmSend) {
+      // Giả lập gửi thông báo
+      setLoading(true);
+      
+      // Giả lập API call để gửi thông báo
+      setTimeout(() => {
+        // Cập nhật trạng thái phê duyệt của kế hoạch
+        const updatedPlans = plans.map(p => 
+          p.id === plan.id 
+            ? { 
+                ...p, 
+                approvalStatus: 'pending',
+                approvalNote: 'Đã gửi thông báo cho Admin vào ' + new Date().toLocaleString('vi-VN')
+              } 
+            : p
+        );
+        
+        setPlans(updatedPlans);
+        setLoading(false);
+        alert('Đã gửi thông báo cho Admin để xét duyệt kế hoạch.');
+        
+        // Nếu có refresh data prop từ component cha
+        if (refreshData) {
+          refreshData();
+        }
+      }, 1000);
+    }
+  };  // Student list handlers  // Xử lý khi xem chi tiết học sinh
+  const handleViewStudent = (student) => {
+    // Đảm bảo tất cả các thuộc tính cần thiết đều có trong dữ liệu học sinh
+    
+    // Validate and ensure dateOfBirth is properly formatted
+    let formattedDateOfBirth = '2000-01-01';
+    if (student.dateOfBirth) {
+      try {
+        const date = new Date(student.dateOfBirth);
+        if (!isNaN(date.getTime())) {
+          formattedDateOfBirth = date.toISOString().split('T')[0];
+        }
+      } catch (error) {
+        console.warn('Invalid dateOfBirth format:', student.dateOfBirth);
+      }
+    }
+    
+    // Validate and ensure lastUpdated is properly formatted
+    let formattedLastUpdated = new Date().toISOString().split('T')[0];
+    if (student.lastUpdated) {
+      try {
+        const date = new Date(student.lastUpdated);
+        if (!isNaN(date.getTime())) {
+          formattedLastUpdated = date.toISOString().split('T')[0];
+        }
+      } catch (error) {
+        console.warn('Invalid lastUpdated format:', student.lastUpdated);
+      }
+    }
+    
+    const healthIndices = student.healthIndices || {
+      height: 0,
+      weight: 0,
+      bmi: 0,
+      vision: 'Chưa có dữ liệu',
+      hearing: 'Chưa có dữ liệu',
+      bloodPressure: 'Chưa có dữ liệu'
+    };
+    
+    // Sample vaccination data if not available
+    const vaccinationHistory = student.vaccinationHistory || [
+      {
+        vaccine: 'Vaccine COVID-19',
+        date: '2023-06-15',
+        location: 'Trung tâm y tế trường học',
+        result: 'Hoàn thành'
+      },
+      {
+        vaccine: 'Vaccine cúm mùa',
+        date: '2022-11-20',
+        location: 'Trung tâm y tế trường học',
+        result: 'Hoàn thành'
+      }
+    ];
+    
+    const upcomingVaccinations = student.upcomingVaccinations || [
+      {
+        vaccine: 'Vaccine HPV',
+        plannedDate: '2025-07-20',
+        location: 'Trung tâm y tế trường học',
+        notes: 'Mũi 1/3'
+      }
+    ];
+    
+    const completeStudentData = {
+      ...student,
+      // Đảm bảo các trường bắt buộc luôn tồn tại
+      healthIndices,
+      healthRecords: student.healthRecords || [
+        {
+          date: formattedLastUpdated,
+          height: healthIndices.height || 0,
+          weight: healthIndices.weight || 0,
+          bmi: healthIndices.bmi || 0
+        }
+      ],
+      medicalHistory: student.medicalHistory || {
+        allergies: 'Không có thông tin',
+        chronicDiseases: 'Không có thông tin',
+        medicalHistory: 'Không có thông tin'
+      },
+      notes: student.notes || [],
+      status: student.status || 'Chưa cập nhật',
+      emergencyContact: student.emergencyContact || {
+        parentName: 'Chưa cập nhật',
+        phone: 'Chưa cập nhật'
+      },
+      bloodType: student.bloodType || 'Chưa cập nhật',
+      dateOfBirth: formattedDateOfBirth,
+      gender: student.gender || 'Nam',
+      homeRoomTeacher: student.homeRoomTeacher || 'Chưa cập nhật',
+      lastUpdated: formattedLastUpdated,
+      vaccinationHistory, // Add vaccination history
+      upcomingVaccinations // Add upcoming vaccinations
+    };
+    
+    console.log('Complete student data:', completeStudentData);
+    setSelectedStudent(completeStudentData);
+    setShowStudentDetail(true);
+  };
+  
+  const handleBackToStudentList = () => {
+    setSelectedStudent(null);
+    setShowStudentDetail(false);
+  };
+    const handleSendNotificationToParent = (student) => {
+    alert(`Đã gửi thông báo cho phụ huynh của học sinh: ${student.name}`);
+    // Implement actual notification sending here
+  };
+  
+  // Hàm để gửi thông báo cho tất cả phụ huynh trong danh sách hiện tại
+  const handleSendNotificationToAllParents = () => {
+    if (filteredStudents.length === 0) {
+      alert("Không có học sinh nào trong danh sách để gửi thông báo!");
+      return;
+    }
+    
+    const studentNames = filteredStudents.map(student => student.name).join(", ");
+    const confirmMessage = `Bạn có chắc chắn muốn gửi thông báo cho phụ huynh của ${filteredStudents.length} học sinh: ${studentNames.length > 100 ? studentNames.substring(0, 100) + "..." : studentNames}?`;
+    
+    if (window.confirm(confirmMessage)) {
+      alert(`Đã gửi thông báo cho phụ huynh của ${filteredStudents.length} học sinh trong danh sách hiện tại.`);
+      // Implement actual notification sending here
+    }
+  };
+  
+  const handleSearchStudents = (e) => {
+    e.preventDefault();
+    
+    const filtered = students.filter(student => {
+      const matchesKeyword = student.name.toLowerCase().includes(studentSearchKeyword.toLowerCase()) || 
+                             student.id.toString().toLowerCase().includes(studentSearchKeyword.toLowerCase());
+      
+      const matchesClass = studentClassFilter === '' || student.class === studentClassFilter;
+      
+      return matchesKeyword && matchesClass;
+    });
+    
+    setFilteredStudents(filtered);
+  };
+  
+  const handleResetStudentFilters = () => {
+    setStudentSearchKeyword('');
+    setStudentClassFilter('');
+    setFilteredStudents(students);
+  };
+  
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'scheduled': return 'Đã lên lịch';
+      case 'in_progress': return 'Đang thực hiện';
+      case 'completed': return 'Đã hoàn thành';
+      case 'cancelled': return 'Đã hủy';
+      default: return status;
+    }
+  };
+  
   return (
     <div className="vaccination-plan-management">
       <div className="section-header">
@@ -372,6 +588,12 @@ const VaccinationPlanManagement = ({ refreshData }) => {
           onClick={() => setActiveTab('list')}
         >
           <i className="fas fa-list"></i> Danh sách kế hoạch
+        </div>
+        <div 
+          className={`tab-item ${activeTab === 'students' ? 'active' : ''}`}
+          onClick={() => setActiveTab('students')}
+        >
+          <i className="fas fa-user-graduate"></i> Danh sách học sinh
         </div>
       </div>
       
@@ -517,6 +739,106 @@ const VaccinationPlanManagement = ({ refreshData }) => {
               )}
             </div>
           </div>
+        </>      ) : activeTab === 'students' ? (        <>          {showStudentDetail && selectedStudent ? (
+            <VaccinationStudentDetail 
+              student={selectedStudent}
+              onBack={handleBackToStudentList}
+            />
+          ) : (
+            <div className="student-list-view">
+              <div className="student-list-header">
+                <h3>Danh sách học sinh</h3>
+                
+                <div className="student-list-actions">
+                  <button className="btn-primary" onClick={() => alert("Tính năng thêm học sinh sẽ được triển khai sau")}>
+                    <i className="fas fa-plus"></i> Thêm học sinh
+                  </button>
+                </div>
+              </div>
+              
+              <div className="student-list-filters">
+                <form onSubmit={handleSearchStudents} className="search-student-form">
+                  <input 
+                    type="text" 
+                    placeholder="Tìm kiếm học sinh theo tên hoặc mã số..." 
+                    className="search-input"
+                    value={studentSearchKeyword}
+                    onChange={(e) => setStudentSearchKeyword(e.target.value)}
+                  />
+                  
+                  <select 
+                    className="filter-select"
+                    value={studentClassFilter}
+                    onChange={(e) => setStudentClassFilter(e.target.value)}
+                  >
+                    <option value="">Tất cả lớp</option>
+                    {classOptions.map(classItem => (
+                      <option key={classItem.id} value={classItem.name}>
+                        {classItem.name}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  <button type="submit" className="btn-search">
+                    <i className="fas fa-search"></i>
+                  </button>                  <button type="button" className="btn-reset" onClick={handleResetStudentFilters}>
+                    <i className="fas fa-eraser"></i> Xóa bộ lọc
+                  </button>
+                  
+                  <button type="button" className="btn-notify-all" onClick={handleSendNotificationToAllParents} title="Gửi thông báo cho tất cả phụ huynh trong danh sách hiện tại">
+                    <i className="fas fa-bullhorn"></i> Thông báo tất cả
+                  </button>
+                </form>
+              </div>
+                <div className="student-table-container">
+                <table className="student-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Họ và tên</th>
+                      <th>Mã học sinh</th>
+                      <th>Lớp</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>                <tbody>
+                    {filteredStudents.length > 0 ? 
+                      filteredStudents.map((student, index) => (
+                        <tr key={student.id}>
+                          <td>{index + 1}</td>
+                          <td>{student.name}</td>
+                          <td>{student.id}</td>
+                          <td>{student.class}</td>
+                          <td>
+                            <div className="action-buttons">
+                              <button 
+                                className="action-btn view" 
+                                onClick={() => handleViewStudent(student)}
+                                title="Xem chi tiết học sinh"
+                              >
+                                <i className="fas fa-eye"></i>
+                              </button>
+                              <button 
+                                className="action-btn notification" 
+                                onClick={() => handleSendNotificationToParent(student)}
+                                title="Gửi thông báo cho phụ huynh"
+                              >
+                                <i className="fas fa-bell"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )) : 
+                      <tr>
+                        <td colSpan="5" className="empty-message">
+                          Không tìm thấy học sinh nào
+                        </td>
+                      </tr>
+                    }
+                </tbody>
+              </table>
+            </div>
+          </div>
+          )}
         </>
       ) : (
         <>
@@ -540,8 +862,7 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                       {classItem.name}
                     </option>
                   ))}
-                </select>
-                <select 
+                </select>                <select 
                   className="filter-select"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -552,38 +873,41 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                   <option value="completed">Đã hoàn thành</option>
                   <option value="cancelled">Đã hủy</option>
                 </select>
+                
+                <select 
+                  className="filter-select"
+                  value={approvalFilter}
+                  onChange={(e) => setApprovalFilter(e.target.value)}
+                >
+                  <option value="all">Tất cả trạng thái phê duyệt</option>
+                  <option value="pending">Đang chờ xét duyệt</option>
+                  <option value="approved">Đã chấp thuận</option>
+                  <option value="rejected">Đã từ chối</option>
+                </select>
               </div>
               <button className="btn-primary" onClick={handleAddPlan}>
                 <i className="fas fa-plus"></i> Thêm kế hoạch
               </button>
             </div>
             
-            <div className="plans-table-container">
-              <table className="plans-table">
+            <div className="plans-table-container">              <table className="plans-table">
                 <thead>
                   <tr>
                     <th>Tiêu đề</th>
                     <th>Ngày</th>
                     <th>Vaccine</th>
-                    <th>Đối tượng</th>
-                    <th>Ước tính học sinh</th>
                     <th>Mức độ ưu tiên</th>
                     <th>Trạng thái</th>
+                    <th>Trạng thái phê duyệt</th>
                     <th>Thao tác</th>
                   </tr>
-                </thead>
-                <tbody>
-                  {getFilteredPlans().length > 0 ? (
+                </thead>                <tbody>
+                  {getFilteredPlans().length > 0 ? 
                     getFilteredPlans().map(plan => (
                       <tr key={plan.id}>
                         <td>{plan.title}</td>
                         <td>{new Date(plan.planDate).toLocaleDateString('vi-VN')}</td>
                         <td>{getVaccineName(plan.vaccineId)}</td>
-                        <td>
-                          {plan.targetClass === 'all' ? 'Tất cả các lớp' : `Lớp ${plan.targetClass}`}
-                          {plan.targetGrade === 'all' ? '' : `, Khối ${plan.targetGrade}`}
-                        </td>
-                        <td>{plan.estimatedStudents || 'N/A'}</td>
                         <td>
                           <span className={`priority-badge ${plan.priority}`}>
                             {plan.priority === 'high' ? 'Cao' : plan.priority === 'medium' ? 'Trung bình' : 'Thấp'}
@@ -592,6 +916,12 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                         <td>
                           <span className={`status-badge ${plan.status}`}>
                             {getStatusLabel(plan.status)}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`approval-badge ${plan.approvalStatus || 'pending'}`}>
+                            {plan.approvalStatus === 'approved' ? 'Đã chấp thuận' : 
+                             plan.approvalStatus === 'rejected' ? 'Đã từ chối' : 'Đang chờ xét duyệt'}
                           </span>
                         </td>
                         <td>
@@ -611,6 +941,13 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                               <i className="fas fa-edit"></i>
                             </button>
                             <button 
+                              className="action-btn notification" 
+                              onClick={() => handleSendNotification(plan)}
+                              title="Gửi thông báo cho Admin"
+                            >
+                              <i className="fas fa-bell"></i>
+                            </button>
+                            <button 
                               className="action-btn delete" 
                               onClick={() => handleDeletePlan(plan)}
                               title="Xóa"
@@ -620,14 +957,13 @@ const VaccinationPlanManagement = ({ refreshData }) => {
                           </div>
                         </td>
                       </tr>
-                    ))
-                  ) : (
+                    )) : 
                     <tr>
-                      <td colSpan="8" className="empty-message">
+                      <td colSpan="7" className="empty-message">
                         Không tìm thấy kế hoạch tiêm chủng nào
                       </td>
                     </tr>
-                  )}
+                  }
                 </tbody>
               </table>
             </div>
@@ -882,7 +1218,7 @@ const VaccinationPlanManagement = ({ refreshData }) => {
             </div>
           </div>
         </div>
-      )}
+      )}      {/* We're showing student details directly in the tab now */}
     </div>
   );
 };

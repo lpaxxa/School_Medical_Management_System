@@ -48,12 +48,14 @@ public class HealthProfileServiceImpl implements HealthProfileService {
     public HealthProfileDTO createHealthProfile(HealthProfileDTO healthProfileDTO) {
 
         HealthProfile healthProfile = convertToEntity(healthProfileDTO);
+
         HealthProfile savedHealthProfile = null;
         if( healthProfile.getStudent() == null) {
            savedHealthProfile = healthProfileRepository.save(healthProfile);
         }
 
         return healthProfileMapper.toObject(savedHealthProfile);
+
     }
 
     @Override
@@ -72,6 +74,8 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         existingHealthProfile.setVisionLeft(healthProfileDTO.getVisionLeft());
         existingHealthProfile.setVisionRight(healthProfileDTO.getVisionRight());
         existingHealthProfile.setHearingStatus(healthProfileDTO.getHearingStatus());
+        existingHealthProfile.setDentalStatus(healthProfileDTO.getDentalStatus());
+        existingHealthProfile.setLastUpdated(java.time.LocalDateTime.now());
 
         HealthProfile updatedHealthProfile = healthProfileRepository.save(existingHealthProfile);
         return convertToDTO(updatedHealthProfile);
@@ -83,6 +87,13 @@ public class HealthProfileServiceImpl implements HealthProfileService {
             throw new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe với ID: " + id);
         }
         healthProfileRepository.deleteById(id);
+    }
+
+    @Override
+    public HealthProfileDTO getHealthProfileByStudentId(Long studentId) {
+        return healthProfileRepository.findByStudentId(studentId)
+                .map(this::convertToDTO)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe cho học sinh với ID: " + studentId));
     }
 
     // Phương thức chuyển đổi từ Entity sang DTO
@@ -101,6 +112,8 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         dto.setVisionLeft(healthProfile.getVisionLeft());
         dto.setVisionRight(healthProfile.getVisionRight());
         dto.setHearingStatus(healthProfile.getHearingStatus());
+        dto.setDentalStatus(healthProfile.getDentalStatus());
+        dto.setLastUpdated(healthProfile.getLastUpdated());
         return dto;
     }
 
@@ -120,6 +133,8 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         healthProfile.setVisionLeft(dto.getVisionLeft());
         healthProfile.setVisionRight(dto.getVisionRight());
         healthProfile.setHearingStatus(dto.getHearingStatus());
+        healthProfile.setDentalStatus(dto.getDentalStatus());
+        healthProfile.setLastUpdated(dto.getLastUpdated());
         return healthProfile;
     }
 

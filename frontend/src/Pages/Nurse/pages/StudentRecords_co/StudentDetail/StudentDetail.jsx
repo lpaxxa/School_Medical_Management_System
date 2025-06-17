@@ -15,19 +15,34 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const StudentDetail = ({ student, onBack, onEdit }) => {
   const [activeTab, setActiveTab] = useState('personal');
   const [newNote, setNewNote] = useState('');
-  
-  // Tính tuổi từ ngày sinh
+    // Tính tuổi từ ngày sinh
   const calculateAge = (dateOfBirth) => {
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
+    if (!dateOfBirth) {
+      return 0; // Return default age if dateOfBirth is undefined
     }
     
-    return age;
+    try {
+      const today = new Date();
+      const birthDate = new Date(dateOfBirth);
+      
+      // Check if birthDate is valid
+      if (isNaN(birthDate.getTime())) {
+        console.warn('Invalid date of birth format:', dateOfBirth);
+        return 0;
+      }
+      
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      return age;
+    } catch (error) {
+      console.error('Error calculating age:', error);
+      return 0;
+    }
   };
 
   // Lấy thông tin BMI và phân loại
@@ -296,10 +311,20 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
                 <div className="info-item">
                   <span className="info-label">Giới tính</span>
                   <span className="info-value">{student.gender}</span>
-                </div>
-                <div className="info-item">
+                </div>                <div className="info-item">
                   <span className="info-label">Ngày sinh</span>
-                  <span className="info-value">{new Date(student.dateOfBirth).toLocaleDateString('vi-VN')}</span>
+                  <span className="info-value">
+                    {student.dateOfBirth ? 
+                      ((() => {
+                        try {
+                          return new Date(student.dateOfBirth).toLocaleDateString('vi-VN');
+                        } catch (error) {
+                          console.error('Invalid date format:', student.dateOfBirth);
+                          return 'Chưa có thông tin';
+                        }
+                      })()) : 'Chưa có thông tin'
+                    }
+                  </span>
                 </div>
                 <div className="info-item">
                   <span className="info-label">Tuổi</span>
@@ -308,10 +333,20 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
                 <div className="info-item">
                   <span className="info-label">Nhóm máu</span>
                   <span className="info-value">{student.bloodType}</span>
-                </div>
-                <div className="info-item">
+                </div>                <div className="info-item">
                   <span className="info-label">Cập nhật gần nhất</span>
-                  <span className="info-value">{new Date(student.lastUpdated).toLocaleDateString('vi-VN')}</span>
+                  <span className="info-value">
+                    {student.lastUpdated ? 
+                      ((() => {
+                        try {
+                          return new Date(student.lastUpdated).toLocaleDateString('vi-VN');
+                        } catch (error) {
+                          console.error('Invalid last updated date format:', student.lastUpdated);
+                          return 'Chưa có thông tin';
+                        }
+                      })()) : 'Chưa có thông tin'
+                    }
+                  </span>
                 </div>
               </div>
             </div>
