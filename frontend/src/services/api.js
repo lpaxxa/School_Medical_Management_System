@@ -34,12 +34,21 @@ const endpoints = {
   
   // Health profile endpoints
   healthProfiles: {
-    getByStudentId: (studentId) => `${API_URL}/api/health-profiles/student/${studentId}`
+    getByStudentId: (studentId) => `${API_URL}/health-profiles/student/${studentId}`,
+    submitDeclaration: `${API_URL}/health-profiles`
   },
   
   // Medical checkups endpoints
   medicalCheckups: {
-    getByStudentId: (studentId) => `${API_URL}/api/medical-checkups/student/${studentId}`
+    getByStudentId: (studentId) => `${API_URL}/medical-checkups/student/${studentId}`
+  },
+  
+  // Medication requests endpoints
+  medicationRequests: {
+    getMyRequests: `${API_URL}/parent-medication-requests/my-requests`,
+    submitRequest: `${API_URL}/parent-medication-requests/submit-request`,
+    updateRequest: (id) => `${API_URL}/parent-medication-requests/${id}`,
+    deleteRequest: (id) => `${API_URL}/parent-medication-requests/${id}`
   }
 };
 

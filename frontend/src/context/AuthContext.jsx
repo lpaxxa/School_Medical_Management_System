@@ -13,13 +13,14 @@ const API_ENDPOINTS = {
     logout: `${BASE_URL}/v1/auth/logout`,
     refresh: `${BASE_URL}/v1/auth/refresh-token`,
   },
-
   // Parent/Medication related
   parent: {
     submitMedicationRequest: `${BASE_URL}/parent-medication-requests/submit-request`,
-    getMedicationRequests: `${BASE_URL}/parent-medication-requests`,
-    updateMedicationRequest: `${BASE_URL}/parent-medication-requests`,
-    deleteMedicationRequest: `${BASE_URL}/parent-medication-requests`,
+    getMedicationRequests: `${BASE_URL}/parent-medication-requests/my-requests`,
+    updateMedicationRequest: (id) =>
+      `${BASE_URL}/parent-medication-requests/${id}`,
+    deleteMedicationRequest: (id) =>
+      `${BASE_URL}/parent-medication-requests/${id}`,
   },
 
   // Student related
@@ -40,10 +41,11 @@ const API_ENDPOINTS = {
     recordMedication: `${BASE_URL}/nurse/medication-records`,
   },
 
-  // Health profiles - mới thêm
+  // Health profiles
   healthProfiles: {
     getByStudentId: (studentId) =>
       `${BASE_URL}/health-profiles/student/${studentId}`,
+    submitDeclaration: `${BASE_URL}/health-profiles`, // Thêm endpoint này để submit khai báo sức khỏe
   },
 
   // Medical checkups

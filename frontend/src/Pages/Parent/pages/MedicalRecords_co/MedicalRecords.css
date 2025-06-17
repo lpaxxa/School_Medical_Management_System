@@ -1265,32 +1265,52 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
+  margin-top: 25px;
 }
 
 .medical-detail {
-  background-color: #f8f9fa;
+  background-color: #fff;
   border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-  border-left: 3px solid #3498db;
+  padding: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+  transition: all 0.3s ease;
+}
+
+.medical-detail:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .medical-detail h4 {
   display: flex;
   align-items: center;
-  color: #34495e;
   font-size: 16px;
   margin-bottom: 12px;
+  color: #2d3748;
+  font-weight: 600;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 8px;
 }
 
 .medical-detail h4 svg {
-  margin-right: 8px;
-  color: #3498db;
+  margin-right: 10px;
+  color: #4a90e2;
 }
 
 .medical-detail p {
-  margin: 0;
-  color: #2c3e50;
+  color: #4a5568;
+  line-height: 1.5;
+  margin: 5px 0;
+}
+
+/* Style cho trường thông tin liên hệ khẩn cấp */
+.emergency-info {
+  border-left: 3px solid #ed8936;
+}
+
+.emergency-info h4 svg {
+  color: #ed8936;
 }
 
 /* Checkups Panel */
@@ -1878,56 +1898,59 @@
   }
 }
 
-/* Thêm vào file MedicalRecords.css */
+/* Thêm vào các style hiện có */
 
-/* Coming Soon Feature */
-.feature-coming-soon {
-  text-align: center;
-  padding: 40px 20px;
-  background-color: #f9f9f9;
+/* Cải tiến cho phần thông tin chi tiết */
+.medical-details-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.medical-detail {
+  background-color: #fff;
   border-radius: 8px;
-  border: 1px dashed #ddd;
-  margin: 20px 0;
+  padding: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+  transition: all 0.3s ease;
 }
 
-.coming-soon-icon {
-  font-size: 60px;
-  color: #3498db;
-  margin-bottom: 20px;
-  opacity: 0.7;
+.medical-detail:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
-.feature-coming-soon h3 {
-  color: #444;
-  margin-bottom: 15px;
+.medical-detail h4 {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #2d3748;
   font-weight: 600;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 8px;
 }
 
-.feature-coming-soon p {
-  color: #666;
-  max-width: 500px;
-  margin: 0 auto;
+.medical-detail h4 svg {
+  margin-right: 10px;
+  color: #4a90e2;
+}
+
+.medical-detail p {
+  color: #4a5568;
   line-height: 1.5;
+  margin: 5px 0;
 }
 
-/* Coming Soon Tab Button */
-.coming-soon {
-  opacity: 0.6;
-  cursor: not-allowed;
-  position: relative;
+/* Style cho trường thông tin liên hệ khẩn cấp */
+.emergency-info {
+  border-left: 3px solid #ed8936;
 }
 
-.coming-soon::after {
-  content: "Sắp ra mắt";
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #ff9800;
-  color: white;
-  font-size: 10px;
-  padding: 2px 5px;
-  border-radius: 10px;
-  font-weight: bold;
+.emergency-info h4 svg {
+  color: #ed8936;
 }
 
 /* Checkups Panel Styling */
@@ -2070,13 +2093,54 @@
   text-align: right;
 }
 
-@media (max-width: 768px) {
-  .vision-hearing {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .checkup-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Styling cho last-update-info */
+.last-update-info {
+  background-color: #f8f9fa;
+  border-left: 4px solid #4a90e2;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.last-update-info p {
+  margin: 5px 0;
+}
+
+.last-update-info strong {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Styling cho nút làm mới */
+.refresh-button {
+  margin-top: 20px;
+  background-color: #f0f2f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.refresh-button:hover {
+  background-color: #e4e6eb;
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refresh-button i {
+  margin-right: 8px;
+}
+
+.refresh-button:active {
+  transform: scale(0.98);
 }
