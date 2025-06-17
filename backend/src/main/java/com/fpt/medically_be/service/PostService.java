@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.PageResponse;
 import com.fpt.medically_be.dto.PostDTO;
 import com.fpt.medically_be.entity.AccountMember;
 import com.fpt.medically_be.entity.Post;
+import com.fpt.medically_be.mapper.PostMapper;
 import com.fpt.medically_be.repos.AccountMemberRepository;
 import com.fpt.medically_be.repos.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +24,15 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final AccountMemberRepository accountMemberRepository;
+    private final PostLikeService postLikeService;
+    private final PostMapper postMapper;
 
     public PageResponse<PostDTO> getAllPosts(int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<Post> postPage = postRepository.findAllByOrderByIsPinnedDescCreatedAtDesc(pageable);
 
         List<PostDTO> postDTOs = postPage.getContent().stream()
-                .map(this::convertToDTO)
+                .map(postMapper::toDTO)
                 .collect(Collectors.toList());
 
         return PageResponse.<PostDTO>builder()
@@ -44,27 +47,39 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
 
-        PostDTO postDTO = convertToDTO(post);
+        PostDTO postDTO = postMapper.toDTO(post);
 
         // Get related posts
         List<Post> relatedPosts = postRepository.findTop5ByIdNotAndCategoryOrderByCreatedAtDesc(
                 postId, post.getCategory());
 
         List<PostDTO.RelatedPostDTO> relatedPostDTOs = relatedPosts.stream()
-                .map(this::convertToRelatedPostDTO)
+                .map(postMapper::toRelatedPostDTO)
                 .collect(Collectors.toList());
 
         postDTO.setRelatedPosts(relatedPostDTOs);
 
-        // Set if the current user has liked the post
-        // This would need to be implemented with a proper like tracking system
-        postDTO.setLikedByCurrentUser(false);
+        // Kiểm tra xem người dùng hiện tại đã thích bài viết này chưa
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated()) {
+                String currentUserId = authentication.getName();
+                postDTO.setLikedByCurrentUser(postLikeService.isPostLikedByUser(postId, currentUserId));
+
+                // Để trạng thái bookmark được xử lý bởi BookmarkService qua API riêng
+                postDTO.setBookmarkedByCurrentUser(false);
+            }
+        } catch (Exception e) {
+            // Xử lý ngoại lệ nếu có
+            postDTO.setLikedByCurrentUser(false);
+            postDTO.setBookmarkedByCurrentUser(false);
+        }
 
         return postDTO;
     }
 
     public PostDTO createPost(PostDTO postDTO, String authorId) {
-        // Lấy thông tin tác giả từ repository thay vì tạo mới
+        // Lấy thông tin tác giả từ repository
         AccountMember author = accountMemberRepository.findById(authorId)
                 .orElseThrow(() -> new RuntimeException("Author not found with id: " + authorId));
 
@@ -81,44 +96,10 @@ public class PostService {
                 .build();
 
         Post savedPost = postRepository.save(post);
-        return convertToDTO(savedPost);
+        return postMapper.toDTO(savedPost);
     }
 
-    private PostDTO convertToDTO(Post post) {
-        return PostDTO.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .excerpt(post.getExcerpt())
-                .content(post.getContent())
-                .category(post.getCategory())
-                .author(convertToAuthorDTO(post.getAuthor()))
-                .createdAt(post.getCreatedAt())
-                .updatedAt(post.getUpdatedAt())
-                .likes(post.getLikes())
-                .commentsCount(post.getCommentsCount())
-                .isPinned(post.isPinned())
-                .tags(post.getTags())
-                .build();
-    }
-
-    private PostDTO.AuthorDTO convertToAuthorDTO(AccountMember author) {
-        return PostDTO.AuthorDTO.builder()
-                .id(author.getId()) // Sử dụng String ID thay vì chuyển đổi sang Long
-                .name(author.getUsername())
-                .avatar("/images/avatars/default.jpg") // Setting a default avatar
-                .role(author.getRole().name())
-                .bio("") // Empty bio since it's not available in AccountMember
-                .build();
-    }
-
-    private PostDTO.RelatedPostDTO convertToRelatedPostDTO(Post post) {
-        return PostDTO.RelatedPostDTO.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .category(post.getCategory())
-                .author(convertToAuthorDTO(post.getAuthor()))
-                .likes(post.getLikes())
-                .commentsCount(post.getCommentsCount())
-                .build();
+    public PostDTO convertToDTO(Post post) {
+        return postMapper.toDTO(post);
     }
 }
