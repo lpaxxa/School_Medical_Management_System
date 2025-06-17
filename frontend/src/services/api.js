@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base API URL for your backend
-const API_URL = "http://localhost:8080";
+const API_URL = "http://localhost:8080/api/v1";
 
 // Create axios instance with timeout to prevent hanging
 const api = axios.create({
@@ -30,7 +30,7 @@ api.interceptors.request.use(
 // Define specific API endpoints
 const endpoints = {
   login: "http://localhost:8080/api/v1/auth/login",
-  getStudents: "http://localhost:8080/api/parents/my-students",
+  getStudents: "http://localhost:8080/api/v1/parents/my-students",
   
   // Health profile endpoints
   healthProfiles: {

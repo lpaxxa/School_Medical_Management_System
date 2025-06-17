@@ -6,8 +6,8 @@ import api from "../services/api";
 const StudentDataContext = createContext();
 
 // API URLs
-const STUDENTS_API_URL = "http://localhost:8080/api/parents/my-students";
-const PARENT_API_URL = "http://localhost:8080/api/parents/";
+const STUDENTS_API_URL = "http://localhost:8080/api/v1/parents/my-students";
+const PARENT_API_URL = "http://localhost:8080/api/v1/parents/";
 
 export function useStudentData() {
   return useContext(StudentDataContext);

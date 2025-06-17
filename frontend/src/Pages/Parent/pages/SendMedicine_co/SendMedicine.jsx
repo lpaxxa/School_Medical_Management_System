@@ -62,7 +62,7 @@ const SendMedicine = () => {
 
     try {
       const response = await api.get(
-        "/api/parent-medication-requests/my-requests"
+        "/parent-medication-requests/my-requests"
       );
       console.log("Medication history:", response.data);
       setMedicationHistory(response.data || []);
