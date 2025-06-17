@@ -70,11 +70,14 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         existingHealthProfile.setBmi(healthProfileDTO.getBmi());
         existingHealthProfile.setAllergies(healthProfileDTO.getAllergies());
         existingHealthProfile.setChronicDiseases(healthProfileDTO.getChronicDiseases());
-
+        existingHealthProfile.setDietaryRestrictions(healthProfileDTO.getDietaryRestrictions());
+        existingHealthProfile.setEmergencyContactInfo(healthProfileDTO.getEmergencyContactInfo());
+        existingHealthProfile.setImmunizationStatus(healthProfileDTO.getImmunizationStatus());
+        existingHealthProfile.setLastPhysicalExamDate(healthProfileDTO.getLastPhysicalExamDate());
+        existingHealthProfile.setSpecialNeeds(healthProfileDTO.getSpecialNeeds());
         existingHealthProfile.setVisionLeft(healthProfileDTO.getVisionLeft());
         existingHealthProfile.setVisionRight(healthProfileDTO.getVisionRight());
         existingHealthProfile.setHearingStatus(healthProfileDTO.getHearingStatus());
-        existingHealthProfile.setDentalStatus(healthProfileDTO.getDentalStatus());
         existingHealthProfile.setLastUpdated(java.time.LocalDateTime.now());
 
         HealthProfile updatedHealthProfile = healthProfileRepository.save(existingHealthProfile);
@@ -112,7 +115,7 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         dto.setVisionLeft(healthProfile.getVisionLeft());
         dto.setVisionRight(healthProfile.getVisionRight());
         dto.setHearingStatus(healthProfile.getHearingStatus());
-        dto.setDentalStatus(healthProfile.getDentalStatus());
+
         dto.setLastUpdated(healthProfile.getLastUpdated());
         return dto;
     }
@@ -133,7 +136,7 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         healthProfile.setVisionLeft(dto.getVisionLeft());
         healthProfile.setVisionRight(dto.getVisionRight());
         healthProfile.setHearingStatus(dto.getHearingStatus());
-        healthProfile.setDentalStatus(dto.getDentalStatus());
+
         healthProfile.setLastUpdated(dto.getLastUpdated());
         return healthProfile;
     }
