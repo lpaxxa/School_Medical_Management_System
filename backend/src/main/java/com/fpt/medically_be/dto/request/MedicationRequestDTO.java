@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class MedicationRequestDTO {
-    @NotNull(message = "Student ID is required")
+
     private Long studentId;
 
     @NotBlank(message = "Medicine name is required")

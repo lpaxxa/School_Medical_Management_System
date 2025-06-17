@@ -148,8 +148,14 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         medicationInstructionRepository.deleteById(id);
     }
 
+    //sending-medication flow
+
     @Override
     public MedicationInstructionDTO createParentMedicationRequest(MedicationRequestDTO request, Authentication auth) {
+       //null-check for studentId
+        if (request.getStudentId() == null) {
+            throw new IllegalArgumentException("Không thể tạo yêu cầu thuốc: Student ID không được để trống.");
+        }
         ParentDTO currentParent = parentService.getCurretParent(auth);
         parentService.validateParentOwnsStudent(request.getStudentId(), auth);
         Student student = studentRepository.findById(request.getStudentId())
@@ -238,10 +244,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
             throw new IllegalStateException("Yêu cầu này không thể cập nhật vì trạng thái không phải là PENDING_APPROVAL.");
         }
 
-        // 6. Validate parent owns the student (if studentId changed)
-        if (request.getStudentId() != null) {
-            parentService.validateParentOwnsStudent(request.getStudentId(), auth);
-        }
+
         // 7. Update medication details from request
         MedicationInstruction medicationInstruction = existingRequest.get();
         medicationInstruction.setMedicationName(request.getMedicineName());
@@ -268,19 +271,10 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
 
     @Override
     public List<MedicationInstructionDTO> getPendingMedicationRequests() {
-        // 1. Find all medication instructions where:
-
-        List<MedicationInstruction> pendingRequests = medicationInstructionRepository.findByStatus(Status.PENDING_APPROVAL)
-                .stream()
-                .filter(m -> m.getParentProvided() != null && m.getParentProvided())
-                .collect(Collectors.toList());
-        //    - approvalStatus = "PENDING_APPROVAL"
-        //    - parentProvided = true
-        // 2. Convert entities to DTOs
+        List<MedicationInstruction> pendingRequests = medicationInstructionRepository.findByStatusAndParentProvidedTrue(Status.PENDING_APPROVAL);
         return pendingRequests.stream()
                 .map(entity -> new MedicationInstructionDTO().toObject(entity))
                 .collect(Collectors.toList());
-
     }
 
     @Override

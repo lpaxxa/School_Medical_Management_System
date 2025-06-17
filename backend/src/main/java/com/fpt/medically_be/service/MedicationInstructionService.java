@@ -3,9 +3,11 @@ package com.fpt.medically_be.service;
 import com.fpt.medically_be.dto.request.MedicationRequestDTO;
 import com.fpt.medically_be.dto.request.NurseMedicationApprovalRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
+import com.fpt.medically_be.entity.MedicationInstruction;
 import com.fpt.medically_be.entity.Status;
 import jakarta.validation.Valid;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.core.Authentication;
 
 import java.time.LocalDate;
@@ -28,8 +30,8 @@ public interface MedicationInstructionService {
     List<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth);
     List<MedicationInstructionDTO> getMedicationRequestsByChild(Long studentId, Authentication auth);
     MedicationInstructionDTO updateParentMedicationRequest(Long requestId, MedicationRequestDTO request, Authentication auth);
-    List<MedicationInstructionDTO> getPendingMedicationRequests();
 
+    List<MedicationInstructionDTO> getPendingMedicationRequests();
     MedicationInstructionDTO processApprovalRequest(Long requestId, @Valid NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication);
    void cancelMedicationRequest(Long requestId, Authentication auth);
 

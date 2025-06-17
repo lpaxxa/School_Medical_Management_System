@@ -2,10 +2,16 @@ package com.fpt.medically_be.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
 @Table(name = "health_profiles")
+@SQLDelete(sql = "UPDATE health_profiles SET isActive = 0 WHERE id=?", table = "health_profiles")
+@SQLRestriction("isActive = 1")
 @Data
 public class HealthProfile {
 
@@ -43,6 +49,22 @@ public class HealthProfile {
 
     @Column(name = "hearing_status", columnDefinition = "NVARCHAR(50)")
     private String hearingStatus;
+    @Column(name = "dietary_restrictions", columnDefinition = "NVARCHAR(MAX)")
+    private String dietaryRestrictions;
+
+    @Column(name = "emergency_contact_info", columnDefinition = "NVARCHAR(100)")
+    private String emergencyContactInfo;
+
+    @Column(name = "immunization_status", columnDefinition = "NVARCHAR(MAX)")
+    private String immunizationStatus;
+
+    @Column(name = "last_physical_exam_date")
+    private LocalDate lastPhysicalExamDate;
+    @Column(name = "isActive")
+    private Boolean isActive = true;
+
+    @Column(name = "special_needs", columnDefinition = "NVARCHAR(MAX)")
+    private String specialNeeds;
 
     @OneToMany(mappedBy = "healthProfile", cascade = CascadeType.ALL)
     private List<Vaccination> vaccinations;
