@@ -52,6 +52,8 @@ public class MedicalIncidentResponseDTO {
 
     private Long staffId;
     private String staffName;
+    private Long parentID;
+    private String imgUrl;
     private String studentId;
     private String studentName;
     private String medicationsUsed;

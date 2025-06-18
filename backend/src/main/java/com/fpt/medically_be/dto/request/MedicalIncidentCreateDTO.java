@@ -41,7 +41,7 @@ public class MedicalIncidentCreateDTO {
     private Long handledById;
     @Min(value = 1, message = "Student ID must be a positive number")
     @Max(value = 1000000, message = "Student ID must not exceed 1000000")
-    private Long studentId;
+    private String studentId;
 
     // xem lai
     @Valid

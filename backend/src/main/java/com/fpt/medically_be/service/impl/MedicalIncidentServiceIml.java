@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.spi.ToolProvider.findFirst;
+
 @Service
 public class MedicalIncidentServiceIml implements MedicalIncidentService {
 
@@ -150,7 +152,20 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
 
     }
 
+    @Override
+    public List<MedicalIncidentResponseDTO> getMedicalIncidentByStudentID(Long id) {
+        // Lấy danh sách các MedicalIncident của học sinh
+        List<MedicalIncident> medicalIncidents = medicalIncidentRepository.findAllByStudent_Id(id);
 
+        if (medicalIncidents == null || medicalIncidents.isEmpty()) {
+            throw new RuntimeException("Medical Incidents not found for Student with id: " + id);
+        }
+
+        // Map sang DTO
+        return medicalIncidents.stream()
+                .map(medicalIncidentMapper::toMedicalIncidentDto)
+                .collect(Collectors.toList());
+    }
 
 
     // create
@@ -160,7 +175,7 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
 
         // Kiểm tra và set thông tin Student
         if (medicalIncidentCreateDTO.getStudentId() != null) {
-            Student student = studentRepository.findById(medicalIncidentCreateDTO.getStudentId())
+            Student student = studentRepository.findByStudentId(medicalIncidentCreateDTO.getStudentId())
                     .orElseThrow(() -> new RuntimeException("Student not found with id: " + medicalIncidentCreateDTO.getStudentId()));
             incident.setStudent(student);
         } else {
@@ -217,6 +232,7 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
 
 
 
+
     // update
                 @Transactional
                 @Override
@@ -224,7 +240,7 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
                     MedicalIncident incident = medicalIncidentRepository.findById(id)
                             .orElseThrow(() -> new RuntimeException("Medical Incident not found with id: " + id));
 
-                    Student student = studentRepository.findById(dto.getStudentId())
+                    Student student = studentRepository.findByStudentId(dto.getStudentId())
                             .orElseThrow(() -> new RuntimeException("Student not found with id: " + dto.getStudentId()));
 
                     Nurse nurse = nurseRepository.findById(dto.getHandledById())
@@ -275,6 +291,65 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
                 }
 
 
+//    @Override
+//    public MedicalIncidentResponseDTO createMedicalIncident(MedicalIncidentCreateDTO medicalIncidentCreateDTO) {
+//        MedicalIncident incident = medicalIncidentMapper.toMedicalIncidentCreate(medicalIncidentCreateDTO);
+//
+//        // Kiểm tra và set thông tin Student
+//        if (medicalIncidentCreateDTO.getStudentId() != null) {
+//            Student student = studentRepository.findById(medicalIncidentCreateDTO.getStudentId())
+//                    .orElseThrow(() -> new RuntimeException("Student not found with id: " + medicalIncidentCreateDTO.getStudentId()));
+//            incident.setStudent(student);
+//        } else {
+//            throw new RuntimeException("StudentId is required");
+//        }
+//
+//        // Kiểm tra và set thông tin Nurse
+//        if (medicalIncidentCreateDTO.getHandledById() != null) {
+//            Nurse handledBy = nurseRepository.findById(medicalIncidentCreateDTO.getHandledById())
+//                    .orElseThrow(() -> new RuntimeException("Medical Staff not found with id: "
+//                            + medicalIncidentCreateDTO.getHandledById()));
+//            incident.setHandledBy(handledBy);
+//        }
+//
+//        List<MedicationUsedDTO> medicationRequests = medicalIncidentCreateDTO.getMedicationsUsed();
+//
+//        if (medicationRequests != null && !medicationRequests.isEmpty()) {
+//            List<MedicationUsed> medicationUsedList = new ArrayList<>();
+//
+//            for (MedicationUsedDTO medReq : medicationRequests) {
+//                if (medReq.getQuantityUsed() > 0 && medReq.getItemID() > 0) {
+//                    MedicationItems medicationItem = medicationItemsRepository.findById(medReq.getItemID())
+//                            .orElseThrow(() -> new RuntimeException("Medication Item not found with id: " + medReq.getItemID()));
+//
+//                    //  Kiểm tra số lượng tồn kho
+//                    if (medicationItem.getStockQuantity() < medReq.getQuantityUsed()) {
+//                        throw new RuntimeException("Not enough stock for item: " + medicationItem.getItemName() +
+//                                ". Available: " + medicationItem.getStockQuantity() +
+//                                ", Required: " + medReq.getQuantityUsed());
+//                    }
+//
+//                    // Trừ số lượng thuốc trong kho
+//                    medicationItem.setStockQuantity(medicationItem.getStockQuantity() - medReq.getQuantityUsed());
+//                    medicationItemsRepository.save(medicationItem); // Cập nhật lại kho
+//
+//                    MedicationUsed medicationUsed = new MedicationUsed();
+//                    medicationUsed.setItemID(medicationItem);
+//                    medicationUsed.setQuantityUsed(medReq.getQuantityUsed());
+//                    medicationUsed.setIncidentId(incident);
+//                    medicationUsedList.add(medicationUsed);
+//                } else {
+//                    throw new RuntimeException("Medication item ID và quantity phải hợp lệ");
+//                }
+//            }
+//
+//            incident.setMedications(medicationUsedList);
+//        }
+//
+//        MedicalIncident savedIncident = medicalIncidentRepository.save(incident);
+//        return medicalIncidentMapper.toMedicalIncidentDto(savedIncident);
+//
+//    }
 
 
 

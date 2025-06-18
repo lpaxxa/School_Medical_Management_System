@@ -21,9 +21,15 @@ public interface MedicalIncidentMapper {
     @Mapping(source = "handledBy.id", target = "staffId")
     @Mapping(source = "student.studentId", target = "studentId")
     @Mapping(source = "student.fullName", target = "studentName")
+    @Mapping(source = "student.parent.id", target = "parentID")
     @Mapping(source = "handledBy.fullName",target = "staffName")
+    @Mapping(source = "student.imageUrl", target = "imgUrl")
     @Mapping(target = "medicationsUsed", expression = "java(mapMedicationsUsed(entity))")
     MedicalIncidentResponseDTO toMedicalIncidentDto(MedicalIncident entity);
+
+
+
+
 
     MedicalIncidentResponseDTO toMedicalIncidentResponseDto(MedicalIncident entity);
 
