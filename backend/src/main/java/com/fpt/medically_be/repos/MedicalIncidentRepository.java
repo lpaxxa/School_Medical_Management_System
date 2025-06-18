@@ -3,6 +3,7 @@ package com.fpt.medically_be.repos;
 
 import com.fpt.medically_be.dto.response.MedicalIncidentResponseDTO;
 import com.fpt.medically_be.entity.MedicalIncident;
+import com.fpt.medically_be.entity.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -25,5 +26,6 @@ public interface MedicalIncidentRepository extends JpaRepository<MedicalIncident
 
     List<MedicalIncident> findMedicalIncidentByRequiresFollowUp(boolean requiredFollowUpNotes);
 
+    List<MedicalIncident> findAllByStudent_Id(Long student);
 
 }
