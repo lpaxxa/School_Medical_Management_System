@@ -28,6 +28,7 @@ public class PostDTO {
     private boolean isPinned;
     private Set<String> tags;
     private boolean isLikedByCurrentUser;
+    private boolean isBookmarkedByCurrentUser; // Thêm trường mới để theo dõi trạng thái ghim
     private List<RelatedPostDTO> relatedPosts;
 
     @Data
