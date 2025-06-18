@@ -47,7 +47,7 @@ public class Student {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    private Parent parent;
+        private Parent parent;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private List<MedicalIncident> medicalIncidents;

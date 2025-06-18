@@ -50,6 +50,8 @@ public class MedicalIncidentStudentDTO {
     private String schoolYear;
     private String staffName;
     private String studentId;
+    private String fullNameParent;
+    private String phoneNumber;
 
 
 }
