@@ -49,6 +49,8 @@ public interface MedicalIncidentMapper {
     @Mapping(source = "student.gradeLevel", target = "gradeLevel")
     @Mapping(source = "student.schoolYear", target = "schoolYear")
     @Mapping(source = "handledBy.fullName", target = "staffName")
+    @Mapping(source = "student.parent.fullName", target = "fullNameParent")
+    @Mapping(source = "student.parent.phoneNumber", target = "phoneNumber")
     @Mapping(target = "medicationsUsed", expression = "java(mapMedicationsUsed(request))")
     MedicalIncidentStudentDTO toMedicalIncidentStudentDTO(MedicalIncident request);
 }
