@@ -3,7 +3,6 @@ import VaccinationDashboard from './Dashboard/VaccinationDashboard';
 import VaccinationPlanManagement from './PlanManagement/VaccinationPlanManagement';
 import VaccinationRecords from './VaccinationRecords/VaccinationRecordManagement';
 import VaccinationStatistics from './StatisticsAndReports/VaccinationStatistics';
-import VaccineManagement from './VaccineManagement/VaccineManagement';
 import './VaccinationMain.css';
 
 // Component VaccinationManagement từ file VaccinationManagement.jsx
@@ -25,8 +24,7 @@ const VaccinationManagement = () => {
   return (
     <div className="vaccination-management-container">
       <h1 className="page-title">Quản lý Tiêm chủng</h1>
-      
-      <div className="vaccination-tabs">
+        <div className="vaccination-tabs">
         <div className="vaccination-nav">
           <div 
             className={`vaccination-tab ${activeTab === 0 ? 'active' : ''}`}
@@ -40,36 +38,27 @@ const VaccinationManagement = () => {
             className={`vaccination-tab ${activeTab === 1 ? 'active' : ''}`}
             onClick={() => setActiveTab(1)}
           >
-            <i className="fas fa-syringe"></i>
-            <span>Quản lý Vaccine</span>
+            <i className="fas fa-calendar-alt"></i>
+            <span>Kế hoạch Tiêm chủng</span>
           </div>
           
           <div 
             className={`vaccination-tab ${activeTab === 2 ? 'active' : ''}`}
             onClick={() => setActiveTab(2)}
           >
-            <i className="fas fa-calendar-alt"></i>
-            <span>Kế hoạch Tiêm chủng</span>
+            <i className="fas fa-clipboard-list"></i>
+            <span>Hồ sơ Tiêm chủng</span>
           </div>
           
           <div 
             className={`vaccination-tab ${activeTab === 3 ? 'active' : ''}`}
             onClick={() => setActiveTab(3)}
           >
-            <i className="fas fa-clipboard-list"></i>
-            <span>Hồ sơ Tiêm chủng</span>
-          </div>
-          
-          <div 
-            className={`vaccination-tab ${activeTab === 4 ? 'active' : ''}`}
-            onClick={() => setActiveTab(4)}
-          >
             <i className="fas fa-chart-pie"></i>
             <span>Thống kê & Báo cáo</span>
           </div>
         </div>
-        
-        <div className="vaccination-content">
+          <div className="vaccination-content">
           {activeTab === 0 && (
             <VaccinationDashboard 
               refreshData={needsRefresh}
@@ -78,27 +67,20 @@ const VaccinationManagement = () => {
           )}
           
           {activeTab === 1 && (
-            <VaccineManagement 
-              refreshData={needsRefresh}
-              onDataChange={triggerRefresh}
-            />
-          )}
-          
-          {activeTab === 2 && (
             <VaccinationPlanManagement 
               refreshData={needsRefresh}
               onDataChange={triggerRefresh}
             />
           )}
           
-          {activeTab === 3 && (
+          {activeTab === 2 && (
             <VaccinationRecords 
               refreshData={needsRefresh}
               onDataChange={triggerRefresh}
             />
           )}
           
-          {activeTab === 4 && (
+          {activeTab === 3 && (
             <VaccinationStatistics 
               refreshData={needsRefresh}
               onDataChange={triggerRefresh}
