@@ -1,7 +1,7 @@
 // Cấu hình sử dụng dữ liệu giả hay API thật
 const config = {
-  useMockData: true, // Mặc định sử dụng dữ liệu giả
-  apiUrl: 'https://api.example.com/health-checkups' // URL API thật khi cần thay đổi
+  useMockData: false, // Chuyển sang sử dụng API thật
+  apiUrl: 'http://localhost:8080/api/v1/medical-checkups' // URL API thật - sử dụng đường dẫn tương đối cho proxy
 };
 
 // Mock data - Trong thực tế, dữ liệu này sẽ được lấy từ API
@@ -977,6 +977,71 @@ const healthCheckupService = {
       console.error('Error fetching class list:', error);
       return { classes: [], grades: [] };
     }
+  }
+};
+
+// API functions for the new endpoint
+export const getAllHealthCheckups = async () => {
+  try {
+    if (config.useMockData) {
+      await delay(500);
+      // Return mock data that matches the structure shown in the image
+      return [
+        {
+          id: 1,
+          studentId: 1,
+          studentName: "Emma Wilson",
+          checkupDate: "2024-01-15T09:00:00",
+          checkupType: "Routine",
+          height: 145.5,
+          weight: 42.5,
+          bmi: 18.5,
+          bloodPressure: "110/70",
+          visionLeft: "20/20",
+          visionRight: "20/20",
+          hearingStatus: "Normal",
+          heartRate: 80,
+          bodyTemperature: 36.7,
+          diagnosis: "Healthy",
+          recommendations: "Maintain healthy diet",
+          followUpNeeded: false,
+          parentNotified: true,
+          medicalStaffId: 1,
+          medicalStaffName: "Nurse Amy Williams"
+        },
+        {
+          id: 2,
+          studentId: 2,
+          studentName: "James Johnson",
+          checkupDate: "2024-01-16T10:30:00",
+          checkupType: "Annual",
+          height: 152.0,
+          weight: 48.0,
+          bmi: 19.2,
+          bloodPressure: "115/75",
+          visionLeft: "20/30",
+          visionRight: "20/30",
+          hearingStatus: "Normal",
+          heartRate: 82,
+          bodyTemperature: 36.5,
+          diagnosis: "Healthy, mild myopia",
+          recommendations: "Consider eye glasses for reading",
+          followUpNeeded: true,
+          parentNotified: true,
+          medicalStaffId: 2,
+          medicalStaffName: "Dr. Robert Chen"
+        }
+      ];
+    } else {
+      const response = await fetch(config.apiUrl);
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+      return await response.json();
+    }
+  } catch (error) {
+    console.error('Error fetching health checkups:', error);
+    throw error;
   }
 };
 

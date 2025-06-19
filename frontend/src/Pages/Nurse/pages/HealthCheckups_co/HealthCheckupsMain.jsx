@@ -5,13 +5,16 @@ import CheckupResults from './CheckupResults/CheckupResults';
 import Reports from './Reports/Reports';
 import StudentDetail from './StudentDetail/StudentDetail';
 import healthCheckupService from '../../../../services/healthCheckupService';
+import { HealthCheckupProvider } from '../../../../context/NurseContext';
 import './HealthCheckupsMain.css';
 
 // Export the HealthCheckupsPage component for routes
 export const HealthCheckupsPage = () => {
   return (
     <div className="health-checkups-page">
-      <HealthCheckups />
+      <HealthCheckupProvider>
+        <HealthCheckups />
+      </HealthCheckupProvider>
     </div>
   );
 };

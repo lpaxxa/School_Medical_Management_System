@@ -164,28 +164,6 @@ const ConsultationDashboard = ({ onNavigateToList }) => {
           </div>
         </div>
       </div>
-
-      <div className="quick-actions">
-        <h3>Thao tác nhanh</h3>
-        <div className="action-buttons">
-          <button className="action-btn" onClick={() => onNavigateToList('unread')}>
-            <i className="fas fa-envelope"></i>
-            <span>Tư vấn chưa đọc</span>
-          </button>
-          <button className="action-btn" onClick={() => onNavigateToList('requires-response')}>
-            <i className="fas fa-reply-all"></i>
-            <span>Cần phản hồi</span>
-          </button>
-          <button className="action-btn" onClick={() => onNavigateToList()}>
-            <i className="fas fa-list-ul"></i>
-            <span>Tất cả tư vấn</span>
-          </button>
-          <button className="action-btn create" onClick={() => window.location.href = "#create"}>
-            <i className="fas fa-plus-circle"></i>
-            <span>Tạo tư vấn mới</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

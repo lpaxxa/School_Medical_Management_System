@@ -5,6 +5,8 @@ import Sidebar from "../components/Sidebar/Sidebar";
 import Dashboard from "../pages/Dashboard_co/Dashboard";
 import UserManagement from "../pages/UserManagement_co/UserManagement";
 import PermissionManagement from "../pages/Permissions_co/PermissionsManagement";
+import VaccinationManagement from "../pages/Vaccination_co/VaccinationManagement";
+import CheckupManagement from "../pages/Checkups_co/CheckupManagement";
 import Reports from "../pages/Reports_co";
 import "./AdminLayout.css";
 
@@ -16,7 +18,6 @@ const AdminLayout = () => {
     console.log("Navigation triggered: ", section);
     setActiveSection(section);
   };
-
   const renderContent = () => {
     console.log("Rendering content for section:", activeSection);
 
@@ -26,6 +27,10 @@ const AdminLayout = () => {
       case "users":
         console.log("Rendering UserManagement component");
         return <UserManagement />;
+      case "vaccination":
+        return <VaccinationManagement />;
+      case "checkups":
+        return <CheckupManagement />;
       case "permissions":
         return <PermissionManagement />;
       case "reports":
