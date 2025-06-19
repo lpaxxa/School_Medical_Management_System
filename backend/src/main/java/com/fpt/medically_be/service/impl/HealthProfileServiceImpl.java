@@ -1,10 +1,12 @@
 package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.HealthProfileDTO;
+import com.fpt.medically_be.dto.request.HealthProfileRequestDTO;
 import com.fpt.medically_be.entity.HealthProfile;
 import com.fpt.medically_be.entity.Student;
 import com.fpt.medically_be.mapper.HealthProfileMapper;
 import com.fpt.medically_be.repos.HealthProfileRepository;
+import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.HealthProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -22,66 +24,79 @@ public class HealthProfileServiceImpl implements HealthProfileService {
 
     private final HealthProfileRepository healthProfileRepository;
     private final HealthProfileMapper healthProfileMapper;
+    private final StudentRepository studentRepository;
 
     @Autowired
-    public HealthProfileServiceImpl(HealthProfileRepository healthProfileRepository, HealthProfileMapper healthProfileMapper) {
+    public HealthProfileServiceImpl(HealthProfileRepository healthProfileRepository, HealthProfileMapper healthProfileMapper, StudentRepository studentRepository) {
         this.healthProfileRepository = healthProfileRepository;
         this.healthProfileMapper = healthProfileMapper;
+        this.studentRepository = studentRepository;
     }
 
 
 
     @Override
     public Page<HealthProfileDTO> findAll(Pageable pageable) {
-        return healthProfileRepository.findAll(pageable).map(this::convertToDTO);
+        return healthProfileRepository.findAll(pageable).map(healthProfileMapper::toObject);
     }
 
     @Override
     public HealthProfileDTO getHealthProfileById(Long id) {
 
         return healthProfileRepository.findById(id)
-                .map(this::convertToDTO)
+                .map(healthProfileMapper::toObject)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe với ID: " + id));
     }
 
     @Override
-    public HealthProfileDTO createHealthProfile(HealthProfileDTO healthProfileDTO) {
-
-        HealthProfile healthProfile = convertToEntity(healthProfileDTO);
-
-        HealthProfile savedHealthProfile = null;
-        if( healthProfile.getStudent() == null) {
-           savedHealthProfile = healthProfileRepository.save(healthProfile);
+    public HealthProfileDTO createHealthProfile(HealthProfileRequestDTO healthProfileRequestDTO) {
+        Long studentId = healthProfileRequestDTO.getStudentId();
+        if (studentId == null) {
+            throw new IllegalArgumentException("Student ID must not be null");
         }
 
-        return healthProfileMapper.toObject(savedHealthProfile);
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found with id: " + studentId));
 
+        // Use mapper to create HealthProfile entity
+        HealthProfile healthProfile = healthProfileMapper.fromRequestDTO(healthProfileRequestDTO);
+        healthProfile.setLastUpdated(java.time.LocalDateTime.now());
+
+        // First save the health profile without setting the student
+        HealthProfile savedHealthProfile = healthProfileRepository.save(healthProfile);
+
+        // Now establish both sides of the relationship
+        savedHealthProfile.setStudent(student);
+        student.setHealthProfile(savedHealthProfile);
+
+        // Save the student to update the relationship
+        studentRepository.save(student);
+
+        // Refresh the health profile entity to ensure it has the latest state
+        savedHealthProfile = healthProfileRepository.findById(savedHealthProfile.getId()).orElse(savedHealthProfile);
+
+        return healthProfileMapper.toObject(savedHealthProfile);
     }
 
     @Override
-    public HealthProfileDTO updateHealthProfile(Long id, HealthProfileDTO healthProfileDTO) {
+    public HealthProfileDTO updateHealthProfile(Long id, HealthProfileRequestDTO requestDTO) {
         HealthProfile existingHealthProfile = healthProfileRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe với ID: " + id));
 
-        // Cập nhật thông tin hồ sơ sức khỏe
-        existingHealthProfile.setBloodType(healthProfileDTO.getBloodType());
-        existingHealthProfile.setHeight(healthProfileDTO.getHeight());
-        existingHealthProfile.setWeight(healthProfileDTO.getWeight());
-        existingHealthProfile.setBmi(healthProfileDTO.getBmi());
-        existingHealthProfile.setAllergies(healthProfileDTO.getAllergies());
-        existingHealthProfile.setChronicDiseases(healthProfileDTO.getChronicDiseases());
-        existingHealthProfile.setDietaryRestrictions(healthProfileDTO.getDietaryRestrictions());
-        existingHealthProfile.setEmergencyContactInfo(healthProfileDTO.getEmergencyContactInfo());
-        existingHealthProfile.setImmunizationStatus(healthProfileDTO.getImmunizationStatus());
-        existingHealthProfile.setLastPhysicalExamDate(healthProfileDTO.getLastPhysicalExamDate());
-        existingHealthProfile.setSpecialNeeds(healthProfileDTO.getSpecialNeeds());
-        existingHealthProfile.setVisionLeft(healthProfileDTO.getVisionLeft());
-        existingHealthProfile.setVisionRight(healthProfileDTO.getVisionRight());
-        existingHealthProfile.setHearingStatus(healthProfileDTO.getHearingStatus());
-        existingHealthProfile.setLastUpdated(java.time.LocalDateTime.now());
+        // Use the mapper to apply the requestDTO values to a new entity
+        HealthProfile updatedData = healthProfileMapper.fromRequestDTO(requestDTO);
 
-        HealthProfile updatedHealthProfile = healthProfileRepository.save(existingHealthProfile);
-        return convertToDTO(updatedHealthProfile);
+        // Preserve the ID and student relationship from the existing entity
+        updatedData.setId(existingHealthProfile.getId());
+        updatedData.setStudent(existingHealthProfile.getStudent());
+        updatedData.setLastUpdated(java.time.LocalDateTime.now());
+        updatedData.setIsActive(existingHealthProfile.getIsActive());
+
+        // Save the updated entity
+        HealthProfile savedProfile = healthProfileRepository.save(updatedData);
+
+        // Return the DTO
+        return healthProfileMapper.toObject(savedProfile);
     }
 
     @Override
@@ -95,7 +110,7 @@ public class HealthProfileServiceImpl implements HealthProfileService {
     @Override
     public HealthProfileDTO getHealthProfileByStudentId(Long studentId) {
         return healthProfileRepository.findByStudentId(studentId)
-                .map(this::convertToDTO)
+                .map(healthProfileMapper::toObject)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe cho học sinh với ID: " + studentId));
     }
 
@@ -108,22 +123,29 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         dto.setWeight(healthProfile.getWeight());
         if (healthProfile.getHeight() != null && healthProfile.getWeight() != null) {
             dto.setBmi(calculateBMI(healthProfile.getHeight(), healthProfile.getWeight()));
+        } else {
+            dto.setBmi(healthProfile.getBmi()); // Use stored BMI if height/weight aren't available
         }
         dto.setAllergies(healthProfile.getAllergies());
         dto.setChronicDiseases(healthProfile.getChronicDiseases());
-
         dto.setVisionLeft(healthProfile.getVisionLeft());
         dto.setVisionRight(healthProfile.getVisionRight());
         dto.setHearingStatus(healthProfile.getHearingStatus());
+
+        // Add the missing fields
+        dto.setDietaryRestrictions(healthProfile.getDietaryRestrictions());
+        dto.setEmergencyContactInfo(healthProfile.getEmergencyContactInfo());
+        dto.setImmunizationStatus(healthProfile.getImmunizationStatus());
+        dto.setLastPhysicalExamDate(healthProfile.getLastPhysicalExamDate());
+        dto.setSpecialNeeds(healthProfile.getSpecialNeeds());
 
         dto.setLastUpdated(healthProfile.getLastUpdated());
         return dto;
     }
 
     // Phương thức chuyển đổi từ DTO sang Entity
-    private HealthProfile convertToEntity(HealthProfileDTO dto) {
+    private HealthProfile convertToEntity(HealthProfileRequestDTO dto) {
         HealthProfile healthProfile = new HealthProfile();
-        healthProfile.setId(dto.getId());
         healthProfile.setBloodType(dto.getBloodType());
         healthProfile.setHeight(dto.getHeight());
         healthProfile.setWeight(dto.getWeight());
@@ -136,8 +158,15 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         healthProfile.setVisionLeft(dto.getVisionLeft());
         healthProfile.setVisionRight(dto.getVisionRight());
         healthProfile.setHearingStatus(dto.getHearingStatus());
+        healthProfile.setSpecialNeeds(dto.getSpecialNeeds());
+        healthProfile.setDietaryRestrictions(dto.getDietaryRestrictions());
+        healthProfile.setEmergencyContactInfo(dto.getEmergencyContactInfo());
+        healthProfile.setImmunizationStatus(dto.getImmunizationStatus());
+        healthProfile.setLastPhysicalExamDate(dto.getLastPhysicalExamDate());
+        healthProfile.setLastUpdated(java.time.LocalDateTime.now());
 
-        healthProfile.setLastUpdated(dto.getLastUpdated());
+
+
         return healthProfile;
     }
 

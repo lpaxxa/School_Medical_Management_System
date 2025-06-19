@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 @Data
 public class HealthProfileRequestDTO {
+    private Long studentId;
     @NotBlank(message = "Blood type must not be blank")
     @Pattern(regexp = "^(A|B|AB|O)[+-]$", message = "Blood type must be valid (A+, B-, AB+, O+, etc.)")
     private String bloodType;
@@ -26,7 +27,7 @@ public class HealthProfileRequestDTO {
     private String visionRight;
     private String hearingStatus;
     private String dietaryRestrictions;
-    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Emergency contact should be a valid phone number (10-15 digits)")
+    @Pattern(regexp = "^(\\+?[0-9]{10,15})$", message = "Emergency contact should be a valid phone number (10-15 digits)")
     private String emergencyContactInfo;
     private String immunizationStatus;
     private LocalDate lastPhysicalExamDate;
