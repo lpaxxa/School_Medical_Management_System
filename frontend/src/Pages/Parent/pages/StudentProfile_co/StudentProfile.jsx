@@ -47,6 +47,11 @@ export default function StudentProfile() {
     }
   }, [selectedStudentId, students, parentInfo, fetchParentInfo]);
 
+  // Fetch parent info when component mounts
+  useEffect(() => {
+    fetchParentInfo();
+  }, [fetchParentInfo]);
+
   // Calculate age from date of birth
   const calculateAge = (dob) => {
     if (!dob) return "";

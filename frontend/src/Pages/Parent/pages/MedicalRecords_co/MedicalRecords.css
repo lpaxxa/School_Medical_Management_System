@@ -2001,32 +2001,52 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
+  margin-top: 25px;
 }
 
 .medical-detail {
-  background-color: #f8f9fa;
+  background-color: #fff;
   border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-  border-left: 3px solid #3498db;
+  padding: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+  transition: all 0.3s ease;
+}
+
+.medical-detail:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .medical-detail h4 {
   display: flex;
   align-items: center;
-  color: #34495e;
   font-size: 16px;
   margin-bottom: 12px;
+  color: #2d3748;
+  font-weight: 600;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 8px;
 }
 
 .medical-detail h4 svg {
-  margin-right: 8px;
-  color: #3498db;
+  margin-right: 10px;
+  color: #4a90e2;
 }
 
 .medical-detail p {
-  margin: 0;
-  color: #2c3e50;
+  color: #4a5568;
+  line-height: 1.5;
+  margin: 5px 0;
+}
+
+/* Style cho trường thông tin liên hệ khẩn cấp */
+.emergency-info {
+  border-left: 3px solid #ed8936;
+}
+
+.emergency-info h4 svg {
+  color: #ed8936;
 }
 
 /* Checkups Panel */

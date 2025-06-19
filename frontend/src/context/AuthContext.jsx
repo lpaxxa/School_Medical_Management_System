@@ -3,23 +3,25 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 
 // Base API URL
-const BASE_URL = "http://localhost:8080/api";
+const BASE_URL = "http://localhost:8080/api/v1";
 
 // Comprehensive API endpoints configuration
 const API_ENDPOINTS = {
   // Authentication
   auth: {
-    login: `${BASE_URL}/v1/auth/login`,
-    logout: `${BASE_URL}/v1/auth/logout`,
-    refresh: `${BASE_URL}/v1/auth/refresh-token`,
+    login: `${BASE_URL}/auth/login`,
+    logout: `${BASE_URL}/auth/logout`,
+    refresh: `${BASE_URL}
+    /auth/refresh-token`,
   },
-
   // Parent/Medication related
   parent: {
     submitMedicationRequest: `${BASE_URL}/parent-medication-requests/submit-request`,
-    getMedicationRequests: `${BASE_URL}/parent-medication-requests`,
-    updateMedicationRequest: `${BASE_URL}/parent-medication-requests`,
-    deleteMedicationRequest: `${BASE_URL}/parent-medication-requests`,
+    getMedicationRequests: `${BASE_URL}/parent-medication-requests/my-requests`,
+    updateMedicationRequest: (id) =>
+      `${BASE_URL}/parent-medication-requests/${id}`,
+    deleteMedicationRequest: (id) =>
+      `${BASE_URL}/parent-medication-requests/${id}`,
   },
 
   // Student related
@@ -40,10 +42,11 @@ const API_ENDPOINTS = {
     recordMedication: `${BASE_URL}/nurse/medication-records`,
   },
 
-  // Health profiles - mới thêm
+  // Health profiles
   healthProfiles: {
     getByStudentId: (studentId) =>
       `${BASE_URL}/health-profiles/student/${studentId}`,
+    submitDeclaration: `${BASE_URL}/health-profiles`, // Thêm endpoint này để submit khai báo sức khỏe
   },
 
   // Medical checkups
@@ -78,36 +81,36 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-// Mock users for testing
-const mockUserData = [
-  {
-    id: "1",
-    username: "admin",
-    role: "admin",
-    name: "Admin User",
-    token: "mock-token-admin"
-  },
-  {
-    id: "2", 
-    username: "yta1",
-    role: "nurse",
-    name: "Y tá 1",
-    token: "mock-token-nurse"
-  },
-  {
-    id: "3",
-    username: "phuhuynh",
-    role: "parent",
-    name: "Phụ huynh",
-    token: "mock-token-parent"
-  }
-];
+// // Mock users for testing
+// const mockUserData = [
+//   {
+//     id: "1",
+//     username: "admin",
+//     role: "admin",
+//     name: "Admin User",
+//     token: "mock-token-admin"
+//   },
+//   {
+//     id: "2",
+//     username: "yta1",
+//     role: "nurse",
+//     name: "Y tá 1",
+//     token: "mock-token-nurse"
+//   },
+//   {
+//     id: "3",
+//     username: "phuhuynh",
+//     role: "parent",
+//     name: "Phụ huynh",
+//     token: "mock-token-parent"
+//   }
+// ];
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
-  const [mockUsers, setMockUsers] = useState(mockUserData);
+  // Removed reference to mockUserData as we're using real API now
 
   // Kiểm tra nếu người dùng đã đăng nhập (từ localStorage)
   useEffect(() => {

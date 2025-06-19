@@ -26,6 +26,11 @@ import {
   FaChartLine,
   FaUserGraduate,
   FaExchangeAlt,
+  FaUtensils, // Thêm biểu tượng nhà hàng cho chế độ ăn
+  FaPhoneVolume, // Thêm biểu tượng điện thoại cho liên hệ khẩn cấp
+  FaCalendarAlt, // Thêm biểu tượng lịch cho ngày khám gần nhất
+  FaWheelchair, // Thêm biểu tượng xe lăn cho nhu cầu đặc biệt
+  FaShieldVirus, // Thêm biểu tượng bảo vệ cho tình trạng tiêm chủng
 } from "react-icons/fa";
 
 // Error boundary component
@@ -186,7 +191,7 @@ const MedicalRecord = () => {
 
         // Sử dụng API endpoint mới cho health profile
         const response = await api.get(
-          `/api/health-profiles/student/${selectedStudentId}`
+          `health-profiles/student/${selectedStudentId}`
         );
         console.log("Health profile response:", response);
 
@@ -225,7 +230,7 @@ const MedicalRecord = () => {
 
         // Sử dụng API endpoint cho medical checkups
         const response = await api.get(
-          `/api/medical-checkups/student/${selectedStudentId}`
+          `medical-checkups/student/${selectedStudentId}`
         );
         console.log("Checkups data response:", response.data);
 
@@ -303,6 +308,8 @@ const MedicalRecord = () => {
     if (!dateString) return "Không có dữ liệu";
     try {
       const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Không có dữ liệu";
+
       return new Intl.DateTimeFormat("vi-VN", {
         day: "2-digit",
         month: "2-digit",
@@ -314,20 +321,22 @@ const MedicalRecord = () => {
     }
   };
 
-  // Format datetime
-  const formatDateTime = (dateString) => {
-    if (!dateString) return "Không có dữ liệu";
+  // Format date with time for display
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return "Không có dữ liệu";
     try {
-      const date = new Date(dateString);
+      const dateTime = new Date(dateTimeString);
+      if (isNaN(dateTime.getTime())) return "Không có dữ liệu";
+
       return new Intl.DateTimeFormat("vi-VN", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      }).format(date);
+      }).format(dateTime);
     } catch (err) {
-      console.error("Error formatting datetime:", err);
+      console.error("Error formatting date time:", err);
       return "Không có dữ liệu";
     }
   };
@@ -528,33 +537,39 @@ const MedicalRecord = () => {
               <div className="error-message">
                 <i className="fas fa-exclamation-circle"></i>{" "}
                 {healthProfileError}
+                <button
+                  className="refresh-btn"
+                  onClick={() => fetchHealthProfile()}
+                >
+                  <i className="fas fa-sync-alt"></i> Thử lại
+                </button>
               </div>
             ) : isLoadingGeneral ? (
               <div className="data-loading">
                 <div className="loading-spinner small"></div>
                 <p>Đang tải dữ liệu sức khỏe...</p>
               </div>
-            ) : !healthProfileData ? (
-              <div className="no-data-message">
-                <p>Chưa có thông tin sức khỏe tổng quát cho học sinh này.</p>
-                <p>
-                  Hệ thống sẽ cập nhật dữ liệu sau các đợt khám sức khỏe định
-                  kỳ.
-                </p>
-              </div>
             ) : (
               <>
+                {/* Hiển thị thời gian cập nhật gần nhất */}
                 {healthProfileData.lastUpdated && (
-                  <div className="last-checkup-info">
+                  <div className="last-update-info">
                     <p>
-                      Dữ liệu cập nhật lần cuối:{" "}
+                      Cập nhật lần cuối:{" "}
                       <strong>
                         {formatDateTime(healthProfileData.lastUpdated)}
+                      </strong>
+                    </p>
+                    <p>
+                      Ngày khám gần nhất:{" "}
+                      <strong>
+                        {formatDate(healthProfileData.lastPhysicalExamDate)}
                       </strong>
                     </p>
                   </div>
                 )}
 
+                {/* Phần hiển thị thông tin sức khỏe cơ bản */}
                 <div className="stats-grid">
                   <div className="stat-card">
                     <div className="stat-icon">
@@ -578,7 +593,7 @@ const MedicalRecord = () => {
 
                   <div className="stat-card">
                     <div className="stat-icon">
-                      <FaWeight />
+                      <FaChartLine />
                     </div>
                     <div className="stat-content">
                       <h4>Chỉ số BMI</h4>
@@ -587,27 +602,32 @@ const MedicalRecord = () => {
                     </div>
                   </div>
 
-                  {healthProfileData.bloodType && (
-                    <div className="stat-card">
-                      <div className="stat-icon">
-                        <FaHeartbeat />
-                      </div>
-                      <div className="stat-content">
-                        <h4>Nhóm máu</h4>
-                        <p>{healthProfileData.bloodType}</p>
-                      </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">
+                      <FaHeartbeat />
                     </div>
-                  )}
+                    <div className="stat-content">
+                      <h4>Nhóm máu</h4>
+                      <p>{healthProfileData.bloodType}</p>
+                    </div>
+                  </div>
                 </div>
 
+                {/* Phần hiển thị chi tiết thông tin sức khỏe */}
                 <div className="medical-details-section">
                   <div className="medical-detail">
                     <h4>
                       <FaEye /> Thị lực
                     </h4>
                     <div className="detail-content">
-                      <p>Mắt trái: {healthProfileData.visionLeft || "N/A"}</p>
-                      <p>Mắt phải: {healthProfileData.visionRight || "N/A"}</p>
+                      <p>
+                        Mắt trái:{" "}
+                        {healthProfileData.visionLeft || "Chưa kiểm tra"}
+                      </p>
+                      <p>
+                        Mắt phải:{" "}
+                        {healthProfileData.visionRight || "Chưa kiểm tra"}
+                      </p>
                     </div>
                   </div>
 
@@ -615,47 +635,69 @@ const MedicalRecord = () => {
                     <h4>
                       <FaStethoscope /> Thính lực
                     </h4>
+                    <p>{healthProfileData.hearingStatus || "Chưa kiểm tra"}</p>
+                  </div>
+
+                  <div className="medical-detail">
+                    <h4>
+                      <FaAllergies /> Dị ứng
+                    </h4>
+                    <p>{healthProfileData.allergies || "Không có"}</p>
+                  </div>
+
+                  <div className="medical-detail">
+                    <h4>
+                      <FaNotesMedical /> Bệnh mãn tính
+                    </h4>
+                    <p>{healthProfileData.chronicDiseases || "Không có"}</p>
+                  </div>
+
+                  <div className="medical-detail">
+                    <h4>
+                      <FaUtensils /> Chế độ ăn uống đặc biệt
+                    </h4>
                     <p>
-                      {healthProfileData.hearingStatus || "Chưa có dữ liệu"}
+                      {healthProfileData.dietaryRestrictions ||
+                        "Không có hạn chế đặc biệt"}
                     </p>
                   </div>
 
-                  {healthProfileData.dentalStatus && (
-                    <div className="medical-detail">
-                      <h4>
-                        <FaTooth /> Tình trạng răng miệng
-                      </h4>
-                      <p>{healthProfileData.dentalStatus}</p>
-                    </div>
-                  )}
+                  <div className="medical-detail">
+                    <h4>
+                      <FaShieldVirus /> Tình trạng tiêm chủng
+                    </h4>
+                    <p>
+                      {healthProfileData.immunizationStatus ||
+                        "Chưa có thông tin"}
+                    </p>
+                  </div>
 
-                  {healthProfileData.allergies && (
-                    <div className="medical-detail">
-                      <h4>
-                        <FaAllergies /> Dị ứng
-                      </h4>
-                      <p>{healthProfileData.allergies}</p>
-                    </div>
-                  )}
+                  <div className="medical-detail">
+                    <h4>
+                      <FaWheelchair /> Nhu cầu đặc biệt
+                    </h4>
+                    <p>{healthProfileData.specialNeeds || "Không có"}</p>
+                  </div>
 
-                  {healthProfileData.chronicDiseases && (
-                    <div className="medical-detail">
-                      <h4>
-                        <FaNotesMedical /> Bệnh mãn tính
-                      </h4>
-                      <p>{healthProfileData.chronicDiseases}</p>
-                    </div>
-                  )}
-
-                  {healthProfileData.treatmentHistory && (
-                    <div className="medical-detail">
-                      <h4>
-                        <FaFileMedicalAlt /> Lịch sử điều trị
-                      </h4>
-                      <p>{healthProfileData.treatmentHistory}</p>
-                    </div>
-                  )}
+                  <div className="medical-detail emergency-info">
+                    <h4>
+                      <FaPhoneVolume /> Thông tin liên hệ khẩn cấp
+                    </h4>
+                    <p>
+                      {healthProfileData.emergencyContactInfo ||
+                        "Chưa cập nhật"}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Thêm nút làm mới dữ liệu */}
+                <button
+                  className="refresh-button"
+                  onClick={() => fetchHealthProfile()}
+                  disabled={isLoadingGeneral}
+                >
+                  <i className="fas fa-sync-alt"></i> Làm mới dữ liệu
+                </button>
               </>
             )}
           </div>
@@ -1103,6 +1145,6 @@ const getBMIStatus = (bmi) => {
   if (bmiValue >= 18.5 && bmiValue < 24.9) return "Bình thường";
   if (bmiValue >= 25 && bmiValue < 29.9) return "Thừa cân";
   return "Béo phì";
-}
+};
 
 export default MedicalRecord;
