@@ -39,7 +39,22 @@ const endpoints = {
   
   // Medical checkups endpoints
   medicalCheckups: {
-    getByStudentId: (studentId) => `${API_URL}/api/medical-checkups/student/${studentId}`
+    getByStudentId: (studentId) => `${API_URL}/medical-checkups/student/${studentId}`
+  },
+  
+  // Medication requests endpoints
+  medicationRequests: {
+    getMyRequests: `${API_URL}/parent-medication-requests/my-requests`,
+    submitRequest: `${API_URL}/parent-medication-requests/submit-request`,
+    updateRequest: (id) => `${API_URL}/parent-medication-requests/${id}`,
+    deleteRequest: (id) => `${API_URL}/parent-medication-requests/${id}`
+  },
+
+  // Notifications endpoints
+  notifications: {
+    getNotifications: (parentId) => `/notifications/getTitlesByParentId/${parentId}`,
+    getNotificationDetail: (notificationId, parentId) => `/notifications/getDetail/${notificationId}/${parentId}`,
+    respondToNotification: (notificationId, parentId) => `/notifications/respond/${notificationId}/${parentId}`,
   }
 };
 
