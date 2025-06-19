@@ -242,6 +242,38 @@
   background-color: #d1dce5;
 }
 
+/* Delete button */
+.btn-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background-color: #e74c3c !important;
+  color: white !important;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-delete:hover {
+  background-color: #c0392b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.btn-delete:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-delete i {
+  font-size: 0.9rem;
+}
+
 /* Loading spinner */
 .spinner {
   display: inline-block;
@@ -584,4 +616,231 @@
   display: flex;
   justify-content: center;
   gap: 15px;
+}
+
+/* Request Actions */
+.request-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-update, .btn-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-update {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-update:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.btn-delete {
+  background-color: #e74c3c !important;
+  color: white !important;
+}
+
+.btn-delete:hover {
+  background-color: #c0392b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.btn-update:active, .btn-delete:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-update i, .btn-delete i {
+  font-size: 0.9rem;
+}
+
+/* Thêm vào đầu file SendMedicine.css để ghi đè các style khác */
+
+/* Reset các style khác có thể ảnh hưởng đến nút */
+.request-actions .btn-update,
+.request-actions .btn-delete {
+  all: initial; /* Reset mọi style */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Style chung cho cả hai nút */
+.request-actions .btn-update,
+.request-actions .btn-delete {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 5px 10px !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  text-decoration: none !important;  /* Ngăn chặn gạch chân */
+  height: auto !important;  /* Ngăn chặn chiều cao bị ghi đè */
+}
+
+/* Style riêng cho từng nút */
+.request-actions .btn-update {
+  background-color: #3498db !important;
+  color: white !important;
+}
+
+.request-actions .btn-update:hover {
+  background-color: #2980b9 !important;
+}
+
+.request-actions .btn-delete {
+  background-color: #e74c3c !important;
+  color: white !important;
+}
+
+.request-actions .btn-delete:hover {
+  background-color: #c0392b !important;
+}
+
+/* Thêm hiệu ứng khi hover */
+.request-actions .btn-update:hover,
+.request-actions .btn-delete:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Icon trong nút */
+.request-actions .btn-update i,
+.request-actions .btn-delete i {
+  font-size: 0.9rem !important;
+  margin-right: 2px !important;
+}
+
+/* CSS cho modal */
+.update-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.update-modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: modalFadeIn 0.3s ease forwards;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-modal:hover {
+  color: #333;
+}
+
+.modal-content {
+  padding: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Đảm bảo form trong modal trông đẹp */
+.update-modal .form-group {
+  margin-bottom: 15px;
+}
+
+.update-modal input,
+.update-modal textarea,
+.update-modal select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.update-modal .checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.update-modal .checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Đáp ứng mobile */
+@media (max-width: 600px) {
+  .update-modal {
+    width: 95%;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-actions button {
+    width: 100%;
+  }
 }
