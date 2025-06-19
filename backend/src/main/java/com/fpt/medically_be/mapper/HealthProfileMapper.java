@@ -4,10 +4,13 @@ import com.fpt.medically_be.base.BaseMapper;
 import com.fpt.medically_be.dto.HealthProfileDTO;
 import com.fpt.medically_be.dto.request.HealthProfileRequestDTO;
 import com.fpt.medically_be.entity.HealthProfile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class HealthProfileMapper extends BaseMapper<HealthProfile, HealthProfileDTO> {
+    private static final Logger logger = LoggerFactory.getLogger(HealthProfileMapper.class);
 
     @Override
     public HealthProfileDTO toObject(HealthProfile entity) {
@@ -31,6 +34,7 @@ public class HealthProfileMapper extends BaseMapper<HealthProfile, HealthProfile
         dto.setImmunizationStatus(entity.getImmunizationStatus());
         dto.setLastPhysicalExamDate(entity.getLastPhysicalExamDate());
         dto.setSpecialNeeds(entity.getSpecialNeeds());
+        dto.setLastUpdated(entity.getLastUpdated());
 
 
 
@@ -61,6 +65,8 @@ public class HealthProfileMapper extends BaseMapper<HealthProfile, HealthProfile
         entity.setImmunizationStatus(dto.getImmunizationStatus());
         entity.setLastPhysicalExamDate(dto.getLastPhysicalExamDate());
         entity.setSpecialNeeds(dto.getSpecialNeeds());
+        entity.setLastUpdated(dto.getLastUpdated());
+
 
         return entity;
     }
@@ -68,10 +74,16 @@ public class HealthProfileMapper extends BaseMapper<HealthProfile, HealthProfile
     // Add a method to handle the request DTO conversion
     public HealthProfile fromRequestDTO(HealthProfileRequestDTO requestDTO) {
         if (requestDTO == null) {
+            logger.error("HealthProfileRequestDTO is null");
             return null;
         }
 
+        // Log the incoming DTO to help debug
+        logger.info("Converting HealthProfileRequestDTO: {}", requestDTO);
+
         HealthProfile entity = new HealthProfile();
+
+        // Set the fields with null checking
         entity.setBloodType(requestDTO.getBloodType());
         entity.setHeight(requestDTO.getHeight());
         entity.setWeight(requestDTO.getWeight());
@@ -92,6 +104,10 @@ public class HealthProfileMapper extends BaseMapper<HealthProfile, HealthProfile
         entity.setImmunizationStatus(requestDTO.getImmunizationStatus());
         entity.setLastPhysicalExamDate(requestDTO.getLastPhysicalExamDate());
         entity.setSpecialNeeds(requestDTO.getSpecialNeeds());
+        entity.setIsActive(true);
+
+        // Log the created entity for verification
+        logger.info("Created HealthProfile entity: {}", entity);
 
         return entity;
     }
