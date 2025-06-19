@@ -15,8 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Service
 @Transactional
@@ -50,13 +49,20 @@ public class HealthProfileServiceImpl implements HealthProfileService {
 
     @Override
     public HealthProfileDTO createHealthProfile(HealthProfileRequestDTO healthProfileRequestDTO) {
-        Long studentId = healthProfileRequestDTO.getStudentId();
+        Long studentId = healthProfileRequestDTO.getId();
         if (studentId == null) {
             throw new IllegalArgumentException("Student ID must not be null");
         }
 
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found with id: " + studentId));
+
+        // Check if student already has a health profile
+        if (student.getHealthProfile() != null) {
+            // Update existing health profile instead of creating new one
+            Long existingProfileId = student.getHealthProfile().getId();
+            return updateHealthProfile(existingProfileId, healthProfileRequestDTO);
+        }
 
         // Use mapper to create HealthProfile entity
         HealthProfile healthProfile = healthProfileMapper.fromRequestDTO(healthProfileRequestDTO);

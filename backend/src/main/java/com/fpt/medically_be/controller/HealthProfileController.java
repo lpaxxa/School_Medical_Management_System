@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.HealthProfileDTO;
 import com.fpt.medically_be.dto.request.HealthProfileRequestDTO;
 import com.fpt.medically_be.service.HealthProfileService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Pageable;
 import java.util.HashMap;
-import java.util.List;
+
 import java.util.Map;
 
 @RestController
@@ -61,10 +62,48 @@ public class HealthProfileController {
         return ResponseEntity.ok(healthProfileService.createHealthProfile(healthProfileRequestDTO));
     }
 
+    @PostMapping("/create-or-update")
+    @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+    public ResponseEntity<HealthProfileDTO> createOrUpdateHealthProfile(@Valid @RequestBody HealthProfileRequestDTO healthProfileRequestDTO) {
+        // Log the incoming request for debugging
+        System.out.println("Received create/update health profile request: " + healthProfileRequestDTO);
+        
+        if (healthProfileRequestDTO.getId() == null) {
+            throw new IllegalArgumentException("Student ID must not be null");
+        }
+        
+        try {
+            // Try to get existing health profile
+            HealthProfileDTO existingProfile = healthProfileService.getHealthProfileByStudentId(healthProfileRequestDTO.getId());
+            // If it exists, update it
+            return ResponseEntity.ok(healthProfileService.updateHealthProfile(existingProfile.getId(), healthProfileRequestDTO));
+        } catch (EntityNotFoundException e) {
+            // If it doesn't exist, create new one
+            return ResponseEntity.ok(healthProfileService.createHealthProfile(healthProfileRequestDTO));
+        }
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
     public ResponseEntity<HealthProfileDTO> updateHealthProfile(@PathVariable Long id, @Valid @RequestBody HealthProfileRequestDTO requestDTO) {
         return ResponseEntity.ok(healthProfileService.updateHealthProfile(id, requestDTO));
+    }
+
+    @PutMapping("/student/{studentId}")
+    @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+    public ResponseEntity<HealthProfileDTO> updateHealthProfileByStudentId(@PathVariable Long studentId, @Valid @RequestBody HealthProfileRequestDTO requestDTO) {
+        // Set the studentId in the request DTO
+        requestDTO.setId(studentId);
+        
+        try {
+            // Try to get existing health profile
+            HealthProfileDTO existingProfile = healthProfileService.getHealthProfileByStudentId(studentId);
+            // If it exists, update it
+            return ResponseEntity.ok(healthProfileService.updateHealthProfile(existingProfile.getId(), requestDTO));
+        } catch (EntityNotFoundException e) {
+            // If it doesn't exist, create new one
+            return ResponseEntity.ok(healthProfileService.createHealthProfile(requestDTO));
+        }
     }
 
     @DeleteMapping("/{id}")
