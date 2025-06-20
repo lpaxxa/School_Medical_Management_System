@@ -160,7 +160,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         if (request.getStudentId() == null) {
             throw new IllegalArgumentException("Không thể tạo yêu cầu thuốc: Student ID không được để trống.");
         }
-        ParentDTO currentParent = parentService.getCurretParent(auth);
+        ParentDTO currentParent = parentService.getCurrentParent(auth);
         parentService.validateParentOwnsStudent(request.getStudentId(), auth);
         Student student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với ID: " + request.getStudentId()));
@@ -202,11 +202,11 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     }
 
     @Override
-    public Page<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth, int page, int size) {
+    public List<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth) {
         ParentDTO currentParent = parentService.getCurrentParent(auth);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submittedAt"));
-        Page<MedicationInstruction> requests= medicationInstructionRepository.findByRequestedById(currentParent.getId(), pageable);
-        return requests.map(entity -> new MedicationInstructionDTO().toObject(entity));
+
+        List<MedicationInstruction> requests= medicationInstructionRepository.findByRequestedById(currentParent.getId());
+        return requests.stream().map(r -> new MedicationInstructionDTO().toObject(r)).collect(Collectors.toList());
     }
 
     @Override
@@ -233,7 +233,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     @Override
     public MedicationInstructionDTO updateParentMedicationRequest(Long requestId, MedicationRequestDTO request, Authentication auth) {
         // 1. Get current parent from authentication
-        ParentDTO currentParent = parentService.getCurretParent(auth);
+        ParentDTO currentParent = parentService.getCurrentParent(auth);
         // 2. Find existing medication instruction by requestId
         Optional<MedicationInstruction> existingRequest = medicationInstructionRepository.findById(requestId);
 
@@ -313,7 +313,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     @Override
     public void cancelMedicationRequest(Long requestId, Authentication auth) {
         // 1. Get current parent from authentication
-        ParentDTO currentParent = parentService.getCurretParent(auth);
+        ParentDTO currentParent = parentService.getCurrentParent(auth);
         // 2. Find existing medication instruction by requestId
         Optional<MedicationInstruction> existingRequest = medicationInstructionRepository.findById(requestId);
 

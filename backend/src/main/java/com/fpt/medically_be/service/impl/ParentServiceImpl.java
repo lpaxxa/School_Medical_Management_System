@@ -31,14 +31,14 @@ public class ParentServiceImpl implements ParentService {
     }
 
     @Override
-    public ParentDTO getCurretParent(Authentication authentication) {
+    public ParentDTO getCurrentParent(Authentication authentication) {
         String accountId = authentication.getName();
         return getParentByAccountId(accountId);
     }
 
     @Override
     public void validateParentOwnsStudent(Long studentId, Authentication authentication) {
-        ParentDTO getCurrentParent = getCurretParent(authentication);
+        ParentDTO getCurrentParent = getCurrentParent(authentication);
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với ID: " + studentId));
         if(!student.getParent().getId().equals(getCurrentParent.getId())) {
