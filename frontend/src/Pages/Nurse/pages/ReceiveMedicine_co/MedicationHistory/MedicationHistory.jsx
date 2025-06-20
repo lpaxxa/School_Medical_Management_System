@@ -20,108 +20,14 @@ const MedicationHistory = () => {
       try {
         setLoading(true);
         
-        try {
-          // Call API to get medication history
-          const data = await receiveMedicineService.getMedicationHistory();
-          setMedicationHistory(data);
-        } catch (apiError) {
-          console.error('API error, using mock data:', apiError);
-          
-          // Mock data for demonstration
-          const mockData = [
-            {
-              id: 'med001',
-              studentId: 'HS001',
-              studentName: 'Nguyễn Văn A',
-              class: '10A1',
-              medicineName: 'Paracetamol',
-              dosage: '500mg',
-              administrationTime: '2025-06-15T08:30:00',
-              administeredBy: 'Trần Thị Y Tá',
-              status: 'completed',
-              notes: 'Học sinh có biểu hiện sốt nhẹ'
-            },
-            {
-              id: 'med002',
-              studentId: 'HS001',
-              studentName: 'Nguyễn Văn A',
-              class: '10A1',
-              medicineName: 'Paracetamol',
-              dosage: '500mg',
-              administrationTime: '2025-06-15T12:30:00',
-              administeredBy: 'Trần Thị Y Tá',
-              status: 'completed',
-              notes: ''
-            },
-            {
-              id: 'med003',
-              studentId: 'HS001',
-              studentName: 'Nguyễn Văn A',
-              class: '10A1',
-              medicineName: 'Paracetamol',
-              dosage: '500mg',
-              administrationTime: '2025-06-15T16:30:00',
-              administeredBy: 'Lê Thị Y Tá',
-              status: 'completed',
-              notes: 'Nhiệt độ đã giảm'
-            },
-            {
-              id: 'med004',
-              studentId: 'HS002',
-              studentName: 'Trần Thị C',
-              class: '11A2',
-              medicineName: 'Vitamin C',
-              dosage: '1 viên',
-              administrationTime: '2025-06-15T12:00:00',
-              administeredBy: 'Trần Thị Y Tá',
-              status: 'completed',
-              notes: ''
-            },
-            {
-              id: 'med005',
-              studentId: 'HS003',
-              studentName: 'Lê Văn E',
-              class: '9B3',
-              medicineName: 'Probiotics',
-              dosage: '1 gói',
-              administrationTime: '2025-06-15T08:00:00',
-              administeredBy: 'Nguyễn Văn Y Tá',
-              status: 'completed',
-              notes: 'Học sinh có vấn đề về tiêu hóa'
-            },
-            {
-              id: 'med006',
-              studentId: 'HS004',
-              studentName: 'Phạm Thị G',
-              class: '10A3',
-              medicineName: 'Cetirizine',
-              dosage: '10mg',
-              administrationTime: '2025-06-15T20:00:00',
-              administeredBy: 'Lê Thị Y Tá',
-              status: 'completed',
-              notes: 'Điều trị dị ứng theo đơn thuốc'
-            },
-            {
-              id: 'med007',
-              studentId: 'HS001',
-              studentName: 'Nguyễn Văn A',
-              class: '10A1',
-              medicineName: 'Paracetamol',
-              dosage: '500mg',
-              administrationTime: '2025-06-16T08:30:00',
-              administeredBy: 'Trần Thị Y Tá',
-              status: 'scheduled',
-              notes: 'Liều cuối cùng'
-            }
-          ];
-          
-          setMedicationHistory(mockData);
-        }
-        
+        // Call API to get medication history
+        const data = await receiveMedicineService.getMedicationHistory();
+        setMedicationHistory(data);
         setLoading(false);
       } catch (err) {
         console.error('Error loading medication history:', err);
-        setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
+        const errorMessage = err.message || 'Không thể tải dữ liệu. Vui lòng thử lại sau.';
+        setError(errorMessage);
         setLoading(false);
       }
     };

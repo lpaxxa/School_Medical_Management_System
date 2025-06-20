@@ -49,27 +49,16 @@ const NewMedicineReceiptForm = ({ onCancel, onMedicineAdded }) => {
     try {
       setMedicationSearchLoading(true);
       
-      try {
-        // Call API to search medications
-        const results = await receiveMedicineService.searchMedicationByName(searchTerm);
-        setMedicationSearchResults(results);
-      } catch (apiError) {
-        console.error('API error:', apiError);
-        
-        // Mock data for demonstration
-        const mockResults = [
-          { id: 'm001', name: 'Paracetamol', category: 'Hạ sốt' },
-          { id: 'm002', name: 'Paradol Extra', category: 'Hạ sốt' },
-          { id: 'm003', name: 'Panadol', category: 'Hạ sốt' },
-          { id: 'm004', name: 'Vitamin C', category: 'Vitamin' },
-          { id: 'm005', name: 'Vitamin D3', category: 'Vitamin' }
-        ].filter(med => med.name.toLowerCase().includes(searchTerm.toLowerCase()));
-        
-        setMedicationSearchResults(mockResults);
-      }
+      // Call API to search medications
+      const results = await receiveMedicineService.searchMedicationByName(searchTerm);
+      setMedicationSearchResults(results);
     } catch (error) {
       console.error('Lỗi khi tìm kiếm thuốc:', error);
       setMedicationSearchResults([]);
+      // Show error message if it's an authentication/authorization issue
+      if (error.message && (error.message.includes('đăng nhập') || error.message.includes('quyền'))) {
+        alert(error.message);
+      }
     } finally {
       setMedicationSearchLoading(false);
     }
@@ -93,43 +82,27 @@ const NewMedicineReceiptForm = ({ onCancel, onMedicineAdded }) => {
       // Format data for API
       const medicineRequestData = {
         ...formData,
-        status: 'pending',
+        status: 'PENDING_APPROVAL',
         receivedDate: null
       };
       
       console.log('Sending to API:', medicineRequestData);
       
-      try {
-        // Gọi API để thêm yêu cầu thuốc mới
-        const response = await receiveMedicineService.addMedicineRequest(medicineRequestData);
-        
-        // Nếu thành công, thêm vào danh sách hiện tại
-        const newMedicine = {
-          id: response.id || Date.now(), // Sử dụng ID từ API hoặc timestamp tạm thời
-          ...formData,
-          status: 'pending',
-          receivedDate: null
-        };
-        
-        onMedicineAdded(newMedicine);
-        alert('Đã thêm đơn nhận thuốc thành công!');
-      } catch (apiError) {
-        console.error('API error:', apiError);
-        
-        // Trong trường hợp API lỗi, chúng ta vẫn thêm vào frontend để demo
-        const newMedicine = {
-          id: Date.now(),
-          ...formData,
-          status: 'pending',
-          receivedDate: null
-        };
-        
-        onMedicineAdded(newMedicine);
-        alert('Đã thêm đơn nhận thuốc (mock data)! API chưa hoạt động.');
-      }
+      // Gọi API để thêm yêu cầu thuốc mới
+      const response = await receiveMedicineService.addMedicineRequest(medicineRequestData);
+      
+      // Thêm vào danh sách hiện tại
+      const newMedicine = {
+        id: response.id || Date.now(),
+        ...response
+      };
+      
+      onMedicineAdded(newMedicine);
+      alert('Đã thêm đơn nhận thuốc thành công!');
     } catch (err) {
       console.error('Lỗi khi thêm đơn nhận thuốc:', err);
-      alert('Có lỗi xảy ra khi thêm đơn nhận thuốc. Vui lòng thử lại sau.');
+      const errorMessage = err.message || 'Có lỗi xảy ra khi thêm đơn nhận thuốc. Vui lòng thử lại sau.';
+      alert(errorMessage);
     }
   };
 

@@ -23,6 +23,8 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         // Student/Parent info (for display)
         private Long healthProfileId;
         private String studentName;
+        private String studentClass;
+        private String studentId;
 
         private String requestedBy; // Parent's name who made the request
         private String requestedByAccountId; // Parent's account ID for notifications
@@ -87,6 +89,8 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
                         this.healthProfileId = entity.getHealthProfile().getId();
                         if (entity.getHealthProfile().getStudent() != null) {
                                 this.studentName = entity.getHealthProfile().getStudent().getFullName();
+                                this.studentClass = entity.getHealthProfile().getStudent().getClassName();
+                                this.studentId = entity.getHealthProfile().getStudent().getStudentId();
                         }
                 }
 

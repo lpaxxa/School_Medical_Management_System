@@ -35,11 +35,23 @@ public class NurseMedicationApprovalController {
     }
 
   // Get all pending medication requests for review
-    @GetMapping("/pending")
+    @GetMapping("/pending-requests")
     @PreAuthorize("hasRole('NURSE')")
     public ResponseEntity<List<MedicationInstructionDTO>> getPendingMedicationRequests() {
         List<MedicationInstructionDTO> pendingRequests = medicationInstructionService.getPendingMedicationRequests();
         return ResponseEntity.ok(pendingRequests);
+    }
+    @GetMapping("/approved-requests")
+    @PreAuthorize("hasRole('NURSE')")
+    public ResponseEntity<List<MedicationInstructionDTO>> getApprovedMedicationRequests() {
+        List<MedicationInstructionDTO> approvedRequests = medicationInstructionService.getApprovedMedicationRequests();
+        return ResponseEntity.ok(approvedRequests);
+    }
+    @GetMapping("/rejected-requests")
+    @PreAuthorize("hasRole('NURSE')")
+    public ResponseEntity<List<MedicationInstructionDTO>> getRejectedMedicationRequests() {
+        List<MedicationInstructionDTO> rejectedRequests = medicationInstructionService.getRejectedMedicationRequests();
+        return ResponseEntity.ok(rejectedRequests);
     }
 
     @GetMapping("/all-requests")

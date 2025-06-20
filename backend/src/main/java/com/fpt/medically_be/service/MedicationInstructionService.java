@@ -34,6 +34,8 @@ public interface MedicationInstructionService {
     MedicationInstructionDTO updateParentMedicationRequest(Long requestId, MedicationRequestDTO request, Authentication auth);
 
     List<MedicationInstructionDTO> getPendingMedicationRequests();
+    List<MedicationInstructionDTO> getApprovedMedicationRequests();
+    List<MedicationInstructionDTO> getRejectedMedicationRequests();
     List<MedicationInstructionDTO> getAllMedicationRequests();
     MedicationInstructionDTO processApprovalRequest(Long requestId, @Valid NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication);
    void cancelMedicationRequest(Long requestId, Authentication auth);

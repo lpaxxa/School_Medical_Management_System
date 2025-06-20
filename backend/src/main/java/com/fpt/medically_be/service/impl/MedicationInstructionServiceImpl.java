@@ -277,6 +277,22 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     }
 
     @Override
+    public List<MedicationInstructionDTO> getApprovedMedicationRequests() {
+        List<MedicationInstruction> approvedRequests = medicationInstructionRepository.findByStatusAndParentProvidedTrue(Status.APPROVED);
+        return approvedRequests.stream()
+                .map(entity -> new MedicationInstructionDTO().toObject(entity))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationInstructionDTO> getRejectedMedicationRequests() {
+       List<MedicationInstruction> rejectedRequests = medicationInstructionRepository.findByStatusAndParentProvidedTrue(Status.REJECTED);
+        return rejectedRequests.stream()
+                .map(entity -> new MedicationInstructionDTO().toObject(entity))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<MedicationInstructionDTO> getAllMedicationRequests() {
         List<MedicationInstruction> allRequests = medicationInstructionRepository.findAll();
         return allRequests.stream()

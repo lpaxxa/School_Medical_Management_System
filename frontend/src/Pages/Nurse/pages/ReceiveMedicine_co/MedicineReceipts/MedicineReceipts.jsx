@@ -11,131 +11,112 @@ const MedicineReceipts = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('pending');
+  const [processingRequests, setProcessingRequests] = useState(new Set());
+  
+  // Additional filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  // Fetch dữ liệu thuốc từ phụ huynh
+  // Fetch dữ liệu yêu cầu thuốc dựa trên filter status
   useEffect(() => {
     const fetchMedicineRequests = async () => {
       try {
         setLoading(true);
         
-        try {
-          // Gọi API để lấy danh sách yêu cầu thuốc
-          const data = await receiveMedicineService.getAllMedicineRequests();
-          setMedicineRequests(data);
-        } catch (apiError) {
-          console.error('API lỗi, sử dụng dữ liệu mẫu:', apiError);
-          
-          // Dữ liệu mẫu khi API chưa hoạt động
-          const mockData = [
-            {
-              id: 1,
-              studentId: 'HS001',
-              studentName: 'Nguyễn Văn A',
-              parentName: 'Nguyễn Văn B',
-              medicineName: 'Paracetamol',
-              quantity: '10 viên',
-              frequency: '3 lần/ngày',
-              instructions: 'Uống sau ăn',
-              startDate: '2025-06-15',
-              endDate: '2025-06-20',
-              status: 'pending',
-              receivedDate: null,
-              notes: 'Thuốc hạ sốt cho bé',
-              class: '10A1'
-            },
-            {
-              id: 2,
-              studentId: 'HS002',
-              studentName: 'Trần Thị C',
-              parentName: 'Trần Văn D',
-              medicineName: 'Vitamin C',
-              quantity: '30 viên',
-              frequency: '1 lần/ngày',
-              instructions: 'Uống trước khi đi ngủ',
-              startDate: '2025-06-10',
-              endDate: '2025-07-10',
-              status: 'received',
-              receivedDate: '2025-06-10',
-              notes: 'Bổ sung vitamin hàng ngày',
-              class: '11A2'
-            },
-            {
-              id: 3,
-              studentId: 'HS003',
-              studentName: 'Lê Văn E',
-              parentName: 'Lê Thị F',
-              medicineName: 'Probiotics',
-              quantity: '15 gói',
-              frequency: '1 gói/ngày',
-              instructions: 'Hòa với nước ấm, uống sau ăn sáng',
-              startDate: '2025-06-12',
-              endDate: '2025-06-27',
-              status: 'pending',
-              receivedDate: null,
-              notes: 'Bổ sung lợi khuẩn cho hệ tiêu hóa',
-              class: '9B3'
-            },
-            {
-              id: 4,
-              studentId: 'HS004',
-              studentName: 'Phạm Thị G',
-              parentName: 'Phạm Văn H',
-              medicineName: 'Cetirizine',
-              quantity: '10 viên',
-              frequency: '1 viên/ngày',
-              instructions: 'Uống trước khi đi ngủ',
-              startDate: '2025-06-14',
-              endDate: '2025-06-24',
-              status: 'received',
-              receivedDate: '2025-06-14',
-              notes: 'Thuốc chống dị ứng',
-              class: '10A3'
-            }
-          ];
-          
-          setMedicineRequests(mockData);
-        }
-        
+        // Use appropriate endpoint based on filter status for better performance
+        const data = await receiveMedicineService.getMedicationRequestsByStatus(filterStatus);
+        setMedicineRequests(data);
         setLoading(false);
       } catch (err) {
-        console.error('Lỗi khi tải dữ liệu thuốc từ phụ huynh:', err);
-        setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
+        console.error('Lỗi khi tải dữ liệu yêu cầu thuốc:', err);
+        const errorMessage = err.message || 'Không thể tải dữ liệu. Vui lòng thử lại sau.';
+        setError(errorMessage);
         setLoading(false);
       }
     };
 
     fetchMedicineRequests();
-  }, []);
+  }, [filterStatus]); // Re-fetch when filter status changes
 
-  // Xử lý khi nhân viên xác nhận đã nhận thuốc
-  const handleReceive = async (id) => {
+  // Xử lý duyệt yêu cầu thuốc
+  const handleApprove = async (requestId, reason = '') => {
+    if (processingRequests.has(requestId)) return;
+    
     try {
-      try {
-        // Gọi API để xác nhận đã nhận thuốc
-        await receiveMedicineService.confirmReceiveMedicine(id);
-      } catch (apiError) {
-        console.error('API error:', apiError);
-        // API lỗi, chúng ta vẫn cập nhật UI để demo
-      }
+      setProcessingRequests(prev => new Set(prev).add(requestId));
       
-      // Cập nhật trạng thái trong state
-      const updatedRequests = medicineRequests.map(req => {
-        if (req.id === id) {
-          return {
-            ...req,
-            status: 'received',
-            receivedDate: new Date().toISOString().split('T')[0] // Ngày hiện tại
-          };
+      // Gọi API để duyệt yêu cầu thuốc
+      const result = await receiveMedicineService.approveMedicationRequest(requestId, reason);
+      
+      // Cập nhật trạng thái trong state với dữ liệu từ API
+      setMedicineRequests(prev => {
+        if (filterStatus === 'pending') {
+          // In pending mode, remove the approved request from the list
+          return prev.filter(req => req.id !== requestId);
+        } else {
+          // In all mode, update the request with new data
+          return prev.map(req => 
+            req.id === requestId ? { ...req, ...result } : req
+          );
         }
-        return req;
       });
       
-      setMedicineRequests(updatedRequests);
-      alert('Đã xác nhận nhận thuốc thành công!');
+      alert('Đã duyệt yêu cầu thuốc thành công!');
     } catch (err) {
-      console.error('Lỗi khi xác nhận nhận thuốc:', err);
-      alert('Có lỗi xảy ra khi xác nhận nhận thuốc. Vui lòng thử lại sau.');
+      console.error('Lỗi khi duyệt yêu cầu thuốc:', err);
+      const errorMessage = err.message || 'Có lỗi xảy ra khi duyệt yêu cầu thuốc. Vui lòng thử lại sau.';
+      alert(errorMessage);
+    } finally {
+      setProcessingRequests(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(requestId);
+        return newSet;
+      });
+    }
+  };
+
+  // Xử lý từ chối yêu cầu thuốc
+  const handleReject = async (requestId, reason) => {
+    if (!reason?.trim()) {
+      alert('Vui lòng nhập lý do từ chối');
+      return;
+    }
+    
+    if (processingRequests.has(requestId)) return;
+    
+    try {
+      setProcessingRequests(prev => new Set(prev).add(requestId));
+      
+      // Gọi API để từ chối yêu cầu thuốc
+      const result = await receiveMedicineService.rejectMedicationRequest(requestId, reason);
+      
+      // Cập nhật trạng thái trong state với dữ liệu từ API
+      setMedicineRequests(prev => {
+        if (filterStatus === 'pending') {
+          // In pending mode, remove the rejected request from the list
+          return prev.filter(req => req.id !== requestId);
+        } else {
+          // In all mode, update the request with new data
+          return prev.map(req => 
+            req.id === requestId ? { ...req, ...result } : req
+          );
+        }
+      });
+      
+      alert('Đã từ chối yêu cầu thuốc thành công!');
+    } catch (err) {
+      console.error('Lỗi khi từ chối yêu cầu thuốc:', err);
+      const errorMessage = err.message || 'Có lỗi xảy ra khi từ chối yêu cầu thuốc. Vui lòng thử lại sau.';
+      alert(errorMessage);
+    } finally {
+      setProcessingRequests(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(requestId);
+        return newSet;
+      });
     }
   };
 
@@ -145,11 +126,50 @@ const MedicineReceipts = () => {
     setShowForm(false);
   };
 
-  // Lọc đơn thuốc theo trạng thái
+  // Lọc đơn thuốc theo trạng thái - Enhanced with additional filters
   const filteredMedicineRequests = medicineRequests.filter(medicine => {
-    if (filterStatus === 'all') return true;
-    return medicine.status === filterStatus;
+    // Search term filter (student name, student ID, medicine name, parent name)
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        (medicine.studentName && medicine.studentName.toLowerCase().includes(searchLower)) ||
+        (medicine.studentId && medicine.studentId.toLowerCase().includes(searchLower)) ||
+        (medicine.medicineName && medicine.medicineName.toLowerCase().includes(searchLower)) ||
+        (medicine.parentName && medicine.parentName.toLowerCase().includes(searchLower));
+      
+      if (!matchesSearch) return false;
+    }
+    
+    // Date range filter
+    if (dateFrom) {
+      const medicineDate = new Date(medicine.submittedAt || medicine.startDate);
+      const fromDate = new Date(dateFrom);
+      if (medicineDate < fromDate) return false;
+    }
+    
+    if (dateTo) {
+      const medicineDate = new Date(medicine.submittedAt || medicine.startDate);
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999); // End of day
+      if (medicineDate > toDate) return false;
+    }
+    
+    return true;
   });
+
+  // Reset additional filters when status changes
+  const handleStatusChange = (newStatus) => {
+    setFilterStatus(newStatus);
+    // Keep search and date filters when changing status
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setDateFrom('');
+    setDateTo('');
+    setFilterStatus('pending');
+  };
 
   // Xem chi tiết đơn nhận thuốc
   const handleViewDetail = (receipt) => {
@@ -163,29 +183,113 @@ const MedicineReceipts = () => {
     setSelectedReceipt(null);
   };
 
+  // Hiển thị trạng thái duyệt
+  const getStatusDisplay = (medicine) => {
+    const status = medicine.status || medicine.approvalStatus;
+    switch (status) {
+      case 'PENDING_APPROVAL':
+        return <span className="status-badge pending">Chờ duyệt</span>;
+      case 'APPROVED':
+        return <span className="status-badge approved">Đã duyệt</span>;
+      case 'REJECTED':
+        return <span className="status-badge rejected">Từ chối</span>;
+      // Legacy support for old mock data
+      case 'PENDING':
+        return <span className="status-badge pending">Chờ duyệt</span>;
+      default:
+        return <span className="status-badge pending">Chờ duyệt</span>;
+    }
+  };
+
   return (
     <div className="medicine-receipts-container">
       <div className="receipts-header">
-        <h2>Đơn nhận thuốc</h2>
+        <h2>Duyệt yêu cầu thuốc từ phụ huynh</h2>
         <div className="receipts-actions">
+          <div className="search-container">
+            <i className="fas fa-search search-icon"></i>
+            <input
+              type="text"
+              placeholder="Tìm kiếm học sinh, thuốc, phụ huynh..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+
           <div className="filter-container">
-            <label htmlFor="status-filter">Lọc theo trạng thái:</label>
+            <label htmlFor="status-filter">Trạng thái:</label>
             <select 
               id="status-filter"
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) => handleStatusChange(e.target.value)}
               className="status-filter"
             >
+              <option value="pending">Chờ duyệt</option>
+              <option value="approved">Đã duyệt</option>
+              <option value="rejected">Từ chối</option>
               <option value="all">Tất cả</option>
-              <option value="pending">Chờ xác nhận</option>
-              <option value="received">Đã nhận</option>
             </select>
           </div>
+
+          <button 
+            className="btn-filter-toggle"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            title="Bộ lọc nâng cao"
+          >
+            <i className={`fas fa-filter ${showAdvancedFilters ? 'active' : ''}`}></i>
+          </button>
+
+          {(searchTerm || dateFrom || dateTo || filterStatus !== 'pending') && (
+            <button 
+              className="btn-clear-filters"
+              onClick={clearAllFilters}
+              title="Xóa tất cả bộ lọc"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          )}
+          
           <button className="btn-add" onClick={() => setShowForm(true)}>
             <i className="fas fa-plus"></i> Tạo đơn mới
           </button>
         </div>
       </div>
+
+      {/* Advanced Filters */}
+      {showAdvancedFilters && (
+        <div className="advanced-filters">
+          <div className="advanced-filters-content">
+            <div className="filter-group">
+              <label htmlFor="date-from">Từ ngày:</label>
+              <input
+                type="date"
+                id="date-from"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="date-filter"
+              />
+            </div>
+
+            <div className="filter-group">
+              <label htmlFor="date-to">Đến ngày:</label>
+              <input
+                type="date"
+                id="date-to"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="date-filter"
+              />
+            </div>
+
+            <div className="filter-group">
+              <span className="filter-summary">
+                Hiển thị {filteredMedicineRequests.length} / {medicineRequests.length} yêu cầu
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Form thêm đơn thuốc mới */}
       {showForm && (
@@ -200,7 +304,9 @@ const MedicineReceipts = () => {
         <MedicineReceiptDetail 
           receipt={selectedReceipt} 
           onClose={handleCloseDetail}
-          onConfirmReceive={handleReceive}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          isProcessing={processingRequests.has(selectedReceipt.id)}
         />
       )}
 
@@ -215,7 +321,7 @@ const MedicineReceipts = () => {
       ) : (
         <div className="medicine-receipts-list">
           {filteredMedicineRequests.length === 0 ? (
-            <div className="no-data">Không có đơn nhận thuốc nào</div>
+            <div className="no-data">Không có yêu cầu thuốc nào</div>
           ) : (
             <table className="receipts-table">
               <thead>
@@ -231,44 +337,65 @@ const MedicineReceipts = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredMedicineRequests.map(medicine => (
-                  <tr key={medicine.id} className={medicine.status === 'pending' ? 'pending-row' : ''}>
-                    <td>{medicine.studentId}</td>
-                    <td>{medicine.studentName}</td>
-                    <td>{medicine.class}</td>
-                    <td>{medicine.parentName}</td>
-                    <td>{medicine.medicineName}</td>
-                    <td>{new Date(medicine.startDate).toLocaleDateString('vi-VN')}</td>
-                    <td>
-                      {medicine.status === 'pending' ? (
-                        <span className="status-badge pending">Chờ xác nhận</span>
-                      ) : (
-                        <span className="status-badge received">Đã nhận</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <button 
-                          className="btn-view" 
-                          onClick={() => handleViewDetail(medicine)}
-                          title="Xem chi tiết"
-                        >
-                          <i className="fas fa-eye"></i>
-                        </button>
-                        
-                        {medicine.status === 'pending' && (
+                {filteredMedicineRequests.map(medicine => {
+                  const isPending = (medicine.status || medicine.approvalStatus) === 'PENDING_APPROVAL' || 
+                                   (medicine.status || medicine.approvalStatus) === 'PENDING'; // Legacy support
+                  const isProcessing = processingRequests.has(medicine.id);
+                  
+                  return (
+                    <tr key={medicine.id} className={isPending ? 'pending-row' : ''}>
+                      <td>{medicine.studentId}</td>
+                      <td>{medicine.studentName}</td>
+                      <td>{medicine.class}</td>
+                      <td>{medicine.parentName}</td>
+                      <td>{medicine.medicineName}</td>
+                      <td>{new Date(medicine.startDate).toLocaleDateString('vi-VN')}</td>
+                      <td>{getStatusDisplay(medicine)}</td>
+                      <td>
+                        <div className="action-buttons">
                           <button 
-                            className="btn-receive"
-                            onClick={() => handleReceive(medicine.id)}
-                            title="Xác nhận nhận thuốc"
+                            className="btn-view" 
+                            onClick={() => handleViewDetail(medicine)}
+                            title="Xem chi tiết"
+                            disabled={isProcessing}
                           >
-                            <i className="fas fa-check"></i>
+                            <i className="fas fa-eye"></i>
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          
+                          {isPending && (
+                            <>
+                              <button 
+                                className="btn-approve"
+                                onClick={() => handleApprove(medicine.id)}
+                                title="Duyệt yêu cầu"
+                                disabled={isProcessing}
+                              >
+                                {isProcessing ? (
+                                  <i className="fas fa-spinner fa-spin"></i>
+                                ) : (
+                                  <i className="fas fa-check"></i>
+                                )}
+                              </button>
+                              <button 
+                                className="btn-reject"
+                                onClick={() => {
+                                  const reason = prompt('Nhập lý do từ chối:');
+                                  if (reason?.trim()) {
+                                    handleReject(medicine.id, reason);
+                                  }
+                                }}
+                                title="Từ chối yêu cầu"
+                                disabled={isProcessing}
+                              >
+                                <i className="fas fa-times"></i>
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

@@ -4,7 +4,7 @@ import api from './api';
 const medicalEventsService = {  // Lấy tất cả sự kiện
   getAllEvents: async () => {
     try {
-      const response = await api.get(`/api/v1/medical-incidents`);
+      const response = await api.get(`/medical-incidents`);
       return response.data;
     } catch (error) {
       console.error("Lỗi khi lấy danh sách sự kiện y tế:", error);
@@ -13,7 +13,7 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
   },  // Lấy danh sách loại sự kiện
   getEventTypes: async () => {
     try {
-      const response = await api.get(`/api/v1/medical-incidents/types`);
+      const response = await api.get(`/medical-incidents/types`);
       return response.data || [];
     } catch (error) {
       console.error("Lỗi khi lấy danh sách loại sự kiện:", error);
@@ -24,7 +24,7 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
   // Lấy danh sách mức độ nghiêm trọng
   getSeverityLevels: async () => {
     try {
-      const response = await api.get(`/api/v1/medical-incidents/severity-levels`);
+      const response = await api.get(`/medical-incidents/severity-levels`);
       return response.data || [];
     } catch (error) {
       console.error("Lỗi khi lấy danh sách mức độ nghiêm trọng:", error);
@@ -33,7 +33,7 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
   },  // Lấy sự kiện theo ID
   getEventById: async (id) => {
     try {
-      const response = await api.get(`/api/v1/medical-incidents/${id}`);
+      const response = await api.get(`/medical-incidents/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Lỗi khi lấy sự kiện y tế với ID ${id}:`, error);
@@ -55,7 +55,7 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
         queryParams.append('parentNotified', filters.parentNotified);
       if (filters.requiresFollowUp !== undefined && filters.requiresFollowUp !== '') 
         queryParams.append('requiresFollowUp', filters.requiresFollowUp);
-        const url = `/api/v1/medical-incidents/search?${queryParams.toString()}`;
+        const url = `/medical-incidents/search?${queryParams.toString()}`;
       const response = await api.get(url);
       return response.data;
     } catch (error) {
@@ -65,7 +65,7 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
   },    // Thêm sự kiện mới
   addEvent: async (eventData) => {
     try {
-      const response = await api.post(`/api/v1/medical-incidents`, eventData);
+      const response = await api.post(`/medical-incidents`, eventData);
       return { success: true, event: response.data };
     } catch (error) {
       console.error("Lỗi khi thêm sự kiện y tế mới:", error);
@@ -75,7 +75,7 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
   // Cập nhật sự kiện
   updateEvent: async (id, eventData) => {
     try {
-      const response = await api.put(`/api/v1/medical-incidents/${id}`, eventData);
+      const response = await api.put(`/medical-incidents/${id}`, eventData);
       return { success: true, event: response.data };
     } catch (error) {
       console.error(`Lỗi khi cập nhật sự kiện y tế với ID ${id}:`, error);
@@ -85,7 +85,7 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
   // Xóa sự kiện
   deleteEvent: async (id) => {
     try {
-      await api.delete(`/api/v1/medical-incidents/${id}`);
+      await api.delete(`/medical-incidents/${id}`);
       return { success: true, message: "Xóa thành công" };
     } catch (error) {
       console.error(`Lỗi khi xóa sự kiện y tế với ID ${id}:`, error);
