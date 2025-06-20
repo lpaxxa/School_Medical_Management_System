@@ -294,7 +294,9 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
 
     @Override
     public List<MedicationInstructionDTO> getAllMedicationRequests() {
-        List<MedicationInstruction> allRequests = medicationInstructionRepository.findAll();
+        // Only return parent-provided medication requests to be consistent with other methods
+        // and avoid DTO transformation errors with system-generated instructions
+        List<MedicationInstruction> allRequests = medicationInstructionRepository.findByParentProvided(true);
         return allRequests.stream()
                 .map(entity -> new MedicationInstructionDTO().toObject(entity))
                 .collect(Collectors.toList());
