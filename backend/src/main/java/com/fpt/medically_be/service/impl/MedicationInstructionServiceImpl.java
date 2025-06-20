@@ -203,7 +203,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
 
     @Override
     public Page<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth, int page, int size) {
-        ParentDTO currentParent = parentService.getCurretParent(auth);
+        ParentDTO currentParent = parentService.getCurrentParent(auth);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submittedAt"));
         Page<MedicationInstruction> requests= medicationInstructionRepository.findByRequestedById(currentParent.getId(), pageable);
         return requests.map(entity -> new MedicationInstructionDTO().toObject(entity));
