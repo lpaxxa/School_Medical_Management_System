@@ -1,0 +1,13 @@
+package com.fpt.medically_be.dto.response;
+
+import lombok.Data;
+
+@Data
+public class AccountAdminResponseDTO {
+    private String id;
+    private String email;
+    private String password;
+    private String phoneNumber;
+    private String role;
+    private String username;
+}
