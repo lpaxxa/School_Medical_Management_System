@@ -3,11 +3,12 @@ package com.fpt.medically_be.service;
 import com.fpt.medically_be.dto.request.MedicationRequestDTO;
 import com.fpt.medically_be.dto.request.NurseMedicationApprovalRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
-import com.fpt.medically_be.entity.MedicationInstruction;
+
 import com.fpt.medically_be.entity.Status;
 import jakarta.validation.Valid;
 
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.Page;
+
 import org.springframework.security.core.Authentication;
 
 import java.time.LocalDate;
@@ -27,7 +28,8 @@ public interface MedicationInstructionService {
 
     //for sending-medication flow
     MedicationInstructionDTO createParentMedicationRequest(MedicationRequestDTO request, Authentication auth);
-    List<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth);
+    //pagination
+    Page<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth, int page, int size);
     List<MedicationInstructionDTO> getMedicationRequestsByChild(Long studentId, Authentication auth);
     MedicationInstructionDTO updateParentMedicationRequest(Long requestId, MedicationRequestDTO request, Authentication auth);
 

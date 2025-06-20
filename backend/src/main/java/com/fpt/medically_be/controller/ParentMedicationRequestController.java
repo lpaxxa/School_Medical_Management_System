@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -62,8 +63,8 @@ public class ParentMedicationRequestController {
     @GetMapping("/my-requests")
     @PreAuthorize("hasRole('PARENT')")
     @Operation(summary = "Xem danh sách Tất Cả yêu cầu gửi thuốc của phụ huynh (history)")
-    public ResponseEntity<List<MedicationInstructionDTO>> getMyMedicationRequests(Authentication auth) {
-        List<MedicationInstructionDTO> requests = medicationInstructionService.getParentMedicationRequests(auth);
+    public ResponseEntity<Page<MedicationInstructionDTO>> getMyMedicationRequests(Authentication auth, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Page<MedicationInstructionDTO> requests = medicationInstructionService.getParentMedicationRequests(auth,page,size);
         return ResponseEntity.ok(requests);
     }
 

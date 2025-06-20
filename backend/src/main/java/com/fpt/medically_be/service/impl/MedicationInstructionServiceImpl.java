@@ -14,6 +14,10 @@ import com.fpt.medically_be.service.MedicationInstructionService;
 import com.fpt.medically_be.service.ParentService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -198,18 +202,16 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     }
 
     @Override
-    public List<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth) {
-        ParentDTO currentParent = parentService.getCurretParent(auth);
-        List<MedicationInstruction> requests = medicationInstructionRepository.findByRequestedById(currentParent.getId());
-        return requests.stream()
-                .map(entity -> new MedicationInstructionDTO().toObject(entity))
-                .collect(Collectors.toList());
+    public Page<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth, int page, int size) {
+        ParentDTO currentParent = parentService.getCurrentParent(auth);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submittedAt"));
+        Page<MedicationInstruction> requests= medicationInstructionRepository.findByRequestedById(currentParent.getId(), pageable);
+        return requests.map(entity -> new MedicationInstructionDTO().toObject(entity));
     }
 
     @Override
     public List<MedicationInstructionDTO> getMedicationRequestsByChild(Long studentId, Authentication auth) {
-        // 1. Get current parent from authentication
-        ParentDTO currentParent = parentService.getCurretParent(auth);
+        
         // 2. Validate parent owns this student
         parentService.validateParentOwnsStudent(studentId, auth);
         // 3. Get student's health profile
