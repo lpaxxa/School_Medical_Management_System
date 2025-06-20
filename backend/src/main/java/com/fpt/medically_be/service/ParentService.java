@@ -6,7 +6,7 @@ import org.springframework.security.core.Authentication;
 import java.util.List;
 
 public interface ParentService {
-    ParentDTO getCurretParent(Authentication authentication);
+    ParentDTO getCurrentParent(Authentication authentication);
     void validateParentOwnsStudent(Long studentId, Authentication authentication);
 
     List<ParentDTO> getAllParents();

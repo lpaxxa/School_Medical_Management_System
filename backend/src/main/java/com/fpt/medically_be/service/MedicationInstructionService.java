@@ -29,7 +29,7 @@ public interface MedicationInstructionService {
     //for sending-medication flow
     MedicationInstructionDTO createParentMedicationRequest(MedicationRequestDTO request, Authentication auth);
     //pagination
-    Page<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth, int page, int size);
+    List<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth);
     List<MedicationInstructionDTO> getMedicationRequestsByChild(Long studentId, Authentication auth);
     MedicationInstructionDTO updateParentMedicationRequest(Long requestId, MedicationRequestDTO request, Authentication auth);
 

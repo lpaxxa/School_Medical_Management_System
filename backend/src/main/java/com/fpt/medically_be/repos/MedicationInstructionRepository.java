@@ -19,7 +19,7 @@ public interface MedicationInstructionRepository extends JpaRepository<Medicatio
     List<MedicationInstruction> findByStartDateBetween(LocalDate startDate, LocalDate endDate);
     List<MedicationInstruction> findByParentProvided(Boolean parentProvided);
 
-    Page<MedicationInstruction> findByRequestedById(Long parentId, Pageable pageable);
+    List<MedicationInstruction> findByRequestedById(Long parentId);
     // In repository
     @Query("SELECT m FROM MedicationInstruction m WHERE m.status = :status AND m.parentProvided = true")
     List<MedicationInstruction> findByStatusAndParentProvidedTrue(Status status);
