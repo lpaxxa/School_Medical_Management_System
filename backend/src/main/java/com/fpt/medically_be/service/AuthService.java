@@ -16,6 +16,7 @@ public interface AuthService {
     AuthResponseDTO registerParent(ParentRegistrationRequestDTO parentRegistrationRequestDTO);
     AuthResponseDTO registerNurse(NurseRegistrationRequestDTO nurseRegistrationRequestDTO);
 
+
     AccountMember processOAuth2Callback(String code, String state);
 
 }
