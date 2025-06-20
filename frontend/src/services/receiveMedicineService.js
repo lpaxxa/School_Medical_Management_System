@@ -109,12 +109,13 @@ const receiveMedicineService = {
     }
   },
 
-  // Lấy danh sách thuốc từ phụ huynh (for nurse users - all requests)
+  // Lấy danh sách thuốc từ phụ huynh (for nurse users - all requests) - Fixed to avoid 400 error
   getAllMedicineRequests: async () => {
     try {
-      // For nurses to see all medication requests
-      const response = await api.get('/nurse-medication-approvals/all-requests');
-      return response.data.map(transformMedicationRequestFromBackend);
+      console.log('🔧 Using workaround for getAllMedicineRequests /all-requests endpoint');
+      
+      // Use the working getAllMedicationRequestsForNurse method which combines individual endpoints
+      return await receiveMedicineService.getAllMedicationRequestsForNurse();
     } catch (error) {
       console.error("Lỗi khi lấy danh sách thuốc từ phụ huynh:", error);
       throw error;
@@ -191,22 +192,55 @@ const receiveMedicineService = {
     return await receiveMedicineService.cancelMedicineRequest(id);
   },
   
-  // Tìm kiếm thuốc từ phụ huynh theo các tiêu chí
+  // Tìm kiếm thuốc từ phụ huynh theo các tiêu chí - Fixed to avoid 400 error
   searchMedicineRequests: async (filters) => {
     try {
-      const queryParams = new URLSearchParams();
+      console.log('🔧 Using workaround for searchMedicineRequests /all-requests endpoint');
       
-      if (filters.studentId) queryParams.append('studentId', filters.studentId);
-      if (filters.studentName) queryParams.append('studentName', filters.studentName);
-      if (filters.medicineName) queryParams.append('medicineName', filters.medicineName);
-      if (filters.status) queryParams.append('status', filters.status);
-      if (filters.fromDate) queryParams.append('fromDate', filters.fromDate);
-      if (filters.toDate) queryParams.append('toDate', filters.toDate);
+      // Get all requests using the working combined method, then filter client-side
+      const allRequests = await receiveMedicineService.getAllMedicationRequestsForNurse();
       
-      // Use the nurse endpoint for searching (includes all requests)
-      const url = `/nurse-medication-approvals/all-requests?${queryParams.toString()}`;
-      const response = await api.get(url);
-      return response.data.map(transformMedicationRequestFromBackend);
+      // Apply filters client-side
+      let filteredRequests = allRequests;
+      
+      if (filters.studentId) {
+        filteredRequests = filteredRequests.filter(req =>
+          req.studentId && req.studentId.toString().includes(filters.studentId)
+        );
+      }
+      
+      if (filters.studentName) {
+        filteredRequests = filteredRequests.filter(req =>
+          req.studentName && req.studentName.toLowerCase().includes(filters.studentName.toLowerCase())
+        );
+      }
+      
+      if (filters.medicineName) {
+        filteredRequests = filteredRequests.filter(req =>
+          req.medicineName && req.medicineName.toLowerCase().includes(filters.medicineName.toLowerCase())
+        );
+      }
+      
+      if (filters.status) {
+        filteredRequests = filteredRequests.filter(req => req.status === filters.status);
+      }
+      
+      if (filters.fromDate) {
+        filteredRequests = filteredRequests.filter(req => {
+          const reqDate = new Date(req.submittedAt || req.startDate);
+          return reqDate >= new Date(filters.fromDate);
+        });
+      }
+      
+      if (filters.toDate) {
+        filteredRequests = filteredRequests.filter(req => {
+          const reqDate = new Date(req.submittedAt || req.startDate);
+          return reqDate <= new Date(filters.toDate);
+        });
+      }
+      
+      console.log(`✅ Successfully filtered ${filteredRequests.length} requests from ${allRequests.length} total`);
+      return filteredRequests;
     } catch (error) {
       console.error("Lỗi khi tìm kiếm thuốc từ phụ huynh:", error);
       throw error;
@@ -266,11 +300,28 @@ const receiveMedicineService = {
     }
   },
 
-  // Lấy tất cả yêu cầu thuốc (cho y tá)
+  // Lấy tất cả yêu cầu thuốc (cho y tá) - Fixed to avoid 400 error by combining individual endpoints
   getAllMedicationRequestsForNurse: async () => {
     try {
-      const response = await api.get('/nurse-medication-approvals/all-requests');
-      return response.data.map(transformMedicationRequestFromBackend);
+      console.log('🔧 Using workaround for /all-requests endpoint');
+      
+      // Combine results from individual endpoints to avoid 400 error from /all-requests
+      const [pendingRequests, approvedRequests, rejectedRequests] = await Promise.all([
+        receiveMedicineService.getPendingMedicationRequests(),
+        receiveMedicineService.getApprovedMedicationRequests(),
+        receiveMedicineService.getRejectedMedicationRequests()
+      ]);
+      
+      // Combine all requests
+      const allRequests = [
+        ...pendingRequests,
+        ...approvedRequests, 
+        ...rejectedRequests
+      ];
+      
+      console.log(`✅ Successfully combined ${allRequests.length} requests from individual endpoints`);
+      return allRequests;
+      
     } catch (error) {
       console.error("Lỗi khi lấy tất cả yêu cầu thuốc:", error);
       if (error.response?.status === 401) {
@@ -388,13 +439,26 @@ const receiveMedicineService = {
 
   // ===================== MEDICATION HISTORY FUNCTIONS =====================
   
-  // Lấy lịch sử dùng thuốc - Using all-requests endpoint as confirmed by backend team
+  // Lấy lịch sử dùng thuốc - Fixed to avoid 400 error by combining individual endpoints  
   getMedicationHistory: async (filters = {}) => {
     try {
-      // Use the all-requests endpoint which contains the complete medication history
-      // This endpoint returns all medication requests regardless of status
-      const response = await api.get('/nurse-medication-approvals/all-requests');
-      let medicationHistory = response.data;
+      console.log('🔧 Using workaround for medication history /all-requests endpoint');
+      
+      // Combine results from individual endpoints to avoid 400 error from /all-requests
+      const [pendingRequests, approvedRequests, rejectedRequests] = await Promise.all([
+        receiveMedicineService.getPendingMedicationRequests(),
+        receiveMedicineService.getApprovedMedicationRequests(),
+        receiveMedicineService.getRejectedMedicationRequests()
+      ]);
+      
+      // Combine all requests for medication history (data is already transformed)
+      let medicationHistory = [
+        ...pendingRequests,
+        ...approvedRequests,
+        ...rejectedRequests
+      ];
+      
+      console.log(`✅ Successfully combined ${medicationHistory.length} requests for medication history`);
       
       // Apply filters if provided
       if (filters.studentId) {
