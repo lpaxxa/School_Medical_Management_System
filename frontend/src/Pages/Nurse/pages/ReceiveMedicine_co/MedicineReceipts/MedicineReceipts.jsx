@@ -1,150 +1,83 @@
 import React, { useState, useEffect } from 'react';
 import './MedicineReceipts.css';
-import receiveMedicineService from '../../../../../services/receiveMedicineService';
-import NewMedicineReceiptForm from './NewMedicineReceiptForm';
 import MedicineReceiptDetail from './MedicineReceiptDetail';
+import { useMedicineApproval } from '../../../../../context/NurseContext/MedicineApprovalContext';
 
 const MedicineReceipts = () => {
-  const [medicineRequests, setMedicineRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const {
+    medicineRequests,
+    loading,
+    error,
+    fetchMedicineRequests,
+    processMedicineRequest,
+    getStatusInfo
+  } = useMedicineApproval();
+  
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [showProcessModal, setShowProcessModal] = useState(false);
+  const [pendingProcessId, setPendingProcessId] = useState(null);
+  const [processData, setProcessData] = useState({
+    decision: 'APPROVED',
+    reason: ''
+  });
+  const [dropdownId, setDropdownId] = useState(null);
 
-  // Fetch dữ liệu thuốc từ phụ huynh
+  // Fetch data when component mounts
   useEffect(() => {
-    const fetchMedicineRequests = async () => {
-      try {
-        setLoading(true);
-        
-        try {
-          // Gọi API để lấy danh sách yêu cầu thuốc
-          const data = await receiveMedicineService.getAllMedicineRequests();
-          setMedicineRequests(data);
-        } catch (apiError) {
-          console.error('API lỗi, sử dụng dữ liệu mẫu:', apiError);
-          
-          // Dữ liệu mẫu khi API chưa hoạt động
-          const mockData = [
-            {
-              id: 1,
-              studentId: 'HS001',
-              studentName: 'Nguyễn Văn A',
-              parentName: 'Nguyễn Văn B',
-              medicineName: 'Paracetamol',
-              quantity: '10 viên',
-              frequency: '3 lần/ngày',
-              instructions: 'Uống sau ăn',
-              startDate: '2025-06-15',
-              endDate: '2025-06-20',
-              status: 'pending',
-              receivedDate: null,
-              notes: 'Thuốc hạ sốt cho bé',
-              class: '10A1'
-            },
-            {
-              id: 2,
-              studentId: 'HS002',
-              studentName: 'Trần Thị C',
-              parentName: 'Trần Văn D',
-              medicineName: 'Vitamin C',
-              quantity: '30 viên',
-              frequency: '1 lần/ngày',
-              instructions: 'Uống trước khi đi ngủ',
-              startDate: '2025-06-10',
-              endDate: '2025-07-10',
-              status: 'received',
-              receivedDate: '2025-06-10',
-              notes: 'Bổ sung vitamin hàng ngày',
-              class: '11A2'
-            },
-            {
-              id: 3,
-              studentId: 'HS003',
-              studentName: 'Lê Văn E',
-              parentName: 'Lê Thị F',
-              medicineName: 'Probiotics',
-              quantity: '15 gói',
-              frequency: '1 gói/ngày',
-              instructions: 'Hòa với nước ấm, uống sau ăn sáng',
-              startDate: '2025-06-12',
-              endDate: '2025-06-27',
-              status: 'pending',
-              receivedDate: null,
-              notes: 'Bổ sung lợi khuẩn cho hệ tiêu hóa',
-              class: '9B3'
-            },
-            {
-              id: 4,
-              studentId: 'HS004',
-              studentName: 'Phạm Thị G',
-              parentName: 'Phạm Văn H',
-              medicineName: 'Cetirizine',
-              quantity: '10 viên',
-              frequency: '1 viên/ngày',
-              instructions: 'Uống trước khi đi ngủ',
-              startDate: '2025-06-14',
-              endDate: '2025-06-24',
-              status: 'received',
-              receivedDate: '2025-06-14',
-              notes: 'Thuốc chống dị ứng',
-              class: '10A3'
-            }
-          ];
-          
-          setMedicineRequests(mockData);
-        }
-        
-        setLoading(false);
-      } catch (err) {
-        console.error('Lỗi khi tải dữ liệu thuốc từ phụ huynh:', err);
-        setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
-        setLoading(false);
-      }
-    };
-
     fetchMedicineRequests();
   }, []);
-
-  // Xử lý khi nhân viên xác nhận đã nhận thuốc
-  const handleReceive = async (id) => {
+  
+  // Xử lý khi nhân viên muốn xử lý yêu cầu thuốc (phê duyệt hoặc từ chối)
+  const handleProcessClick = (id, initialDecision = 'APPROVED') => {
+    setPendingProcessId(id);
+    setProcessData({
+      decision: initialDecision,
+      reason: ''
+    });
+    setShowProcessModal(true);
+  };
+  
+  // Xử lý khi nhân viên thay đổi dữ liệu form xử lý
+  const handleProcessDataChange = (e) => {
+    const { name, value } = e.target;
+    setProcessData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Xử lý khi nhân viên xác nhận xử lý yêu cầu thuốc
+  const handleConfirmProcess = async () => {
     try {
-      try {
-        // Gọi API để xác nhận đã nhận thuốc
-        await receiveMedicineService.confirmReceiveMedicine(id);
-      } catch (apiError) {
-        console.error('API error:', apiError);
-        // API lỗi, chúng ta vẫn cập nhật UI để demo
+      // Kiểm tra lý do nếu quyết định là từ chối
+      if (processData.decision === 'REJECTED' && !processData.reason.trim()) {
+        alert('Vui lòng nhập lý do từ chối');
+        return;
       }
       
-      // Cập nhật trạng thái trong state
-      const updatedRequests = medicineRequests.map(req => {
-        if (req.id === id) {
-          return {
-            ...req,
-            status: 'received',
-            receivedDate: new Date().toISOString().split('T')[0] // Ngày hiện tại
-          };
-        }
-        return req;
-      });
+      // Thêm thuộc tính bắt buộc theo yêu cầu API
+      const requestData = {
+        ...processData,
+        reasonProvidedWhenRequired: processData.decision === 'REJECTED' ? true : false
+      };
       
-      setMedicineRequests(updatedRequests);
-      alert('Đã xác nhận nhận thuốc thành công!');
+      const result = await processMedicineRequest(pendingProcessId, requestData);
+      
+      if (result.success) {
+        setShowProcessModal(false);
+        alert(`Đã ${processData.decision === 'APPROVED' ? 'phê duyệt' : 'từ chối'} yêu cầu thuốc thành công!`);
+        // Refresh data after processing
+        fetchMedicineRequests();
+      } else {
+        alert(`Không thể xử lý yêu cầu: ${result.message || 'Đã xảy ra lỗi'}`);
+      }
     } catch (err) {
-      console.error('Lỗi khi xác nhận nhận thuốc:', err);
-      alert('Có lỗi xảy ra khi xác nhận nhận thuốc. Vui lòng thử lại sau.');
+      console.error('Lỗi khi xử lý yêu cầu thuốc:', err);
+      alert('Có lỗi xảy ra khi xử lý yêu cầu thuốc. Vui lòng thử lại sau.');
     }
   };
-
-  // Xử lý sau khi thêm đơn thuốc mới
-  const handleMedicineAdded = (newMedicine) => {
-    setMedicineRequests([...medicineRequests, newMedicine]);
-    setShowForm(false);
-  };
-
   // Lọc đơn thuốc theo trạng thái
   const filteredMedicineRequests = medicineRequests.filter(medicine => {
     if (filterStatus === 'all') return true;
@@ -163,44 +96,58 @@ const MedicineReceipts = () => {
     setSelectedReceipt(null);
   };
 
+  // Toggle dropdown menu
+  const handleApproveClick = (id, e) => {
+    e.stopPropagation(); // Prevent event bubbling
+    setDropdownId(dropdownId === id ? null : id);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setDropdownId(null);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
+  // Handle selection from dropdown
+  const handleActionSelect = (id, action) => {
+    setDropdownId(null); // Close dropdown
+    handleProcessClick(id, action);
+  };
+
   return (
     <div className="medicine-receipts-container">
       <div className="receipts-header">
         <h2>Đơn nhận thuốc</h2>
         <div className="receipts-actions">
           <div className="filter-container">
-            <label htmlFor="status-filter">Lọc theo trạng thái:</label>
-            <select 
+            <label htmlFor="status-filter">Lọc theo trạng thái:</label>            <select 
               id="status-filter"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className="status-filter"
-            >
-              <option value="all">Tất cả</option>
-              <option value="pending">Chờ xác nhận</option>
-              <option value="received">Đã nhận</option>
+            >              <option value="all">Tất cả</option>
+              <option value="PENDING_APPROVAL">Chờ phê duyệt</option>
+              <option value="APPROVED">Đã duyệt</option>
+              <option value="REJECTED">Từ chối</option>
+              <option value="CANCELLED">Đã hủy</option>
             </select>
-          </div>
-          <button className="btn-add" onClick={() => setShowForm(true)}>
-            <i className="fas fa-plus"></i> Tạo đơn mới
+          </div>          <button className="btn-refresh" onClick={() => {
+            fetchMedicineRequests(); // Gọi API để làm mới dữ liệu
+          }}>
+            <i className="fas fa-sync-alt"></i> Làm mới
           </button>
         </div>
       </div>
 
-      {/* Form thêm đơn thuốc mới */}
-      {showForm && (
-        <NewMedicineReceiptForm 
-          onCancel={() => setShowForm(false)} 
-          onMedicineAdded={handleMedicineAdded}
-        />
-      )}
-
       {/* Chi tiết đơn nhận thuốc */}
       {showDetail && selectedReceipt && (
         <MedicineReceiptDetail 
-          receipt={selectedReceipt} 
-          onClose={handleCloseDetail}
-          onConfirmReceive={handleReceive}
+          receipt={selectedReceipt}          onClose={handleCloseDetail}
         />
       )}
 
@@ -218,64 +165,156 @@ const MedicineReceipts = () => {
             <div className="no-data">Không có đơn nhận thuốc nào</div>
           ) : (
             <table className="receipts-table">
-              <thead>
-                <tr>
-                  <th>Mã HS</th>
+              <thead>                <tr>
+                  <th>ID</th>
                   <th>Tên học sinh</th>
-                  <th>Lớp</th>
-                  <th>Phụ huynh</th>
-                  <th>Tên thuốc</th>
+                  <th>Người yêu cầu</th>
                   <th>Ngày bắt đầu</th>
                   <th>Trạng thái</th>
                   <th>Thao tác</th>
                 </tr>
               </thead>
-              <tbody>
-                {filteredMedicineRequests.map(medicine => (
-                  <tr key={medicine.id} className={medicine.status === 'pending' ? 'pending-row' : ''}>
-                    <td>{medicine.studentId}</td>
-                    <td>{medicine.studentName}</td>
-                    <td>{medicine.class}</td>
-                    <td>{medicine.parentName}</td>
-                    <td>{medicine.medicineName}</td>
-                    <td>{new Date(medicine.startDate).toLocaleDateString('vi-VN')}</td>
-                    <td>
-                      {medicine.status === 'pending' ? (
-                        <span className="status-badge pending">Chờ xác nhận</span>
-                      ) : (
-                        <span className="status-badge received">Đã nhận</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <button 
-                          className="btn-view" 
-                          onClick={() => handleViewDetail(medicine)}
-                          title="Xem chi tiết"
-                        >
-                          <i className="fas fa-eye"></i>
-                        </button>
-                        
-                        {medicine.status === 'pending' && (
+              <tbody>                {filteredMedicineRequests.map(medicine => {
+                  const statusInfo = getStatusInfo(medicine.status);
+                  return (
+                    <tr key={medicine.id} className={statusInfo.class + '-row'}>
+                      <td>{medicine.id}</td>
+                      <td>{medicine.studentName}</td>
+                      <td>{medicine.requestedBy}</td>
+                      <td>{new Date(medicine.startDate).toLocaleDateString('vi-VN')}</td>
+                      <td>
+                        <span className={`status-badge ${statusInfo.class}`}>
+                          {statusInfo.text}
+                        </span>
+                      </td>                      <td>
+                        <div className="action-buttons">
+                          {/* Nút xem chi tiết luôn hiển thị */}
                           <button 
-                            className="btn-receive"
-                            onClick={() => handleReceive(medicine.id)}
-                            title="Xác nhận nhận thuốc"
+                            className="btn-view" 
+                            onClick={() => handleViewDetail(medicine)}
+                            title="Xem chi tiết"
                           >
-                            <i className="fas fa-check"></i>
+                            <i className="fas fa-eye"></i>
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          
+                          {/* Chỉ hiển thị nút xác nhận khi trạng thái là PENDING_APPROVAL */}
+                          {medicine.status === "PENDING_APPROVAL" && (
+                            <div className="dropdown-container">
+                              <button 
+                                className="btn-approve"
+                                onClick={(e) => handleApproveClick(medicine.id, e)}
+                                title="Xác nhận yêu cầu thuốc"
+                              >
+                                <i className="fas fa-check"></i>
+                              </button>
+                              
+                              {/* Dropdown menu cho các hành động phê duyệt */}
+                              {dropdownId === medicine.id && (
+                                <div className="dropdown-menu">
+                                  <div className="dropdown-item" onClick={() => handleActionSelect(medicine.id, 'APPROVED')}>
+                                    Phê duyệt
+                                  </div>
+                                  <div className="dropdown-item" onClick={() => handleActionSelect(medicine.id, 'REJECTED')}>
+                                    Từ chối
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
         </div>
+      )}      {/* Modal xử lý yêu cầu thuốc */}
+      {showProcessModal && (
+        <div className="reason-modal-overlay">
+          <div className="reason-modal-container">
+            <div className="reason-modal-title">
+              Xử lý yêu cầu thuốc
+            </div>
+            <div className="process-form">
+              <div className="form-group">
+                <label>Quyết định:</label>
+                <select 
+                  name="decision"
+                  value={processData.decision}
+                  onChange={handleProcessDataChange}
+                  className="form-select"
+                >
+                  <option value="APPROVED">Phê duyệt</option>
+                  <option value="REJECTED">Từ chối</option>
+                </select>
+              </div>
+              
+              {processData.decision === 'REJECTED' && (
+                <div className="form-group">
+                  <label>Lý do từ chối:</label>
+                  <textarea
+                    name="reason"
+                    className="reason-textarea"
+                    placeholder="Nhập lý do từ chối yêu cầu thuốc..."
+                    value={processData.reason}
+                    onChange={handleProcessDataChange}
+                    required={processData.decision === 'REJECTED'}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="reason-modal-actions">
+              <button
+                className="btn-secondary"
+                onClick={() => setShowProcessModal(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleConfirmProcess}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
+};
+
+// Hàm chuyển đổi status thành text và class
+const getStatusInfo = (status) => {
+  switch (status) {
+    case 'PENDING_APPROVAL':
+      return {
+        text: "Chờ phê duyệt",
+        class: "status-pending" // Màu vàng
+      };
+    case 'APPROVED':
+      return {
+        text: "Đã duyệt",
+        class: "status-approved" // Màu xanh lá
+      };
+    case 'REJECTED':
+      return {
+        text: "Từ chối",
+        class: "status-rejected" // Màu đỏ
+      };
+    case 'CANCELLED':
+      return {
+        text: "Đã hủy",
+        class: "status-cancelled" // Màu xám
+      };
+    default:
+      return {
+        text: "Không xác định",
+        class: "status-unknown" // Màu xám nhạt
+      };
+  }
 };
 
 export default MedicineReceipts;

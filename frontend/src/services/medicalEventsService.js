@@ -1,49 +1,90 @@
-import api from './api';
-
 // Service API cho sự kiện y tế
-const medicalEventsService = {  // Lấy tất cả sự kiện
+// Sử dụng fetch API trực tiếp thay vì thông qua api.js
+
+// URL cơ sở cho tất cả API gọi
+const BASE_URL = "http://localhost:8080";
+
+// Hàm tiện ích để xử lý các cuộc gọi API
+const fetchAPI = async (endpoint, options = {}) => {
+  const token = localStorage.getItem('authToken');
+  
+  const defaultOptions = {
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  };
+  
+  // Thêm token xác thực nếu có
+  if (token) {
+    defaultOptions.headers.Authorization = `Bearer ${token}`;
+  }
+  
+  // Kết hợp options
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options
+  };
+  
+  // Kết hợp headers
+  if (options.headers) {
+    mergedOptions.headers = {
+      ...defaultOptions.headers,
+      ...options.headers
+    };
+  }
+  
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, mergedOptions);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const error = { 
+        status: response.status, 
+        data: errorData, 
+        message: errorData.message || response.statusText 
+      };
+      throw error;
+    }
+    
+    // Kiểm tra nếu response rỗng
+    if (response.status === 204) {
+      return null;
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Lỗi khi gọi API ${endpoint}:`, error);
+    throw error;
+  }
+};
+
+const medicalEventsService = {
+  // Lấy tất cả sự kiện y tế  
   getAllEvents: async () => {
     try {
-      const response = await api.get(`/api/v1/medical-incidents`);
-      return response.data;
+      const data = await fetchAPI('/api/v1/medical-incidents');
+      return data;
     } catch (error) {
       console.error("Lỗi khi lấy danh sách sự kiện y tế:", error);
       throw error;
     }
-  },  // Lấy danh sách loại sự kiện
-  getEventTypes: async () => {
-    try {
-      const response = await api.get(`/api/v1/medical-incidents/types`);
-      return response.data || [];
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách loại sự kiện:", error);
-      return [];
-    }
   },
-
-  // Lấy danh sách mức độ nghiêm trọng
-  getSeverityLevels: async () => {
-    try {
-      const response = await api.get(`/api/v1/medical-incidents/severity-levels`);
-      return response.data || [];
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách mức độ nghiêm trọng:", error);
-      return [];
-    }
-  },  // Lấy sự kiện theo ID
+  
+  // Lấy sự kiện theo ID
   getEventById: async (id) => {
     try {
-      const response = await api.get(`/api/v1/medical-incidents/${id}`);
-      return response.data;
+      const data = await fetchAPI(`/api/v1/medical-incidents/${id}`);
+      return data;
     } catch (error) {
       console.error(`Lỗi khi lấy sự kiện y tế với ID ${id}:`, error);
       throw new Error("Không tìm thấy sự kiện y tế");
     }
   },
+  
   // Tìm kiếm sự kiện
   searchEvents: async (filters) => {
     try {
-      // Prepare query parameters for API call
+      // Chuẩn bị tham số truy vấn cho API
       const queryParams = new URLSearchParams();
       
       if (filters.studentId) queryParams.append('studentId', filters.studentId);
@@ -55,37 +96,49 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
         queryParams.append('parentNotified', filters.parentNotified);
       if (filters.requiresFollowUp !== undefined && filters.requiresFollowUp !== '') 
         queryParams.append('requiresFollowUp', filters.requiresFollowUp);
-        const url = `/api/v1/medical-incidents/search?${queryParams.toString()}`;
-      const response = await api.get(url);
-      return response.data;
+      
+      const data = await fetchAPI(`/api/v1/medical-incidents/search?${queryParams.toString()}`);
+      return data;
     } catch (error) {
       console.error("Lỗi khi tìm kiếm sự kiện y tế:", error);
       throw error;
     }
-  },    // Thêm sự kiện mới
+  },
+  
+  // Thêm sự kiện mới
   addEvent: async (eventData) => {
     try {
-      const response = await api.post(`/api/v1/medical-incidents`, eventData);
-      return { success: true, event: response.data };
+      const data = await fetchAPI('/api/v1/medical-incidents', {
+        method: 'POST',
+        body: JSON.stringify(eventData)
+      });
+      return { success: true, event: data };
     } catch (error) {
       console.error("Lỗi khi thêm sự kiện y tế mới:", error);
       throw error;
     }
   },
+  
   // Cập nhật sự kiện
   updateEvent: async (id, eventData) => {
     try {
-      const response = await api.put(`/api/v1/medical-incidents/${id}`, eventData);
-      return { success: true, event: response.data };
+      const data = await fetchAPI(`/api/v1/medical-incidents/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(eventData)
+      });
+      return { success: true, event: data };
     } catch (error) {
       console.error(`Lỗi khi cập nhật sự kiện y tế với ID ${id}:`, error);
       throw error;
     }
   },
+  
   // Xóa sự kiện
   deleteEvent: async (id) => {
     try {
-      await api.delete(`/api/v1/medical-incidents/${id}`);
+      await fetchAPI(`/api/v1/medical-incidents/delete/${id}`, {
+        method: 'DELETE'
+      });
       return { success: true, message: "Xóa thành công" };
     } catch (error) {
       console.error(`Lỗi khi xóa sự kiện y tế với ID ${id}:`, error);

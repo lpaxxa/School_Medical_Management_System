@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './MedicationHistory.css';
-import receiveMedicineService from '../../../../../services/receiveMedicineService';
 import MedicationHistoryDetail from './MedicationHistoryDetail';
 
 const MedicationHistory = () => {
   const [medicationHistory, setMedicationHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedMedication, setSelectedMedication] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
@@ -14,21 +13,9 @@ const MedicationHistory = () => {
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
 
-  // Fetch medication history data
+  // Sử dụng dữ liệu mẫu thay vì gọi API
   useEffect(() => {
-    const fetchMedicationHistory = async () => {
-      try {
-        setLoading(true);
-        
-        try {
-          // Call API to get medication history
-          const data = await receiveMedicineService.getMedicationHistory();
-          setMedicationHistory(data);
-        } catch (apiError) {
-          console.error('API error, using mock data:', apiError);
-          
-          // Mock data for demonstration
-          const mockData = [
+    const mockData = [
             {
               id: 'med001',
               studentId: 'HS001',
@@ -109,24 +96,15 @@ const MedicationHistory = () => {
               medicineName: 'Paracetamol',
               dosage: '500mg',
               administrationTime: '2025-06-16T08:30:00',
-              administeredBy: 'Trần Thị Y Tá',
-              status: 'scheduled',
+              administeredBy: 'Trần Thị Y Tá',              status: 'scheduled',
               notes: 'Liều cuối cùng'
             }
           ];
           
-          setMedicationHistory(mockData);
-        }
-        
-        setLoading(false);
-      } catch (err) {
-        console.error('Error loading medication history:', err);
-        setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
-        setLoading(false);
-      }
-    };
-
-    fetchMedicationHistory();
+    // Set mock data to state
+    setLoading(true);
+    setMedicationHistory(mockData);
+    setLoading(false);
   }, []);
 
   // View medication detail

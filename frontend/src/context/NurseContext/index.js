@@ -3,6 +3,7 @@ import React from 'react';
 import { InventoryContext, InventoryProvider, useInventory } from './InventoryContext';
 import { MedicalEventsContext, MedicalEventsProvider, useMedicalEvents } from './MedicalEventsContext';
 import { HealthCheckupContext, HealthCheckupProvider } from './HealthCheckupContext';
+import { MedicineApprovalContext, MedicineApprovalProvider, useMedicineApproval } from './MedicineApprovalContext';
 
 // Create a custom hook for the health checkup context
 export const useHealthCheckup = () => {
@@ -27,4 +28,9 @@ export {
   // Health Checkup context exports
   HealthCheckupContext,
   HealthCheckupProvider,
+  
+  // Medicine Approval context exports
+  MedicineApprovalContext,
+  MedicineApprovalProvider,
+  useMedicineApproval,
 };
