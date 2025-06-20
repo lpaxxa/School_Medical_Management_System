@@ -1,5 +1,6 @@
 package com.fpt.medically_be.dto.response;
 import com.fpt.medically_be.entity.NotificationRecipients;
+import com.fpt.medically_be.entity.NotificationType;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -13,10 +14,8 @@ public class Notification2ResponseDTO {
     private Boolean isRequest;
     private LocalDateTime createdAt;
     private String senderName;
+    private NotificationType type;
     private List<NotificationRecipientsDTO> recipients;
-
-
-
 
 
 }

@@ -23,6 +23,9 @@ public class Notification2 {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "createdBy", nullable = false)
     private Nurse createdBy;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50, nullable = false)
+    private NotificationType type;
 
     @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NotificationRecipients> NotificationRecipients;
