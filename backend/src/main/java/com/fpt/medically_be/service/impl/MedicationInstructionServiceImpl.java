@@ -14,10 +14,7 @@ import com.fpt.medically_be.service.MedicationInstructionService;
 import com.fpt.medically_be.service.ParentService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -277,6 +274,15 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         return pendingRequests.stream()
                 .map(entity -> new MedicationInstructionDTO().toObject(entity))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationInstructionDTO> getAllMedicationRequests() {
+        List<MedicationInstruction> allRequests = medicationInstructionRepository.findAll();
+        return allRequests.stream()
+                .map(entity -> new MedicationInstructionDTO().toObject(entity))
+                .collect(Collectors.toList());
+
     }
 
     @Override

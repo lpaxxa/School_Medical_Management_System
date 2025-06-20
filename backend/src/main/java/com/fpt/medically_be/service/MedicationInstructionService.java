@@ -7,7 +7,7 @@ import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
 import com.fpt.medically_be.entity.Status;
 import jakarta.validation.Valid;
 
-import org.springframework.data.domain.Page;
+
 
 import org.springframework.security.core.Authentication;
 
@@ -34,6 +34,7 @@ public interface MedicationInstructionService {
     MedicationInstructionDTO updateParentMedicationRequest(Long requestId, MedicationRequestDTO request, Authentication auth);
 
     List<MedicationInstructionDTO> getPendingMedicationRequests();
+    List<MedicationInstructionDTO> getAllMedicationRequests();
     MedicationInstructionDTO processApprovalRequest(Long requestId, @Valid NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication);
    void cancelMedicationRequest(Long requestId, Authentication auth);
 

@@ -42,6 +42,13 @@ public class NurseMedicationApprovalController {
         return ResponseEntity.ok(pendingRequests);
     }
 
+    @GetMapping("/all-requests")
+    @PreAuthorize("hasRole('NURSE')")
+    public ResponseEntity<List<MedicationInstructionDTO>> getAllMedicationRequests() {
+        List<MedicationInstructionDTO> allRequests = medicationInstructionService.getAllMedicationRequests();
+        return ResponseEntity.ok(allRequests);
+    }
+
    //view medication request details for review
     @GetMapping("/{requestId}")
     @PreAuthorize("hasRole('NURSE')")
