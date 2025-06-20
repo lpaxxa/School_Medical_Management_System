@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './MedicationHistory.css';
-import receiveMedicineService from '../../../../../services/receiveMedicineService';
 import MedicationHistoryDetail from './MedicationHistoryDetail';
 
 const MedicationHistory = () => {
   const [medicationHistory, setMedicationHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedMedication, setSelectedMedication] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
@@ -14,7 +13,7 @@ const MedicationHistory = () => {
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
 
-  // Fetch medication history data
+  // Sử dụng dữ liệu mẫu thay vì gọi API
   useEffect(() => {
     const fetchMedicationHistory = async () => {
       try {

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import './ReceiveMedicineMain.css';
 import MedicineReceipts from './MedicineReceipts/MedicineReceipts';
 import MedicationHistory from './MedicationHistory/MedicationHistory';
+// Ensure we import the service directly
+import receiveMedicineService from '../../../../services/receiveMedicineService';
 
 const ReceiveMedicineMain = () => {
   const [activeTab, setActiveTab] = useState('receipts');

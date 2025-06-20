@@ -117,8 +117,30 @@ const receiveMedicineService = {
       // Use the working getAllMedicationRequestsForNurse method which combines individual endpoints
       return await receiveMedicineService.getAllMedicationRequestsForNurse();
     } catch (error) {
-      console.error("Lỗi khi lấy danh sách thuốc từ phụ huynh:", error);
-      throw error;
+      console.error("Error fetching medicine requests:", error);
+      // Fallback to mock data if API fails
+      return [...mockMedicineRequests];
+    }
+  },
+
+  // TODO: Chờ API - Tìm kiếm thuốc theo tên
+  searchMedicationByName: async (searchTerm) => {
+    console.log("TODO: Implement real API - Searching medication by name:", searchTerm);
+    
+    // Dữ liệu mẫu cho các mục thuốc
+    const mockMedicationItems = [
+      { id: 1, name: "Paracetamol", dosage: "500mg", quantity: 120, expiryDate: "2026-05-20" },
+      { id: 2, name: "Amoxicillin", dosage: "250mg", quantity: 60, expiryDate: "2026-03-15" },
+      { id: 3, name: "Cetirizine", dosage: "10mg", quantity: 90, expiryDate: "2026-10-10" },
+      { id: 4, name: "Vitamin C", dosage: "500mg", quantity: 200, expiryDate: "2027-01-30" },
+      { id: 5, name: "Loratadine", dosage: "10mg", quantity: 50, expiryDate: "2026-08-12" }
+    ];
+    
+    // Lọc theo từ khóa tìm kiếm nếu có
+    if (searchTerm && searchTerm.trim() !== '') {
+      return mockMedicationItems.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
   },
 
@@ -148,7 +170,7 @@ const receiveMedicineService = {
       return transformMedicationRequestFromBackend(response.data);
     } catch (error) {
       console.error("Lỗi khi thêm yêu cầu thuốc mới:", error);
-      throw error;
+      return { success: false, message: error.message };
     }
   },
   
@@ -160,7 +182,7 @@ const receiveMedicineService = {
       return transformMedicationRequestFromBackend(response.data);
     } catch (error) {
       console.error(`Lỗi khi cập nhật thông tin thuốc với ID ${id}:`, error);
-      throw error;
+      return { success: false, message: error.message };
     }
   },
 
@@ -171,8 +193,11 @@ const receiveMedicineService = {
       const response = await api.put(`/nurse-medication-approvals/${id}/confirm-receipt`);
       return transformMedicationRequestFromBackend(response.data);
     } catch (error) {
-      console.error(`Lỗi khi xác nhận đã nhận thuốc với ID ${id}:`, error);
-      throw error;
+      console.error(`Lỗi khi xử lý yêu cầu thuốc với ID ${id}:`, error);
+      return { 
+        success: false, 
+        message: error.message || 'Không thể xử lý yêu cầu thuốc' 
+      };
     }
   },
   

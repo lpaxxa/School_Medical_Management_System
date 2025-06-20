@@ -1,7 +1,65 @@
-import api from './api';
-
 // Service API cho sự kiện y tế
-const medicalEventsService = {  // Lấy tất cả sự kiện
+// Sử dụng fetch API trực tiếp thay vì thông qua api.js
+
+// URL cơ sở cho tất cả API gọi
+const BASE_URL = "http://localhost:8080";
+
+// Hàm tiện ích để xử lý các cuộc gọi API
+const fetchAPI = async (endpoint, options = {}) => {
+  const token = localStorage.getItem('authToken');
+  
+  const defaultOptions = {
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  };
+  
+  // Thêm token xác thực nếu có
+  if (token) {
+    defaultOptions.headers.Authorization = `Bearer ${token}`;
+  }
+  
+  // Kết hợp options
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options
+  };
+  
+  // Kết hợp headers
+  if (options.headers) {
+    mergedOptions.headers = {
+      ...defaultOptions.headers,
+      ...options.headers
+    };
+  }
+  
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, mergedOptions);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const error = { 
+        status: response.status, 
+        data: errorData, 
+        message: errorData.message || response.statusText 
+      };
+      throw error;
+    }
+    
+    // Kiểm tra nếu response rỗng
+    if (response.status === 204) {
+      return null;
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Lỗi khi gọi API ${endpoint}:`, error);
+    throw error;
+  }
+};
+
+const medicalEventsService = {
+  // Lấy tất cả sự kiện y tế  
   getAllEvents: async () => {
     try {
       const response = await api.get(`/medical-incidents`);
@@ -40,10 +98,11 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
       throw new Error("Không tìm thấy sự kiện y tế");
     }
   },
+  
   // Tìm kiếm sự kiện
   searchEvents: async (filters) => {
     try {
-      // Prepare query parameters for API call
+      // Chuẩn bị tham số truy vấn cho API
       const queryParams = new URLSearchParams();
       
       if (filters.studentId) queryParams.append('studentId', filters.studentId);
@@ -62,7 +121,9 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
       console.error("Lỗi khi tìm kiếm sự kiện y tế:", error);
       throw error;
     }
-  },    // Thêm sự kiện mới
+  },
+  
+  // Thêm sự kiện mới
   addEvent: async (eventData) => {
     try {
       const response = await api.post(`/medical-incidents`, eventData);
@@ -72,6 +133,7 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
       throw error;
     }
   },
+  
   // Cập nhật sự kiện
   updateEvent: async (id, eventData) => {
     try {
@@ -82,6 +144,7 @@ const medicalEventsService = {  // Lấy tất cả sự kiện
       throw error;
     }
   },
+  
   // Xóa sự kiện
   deleteEvent: async (id) => {
     try {

@@ -175,28 +175,39 @@ export const MedicalEventsProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Get event types
+  };  // Get event types - using static data since API endpoint was removed
   const fetchEventTypes = async () => {
     try {
-      const types = await medicalEventsService.getEventTypes();
-      setEventTypes(types);
-      return types;
+      // Sử dụng dữ liệu tĩnh thay vì gọi API
+      const staticTypes = [
+        { id: 1, name: "Tai nạn" },
+        { id: 2, name: "Bệnh" },
+        { id: 3, name: "Sốt" },
+        { id: 4, name: "Đau bụng" },
+        { id: 5, name: "Khác" }
+      ];
+      setEventTypes(staticTypes);
+      return staticTypes;
     } catch (err) {
-      console.error('Error fetching event types:', err);
+      console.error('Error setting event types:', err);
       return [];
     }
   };
-
-  // Get severity levels
+  
+  // Get severity levels - using static data since API endpoint was removed
   const fetchSeverityLevels = async () => {
     try {
-      const levels = await medicalEventsService.getSeverityLevels();
-      setSeverityLevels(levels);
-      return levels;
+      // Sử dụng dữ liệu tĩnh thay vì gọi API
+      const staticLevels = [
+        { id: 1, name: "Thấp" },
+        { id: 2, name: "Trung bình" },
+        { id: 3, name: "Cao" },
+        { id: 4, name: "Khẩn cấp" }
+      ];
+      setSeverityLevels(staticLevels);
+      return staticLevels;
     } catch (err) {
-      console.error('Error fetching severity levels:', err);
+      console.error('Error setting severity levels:', err);
       return [];
     }
   };

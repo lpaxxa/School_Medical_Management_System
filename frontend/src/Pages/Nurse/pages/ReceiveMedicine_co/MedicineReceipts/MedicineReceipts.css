@@ -264,15 +264,24 @@
 
 .status-badge {
   display: inline-block;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 4px;
-  font-size: 0.85rem;
   font-weight: 500;
+  font-size: 0.85rem;
+  text-align: center;
+  min-width: 100px;
 }
 
-.status-badge.pending {
-  background-color: #fff3cd;
-  color: #856404;
+.status-pending {
+  background-color: #fff8e1;
+  color: #ff8f00;
+  border: 1px solid #ffecb3;
+}
+
+.status-approved {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
 }
 
 .status-badge.approved {

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import './MedicineReceipts.css';
-import receiveMedicineService from '../../../../../services/receiveMedicineService';
-import NewMedicineReceiptForm from './NewMedicineReceiptForm';
 import MedicineReceiptDetail from './MedicineReceiptDetail';
+import { useMedicineApproval } from '../../../../../context/NurseContext/MedicineApprovalContext';
 
 const MedicineReceipts = () => {
-  const [medicineRequests, setMedicineRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const {
+    medicineRequests,
+    loading,
+    error,
+    fetchMedicineRequests,
+    processMedicineRequest,
+    getStatusInfo
+  } = useMedicineApproval();
+  
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [filterStatus, setFilterStatus] = useState('pending');
@@ -324,13 +328,10 @@ const MedicineReceipts = () => {
             <div className="no-data">Không có yêu cầu thuốc nào</div>
           ) : (
             <table className="receipts-table">
-              <thead>
-                <tr>
-                  <th>Mã HS</th>
+              <thead>                <tr>
+                  <th>ID</th>
                   <th>Tên học sinh</th>
-                  <th>Lớp</th>
-                  <th>Phụ huynh</th>
-                  <th>Tên thuốc</th>
+                  <th>Người yêu cầu</th>
                   <th>Ngày bắt đầu</th>
                   <th>Trạng thái</th>
                   <th>Thao tác</th>
@@ -400,9 +401,91 @@ const MedicineReceipts = () => {
             </table>
           )}
         </div>
+      )}      {/* Modal xử lý yêu cầu thuốc */}
+      {showProcessModal && (
+        <div className="reason-modal-overlay">
+          <div className="reason-modal-container">
+            <div className="reason-modal-title">
+              Xử lý yêu cầu thuốc
+            </div>
+            <div className="process-form">
+              <div className="form-group">
+                <label>Quyết định:</label>
+                <select 
+                  name="decision"
+                  value={processData.decision}
+                  onChange={handleProcessDataChange}
+                  className="form-select"
+                >
+                  <option value="APPROVED">Phê duyệt</option>
+                  <option value="REJECTED">Từ chối</option>
+                </select>
+              </div>
+              
+              {processData.decision === 'REJECTED' && (
+                <div className="form-group">
+                  <label>Lý do từ chối:</label>
+                  <textarea
+                    name="reason"
+                    className="reason-textarea"
+                    placeholder="Nhập lý do từ chối yêu cầu thuốc..."
+                    value={processData.reason}
+                    onChange={handleProcessDataChange}
+                    required={processData.decision === 'REJECTED'}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="reason-modal-actions">
+              <button
+                className="btn-secondary"
+                onClick={() => setShowProcessModal(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleConfirmProcess}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
+};
+
+// Hàm chuyển đổi status thành text và class
+const getStatusInfo = (status) => {
+  switch (status) {
+    case 'PENDING_APPROVAL':
+      return {
+        text: "Chờ phê duyệt",
+        class: "status-pending" // Màu vàng
+      };
+    case 'APPROVED':
+      return {
+        text: "Đã duyệt",
+        class: "status-approved" // Màu xanh lá
+      };
+    case 'REJECTED':
+      return {
+        text: "Từ chối",
+        class: "status-rejected" // Màu đỏ
+      };
+    case 'CANCELLED':
+      return {
+        text: "Đã hủy",
+        class: "status-cancelled" // Màu xám
+      };
+    default:
+      return {
+        text: "Không xác định",
+        class: "status-unknown" // Màu xám nhạt
+      };
+  }
 };
 
 export default MedicineReceipts;

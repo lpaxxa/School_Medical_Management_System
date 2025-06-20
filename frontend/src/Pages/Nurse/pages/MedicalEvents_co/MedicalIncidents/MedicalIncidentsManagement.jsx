@@ -79,6 +79,8 @@ const MedicalIncidentsManagement = () => {
   }, [fetchEvents, fetchEventTypes, fetchSeverityLevels, events, eventTypes, severityLevels]);
     // State cho modal xem chi tiết
   const [showViewDetailsModal, setShowViewDetailsModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState('');
   
   // Xử lý mở modal chi tiết
   const handleViewDetails = async (id) => {
@@ -293,16 +295,26 @@ const MedicalIncidentsManagement = () => {
     }));
   };
   
-  // Xử lý submit form
+  // Xử lý submit form  const [formErrors, setFormErrors] = useState({});
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      // Validate form data
-      if (!formData.studentId || !formData.incidentType || !formData.dateTime || !formData.severityLevel) {
-        alert("Vui lòng điền đầy đủ các trường bắt buộc");
+      // Use the new validation function
+      const validation = validateForm(formData);
+      if (!validation.isValid) {
+        setFormErrors(validation.errors);
+        // Scroll to first error
+        const firstErrorField = document.querySelector('.form-error');
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
       }
+      
+      // Clear any previous errors
+      setFormErrors({});
       
       // Tạo đối tượng dữ liệu đúng định dạng API
       const apiData = {
@@ -463,18 +475,35 @@ const MedicalIncidentsManagement = () => {
       return dateTimeString;
     }
   };
-  
   // Hàm lấy class CSS dựa trên mức độ nghiêm trọng
   const getSeverityClass = (severity) => {
-    if (!severity) return 'unknown';
+    if (!severity) return 'severity-unknown';
     
-    const lowLevel = severity.toLowerCase();
-    if (lowLevel.includes('nhẹ') || lowLevel === 'low' || lowLevel === 'mild') return 'low';
-    if (lowLevel.includes('trung bình') || lowLevel === 'medium' || lowLevel === 'moderate') return 'medium';
-    if (lowLevel.includes('cao') || lowLevel === 'high' || lowLevel === 'severe') return 'high';
-    if (lowLevel.includes('khẩn cấp') || lowLevel.includes('nguy hiểm') || lowLevel === 'emergency' || lowLevel === 'critical') return 'critical';
+    // Ensure severity is a string
+    const severityStr = String(severity).toLowerCase().trim();
     
-    return 'unknown';
+    // Map common Vietnamese and English terms to severity classes
+    if (severityStr.includes('nhẹ') || 
+        severityStr === 'low' || 
+        severityStr === 'mild' || 
+        severityStr === 'thấp') return 'severity-low';
+        
+    if (severityStr.includes('trung bình') || 
+        severityStr === 'medium' || 
+        severityStr === 'moderate') return 'severity-medium';
+        
+    if (severityStr.includes('cao') || 
+        severityStr === 'high' || 
+        severityStr === 'severe') return 'severity-high';
+        
+    if (severityStr.includes('khẩn cấp') || 
+        severityStr.includes('nguy hiểm') || 
+        severityStr === 'emergency' || 
+        severityStr === 'critical') return 'severity-critical';
+    
+    // Default case with debug info
+    console.log(`Severity class not recognized for value: "${severity}"`);
+    return 'severity-unknown';
   };
   
   // Xử lý xóa sự kiện
@@ -490,6 +519,49 @@ const MedicalIncidentsManagement = () => {
     }
   };
 
+  // Form validation function
+  const validateForm = (data) => {
+    const errors = {};
+    
+    // Required fields validation
+    if (!data.studentId || data.studentId.trim() === '') {
+      errors.studentId = 'Vui lòng nhập mã học sinh';
+    }
+    
+    if (!data.incidentType || data.incidentType.trim() === '') {
+      errors.incidentType = 'Vui lòng chọn loại sự kiện';
+    }
+    
+    if (!data.severityLevel || data.severityLevel.trim() === '') {
+      errors.severityLevel = 'Vui lòng chọn mức độ nghiêm trọng';
+    }
+    
+    if (!data.dateTime) {
+      errors.dateTime = 'Vui lòng chọn ngày giờ';
+    }
+    
+    // Additional validation for medications if any are added
+    if (data.medicationsUsed && data.medicationsUsed.length > 0) {
+      const medicationErrors = [];
+      
+      data.medicationsUsed.forEach((med, index) => {
+        if ((med.itemID && med.itemID > 0 && (!med.quantityUsed || med.quantityUsed < 0)) ||
+            (med.quantityUsed && med.quantityUsed > 0 && (!med.itemID || med.itemID <= 0))) {
+          medicationErrors[index] = 'Vui lòng nhập đầy đủ thông tin thuốc';
+        }
+      });
+      
+      if (medicationErrors.length > 0) {
+        errors.medicationsUsed = medicationErrors;
+      }
+    }
+    
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors
+    };
+  };
+  
   return (
     <main className="medical-events-content">
       {/* Bộ lọc */}
@@ -511,10 +583,9 @@ const MedicalIncidentsManagement = () => {
               name="incidentType"
               value={filters.incidentType}
               onChange={handleFilterChange}
-            >
-              <option value="">Tất cả</option>
+            >              <option value="">Tất cả</option>
               {eventTypes.map((type, index) => (
-                <option key={index} value={type}>{type}</option>
+                <option key={type.id || index} value={type.name || type}>{type.name || type}</option>
               ))}
             </select>
           </div>
@@ -528,7 +599,7 @@ const MedicalIncidentsManagement = () => {
             >
               <option value="">Tất cả</option>
               {severityLevels.map((level, index) => (
-                <option key={index} value={level}>{level}</option>
+                <option key={level.id || index} value={level.name || level}>{level.name || level}</option>
               ))}
             </select>
           </div>
@@ -612,43 +683,48 @@ const MedicalIncidentsManagement = () => {
                 <th>Hành động</th>
               </tr>
             </thead>
-            <tbody>
-              {events.length > 0 ? (
-                events.map((event, index) => (
-                  <tr key={event.incidentId}>
-                    <td>{event.incidentId}</td>
-                    <td>{event.studentId}</td>
-                    <td>{event.studentName}</td>
-                    <td>{formatDateTime(event.dateTime)}</td>
-                    <td>
-                      <span className={`status-badge ${getSeverityClass(event.severityLevel)}`}>
-                        {event.severityLevel}
-                      </span>
-                    </td>
-                    <td className="status-cell">
-                      {event.parentNotified ? 
-                        <i className="fas fa-check-circle status-icon notified"></i> : 
-                        <i className="fas fa-question-circle status-icon not-notified"></i>
-                      }
-                    </td>                    <td className="status-cell">
-                      {event.requiresFollowUp ? 
-                        <i className="fas fa-eye status-icon follow-up"></i> :                        
-                        <i className="fas fa-check-circle status-icon no-follow-up"></i>
-                      }
-                    </td>
-                    <td className="action-cell">                      <button 
-                        className="btn-view" 
-                        onClick={() => handleViewDetails(event.incidentId)}
-                        title="Xem chi tiết"
-                      >
-                        <i className="fas fa-eye"></i>
-                      </button>                      <button 
-                        className="btn-edit" 
-                        onClick={() => handleEdit(event.incidentId)}
-                        title="Chỉnh sửa"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
+            <tbody>              {events.length > 0 ? (
+                events.map((event, index) => {
+                  // Log severity để debug
+                  console.log(`Event ${event.incidentId} severity: "${event.severityLevel}" - class: ${getSeverityClass(event.severityLevel)}`);
+                  return (
+                    <tr key={event.incidentId}>
+                      <td>{event.incidentId}</td>
+                      <td>{event.studentId}</td>
+                      <td>{event.studentName}</td>
+                      <td>{formatDateTime(event.dateTime)}</td>
+                      <td>
+                        <span className={`status-badge ${getSeverityClass(event.severityLevel)}`}>
+                          {event.severityLevel || "Không xác định"}
+                        </span>
+                      </td>
+                      <td className="status-cell">
+                        {event.parentNotified ? 
+                          <i className="fas fa-check-circle status-icon notified"></i> : 
+                          <i className="fas fa-question-circle status-icon not-notified"></i>
+                        }
+                      </td>
+                      <td className="status-cell">
+                        {event.requiresFollowUp ? 
+                          <i className="fas fa-eye status-icon follow-up"></i> :                        
+                          <i className="fas fa-check-circle status-icon no-follow-up"></i>
+                        }
+                      </td>
+                      <td className="action-cell">
+                        <button 
+                          className="btn-view" 
+                          onClick={() => handleViewDetails(event.incidentId)}
+                          title="Xem chi tiết"
+                        >
+                          <i className="fas fa-eye"></i>
+                        </button>
+                        <button 
+                          className="btn-edit" 
+                          onClick={() => handleEdit(event.incidentId)}
+                          title="Chỉnh sửa"
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
                       <button 
                         className="btn-delete" 
                         onClick={() => handleDelete(event.incidentId)}
@@ -656,9 +732,9 @@ const MedicalIncidentsManagement = () => {
                       >
                         <i className="fas fa-trash"></i>
                       </button>
-                    </td>
-                  </tr>
-                ))
+                    </td>                  </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="8" className="no-data">Không có dữ liệu sự kiện y tế</td>
@@ -766,18 +842,41 @@ const MedicalIncidentsManagement = () => {
                     <span className="detail-label">Điều trị:</span>
                     <span className="detail-value">{selectedEvent.treatment || "Không có thông tin điều trị"}</span>
                   </div>
-                </div>
-                  {/* Thông tin về thuốc */}
+                </div>                {/* Thông tin về thuốc */}
                 <div className="detail-section">
                   <h4 className="detail-section-title">Thuốc đã sử dụng</h4>
                   <div className="medications-list">
                     {selectedEvent.medicationsUsed ? (
-                      <div className="medication-item">
-                        <div><strong>Thuốc đã sử dụng:</strong> {selectedEvent.medicationsUsed}</div>
-                      </div>
+                      <>
+                        {Array.isArray(selectedEvent.medicationsUsed) ? (
+                          selectedEvent.medicationsUsed.length > 0 ? (
+                            selectedEvent.medicationsUsed.map((med, idx) => (
+                              <div key={idx} className="medication-detail-item">
+                                <div className="medication-detail-header">
+                                  <span className="medication-name">
+                                    {med.itemName || `Thuốc #${med.itemID || idx + 1}`}
+                                  </span>
+                                  <span className="medication-quantity">
+                                    <i className="fas fa-pills"></i> {med.quantityUsed || 0} {med.unit || 'đơn vị'}
+                                  </span>
+                                </div>
+                                {med.note && <div className="medication-note">{med.note}</div>}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="medication-item">
+                              <div className="no-medications">Không dùng thuốc</div>
+                            </div>
+                          )
+                        ) : (
+                          <div className="medication-item">
+                            <div><strong>Thuốc đã sử dụng:</strong> {selectedEvent.medicationsUsed}</div>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="medication-item">
-                        <div>Không có thông tin về thuốc đã sử dụng</div>
+                        <div className="no-medications">Không có thông tin về thuốc đã sử dụng</div>
                       </div>
                     )}
                   </div>
@@ -828,9 +927,48 @@ const MedicalIncidentsManagement = () => {
                       <span className="detail-label">Tên nhân viên:</span>
                       <span className="detail-value">{selectedEvent.staffName || "Không có thông tin"}</span>
                     </div>
+                  </div>                </div>
+                  {/* Hình ảnh (nếu có) */}                {selectedEvent.imgUrl && (
+                  <div className="detail-section">
+                    <h4 className="detail-section-title">Hình ảnh</h4>
+                    <div className="image-container">
+                      <img 
+                        src={selectedEvent.imgUrl} 
+                        alt="Hình ảnh sự cố y tế" 
+                        className="incident-image clickable"
+                        onClick={() => {
+                          setSelectedImageUrl(selectedEvent.imgUrl);
+                          setShowImageModal(true);
+                        }}
+                        title="Nhấn để xem ảnh đầy đủ"
+                      />
+                      <div className="image-caption">
+                        <i className="fas fa-search-plus"></i> Nhấn vào hình để xem kích thước đầy đủ
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Thông tin bổ sung */}
+                <div className="detail-section">
+                  <h4 className="detail-section-title">Thông tin bổ sung</h4>
+                  <div className="detail-row">
+                    <span className="detail-label">ID Phụ huynh:</span>
+                    <span className="detail-value">{selectedEvent.parentID || "Không có thông tin"}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Ngày cập nhật:</span>
+                    <span className="detail-value">
+                      {selectedEvent.updatedAt ? formatDateTime(selectedEvent.updatedAt) : "Không có thông tin"}
+                    </span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Ngày tạo:</span>
+                    <span className="detail-value">
+                      {selectedEvent.createdAt ? formatDateTime(selectedEvent.createdAt) : "Không có thông tin"}
+                    </span>
                   </div>
                 </div>
-                  {/* Cố tình bỏ phần Thông tin bổ sung như trong yêu cầu */}
               </div>
             </div>
             
@@ -870,8 +1008,7 @@ const MedicalIncidentsManagement = () => {
                     <h4>Thông tin học sinh</h4>
                     <div className="form-row">
                       <div className="form-group">
-                        <label htmlFor="studentId">Mã học sinh <span className="required">*</span></label>
-                        <input 
+                        <label htmlFor="studentId">Mã học sinh <span className="required">*</span></label>                        <input 
                           type="text" 
                           id="studentId" 
                           name="studentId"
@@ -879,7 +1016,13 @@ const MedicalIncidentsManagement = () => {
                           onChange={handleInputChange}
                           required
                           placeholder="Nhập mã học sinh"
+                          className={formErrors.studentId ? "input-error" : ""}
                         />
+                        {formErrors.studentId && (
+                          <div className="form-error">
+                            <i className="fas fa-exclamation-circle"></i> {formErrors.studentId}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1140,6 +1283,43 @@ const MedicalIncidentsManagement = () => {
           {searchStatus.resultCount > 0 
             ? `Tìm thấy ${searchStatus.resultCount} kết quả` 
             : "Không tìm thấy kết quả nào phù hợp"}
+        </div>
+      )}
+      
+      {/* Full-size Image Modal */}
+      {showImageModal && selectedImageUrl && (
+        <div className="modal-overlay" onClick={() => setShowImageModal(false)}>
+          <div className="image-modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Hình ảnh chi tiết</h3>
+              <button 
+                className="close-btn" 
+                onClick={() => setShowImageModal(false)}
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="image-modal-body">
+              <img 
+                src={selectedImageUrl} 
+                alt="Hình ảnh chi tiết sự cố y tế" 
+                className="full-size-image"
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowImageModal(false)}>
+                <i className="fas fa-times"></i> Đóng
+              </button>
+              <a 
+                href={selectedImageUrl} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="btn btn-primary"
+              >
+                <i className="fas fa-external-link-alt"></i> Mở trong tab mới
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </main>
