@@ -7,14 +7,11 @@ export const MedicalEventsContext = createContext();
 // Custom hook to use the Medical Events Context
 export const useMedicalEvents = () => useContext(MedicalEventsContext);
 
-export const MedicalEventsProvider = ({ children }) => {
-  // States
+export const MedicalEventsProvider = ({ children }) => {  // States
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [eventTypes, setEventTypes] = useState([]);
-  const [severityLevels, setSeverityLevels] = useState([]);
   
   // Fetch all events
   const fetchEvents = async () => {
@@ -91,19 +88,22 @@ export const MedicalEventsProvider = ({ children }) => {
     }
     
     setLoading(true);
-    try {
-      // Make API call
+    try {      // Make API call
       const updatedEvent = await medicalEventsService.updateEvent(id, event);
       
       // Check if the update was successful
-      if (updatedEvent) {        // Update events in state
+      if (updatedEvent) {
+        // Update events in state
         setEvents(prevEvents => {
-          const updatedEvents = prevEvents.map(e => (e.incidentId === id ? updatedEvent : e));
+          // Sử dụng id hoặc incidentId tùy theo dữ liệu API trả về
+          const updatedEvents = prevEvents.map(e => 
+            ((e.id === id || e.incidentId === id) ? updatedEvent : e)
+          );
           return updatedEvents;
         });
         
         // Update selected event if it's the one being edited
-        if (selectedEvent?.incidentId === id) {
+        if ((selectedEvent?.id === id) || (selectedEvent?.incidentId === id)) {
           setSelectedEvent(updatedEvent);
         }
         
@@ -140,11 +140,11 @@ export const MedicalEventsProvider = ({ children }) => {
 
   // Delete event
   const deleteEvent = async (id) => {
-    setLoading(true);
-    try {      const result = await medicalEventsService.deleteEvent(id);
+    setLoading(true);    try {
+      const result = await medicalEventsService.deleteEvent(id);
       if (result.success) {
-        setEvents(prevEvents => prevEvents.filter(event => event.incidentId !== id));
-        if (selectedEvent?.incidentId === id) {
+        setEvents(prevEvents => prevEvents.filter(event => (event.id !== id && event.incidentId !== id)));
+        if (selectedEvent?.id === id || selectedEvent?.incidentId === id) {
           setSelectedEvent(null);
         }
         setError(null);
@@ -176,28 +176,21 @@ export const MedicalEventsProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
-  // Get event types
-  const fetchEventTypes = async () => {
+  
+  // Hàm mới để tìm kiếm theo loại (severity)
+  const searchByType = async (typeValue) => {
+    setLoading(true);
     try {
-      const types = await medicalEventsService.getEventTypes();
-      setEventTypes(types);
-      return types;
+      const results = await medicalEventsService.searchByType(typeValue);
+      setEvents(results);
+      setError(null);
+      return results;
     } catch (err) {
-      console.error('Error fetching event types:', err);
+      console.error('Error searching events by type:', err);
+      setError('Không thể tìm kiếm sự kiện y tế theo loại');
       return [];
-    }
-  };
-
-  // Get severity levels
-  const fetchSeverityLevels = async () => {
-    try {
-      const levels = await medicalEventsService.getSeverityLevels();
-      setSeverityLevels(levels);
-      return levels;
-    } catch (err) {
-      console.error('Error fetching severity levels:', err);
-      return [];
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -205,35 +198,28 @@ export const MedicalEventsProvider = ({ children }) => {
   const resetError = () => {
     setError(null);
   };
-
   // Use a ref to track if we've already loaded data to prevent repeated fetches
   const initialDataLoaded = React.useRef(false);
   
-  // Load events, event types, and severity levels on context mount, but only once
+  // Load events on context mount, but only once
   useEffect(() => {
     if (!initialDataLoaded.current) {
       initialDataLoaded.current = true;
       fetchEvents();
-      fetchEventTypes();
-      fetchSeverityLevels();
     }
   }, []);
-
   const value = {
     events,
     loading,
     error,
     selectedEvent,
-    eventTypes,
-    severityLevels,
     fetchEvents,
     fetchEventById,
     addEvent,
     updateEvent,
     deleteEvent,
     searchEvents,
-    fetchEventTypes,
-    fetchSeverityLevels,
+    searchByType,
     resetError,
     setSelectedEvent
   };
