@@ -20,16 +20,16 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
     private String title;
 
-    @Column(length = 500)
+    @Column(length = 500, columnDefinition = "NVARCHAR(500)")
     private String excerpt;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "NVARCHAR(500)", nullable = false)
     private String content;
 
-    @Column(name = "category")
+    @Column(name = "category", columnDefinition = "NVARCHAR(500)")
     private String category;
 
     @ManyToOne
