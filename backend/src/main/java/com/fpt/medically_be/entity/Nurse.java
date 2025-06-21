@@ -29,6 +29,9 @@ public class Nurse {
     @OneToMany(mappedBy = "medicalStaff")
     private List<MedicalCheckup> medicalCheckups;
 
+    @OneToMany(mappedBy = "nurse")
+    private List<Vaccination> vaccinations;
+
     @OneToOne
     @JoinColumn(name = "account_id")
     private AccountMember account;

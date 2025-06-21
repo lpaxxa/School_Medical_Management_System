@@ -3,6 +3,7 @@ package com.fpt.medically_be.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "vaccinations")
@@ -21,7 +22,7 @@ public class Vaccination {
     private String vaccineName;
 
     @Column(name = "vaccination_date")
-    private LocalDate vaccinationDate;
+    private LocalDateTime vaccinationDate;
 
     @Column(name = "next_dose_date")
     private LocalDate nextDoseDate;
@@ -29,8 +30,9 @@ public class Vaccination {
     @Column(name = "dose_number")
     private Integer doseNumber;
 
-    @Column(name = "administered_by", columnDefinition = "NVARCHAR(255)")
-    private String administeredBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nurse_id")
+    private Nurse nurse;
 
     @Column(name = "administered_at", columnDefinition = "NVARCHAR(255)")
     private String administeredAt;
@@ -38,6 +40,8 @@ public class Vaccination {
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String notes;
 
-    @Column(name = "parent_consent")
-    private Boolean parentConsent;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_recipient_id")
+    private NotificationRecipients notificationRecipient;
 }

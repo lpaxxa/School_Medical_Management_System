@@ -1,6 +1,8 @@
 package com.fpt.medically_be.service;
 
 import com.fpt.medically_be.dto.VaccinationDTO;
+import com.fpt.medically_be.dto.response.VaccinationDetailResponse;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -14,6 +16,9 @@ public interface VaccinationService {
     VaccinationDTO createVaccination(VaccinationDTO vaccinationDTO);
     VaccinationDTO updateVaccination(Long id, VaccinationDTO vaccinationDTO);
     void deleteVaccination(Long id);
+
+    //dt
     List<VaccinationDTO> getVaccinationsByParent(Long parentId);
+    VaccinationDetailResponse getVaccinationDetailByNotificationRecipientId(Long notificationRecipientId);
 
 }
