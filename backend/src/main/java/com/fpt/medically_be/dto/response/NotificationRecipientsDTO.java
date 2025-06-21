@@ -6,6 +6,9 @@ import lombok.Data;
 public class NotificationRecipientsDTO {
     private Long id;
     private String receiverName;
+    private String studentId;
+    private String studentName;
     private String response;
+
 
 }

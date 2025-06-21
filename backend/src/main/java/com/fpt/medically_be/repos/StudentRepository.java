@@ -16,6 +16,15 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     List<Student> findByGradeLevel(String gradeLevel);
     List<Student> findByParentId(Long parentId);
 
+
     @Query("SELECT s FROM Student s JOIN s.healthProfile hp WHERE hp.id = :healthProfileId")
     Optional<Student> findByHealthProfileId(Long healthProfileId);
+
+    //dt
+    List<Student> findByParentIdIn(List<Long> parentIds);
+    List<Student> findByStudentIdIn(List<String> ids);
+    List<Student> findByClassNameIn(List<String> classNames);
+
+
+
 }

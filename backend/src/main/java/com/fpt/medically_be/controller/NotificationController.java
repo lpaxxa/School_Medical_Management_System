@@ -54,10 +54,10 @@ public class NotificationController {
     }
 
     @Operation(summary = "Phản hồi của phụ huynh", description = "dùng để update phản hồi của phụ huynh đối với thông báo")
-    @PutMapping("/respond/{notiID}/{parentID}")
-    public ResponseEntity<Notification2ReceiveResponse> respondToNotification(@PathVariable Long notiID ,@PathVariable Long parentID,@RequestBody ResponseStatus status) {
+    @PutMapping("/respond/{id}/{parentID}")
+    public ResponseEntity<Notification2ReceiveResponse> respondToNotification(@PathVariable("id") Long id ,@PathVariable("parentID") Long parentID,@RequestBody ResponseStatus status) {
 
-        return ResponseEntity.ok(notification2Service.respondToNotification(notiID, parentID, status));
+        return ResponseEntity.ok(notification2Service.respondToNotification(id, parentID, status));
     }
 
     @GetMapping("/notifications/{id}/responses")
@@ -92,9 +92,9 @@ public class NotificationController {
     }
 
     @Operation(summary = "phụ huynh xem vaccine nào con mình đã tiem", description = "Cập nhật thông báo theo ID")
-    @GetMapping("/getAcceptedNotificationsByParent/{parentId}")
-    public ResponseEntity<?> getAcceptedNotificationsByParent(@PathVariable Long parentId) {
-        return ResponseEntity.ok(notification2Service.getAcceptedNotificationsByParent(parentId));
+    @GetMapping("/getAcceptedNotificationsByParent/{parentId}/{studentId}")
+    public ResponseEntity<?> getAcceptedNotificationsByParent(@PathVariable("parentId") Long parentId , @PathVariable("studentId") String studentId) {
+        return ResponseEntity.ok(notification2Service.getAcceptedNotificationsByParent(parentId, studentId));
     }
 }
 

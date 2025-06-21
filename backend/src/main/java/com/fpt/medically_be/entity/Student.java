@@ -52,4 +52,7 @@ public class Student {
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private List<MedicalIncident> medicalIncidents;
 
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+    private List<NotificationRecipients> notificationRecipients;
+
 }

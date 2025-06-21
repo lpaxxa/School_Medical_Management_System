@@ -22,13 +22,15 @@ public interface Notification2Mapper {
 
 
 
-    @Mapping(source = "createdBy.fullName", target = "senderName")
+    @Mapping(source = "createdBy.fullName",     target = "senderName")
     @Mapping(source = "notificationRecipients", target = "recipients")
     Notification2ResponseDTO toNotificationResponseDTO(Notification2 notification2);
 
-    @Mapping(source = "receiver.fullName", target = "receiverName")
-    @Mapping(source = "response", target = "response")
-    NotificationRecipientsDTO toNotificationRecipientsDTO(NotificationRecipients entity);
+    @Mapping(source = "receiver.fullName",  target = "receiverName")  // Chỉ một lần!
+    @Mapping(source = "student.studentId",  target = "studentId")
+    @Mapping(source = "student.fullName",   target = "studentName")
+    @Mapping(source = "response",           target = "response")
+    NotificationRecipientsDTO toNotificationRecipientsDTO(NotificationRecipients nr);
 
     @Mapping(source = "notification.title", target = "title")
     @Mapping(source = "notification.message", target = "message")
@@ -42,6 +44,8 @@ public interface Notification2Mapper {
     @Mapping(source = "notification.title", target = "title")
     @Mapping(source = "notification.message", target = "message")
     @Mapping(source = "notification.createdAt", target = "receivedAt")
+    @Mapping(source = "student.id", target = "studentId")
+    @Mapping(source = "student.fullName", target = "studentName")
     VaccineApproveNotiResponse toNotificationResponseDTO(NotificationRecipients notificationRecipients);
 
 }

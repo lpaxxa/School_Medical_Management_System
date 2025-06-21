@@ -2,15 +2,13 @@ package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.request.Notification2RequestDTO;
 import com.fpt.medically_be.dto.request.Notification2UpdateDTO;
+import com.fpt.medically_be.dto.request.StudentReceiverRequest;
 import com.fpt.medically_be.dto.response.*;
 
 import com.fpt.medically_be.entity.*;
 import com.fpt.medically_be.mapper.Notification2Mapper;
 import com.fpt.medically_be.mapper.Notification2TitleMapper;
-import com.fpt.medically_be.repos.NotificationRecipientsRepo;
-import com.fpt.medically_be.repos.Notification2Repository;
-import com.fpt.medically_be.repos.NurseRepository;
-import com.fpt.medically_be.repos.ParentRepository;
+import com.fpt.medically_be.repos.*;
 import com.fpt.medically_be.service.Notification2Service;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +33,9 @@ public class Notification2ServiceImp implements Notification2Service {
     private Notification2TitleMapper notification2TitleMapper;
 
     @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
     private NurseRepository nurseRepository;
     @Autowired
     private ParentRepository parentRepository; // Assuming you have a ParentRepository
@@ -40,35 +43,117 @@ public class Notification2ServiceImp implements Notification2Service {
     @Autowired
     private NotificationRecipientsRepo notificationRecipientsRepo;
 
-
+    // FIX PARENT ID SAI VẪN GƯI ĐƯỢC, CLASS Y CHANG
     @Transactional
     @Override
-    public Notification2ResponseDTO createNotification(Notification2RequestDTO notification2) {
+    public Notification2ResponseDTO createNotification(Notification2RequestDTO dto) {
 
-        Notification2 noti = notification2Mapper.toNotificationEntity(notification2);
+        Notification2 noti = notification2Mapper.toNotificationEntity(dto);
 
-        Nurse nurse = nurseRepository.findById(notification2.getSenderId()).orElseThrow(()
-                -> new RuntimeException("Nurse not found with id: " + notification2.getSenderId()));
+        Nurse nurse = nurseRepository.findById(dto.getSenderId()).orElseThrow(()
+                -> new RuntimeException("Nurse not found with id: " + dto.getSenderId()));
 
         noti.setCreatedBy(nurse);
         notification2Repository.save(noti);
 
-        List<NotificationRecipients> recipients = notification2.getReceiverIds().stream().map(id -> {
-            Parent parent = parentRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Parent not found"));
+        Set<String> studentIdSet = new HashSet<>();
+        List<NotificationRecipients> recipients = new ArrayList<>();
 
-            NotificationRecipients r = new NotificationRecipients();
-            r.setNotification(noti);
-            r.setReceiver(parent);
-            r.setResponse(ResponseStatus.PENDING);
-            return r;
-        }).collect(Collectors.toList());
+        // Gửi theo lớp (gửi theo từng học sinh)
+        if (dto.getClassIds() != null && !dto.getClassIds().isEmpty()) {
+            List<Student> studentsByClass = studentRepository.findByClassNameIn(dto.getClassIds());
+
+            if(studentsByClass.isEmpty()) {
+                throw new RuntimeException("No students or class name found for the given class IDs");
+            }
+
+            for (Student student : studentsByClass) {
+
+                if (student.getParent() != null) {
+                    studentIdSet.add(student.getStudentId());
+                }
+            }
+        }
+
+        // Gửi theo parent cụ thể (gửi 1 lần mỗi parent, KHÔNG gửi theo học sinh)
+        if (dto.getReceiverIds() != null && !dto.getReceiverIds().isEmpty()) {
+            List<Parent> parents = parentRepository.findByIdIn(dto.getReceiverIds());
+
+            if (parents.isEmpty()) {
+                throw new RuntimeException("No parents found for the given receiver IDs");
+            }
+
+            for (Parent parent : parents) {
+                List<Student> students = studentRepository.findByParentId(parent.getId());
+                NotificationRecipients nr = new NotificationRecipients();
+                Student student = students.isEmpty() ? null : students.get(0);
+                nr.setNotification(noti);
+                nr.setReceiver(parent);
+                nr.setResponse(ResponseStatus.PENDING);
+                nr.setStudent(student);
+                recipients.add(nr);
+            }
+        }
+
+        // Xử lý các học sinh từ phần gửi theo lớp
+        if (!studentIdSet.isEmpty()) {
+            List<Student> allStudents = studentRepository.findByStudentIdIn(new ArrayList<>(studentIdSet));
+            for (Student student : allStudents) {
+                Parent parent = student.getParent();
+                if (parent != null) {
+                    NotificationRecipients nr = new NotificationRecipients();
+                    nr.setNotification(noti);
+                    nr.setReceiver(parent);
+                    nr.setStudent(student);
+                    nr.setResponse(ResponseStatus.PENDING);
+                    recipients.add(nr);
+                }
+            }
+        }
+
         notificationRecipientsRepo.saveAll(recipients);
-
         noti.setNotificationRecipients(recipients);
-
         return notification2Mapper.toNotificationResponseDTO(noti);
     }
+
+
+
+
+
+//    @Transactional
+//    @Override
+//    public Notification2ResponseDTO createNotification(Notification2RequestDTO notification2) {
+//
+//        Notification2 noti = notification2Mapper.toNotificationEntity(notification2);
+//
+//        Nurse nurse = nurseRepository.findById(notification2.getSenderId()).orElseThrow(()
+//                -> new RuntimeException("Nurse not found with id: " + notification2.getSenderId()));
+//
+//        noti.setCreatedBy(nurse);
+//        notification2Repository.save(noti);
+//
+//        List<NotificationRecipients> recipients = notification2.getStudentReceivers().stream()
+//                .flatMap(receiverDto -> {
+//                    Parent parent = parentRepository.findById(receiverDto.getParentId())
+//                            .orElseThrow(() -> new RuntimeException("Parent not found with id: " + receiverDto.getParentId()));
+//
+//                    List<Student> students = studentRepository.findByStudentIdIn(receiverDto.getStudentIds());
+//
+//                    return students.stream().map(student -> {
+//                        NotificationRecipients r = new NotificationRecipients();
+//                        r.setNotification(noti);
+//                        r.setReceiver(parent);
+//                        r.setStudent(student);  // mỗi học sinh tạo 1 bản ghi
+//                        r.setResponse(ResponseStatus.PENDING);
+//                        return r;
+//                    });
+//                })
+//                .collect(Collectors.toList());
+//
+//        notificationRecipientsRepo.saveAll(recipients);
+//        noti.setNotificationRecipients(recipients);
+//        return notification2Mapper.toNotificationResponseDTO(noti);
+//    }
 
     @Override
     public List<Notification2TitleResponse> getNotificationTitlesByParentId(Long parentId) {
@@ -120,7 +205,7 @@ public class Notification2ServiceImp implements Notification2Service {
     @Override
     public Notification2ReceiveResponse respondToNotification(Long notiId, Long parentId, ResponseStatus status) {
 
-        NotificationRecipients recipients = notificationRecipientsRepo.findByNotificationIdAndReceiverId(notiId, parentId);
+        NotificationRecipients recipients = notificationRecipientsRepo.findByIdAndReceiverId(notiId, parentId);
         if (recipients == null) {
             throw new RuntimeException("Notification recipient not found for the given notification ID and parent ID");
         }
@@ -158,7 +243,7 @@ public class Notification2ServiceImp implements Notification2Service {
     public Notification2ReceiveResponse getNotificationDetail(Long notiId, Long parentId) {
 
         NotificationRecipients recipient = notificationRecipientsRepo
-                .findByNotificationIdAndReceiverId(notiId, parentId);
+                .findByIdAndReceiverId(notiId, parentId);
 
         if (recipient == null) {
             throw new RuntimeException("Notification not found for the given ID and parent ID");
@@ -229,16 +314,26 @@ public class Notification2ServiceImp implements Notification2Service {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long parentId) {
-        List<NotificationRecipients> recipients = notificationRecipientsRepo
-                .findByResponseAndReceiverIdAndNotification_Type(ResponseStatus.ACCEPTED, parentId, NotificationType.VACCINATION);
+//    @Override
+//    public List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long parentId) {
+//        List<NotificationRecipients> recipients = notificationRecipientsRepo
+//                .findByResponseAndReceiverIdAndNotification_Type(ResponseStatus.ACCEPTED, parentId, NotificationType.VACCINATION);
+//
+//
+//        return recipients.stream()
+//                .map(notification2Mapper::toNotificationResponseDTO)
+//                .collect(Collectors.toList());
+//    }
+@Override
+public List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long parentId, String studentId) {
+    List<NotificationRecipients> recipients = notificationRecipientsRepo
+            .findByReceiverIdAndStudent_StudentIdAndResponseAndNotification_Type(parentId,studentId, ResponseStatus.ACCEPTED, NotificationType.VACCINATION);
 
 
-        return recipients.stream()
-                .map(notification2Mapper::toNotificationResponseDTO)
-                .collect(Collectors.toList());
-    }
+    return recipients.stream()
+            .map(notification2Mapper::toNotificationResponseDTO)
+            .collect(Collectors.toList());
+}
 
 
 //        @Override

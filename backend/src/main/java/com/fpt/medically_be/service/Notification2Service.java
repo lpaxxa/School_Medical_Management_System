@@ -32,5 +32,6 @@ public interface Notification2Service {
 
     List<Notification2ResponseDTO> getNotificationsByType(NotificationType type);
 
-    List<VaccineApproveNotiResponse>  getAcceptedNotificationsByParent(Long parentId);
+//    List<VaccineApproveNotiResponse>  getAcceptedNotificationsByParent(Long parentId);
+    List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long parentId, String studentId);
 }

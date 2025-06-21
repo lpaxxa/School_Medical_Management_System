@@ -3,6 +3,7 @@ import com.fpt.medically_be.entity.NotificationRecipients;
 import com.fpt.medically_be.entity.NotificationType;
 import lombok.Data;
 
+import javax.management.Notification;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class Notification2ResponseDTO {
     private LocalDateTime createdAt;
     private String senderName;
     private NotificationType type;
+
     private List<NotificationRecipientsDTO> recipients;
 
 

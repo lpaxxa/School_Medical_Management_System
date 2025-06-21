@@ -10,6 +10,8 @@ public class VaccineApproveNotiResponse {
     private Long id;
     private String title;
     private String message;
+    private String studentId;
+    private String studentName;
     private LocalDateTime receivedAt;
 
 }

@@ -17,10 +17,16 @@ public interface NotificationRecipientsRepo extends JpaRepository<NotificationRe
 
     List<NotificationRecipients> findByReceiverId(Long receiverId);
 
-    NotificationRecipients findByNotificationIdAndReceiverId(Long notificationId, Long receiverId);
+    NotificationRecipients findByIdAndReceiverId(Long id, Long receiverId);
 
     List<NotificationRecipients> findByNotification(Notification2 notification);
 
-    List<NotificationRecipients> findByResponseAndReceiverIdAndNotification_Type(ResponseStatus response, Long receiverId, NotificationType notificationType);
+  // List<NotificationRecipients> findByResponseAndReceiverIdAndNotification_Type(ResponseStatus response, Long receiverId, NotificationType notificationType);
 
+    List<NotificationRecipients> findByReceiverIdAndStudent_StudentIdAndResponseAndNotification_Type(
+            Long receiverId,
+            String studentId,
+            ResponseStatus response,
+            NotificationType notificationType
+    );
 }
