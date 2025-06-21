@@ -26,7 +26,7 @@ public class PostComment {
     @JoinColumn(name = "author_id", nullable = false)
     private AccountMember author;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "NVARCHAR(50)", nullable = false)
     private String content;
 
     @Column(name = "created_at")
