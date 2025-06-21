@@ -32,6 +32,7 @@ public interface Notification2Mapper {
     @Mapping(source = "response",           target = "response")
     NotificationRecipientsDTO toNotificationRecipientsDTO(NotificationRecipients nr);
 
+
     @Mapping(source = "notification.title", target = "title")
     @Mapping(source = "notification.message", target = "message")
     @Mapping(source = "notification.isRequest", target = "isRequest")

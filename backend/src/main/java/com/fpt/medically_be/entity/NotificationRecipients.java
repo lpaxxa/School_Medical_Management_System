@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "NotificationRecipients")
@@ -28,6 +29,7 @@ public class NotificationRecipients {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "studentID", nullable = false)
     private Student student;
-
+    @OneToMany(mappedBy = "notificationRecipient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Vaccination> vaccinations;
 
 }
