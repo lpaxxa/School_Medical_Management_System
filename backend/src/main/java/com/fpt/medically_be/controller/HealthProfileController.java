@@ -34,7 +34,7 @@ public class HealthProfileController {
 
 
     @GetMapping("/all-health-profiles")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<Page<HealthProfileDTO>> getAllHealthProfiles(@RequestParam (defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(healthProfileService.findAll(pageable));
