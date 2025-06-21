@@ -1,5 +1,6 @@
 package com.fpt.medically_be.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.SQLDelete;
@@ -19,7 +20,8 @@ public class HealthProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(mappedBy = "healthProfile")
+    @OneToOne(mappedBy = "healthProfile", fetch = FetchType.LAZY)
+    //@JsonIgnore
     private Student student;
 
     @Column(name = "blood_type", columnDefinition = "NVARCHAR(10)")

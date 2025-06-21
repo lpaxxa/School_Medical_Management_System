@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.VaccinationDTO;
 import com.fpt.medically_be.entity.HealthProfile;
 import com.fpt.medically_be.entity.Student;
 import com.fpt.medically_be.entity.Vaccination;
+import com.fpt.medically_be.mapper.VaccinationMapper;
 import com.fpt.medically_be.repos.HealthProfileRepository;
 import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.repos.VaccinationRepository;
@@ -20,18 +21,24 @@ import java.util.stream.Collectors;
 @Service
 public class VaccinationServiceImpl implements VaccinationService {
 
-    private final VaccinationRepository vaccinationRepository;
-    private final HealthProfileRepository healthProfileRepository;
-    private final StudentRepository studentRepository;
-
     @Autowired
-    public VaccinationServiceImpl(VaccinationRepository vaccinationRepository,
-                                 HealthProfileRepository healthProfileRepository,
-                                 StudentRepository studentRepository) {
-        this.vaccinationRepository = vaccinationRepository;
-        this.healthProfileRepository = healthProfileRepository;
-        this.studentRepository = studentRepository;
-    }
+    private VaccinationRepository vaccinationRepository;
+    @Autowired
+    private HealthProfileRepository healthProfileRepository;
+    @Autowired
+    private StudentRepository studentRepository;
+    @Autowired
+    private VaccinationMapper vaccinationMapper;
+
+
+    //    @Autowired
+//    public VaccinationServiceImpl(VaccinationRepository vaccinationRepository,
+//                                 HealthProfileRepository healthProfileRepository,
+//                                 StudentRepository studentRepository) {
+//        this.vaccinationRepository = vaccinationRepository;
+//        this.healthProfileRepository = healthProfileRepository;
+//        this.studentRepository = studentRepository;
+//    }
 
     @Override
     public List<VaccinationDTO> getAllVaccinations() {
@@ -116,6 +123,13 @@ public class VaccinationServiceImpl implements VaccinationService {
         }
         vaccinationRepository.deleteById(id);
     }
+
+    @Override
+    public List<VaccinationDTO> getVaccinationsByParent(Long parentId) {
+        List<Vaccination> vaccinations = vaccinationRepository.findByHealthProfile_Student_Parent_Id(parentId);
+        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
+    }
+
 
     // Phương thức chuyển đổi từ Entity sang DTO
     private VaccinationDTO convertToDTO(Vaccination vaccination) {

@@ -4,8 +4,10 @@ import com.fpt.medically_be.dto.request.Notification2RequestDTO;
 import com.fpt.medically_be.dto.response.Notification2ReceiveResponse;
 import com.fpt.medically_be.dto.response.Notification2ResponseDTO;
 import com.fpt.medically_be.dto.response.NotificationRecipientsDTO;
+import com.fpt.medically_be.dto.response.VaccineApproveNotiResponse;
 import com.fpt.medically_be.entity.Notification2;
 import com.fpt.medically_be.entity.NotificationRecipients;
+import com.fpt.medically_be.entity.Parent;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
@@ -20,13 +22,15 @@ public interface Notification2Mapper {
 
 
 
-    @Mapping(source = "createdBy.fullName", target = "senderName")
+    @Mapping(source = "createdBy.fullName",     target = "senderName")
     @Mapping(source = "notificationRecipients", target = "recipients")
     Notification2ResponseDTO toNotificationResponseDTO(Notification2 notification2);
 
-    @Mapping(source = "receiver.fullName", target = "receiverName")
-    @Mapping(source = "response", target = "response")
-    NotificationRecipientsDTO toNotificationRecipientsDTO(NotificationRecipients entity);
+    @Mapping(source = "receiver.fullName",  target = "receiverName")  // Chỉ một lần!
+    @Mapping(source = "student.studentId",  target = "studentId")
+    @Mapping(source = "student.fullName",   target = "studentName")
+    @Mapping(source = "response",           target = "response")
+    NotificationRecipientsDTO toNotificationRecipientsDTO(NotificationRecipients nr);
 
     @Mapping(source = "notification.title", target = "title")
     @Mapping(source = "notification.message", target = "message")
@@ -35,4 +39,13 @@ public interface Notification2Mapper {
     @Mapping(source = "notification.createdAt", target = "createdAt")
     @Mapping(source = "responseAt", target = "responseAt")
     Notification2ReceiveResponse toNotificationReceiveResponse(NotificationRecipients notification2);
+
+    //Notification2ResponseDTO toNotificationResponseDTO(NotificationRecipients notificationRecipients);
+    @Mapping(source = "notification.title", target = "title")
+    @Mapping(source = "notification.message", target = "message")
+    @Mapping(source = "notification.createdAt", target = "receivedAt")
+    @Mapping(source = "student.id", target = "studentId")
+    @Mapping(source = "student.fullName", target = "studentName")
+    VaccineApproveNotiResponse toNotificationResponseDTO(NotificationRecipients notificationRecipients);
+
 }

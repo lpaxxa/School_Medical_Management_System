@@ -108,6 +108,14 @@ public class MedicalIncidentController {
     }
 
 
+    @Operation(summary = "Lấy danh sách sự kiện y tế theo tên học sinh", description = "Lấy danh sách sự kiện y tế của một học sinh theo tên")
+    @GetMapping("/student/name/{name}")
+    public List<MedicalIncidentResponseDTO> getMedicalIncidentByStudentName(@PathVariable("name") String name) {
+        return medicalIncidentService.getMedicalIncidentByStudentName(name);
+    }
+
+
+
 
 
 

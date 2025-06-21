@@ -14,4 +14,9 @@ public interface VaccinationRepository extends JpaRepository<Vaccination, Long> 
     List<Vaccination> findByVaccinationDateBetween(LocalDate startDate, LocalDate endDate);
     List<Vaccination> findByNextDoseDateBefore(LocalDate date);
     List<Vaccination> findByParentConsent(Boolean parentConsent);
+
+    // dt
+    List<Vaccination> findByHealthProfile_Student_Parent_Id(Long id);
+
+    //List<Vaccination> findByHealthProfile_Student_Id(Long id);
 }

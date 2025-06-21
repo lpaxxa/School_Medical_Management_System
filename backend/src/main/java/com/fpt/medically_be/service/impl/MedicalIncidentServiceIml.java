@@ -167,6 +167,16 @@ public class MedicalIncidentServiceIml implements MedicalIncidentService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<MedicalIncidentResponseDTO> getMedicalIncidentByStudentName(String name) {
+        List<MedicalIncident> student = medicalIncidentRepository.findByStudentFullNameContainingIgnoreCase(name);
+
+
+        return student.stream()
+                .map(medicalIncidentMapper::toMedicalIncidentDto)
+                .collect(Collectors.toList());
+    }
+
 
     // create
     @Override

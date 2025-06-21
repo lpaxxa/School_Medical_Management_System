@@ -43,7 +43,7 @@ public interface MedicalIncidentMapper {
     }
 
     @Mapping(source = "handledById", target = "handledBy.id")
-    @Mapping(source = "studentId", target = "student.id")
+    @Mapping(source = "studentId", target = "student.studentId")
     void updateMedicalIncident(@MappingTarget MedicalIncident entity, MedicalIncidentCreateDTO medicalIncidentResponseDTO);
 
     @Mapping(source = "handledBy.id", target = "staffId")

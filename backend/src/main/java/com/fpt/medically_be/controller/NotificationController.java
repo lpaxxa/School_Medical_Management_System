@@ -7,6 +7,7 @@ import com.fpt.medically_be.dto.response.Notification2ReceiveResponse;
 import com.fpt.medically_be.dto.response.Notification2ResponseDTO;
 import com.fpt.medically_be.dto.response.Notification2ResponseStatusDTO;
 import com.fpt.medically_be.entity.NotificationType;
+import com.fpt.medically_be.entity.ResponseStatus;
 import com.fpt.medically_be.service.Notification2Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,7 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/v1/notifications")
 
 @Tag(name = "Gửi thông báo đến phụ huynh", description = "API quản lý notification gửi đến phụ huynh")
 public class NotificationController {
@@ -53,11 +54,10 @@ public class NotificationController {
     }
 
     @Operation(summary = "Phản hồi của phụ huynh", description = "dùng để update phản hồi của phụ huynh đối với thông báo")
-    @PutMapping("/notifications/respond")
-    public ResponseEntity<Notification2ReceiveResponse> respondToNotification(@RequestBody Notification2UpdateDTO request) {
+    @PutMapping("/respond/{id}/{parentID}")
+    public ResponseEntity<Notification2ReceiveResponse> respondToNotification(@PathVariable("id") Long id ,@PathVariable("parentID") Long parentID,@RequestBody ResponseStatus status) {
 
-
-        return ResponseEntity.ok(notification2Service.respondToNotification(request));
+        return ResponseEntity.ok(notification2Service.respondToNotification(id, parentID, status));
     }
 
     @GetMapping("/notifications/{id}/responses")
@@ -89,6 +89,12 @@ public class NotificationController {
     public ResponseEntity<Notification2ResponseDTO> findNotificationById(@PathVariable Long id) {
 
         return ResponseEntity.ok(notification2Service.findNotificationById(id));
+    }
+
+    @Operation(summary = "phụ huynh xem vaccine nào con mình đã tiem", description = "Cập nhật thông báo theo ID")
+    @GetMapping("/getAcceptedNotificationsByParent/{parentId}/{studentId}")
+    public ResponseEntity<?> getAcceptedNotificationsByParent(@PathVariable("parentId") Long parentId , @PathVariable("studentId") String studentId) {
+        return ResponseEntity.ok(notification2Service.getAcceptedNotificationsByParent(parentId, studentId));
     }
 }
 

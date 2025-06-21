@@ -25,5 +25,9 @@ public class NotificationRecipients {
     @JoinColumn(name = "receiverID", nullable = false)
     private Parent receiver;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "studentID", nullable = false)
+    private Student student;
+
 
 }
