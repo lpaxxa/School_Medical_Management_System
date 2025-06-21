@@ -1,12 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import axios from "axios";
+import api from "../services/api";
 
 const StudentDataContext = createContext();
 
 // API URLs
-const STUDENTS_API_URL = "http://localhost:8080/api/parents/my-students";
-const PARENT_API_URL = "http://localhost:8080/api/parents/";
+const STUDENTS_API_URL = "http://localhost:8080/api/v1/parents/my-students";
+const PARENT_API_URL = "http://localhost:8080/api/v1/parents/";
 
 export function useStudentData() {
   return useContext(StudentDataContext);
@@ -19,6 +20,8 @@ export const StudentDataProvider = ({ children }) => {
   const [isLoadingParent, setIsLoadingParent] = useState(false);
   const [error, setError] = useState(null);
   const [parentError, setParentError] = useState(null);
+  const [healthProfiles, setHealthProfiles] = useState({});
+  const [isLoadingHealthProfiles, setIsLoadingHealthProfiles] = useState(false);
   const { currentUser } = useAuth();
 
   // Fetch student data
@@ -265,11 +268,13 @@ export const StudentDataProvider = ({ children }) => {
     students,
     parentInfo,
     isLoading,
-    isLoadingParent,
     error,
-    parentError,
     refreshStudents,
-    fetchParentInfo,
+    fetchParentInfo, // Đảm bảo hàm này nằm trong value
+    healthProfiles,
+    isLoadingHealthProfiles,
+    fetchHealthProfile,
+    updateHealthProfile,
   };
 
   return (
