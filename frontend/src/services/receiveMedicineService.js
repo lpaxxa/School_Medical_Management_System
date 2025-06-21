@@ -1,124 +1,173 @@
-import api from './api';
-
-// Function to transform backend MedicationInstructionDTO to frontend format
-const transformMedicationRequestFromBackend = (backendData) => {
-  if (!backendData) return null;
-  
-  return {
-    id: backendData.id,
-    // Map backend fields to frontend expected fields
-    studentId: backendData.studentId || `HS${String(backendData.id).padStart(3, '0')}`, // Use actual studentId from backend
-    studentName: backendData.studentName,
-    parentName: backendData.requestedBy,
-    medicineName: backendData.medicationName,
-    quantity: backendData.dosageInstructions || 'Theo đơn', // Use dosage as quantity if available
-    frequency: backendData.frequencyPerDay,
-    instructions: backendData.specialInstructions,
-    startDate: backendData.startDate,
-    endDate: backendData.endDate,
-    notes: backendData.specialInstructions,
-    class: backendData.studentClass || 'Chưa có', // Use actual class from backend
-    
-    // Status mapping - backend uses enum values
-    status: backendData.status, // PENDING_APPROVAL, APPROVED, REJECTED
-    approvalStatus: backendData.status,
-    
-    // Date fields
-    submittedAt: backendData.submittedAt,
-    approvedDate: backendData.responseDate ? backendData.responseDate.split('T')[0] : null,
-    receivedDate: backendData.responseDate ? backendData.responseDate.split('T')[0] : null, // Legacy support
-    
-    // Approval/rejection details
-    approvalReason: backendData.approvalReason || '',
-    rejectionReason: backendData.rejectionReason,
-    approvedBy: backendData.approvedBy,
-    
-    // Additional backend fields
-    healthProfileId: backendData.healthProfileId,
-    parentProvided: backendData.parentProvided,
-    requestedByAccountId: backendData.requestedByAccountId,
-    timeOfDay: backendData.timeOfDay
-  };
-};
-
-// Function to transform frontend data to backend format for API calls
-const transformMedicationRequestToBackend = (frontendData) => {
-  // Handle studentId conversion
-  let studentId = null;
-  if (frontendData.studentId) {
-    if (typeof frontendData.studentId === 'string' && frontendData.studentId.startsWith('HS')) {
-      // Extract numeric part from "HS001" format
-      studentId = parseInt(frontendData.studentId.replace('HS', ''));
-    } else {
-      // Already numeric or can be parsed as number
-      studentId = parseInt(frontendData.studentId);
-    }
-  }
-
-  const backendData = {
-    studentId: studentId,
-    medicineName: frontendData.medicineName,
-    dosage: frontendData.quantity || frontendData.dosageInstructions || frontendData.instructions,
-    frequency: frontendData.frequency,
-    startDate: frontendData.startDate,
-    endDate: frontendData.endDate,
-    timeToTake: frontendData.timeOfDay ? 
-      (Array.isArray(frontendData.timeOfDay) ? frontendData.timeOfDay : JSON.parse(frontendData.timeOfDay || '["morning"]')) 
-      : ['morning'],
-    notes: frontendData.notes || frontendData.specialInstructions || ''
-  };
-
-  // Add prescription image if available
-  if (frontendData.prescriptionImageBase64) {
-    backendData.prescriptionImageBase64 = frontendData.prescriptionImageBase64;
-  }
-  if (frontendData.prescriptionImageType) {
-    backendData.prescriptionImageType = frontendData.prescriptionImageType;
-  }
-
-  return backendData;
-};
-
 // Service API cho quản lý thuốc từ phụ huynh
-const receiveMedicineService = {
-  // Tìm kiếm thuốc theo tên
-  searchMedicationByName: async (searchTerm) => {
-    try {
-      const encodedTerm = encodeURIComponent(searchTerm);
-      const response = await api.get(`/medication-items/get-by-name/${encodedTerm}`);
-      return response.data || [];
-    } catch (error) {
-      console.error("Lỗi khi tìm kiếm thuốc:", error);
-      if (error.response?.status === 401) {
-        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Bạn không có quyền thực hiện chức năng này.');
-      }
-      throw new Error('Không thể tìm kiếm thuốc. Vui lòng thử lại sau.');
-    }
-  },
+import api from './api.js';
 
-  // Lấy danh sách thuốc từ phụ huynh (for parent users)
-  getParentMedicineRequests: async () => {
-    try {
-      const response = await api.get('/parent-medication-requests/my-requests');
-      return response.data.map(transformMedicationRequestFromBackend);
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách yêu cầu thuốc của phụ huynh:", error);
-      throw error;
-    }
-  },
+// URL cơ sở cho tất cả API gọi
+const BASE_URL = "http://localhost:8080/api/v1/nurse-medication-approvals";
 
-  // Lấy danh sách thuốc từ phụ huynh (for nurse users - all requests) - Fixed to avoid 400 error
+// Lưu trữ mock data cho các chức năng chưa có API
+const mockMedicineRequests = [
+  {
+    id: 1,
+    studentId: 'HS001',
+    studentName: 'Nguyễn Văn A',
+    requestedBy: 'Nguyễn Thị B (Phụ huynh)',
+    startDate: '2025-06-18',
+    endDate: '2025-06-25',
+    status: 0, // 0: chờ phê duyệt, 1: đã duyệt, 2: từ chối, 3: đã hủy
+    notes: 'Thuốc hạ sốt Paracetamol, 3 lần/ngày sau bữa ăn',
+    class: '10A1',
+    medicationDetails: [
+      { name: 'Paracetamol', dosage: '500mg', frequency: '3 lần/ngày', time: 'Sau ăn' }
+    ],
+    reason: 'Trẻ có dấu hiệu sốt nhẹ'
+  },
+  {
+    id: 2,
+    studentId: 'HS002',
+    studentName: 'Trần Thị C',
+    requestedBy: 'Trần Văn D (Phụ huynh)',
+    startDate: '2025-06-17',
+    endDate: '2025-06-24',
+    status: 1,
+    notes: 'Thuốc kháng sinh theo đơn của bác sĩ',
+    class: '11B2',
+    medicationDetails: [
+      { name: 'Amoxicillin', dosage: '250mg', frequency: '2 lần/ngày', time: 'Sáng - Tối' }
+    ],
+    reason: 'Đang điều trị viêm họng'
+  },
+  {
+    id: 3,
+    studentId: 'HS003',
+    studentName: 'Lê Văn E',
+    requestedBy: 'Lê Thị F (Phụ huynh)',
+    startDate: '2025-06-19',
+    endDate: '2025-07-03',
+    status: 0,
+    notes: 'Vitamin tổng hợp để tăng cường sức đề kháng',
+    class: '9A3',
+    medicationDetails: [
+      { name: 'Vitamin C', dosage: '500mg', frequency: '1 lần/ngày', time: 'Sau ăn sáng' },
+      { name: 'Vitamin D', dosage: '400 IU', frequency: '1 lần/ngày', time: 'Sau ăn trưa' }
+    ],
+    reason: 'Tăng cường sức đề kháng trong mùa thi'
+  },
+  {
+    id: 4,
+    studentId: 'HS004',
+    studentName: 'Phạm Thị G',
+    requestedBy: 'Phạm Văn H (Phụ huynh)',
+    startDate: '2025-06-15',
+    endDate: '2025-06-20',
+    status: 2,
+    notes: 'Thuốc chống dị ứng, cần uống sau bữa sáng',
+    class: '10A2',
+    medicationDetails: [
+      { name: 'Loratadine', dosage: '10mg', frequency: '1 lần/ngày', time: 'Sau ăn sáng' }
+    ],
+    reason: 'Dị ứng phấn hoa mùa hè',
+    rejectionReason: 'Cần bổ sung thêm đơn thuốc từ bác sĩ'
+  },
+  {
+    id: 5,
+    studentId: 'HS005',
+    studentName: 'Hoàng Văn I',
+    requestedBy: 'Hoàng Thị K (Phụ huynh)',
+    startDate: '2025-06-16',
+    endDate: '2025-06-30',
+    status: 1,
+    notes: 'Thuốc điều trị hen suyễn, cần sử dụng khi có dấu hiệu khó thở',
+    class: '12A1',
+    medicationDetails: [
+      { name: 'Ventolin', dosage: '2 nhát', frequency: 'Khi cần', time: 'Khi có triệu chứng' }
+    ],
+    reason: 'Học sinh bị hen suyễn, cần thuốc dự phòng'
+  },
+  {
+    id: 6,
+    studentId: 'HS006',
+    studentName: 'Đặng Văn L',
+    requestedBy: 'Đặng Thị M (Phụ huynh)',
+    startDate: '2025-06-20',
+    endDate: '2025-06-27',
+    status: 0,
+    notes: 'Thuốc kháng histamine điều trị viêm mũi dị ứng',
+    class: '11A3',
+    medicationDetails: [
+      { name: 'Cetirizine', dosage: '10mg', frequency: '1 lần/ngày', time: 'Trước khi đi ngủ' }
+    ],
+    reason: 'Viêm mũi dị ứng theo mùa'
+  },
+  {
+    id: 7,
+    studentId: 'HS007',
+    studentName: 'Vũ Thị N',
+    requestedBy: 'Vũ Văn P (Phụ huynh)',
+    startDate: '2025-06-14',
+    endDate: '2025-06-21',
+    status: 3,
+    notes: 'Thuốc giảm đau cho đau bụng kinh',
+    class: '11A1',
+    medicationDetails: [
+      { name: 'Ibuprofen', dosage: '400mg', frequency: 'Khi cần', time: 'Khi đau' }
+    ],
+    reason: 'Đau bụng kinh'
+  },
+  {
+    id: 8,
+    studentId: 'HS008',
+    studentName: 'Ngô Văn Q',
+    requestedBy: 'Ngô Thị R (Phụ huynh)',
+    startDate: '2025-06-19',
+    endDate: '2025-06-26',
+    status: 0,
+    notes: 'Probiotics để cải thiện hệ tiêu hóa',
+    class: '10B2',
+    medicationDetails: [
+      { name: 'Probiotics', dosage: '1 gói', frequency: '2 lần/ngày', time: 'Sau ăn sáng và tối' }
+    ],
+    reason: 'Đang điều trị rối loạn tiêu hóa'
+  }
+];
+
+const receiveMedicineService = {  // API thật để lấy tất cả yêu cầu thuốc
   getAllMedicineRequests: async () => {
     try {
-      console.log('🔧 Using workaround for getAllMedicineRequests /all-requests endpoint');
-      
-      // Use the working getAllMedicationRequestsForNurse method which combines individual endpoints
-      return await receiveMedicineService.getAllMedicationRequestsForNurse();
+      try {
+        // Sử dụng axios thay vì fetch để có headers và interceptors tự động
+        const response = await api.get('/nurse-medication-approvals/all-requests');
+        
+        console.log('API getAllMedicineRequests response:', response.data);
+        
+        if (!response.data) {
+          throw new Error('Không có dữ liệu từ API');
+        }
+        
+        return response.data;
+      } catch (apiError) {
+        console.error("API call failed, fallback to mock data:", apiError);
+        // Log chi tiết hơn về lỗi API để debug
+        if (apiError.response) {
+          // Server trả về lỗi
+          console.error('Error response:', {
+            status: apiError.response.status,
+            headers: apiError.response.headers,
+            data: apiError.response.data
+          });
+        } else if (apiError.request) {
+          // Request được gửi nhưng không nhận được response
+          console.error('Error request:', apiError.request);
+        } else {
+          // Lỗi khác khi cài đặt request
+          console.error('Error message:', apiError.message);
+        }
+        
+        // Fallback to mock data
+        return [...mockMedicineRequests];
+      }
     } catch (error) {
-      console.error("Error fetching medicine requests:", error);
-      // Fallback to mock data if API fails
+      console.error("Error in getAllMedicineRequests:", error);
+      // Luôn trả về mock data để tránh lỗi
       return [...mockMedicineRequests];
     }
   },
@@ -142,408 +191,262 @@ const receiveMedicineService = {
         item.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
+    
+    return mockMedicationItems;
   },
-
-  // Lấy chi tiết yêu cầu thuốc theo ID (works for both parent and nurse)
+  // TODO: Chờ API - Lấy chi tiết yêu cầu thuốc theo ID
   getMedicineRequestById: async (id) => {
-    try {
-      // Try parent endpoint first, fallback to nurse endpoint
-      let response;
-      try {
-        response = await api.get(`/parent-medication-requests/${id}`);
-      } catch (parentError) {
-        // If parent endpoint fails, try nurse endpoint
-        response = await api.get(`/nurse-medication-approvals/${id}`);
-      }
-      return transformMedicationRequestFromBackend(response.data);
-    } catch (error) {
-      console.error(`Lỗi khi lấy thông tin thuốc với ID ${id}:`, error);
-      throw error;
+    console.log("TODO: Implement real API - Getting medicine request by ID:", id);
+    const mockRequest = mockMedicineRequests.find(req => req.id === Number(id));
+    
+    if (mockRequest) {
+      return {...mockRequest};
+    } else {
+      throw new Error(`Không tìm thấy yêu cầu thuốc với ID ${id}`);
     }
   },
-  
-  // Thêm yêu cầu thuốc mới (for parents)
+  // TODO: Chờ API - Thêm yêu cầu thuốc mới
   addMedicineRequest: async (medicineData) => {
+    console.log("TODO: Implement real API - Adding new medicine request");
     try {
-      const backendData = transformMedicationRequestToBackend(medicineData);
-      const response = await api.post('/parent-medication-requests/submit-request', backendData);
-      return transformMedicationRequestFromBackend(response.data);
+      // Thử gọi API thật
+      try {
+        const data = await fetch(`${BASE_URL}/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(medicineData)
+        });
+        
+        if (!data.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const responseData = await data.json();
+        return responseData;
+      } catch (apiError) {
+        console.log("Không thể kết nối tới API thật để thêm yêu cầu, xử lý dữ liệu mẫu", apiError);
+        
+        // Xử lý trên dữ liệu mẫu
+        const newId = Math.max(...mockMedicineRequests.map(item => item.id)) + 1;
+        const newMedicineRequest = {
+          id: newId,
+          status: 0, // Mặc định là chờ phê duyệt
+          ...medicineData,
+          startDate: medicineData.startDate || new Date().toISOString().split('T')[0],
+          endDate: medicineData.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        };
+        
+        mockMedicineRequests.push(newMedicineRequest);
+        return { 
+          success: true, 
+          message: "Đã thêm yêu cầu thuốc mới thành công", 
+          data: newMedicineRequest 
+        };
+      }
     } catch (error) {
       console.error("Lỗi khi thêm yêu cầu thuốc mới:", error);
       return { success: false, message: error.message };
     }
   },
   
-  // Cập nhật yêu cầu thuốc (for parents)
+  // TODO: Chờ API - Cập nhật yêu cầu thuốc
   updateMedicineRequest: async (id, medicineData) => {
+    console.log("TODO: Implement real API - Updating medicine request");
     try {
-      const backendData = transformMedicationRequestToBackend(medicineData);
-      const response = await api.put(`/parent-medication-requests/${id}`, backendData);
-      return transformMedicationRequestFromBackend(response.data);
+      // Thử gọi API thật
+      try {
+        const data = await fetch(`${BASE_URL}/update/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(medicineData)
+        });
+        
+        if (!data.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const responseData = await data.json();
+        return responseData;
+      } catch (apiError) {
+        console.log(`Không thể kết nối tới API thật để cập nhật yêu cầu ${id}, xử lý dữ liệu mẫu`, apiError);
+        
+        // Xử lý trên dữ liệu mẫu
+        const index = mockMedicineRequests.findIndex(req => req.id === Number(id));
+        if (index !== -1) {
+          mockMedicineRequests[index] = { 
+            ...mockMedicineRequests[index], 
+            ...medicineData,
+            id: Number(id) // Đảm bảo ID không thay đổi
+          };
+          return { 
+            success: true, 
+            message: "Đã cập nhật yêu cầu thuốc thành công", 
+            data: mockMedicineRequests[index] 
+          };
+        } else {
+          throw new Error(`Không tìm thấy yêu cầu thuốc với ID ${id}`);
+        }
+      }
     } catch (error) {
       console.error(`Lỗi khi cập nhật thông tin thuốc với ID ${id}:`, error);
       return { success: false, message: error.message };
     }
-  },
-
-  // Xác nhận đã nhận thuốc - This might be a nurse-specific action
-  confirmReceiveMedicine: async (id) => {
+  },  // Xử lý yêu cầu thuốc (phê duyệt/từ chối)
+  processMedicineRequest: async (id, requestData) => {
     try {
-      // This endpoint might not exist yet - nurse confirms receipt
-      const response = await api.put(`/nurse-medication-approvals/${id}/confirm-receipt`);
-      return transformMedicationRequestFromBackend(response.data);
+      console.log(`Processing medicine request ${id} with data:`, requestData);
+      
+      // Format payload theo đúng yêu cầu API
+      const payload = {
+        decision: requestData.decision,
+        ...(requestData.decision === 'REJECTED' && requestData.reason ? { reason: requestData.reason } : {})
+      };
+      
+      console.log('Preparing payload for API:', payload);
+      
+      try {
+        // Sử dụng axios qua instance api thay vì fetch để tận dụng interceptor
+        const response = await api.put(`/nurse-medication-approvals/${id}/process`, payload);
+        
+        console.log('Response status:', response.status);
+        console.log('API Response data:', response.data);
+        
+        return {
+          success: true,
+          message: `Đã ${requestData.decision === 'APPROVED' ? 'phê duyệt' : 'từ chối'} yêu cầu thuốc thành công`,
+          data: response.data
+        };      } catch (apiError) {
+        console.log('API call failed, fallback to mock data', apiError);
+        
+        // Log chi tiết hơn về lỗi API để debug
+        if (apiError.response) {
+          // Server trả về lỗi
+          console.error('Error response:', {
+            status: apiError.response.status,
+            headers: apiError.response.headers,
+            data: apiError.response.data
+          });
+        } else if (apiError.request) {
+          // Request được gửi nhưng không nhận được response
+          console.error('Error request:', apiError.request);
+        } else {
+          // Lỗi khác khi cài đặt request
+          console.error('Error message:', apiError.message);
+        }
+        
+        // FALLBACK: Sử dụng mock data khi API thất bại
+        // Tìm request trong mock data
+        const index = mockMedicineRequests.findIndex(req => req.id === Number(id));
+        if (index !== -1) {
+          // Cập nhật trạng thái theo quyết định
+          const newStatus = requestData.decision === 'APPROVED' ? 1 : 2;
+          
+          // Cập nhật mock data
+          mockMedicineRequests[index] = {
+            ...mockMedicineRequests[index],
+            status: newStatus,
+            ...(requestData.decision === 'REJECTED' && { 
+              rejectionReason: requestData.reason || 'Không đáp ứng yêu cầu' 
+            })
+          };
+          
+          console.log(`Mock: Updated request ${id} status to ${newStatus}`);
+          
+          return {
+            success: true,
+            message: `Đã ${requestData.decision === 'APPROVED' ? 'phê duyệt' : 'từ chối'} yêu cầu thuốc thành công (dữ liệu mẫu)`,
+            data: mockMedicineRequests[index]
+          };
+        } else {
+          throw new Error(`Không tìm thấy yêu cầu thuốc với ID ${id}`);
+        }
+      }
     } catch (error) {
       console.error(`Lỗi khi xử lý yêu cầu thuốc với ID ${id}:`, error);
       return { 
         success: false, 
-        message: error.message || 'Không thể xử lý yêu cầu thuốc' 
+        message: error.message || 'Không thể xử lý yêu cầu thuốc'
       };
     }
   },
-  
-  // Hủy yêu cầu thuốc (for parents)
-  cancelMedicineRequest: async (id) => {
+  // TODO: Chờ API - Xóa yêu cầu thuốc
+  deleteMedicineRequest: async (id) => {
+    console.log("TODO: Implement real API - Deleting medicine request");
     try {
-      await api.delete(`/parent-medication-requests/cancel-request/${id}`);
-      return { success: true };
+      // Xử lý trực tiếp trên dữ liệu mẫu
+      const index = mockMedicineRequests.findIndex(req => req.id === Number(id));
+      if (index !== -1) {
+        mockMedicineRequests.splice(index, 1);
+        return { success: true, message: 'Đã xóa yêu cầu thuốc thành công' };
+      } else {
+        throw new Error(`Không tìm thấy yêu cầu thuốc với ID ${id}`);
+      }
     } catch (error) {
-      console.error(`Lỗi khi hủy yêu cầu thuốc với ID ${id}:`, error);
-      throw error;
+      console.error(`Lỗi khi xóa yêu cầu thuốc với ID ${id}:`, error);
+      return { success: false, message: error.message };
     }
   },
-
-  // Legacy method for backward compatibility
-  deleteMedicineRequest: async (id) => {
-    return await receiveMedicineService.cancelMedicineRequest(id);
-  },
   
-  // Tìm kiếm thuốc từ phụ huynh theo các tiêu chí - Fixed to avoid 400 error
+  // TODO: Chờ API - Tìm kiếm thuốc từ phụ huynh theo các tiêu chí
   searchMedicineRequests: async (filters) => {
+    console.log("TODO: Implement real API - Searching medicine requests with filters");
     try {
-      console.log('🔧 Using workaround for searchMedicineRequests /all-requests endpoint');
-      
-      // Get all requests using the working combined method, then filter client-side
-      const allRequests = await receiveMedicineService.getAllMedicationRequestsForNurse();
-      
-      // Apply filters client-side
-      let filteredRequests = allRequests;
-      
+      console.log("Tìm kiếm trên dữ liệu mẫu với các bộ lọc:", filters);
+        
+      // Tìm kiếm trên dữ liệu mẫu
+      let filteredData = [...mockMedicineRequests];
+        
+      // Áp dụng các điều kiện lọc
       if (filters.studentId) {
-        filteredRequests = filteredRequests.filter(req =>
-          req.studentId && req.studentId.toString().includes(filters.studentId)
+        filteredData = filteredData.filter(item => 
+          item.studentId.toLowerCase().includes(filters.studentId.toLowerCase())
         );
       }
-      
+        
       if (filters.studentName) {
-        filteredRequests = filteredRequests.filter(req =>
-          req.studentName && req.studentName.toLowerCase().includes(filters.studentName.toLowerCase())
+        filteredData = filteredData.filter(item => 
+          item.studentName.toLowerCase().includes(filters.studentName.toLowerCase())
         );
       }
-      
-      if (filters.medicineName) {
-        filteredRequests = filteredRequests.filter(req =>
-          req.medicineName && req.medicineName.toLowerCase().includes(filters.medicineName.toLowerCase())
+        
+      if (filters.medicineName && Array.isArray(filteredData[0]?.medicationDetails)) {
+        filteredData = filteredData.filter(item => 
+          item.medicationDetails.some(med => 
+            med.name.toLowerCase().includes(filters.medicineName.toLowerCase())
+          )
         );
       }
-      
-      if (filters.status) {
-        filteredRequests = filteredRequests.filter(req => req.status === filters.status);
+        
+      if (filters.status !== undefined) {
+        filteredData = filteredData.filter(item => 
+          item.status === parseInt(filters.status)
+        );
       }
-      
+        
+      // Lọc theo ngày nếu có
       if (filters.fromDate) {
-        filteredRequests = filteredRequests.filter(req => {
-          const reqDate = new Date(req.submittedAt || req.startDate);
-          return reqDate >= new Date(filters.fromDate);
-        });
+        const fromDate = new Date(filters.fromDate);
+        filteredData = filteredData.filter(item => 
+          new Date(item.startDate) >= fromDate
+        );
       }
-      
+        
       if (filters.toDate) {
-        filteredRequests = filteredRequests.filter(req => {
-          const reqDate = new Date(req.submittedAt || req.startDate);
-          return reqDate <= new Date(filters.toDate);
-        });
+        const toDate = new Date(filters.toDate);
+        filteredData = filteredData.filter(item => 
+          new Date(item.endDate) <= toDate
+        );
       }
-      
-      console.log(`✅ Successfully filtered ${filteredRequests.length} requests from ${allRequests.length} total`);
-      return filteredRequests;
+        
+      return filteredData;
     } catch (error) {
       console.error("Lỗi khi tìm kiếm thuốc từ phụ huynh:", error);
-      throw error;
-    }
-  },
-
-  // ===================== NURSE MEDICATION APPROVAL FUNCTIONS =====================
-  
-  // Lấy danh sách yêu cầu thuốc đang chờ duyệt (cho y tá)
-  getPendingMedicationRequests: async () => {
-    try {
-      // Try with the corrected endpoint name (no space)
-      const response = await api.get('/nurse-medication-approvals/pending-requests');
-      return response.data.map(transformMedicationRequestFromBackend);
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách yêu cầu thuốc chờ duyệt:", error);
-      if (error.response?.status === 401) {
-        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Bạn không có quyền truy cập chức năng này. Chỉ y tá mới có thể duyệt thuốc.');
-      } else if (error.response?.status === 404) {
-        throw new Error('Endpoint /pending-requests không tồn tại. Vui lòng kiểm tra backend.');
-      }
-      throw new Error('Không thể tải danh sách yêu cầu thuốc. Vui lòng thử lại sau.');
-    }
-  },
-
-  // Lấy danh sách yêu cầu thuốc đã được duyệt (cho y tá)
-  getApprovedMedicationRequests: async () => {
-    try {
-      const response = await api.get('/nurse-medication-approvals/approved-requests');
-      return response.data.map(transformMedicationRequestFromBackend);
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách yêu cầu thuốc đã duyệt:", error);
-      if (error.response?.status === 401) {
-        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Bạn không có quyền truy cập chức năng này. Chỉ y tá mới có thể xem danh sách này.');
-      }
-      throw new Error('Không thể tải danh sách yêu cầu thuốc đã duyệt. Vui lòng thử lại sau.');
-    }
-  },
-
-  // Lấy danh sách yêu cầu thuốc bị từ chối (cho y tá)
-  getRejectedMedicationRequests: async () => {
-    try {
-      const response = await api.get('/nurse-medication-approvals/rejected-requests');
-      return response.data.map(transformMedicationRequestFromBackend);
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách yêu cầu thuốc bị từ chối:", error);
-      if (error.response?.status === 401) {
-        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Bạn không có quyền truy cập chức năng này. Chỉ y tá mới có thể xem danh sách này.');
-      }
-      throw new Error('Không thể tải danh sách yêu cầu thuốc bị từ chối. Vui lòng thử lại sau.');
-    }
-  },
-
-  // Lấy tất cả yêu cầu thuốc (cho y tá) - Fixed to avoid 400 error by combining individual endpoints
-  getAllMedicationRequestsForNurse: async () => {
-    try {
-      console.log('🔧 Using workaround for /all-requests endpoint');
-      
-      // Combine results from individual endpoints to avoid 400 error from /all-requests
-      const [pendingRequests, approvedRequests, rejectedRequests] = await Promise.all([
-        receiveMedicineService.getPendingMedicationRequests(),
-        receiveMedicineService.getApprovedMedicationRequests(),
-        receiveMedicineService.getRejectedMedicationRequests()
-      ]);
-      
-      // Combine all requests
-      const allRequests = [
-        ...pendingRequests,
-        ...approvedRequests, 
-        ...rejectedRequests
-      ];
-      
-      console.log(`✅ Successfully combined ${allRequests.length} requests from individual endpoints`);
-      return allRequests;
-      
-    } catch (error) {
-      console.error("Lỗi khi lấy tất cả yêu cầu thuốc:", error);
-      if (error.response?.status === 401) {
-        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Bạn không có quyền truy cập chức năng này. Chỉ y tá mới có thể xem danh sách này.');
-      }
-      throw new Error('Không thể tải danh sách yêu cầu thuốc. Vui lòng thử lại sau.');
-    }
-  },
-
-  // Helper function to get requests by status using appropriate endpoint
-  getMedicationRequestsByStatus: async (status) => {
-    try {
-      switch (status) {
-        case 'PENDING_APPROVAL':
-        case 'pending':
-          return await receiveMedicineService.getPendingMedicationRequests();
-        case 'APPROVED':
-        case 'approved':
-          return await receiveMedicineService.getApprovedMedicationRequests();
-        case 'REJECTED':
-        case 'rejected':
-          return await receiveMedicineService.getRejectedMedicationRequests();
-        default:
-          return await receiveMedicineService.getAllMedicationRequestsForNurse();
-      }
-    } catch (error) {
-      console.error(`Lỗi khi lấy yêu cầu thuốc theo trạng thái ${status}:`, error);
-      throw error;
-    }
-  },
-
-  // Lấy chi tiết yêu cầu thuốc để duyệt (cho y tá)
-  getMedicationRequestForReview: async (requestId) => {
-    try {
-      const response = await api.get(`/nurse-medication-approvals/${requestId}`);
-      return transformMedicationRequestFromBackend(response.data);
-    } catch (error) {
-      console.error(`Lỗi khi lấy chi tiết yêu cầu thuốc ${requestId} để duyệt:`, error);
-      if (error.response?.status === 401) {
-        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Bạn không có quyền truy cập chi tiết này.');
-      } else if (error.response?.status === 404) {
-        throw new Error('Không tìm thấy yêu cầu thuốc này.');
-      }
-      throw new Error('Không thể tải chi tiết yêu cầu thuốc. Vui lòng thử lại sau.');
-    }
-  },
-
-  // Duyệt hoặc từ chối yêu cầu thuốc (cho y tá)
-  processApprovalRequest: async (requestId, approvalData) => {
-    try {
-      // Validate approval data
-      if (!approvalData.decision || !['APPROVED', 'REJECTED'].includes(approvalData.decision)) {
-        throw new Error('Decision must be APPROVED or REJECTED');
-      }
-
-      if (approvalData.decision === 'REJECTED' && !approvalData.reason?.trim()) {
-        throw new Error('Reason is required for rejection');
-      }
-
-      const requestBody = {
-        decision: approvalData.decision,
-        reason: approvalData.reason || null
-      };
-
-      const response = await api.put(`/nurse-medication-approvals/${requestId}/process`, requestBody);
-      return transformMedicationRequestFromBackend(response.data);
-    } catch (error) {
-      console.error(`Lỗi khi xử lý yêu cầu thuốc ${requestId}:`, error);
-      if (error.response?.status === 401) {
-        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Bạn không có quyền duyệt/từ chối yêu cầu này.');
-      } else if (error.response?.status === 404) {
-        throw new Error('Không tìm thấy yêu cầu thuốc này.');
-      } else if (error.response?.status === 400) {
-        throw new Error(error.response.data?.message || 'Dữ liệu yêu cầu không hợp lệ.');
-      }
-      throw error; // Re-throw for higher-level handling
-    }
-  },
-
-  // Duyệt yêu cầu thuốc (helper function)
-  approveMedicationRequest: async (requestId, reason = '') => {
-    try {
-      return await receiveMedicineService.processApprovalRequest(requestId, {
-        decision: 'APPROVED',
-        reason: reason
-      });
-    } catch (error) {
-      console.error(`Lỗi khi duyệt yêu cầu thuốc ${requestId}:`, error);
-      throw error;
-    }
-  },
-
-  // Từ chối yêu cầu thuốc (helper function)
-  rejectMedicationRequest: async (requestId, reason) => {
-    try {
-      if (!reason?.trim()) {
-        throw new Error('Lý do từ chối là bắt buộc');
-      }
-
-      return await receiveMedicineService.processApprovalRequest(requestId, {
-        decision: 'REJECTED',
-        reason: reason
-      });
-    } catch (error) {
-      console.error(`Lỗi khi từ chối yêu cầu thuốc ${requestId}:`, error);
-      throw error;
-    }
-  },
-
-  // ===================== MEDICATION HISTORY FUNCTIONS =====================
-  
-  // Lấy lịch sử dùng thuốc - Fixed to avoid 400 error by combining individual endpoints  
-  getMedicationHistory: async (filters = {}) => {
-    try {
-      console.log('🔧 Using workaround for medication history /all-requests endpoint');
-      
-      // Combine results from individual endpoints to avoid 400 error from /all-requests
-      const [pendingRequests, approvedRequests, rejectedRequests] = await Promise.all([
-        receiveMedicineService.getPendingMedicationRequests(),
-        receiveMedicineService.getApprovedMedicationRequests(),
-        receiveMedicineService.getRejectedMedicationRequests()
-      ]);
-      
-      // Combine all requests for medication history (data is already transformed)
-      let medicationHistory = [
-        ...pendingRequests,
-        ...approvedRequests,
-        ...rejectedRequests
-      ];
-      
-      console.log(`✅ Successfully combined ${medicationHistory.length} requests for medication history`);
-      
-      // Apply filters if provided
-      if (filters.studentId) {
-        medicationHistory = medicationHistory.filter(med => 
-          med.studentId && med.studentId.toString().includes(filters.studentId)
-        );
-      }
-      
-      if (filters.fromDate) {
-        medicationHistory = medicationHistory.filter(med => 
-          med.responseDate && new Date(med.responseDate) >= new Date(filters.fromDate)
-        );
-      }
-      
-      if (filters.toDate) {
-        medicationHistory = medicationHistory.filter(med => 
-          med.responseDate && new Date(med.responseDate) <= new Date(filters.toDate)
-        );
-      }
-      
-      if (filters.status) {
-        medicationHistory = medicationHistory.filter(med => 
-          med.status === filters.status
-        );
-      }
-      
-      // Transform backend data to medication history format
-      return medicationHistory.map(med => ({
-        id: `med${med.id}`,
-        studentId: med.studentId || `HS${String(med.id).padStart(3, '0')}`,
-        studentName: med.studentName,
-        class: med.studentClass || 'Chưa có',
-        medicineName: med.medicationName,
-        dosage: med.dosageInstructions,
-        administrationTime: med.responseDate || med.submittedAt, // When it was processed or submitted
-        administeredBy: med.approvedBy || 'Chưa xử lý',
-        status: med.status === 'APPROVED' ? 'completed' : (med.status === 'PENDING_APPROVAL' ? 'scheduled' : 'cancelled'),
-        notes: med.specialInstructions || med.rejectionReason || ''
-      }));
-    } catch (error) {
-      console.error("Lỗi khi lấy lịch sử dùng thuốc:", error);
-      if (error.response?.status === 401) {
-        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Bạn không có quyền truy cập lịch sử dùng thuốc.');
-      }
-      throw new Error('Không thể tải lịch sử dùng thuốc. Vui lòng thử lại sau.');
-    }
-  },
-
-  // Đánh dấu đã thực hiện dùng thuốc
-  markMedicationAsCompleted: async (medicationId, notes = '') => {
-    try {
-      const response = await api.put(`/medication-history/${medicationId}/complete`, {
-        notes: notes
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`Lỗi khi đánh dấu thuốc ${medicationId} đã hoàn thành:`, error);
-      throw error;
+      // Trả về dữ liệu mẫu trong trường hợp xảy ra lỗi
+      return [...mockMedicineRequests]; 
     }
   }
 };

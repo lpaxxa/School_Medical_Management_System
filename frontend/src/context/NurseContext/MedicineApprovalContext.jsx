@@ -28,36 +28,30 @@ export const MedicineApprovalProvider = ({ children }) => {
       setLoading(false);
     }
   };
-  // TODO: Implement when API is available
+  // Xử lý yêu cầu thuốc (phê duyệt/từ chối)
   const processMedicineRequest = async (id, requestData) => {
     try {
       setLoading(true);
-      // Using mock data until API is available
-      // Update the status in local state based on decision
-      const newStatus = requestData.decision === 'APPROVED' ? 'APPROVED' : 'REJECTED';
       
-      setMedicineRequests(prevRequests => 
-        prevRequests.map(req => 
-          req.id === id ? { 
-            ...req, 
-            status: newStatus,
-            responseDate: new Date().toISOString(),
-            ...(requestData.decision === 'REJECTED' && { rejectionReason: requestData.reason })
-          } : req
-        )
-      );
+      // Gọi API thực tế từ service
+      const result = await receiveMedicineService.processMedicineRequest(id, requestData);
       
-      setError(null);
-      return { 
-        success: true, 
-        message: requestData.decision === 'APPROVED' 
-          ? "Đã phê duyệt yêu cầu thuốc" 
-          : "Đã từ chối yêu cầu thuốc" 
-      };
+      if (result.success) {
+        // Cập nhật danh sách yêu cầu từ server thay vì chỉ cập nhật local
+        await fetchMedicineRequests();
+        setError(null);
+      } else {
+        throw new Error(result.message || 'Không thể xử lý yêu cầu');
+      }
+      
+      return result;
     } catch (err) {
       console.error('Error processing medicine request:', err);
-      setError('Không thể xử lý yêu cầu thuốc');
-      return { success: false, message: err.message || "Lỗi khi xử lý yêu cầu" };
+      setError('Không thể xử lý yêu cầu thuốc: ' + err.message);
+      return { 
+        success: false, 
+        message: err.message || "Lỗi khi xử lý yêu cầu" 
+      };
     } finally {
       setLoading(false);
     }

@@ -1,10 +1,117 @@
 /* MedicalIncidents.css - Enhanced styles for Medical Incidents management */
 /* Các lớp không cần thiết đã được loại bỏ để tinh gọn code */
 
+/* CSS cho container chứa bộ lọc */
+.filter-section {
+  padding: 15px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Style cho medical-events-header - container chứa search và button trên cùng một hàng */
+.medical-events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  width: 100%;
+  flex-wrap: nowrap; /* Ngăn các phần tử bị xuống dòng */
+}
+
+/* CSS cho thanh tìm kiếm mới - dựa theo mẫu */
+.search-container {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 600px;
+}
+
+.search-box {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #fff;
+  height: 38px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.search-type-dropdown {
+  width: 160px;
+  padding: 0 10px;
+  border: none;
+  border-right: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
+  outline: none;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 30px;
+  height: 100%;
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 0 15px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  height: 100%;
+}
+
+.search-btn {
+  background-color: #5a8dee;
+  color: white;
+  border: none;
+  padding: 0 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 100px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-btn:hover {
+  background-color: #4a7fd6;
+}
+
+.search-btn i {
+  margin-right: 5px;
+}
+
 /* Bảng nhỏ gọn hơn */
 .table-container {
   width: 100%;
   overflow-x: auto;
+}
+
+/* CSS cụ thể cho bảng events */
+.events-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 950px; /* Đảm bảo bảng đủ rộng */
 }
 
 table {
@@ -15,7 +122,7 @@ table {
 
 table th, 
 table td {
-  padding: 8px 10px; /* Padding nhỏ hơn */
+  padding: 10px 12px; /* Tăng padding đủ để thấy nội dung */
   border: 1px solid #e0e0e0;
   text-align: left;
 }
@@ -31,6 +138,20 @@ table th {
 
 table tr:hover {
   background-color: #f9f9f9;
+}
+
+/* Định nghĩa độ rộng cụ thể cho các cột trong events-table */
+.events-table th:nth-child(1) { width: 5%; } /* ID */
+.events-table th:nth-child(2) { width: 10%; } /* Mã học sinh */
+.events-table th:nth-child(3) { width: 15%; } /* Tên học sinh */
+.events-table th:nth-child(4) { width: 15%; } /* Ngày giờ */
+.events-table th:nth-child(5) { width: 10%; } /* Mức độ */
+.events-table th:nth-child(6) { width: 10%; } /* Thông báo PH */
+.events-table th:nth-child(7) { width: 10%; } /* Theo dõi */
+.events-table th:nth-child(8) { width: 15%; } /* Hành động */
+
+.events-table td {
+  word-break: break-word;
 }
 
 /* Cột action nhỏ gọn hơn */
@@ -71,7 +192,8 @@ table tr:hover {
 
 /* Làm mô tả ngắn gọn với tooltip */
 td {
-  max-width: 150px; /* Thu hẹp các cột */
+  max-width: 200px; /* Tăng kích thước tối đa cho cell */
+  min-width: 80px; /* Đảm bảo có min-width để không bị thu nhỏ quá */
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -99,13 +221,7 @@ td:hover::after {
   white-space: normal;
 }
 
-.filter-section {
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
+/* Filter section đã được định nghĩa ở trên */
 
 .filter-row {
   display: flex;
@@ -177,6 +293,12 @@ td:hover::after {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
 }
 
 .add-event-btn:hover {
@@ -722,6 +844,18 @@ td .severity-unknown,
 .form-group label .required {
   color: #d32f2f;
   margin-left: 3px;
+}
+
+/* CSS cho phần nội dung chính */
+.medical-events-content {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 1600px; /* Tăng kích thước tối đa */
+  width: 98%; /* Tăng chiều rộng */
+  overflow-x: auto; /* Đảm bảo nếu nội dung quá rộng có thể scroll */
 }
 
 /* Responsive styles */

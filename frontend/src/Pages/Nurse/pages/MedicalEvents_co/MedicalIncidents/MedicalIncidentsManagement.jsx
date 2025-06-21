@@ -3,30 +3,22 @@ import { useMedicalEvents } from '../../../../../context/NurseContext/MedicalEve
 import medicalEventsService from '../../../../../services/medicalEventsService';
 import './MedicalIncidents.css';
 
-const MedicalIncidentsManagement = () => {
-  // Sử dụng context để quản lý state và API
+const MedicalIncidentsManagement = () => {  // Sử dụng context để quản lý state và API  const { 
   const { 
-    events, 
+  events, 
     loading, 
     error,
-    eventTypes,
-    severityLevels,
     fetchEvents,
     fetchEventById,
     addEvent,
     updateEvent,
     deleteEvent,
     searchEvents,
-    fetchEventTypes,
-    fetchSeverityLevels
+    searchByType
   } = useMedicalEvents();
-  
-  // State cục bộ
+    // State cục bộ
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  // Thêm state cho kết quả tìm kiếm thuốc
-  const [medicationSearchResults, setMedicationSearchResults] = useState({});
-  const [medicationSearchLoading, setMedicationSearchLoading] = useState({});
   // State cho form thêm/sửa sự cố y tế
   const [formData, setFormData] = useState({
     studentId: '',
@@ -58,11 +50,32 @@ const MedicalIncidentsManagement = () => {
     requiresFollowUp: ''
   });
   
+  // State cho tìm kiếm mới
+  const [searchType, setSearchType] = useState('name'); // 'name', 'studentId', 'severityLevel'
+  const [searchValue, setSearchValue] = useState('');
+  const [searchPlaceholder, setSearchPlaceholder] = useState('Nhập tên...');
+  
   // Thêm state để theo dõi trạng thái tìm kiếm
   const [searchStatus, setSearchStatus] = useState({
     hasSearched: false,
     resultCount: 0
   });
+    // Cập nhật placeholder khi loại tìm kiếm thay đổi
+  useEffect(() => {
+    switch (searchType) {
+      case 'name':
+        setSearchPlaceholder('Nhập tên...');
+        break;
+      case 'studentId':
+        setSearchPlaceholder('Nhập mã học sinh...');
+        break;
+      case 'severityLevel':
+        setSearchPlaceholder('Nhập mức độ nghiêm trọng...');
+        break;
+      default:
+        setSearchPlaceholder('Nhập từ khóa tìm kiếm...');
+    }
+  }, [searchType]);
   
   // Context đã tự động lấy dữ liệu ban đầu
   useEffect(() => {
@@ -70,13 +83,7 @@ const MedicalIncidentsManagement = () => {
     if (!events || events.length === 0) {
       fetchEvents();
     }
-    if (!eventTypes || eventTypes.length === 0) {
-      fetchEventTypes();
-    }
-    if (!severityLevels || severityLevels.length === 0) {
-      fetchSeverityLevels();
-    }
-  }, [fetchEvents, fetchEventTypes, fetchSeverityLevels, events, eventTypes, severityLevels]);
+  }, [fetchEvents, events]);
     // State cho modal xem chi tiết
   const [showViewDetailsModal, setShowViewDetailsModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
@@ -94,32 +101,35 @@ const MedicalIncidentsManagement = () => {
       console.error("Lỗi khi lấy chi tiết sự kiện:", error);
       alert("Không thể tải chi tiết sự kiện. Vui lòng thử lại sau.");
     }
-  };  // Xử lý mở form thêm mới
+  };  
+  
+  // Xử lý mở form thêm mới
   const handleAddNew = () => {
     const now = new Date();
     const formattedDateTime = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
     setFormData({
       studentId: '',
-      incidentType: '', // Để trống để người dùng tự nhập
-      dateTime: formattedDateTime, // Format YYYY-MM-DDThh:mm
+      incidentType: '',
+      dateTime: formattedDateTime,
       description: '',
       symptoms: '',
-      severityLevel: '', // Để trống để người dùng tự nhập
+      severityLevel: '',
       treatment: '',
       parentNotified: false,
       requiresFollowUp: false,
       followUpNotes: '',
-      staffId: '1', // Default staff ID, có thể lấy từ đăng nhập người dùng
-      staffName: '', // Default staff name, có thể lấy từ đăng nhập người dùng
+      staffId: '1',
+      staffName: '',
       medicationsUsed: [
-        { quantityUsed: 0, itemID: 0, itemName: '' }
+        { quantityUsed: 0, itemID: 0 }
       ],
       handledById: 1
     });
     setSelectedEvent(null);
-    setMedicationSearchResults({});
     setShowModal(true);
-  };  // Xử lý mở form chỉnh sửa
+  };
+  
+  // Xử lý mở form chỉnh sửa
   const handleEdit = async (id) => {
     try {
       const eventData = await fetchEventById(id);
@@ -140,26 +150,10 @@ const MedicalIncidentsManagement = () => {
       } else if (!Array.isArray(medications)) {
         medications = [{ quantityUsed: 0, itemID: 0, itemName: '' }];
       }
-      
-      // Thêm tên thuốc cho mỗi thuốc nếu chưa có
-      const enhancedMedications = await Promise.all(medications.map(async (med) => {
-        if (med.itemID && !med.itemName) {
-          try {
-            // Gọi API để lấy thông tin thuốc theo ID
-            const response = await fetch(`/api/medication-items/${med.itemID}`);
-            if (response.ok) {
-              const data = await response.json();
-              return {
-                ...med,
-                itemName: data.name || '',
-                selectedItem: data
-              };
-            }
-          } catch (error) {
-            console.error(`Lỗi khi lấy thông tin thuốc ID ${med.itemID}:`, error);
-          }
-        }
-        return { ...med, itemName: med.itemName || '' };
+        // Đơn giản hóa dữ liệu thuốc, chỉ lấy itemID và quantityUsed
+      const simplifiedMedications = medications.map((med) => ({
+        itemID: med.itemID || 0,
+        quantityUsed: med.quantityUsed || 0
       }));
       
       setFormData({
@@ -176,19 +170,19 @@ const MedicalIncidentsManagement = () => {
         followUpNotes: eventData.followUpNotes || '',
         staffId: eventData.staffId || '',
         staffName: eventData.staffName || '',
-        medicationsUsed: enhancedMedications,
+        medicationsUsed: simplifiedMedications,
         handledById: eventData.handledById || 1
       });
       
       setSelectedEvent(eventData);
-      setMedicationSearchResults({});
       setShowModal(true);
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu sự kiện:", error);
       alert("Không thể tải dữ liệu sự kiện. Vui lòng thử lại sau.");
     }
   };
-    // Xử lý thay đổi form input
+    
+  // Xử lý thay đổi form input
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -196,11 +190,12 @@ const MedicalIncidentsManagement = () => {
       [name]: type === 'checkbox' ? checked : value
     });
   };
-    // Xử lý thêm thuốc mới vào danh sách
+  
+  // Xử lý thêm thuốc mới vào danh sách - Đơn giản hóa chỉ có ID và số lượng
   const handleAddMedication = () => {
     setFormData(prevData => ({
       ...prevData,
-      medicationsUsed: [...prevData.medicationsUsed, { quantityUsed: 0, itemID: 0, itemName: '' }]
+      medicationsUsed: [...prevData.medicationsUsed, { quantityUsed: 0, itemID: 0 }]
     }));
   };
   
@@ -211,92 +206,29 @@ const MedicalIncidentsManagement = () => {
       medicationsUsed: prevData.medicationsUsed.filter((_, i) => i !== index)
     }));
   };
-  
-  // Xử lý thay đổi thông tin thuốc
+    
+  // Xử lý thay đổi thông tin thuốc - Đơn giản hóa chỉ nhập ID và số lượng
   const handleMedicationChange = (index, field, value) => {
     const updatedMedications = [...formData.medicationsUsed];
     
-    if (field === 'itemName') {
-      // Cập nhật tên thuốc và tìm kiếm
-      updatedMedications[index] = {
-        ...updatedMedications[index],
-        itemName: value
-      };
-      
-      // Tìm kiếm thuốc nếu value có ít nhất 2 ký tự
-      if (value.length >= 2) {
-        searchMedicationItems(index, value);
-      } else {
-        // Xóa kết quả tìm kiếm nếu input quá ngắn
-        setMedicationSearchResults(prev => ({
-          ...prev,
-          [index]: []
-        }));
-      }
-    } else {
-      // Xử lý các trường khác như quantityUsed
-      updatedMedications[index] = {
-        ...updatedMedications[index],
-        [field]: field === 'quantityUsed' || field === 'itemID' ? parseInt(value, 10) : value
-      };
-    }
-    
-    setFormData({
-      ...formData,
-      medicationsUsed: updatedMedications
-    });
-  };
-
-  // Hàm tìm kiếm thuốc theo tên
-  const searchMedicationItems = async (index, searchTerm) => {
-    try {
-      setMedicationSearchLoading(prev => ({ ...prev, [index]: true }));
-      const response = await fetch(`/api/v1/medication-items/get-by-name/${encodeURIComponent(searchTerm)}`);
-      
-      if (!response.ok) {
-        throw new Error(`Lỗi API: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setMedicationSearchResults(prev => ({
-        ...prev,
-        [index]: data || []
-      }));
-    } catch (error) {
-      console.error('Lỗi khi tìm kiếm thuốc:', error);
-      setMedicationSearchResults(prev => ({
-        ...prev,
-        [index]: []
-      }));
-    } finally {
-      setMedicationSearchLoading(prev => ({ ...prev, [index]: false }));
-    }
-  };
-
-  // Hàm chọn thuốc từ kết quả tìm kiếm
-  const handleSelectMedication = (index, item) => {
-    const updatedMedications = [...formData.medicationsUsed];
+    // Xử lý các trường số (itemID và quantityUsed)
     updatedMedications[index] = {
       ...updatedMedications[index],
-      itemID: item.id,
-      itemName: item.name,
-      selectedItem: item
+      [field]: field === 'quantityUsed' || field === 'itemID' ? parseInt(value, 10) || 0 : value
     };
     
     setFormData({
       ...formData,
       medicationsUsed: updatedMedications
     });
-    
-    // Xóa kết quả tìm kiếm sau khi chọn
-    setMedicationSearchResults(prev => ({
-      ...prev,
-      [index]: []
-    }));
   };
   
-  // Xử lý submit form  const [formErrors, setFormErrors] = useState({});
+  // Không còn cần các hàm tìm kiếm và chọn thuốc nữa vì người dùng nhập trực tiếp ID thuốc
   
+  // State để lưu trữ lỗi form
+  const [formErrors, setFormErrors] = useState({});
+  
+  // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -315,44 +247,47 @@ const MedicalIncidentsManagement = () => {
       
       // Clear any previous errors
       setFormErrors({});
+        // Tạo đối tượng dữ liệu đúng định dạng API
+      // Đảm bảo medicationsUsed là mảng và loại bỏ các mục không hợp lệ
+      let validMedications = [];
       
-      // Tạo đối tượng dữ liệu đúng định dạng API
+      if (Array.isArray(formData.medicationsUsed)) {
+        validMedications = formData.medicationsUsed
+          .filter(med => med && typeof med === 'object')
+          .filter(med => med.quantityUsed > 0 && med.itemID > 0)
+          .map(med => ({
+            quantityUsed: parseInt(med.quantityUsed, 10),
+            itemID: parseInt(med.itemID, 10)
+          }));
+      }
+      
       const apiData = {
-        incidentType: formData.incidentType,
-        description: formData.description,
-        symptoms: formData.symptoms,
-        severityLevel: formData.severityLevel,
-        treatment: formData.treatment,
-        parentNotified: formData.parentNotified,
-        requiresFollowUp: formData.requiresFollowUp,
-        followUpNotes: formData.followUpNotes,
+        incidentType: formData.incidentType || '',
+        description: formData.description || '',
+        symptoms: formData.symptoms || '',
+        severityLevel: formData.severityLevel || '',
+        treatment: formData.treatment || '',
+        parentNotified: Boolean(formData.parentNotified),
+        requiresFollowUp: Boolean(formData.requiresFollowUp),
+        followUpNotes: formData.followUpNotes || '',
         handledById: formData.handledById || 1,
-        studentId: formData.studentId,
-        medicationsUsed: formData.medicationsUsed.filter(med => med.quantityUsed > 0 || med.itemID > 0)
+        studentId: formData.studentId || '',
+        medicationsUsed: validMedications
       };
       
       console.log("Dữ liệu gửi lên API:", apiData);
-      
+        
       let result;
       if (selectedEvent) {
         // Cập nhật sử dụng context
         result = await updateEvent(selectedEvent.incidentId, apiData);
         alert("Cập nhật sự kiện y tế thành công!");
       } else {
-        // Thêm mới sử dụng API
-        result = await fetch('/api/v1/medical-incidents/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(apiData)
-        });
-        
-        if (!result.ok) {
-          throw new Error(`Lỗi khi tạo sự kiện: ${result.status}`);
+        // Thêm mới sử dụng context
+        result = await addEvent(apiData);
+        if (!result) {
+          throw new Error("Lỗi khi tạo sự kiện y tế");
         }
-        
-        const data = await result.json();
         alert("Thêm mới sự kiện y tế thành công!");
       }
       
@@ -475,35 +410,13 @@ const MedicalIncidentsManagement = () => {
       return dateTimeString;
     }
   };
-  // Hàm lấy class CSS dựa trên mức độ nghiêm trọng
+  
+  // Hàm lấy class CSS đơn giản - không phân loại mức độ nghiêm trọng
   const getSeverityClass = (severity) => {
-    if (!severity) return 'severity-unknown';
+    if (!severity || severity === 'string') return '';
     
-    // Ensure severity is a string
-    const severityStr = String(severity).toLowerCase().trim();
-    
-    // Map common Vietnamese and English terms to severity classes
-    if (severityStr.includes('nhẹ') || 
-        severityStr === 'low' || 
-        severityStr === 'mild' || 
-        severityStr === 'thấp') return 'severity-low';
-        
-    if (severityStr.includes('trung bình') || 
-        severityStr === 'medium' || 
-        severityStr === 'moderate') return 'severity-medium';
-        
-    if (severityStr.includes('cao') || 
-        severityStr === 'high' || 
-        severityStr === 'severe') return 'severity-high';
-        
-    if (severityStr.includes('khẩn cấp') || 
-        severityStr.includes('nguy hiểm') || 
-        severityStr === 'emergency' || 
-        severityStr === 'critical') return 'severity-critical';
-    
-    // Default case with debug info
-    console.log(`Severity class not recognized for value: "${severity}"`);
-    return 'severity-unknown';
+    // Trả về '' để không áp dụng class CSS bất kỳ
+    return '';
   };
   
   // Xử lý xóa sự kiện
@@ -529,11 +442,11 @@ const MedicalIncidentsManagement = () => {
     }
     
     if (!data.incidentType || data.incidentType.trim() === '') {
-      errors.incidentType = 'Vui lòng chọn loại sự kiện';
+      errors.incidentType = 'Vui lòng nhập loại sự kiện';
     }
     
     if (!data.severityLevel || data.severityLevel.trim() === '') {
-      errors.severityLevel = 'Vui lòng chọn mức độ nghiêm trọng';
+      errors.severityLevel = 'Vui lòng nhập mức độ nghiêm trọng';
     }
     
     if (!data.dateTime) {
@@ -562,11 +475,143 @@ const MedicalIncidentsManagement = () => {
     };
   };
   
+  // Xử lý thay đổi loại tìm kiếm
+  const handleSearchTypeChange = (e) => {
+    setSearchType(e.target.value);
+    // Reset giá trị tìm kiếm khi thay đổi loại
+    setSearchValue('');
+    
+    // Cập nhật placeholder tương ứng với loại tìm kiếm
+    switch (e.target.value) {
+      case 'name':
+        setSearchPlaceholder('Nhập tên...');
+        break;
+      case 'studentId':
+        setSearchPlaceholder('Nhập mã học sinh...');
+        break;
+      case 'severityLevel':
+        setSearchPlaceholder('Nhập mức độ nghiêm trọng...');
+        break;
+      default:
+        setSearchPlaceholder('Nhập tên...');
+    }
+  };
+  
+  // Xử lý thay đổi giá trị tìm kiếm
+  const handleSearchValueChange = (e) => {
+    setSearchValue(e.target.value);
+  };
+    // Xử lý tìm kiếm theo loại
+  const handleSearch = async () => {
+    // Kiểm tra nếu không có giá trị tìm kiếm
+    if (!searchValue.trim()) {
+      // Reset filter và hiển thị tất cả
+      setFilters({
+        studentId: '',
+        incidentType: '',
+        severityLevel: '',
+        fromDate: '',
+        toDate: '',
+        parentNotified: '',
+        requiresFollowUp: ''
+      });
+      fetchEvents();
+      return;
+    }
+    
+    try {
+      // Thiết lập filter và thực hiện tìm kiếm dựa trên loại tìm kiếm
+      switch (searchType) {
+        case 'severityLevel':
+          // Sử dụng API mới cho tìm kiếm theo mức độ nghiêm trọng
+          console.log(`Đang tìm kiếm sự kiện theo mức độ nghiêm trọng: ${searchValue}`);
+          const results = await searchByType(searchValue.trim());
+          
+          // Cập nhật trạng thái tìm kiếm
+          setSearchStatus({
+            hasSearched: true,
+            resultCount: results.length
+          });
+          
+          if (results.length === 0) {
+            alert("Không tìm thấy sự kiện y tế nào với mức độ nghiêm trọng này.");
+          }
+          break;
+          
+        case 'name':
+        case 'studentId':
+          // Sử dụng API filters cho các loại tìm kiếm khác
+          const newFilters = {
+            ...filters,
+            studentId: '',
+            incidentType: '',
+            severityLevel: '',
+          };
+          
+          // Thiết lập filter phù hợp với loại tìm kiếm
+          if (searchType === 'name') {
+            newFilters.incidentType = searchValue.trim();
+          } else if (searchType === 'studentId') {
+            newFilters.studentId = searchValue.trim();
+          }
+          
+          // Cập nhật filters
+          setFilters(newFilters);
+          
+          // Thực hiện tìm kiếm với filters
+          setTimeout(() => {
+            handleApplyFilters();
+          }, 0);
+          break;
+          
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error("Lỗi khi tìm kiếm:", error);
+      alert("Có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại sau!");
+    }
+  };
+  
   return (
     <main className="medical-events-content">
-      {/* Bộ lọc */}
-      <div className="filter-section">
-        <div className="filter-row">
+      {/* Bộ lọc */}      <div className="filter-section">
+        <div className="medical-events-header">
+          {/* Ô tìm kiếm mới với dropdown */}
+          <div className="search-container">
+            <div className="search-box">
+              <select 
+                className="search-type-dropdown" 
+                value={searchType} 
+                onChange={handleSearchTypeChange}
+              >
+                <option value="name">Tìm kiếm theo tên</option>
+                <option value="studentId">Tìm kiếm theo mã học sinh</option>
+                <option value="severityLevel">Tìm kiếm theo mức độ nghiêm trọng</option>
+              </select>
+              <input 
+                type="text"
+                className="search-input"
+                value={searchValue}
+                onChange={handleSearchValueChange}
+                placeholder={searchPlaceholder}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              />
+              <button className="search-btn" onClick={handleSearch}>
+                Tìm kiếm
+              </button>
+            </div>
+          </div>
+          
+          {/* Nút thêm sự kiện ở cuối bên phải */}
+          <button className="add-event-btn" onClick={handleAddNew}>
+            <i className="fas fa-plus"></i> Thêm sự kiện
+          </button>
+        </div>
+        
+        {/* Filter row gốc nhưng ẩn đi các ô đã chuyển thành tìm kiếm */}
+        <div className="filter-row" style={{ display: 'none' }}>
+          {/* Ẩn các filter đã chuyển thành tìm kiếm */}
           <div className="filter-item">
             <label>Mã học sinh:</label>
             <input 
@@ -579,89 +624,25 @@ const MedicalIncidentsManagement = () => {
           </div>
           <div className="filter-item">
             <label>Loại sự cố:</label>
-            <select 
+            <input 
+              type="text"
               name="incidentType"
               value={filters.incidentType}
               onChange={handleFilterChange}
-            >              <option value="">Tất cả</option>
-              {eventTypes.map((type, index) => (
-                <option key={type.id || index} value={type.name || type}>{type.name || type}</option>
-              ))}
-            </select>
+              placeholder="Nhập loại sự kiện"
+            />
           </div>
           
           <div className="filter-item">
             <label>Mức độ:</label>
-            <select 
+            <input 
+              type="text"
               name="severityLevel"
               value={filters.severityLevel}
               onChange={handleFilterChange}
-            >
-              <option value="">Tất cả</option>
-              {severityLevels.map((level, index) => (
-                <option key={level.id || index} value={level.name || level}>{level.name || level}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-        
-        <div className="filter-row">
-          <div className="filter-item">
-            <label>Từ ngày:</label>
-            <input 
-              type="date" 
-              name="fromDate"
-              value={filters.fromDate}
-              onChange={handleFilterChange}
+              placeholder="Nhập mức độ nghiêm trọng"
             />
           </div>
-          
-          <div className="filter-item">
-            <label>Đến ngày:</label>
-            <input 
-              type="date" 
-              name="toDate"
-              value={filters.toDate}
-              onChange={handleFilterChange}
-            />
-          </div>
-          <div className="filter-item">
-            <label>Thông báo phụ huynh:</label>
-            <select 
-              name="parentNotified"
-              value={filters.parentNotified}
-              onChange={handleFilterChange}
-            >
-              <option value="">Tất cả</option>
-              <option value="true">Đã thông báo</option>
-              <option value="false">Chưa thông báo</option>
-            </select>
-          </div>
-          
-          <div className="filter-item">
-            <label>Theo dõi tiếp:</label>
-            <select 
-              name="requiresFollowUp"
-              value={filters.requiresFollowUp}
-              onChange={handleFilterChange}
-            >
-              <option value="">Tất cả</option>
-              <option value="true">Cần theo dõi</option>
-              <option value="false">Không cần</option>
-            </select>
-          </div>
-        </div>
-        
-        <div className="filter-actions">
-          <button className="filter-btn apply" onClick={handleApplyFilters}>
-            <i className="fas fa-search"></i> Lọc
-          </button>
-          <button className="filter-btn reset" onClick={handleResetFilters}>
-            <i className="fas fa-redo"></i> Đặt lại
-          </button>
-          <button className="add-event-btn" onClick={handleAddNew}>
-            <i className="fas fa-plus"></i> Thêm sự kiện
-          </button>
         </div>
       </div>
       
@@ -685,18 +666,13 @@ const MedicalIncidentsManagement = () => {
             </thead>
             <tbody>              {events.length > 0 ? (
                 events.map((event, index) => {
-                  // Log severity để debug
-                  console.log(`Event ${event.incidentId} severity: "${event.severityLevel}" - class: ${getSeverityClass(event.severityLevel)}`);
                   return (
                     <tr key={event.incidentId}>
                       <td>{event.incidentId}</td>
                       <td>{event.studentId}</td>
                       <td>{event.studentName}</td>
-                      <td>{formatDateTime(event.dateTime)}</td>
-                      <td>
-                        <span className={`status-badge ${getSeverityClass(event.severityLevel)}`}>
-                          {event.severityLevel || "Không xác định"}
-                        </span>
+                      <td>{formatDateTime(event.dateTime)}</td>                      <td>
+                        {event.severityLevel || "Không xác định"}
                       </td>
                       <td className="status-cell">
                         {event.parentNotified ? 
@@ -745,7 +721,7 @@ const MedicalIncidentsManagement = () => {
         </div>
       )}
 
-      {/* Modal xem chi tiết - modal riêng biệt */}
+      {/* Modal xem chi tiết */}
       {showViewDetailsModal && selectedEvent && (
         <div className="modal-overlay" onClick={() => setShowViewDetailsModal(false)}>
           <div className="modal-container view-details-modal" onClick={(e) => e.stopPropagation()}>
@@ -779,13 +755,14 @@ const MedicalIncidentsManagement = () => {
                     </div>
                     <div className="detail-item">
                       <span className="detail-label">Mức độ:</span>
-                      <span className={`detail-value severity-badge ${getSeverityClass(selectedEvent.severityLevel)}`}>
+                      <span className="detail-value">
                         {selectedEvent.severityLevel}
                       </span>
                     </div>
                   </div>
                 </div>
-                  {/* Thông tin học sinh */}
+                  
+                {/* Thông tin học sinh */}
                 <div className="detail-section">
                   <h4 className="detail-section-title">Thông tin học sinh</h4>
                   <div className="detail-grid">
@@ -797,37 +774,10 @@ const MedicalIncidentsManagement = () => {
                       <span className="detail-label">Tên học sinh:</span>
                       <span className="detail-value">{selectedEvent.studentName}</span>
                     </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Giới tính:</span>
-                      <span className="detail-value">{selectedEvent.studentGender || "Không có thông tin"}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Khối lớp:</span>
-                      <span className="detail-value">{selectedEvent.studentGrade || "Không có thông tin"}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Lớp:</span>
-                      <span className="detail-value">{selectedEvent.studentClass || "Không có thông tin"}</span>
-                    </div>
                   </div>
                 </div>
                 
-                {/* Thông tin phụ huynh */}
-                <div className="detail-section">
-                  <h4 className="detail-section-title">Thông tin phụ huynh</h4>
-                  <div className="detail-grid">
-                    <div className="detail-item">
-                      <span className="detail-label">Tên phụ huynh:</span>
-                      <span className="detail-value">{selectedEvent.parentName || "Không có thông tin"}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Số điện thoại:</span>
-                      <span className="detail-value">{selectedEvent.parentPhone || "Không có thông tin"}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Thông tin triệu chứng và điều trị */}
+                {/* Thông tin chi tiết */}
                 <div className="detail-section">
                   <h4 className="detail-section-title">Triệu chứng và điều trị</h4>
                   <div className="detail-row">
@@ -842,38 +792,16 @@ const MedicalIncidentsManagement = () => {
                     <span className="detail-label">Điều trị:</span>
                     <span className="detail-value">{selectedEvent.treatment || "Không có thông tin điều trị"}</span>
                   </div>
-                </div>                {/* Thông tin về thuốc */}
+                </div>
+                
+                {/* Thông tin thuốc đã sử dụng */}
                 <div className="detail-section">
                   <h4 className="detail-section-title">Thuốc đã sử dụng</h4>
                   <div className="medications-list">
                     {selectedEvent.medicationsUsed ? (
-                      <>
-                        {Array.isArray(selectedEvent.medicationsUsed) ? (
-                          selectedEvent.medicationsUsed.length > 0 ? (
-                            selectedEvent.medicationsUsed.map((med, idx) => (
-                              <div key={idx} className="medication-detail-item">
-                                <div className="medication-detail-header">
-                                  <span className="medication-name">
-                                    {med.itemName || `Thuốc #${med.itemID || idx + 1}`}
-                                  </span>
-                                  <span className="medication-quantity">
-                                    <i className="fas fa-pills"></i> {med.quantityUsed || 0} {med.unit || 'đơn vị'}
-                                  </span>
-                                </div>
-                                {med.note && <div className="medication-note">{med.note}</div>}
-                              </div>
-                            ))
-                          ) : (
-                            <div className="medication-item">
-                              <div className="no-medications">Không dùng thuốc</div>
-                            </div>
-                          )
-                        ) : (
-                          <div className="medication-item">
-                            <div><strong>Thuốc đã sử dụng:</strong> {selectedEvent.medicationsUsed}</div>
-                          </div>
-                        )}
-                      </>
+                      <div className="medication-item">
+                        <div><strong>Thuốc đã sử dụng:</strong> {selectedEvent.medicationsUsed}</div>
+                      </div>
                     ) : (
                       <div className="medication-item">
                         <div className="no-medications">Không có thông tin về thuốc đã sử dụng</div>
@@ -907,7 +835,7 @@ const MedicalIncidentsManagement = () => {
                       </span>
                     </div>
                   </div>
-                  {selectedEvent.requiresFollowUp && selectedEvent.followUpNotes && (
+                  {selectedEvent.followUpNotes && (
                     <div className="detail-row">
                       <span className="detail-label">Ghi chú theo dõi:</span>
                       <span className="detail-value">{selectedEvent.followUpNotes}</span>
@@ -915,7 +843,7 @@ const MedicalIncidentsManagement = () => {
                   )}
                 </div>
                 
-                {/* Thông tin nhân viên xử lý */}
+                {/* Thông tin nhân sự */}
                 <div className="detail-section">
                   <h4 className="detail-section-title">Thông tin nhân viên</h4>
                   <div className="detail-grid">
@@ -927,8 +855,11 @@ const MedicalIncidentsManagement = () => {
                       <span className="detail-label">Tên nhân viên:</span>
                       <span className="detail-value">{selectedEvent.staffName || "Không có thông tin"}</span>
                     </div>
-                  </div>                </div>
-                  {/* Hình ảnh (nếu có) */}                {selectedEvent.imgUrl && (
+                  </div>
+                </div>
+                
+                {/* Phần hiển thị hình ảnh nếu có */}
+                {selectedEvent.imgUrl && (
                   <div className="detail-section">
                     <h4 className="detail-section-title">Hình ảnh</h4>
                     <div className="image-container">
@@ -956,18 +887,6 @@ const MedicalIncidentsManagement = () => {
                     <span className="detail-label">ID Phụ huynh:</span>
                     <span className="detail-value">{selectedEvent.parentID || "Không có thông tin"}</span>
                   </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Ngày cập nhật:</span>
-                    <span className="detail-value">
-                      {selectedEvent.updatedAt ? formatDateTime(selectedEvent.updatedAt) : "Không có thông tin"}
-                    </span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Ngày tạo:</span>
-                    <span className="detail-value">
-                      {selectedEvent.createdAt ? formatDateTime(selectedEvent.createdAt) : "Không có thông tin"}
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -976,7 +895,10 @@ const MedicalIncidentsManagement = () => {
               <button className="btn btn-secondary" onClick={() => setShowViewDetailsModal(false)}>
                 <i className="fas fa-times"></i> Đóng
               </button>
-              <button className="btn btn-primary" onClick={() => { setShowViewDetailsModal(false); handleEdit(selectedEvent.incidentId); }}>
+              <button className="btn btn-primary" onClick={() => {
+                setShowViewDetailsModal(false);
+                setTimeout(() => handleEdit(selectedEvent.incidentId), 300);
+              }}>
                 <i className="fas fa-edit"></i> Chỉnh sửa
               </button>
             </div>
@@ -1051,14 +973,7 @@ const MedicalIncidentsManagement = () => {
                           value={formData.severityLevel}
                           onChange={handleInputChange}
                           required
-                          placeholder="Nhập mức độ (Mild, Moderate, Severe...)"
-                          list="severityLevelList"
-                        />
-                        <datalist id="severityLevelList">
-                          {severityLevels.map((level, index) => (
-                            <option key={index} value={level} />
-                          ))}
-                        </datalist>
+                          placeholder="Nhập mức độ (Mild, Moderate, Severe...)"                        />
                       </div>
                     </div>
                     
@@ -1125,47 +1040,19 @@ const MedicalIncidentsManagement = () => {
                     </div>                      <div className="form-group full-width">
                       <label>Thuốc đã dùng</label>
                       <div className="medications-container">
-                        {console.log('Rendering medications:', formData.medicationsUsed)}
                         {formData.medicationsUsed.map((medication, index) => (
                           <div className="medication-item" key={index}>
-                            <div className="medication-row">                              <div className="medication-field medication-search-field">                                <label>Tìm kiếm theo tên thuốc:</label>
-                                <div className="search-container">
-                                  <input 
-                                    type="text" 
-                                    value={medication.itemName || ''} 
-                                    onChange={(e) => handleMedicationChange(index, 'itemName', e.target.value)}
-                                    placeholder="Nhập tên thuốc để tìm kiếm"
-                                    autoComplete="off"
-                                    style={{border: '2px solid #4caf50'}}
-                                  />
-                                  {medicationSearchLoading[index] && (
-                                    <div className="search-loading">
-                                      <i className="fas fa-spinner fa-spin"></i>
-                                    </div>
-                                  )}
-                                  {medicationSearchResults[index] && medicationSearchResults[index].length > 0 && (
-                                    <div className="search-results">
-                                      {medicationSearchResults[index].map(item => (
-                                        <div 
-                                          key={item.id} 
-                                          className="search-result-item"
-                                          onClick={() => handleSelectMedication(index, item)}
-                                        >
-                                          <div className="item-name">{item.name}</div>
-                                          <div className="item-details">
-                                            <span>ID: {item.id}</span>
-                                            <span>SL: {item.quantity}</span>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                                {medication.itemID > 0 && (
-                                  <div className="selected-item-info">
-                                    ID: <span className="id-badge">{medication.itemID}</span>
-                                  </div>
-                                )}
+                            <div className="medication-row">
+                              <div className="medication-field">
+                                <label>ID thuốc:</label>
+                                <input 
+                                  type="number" 
+                                  value={medication.itemID || ''} 
+                                  onChange={(e) => handleMedicationChange(index, 'itemID', e.target.value)}
+                                  placeholder="Nhập ID thuốc"
+                                  min="1"
+                                  style={{border: '2px solid #4caf50'}}
+                                />
                               </div>
                               <div className="medication-field">
                                 <label>Số lượng:</label>
@@ -1277,7 +1164,7 @@ const MedicalIncidentsManagement = () => {
         </div>
       )}
 
-      {/* Hiển thị thông báo tìm kiếm */}
+      {/* Thông báo kết quả tìm kiếm */}
       {searchStatus.hasSearched && (
         <div className={`search-result-message ${searchStatus.resultCount > 0 ? 'success' : 'no-result'}`}>
           {searchStatus.resultCount > 0 
@@ -1286,7 +1173,7 @@ const MedicalIncidentsManagement = () => {
         </div>
       )}
       
-      {/* Full-size Image Modal */}
+      {/* Modal xem hình ảnh */}
       {showImageModal && selectedImageUrl && (
         <div className="modal-overlay" onClick={() => setShowImageModal(false)}>
           <div className="image-modal-container" onClick={(e) => e.stopPropagation()}>
