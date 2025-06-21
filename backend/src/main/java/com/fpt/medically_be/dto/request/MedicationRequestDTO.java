@@ -3,7 +3,7 @@ package com.fpt.medically_be.dto.request;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
+
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class MedicationRequestDTO {
-    @NotNull(message = "Student ID is required")
+
     private Long studentId;
 
     @NotBlank(message = "Medicine name is required")
@@ -28,6 +28,7 @@ public class MedicationRequestDTO {
     @FutureOrPresent(message = "Start date must be today or in the future")
     private LocalDate startDate;
 
+    @FutureOrPresent(message = "Start date must be today or in the future")
     @NotNull(message = "End date is required")
     private LocalDate endDate;
 

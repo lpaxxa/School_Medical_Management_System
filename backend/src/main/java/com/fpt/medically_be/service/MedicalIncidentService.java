@@ -24,13 +24,17 @@ public interface MedicalIncidentService {
     boolean deleteMedicalIncidentById(Long id);
 
 
-        List<MedicalIncidentResponseDTO> getTypesOfMedicalIncidents(String incidentType);
+    List<MedicalIncidentResponseDTO> getTypesOfMedicalIncidents(String incidentType);
 
-        List<MedicalIncidentResponseDTO> getMedicalIncidentsByRequiresFollowUp(boolean requiredFollowUpNotes);
+    List<MedicalIncidentResponseDTO> getMedicalIncidentsByRequiresFollowUp(boolean requiredFollowUpNotes);
 
     MedicalIncidentResponseDTO updateMedicalIncident( Long id, MedicalIncidentCreateDTO medicalIncidentDTO);
 
     MedicalIncidentResponseDTO createMedicalIncident(MedicalIncidentCreateDTO medicalIncidentDTO);
 
     MedicalIncidentStudentDTO getMedicalIncidentDetails(Long incidentId);
+
+
+   List<MedicalIncidentResponseDTO> getMedicalIncidentByStudentID(Long id);
+
     }

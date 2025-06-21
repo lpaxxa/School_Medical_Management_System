@@ -2,8 +2,7 @@ package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.request.Notification2RequestDTO;
 import com.fpt.medically_be.dto.request.Notification2UpdateDTO;
-import com.fpt.medically_be.dto.response.Notification2ResponseDTO;
-import com.fpt.medically_be.dto.response.Notification2TitleResponse;
+import com.fpt.medically_be.dto.response.*;
 
 import com.fpt.medically_be.entity.*;
 import com.fpt.medically_be.mapper.Notification2Mapper;
@@ -18,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,9 +40,10 @@ public class Notification2ServiceImp implements Notification2Service {
     @Autowired
     private NotificationRecipientsRepo notificationRecipientsRepo;
 
+
     @Transactional
     @Override
-    public void createNotification(Notification2RequestDTO notification2) {
+    public Notification2ResponseDTO createNotification(Notification2RequestDTO notification2) {
 
         Notification2 noti = notification2Mapper.toNotificationEntity(notification2);
 
@@ -54,15 +56,18 @@ public class Notification2ServiceImp implements Notification2Service {
         List<NotificationRecipients> recipients = notification2.getReceiverIds().stream().map(id -> {
             Parent parent = parentRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Parent not found"));
+
             NotificationRecipients r = new NotificationRecipients();
             r.setNotification(noti);
             r.setReceiver(parent);
             r.setResponse(ResponseStatus.PENDING);
             return r;
         }).collect(Collectors.toList());
-
-
         notificationRecipientsRepo.saveAll(recipients);
+
+        noti.setNotificationRecipients(recipients);
+
+        return notification2Mapper.toNotificationResponseDTO(noti);
     }
 
     @Override
@@ -103,8 +108,8 @@ public class Notification2ServiceImp implements Notification2Service {
 
             // Phản hồi của parent
 //            dto.setResponse(item.getResponse()!= null ? item.getResponse().name().toLowerCase(): null);
-            dto.setResponse(item.getResponse().name());
-            dto.setResponseAt(item.getResponseAt());
+//            dto.setResponse(item.getResponse().name());
+//            dto.setResponseAt(item.getResponseAt());
 
             return dto;
         }).collect(Collectors.toList());
@@ -114,7 +119,7 @@ public class Notification2ServiceImp implements Notification2Service {
 
     @Transactional
     @Override
-    public void respondToNotification(Notification2UpdateDTO request) {
+    public Notification2ReceiveResponse respondToNotification(Notification2UpdateDTO request) {
         NotificationRecipients noti = notificationRecipientsRepo.findById(request.getNotificationRecipientId())
                 .orElseThrow(() -> new RuntimeException("Notification recipient not found"));
 
@@ -126,12 +131,13 @@ public class Notification2ServiceImp implements Notification2Service {
         com.fpt.medically_be.entity.ResponseStatus responseStatus = ResponseStatus.valueOf(request.getResponse().toUpperCase());
 
         noti.setResponse(responseStatus);
-
+        noti.setResponseAt(LocalDateTime.now());
+        return notification2Mapper.toNotificationReceiveResponse(noti);
 
     }
 
     @Override
-    public Notification2ResponseDTO getNotificationDetail(Long notiId, Long parentId) {
+    public Notification2ReceiveResponse getNotificationDetail(Long notiId, Long parentId) {
 
         NotificationRecipients recipient = notificationRecipientsRepo
                 .findByNotificationIdAndReceiverId(notiId, parentId);
@@ -141,8 +147,68 @@ public class Notification2ServiceImp implements Notification2Service {
         }
 
         Notification2 n = new Notification2();
-        Notification2ResponseDTO noti = notification2Mapper.toNotificationResponseDTO(n);
+        Notification2ReceiveResponse noti = notification2Mapper.toNotificationReceiveResponse(recipient);
         return noti;
+    }
+
+
+
+    @Override
+    public Notification2ResponseStatusDTO getNotificationResponses(Long notificationId) {
+        Notification2 notification = notification2Repository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        List<NotificationRecipients> recipients = notificationRecipientsRepo.findByNotification(notification);
+
+        List<ParentDTO2> approved = new ArrayList<>();
+        List<ParentDTO2> pending = new ArrayList<>();
+        List<ParentDTO2> rejected = new ArrayList<>();
+
+        for (NotificationRecipients r : recipients) {
+            Parent parent = r.getReceiver();
+            ParentDTO2 parentDTO = new ParentDTO2(parent.getId(), parent.getFullName(), parent.getEmail());
+
+            ResponseStatus response = r.getResponse();
+            if (response == null || response == ResponseStatus.PENDING) {
+                pending.add(parentDTO);
+            } else if (response == ResponseStatus.ACCEPTED) {
+                approved.add(parentDTO);
+            } else if (response == ResponseStatus.REJECTED) {
+                rejected.add(parentDTO);
+            }
+        }
+
+        return new Notification2ResponseStatusDTO(approved, pending, rejected);
+    }
+
+    //Nurse
+
+    @Override
+    public List<Notification2ResponseDTO> findAllNotification() {
+    List<Notification2> notifications = notification2Repository.findAll();
+        return notification2Repository.findAll().stream().map(
+                notification2Mapper::toNotificationResponseDTO
+        ).collect(Collectors.toList());
+
+    }
+
+    @Override
+    public Notification2ResponseDTO findNotificationById(Long notificationId) {
+        Notification2 notification2 = notification2Repository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+        return notification2Mapper.toNotificationResponseDTO(notification2);
+    }
+
+    @Override
+    public List<Notification2ResponseDTO> getNotificationsByType(NotificationType type) {
+
+        List<Notification2> notifications = notification2Repository.findByType(type);
+        if (notifications.isEmpty()) {
+            throw new RuntimeException("No notifications found for the given type");
+        }
+        return notifications.stream()
+                .map(notification2Mapper::toNotificationResponseDTO)
+                .collect(Collectors.toList());
     }
 
 

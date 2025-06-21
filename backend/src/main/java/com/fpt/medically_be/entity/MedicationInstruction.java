@@ -2,12 +2,15 @@ package com.fpt.medically_be.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLDelete;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
 @Table(name = "medication_instructions")
+@SQLDelete(sql = "UPDATE medication_instructions SET status = 3 WHERE id=?")
 @Data
 public class MedicationInstruction {
 
@@ -32,7 +35,7 @@ public class MedicationInstruction {
     private LocalDate endDate;
 
     @Column(name = "frequency_per_day")
-    private Integer frequencyPerDay;
+    private String frequencyPerDay;
 
     @Column(name = "time_of_day", columnDefinition = "NVARCHAR(MAX)")
     private String timeOfDay;  // JSON array of times

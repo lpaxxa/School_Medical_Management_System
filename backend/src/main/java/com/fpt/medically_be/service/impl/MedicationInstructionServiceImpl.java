@@ -14,6 +14,7 @@ import com.fpt.medically_be.service.MedicationInstructionService;
 import com.fpt.medically_be.service.ParentService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -148,9 +149,15 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         medicationInstructionRepository.deleteById(id);
     }
 
+    //sending-medication flow
+
     @Override
     public MedicationInstructionDTO createParentMedicationRequest(MedicationRequestDTO request, Authentication auth) {
-        ParentDTO currentParent = parentService.getCurretParent(auth);
+       //null-check for studentId
+        if (request.getStudentId() == null) {
+            throw new IllegalArgumentException("Không thể tạo yêu cầu thuốc: Student ID không được để trống.");
+        }
+        ParentDTO currentParent = parentService.getCurrentParent(auth);
         parentService.validateParentOwnsStudent(request.getStudentId(), auth);
         Student student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với ID: " + request.getStudentId()));
@@ -168,14 +175,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         medicationInstruction.setDosageInstructions(request.getDosage());
         medicationInstruction.setStartDate(request.getStartDate());
         medicationInstruction.setEndDate(request.getEndDate());
-        
-        // Convert frequency string to integer (e.g., "2 lần/ngày" -> 2)
-        String frequencyStr = request.getFrequency().replaceAll("[^0-9]", "");
-        int frequency = Integer.parseInt(frequencyStr);
-        if (frequency < 1 || frequency > 6) {
-            throw new IllegalArgumentException("Tần suất phải từ 1-6 lần/ngày");
-        }
-        medicationInstruction.setFrequencyPerDay(frequency);
+        medicationInstruction.setFrequencyPerDay(request.getFrequency());
         
         // Convert timeToTake list to JSON string
         medicationInstruction.setTimeOfDay(request.getTimeToTake().toString());
@@ -200,17 +200,15 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
 
     @Override
     public List<MedicationInstructionDTO> getParentMedicationRequests(Authentication auth) {
-        ParentDTO currentParent = parentService.getCurretParent(auth);
-        List<MedicationInstruction> requests = medicationInstructionRepository.findByRequestedById(currentParent.getId());
-        return requests.stream()
-                .map(entity -> new MedicationInstructionDTO().toObject(entity))
-                .collect(Collectors.toList());
+        ParentDTO currentParent = parentService.getCurrentParent(auth);
+
+        List<MedicationInstruction> requests= medicationInstructionRepository.findByRequestedById(currentParent.getId());
+        return requests.stream().map(r -> new MedicationInstructionDTO().toObject(r)).collect(Collectors.toList());
     }
 
     @Override
     public List<MedicationInstructionDTO> getMedicationRequestsByChild(Long studentId, Authentication auth) {
-        // 1. Get current parent from authentication
-        ParentDTO currentParent = parentService.getCurretParent(auth);
+        
         // 2. Validate parent owns this student
         parentService.validateParentOwnsStudent(studentId, auth);
         // 3. Get student's health profile
@@ -232,7 +230,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     @Override
     public MedicationInstructionDTO updateParentMedicationRequest(Long requestId, MedicationRequestDTO request, Authentication auth) {
         // 1. Get current parent from authentication
-        ParentDTO currentParent = parentService.getCurretParent(auth);
+        ParentDTO currentParent = parentService.getCurrentParent(auth);
         // 2. Find existing medication instruction by requestId
         Optional<MedicationInstruction> existingRequest = medicationInstructionRepository.findById(requestId);
 
@@ -245,24 +243,14 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
             throw new IllegalStateException("Yêu cầu này không thể cập nhật vì trạng thái không phải là PENDING_APPROVAL.");
         }
 
-        // 6. Validate parent owns the student (if studentId changed)
-        if (request.getStudentId() != null) {
-            parentService.validateParentOwnsStudent(request.getStudentId(), auth);
-        }
+
         // 7. Update medication details from request
         MedicationInstruction medicationInstruction = existingRequest.get();
         medicationInstruction.setMedicationName(request.getMedicineName());
         medicationInstruction.setDosageInstructions(request.getDosage());
         medicationInstruction.setStartDate(request.getStartDate());
         medicationInstruction.setEndDate(request.getEndDate());
-        
-        // Convert frequency string to integer (e.g., "2 lần/ngày" -> 2)
-        String frequencyStr = request.getFrequency().replaceAll("[^0-9]", "");
-        int frequency = Integer.parseInt(frequencyStr);
-        if (frequency < 1 || frequency > 6) {
-            throw new IllegalArgumentException("Tần suất phải từ 1-6 lần/ngày");
-        }
-        medicationInstruction.setFrequencyPerDay(frequency);
+        medicationInstruction.setFrequencyPerDay(request.getFrequency());
         
         // Convert timeToTake list to string
         medicationInstruction.setTimeOfDay(request.getTimeToTake().toString());
@@ -282,16 +270,34 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
 
     @Override
     public List<MedicationInstructionDTO> getPendingMedicationRequests() {
-        // 1. Find all medication instructions where:
-
-        List<MedicationInstruction> pendingRequests = medicationInstructionRepository.findByStatus(Status.PENDING_APPROVAL)
-                .stream()
-                .filter(m -> m.getParentProvided() != null && m.getParentProvided())
-                .collect(Collectors.toList());
-        //    - approvalStatus = "PENDING_APPROVAL"
-        //    - parentProvided = true
-        // 2. Convert entities to DTOs
+        List<MedicationInstruction> pendingRequests = medicationInstructionRepository.findByStatusAndParentProvidedTrue(Status.PENDING_APPROVAL);
         return pendingRequests.stream()
+                .map(entity -> new MedicationInstructionDTO().toObject(entity))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationInstructionDTO> getApprovedMedicationRequests() {
+        List<MedicationInstruction> approvedRequests = medicationInstructionRepository.findByStatusAndParentProvidedTrue(Status.APPROVED);
+        return approvedRequests.stream()
+                .map(entity -> new MedicationInstructionDTO().toObject(entity))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationInstructionDTO> getRejectedMedicationRequests() {
+       List<MedicationInstruction> rejectedRequests = medicationInstructionRepository.findByStatusAndParentProvidedTrue(Status.REJECTED);
+        return rejectedRequests.stream()
+                .map(entity -> new MedicationInstructionDTO().toObject(entity))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationInstructionDTO> getAllMedicationRequests() {
+        // Only return parent-provided medication requests to be consistent with other methods
+        // and avoid DTO transformation errors with system-generated instructions
+        List<MedicationInstruction> allRequests = medicationInstructionRepository.findByParentProvided(true);
+        return allRequests.stream()
                 .map(entity -> new MedicationInstructionDTO().toObject(entity))
                 .collect(Collectors.toList());
 
@@ -331,28 +337,22 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     @Override
     public void cancelMedicationRequest(Long requestId, Authentication auth) {
         // 1. Get current parent from authentication
-        ParentDTO currentParent = parentService.getCurretParent(auth);
-        
+        ParentDTO currentParent = parentService.getCurrentParent(auth);
         // 2. Find existing medication instruction by requestId
-        MedicationInstruction existingRequest = medicationInstructionRepository.findById(requestId)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy yêu cầu hướng dẫn thuốc với ID: " + requestId));
-        
+        Optional<MedicationInstruction> existingRequest = medicationInstructionRepository.findById(requestId);
+
         // 3. Validate parent owns this request (requestedBy = current parent)
-        if (!existingRequest.getRequestedBy().getId().equals(currentParent.getId())) {
+        if (existingRequest.isEmpty() || !existingRequest.get().getRequestedBy().getId().equals(currentParent.getId())) {
             throw new EntityNotFoundException("Bạn không phải là người tạo yêu cầu này.");
         }
-        
         // 4. Check request status is "PENDING_APPROVAL"
-        if (!Status.PENDING_APPROVAL.equals(existingRequest.getStatus())) {
-            throw new IllegalStateException("Yêu cầu này không thể hủy vì trạng thái không phải là PENDING_APPROVAL.");
+        if (!Status.PENDING_APPROVAL.equals(existingRequest.get().getStatus())) {
+            throw new IllegalStateException("Yêu cầu này không thể cập nhật vì trạng thái không phải là PENDING_APPROVAL.");
         }
-        
-        // 5. Set status to "CANCELLED"
-        existingRequest.setStatus(Status.CANCELLED);
-        existingRequest.setResponseDate(LocalDateTime.now());
-        
-        // 6. Save updated entity
-        medicationInstructionRepository.save(existingRequest);
+
+        // 7. Update medication details from request
+      medicationInstructionRepository.deleteById(requestId);
+
     }
 
 

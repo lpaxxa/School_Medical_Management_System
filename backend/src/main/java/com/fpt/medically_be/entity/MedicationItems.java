@@ -3,8 +3,8 @@ package com.fpt.medically_be.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -12,13 +12,19 @@ import java.util.List;
 public class MedicationItems {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int itemId;
+    private int itemId;
+
+    @Column(columnDefinition = "NVARCHAR(150)", nullable = false)
     private String itemName;
-    private Date manufactureDate;
-    private Date expiryDate;
+    private LocalDate manufactureDate;
+    private LocalDate expiryDate;
+
+    @Column(columnDefinition = "NVARCHAR(50)")
     private String unit;
     private int stockQuantity; // default = 0
+    @Column(columnDefinition = "NVARCHAR(50)")
     private String itemType; // e.g., "Medicine", "Equipment", "Supplies"
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String itemDescription;
     private LocalDateTime createdAt;
     @OneToMany(mappedBy = "itemID",cascade = CascadeType.ALL, orphanRemoval = true)

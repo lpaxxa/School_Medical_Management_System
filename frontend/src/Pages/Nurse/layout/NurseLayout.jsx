@@ -3,6 +3,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header/Header";
 import Navigation from "../components/Navigation/Navigation";
+import { InventoryProvider, MedicalEventsProvider } from "../../../context/NurseContext";
 import "./NurseLayout.css";
 
 const NurseLayout = ({ children }) => {
@@ -14,11 +15,13 @@ const NurseLayout = ({ children }) => {
     navigate("/login");
   };    return (
     <div className="nurse-layout">
-      <Header />
-      <div className="layout-container">
-        <Navigation />
-        <main className="nurse-content">
-          {children}
+      <Header />      <div className="layout-container">
+        <Navigation />        <main className="nurse-content">
+          <InventoryProvider>
+            <MedicalEventsProvider>
+              {children}
+            </MedicalEventsProvider>
+          </InventoryProvider>
         </main>
       </div>
     </div>

@@ -23,6 +23,8 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         // Student/Parent info (for display)
         private Long healthProfileId;
         private String studentName;
+        private String studentClass;
+        private String studentId;
 
         private String requestedBy; // Parent's name who made the request
         private String requestedByAccountId; // Parent's account ID for notifications
@@ -32,7 +34,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         private String dosageInstructions;
         private LocalDate startDate;
         private LocalDate endDate;
-        private Integer frequencyPerDay;
+        private String frequencyPerDay;
         private String timeOfDay; // morning afternoon before lunch....
         private String specialInstructions;
 
@@ -79,49 +81,106 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
                 if (entity == null) {
                         return null;
                 }
-                this.id = entity.getId();
-                this.submittedAt = entity.getSubmittedAt();
+                
+                try {
+                        this.id = entity.getId();
+                        this.submittedAt = entity.getSubmittedAt();
 
-                // Health profile and related information
-                if (entity.getHealthProfile() != null) {
-                        this.healthProfileId = entity.getHealthProfile().getId();
-                        if (entity.getHealthProfile().getStudent() != null) {
-                                this.studentName = entity.getHealthProfile().getStudent().getFullName();
+                        // Health profile and related information with comprehensive null safety
+                        try {
+                                if (entity.getHealthProfile() != null) {
+                                        this.healthProfileId = entity.getHealthProfile().getId();
+                                        if (entity.getHealthProfile().getStudent() != null) {
+                                                this.studentName = entity.getHealthProfile().getStudent().getFullName();
+                                                this.studentClass = entity.getHealthProfile().getStudent().getClassName();
+                                                this.studentId = entity.getHealthProfile().getStudent().getStudentId();
+                                        } else {
+                                                // Fallback values for missing student data
+                                                this.studentName = "Unknown Student";
+                                                this.studentClass = "Unknown Class";
+                                                this.studentId = "Unknown ID";
+                                        }
+                                } else {
+                                        // Fallback values for missing health profile
+                                        this.healthProfileId = null;
+                                        this.studentName = "No Health Profile";
+                                        this.studentClass = "No Class";
+                                        this.studentId = "No ID";
+                                }
+                        } catch (Exception e) {
+                                logger.warning("Error accessing health profile data for medication instruction ID " + entity.getId() + ": " + e.getMessage());
+                                // Set safe fallback values
+                                this.healthProfileId = null;
+                                this.studentName = "Data Error";
+                                this.studentClass = "Data Error";
+                                this.studentId = "Data Error";
                         }
-                }
 
+                        // Parent information with null safety
+                        try {
+                                if (entity.getRequestedBy() != null) {
+                                        this.requestedBy = entity.getRequestedBy().getFullName(); // Set parent's name
+                                        
+                                        // Set parent's account ID for notifications
+                                        if (entity.getRequestedBy().getAccount() != null) {
+                                                this.requestedByAccountId = entity.getRequestedBy().getAccount().getId();
+                                        } else {
+                                                this.requestedByAccountId = null;
+                                        }
+                                } else {
+                                        this.requestedBy = "Unknown Parent";
+                                        this.requestedByAccountId = null;
+                                }
+                        } catch (Exception e) {
+                                logger.warning("Error accessing parent data for medication instruction ID " + entity.getId() + ": " + e.getMessage());
+                                this.requestedBy = "Data Error";
+                                this.requestedByAccountId = null;
+                        }
 
-               if( entity.getRequestedBy() != null) {
-                        this.requestedBy = entity.getRequestedBy().getFullName(); // Set parent's name
+                        // Medication details with null safety
+                        this.medicationName = entity.getMedicationName() != null ? entity.getMedicationName() : "Unknown Medicine";
+                        this.dosageInstructions = entity.getDosageInstructions() != null ? entity.getDosageInstructions() : "No instructions";
+                        this.startDate = entity.getStartDate();
+                        this.endDate = entity.getEndDate();
+                        this.frequencyPerDay = entity.getFrequencyPerDay() != null ? entity.getFrequencyPerDay() : "As needed";
+                        this.timeOfDay = entity.getTimeOfDay() != null ? entity.getTimeOfDay() : "Not specified";
+                        this.specialInstructions = entity.getSpecialInstructions();
+                        this.parentProvided = entity.getParentProvided() != null ? entity.getParentProvided() : false;
 
+                        // Approval workflow with null safety
+                        this.status = entity.getStatus() != null ? entity.getStatus() : Status.PENDING_APPROVAL;
+                        this.rejectionReason = entity.getRejectionReason();
                         
-                        // Set parent's account ID for notifications
-                        if (entity.getRequestedBy().getAccount() != null) {
-                                this.requestedByAccountId = entity.getRequestedBy().getAccount().getId();
+                        try {
+                                if (entity.getApprovedBy() != null) {
+                                        this.approvedBy = entity.getApprovedBy().getFullName();
+                                } else {
+                                        this.approvedBy = null;
+                                }
+                        } catch (Exception e) {
+                                logger.warning("Error accessing approver data for medication instruction ID " + entity.getId() + ": " + e.getMessage());
+                                this.approvedBy = "Data Error";
                         }
+                        
+                        this.responseDate = entity.getResponseDate();
+
+                        return this;
+                        
+                } catch (Exception e) {
+                        logger.severe("Critical error transforming MedicationInstruction entity to DTO for ID " + 
+                                     (entity.getId() != null ? entity.getId() : "null") + ": " + e.getMessage());
+                        
+                        // Return a safe fallback DTO to prevent complete failure
+                        MedicationInstructionDTO fallbackDto = new MedicationInstructionDTO();
+                        fallbackDto.id = entity.getId();
+                        fallbackDto.medicationName = "Data Error - Please Contact Support";
+                        fallbackDto.dosageInstructions = "Unable to load";
+                        fallbackDto.studentName = "Unable to load";
+                        fallbackDto.requestedBy = "Unable to load";
+                        fallbackDto.status = Status.PENDING_APPROVAL;
+                        fallbackDto.parentProvided = false;
+                        
+                        return fallbackDto;
                 }
-
-                // Medication details
-                this.medicationName = entity.getMedicationName();
-                this.dosageInstructions = entity.getDosageInstructions();
-                this.startDate = entity.getStartDate();
-                this.endDate = entity.getEndDate();
-                this.frequencyPerDay = entity.getFrequencyPerDay();
-                this.timeOfDay = entity.getTimeOfDay();
-                this.specialInstructions = entity.getSpecialInstructions();
-                this.parentProvided = entity.getParentProvided();
-
-                // Approval workflow
-                this.status = entity.getStatus();
-                this.rejectionReason = entity.getRejectionReason();
-                if (entity.getApprovedBy() != null) {
-
-                        this.approvedBy = entity.getApprovedBy().getFullName();
-                }
-                this.responseDate = entity.getResponseDate();
-
-                return this;
-
-
         }
 }

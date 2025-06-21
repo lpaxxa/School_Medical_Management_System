@@ -1,668 +1,336 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import healthCheckupService from '../../../../../services/healthCheckupService';
+﻿import React, { useState, useEffect } from 'react';
+import { Modal, Button, Form, Row, Col, Pagination } from 'react-bootstrap';
 import { useAuth } from '../../../../../context/AuthContext';
+import { useHealthCheckup } from '../../../../../context/NurseContext';
+import { FaAngleLeft, FaAngleRight, FaAngleDoubleLeft, FaAngleDoubleRight } from 'react-icons/fa';
 import './CheckupList.css';
 
-const CheckupList = ({ campaigns, onCampaignSelect, refreshData }) => {
+const CheckupList = () => {
   // Lấy thông tin người dùng từ context
   const { currentUser } = useAuth();
+  const { healthCheckups, loading: dataLoading, error, refreshHealthCheckups } = useHealthCheckup();
   
-  // State cho form thêm/sửa đợt khám
-  const [showForm, setShowForm] = useState(false);
-  const [formMode, setFormMode] = useState('add'); // 'add' hoặc 'edit'
-  const [formData, setFormData] = useState({
-    name: '',
-    type: 'Toàn trường',
-    targetGrades: '',
-    targetClasses: '',
-    scheduledDate: '',
-    endDate: '',
-    checkupItems: [],
-    description: '',
-    status: 'Chưa bắt đầu',
-    createdBy: currentUser?.name || 'Y tá trường'
-  });
-  const [filteredCampaigns, setFilteredCampaigns] = useState([]);
-  const [filterStatus, setFilterStatus] = useState('all');
+  // State for modals
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedCheckup, setSelectedCheckup] = useState(null);
+  
+  // State for filtering, pagination and searching
+  const [filteredCheckups, setFilteredCheckups] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
-    // Cập nhật dữ liệu lọc khi campaigns thay đổi
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  
+  // Update filtered checkups when data changes
   useEffect(() => {
-    if (campaigns && campaigns.length > 0) {
+    if (healthCheckups && healthCheckups.length > 0) {
       applyFilters();
     } else {
-      setFilteredCampaigns([]);
+      setFilteredCheckups([]);
     }
-  }, [campaigns, filterStatus, searchTerm]);
+  }, [healthCheckups, searchTerm]);
   
   // Xử lý lọc dữ liệu
   const applyFilters = () => {
-    let filtered = [...campaigns];
-    
-    // Lọc theo trạng thái
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(campaign => campaign.status === filterStatus);
-    }
+    let filtered = [...healthCheckups];
     
     // Lọc theo từ khoá tìm kiếm
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(campaign => 
-        campaign.name.toLowerCase().includes(term) || 
-        campaign.description?.toLowerCase().includes(term) ||
-        campaign.targetGrades.toLowerCase().includes(term) ||
-        campaign.targetClasses.toLowerCase().includes(term)
+      filtered = filtered.filter(checkup => 
+        checkup.studentName?.toLowerCase().includes(term) || 
+        checkup.checkupType?.toLowerCase().includes(term) ||
+        (checkup.diagnosis && checkup.diagnosis.toLowerCase().includes(term))
       );
     }
     
-    // Sắp xếp theo ngày gần nhất
-    filtered = filtered.sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate));
+    // Sắp xếp theo ID tăng dần
+    filtered = filtered.sort((a, b) => a.id - b.id);
     
-    setFilteredCampaigns(filtered);
+    setFilteredCheckups(filtered);
+    // Reset to first page when filters change
+    setCurrentPage(1);
   };
   
-  // Khởi tạo form mới
-  const initNewForm = () => {
-    return {
-      name: '',
-      type: 'Toàn trường',
-      targetGrades: '',
-      targetClasses: '',
-      scheduledDate: '',
-      endDate: '',
-      checkupItems: [],
-      description: '',
-      status: 'Chưa bắt đầu',
-      createdBy: currentUser?.name || 'Y tá trường'
-    };
+  // Calculate pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredCheckups.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredCheckups.length / itemsPerPage);
+  
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
   
-  // Mở form tạo mới
-  const handleAddNew = () => {
-    setFormMode('add');
-    setFormData(initNewForm());
-    setFormErrors({}); // Xóa lỗi trước khi mở form
-    setShowForm(true);
-  };
-    // Mở form chỉnh sửa
-  const handleEdit = (campaign) => {
-    const formatDate = (dateString) => {
-      if (!dateString) return '';
-      // Đảm bảo định dạng ngày phù hợp với input type="date"
-      const date = new Date(dateString);
-      return date.toISOString().split('T')[0];
-    };
-    
-    setFormMode('edit');
-    setFormData({
-      ...campaign,
-      scheduledDate: formatDate(campaign.scheduledDate),
-      endDate: formatDate(campaign.endDate),
-      // Đảm bảo checkupItems luôn là array
-      checkupItems: campaign.checkupItems || []
-    });
-    setFormErrors({}); // Xóa lỗi trước khi mở form
-    setShowForm(true);
-  };
-  
-  // Xử lý thay đổi input form
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Xóa thông báo lỗi khi người dùng sửa
-    if (formErrors[name]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: undefined
-      }));
-    }
-  };
-  
-  // Xử lý thay đổi các checkbox hạng mục khám
-  const handleCheckupItemChange = (e) => {
-    const { value, checked } = e.target;
-    
-    setFormData(prev => {
-      if (checked) {
-        return {
-          ...prev,
-          checkupItems: [...prev.checkupItems, value]
-        };
-      } else {
-        return {
-          ...prev,
-          checkupItems: prev.checkupItems.filter(item => item !== value)
-        };
-      }
-    });
-    
-    // Xóa lỗi khi người dùng đã chọn ít nhất một hạng mục
-    if (formErrors.checkupItems) {
-      setFormErrors(prev => ({
-        ...prev,
-        checkupItems: undefined
-      }));
-    }
-  };
-    
-  // Kiểm tra dữ liệu form trước khi submit
-  const validateForm = () => {
-    const errors = {};
-    const requiredFields = ['name', 'scheduledDate', 'endDate', 'targetGrades', 'targetClasses'];
-    
-    // Kiểm tra các trường bắt buộc
-    requiredFields.forEach(field => {
-      if (!formData[field]) {
-        errors[field] = 'Vui lòng điền thông tin này';
-      }
-    });
-    
-    // Kiểm tra ngày hợp lệ nếu cả hai đã được nhập
-    if (formData.scheduledDate && formData.endDate) {
-      const startDate = new Date(formData.scheduledDate);
-      const endDate = new Date(formData.endDate);
-      
-      if (endDate < startDate) {
-        errors.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
-      }
-    }
-    
-    // Kiểm tra hạng mục khám
-    if (formData.checkupItems.length === 0) {
-      errors.checkupItems = 'Vui lòng chọn ít nhất một hạng mục khám';
-    }
-    
-    // Cập nhật state lỗi
-    setFormErrors(errors);
-    
-    // Form hợp lệ nếu không có lỗi
-    return Object.keys(errors).length === 0;
-  };
-    // Xử lý submit form
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-    
-    try {
-      setLoading(true);
-      
-      if (formMode === 'add') {
-        await healthCheckupService.createCheckupCampaign(formData);
-        setShowForm(false);
-        // Hiển thị thông báo thành công với toast hoặc alert tùy theo ứng dụng đã có sẵn
-        alert("Thêm đợt khám mới thành công!");
-      } else {
-        await healthCheckupService.updateCheckupCampaign(formData.id, formData);
-        setShowForm(false);
-        alert("Cập nhật đợt khám thành công!");
-      }
-      
-      refreshData(); // Làm mới dữ liệu
-    } catch (error) {
-      console.error("Error saving campaign:", error);
-      // Hiển thị lỗi ở dạng validation error trong form
-      setFormErrors({
-        ...formErrors,
-        form: `Có lỗi xảy ra khi lưu đợt khám: ${error.message || 'Vui lòng thử lại'}`
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Xoá đợt khám
-  const handleDelete = async (campaign) => {
-    // Bảo vệ khỏi xóa nhầm với nhiều thông tin hơn
-    const confirmMessage = `Bạn có chắc chắn muốn xoá đợt khám "${campaign.name}"?\n\nThông tin đợt khám:\n- Thời gian: ${new Date(campaign.scheduledDate).toLocaleDateString('vi-VN')} đến ${new Date(campaign.endDate).toLocaleDateString('vi-VN')}\n- Trạng thái: ${campaign.status}\n\nLưu ý: Hành động này không thể hoàn tác!`;
-    
-    if (window.confirm(confirmMessage)) {
-      try {
-        setLoading(true);
-        await healthCheckupService.deleteCheckupCampaign(campaign.id);
-        alert("Xóa đợt khám thành công!");
-        refreshData(); // Làm mới dữ liệu
-      } catch (error) {
-        console.error("Error deleting campaign:", error);
-        alert(`Có lỗi xảy ra khi xoá đợt khám: ${error.message || 'Vui lòng thử lại'}`);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-  
-  // Cập nhật trạng thái đợt khám
-  const handleStatusChange = async (campaignId, newStatus) => {
-    try {
-      setLoading(true);
-      await healthCheckupService.updateCheckupCampaignStatus(campaignId, newStatus);
-      alert(`Cập nhật trạng thái thành: ${newStatus}`);
-      refreshData(); // Làm mới dữ liệu
-    } catch (error) {
-      console.error("Error updating campaign status:", error);
-      alert(`Có lỗi xảy ra khi cập nhật trạng thái: ${error.message || 'Vui lòng thử lại'}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Hiển thị màu sắc theo trạng thái
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'Đang diễn ra':
-        return 'status-active';
-      case 'Sắp diễn ra':
-      case 'Chưa bắt đầu':
-        return 'status-upcoming';
-      case 'Đã hoàn thành':
-        return 'status-completed';
-      case 'Huỷ':
-        return 'status-cancelled';
-      default:
-        return '';
-    }
-  };
-
-  // Format và hiển thị ngày tháng
+  // Format date for display
   const formatDate = (dateString) => {
-    if (!dateString) return 'Chưa xác định';
-    try {
-      return new Date(dateString).toLocaleDateString('vi-VN');
-    } catch (e) {
-      return dateString;
-    }
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('vi-VN', {
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit', 
+      minute: '2-digit'
+    }).format(date);
+  };
+  
+  // Handle viewing checkup details
+  const handleViewDetails = (checkup) => {
+    setSelectedCheckup(checkup);
+    setShowDetailsModal(true);
+  };
+
+  // Handle editing a checkup
+  const handleEdit = (checkup) => {
+    setSelectedCheckup(checkup);
+    setShowEditModal(true);
+  };
+
+  // Handle deleting a checkup
+  const handleDelete = (checkup) => {
+    setSelectedCheckup(checkup);
+    setShowDeleteModal(true);
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Handle confirm delete
+  const handleConfirmDelete = async () => {
+    // Will implement API call when available
+    setShowDeleteModal(false);
+    alert('Chức năng xóa sẽ được cập nhật khi API sẵn sàng');
+    // refreshHealthCheckups();
   };
 
   return (
-    <div className="checkup-list-container">
+    <div className='checkup-list-container'>
       {loading && (
-        <div className="loading-overlay">
-          <div className="spinner"></div>
+        <div className='loading-overlay'>
+          <div className='spinner'></div>
         </div>
       )}
       
-      <div className="checkup-list-header">
-        <h2>Danh sách đợt khám sức khoẻ</h2>
-        <div className="controls">
-          <div className="search-filter-container">
-            <input
-              type="text"
-              placeholder="Tìm kiếm đợt khám..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-            <select 
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="Đang diễn ra">Đang diễn ra</option>
-              <option value="Sắp diễn ra">Sắp diễn ra</option>
-              <option value="Đã hoàn thành">Đã hoàn thành</option>
-              <option value="Huỷ">Đã huỷ</option>
-              <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-            </select>
-          </div>
-          <button className="add-btn" onClick={handleAddNew}>
-            <i className="fas fa-plus"></i> Thêm đợt khám mới
-          </button>
-        </div>
+      <div className='checkup-list-header'>
+        <h2>Danh sách khám sức khỏe</h2>
       </div>
-
-      {/* Bảng danh sách đợt khám */}
-      <div className="table-container">
-        <table className="checkup-table">
+      
+      <div className='table-container'>
+        <div className='search-container'>
+          <input
+            type='text'
+            placeholder='Tìm kiếm theo tên học sinh, loại khám hoặc chẩn đoán...'
+            className='search-input'
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+        </div>
+        
+        <table className='checkup-table'>
           <thead>
             <tr>
-              <th>Tên đợt khám</th>
-              <th>Loại đợt khám</th>
-              <th>Mục tiêu</th>
-              <th>Ngày khám</th>
-              <th>Tiến độ</th>
-              <th>Trạng thái</th>
+              <th>ID</th>
+              <th>Mã học sinh</th>
+              <th>Tên học sinh</th>
+              <th>Loại khám</th>
+              <th>Ngày giờ khám</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {filteredCampaigns.length > 0 ? (
-              filteredCampaigns.map((campaign) => (
-                <tr key={campaign.id}>
+            {dataLoading ? (
+              <tr>
+                <td colSpan='6' className='loading-message'>
+                  Đang tải dữ liệu...
+                </td>
+              </tr>
+            ) : filteredCheckups.length > 0 ? (
+              currentItems.map((checkup) => (
+                <tr key={checkup.id}>
+                  <td>{checkup.id}</td>
+                  <td>{checkup.studentId}</td>
+                  <td>{checkup.studentName}</td>
+                  <td>{checkup.checkupType}</td>
+                  <td>{formatDate(checkup.checkupDate)}</td>
                   <td>
-                    <div className="campaign-name" onClick={() => onCampaignSelect(campaign)}>
-                      {campaign.name}
-                      <span className="view-details">Xem chi tiết</span>
-                    </div>
-                    <div className="campaign-description">{campaign.description}</div>
-                  </td>
-                  <td>{campaign.type}</td>
-                  <td>
-                    <div>Khối: {campaign.targetGrades}</div>
-                    <div>Lớp: {campaign.targetClasses}</div>
-                  </td>
-                  <td>
-                    <div>Bắt đầu: {formatDate(campaign.scheduledDate)}</div>
-                    <div>Kết thúc: {formatDate(campaign.endDate)}</div>
-                  </td>
-                  <td>
-                    <div className="progress">
-                      <div 
-                        className="progress-bar" 
-                        style={{ 
-                          width: `${Math.round((campaign.completedStudents / (campaign.totalStudents || 1)) * 100)}%` 
-                        }}
-                      ></div>
-                    </div>
-                    <div className="progress-text">
-                      {campaign.completedStudents}/{campaign.totalStudents || 0} 
-                      ({Math.round((campaign.completedStudents / (campaign.totalStudents || 1)) * 100)}%)
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${getStatusClass(campaign.status)}`}>
-                      {campaign.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button className="action-btn edit-btn" onClick={() => handleEdit(campaign)}>
-                        <i className="fas fa-edit"></i>
+                    <div className='action-buttons'>
+                      <button 
+                        className='action-btn view-btn' 
+                        onClick={() => handleViewDetails(checkup)}
+                        title='Xem chi tiết'
+                        aria-label='Xem chi tiết'
+                      >
+                        <i className='fas fa-eye'></i>
                       </button>
-                      <button className="action-btn delete-btn" onClick={() => handleDelete(campaign)}>
-                        <i className="fas fa-trash"></i>
+                      <button 
+                        className='action-btn edit-btn' 
+                        onClick={() => handleEdit(checkup)}
+                        title='Sửa'
+                        aria-label='Sửa'
+                      >
+                        <i className='fas fa-edit'></i>
                       </button>
-                      <div className="status-dropdown">
-                        <button className="action-btn status-btn">
-                          <i className="fas fa-ellipsis-v"></i>
-                        </button>
-                        <div className="status-dropdown-content">
-                          <button onClick={() => handleStatusChange(campaign.id, 'Chưa bắt đầu')}>Chưa bắt đầu</button>
-                          <button onClick={() => handleStatusChange(campaign.id, 'Sắp diễn ra')}>Sắp diễn ra</button>
-                          <button onClick={() => handleStatusChange(campaign.id, 'Đang diễn ra')}>Đang diễn ra</button>
-                          <button onClick={() => handleStatusChange(campaign.id, 'Đã hoàn thành')}>Đã hoàn thành</button>
-                          <button onClick={() => handleStatusChange(campaign.id, 'Huỷ')}>Huỷ đợt khám</button>
-                        </div>
-                      </div>
+                      <button 
+                        className='action-btn delete-btn' 
+                        onClick={() => handleDelete(checkup)}
+                        title='Xóa'
+                        aria-label='Xóa'
+                      >
+                        <i className='fas fa-trash'></i>
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="empty-message">
-                  {searchTerm || filterStatus !== 'all' 
-                    ? "Không tìm thấy đợt khám nào phù hợp với bộ lọc."
-                    : "Chưa có đợt khám nào được tạo. Nhấn 'Thêm đợt khám mới' để bắt đầu."}
+                <td colSpan='6' className='empty-message'>
+                  {searchTerm
+                    ? 'Không tìm thấy kết quả khám nào phù hợp với tìm kiếm.'
+                    : 'Chưa có kết quả khám nào được ghi nhận.'}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
-        {/* Form thêm/chỉnh sửa đợt khám - hiển thị trực tiếp trên trang */}
-      {showForm && (
-        <div className="checkup-form-container">
-          <div className="checkup-form-header">
-            <h3>{formMode === 'add' ? 'Thêm đợt khám mới' : 'Chỉnh sửa đợt khám'}</h3>
-            <button className="close-btn" onClick={() => setShowForm(false)}>
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-            <Form onSubmit={handleSubmit} className="checkup-form">
-            {formErrors.form && (
-              <div className="alert alert-danger mb-3" role="alert">
-                {formErrors.form}
-              </div>
-            )}
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Tên đợt khám <span className="required-field">*</span>
-              </Form.Label>
-              <Form.Control 
-                type="text" 
-                name="name"
-                value={formData.name} 
-                onChange={handleInputChange}
-                isInvalid={!!formErrors.name}
-                placeholder="Nhập tên đợt khám (ví dụ: Khám sức khoẻ định kỳ đầu năm học 2025-2026)"
-              />
-              <Form.Control.Feedback type="invalid">
-                {formErrors.name}
-              </Form.Control.Feedback>
-            </Form.Group>
-            
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Loại đợt khám</Form.Label>
-                  <Form.Select 
-                    name="type" 
-                    value={formData.type} 
-                    onChange={handleInputChange}
-                  >
-                    <option value="Toàn trường">Toàn trường</option>
-                    <option value="Theo khối">Theo khối</option>
-                    <option value="Theo lớp">Theo lớp</option>
-                    <option value="Định kỳ học kỳ">Định kỳ học kỳ</option>
-                    <option value="Định kỳ quý">Định kỳ quý</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    Khối lớp <span className="required-field">*</span>
-                  </Form.Label>
-                  <Form.Control 
-                    type="text" 
-                    name="targetGrades"
-                    placeholder="Ví dụ: 10, 11, 12 hoặc Tất cả" 
-                    value={formData.targetGrades} 
-                    onChange={handleInputChange}
-                    isInvalid={!!formErrors.targetGrades}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.targetGrades}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Col>
-            </Row>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Các lớp áp dụng <span className="required-field">*</span>
-              </Form.Label>
-              <Form.Control 
-                type="text" 
-                name="targetClasses"
-                placeholder="Ví dụ: 10A1, 10A2 hoặc Tất cả" 
-                value={formData.targetClasses} 
-                onChange={handleInputChange}
-                isInvalid={!!formErrors.targetClasses}
-              />
-              <Form.Control.Feedback type="invalid">
-                {formErrors.targetClasses}
-              </Form.Control.Feedback>
-            </Form.Group>
-            
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    Ngày bắt đầu <span className="required-field">*</span>
-                  </Form.Label>
-                  <Form.Control 
-                    type="date" 
-                    name="scheduledDate"
-                    value={formData.scheduledDate} 
-                    onChange={handleInputChange}
-                    isInvalid={!!formErrors.scheduledDate}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.scheduledDate}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    Ngày kết thúc <span className="required-field">*</span>
-                  </Form.Label>
-                  <Form.Control 
-                    type="date" 
-                    name="endDate"
-                    value={formData.endDate} 
-                    onChange={handleInputChange}
-                    isInvalid={!!formErrors.endDate}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.endDate}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Col>
-            </Row>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Các hạng mục khám <span className="required-field">*</span>
-              </Form.Label>
-              {formErrors.checkupItems && (
-                <div className="text-danger mb-2 small">{formErrors.checkupItems}</div>
+        
+        {/* Enhanced Pagination - Fixed to match design */}
+        {filteredCheckups.length > 0 && (
+          <div className='pagination-container'>
+            <div className='pagination-wrapper'>
+              {/* First and Previous buttons */}
+              <span className="page-item-text" onClick={() => handlePageChange(1)} style={{ cursor: currentPage === 1 ? 'default' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}>
+                <FaAngleDoubleLeft /> First
+              </span>
+              <span className="page-item-text" onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)} style={{ cursor: currentPage === 1 ? 'default' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}>
+                <FaAngleLeft /> Previous
+              </span>
+              
+              {/* Current page indicator */}
+              <span className="current-page">
+                {currentPage}
+              </span>
+              
+              {/* Show specific page number if available */}
+              {totalPages > 1 && (
+                <span className="page-number" onClick={() => handlePageChange(2)}>
+                  2
+                </span>
               )}
-              <div className="checkup-items-container">
-                <Row>
-                  <Col md={4}>
-                    <Form.Check 
-                      type="checkbox" 
-                      label="Chiều cao" 
-                      value="Chiều cao"
-                      checked={formData.checkupItems.includes('Chiều cao')}
-                      onChange={handleCheckupItemChange}
-                      isInvalid={!!formErrors.checkupItems}
-                    />
-                  </Col>
-                  <Col md={4}>
-                    <Form.Check 
-                      type="checkbox" 
-                      label="Cân nặng" 
-                      value="Cân nặng"
-                      checked={formData.checkupItems.includes('Cân nặng')}
-                      onChange={handleCheckupItemChange}
-                      isInvalid={!!formErrors.checkupItems}
-                    />
-                  </Col>
-                  <Col md={4}>
-                    <Form.Check 
-                      type="checkbox" 
-                      label="BMI" 
-                      value="BMI"
-                      checked={formData.checkupItems.includes('BMI')}
-                      onChange={handleCheckupItemChange}
-                      isInvalid={!!formErrors.checkupItems}
-                    />
-                  </Col>
-                </Row>
-                <Row>
-                  <Col md={4}>
-                    <Form.Check 
-                      type="checkbox" 
-                      label="Thị lực" 
-                      value="Thị lực"
-                      checked={formData.checkupItems.includes('Thị lực')}
-                      onChange={handleCheckupItemChange}
-                      isInvalid={!!formErrors.checkupItems}
-                    />
-                  </Col>
-                  <Col md={4}>
-                    <Form.Check 
-                      type="checkbox" 
-                      label="Thính lực" 
-                      value="Thính lực"
-                      checked={formData.checkupItems.includes('Thính lực')}
-                      onChange={handleCheckupItemChange}
-                      isInvalid={!!formErrors.checkupItems}
-                    />
-                  </Col>
-                  <Col md={4}>
-                    <Form.Check 
-                      type="checkbox" 
-                      label="Huyết áp" 
-                      value="Huyết áp"
-                      checked={formData.checkupItems.includes('Huyết áp')}
-                      onChange={handleCheckupItemChange}
-                      isInvalid={!!formErrors.checkupItems}
-                    />
-                  </Col>
-                </Row>
-                <Row>
-                  <Col md={4}>
-                    <Form.Check 
-                      type="checkbox" 
-                      label="Nhịp tim" 
-                      value="Nhịp tim"
-                      checked={formData.checkupItems.includes('Nhịp tim')}
-                      onChange={handleCheckupItemChange}
-                      isInvalid={!!formErrors.checkupItems}
-                    />
-                  </Col>
-                  <Col md={4}>
-                    <Form.Check 
-                      type="checkbox" 
-                      label="Tình trạng răng" 
-                      value="Tình trạng răng"
-                      checked={formData.checkupItems.includes('Tình trạng răng')}
-                      onChange={handleCheckupItemChange}
-                      isInvalid={!!formErrors.checkupItems}
-                    />
-                  </Col>
-                  <Col md={4}>
-                    <Form.Check 
-                      type="checkbox" 
-                      label="Kiểm tra mắt chuyên sâu" 
-                      value="Kiểm tra mắt chuyên sâu"
-                      checked={formData.checkupItems.includes('Kiểm tra mắt chuyên sâu')}
-                      onChange={handleCheckupItemChange}
-                      isInvalid={!!formErrors.checkupItems}
-                    />
-                  </Col>
-                </Row>
-              </div>
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Mô tả</Form.Label>
-              <Form.Control 
-                as="textarea" 
-                rows={3} 
-                name="description"
-                placeholder="Mô tả chi tiết về đợt khám sức khoẻ"
-                value={formData.description} 
-                onChange={handleInputChange}
-              />
-            </Form.Group>
-            
-            <div className="form-note small text-muted mb-3">
-              <span className="required-field">*</span> Thông tin bắt buộc
+              
+              {/* Separator if there are many pages */}
+              {totalPages > 2 && (
+                <span className="page-separator">•</span>
+              )}
+              
+              {/* Next and Last buttons */}
+              <span className="page-item-text" onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)} style={{ cursor: currentPage === totalPages ? 'default' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}>
+                Next <FaAngleRight />
+              </span>
+              <span className="page-item-text" onClick={() => handlePageChange(totalPages)} style={{ cursor: currentPage === totalPages ? 'default' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}>
+                Last <FaAngleDoubleRight />
+              </span>
             </div>
-            
-            <div className="form-buttons">
-              <Button variant="secondary" onClick={() => setShowForm(false)} className="me-2">
-                Huỷ
-              </Button>
-              <Button variant="primary" type="submit">
-                {formMode === 'add' ? 'Thêm mới' : 'Cập nhật'}
-              </Button>
+            <div className="pagination-info">
+              Hiển thị {indexOfFirstItem + 1} đến {Math.min(indexOfLastItem, filteredCheckups.length)} trong tổng số {filteredCheckups.length} kết quả
             </div>
-          </Form>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
+      
+      {/* Details Modal */}
+      <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)} size='lg'>
+        <Modal.Header closeButton>
+          <Modal.Title>Chi tiết kết quả khám</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedCheckup && (
+            <div className='checkup-details'>
+              <Row>
+                <Col md={6}>
+                  <h5>Thông tin học sinh</h5>
+                  <p><strong>ID:</strong> {selectedCheckup.id}</p>
+                  <p><strong>Mã học sinh:</strong> {selectedCheckup.studentId}</p>
+                  <p><strong>Tên học sinh:</strong> {selectedCheckup.studentName}</p>
+                </Col>
+                <Col md={6}>
+                  <h5>Thông tin khám</h5>
+                  <p><strong>Ngày khám:</strong> {formatDate(selectedCheckup.checkupDate)}</p>
+                  <p><strong>Loại khám:</strong> {selectedCheckup.checkupType}</p>
+                </Col>
+              </Row>
+              <hr />
+              <Row>
+                <Col md={6}>
+                  <h5>Chỉ số</h5>
+                  <p><strong>Chiều cao:</strong> {selectedCheckup.height} cm</p>
+                  <p><strong>Cân nặng:</strong> {selectedCheckup.weight} kg</p>
+                  <p><strong>BMI:</strong> {selectedCheckup.bmi}</p>
+                  <p><strong>Huyết áp:</strong> {selectedCheckup.bloodPressure}</p>
+                  <p><strong>Thị lực trái:</strong> {selectedCheckup.visionLeft}</p>
+                  <p><strong>Thị lực phải:</strong> {selectedCheckup.visionRight}</p>
+                  <p><strong>Thính lực:</strong> {selectedCheckup.hearingStatus}</p>
+                  <p><strong>Nhịp tim:</strong> {selectedCheckup.heartRate} bpm</p>
+                  <p><strong>Nhiệt độ cơ thể:</strong> {selectedCheckup.bodyTemperature}C</p>
+                </Col>
+                <Col md={6}>
+                  <h5>Kết quả</h5>
+                  <p><strong>Chẩn đoán:</strong> {selectedCheckup.diagnosis}</p>
+                  <p><strong>Khuyến nghị:</strong> {selectedCheckup.recommendations}</p>
+                  <p><strong>Cần theo dõi:</strong> {selectedCheckup.followUpNeeded ? 'Có' : 'Không'}</p>
+                  <p><strong>Đã thông báo phụ huynh:</strong> {selectedCheckup.parentNotified ? 'Có' : 'Không'}</p>
+                  <hr />
+                  <p><strong>Y tá/Bác sĩ:</strong> {selectedCheckup.medicalStaffName}</p>
+                </Col>
+              </Row>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={() => setShowDetailsModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      
+      {/* Edit Modal - Placeholder until API is updated */}
+      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Chỉnh sửa kết quả khám</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Chức năng chỉnh sửa sẽ được cập nhật khi API sẵn sàng.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={() => setShowEditModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Xác nhận xóa</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Bạn có chắc chắn muốn xóa kết quả khám này không? Hành động này không thể hoàn tác.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={() => setShowDeleteModal(false)}>
+            Hủy
+          </Button>
+          <Button variant='danger' onClick={handleConfirmDelete}>
+            Xác nhận xóa
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

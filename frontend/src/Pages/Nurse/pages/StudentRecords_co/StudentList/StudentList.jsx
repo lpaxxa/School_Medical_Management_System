@@ -264,20 +264,26 @@ const StudentList = () => {
                   <td>{student.class}</td>
                   <td>{new Date(student.dateOfBirth).toLocaleDateString('vi-VN')}</td>
                   <td>{student.bloodType}</td>
-                  <td>{new Date(student.lastUpdated).toLocaleDateString('vi-VN')}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewStudent(student);
-                      }} className="action-button view">
-                        <i className="fas fa-eye"></i>
+                  <td>{new Date(student.lastUpdated).toLocaleDateString('vi-VN')}</td>                  <td>                    <div className="action-buttons">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewStudent(student);
+                        }} 
+                        className="action-button view"
+                        title="Xem chi tiết"
+                      >
+                        <i className="fas fa-eye"></i> Xem
                       </button>
-                      <button onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditRecord(student);
-                      }} className="action-button edit">
-                        <i className="fas fa-edit"></i>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditRecord(student);
+                        }} 
+                        className="action-button edit"
+                        title="Chỉnh sửa"
+                      >
+                        <i className="fas fa-edit"></i> Sửa
                       </button>
                     </div>
                   </td>

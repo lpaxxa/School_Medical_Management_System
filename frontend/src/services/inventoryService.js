@@ -1,260 +1,245 @@
 import axios from 'axios';
 
-// Cấu hình sử dụng dữ liệu giả hay API thật
-const config = {
-  useMockData: true, // Mặc định sử dụng dữ liệu giả
-  apiUrl: 'https://api.example.com/inventory' // URL API thật khi cần thay đổi
-};
-
-// Dữ liệu mẫu
-const mockItems = [
-  {
-    id: 1,
-    name: "Băng cá nhân",
-    unit: "hộp",
-    quantity: 20,
-    category: "Vật tư y tế",
-    expDate: "2025-12-31",
-    warning: "Bình thường"
-  },
-  {
-    id: 2,
-    name: "Gạc vô trùng",
-    unit: "gói",
-    quantity: 15,
-    category: "Vật tư y tế",
-    expDate: "2025-06-30",
-    warning: "Bình thường"
-  },
-  {
-    id: 3,
-    name: "Cồn y tế 70%",
-    unit: "chai",
-    quantity: 8,
-    category: "Hóa chất",
-    expDate: "2024-10-15",
-    warning: "Thấp"
-  },
-  {
-    id: 4,
-    name: "Dung dịch sát khuẩn",
-    unit: "chai",
-    quantity: 5,
-    category: "Hóa chất",
-    expDate: "2024-08-20",
-    warning: "Thấp"
-  },
-  {
-    id: 5,
-    name: "Nhiệt kế điện tử",
-    unit: "cái",
-    quantity: 10,
-    category: "Thiết bị",
-    expDate: null,
-    warning: "Bình thường"
-  },
-  {
-    id: 6,
-    name: "Máy đo huyết áp",
-    unit: "cái",
-    quantity: 3,
-    category: "Thiết bị",
-    expDate: null,
-    warning: "Bình thường"
-  },
-  {
-    id: 7,
-    name: "Paracetamol 500mg",
-    unit: "vỉ",
-    quantity: 25,
-    category: "Thuốc",
-    expDate: "2024-05-15",
-    warning: "Cảnh báo"
-  },
-  {
-    id: 8,
-    name: "Dung dịch nhỏ mắt",
-    unit: "chai",
-    quantity: 12,
-    category: "Thuốc",
-    expDate: "2024-12-20",
-    warning: "Bình thường"
+// Khởi tạo axios với cấu hình CORS
+const axiosInstance = axios.create({
+  withCredentials: false,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
   }
-];
+});
 
-// Lưu trữ dữ liệu cục bộ
-let items = [...mockItems];
+const API_URL = 'http://localhost:8080/api/medication-items';
 
-// Lấy ID cao nhất hiện tại
-const getHighestId = () => {
-  return items.reduce((maxId, item) => Math.max(maxId, item.id), 0);
-};
-
-// Danh mục
-const categories = ["Vật tư y tế", "Hóa chất", "Thiết bị", "Thuốc"];
-
-// Delay giả lập
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Service API
 const inventoryService = {
-  // Lấy tất cả vật tư
-  getAllItems: async () => {
-    if (config.useMockData) {
-      // Sử dụng dữ liệu giả
-      await delay(300); // Giả lập độ trễ mạng
-      return [...mockItems];
-    } else {
-      // Sử dụng API thật
-      const response = await axios.get(config.apiUrl);
-      return response.data;
+  API_URL,
+
+  _cache: {
+    getAllItems: null,
+    lastFetchTime: null,
+    cacheDuration: 5000 // ms
+  },
+
+  getAllItems: async (forceRefresh = false) => {
+    const now = Date.now();
+    if (!forceRefresh &&
+        inventoryService._cache.getAllItems &&
+        inventoryService._cache.lastFetchTime &&
+        (now - inventoryService._cache.lastFetchTime < inventoryService._cache.cacheDuration)) {
+      return inventoryService._cache.getAllItems;
+    }
+
+    try {
+      const response = await axiosInstance.get(`${API_URL}/get-all`);
+      let result;
+
+      if (response.data && typeof response.data === 'object') {
+        if (Array.isArray(response.data)) {
+          result = response.data;
+        } else if (response.data.content && Array.isArray(response.data.content)) {
+          result = response.data.content;
+        } else {
+          result = response.data;
+        }
+      } else {
+        result = response.data || [];
+      }
+
+      inventoryService._cache.getAllItems = result;
+      inventoryService._cache.lastFetchTime = now;
+
+      return result;
+    } catch (error) {
+      console.error('Lỗi khi tải danh sách vật phẩm:', error);
+      throw error;
     }
   },
 
-  // Lấy một item theo ID
-  getItemById: async (id) => {
-    if (config.useMockData) {
-      await delay(200);
-      const item = mockItems.find(item => item.id === id);
-      if (!item) throw new Error('Không tìm thấy vật tư');
-      return { ...item };
-    } else {
-      const response = await axios.get(`${config.apiUrl}/${id}`);
-      return response.data;
-    }
-  },
-
-  // Thêm item mới
   addItem: async (item) => {
-    if (config.useMockData) {
-      await delay(400);
-      const newItem = {
-        ...item,
-        id: Math.max(...mockItems.map(i => i.id), 0) + 1
-      };
-      mockItems.push(newItem);
-      return { ...newItem };
-    } else {
-      const response = await axios.post(config.apiUrl, item);
+    try {
+      const formattedItem = { ...item };
+      if (formattedItem.manufactureDate) {
+        formattedItem.manufactureDate = formattedItem.manufactureDate.split('T')[0];
+      }
+      if (formattedItem.expiryDate) {
+        formattedItem.expiryDate = formattedItem.expiryDate.split('T')[0];
+      }
+
+      const response = await axiosInstance.post(`${API_URL}/create`, formattedItem);
+      inventoryService._cache.getAllItems = null;
+
       return response.data;
+    } catch (error) {
+      console.error('Lỗi khi thêm vật phẩm:', error);
+
+      if (error.response) {
+        const responseData = error.response.data;
+
+        if (typeof responseData === 'string' && (
+            responseData.includes("already exists") || responseData.includes("đã tồn tại"))) {
+          throw new Error("Tên vật phẩm đã tồn tại trong hệ thống");
+        }
+
+        if (responseData && responseData.message) {
+          throw new Error(responseData.message);
+        }
+      }
+
+      throw new Error(`Lỗi khi thêm vật phẩm: ${error.message || 'Lỗi kết nối đến máy chủ'}`);
     }
   },
 
-  // Cập nhật item
   updateItem: async (id, item) => {
-    if (config.useMockData) {
-      await delay(300);
-      const index = mockItems.findIndex(i => i.id === id);
-      if (index === -1) throw new Error('Không tìm thấy vật tư');
-      
-      mockItems[index] = { ...item, id };
-      return { ...mockItems[index] };
-    } else {
-      const response = await axios.put(`${config.apiUrl}/${id}`, item);
+    if (!id) {
+      throw new Error('ID không được để trống khi cập nhật vật phẩm');
+    }
+
+    try {
+      const response = await axiosInstance.put(`${API_URL}/update/${id}?id=${id}`, item);
+      inventoryService._cache.getAllItems = null;
       return response.data;
+    } catch (error) {
+      console.error('Lỗi khi cập nhật vật phẩm:', error);
+
+      if (error.response) {
+        const responseData = error.response.data;
+
+        if (typeof responseData === 'string' && (
+            responseData.includes("already exists") || responseData.includes("đã tồn tại"))) {
+          throw new Error("Tên vật phẩm đã tồn tại trong hệ thống");
+        }
+
+        if (responseData && responseData.message) {
+          throw new Error(responseData.message);
+        }
+      }
+
+      throw new Error(`Lỗi khi cập nhật vật phẩm: ${error.message || 'Lỗi kết nối đến máy chủ'}`);
     }
   },
 
-  // Xóa item
   deleteItem: async (id) => {
-    if (config.useMockData) {
-      await delay(300);
-      const index = mockItems.findIndex(i => i.id === id);
-      if (index === -1) throw new Error('Không tìm thấy vật tư');
-      
-      mockItems.splice(index, 1);
-      return { success: true, id };
-    } else {
-      await axios.delete(`${config.apiUrl}/${id}`);
-      return { success: true, id };
+    try {
+      await axiosInstance.delete(`${API_URL}/delete/${id}`);
+      inventoryService._cache.getAllItems = null;
+      return { success: true, itemId: id };
+    } catch (error) {
+      console.error('Lỗi khi xóa vật phẩm:', error);
+      throw error;
     }
   },
 
-  // Tìm kiếm items theo trường và từ khóa
   searchItems: async (field, keyword) => {
-    if (config.useMockData) {
-      await delay(200);
-      if (!keyword) return [...mockItems];
-      
-      return mockItems.filter(item => {
-        const fieldValue = String(item[field]).toLowerCase();
-        return fieldValue.includes(keyword.toLowerCase());
+    try {
+      throw new Error('API chưa được triển khai');
+    } catch (error) {
+      console.error('Lỗi khi tìm kiếm vật phẩm:', error);
+      throw error;
+    }
+  },
+
+  searchItemsByName: async (name) => {
+    if (!name || name.trim() === '') {
+      return null;
+    }
+
+    try {
+      const encodedName = encodeURIComponent(name.trim());
+      const response = await axiosInstance.get(`${API_URL}/get-by-name/${encodedName}`);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        return null;
+      }
+      console.error('Lỗi khi tìm kiếm vật phẩm theo tên:', error);
+      throw error;
+    }
+  },
+
+  checkItemNameExists: async (name, excludeId) => {
+    if (!name || name.trim() === '') return false;
+
+    try {
+      const encodedName = encodeURIComponent(name.trim());
+      const timestamp = Date.now();
+
+      const response = await fetch(`${API_URL}/get-by-name/${encodedName}?_=${timestamp}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store'
+        },
+        cache: 'no-store'
       });
-    } else {
-      const response = await axios.get(`${config.apiUrl}/search?field=${field}&keyword=${keyword}`);
-      return response.data;
+
+      if (response.ok) {
+        const responseData = await response.text();
+
+        if (responseData === "" || responseData === '""' || responseData === "''") {
+          return false;
+        }
+
+        if (excludeId) {
+          let data;
+          try {
+            data = JSON.parse(responseData);
+            const foundItemId = data?.itemId || data?.id;
+            if (foundItemId?.toString() === excludeId.toString()) {
+              return false;
+            }
+          } catch {
+            return true;
+          }
+        }
+
+        return true;
+      }
+
+      if (response.status === 404) return false;
+      return false;
+    } catch (error) {
+      console.error('Lỗi khi kiểm tra tên vật phẩm:', error);
+      return false;
     }
   },
 
-  // Lọc items theo danh mục
-  filterByCategory: async (category) => {
-    if (config.useMockData) {
-      await delay(200);
-      if (!category) return [...mockItems];
-      return mockItems.filter(item => item.category === category);
-    } else {
-      const response = await axios.get(`${config.apiUrl}/category/${category}`);
-      return response.data;
+  checkItemNameExistence: async (name, excludeId = null) => {
+    if (!name || name.trim() === '') {
+      return { exists: false, message: 'Tên không được để trống' };
     }
-  },
 
-  // Lấy danh sách các danh mục
-  getCategories: async () => {
-    if (config.useMockData) {
-      await delay(100);
-      const categories = [...new Set(mockItems.map(item => item.category))];
-      return categories;
-    } else {
-      const response = await axios.get(`${config.apiUrl}/categories`);
-      return response.data;
-    }
-  },
-
-  // Lấy các vật tư có số lượng thấp
-  getLowStockItems: async () => {
-    if (config.useMockData) {
-      await delay(200);
-      return mockItems.filter(item => item.warning === 'Thấp');
-    } else {
-      const response = await axios.get(`${config.apiUrl}/low-stock`);
-      return response.data;
-    }
-  },
-
-  // Xuất báo cáo
-  exportReport: async () => {
-    if (config.useMockData) {
-      await delay(500);
-      // Tạo dữ liệu giả cho báo cáo
+    try {
+      const exists = await inventoryService.checkItemNameExists(name, excludeId);
       return {
-        success: true,
-        message: 'Xuất báo cáo thành công',
-        reportUrl: '#'
+        exists,
+        message: exists
+          ? 'Tên vật phẩm đã tồn tại trong hệ thống'
+          : 'Tên vật phẩm hợp lệ'
       };
-    } else {
-      const response = await axios.get(`${config.apiUrl}/export`);
-      return response.data;
+    } catch (error) {
+      return {
+        exists: false,
+        message: 'Lỗi khi kiểm tra tên vật phẩm. Vui lòng thử lại.'
+      };
     }
   },
 
-  // Chuyển đổi giữa dữ liệu giả và API thật
-  setUseMockData: (useMock) => {
-    config.useMockData = useMock;
-    return { success: true, useMockData: useMock };
-  },
-
-  // Cập nhật URL API
-  setApiUrl: (url) => {
-    if (url) {
-      config.apiUrl = url;
-      return { success: true, apiUrl: url };
+  exportReport: async () => {
+    try {
+      throw new Error('API chưa được triển khai');
+    } catch (error) {
+      console.error('Lỗi khi xuất báo cáo:', error);
+      throw error;
     }
-    return { success: false, message: 'URL không hợp lệ' };
   },
 
-  // Lấy cấu hình hiện tại
-  getConfig: () => {
-    return { ...config };
+  getCategories: async () => {
+    try {
+      return ['Thuốc', 'Thiết bị y tế', 'Vật tư tiêu hao', 'Khác'];
+    } catch (error) {
+      console.error('Lỗi khi lấy danh sách loại vật phẩm:', error);
+      return ['Thuốc', 'Thiết bị y tế', 'Vật tư tiêu hao', 'Khác'];
+    }
   }
 };
 
