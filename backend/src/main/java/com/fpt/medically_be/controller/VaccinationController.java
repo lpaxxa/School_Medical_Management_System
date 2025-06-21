@@ -15,12 +15,9 @@ import java.util.List;
 @RequestMapping("/api/v1/vaccinations")
 public class VaccinationController {
 
-    private final VaccinationService vaccinationService;
-
     @Autowired
-    public VaccinationController(VaccinationService vaccinationService) {
-        this.vaccinationService = vaccinationService;
-    }
+    private VaccinationService vaccinationService;
+
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
@@ -79,4 +76,13 @@ public class VaccinationController {
         vaccinationService.deleteVaccination(id);
         return ResponseEntity.noContent().build();
     }
+
+    //dt
+    @GetMapping("/student/parent/{id}")
+    //@PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+    public ResponseEntity<List<VaccinationDTO>> getVaccinationsByStudentParentId(@PathVariable Long id) {
+        return ResponseEntity.ok(vaccinationService.getVaccinationsByParent(id));
+    }
+
+
 }

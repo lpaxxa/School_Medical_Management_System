@@ -14,5 +14,6 @@ public interface VaccinationService {
     VaccinationDTO createVaccination(VaccinationDTO vaccinationDTO);
     VaccinationDTO updateVaccination(Long id, VaccinationDTO vaccinationDTO);
     void deleteVaccination(Long id);
-    
+    List<VaccinationDTO> getVaccinationsByParent(Long parentId);
+
 }

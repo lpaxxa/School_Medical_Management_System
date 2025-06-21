@@ -116,25 +116,43 @@ public class Notification2ServiceImp implements Notification2Service {
 
     }
 
-
     @Transactional
     @Override
-    public Notification2ReceiveResponse respondToNotification(Notification2UpdateDTO request) {
-        NotificationRecipients noti = notificationRecipientsRepo.findById(request.getNotificationRecipientId())
-                .orElseThrow(() -> new RuntimeException("Notification recipient not found"));
+    public Notification2ReceiveResponse respondToNotification(Long notiId, Long parentId, ResponseStatus status) {
 
-
-        if (noti.getResponse() != ResponseStatus.PENDING) {
+        NotificationRecipients recipients = notificationRecipientsRepo.findByNotificationIdAndReceiverId(notiId, parentId);
+        if (recipients == null) {
+            throw new RuntimeException("Notification recipient not found for the given notification ID and parent ID");
+        }
+        if (recipients.getResponse() != ResponseStatus.PENDING) {
             throw new RuntimeException("Notification already responded");
         }
+        recipients.setResponse(status);
+        recipients.setResponseAt(LocalDateTime.now());
+        notificationRecipientsRepo.save(recipients);
 
-        com.fpt.medically_be.entity.ResponseStatus responseStatus = ResponseStatus.valueOf(request.getResponse().toUpperCase());
-
-        noti.setResponse(responseStatus);
-        noti.setResponseAt(LocalDateTime.now());
-        return notification2Mapper.toNotificationReceiveResponse(noti);
-
+        return notification2Mapper.toNotificationReceiveResponse(recipients);
     }
+
+
+//    @Transactional
+//    @Override
+//    public Notification2ReceiveResponse respondToNotification(Notification2UpdateDTO request) {
+//        NotificationRecipients noti = notificationRecipientsRepo.findById(request.getNotificationRecipientId())
+//                .orElseThrow(() -> new RuntimeException("Notification recipient not found"));
+//
+//
+//        if (noti.getResponse() != ResponseStatus.PENDING) {
+//            throw new RuntimeException("Notification already responded");
+//        }
+//
+//        com.fpt.medically_be.entity.ResponseStatus responseStatus = ResponseStatus.valueOf(request.getResponse().toUpperCase());
+//
+//        noti.setResponse(responseStatus);
+//        noti.setResponseAt(LocalDateTime.now());
+//        return notification2Mapper.toNotificationReceiveResponse(noti);
+//
+//    }
 
     @Override
     public Notification2ReceiveResponse getNotificationDetail(Long notiId, Long parentId) {
@@ -207,6 +225,17 @@ public class Notification2ServiceImp implements Notification2Service {
             throw new RuntimeException("No notifications found for the given type");
         }
         return notifications.stream()
+                .map(notification2Mapper::toNotificationResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long parentId) {
+        List<NotificationRecipients> recipients = notificationRecipientsRepo
+                .findByResponseAndReceiverIdAndNotification_Type(ResponseStatus.ACCEPTED, parentId, NotificationType.VACCINATION);
+
+
+        return recipients.stream()
                 .map(notification2Mapper::toNotificationResponseDTO)
                 .collect(Collectors.toList());
     }

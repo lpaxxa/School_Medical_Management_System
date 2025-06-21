@@ -28,4 +28,6 @@ public interface MedicalIncidentRepository extends JpaRepository<MedicalIncident
 
     List<MedicalIncident> findAllByStudent_Id(Long student);
 
+    List<MedicalIncident> findByStudentFullNameContainingIgnoreCase(String studentFullName);
+
 }

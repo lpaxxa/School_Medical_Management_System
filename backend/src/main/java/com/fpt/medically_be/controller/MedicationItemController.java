@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/medication-items")
+@RequestMapping("/api/v1/medication-items")
 @Tag(name = "Quản lý thuốc", description = "API quản lý các mặt hàng thuốc")
 public class MedicationItemController {
 

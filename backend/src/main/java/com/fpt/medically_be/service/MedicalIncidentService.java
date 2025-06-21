@@ -37,4 +37,6 @@ public interface MedicalIncidentService {
 
    List<MedicalIncidentResponseDTO> getMedicalIncidentByStudentID(Long id);
 
+
+    List<MedicalIncidentResponseDTO> getMedicalIncidentByStudentName(String name);
     }

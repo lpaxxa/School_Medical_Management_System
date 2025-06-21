@@ -4,8 +4,10 @@ import com.fpt.medically_be.dto.request.Notification2RequestDTO;
 import com.fpt.medically_be.dto.response.Notification2ReceiveResponse;
 import com.fpt.medically_be.dto.response.Notification2ResponseDTO;
 import com.fpt.medically_be.dto.response.NotificationRecipientsDTO;
+import com.fpt.medically_be.dto.response.VaccineApproveNotiResponse;
 import com.fpt.medically_be.entity.Notification2;
 import com.fpt.medically_be.entity.NotificationRecipients;
+import com.fpt.medically_be.entity.Parent;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
@@ -35,4 +37,11 @@ public interface Notification2Mapper {
     @Mapping(source = "notification.createdAt", target = "createdAt")
     @Mapping(source = "responseAt", target = "responseAt")
     Notification2ReceiveResponse toNotificationReceiveResponse(NotificationRecipients notification2);
+
+    //Notification2ResponseDTO toNotificationResponseDTO(NotificationRecipients notificationRecipients);
+    @Mapping(source = "notification.title", target = "title")
+    @Mapping(source = "notification.message", target = "message")
+    @Mapping(source = "notification.createdAt", target = "receivedAt")
+    VaccineApproveNotiResponse toNotificationResponseDTO(NotificationRecipients notificationRecipients);
+
 }
