@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import "./CommunityPost.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
+import communityService from "../../../../services/communityService"; // Import communityService
 
 const CommunityPost = () => {
   const { postId } = useParams();
@@ -12,322 +13,77 @@ const CommunityPost = () => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState([]);
+  const [commentPage, setCommentPage] = useState(1); // Thêm state cho phân trang bình luận
+  const [commentTotalPages, setCommentTotalPages] = useState(1); // Tổng số trang bình luận
+  const [loadingComments, setLoadingComments] = useState(false); // State loading riêng cho bình luận
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
   const [liked, setLiked] = useState(false);
   const [showAllComments, setShowAllComments] = useState(true);
   const [sortBy, setSortBy] = useState("latest");
+  const [relatedPosts, setRelatedPosts] = useState([]);
 
-  // Mock bài đăng
-  const MOCK_POSTS = [
-    {
-      id: "post1",
-      title: "Hướng dẫn chăm sóc trẻ bị sốt tại nhà",
-      content: `<p>Khi con bạn bị sốt, đây có thể là dấu hiệu cơ thể đang chống lại nhiễm trùng. Sốt là một phần tự nhiên của phản ứng phòng vệ, nhưng có thể làm cho con bạn cảm thấy khó chịu. Dưới đây là một số hướng dẫn giúp chăm sóc trẻ khi bị sốt:</p>
-      
-      <h3>Theo dõi nhiệt độ của trẻ</h3>
-      <p>Đo nhiệt độ của trẻ thường xuyên, đặc biệt là khi bạn cảm thấy trẻ nóng. Trẻ em được coi là bị sốt khi nhiệt độ cơ thể cao hơn 37.5°C. Nếu nhiệt độ vượt quá 38.5°C, hãy xem xét việc sử dụng thuốc hạ sốt.</p>
-      
-      <h3>Giữ đủ nước cho trẻ</h3>
-      <p>Khi bị sốt, cơ thể trẻ mất nhiều nước hơn thông qua mồ hôi. Đảm bảo con bạn uống đủ nước để tránh mất nước. Nước lọc là tốt nhất, nhưng nước trái cây pha loãng cũng có thể giúp ích.</p>
-      
-      <h3>Quản lý sốt với thuốc phù hợp</h3>
-      <p>Sử dụng thuốc hạ sốt như paracetamol (Tylenol) hoặc ibuprofen (Motrin, Advil) theo hướng dẫn liều lượng dựa trên cân nặng và tuổi của trẻ. Không bao giờ cho trẻ aspirin vì có thể dẫn đến hội chứng Reye, một biến chứng hiếm gặp nhưng nghiêm trọng.</p>
-      
-      <h3>Mặc quần áo nhẹ</h3>
-      <p>Mặc quần áo nhẹ, thoáng cho trẻ. Quá nhiều lớp quần áo có thể giữ nhiệt và làm tăng nhiệt độ cơ thể. Nếu trẻ bị ớn lạnh, hãy đắp chăn mỏng.</p>
-      
-      <h3>Đảm bảo nghỉ ngơi đầy đủ</h3>
-      <p>Trẻ cần nhiều thời gian nghỉ ngơi khi bị sốt. Đảm bảo môi trường yên tĩnh, thoải mái để trẻ có thể nghỉ ngơi và hồi phục.</p>
-      
-      <h3>Khi nào nên đưa trẻ đến bác sĩ:</h3>
-      <ul>
-        <li>Trẻ dưới 3 tháng tuổi có nhiệt độ trên 38°C</li>
-        <li>Trẻ từ 3-6 tháng tuổi có nhiệt độ trên 38.9°C</li>
-        <li>Sốt kéo dài hơn 3 ngày</li>
-        <li>Trẻ có dấu hiệu mất nước: miệng khô, ít đi tiểu, không có nước mắt khi khóc</li>
-        <li>Trẻ có phát ban, đau đầu dữ dội, cứng cổ, khó thở hoặc đau bụng</li>
-        <li>Trẻ có biểu hiện co giật</li>
-        <li>Trẻ lờ đờ, khó đánh thức hoặc cực kỳ kích động</li>
-      </ul>
-      
-      <p>Nếu bạn không chắc chắn, hãy luôn tham khảo ý kiến của nhân viên y tế. Sức khỏe của con bạn là ưu tiên hàng đầu.</p>`,
-      author: {
-        id: "nurse1",
-        name: "Y tá Nguyễn Thị Hương",
-        avatar: "https://randomuser.me/api/portraits/women/45.jpg",
-        role: "nurse",
-        bio: "Y tá trưởng với 15 năm kinh nghiệm chăm sóc sức khỏe học đường",
-      },
-      category: "health-guide",
-      createdAt: "2023-05-15T08:30:00",
-      updatedAt: "2023-05-15T10:15:00",
-      likes: 24,
-      comments: 8,
-      isPinned: true,
-      tags: ["sốt", "chăm sóc tại nhà", "trẻ em", "sức khỏe"],
-    },
-    {
-      id: "post2",
-      title:
-        "Con tôi hay bị đau bụng mỗi buổi sáng trước khi đến trường, làm thế nào?",
-      content: `<p>Con trai tôi, học lớp 3, thường xuyên than phiền về việc đau bụng vào buổi sáng trước khi đi học. Khi ở nhà vào cuối tuần, cháu không có triệu chứng này. Tôi lo lắng không biết có phải do lo âu hoặc căng thẳng liên quan đến trường học không?</p>
-      
-      <p>Cháu thường đau ở vùng bụng trên, gần dạ dày và nói rằng cảm giác như có cái gì đó "thắt lại". Có những ngày cháu quá khó chịu đến mức không muốn ăn sáng.</p>
-      
-      <p>Tôi đã đưa cháu đi khám tổng quát và bác sĩ nói rằng không phát hiện vấn đề thể chất nào. Tuy nhiên, vấn đề vẫn tiếp diễn.</p>
-      
-      <p>Cháu nói rằng thích trường học và có bạn bè, nhưng tôi không biết liệu có điều gì đang gây căng thẳng cho cháu mà cháu không nói ra không.</p>
-      
-      <p>Phụ huynh nào đã từng trải qua tình huống tương tự có thể chia sẻ kinh nghiệm được không? Hoặc nếu có y tá, bác sĩ nào có lời khuyên thì tôi rất cảm kích.</p>`,
-      author: {
-        id: "parent1",
-        name: "Trần Văn Nam",
-        avatar: "https://randomuser.me/api/portraits/men/35.jpg",
-        role: "parent",
-        bio: "Phụ huynh của hai bé trai lớp 3 và lớp 6",
-      },
-      category: "question",
-      createdAt: "2023-05-14T10:15:00",
-      updatedAt: null,
-      likes: 5,
-      comments: 12,
-      isPinned: false,
-      tags: ["đau bụng", "lo âu", "trẻ em", "trường học"],
-    },
-    {
-      id: "post3",
-      title: "Thông báo: Chiến dịch tiêm chủng sắp diễn ra tại trường",
-      content: `<p>Kính gửi quý phụ huynh,</p>
-      
-      <p>Nhà trường sẽ tổ chức chiến dịch tiêm chủng vắc-xin phòng bệnh cúm vào <strong>ngày 25/5/2023</strong>. Đây là chương trình tự nguyện, phụ huynh vui lòng điền vào mẫu đơn đồng ý và gửi lại cho giáo viên chủ nhiệm trước ngày 20/5/2023.</p>
-      
-      <h3>Thông tin chi tiết:</h3>
-      <ul>
-        <li>Loại vắc-xin: Vắc-xin phòng cúm mùa</li>
-        <li>Đối tượng: Học sinh từ lớp 1 đến lớp 12</li>
-        <li>Thời gian: 8:00 - 16:00 ngày 25/5/2023</li>
-        <li>Địa điểm: Phòng y tế trường học</li>
-        <li>Chi phí: Miễn phí (được tài trợ bởi Sở Y tế)</li>
-      </ul>
-      
-      <p>Lợi ích của việc tiêm vắc-xin phòng cúm:</p>
-      <ul>
-        <li>Giảm nguy cơ mắc bệnh cúm và các biến chứng</li>
-        <li>Giảm nguy cơ nhập viện do biến chứng cúm</li>
-        <li>Bảo vệ những người xung quanh có nguy cơ cao</li>
-        <li>Giảm số ngày nghỉ học do bệnh</li>
-      </ul>
-      
-      <p>Điều kiện tiêm chủng:</p>
-      <ul>
-        <li>Học sinh khỏe mạnh, không có triệu chứng bệnh</li>
-        <li>Không đang dùng thuốc kháng sinh</li>
-        <li>Không có tiền sử dị ứng với vắc-xin</li>
-      </ul>
-      
-      <p>Quý phụ huynh vui lòng tải mẫu đơn đồng ý <a href="#">tại đây</a> và gửi lại cho giáo viên chủ nhiệm.</p>
-      
-      <p>Nếu có câu hỏi, vui lòng liên hệ phòng y tế trường học theo số điện thoại: 028.1234.5678</p>
-      
-      <p>Trân trọng,<br/>Ban Giám hiệu & Đội ngũ Y tế Trường</p>`,
-      author: {
-        id: "nurse2",
-        name: "Y tá Trưởng Phạm Minh Tuấn",
-        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-        role: "nurse",
-        bio: "Y tá trưởng của trường với 20 năm kinh nghiệm y tế",
-      },
-      category: "announcement",
-      createdAt: "2023-05-10T14:00:00",
-      updatedAt: "2023-05-11T09:15:00",
-      likes: 32,
-      comments: 15,
-      isPinned: true,
-      tags: ["tiêm chủng", "vắc-xin", "cúm", "thông báo"],
-    },
-  ];
-
-  // Mock dữ liệu bình luận
-  const MOCK_COMMENTS = {
-    post1: [
-      {
-        id: "comment1",
-        postId: "post1",
-        author: {
-          id: "parent1",
-          name: "Trần Văn Nam",
-          avatar: "https://randomuser.me/api/portraits/men/35.jpg",
-          role: "parent",
-        },
-        content:
-          "Bài viết rất hữu ích. Con tôi tuần trước bị sốt, tôi đã áp dụng theo hướng dẫn và thấy hiệu quả. Đặc biệt là việc theo dõi nhiệt độ thường xuyên giúp tôi biết khi nào cần cho con uống thuốc.",
-        createdAt: "2023-05-15T09:30:00",
-        likes: 5,
-      },
-      {
-        id: "comment2",
-        postId: "post1",
-        author: {
-          id: "parent3",
-          name: "Lê Thị Hồng",
-          avatar: "https://randomuser.me/api/portraits/women/28.jpg",
-          role: "parent",
-        },
-        content:
-          "Tôi muốn hỏi thêm, với trẻ 2 tuổi thì có nên chườm ấm khi bị sốt không? Và nếu trẻ vừa sốt vừa ho thì có nên cho uống thuốc ho cùng với thuốc hạ sốt không?",
-        createdAt: "2023-05-15T10:15:00",
-        likes: 2,
-      },
-      {
-        id: "comment3",
-        postId: "post1",
-        author: {
-          id: "nurse1",
-          name: "Y tá Nguyễn Thị Hương",
-          avatar: "https://randomuser.me/api/portraits/women/45.jpg",
-          role: "nurse",
-        },
-        content:
-          "Cảm ơn bạn Hồng đã đặt câu hỏi. Với trẻ 2 tuổi, nên chườm mát chứ không phải chườm ấm khi bị sốt. Về thuốc ho và thuốc hạ sốt, có thể dùng đồng thời nếu tuân theo liều lượng, nhưng tốt nhất nên tham khảo ý kiến bác sĩ nhi khoa trước.",
-        createdAt: "2023-05-15T10:45:00",
-        likes: 8,
-        isPinned: true,
-      },
-      {
-        id: "comment4",
-        postId: "post1",
-        author: {
-          id: "parent4",
-          name: "Nguyễn Thành Long",
-          avatar: "https://randomuser.me/api/portraits/men/42.jpg",
-          role: "parent",
-        },
-        content:
-          "Tôi thấy một số người nói rằng nên để trẻ 'đổ mồ hôi' để hạ sốt tự nhiên, không nên dùng thuốc ngay. Điều này có đúng không?",
-        createdAt: "2023-05-15T12:20:00",
-        likes: 1,
-      },
-      {
-        id: "comment5",
-        postId: "post1",
-        author: {
-          id: "nurse1",
-          name: "Y tá Nguyễn Thị Hương",
-          avatar: "https://randomuser.me/api/portraits/women/45.jpg",
-          role: "nurse",
-        },
-        content:
-          "Anh Long, đó là quan niệm cũ và không có cơ sở khoa học. Không nên để trẻ chịu đựng cơn sốt cao kéo dài với hy vọng 'đổ mồ hôi' sẽ hạ sốt. Nếu nhiệt độ trên 38.5°C, nên dùng thuốc hạ sốt phù hợp để trẻ không bị khó chịu và tránh các biến chứng như co giật do sốt.",
-        createdAt: "2023-05-15T13:05:00",
-        likes: 10,
-      },
-    ],
-    post2: [
-      {
-        id: "comment6",
-        postId: "post2",
-        author: {
-          id: "parent5",
-          name: "Phạm Thị Mai",
-          avatar: "https://randomuser.me/api/portraits/women/62.jpg",
-          role: "parent",
-        },
-        content:
-          "Con gái tôi cũng từng có triệu chứng tương tự. Sau một thời gian quan sát, tôi phát hiện ra là do cháu lo lắng về một bài kiểm tra toán hàng tuần. Có thể bạn nên trao đổi nhẹ nhàng với con về những áp lực học tập.",
-        createdAt: "2023-05-14T11:20:00",
-        likes: 4,
-      },
-      {
-        id: "comment7",
-        postId: "post2",
-        author: {
-          id: "nurse1",
-          name: "Y tá Nguyễn Thị Hương",
-          avatar: "https://randomuser.me/api/portraits/women/45.jpg",
-          role: "nurse",
-        },
-        content:
-          "Đau bụng buổi sáng trước khi đi học là triệu chứng khá phổ biến của lo âu liên quan đến trường học. Tuy nhiên, không nên loại trừ các nguyên nhân thể chất. Tôi gợi ý bạn theo dõi thêm: 1) Có mối liên hệ nào với thời gian biểu học tập không? 2) Con có thể đang gặp khó khăn với một môn học, giáo viên hoặc bạn bè? 3) Thử thay đổi bữa sáng xem có cải thiện không? Nếu tình trạng kéo dài, bạn có thể đưa con đến gặp chuyên gia tâm lý trẻ em.",
-        createdAt: "2023-05-14T12:05:00",
-        likes: 7,
-        isPinned: true,
-      },
-    ],
-    post3: [
-      {
-        id: "comment8",
-        postId: "post3",
-        author: {
-          id: "parent1",
-          name: "Trần Văn Nam",
-          avatar: "https://randomuser.me/api/portraits/men/35.jpg",
-          role: "parent",
-        },
-        content:
-          "Tôi muốn hỏi liệu vắc-xin này có phù hợp cho trẻ bị hen suyễn không? Con trai tôi có tiền sử hen và tôi hơi lo lắng về phản ứng phụ.",
-        createdAt: "2023-05-10T15:20:00",
-        likes: 2,
-      },
-      {
-        id: "comment9",
-        postId: "post3",
-        author: {
-          id: "nurse2",
-          name: "Y tá Trưởng Phạm Minh Tuấn",
-          avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-          role: "nurse",
-        },
-        content:
-          "Thực tế, trẻ em bị hen suyễn là một trong những nhóm được khuyến khích tiêm vắc-xin cúm vì họ có nguy cơ cao gặp biến chứng nghiêm trọng nếu mắc cúm. Tuy nhiên, tôi khuyên bạn nên tham khảo ý kiến bác sĩ chuyên về hen suyễn của con trước khi đưa ra quyết định. Nếu bạn quyết định cho con tiêm, chúng tôi sẽ theo dõi chặt chẽ sau tiêm để đảm bảo an toàn.",
-        createdAt: "2023-05-10T15:45:00",
-        likes: 5,
-        isPinned: true,
-      },
-    ],
-  };
-
-  // Mock user's likes
-  const MOCK_USER_LIKES = {
-    posts: ["post1", "post3"],
-    comments: ["comment3", "comment7", "comment9"],
-  };
-
+  // Lấy chi tiết bài đăng từ API
   useEffect(() => {
-    // Giả lập tải dữ liệu từ server
-    setTimeout(() => {
-      const foundPost = MOCK_POSTS.find((p) => p.id === postId);
-      if (foundPost) {
-        setPost(foundPost);
-        setComments(MOCK_COMMENTS[postId] || []);
-        // Check if user has liked this post
-        setLiked(MOCK_USER_LIKES.posts.includes(postId));
-      } else {
-        // Handle post not found
+    const fetchPostDetail = async () => {
+      setLoading(true);
+      try {
+        // Gọi API lấy chi tiết bài đăng
+        const result = await communityService.getPostDetail(postId);
+
+        if (result.status === "success") {
+          setPost(result.data);
+          setLiked(result.data.likedByCurrentUser);
+
+          // Nếu có bài viết liên quan thì lưu vào state
+          if (result.data.relatedPosts && result.data.relatedPosts.length > 0) {
+            setRelatedPosts(result.data.relatedPosts);
+          }
+        } else {
+          // Nếu không tìm thấy bài viết, chuyển hướng về trang danh sách
+          navigate("/parent/community");
+        }
+      } catch (error) {
+        console.error("Error fetching post detail:", error);
         navigate("/parent/community");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 1000);
+    };
+
+    fetchPostDetail();
   }, [postId, navigate]);
 
-  const handleLike = () => {
-    if (!currentUser) {
-      // Có thể hiển thị modal đăng nhập hoặc thông báo
-      alert("Vui lòng đăng nhập để thích bài viết");
-      return;
-    }
+  // Lấy bình luận của bài đăng
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!postId) return;
 
-    // Giả lập API call
-    setLiked((prevLiked) => !prevLiked);
+      setLoadingComments(true);
+      try {
+        const result = await communityService.getComments(
+          postId,
+          commentPage,
+          10
+        );
 
-    // Cập nhật số lượng like
-    setPost((prevPost) => ({
-      ...prevPost,
-      likes: prevLiked ? prevPost.likes - 1 : prevPost.likes + 1,
-    }));
-  };
+        if (result.status === "success") {
+          setComments(result.data.posts); // API trả về bình luận trong trường "posts"
+          setCommentTotalPages(result.data.totalPages);
+        }
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+        setComments([]);
+      } finally {
+        setLoadingComments(false);
+      }
+    };
 
-  const handleCommentSubmit = (e) => {
+    fetchComments();
+  }, [postId, commentPage]);
+
+  // Xử lý gửi bình luận mới
+  const handleCommentSubmit = async (e) => {
     e.preventDefault();
 
     if (!newComment.trim()) return;
@@ -339,67 +95,58 @@ const CommunityPost = () => {
 
     setSubmittingComment(true);
 
-    // Giả lập API call để đăng bình luận
-    setTimeout(() => {
-      const newCommentObj = {
-        id: `comment${Date.now()}`,
-        postId: postId,
-        author: {
-          id: currentUser?.id || "guest",
-          name: currentUser?.name || "Người dùng khách",
-          avatar:
-            currentUser?.avatar ||
-            "https://randomuser.me/api/portraits/lego/1.jpg",
-          role: currentUser?.role || "parent",
-        },
-        content: newComment,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-      };
+    try {
+      const result = await communityService.addComment(postId, newComment);
 
-      setComments((prev) => [newCommentObj, ...prev]);
-      setNewComment("");
+      if (result.status === "success") {
+        // Thêm bình luận mới vào đầu danh sách
+        setComments((prevComments) => [result.data, ...prevComments]);
 
-      // Cập nhật số lượng comments trong post
-      setPost((prevPost) => ({
-        ...prevPost,
-        comments: prevPost.comments + 1,
-      }));
+        // Cập nhật số lượng bình luận trong post
+        if (post) {
+          setPost({
+            ...post,
+            commentsCount: (post.commentsCount || 0) + 1,
+          });
+        }
 
+        // Xóa nội dung bình luận và reset form
+        setNewComment("");
+      }
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+      alert("Không thể gửi bình luận. Vui lòng thử lại sau.");
+    } finally {
       setSubmittingComment(false);
-    }, 1000);
+    }
   };
 
-  const handleCommentLike = (commentId) => {
+  const handleLike = async () => {
     if (!currentUser) {
-      alert("Vui lòng đăng nhập để thích bình luận");
+      alert("Vui lòng đăng nhập để thích bài viết");
       return;
     }
 
-    // Giả lập API call
-    setComments((prevComments) =>
-      prevComments.map((comment) => {
-        if (comment.id === commentId) {
-          const isLiked = MOCK_USER_LIKES.comments.includes(commentId);
-          return {
-            ...comment,
-            likes: isLiked ? comment.likes - 1 : comment.likes + 1,
-          };
-        }
-        return comment;
-      })
-    );
+    try {
+      const result = await communityService.toggleLike(postId);
 
-    // Toggle like status in mock data
-    if (MOCK_USER_LIKES.comments.includes(commentId)) {
-      MOCK_USER_LIKES.comments = MOCK_USER_LIKES.comments.filter(
-        (id) => id !== commentId
-      );
-    } else {
-      MOCK_USER_LIKES.comments.push(commentId);
+      if (result.status === "success") {
+        const { liked: isLiked, likesCount } = result.data;
+
+        // Cập nhật trạng thái like và số lượt like
+        setLiked(isLiked);
+        setPost((prevPost) => ({
+          ...prevPost,
+          likes: likesCount,
+        }));
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      alert("Không thể thực hiện thao tác. Vui lòng thử lại sau.");
     }
   };
 
+  // Format date dưới dạng "DD thg MM, YYYY HH:MM"
   const formatDate = (dateString) => {
     const options = {
       year: "numeric",
@@ -411,75 +158,51 @@ const CommunityPost = () => {
     return new Date(dateString).toLocaleDateString("vi-VN", options);
   };
 
-  const formatCommentDate = (dateString) => {
-    const commentDate = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - commentDate);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    const diffMinutes = Math.floor(diffTime / (1000 * 60));
-
-    if (diffMinutes < 1) return "Vừa xong";
-    if (diffMinutes < 60) return `${diffMinutes} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-
-    return formatDate(dateString);
-  };
-
-  const getCategoryName = (category) => {
-    switch (category) {
-      case "question":
-        return "Câu hỏi";
-      case "announcement":
-        return "Thông báo";
-      case "health-guide":
-        return "Hướng dẫn sức khỏe";
-      case "sharing":
-        return "Chia sẻ";
-      case "mental-health":
-        return "Sức khỏe tâm thần";
-      default:
-        return "Khác";
-    }
-  };
-
   const getCategoryIcon = (category) => {
     switch (category) {
-      case "question":
+      case "Hỏi đáp":
         return "fa-question-circle";
-      case "announcement":
+      case "Thông báo":
         return "fa-bullhorn";
-      case "health-guide":
+      case "Hướng dẫn sức khỏe":
         return "fa-book-medical";
-      case "sharing":
+      case "Chia sẻ":
         return "fa-share-alt";
-      case "mental-health":
+      case "Sức khỏe tâm thần":
         return "fa-brain";
       default:
         return "fa-clipboard";
     }
   };
 
-  // Sắp xếp bình luận
-  const sortedComments = [...comments].sort((a, b) => {
-    // Luôn hiển thị bình luận được ghim lên đầu
-    if (a.isPinned && !b.isPinned) return -1;
-    if (!a.isPinned && b.isPinned) return 1;
+  const getCategoryName = (category) => {
+    return category || "Khác";
+  };
 
-    // Sắp xếp theo các tiêu chí khác
-    if (sortBy === "latest") {
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    } else if (sortBy === "oldest") {
-      return new Date(a.createdAt) - new Date(b.createdAt);
-    } else {
-      // Sắp xếp theo lượt thích
-      return b.likes - a.likes;
-    }
-  });
+  // Sắp xếp bình luận theo thời gian tạo
+  const sortedComments =
+    comments && Array.isArray(comments)
+      ? [...comments].sort((a, b) => {
+          if (sortBy === "latest") {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          }
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        })
+      : [];
 
   if (loading) {
     return <LoadingSpinner text="Đang tải bài viết..." />;
+  }
+
+  if (!post) {
+    return (
+      <div className="error-container">
+        <h2>Không tìm thấy bài viết</h2>
+        <Link to="/parent/community" className="back-link">
+          <i className="fas fa-arrow-left"></i> Quay lại trang cộng đồng
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -491,55 +214,38 @@ const CommunityPost = () => {
       </div>
 
       <article className="post-content-container">
-        <div className="post-header">
-          <div className="post-title-section">
-            <h1>{post.title}</h1>
+        <header className="post-header">
+          <div className="post-meta">
+            <div className="post-category">
+              <i className={`fas ${getCategoryIcon(post.category)}`}></i>
+              {getCategoryName(post.category)}
+            </div>
+            <div className="post-time">{formatDate(post.createdAt)}</div>
+          </div>
 
-            <div className="post-meta">
-              <div className="post-category">
-                <i className={`fas ${getCategoryIcon(post.category)}`}></i>
-                {getCategoryName(post.category)}
-              </div>
-              <div className="post-date">
-                <i className="far fa-calendar-alt"></i>{" "}
-                {formatDate(post.createdAt)}
-                {post.updatedAt && (
-                  <span className="updated-info">
-                    (Cập nhật: {formatDate(post.updatedAt)})
+          <h1 className="post-title">{post.title}</h1>
+
+          <div className="post-author">
+            <img
+              src={
+                post.author.avatar ||
+                "https://randomuser.me/api/portraits/lego/1.jpg"
+              }
+              alt={post.author.name}
+              className="author-avatar"
+            />
+            <div className="author-info">
+              <div className="author-name">
+                {post.author.name}
+                {post.author.role === "NURSE" && (
+                  <span className="author-badge nurse">
+                    <i className="fas fa-user-nurse"></i> Y tá
                   </span>
                 )}
               </div>
             </div>
           </div>
-
-          <div className="post-author-section">
-            <div className="author-info">
-              <img
-                src={post.author.avatar}
-                alt={post.author.name}
-                className="author-avatar"
-              />
-              <div>
-                <div className="author-name">
-                  {post.author.name}
-                  {post.author.role === "nurse" && (
-                    <span className="author-badge nurse">
-                      <i className="fas fa-user-nurse"></i> Y tá
-                    </span>
-                  )}
-                </div>
-                {post.author.bio && (
-                  <div className="author-bio">{post.author.bio}</div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="post-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        ></div>
+        </header>
 
         {post.tags && post.tags.length > 0 && (
           <div className="post-tags">
@@ -550,6 +256,11 @@ const CommunityPost = () => {
             ))}
           </div>
         )}
+
+        <div
+          className="post-content"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        ></div>
 
         <div className="post-actions">
           <button
@@ -572,155 +283,130 @@ const CommunityPost = () => {
         </div>
       </article>
 
-      <section className="comments-section">
-        <h2>Bình luận ({post.comments})</h2>
-
-        <div className="comment-form-container">
-          <form className="comment-form" onSubmit={handleCommentSubmit}>
-            <div className="comment-input-container">
-              <img
-                src={
-                  currentUser?.avatar ||
-                  "https://randomuser.me/api/portraits/lego/1.jpg"
-                }
-                alt="Avatar"
-                className="user-avatar"
-              />
-              <textarea
-                placeholder="Viết bình luận của bạn..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                disabled={submittingComment}
-                required
-              ></textarea>
-            </div>
-
-            <div className="comment-form-actions">
-              <button
-                type="submit"
-                className="submit-comment-btn"
-                disabled={submittingComment || !newComment.trim()}
-              >
-                {submittingComment ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin"></i> Đang gửi...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-paper-plane"></i> Gửi bình luận
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <div className="comments-filter">
-          <div className="comments-count">{comments.length} bình luận</div>
-
-          <div className="comments-sort">
-            <span>Sắp xếp theo:</span>
+      {/* Phần bình luận */}
+      <div className="comments-section">
+        <div className="comments-header">
+          <h3>Bình luận ({post.commentsCount || 0})</h3>
+          <div className="comments-filter">
+            <label>Sắp xếp:</label>
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="latest">Mới nhất</option>
               <option value="oldest">Cũ nhất</option>
-              <option value="likes">Nhiều lượt thích</option>
             </select>
           </div>
         </div>
 
-        {sortedComments.length > 0 ? (
+        {/* Form thêm bình luận mới */}
+        <form className="comment-form" onSubmit={handleCommentSubmit}>
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Viết bình luận của bạn..."
+            disabled={submittingComment}
+            required
+          ></textarea>
+          <button
+            type="submit"
+            disabled={submittingComment || !newComment.trim()}
+            className="comment-submit-btn"
+          >
+            {submittingComment ? (
+              <>
+                <i className="fas fa-spinner fa-spin"></i> Đang gửi...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-paper-plane"></i> Gửi bình luận
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Danh sách bình luận */}
+        {loadingComments ? (
+          <div className="loading-comments">
+            <i className="fas fa-spinner fa-spin"></i> Đang tải bình luận...
+          </div>
+        ) : sortedComments.length > 0 ? (
           <div className="comments-list">
             {sortedComments.map((comment) => (
-              <div
-                key={comment.id}
-                className={`comment-item ${comment.isPinned ? "pinned" : ""}`}
-                id={`comment-${comment.id}`}
-              >
-                {comment.isPinned && (
-                  <div className="comment-pin-indicator">
-                    <i className="fas fa-thumbtack"></i> Ghim bởi tác giả
-                  </div>
-                )}
-
+              <div key={comment.id} className="comment-item">
                 <div className="comment-header">
                   <div className="comment-author">
                     <img
-                      src={comment.author.avatar}
+                      src={
+                        comment.author.avatar ||
+                        "https://randomuser.me/api/portraits/lego/1.jpg"
+                      }
                       alt={comment.author.name}
-                      className="comment-avatar"
+                      className="comment-author-avatar"
                     />
                     <div className="comment-author-info">
                       <div className="comment-author-name">
                         {comment.author.name}
-                        {comment.author.role === "nurse" && (
-                          <span className="author-badge nurse">
+                        {comment.author.role === "NURSE" && (
+                          <span className="comment-author-badge">
                             <i className="fas fa-user-nurse"></i> Y tá
-                          </span>
-                        )}
-                        {comment.author.id === post.author.id && (
-                          <span className="author-badge post-author">
-                            <i className="fas fa-pen-nib"></i> Tác giả
                           </span>
                         )}
                       </div>
                       <div className="comment-time">
-                        {formatCommentDate(comment.createdAt)}
+                        {formatDate(comment.createdAt)}
                       </div>
                     </div>
                   </div>
-
-                  <div className="comment-actions-dropdown">
-                    <button className="comment-menu-btn">
-                      <i className="fas fa-ellipsis-v"></i>
-                    </button>
-                  </div>
                 </div>
 
-                <div className="comment-content">
-                  <p>{comment.content}</p>
-                </div>
+                <div className="comment-content">{comment.content}</div>
 
-                <div className="comment-footer">
-                  <button
-                    className={`comment-like-btn ${
-                      MOCK_USER_LIKES.comments.includes(comment.id)
-                        ? "liked"
-                        : ""
-                    }`}
-                    onClick={() => handleCommentLike(comment.id)}
-                  >
-                    <i
-                      className={`${
-                        MOCK_USER_LIKES.comments.includes(comment.id)
-                          ? "fas"
-                          : "far"
-                      } fa-heart`}
-                    ></i>
-                    <span>{comment.likes} thích</span>
+                <div className="comment-actions">
+                  <button className="comment-like-btn">
+                    <i className="far fa-heart"></i> Thích
                   </button>
-
                   <button className="comment-reply-btn">
-                    <i className="fas fa-reply"></i>
-                    <span>Trả lời</span>
+                    <i className="fas fa-reply"></i> Trả lời
                   </button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="no-comments">
-            <i className="far fa-comment-alt"></i>
+          <div className="empty-comments">
+            <i className="fas fa-comments"></i>
             <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
           </div>
         )}
-      </section>
 
-      <div className="related-posts-section">
-        <h3>Bài viết liên quan</h3>
-        <div className="related-posts">
-          {MOCK_POSTS.filter((p) => p.id !== postId)
-            .slice(0, 2)
-            .map((relatedPost) => (
+        {/* Phân trang cho bình luận */}
+        {commentTotalPages > 1 && (
+          <div className="comment-pagination">
+            <button
+              disabled={commentPage === 1}
+              onClick={() => setCommentPage((prev) => prev - 1)}
+              className="pagination-btn"
+            >
+              <i className="fas fa-chevron-left"></i> Trước
+            </button>
+            <span className="page-info">
+              Trang {commentPage}/{commentTotalPages}
+            </span>
+            <button
+              disabled={commentPage === commentTotalPages}
+              onClick={() => setCommentPage((prev) => prev + 1)}
+              className="pagination-btn"
+            >
+              Tiếp <i className="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Bài viết liên quan */}
+      {relatedPosts.length > 0 && (
+        <div className="related-posts-section">
+          <h3>Bài viết liên quan</h3>
+          <div className="related-posts">
+            {relatedPosts.map((relatedPost) => (
               <div key={relatedPost.id} className="related-post-card">
                 <div className="related-post-category">
                   <i
@@ -738,7 +424,10 @@ const CommunityPost = () => {
                 <div className="related-post-meta">
                   <div className="related-post-author">
                     <img
-                      src={relatedPost.author.avatar}
+                      src={
+                        relatedPost.author.avatar ||
+                        "https://randomuser.me/api/portraits/lego/1.jpg"
+                      }
                       alt={relatedPost.author.name}
                       className="related-author-avatar"
                     />
@@ -749,14 +438,16 @@ const CommunityPost = () => {
                       <i className="fas fa-heart"></i> {relatedPost.likes}
                     </span>
                     <span>
-                      <i className="fas fa-comment"></i> {relatedPost.comments}
+                      <i className="fas fa-comment"></i>{" "}
+                      {relatedPost.commentsCount}
                     </span>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

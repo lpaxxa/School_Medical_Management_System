@@ -1,12 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import axios from "axios";
+import api from "../services/api";
 
 const StudentDataContext = createContext();
 
 // API URLs
-const STUDENTS_API_URL = "http://localhost:8080/api/parents/my-students";
-const PARENT_API_URL = "http://localhost:8080/api/parents/";
+const STUDENTS_API_URL = "http://localhost:8080/api/v1/parents/my-students";
+const PARENT_API_URL = "http://localhost:8080/api/v1/parents/";
 
 export function useStudentData() {
   return useContext(StudentDataContext);
@@ -19,6 +20,8 @@ export const StudentDataProvider = ({ children }) => {
   const [isLoadingParent, setIsLoadingParent] = useState(false);
   const [error, setError] = useState(null);
   const [parentError, setParentError] = useState(null);
+  const [healthProfiles, setHealthProfiles] = useState({});
+  const [isLoadingHealthProfiles, setIsLoadingHealthProfiles] = useState(false);
   const { currentUser } = useAuth();
 
   // Fetch student data
@@ -121,15 +124,157 @@ export const StudentDataProvider = ({ children }) => {
     }
   };
 
+  // Fetch students with timeout
+  const fetchStudents = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Sử dụng Promise.race để thiết lập timeout
+      const timeoutPromise = new Promise(
+        (_, reject) =>
+          setTimeout(() => reject(new Error("Request timeout")), 10000) // 10 giây timeout
+      );
+
+      const token = localStorage.getItem("authToken");
+      const response = await Promise.race([
+        axios.get(STUDENTS_API_URL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        timeoutPromise,
+      ]);
+
+      if (response.data) {
+        setStudents(response.data);
+      } else {
+        setStudents([]);
+      }
+    } catch (err) {
+      console.error("Error fetching students:", err);
+      setError("Không thể tải thông tin học sinh. Vui lòng thử lại sau.");
+      // Hiển thị thông báo lỗi cho người dùng
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Sửa hàm fetchHealthProfile để sử dụng đúng endpoint
+  const fetchHealthProfile = async (studentId) => {
+    if (!studentId) return null;
+
+    setIsLoadingHealthProfiles(true);
+    try {
+      // SỬA: Sử dụng đúng endpoint API với student ID
+      const response = await api.get(
+        `/health-profiles/student/${studentId}`
+      );
+
+      console.log("Health profile data received:", response.data);
+      // In chi tiết các trường dữ liệu
+      console.log("dietaryRestrictions:", response.data.dietaryRestrictions);
+      console.log("immunizationStatus:", response.data.immunizationStatus);
+      console.log("emergencyContactInfo:", response.data.emergencyContactInfo);
+
+      // Cập nhật dữ liệu trong context
+      setHealthProfiles((prev) => ({
+        ...prev,
+        [studentId]: response.data,
+      }));
+
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching health profile:", error);
+
+      // Nếu không tìm thấy hồ sơ (404), trả về null thay vì throw error
+      if (error.response?.status === 404) {
+        console.log("No health profile found for student:", studentId);
+        return null;
+      }
+
+      throw error;
+    } finally {
+      setIsLoadingHealthProfiles(false);
+    }
+  };
+
+  // Sửa hàm updateHealthProfile để sử dụng đúng endpoint
+  const updateHealthProfile = async (healthProfileData) => {
+    try {
+      // Kiểm tra token trước khi gửi
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      }
+
+      // Chuẩn bị dữ liệu gửi API (đảm bảo format đúng)
+      const apiData = {
+        id: healthProfileData.id,
+        bloodType: healthProfileData.bloodType || "Chưa cập nhật",
+        height: healthProfileData.height || 0,
+        weight: healthProfileData.weight || 0,
+        allergies: healthProfileData.allergies || "Không",
+        chronicDiseases: healthProfileData.chronicDiseases || "Không",
+        visionLeft: healthProfileData.visionLeft || "Bình thường",
+        visionRight: healthProfileData.visionRight || "Bình thường",
+        hearingStatus: healthProfileData.hearingStatus || "Bình thường",
+        dietaryRestrictions: healthProfileData.dietaryRestrictions || "Không",
+        emergencyContactInfo:
+          healthProfileData.emergencyContactInfo || "Không có",
+        immunizationStatus: healthProfileData.immunizationStatus || "Không",
+        lastPhysicalExamDate:
+          healthProfileData.lastPhysicalExamDate ||
+          new Date().toISOString().split("T")[0],
+        specialNeeds: healthProfileData.specialNeeds || "Không",
+      };
+
+      console.log("Sending health profile data to API:", apiData);
+
+      // SỬA: Sử dụng đúng endpoint API
+      const response = await api.post("/health-profiles", apiData, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("API response received:", response.data);
+
+      // Cập nhật dữ liệu trong context với response từ server
+      const responseData = response.data;
+      setHealthProfiles((prev) => ({
+        ...prev,
+        [responseData.id]: { ...responseData },
+      }));
+
+      // Trả về dữ liệu từ server (bao gồm BMI và lastUpdated)
+      return response.data;
+    } catch (error) {
+      console.error("Error updating health profile:", error);
+
+      // Log chi tiết lỗi để debug
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+        console.error("Error response status:", error.response.status);
+        console.error("Error response headers:", error.response.headers);
+      }
+
+      throw error;
+    }
+  };
+
   const value = {
     students,
     parentInfo,
     isLoading,
-    isLoadingParent,
     error,
-    parentError,
     refreshStudents,
-    fetchParentInfo,
+    fetchParentInfo, // Đảm bảo hàm này nằm trong value
+    healthProfiles,
+    isLoadingHealthProfiles,
+    fetchHealthProfile,
+    updateHealthProfile,
   };
 
   return (
