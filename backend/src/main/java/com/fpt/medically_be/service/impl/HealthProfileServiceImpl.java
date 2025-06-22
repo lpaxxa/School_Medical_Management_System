@@ -15,7 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-
+import java.util.List;
 
 @Service
 @Transactional
@@ -32,16 +32,20 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         this.studentRepository = studentRepository;
     }
 
-
-
     @Override
     public Page<HealthProfileDTO> findAll(Pageable pageable) {
         return healthProfileRepository.findAll(pageable).map(healthProfileMapper::toObject);
     }
 
     @Override
-    public HealthProfileDTO getHealthProfileById(Long id) {
+    public List<HealthProfileDTO> findAllWithoutPaging() {
+        return healthProfileRepository.findAll().stream()
+                .map(healthProfileMapper::toObject)
+                .collect(java.util.stream.Collectors.toList());
+    }
 
+    @Override
+    public HealthProfileDTO getHealthProfileById(Long id) {
         return healthProfileRepository.findById(id)
                 .map(healthProfileMapper::toObject)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe với ID: " + id));
@@ -170,8 +174,6 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         healthProfile.setImmunizationStatus(dto.getImmunizationStatus());
         healthProfile.setLastPhysicalExamDate(dto.getLastPhysicalExamDate());
         healthProfile.setLastUpdated(java.time.LocalDateTime.now());
-
-
 
         return healthProfile;
     }
