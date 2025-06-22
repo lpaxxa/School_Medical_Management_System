@@ -9,7 +9,8 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface HealthProfileService {
-    Page<HealthProfileDTO> findAll(Pageable pageable);;
+    Page<HealthProfileDTO> findAll(Pageable pageable);
+    List<HealthProfileDTO> findAllWithoutPaging();
     HealthProfileDTO getHealthProfileById(Long id);
     HealthProfileDTO createHealthProfile(HealthProfileRequestDTO healthProfileRequestDTO);
     HealthProfileDTO updateHealthProfile(Long id, HealthProfileRequestDTO healthProfileRequestDTO);

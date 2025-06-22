@@ -9,9 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -28,15 +26,9 @@ public class HealthArticleController {
 
     @Operation(summary = "Lấy chi tiết một bài viết y tế theo ID", description = "Trả về thông tin chi tiết của một bài viết y tế dựa trên ID")
     @GetMapping("/health-articles/{id}")
-    public ResponseEntity<Map<String, Object>> getHealthArticleById(@PathVariable Long id) {
+    public ResponseEntity<HealthArticleDTO> getHealthArticleById(@PathVariable Long id) {
         HealthArticleDTO article = healthArticleService.getArticleById(id);
-        List<HealthArticleDTO> relatedArticles = healthArticleService.getRelatedArticles(id, article.getCategory());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("article", article);
-        response.put("relatedArticles", relatedArticles);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(article);
     }
 
     @Operation(summary = "Lấy danh sách bài viết y tế theo danh mục", description = "Trả về danh sách các bài viết y tế thuộc một danh mục cụ thể")
