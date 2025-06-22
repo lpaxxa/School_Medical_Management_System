@@ -50,6 +50,7 @@ public class MedicationInstruction {
     private LocalDate submittedAt;
 
     @Column(name = "status", columnDefinition = "NVARCHAR(50)")
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     @Column(name = "rejection_reason", columnDefinition = "NVARCHAR(MAX)")

@@ -16,7 +16,7 @@ public interface Notification2Service {
     List<Notification2TitleResponse> getNotificationTitlesByParentId(Long parentId);
 
 
-    List<Notification2ResponseDTO> getNotificationsByParentId(Long parentId);
+    List<ParentNotificationResponseDTO> getNotificationsByParentId(Long parentId);
 
     Notification2ReceiveResponse respondToNotification(Long notiId, Long parentId, ResponseStatus status);
 
@@ -32,6 +32,9 @@ public interface Notification2Service {
 
     List<Notification2ResponseDTO> getNotificationsByType(NotificationType type);
 
-//    List<VaccineApproveNotiResponse>  getAcceptedNotificationsByParent(Long parentId);
+//   lấy ra những thông báo mà phụ huynh đã accept
     List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long parentId, String studentId);
+
+    //dành cho khi bấm vào ghi nhận tiêm, thì sẽ hiển thị được nhiều thông tin
+    VaccineInforRequest getVacineByStudentIdAndNotiID(String studendId, Long id);
 }

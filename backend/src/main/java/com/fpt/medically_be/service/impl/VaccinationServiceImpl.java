@@ -1,6 +1,7 @@
 package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.VaccinationDTO;
+import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
 import com.fpt.medically_be.dto.response.VaccinationDetailResponse;
 import com.fpt.medically_be.entity.HealthProfile;
 import com.fpt.medically_be.entity.NotificationRecipients;
@@ -34,6 +35,8 @@ public class VaccinationServiceImpl implements VaccinationService {
     private VaccinationMapper vaccinationMapper;
     @Autowired
     private NotificationRecipientsRepo notificationRecipientsRepo;
+
+
 
 
     //    @Autowired
@@ -87,12 +90,16 @@ public class VaccinationServiceImpl implements VaccinationService {
 //                .collect(Collectors.toList());
 //    }
 //
-//    @Override
-//    public VaccinationDTO createVaccination(VaccinationDTO vaccinationDTO) {
-//        Vaccination vaccination = convertToEntity(vaccinationDTO);
-//        Vaccination savedVaccination = vaccinationRepository.save(vaccination);
-//        return convertToDTO(savedVaccination);
-//    }
+    @Override
+    public VaccinationDetailResponse createVaccination(VaccinationRequestDTO vaccinationRequestDTO) {
+
+        HealthProfile heathProfile = healthProfileRepository
+                .findById(vaccinationRequestDTO.getHealthProfileId()).orElseThrow(() -> new EntityNotFoundException("Health Profile Not Found"));
+
+        Vaccination vaccination = vaccinationMapper.toVaccinationDetailRequest(vaccinationRequestDTO);
+        Vaccination savedVaccination = vaccinationRepository.save(vaccination);
+        return vaccinationMapper.toVaccinationDetailResponse(savedVaccination);
+    }
 //
 //    @Override
 //    public VaccinationDTO updateVaccination(Long id, VaccinationDTO vaccinationDTO) {
@@ -148,16 +155,6 @@ public class VaccinationServiceImpl implements VaccinationService {
     @Override
     public List<VaccinationDTO> getUpcomingVaccinationsDue(LocalDate beforeDate) {
         return List.of();
-    }
-
-    @Override
-    public VaccinationDTO createVaccination(VaccinationDTO vaccinationDTO) {
-        return null;
-    }
-
-    @Override
-    public VaccinationDTO updateVaccination(Long id, VaccinationDTO vaccinationDTO) {
-        return null;
     }
 
     @Override

@@ -52,6 +52,7 @@ public class MedicalIncidentController {
 
 
 
+
 //        @GetMapping("/details/{id}")
 //    public List<MedicalIncidentStudentDTO> getMedicalIncidentDetails(@PathVariable("id") Long incidentId) {
 //        return medicalIncidentService.get(incidentId);

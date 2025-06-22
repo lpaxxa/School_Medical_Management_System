@@ -1,10 +1,7 @@
 package com.fpt.medically_be.mapper;
 
 import com.fpt.medically_be.dto.request.Notification2RequestDTO;
-import com.fpt.medically_be.dto.response.Notification2ReceiveResponse;
-import com.fpt.medically_be.dto.response.Notification2ResponseDTO;
-import com.fpt.medically_be.dto.response.NotificationRecipientsDTO;
-import com.fpt.medically_be.dto.response.VaccineApproveNotiResponse;
+import com.fpt.medically_be.dto.response.*;
 import com.fpt.medically_be.entity.Notification2;
 import com.fpt.medically_be.entity.NotificationRecipients;
 import com.fpt.medically_be.entity.Parent;
@@ -26,6 +23,18 @@ public interface Notification2Mapper {
     @Mapping(source = "notificationRecipients", target = "recipients")
     Notification2ResponseDTO toNotificationResponseDTO(Notification2 notification2);
 
+
+    // get parent notification by Id
+    @Mapping(source = "notification.title", target = "title")
+    @Mapping(source = "notification.message", target = "message")
+    @Mapping(source = "notification.createdAt", target = "createdAt")
+    @Mapping(source = "notification.createdBy.fullName", target = "senderName")
+    @Mapping(source = "notification.type", target = "type")
+    @Mapping(source = "student.studentId", target = "studentId")
+    @Mapping(source = "student.fullName", target = "studentName")
+    ParentNotificationResponseDTO toParentNotificationResponseDTO(NotificationRecipients notificationRecipients);
+
+
     @Mapping(source = "receiver.fullName",  target = "receiverName")  // Chỉ một lần!
     @Mapping(source = "student.studentId",  target = "studentId")
     @Mapping(source = "student.fullName",   target = "studentName")
@@ -33,6 +42,7 @@ public interface Notification2Mapper {
     NotificationRecipientsDTO toNotificationRecipientsDTO(NotificationRecipients nr);
 
 
+    @Mapping(source = "id", target = "id")
     @Mapping(source = "notification.title", target = "title")
     @Mapping(source = "notification.message", target = "message")
     @Mapping(source = "notification.isRequest", target = "isRequest")
@@ -48,5 +58,17 @@ public interface Notification2Mapper {
     @Mapping(source = "student.id", target = "studentId")
     @Mapping(source = "student.fullName", target = "studentName")
     VaccineApproveNotiResponse toNotificationResponseDTO(NotificationRecipients notificationRecipients);
+
+
+    // dành cho việc lấy ra những thông báo mà phụ huynh đã accept
+    @Mapping(source = "id", target = "notificationRecipientID")
+    @Mapping(source = "notification.createdBy.id", target = "nurseID")
+    @Mapping(source = "student.healthProfile.id", target = "healthProfileID")
+    @Mapping(source = "student.studentId", target = "studentID")
+    @Mapping(source = "student.imageUrl", target = "imageUrl")
+    @Mapping(source = "student.gender", target = "gender")
+    @Mapping(source = "student.className", target = "className")
+    @Mapping(source = "student.fullName", target = "studentName")
+    VaccineInforRequest toVaccineInforRequest(NotificationRecipients notificationRecipients);
 
 }
