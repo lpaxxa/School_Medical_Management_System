@@ -2,7 +2,9 @@ package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.HealthArticleDTO;
 import com.fpt.medically_be.dto.HealthArticleCreateDTO;
+import com.fpt.medically_be.entity.AccountMember;
 import com.fpt.medically_be.entity.HealthArticle;
+import com.fpt.medically_be.repos.AccountMemberRepository;
 import com.fpt.medically_be.repos.HealthArticleRepository;
 import com.fpt.medically_be.service.HealthArticleService;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 public class HealthArticleServiceImpl implements HealthArticleService {
 
     private final HealthArticleRepository healthArticleRepository;
+    private final AccountMemberRepository accountMemberRepository;
 
     @Override
     public List<HealthArticleDTO> getAllArticles() {
@@ -58,11 +61,21 @@ public class HealthArticleServiceImpl implements HealthArticleService {
 
     @Override
     public HealthArticleDTO createArticle(HealthArticleCreateDTO createDTO) {
+        // Kiểm tra và lấy thông tin thành viên từ memberId
+        AccountMember member = null;
+        if (createDTO.getMemberId() != null && !createDTO.getMemberId().isEmpty()) {
+            member = accountMemberRepository.findById(createDTO.getMemberId())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thành viên với ID: " + createDTO.getMemberId()));
+        } else {
+            throw new IllegalArgumentException("Member ID không được để trống");
+        }
+
         HealthArticle article = HealthArticle.builder()
                 .title(createDTO.getTitle())
                 .summary(createDTO.getSummary())
                 .content(createDTO.getContent())
                 .author(createDTO.getAuthor())
+                .member(member)
                 .publishDate(LocalDateTime.now())
                 .category(createDTO.getCategory())
                 .imageUrl(createDTO.getImageUrl())
@@ -85,7 +98,7 @@ public class HealthArticleServiceImpl implements HealthArticleService {
     }
 
     private HealthArticleDTO mapToDTO(HealthArticle article) {
-        return HealthArticleDTO.builder()
+        HealthArticleDTO dto = HealthArticleDTO.builder()
                 .id(article.getId())
                 .title(article.getTitle())
                 .summary(article.getSummary())
@@ -96,6 +109,14 @@ public class HealthArticleServiceImpl implements HealthArticleService {
                 .imageUrl(article.getImageUrl())
                 .tags(article.getTags())
                 .build();
+
+        // Thêm thông tin về thành viên đăng bài nếu có
+        if (article.getMember() != null) {
+            dto.setMemberId(article.getMember().getId());
+            dto.setMemberName(article.getMember().getUsername());
+        }
+
+        return dto;
     }
 
     private List<HealthArticleDTO> mapToDTOList(List<HealthArticle> articles) {

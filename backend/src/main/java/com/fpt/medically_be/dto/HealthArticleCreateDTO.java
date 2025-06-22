@@ -16,6 +16,7 @@ public class HealthArticleCreateDTO {
     private String summary;
     private String content;
     private String author;
+    private String memberId;  // ID của thành viên đăng bài
     private String category;
     private String imageUrl;
     private List<String> tags;
