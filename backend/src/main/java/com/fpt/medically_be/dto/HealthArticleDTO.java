@@ -18,6 +18,8 @@ public class HealthArticleDTO {
     private String summary;
     private String content;
     private String author;
+    private String memberId;
+    private String memberName;
     private LocalDateTime publishDate;
     private String category;
     private String imageUrl;
@@ -33,6 +35,8 @@ class HealthArticleSummaryDTO {
     private String title;
     private String summary;
     private String author;
+    private String memberId;
+    private String memberName;
     private LocalDateTime publishDate;
     private String category;
     private String imageUrl;

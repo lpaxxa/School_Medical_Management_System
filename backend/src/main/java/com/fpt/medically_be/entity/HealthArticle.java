@@ -28,8 +28,12 @@ public class HealthArticle {
     @Column(nullable = false, columnDefinition = "NVARCHAR(2000)")
     private String content;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(100)")
+    @Column(columnDefinition = "NVARCHAR(100)")
     private String author;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "member_id")
+    private AccountMember member;
 
     @Column(nullable = false)
     private LocalDateTime publishDate;
