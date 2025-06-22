@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -55,8 +55,8 @@ public class MedicalCheckupController {
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     @Operation(summary = "Lấy các đợt khám sức khỏe theo khoảng thời gian", description = "Trả về danh sách các đợt khám sức khỏe diễn ra trong khoảng thời gian chỉ định.")
     public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByDateRange(startDate, endDate));
     }
 
@@ -65,8 +65,8 @@ public class MedicalCheckupController {
     @Operation(summary = "Lấy các đợt khám sức khỏe của học sinh theo khoảng thời gian", description = "Trả về danh sách các đợt khám sức khỏe của một học sinh trong khoảng thời gian chỉ định.")
     public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByStudentAndDateRange(
             @PathVariable Long studentId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByStudentAndDateRange(studentId, startDate, endDate));
     }
 
@@ -106,5 +106,4 @@ public class MedicalCheckupController {
         return ResponseEntity.noContent().build();
     }
 }
-
 
