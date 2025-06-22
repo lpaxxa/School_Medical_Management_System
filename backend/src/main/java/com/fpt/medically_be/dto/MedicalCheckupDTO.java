@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 @Builder
@@ -15,7 +15,7 @@ public class MedicalCheckupDTO {
     private Long id;
     private Long studentId;
     private String studentName;
-    private LocalDateTime checkupDate;
+    private LocalDate checkupDate;
     private String checkupType;
     private Double height;
     private Double weight;

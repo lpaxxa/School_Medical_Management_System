@@ -12,7 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,14 +61,14 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
     }
 
     @Override
-    public List<MedicalCheckupDTO> getMedicalCheckupsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+    public List<MedicalCheckupDTO> getMedicalCheckupsByDateRange(LocalDate startDate, LocalDate endDate) {
         return medicalCheckupRepository.findByCheckupDateBetween(startDate, endDate).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<MedicalCheckupDTO> getMedicalCheckupsByStudentAndDateRange(Long studentId, LocalDateTime startDate, LocalDateTime endDate) {
+    public List<MedicalCheckupDTO> getMedicalCheckupsByStudentAndDateRange(Long studentId, LocalDate startDate, LocalDate endDate) {
         return medicalCheckupRepository.findByStudentIdAndCheckupDateBetween(studentId, startDate, endDate).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());

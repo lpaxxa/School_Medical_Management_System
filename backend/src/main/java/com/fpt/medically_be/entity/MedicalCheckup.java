@@ -2,7 +2,7 @@ package com.fpt.medically_be.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "medical_checkups")
@@ -18,7 +18,7 @@ public class MedicalCheckup {
     private Student student;
 
     @Column(name = "checkup_date", nullable = false)
-    private LocalDateTime checkupDate;
+    private LocalDate checkupDate;
 
     @Column(name = "checkup_type", columnDefinition = "NVARCHAR(50)")
     private String checkupType; // Regular, Vaccination, Emergency, etc.
