@@ -119,47 +119,49 @@ public class VaccinationServiceImpl implements VaccinationService {
 //        return convertToDTO(updatedVaccination);
 //    }
 //
-//    @Override
-//    public void deleteVaccination(Long id) {
-//        if (!vaccinationRepository.existsById(id)) {
-//            throw new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id);
-//        }
-//        vaccinationRepository.deleteById(id);
-//    }
+    @Override
+    public void deleteVaccination(Long id) {
+        if (!vaccinationRepository.existsById(id)) {
+            throw new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id);
+        }
+        vaccinationRepository.deleteById(id);
+    }
 
     @Override
     public List<VaccinationDTO> getAllVaccinations() {
-        return List.of();
+        List<Vaccination> vaccinations = vaccinationRepository.findAll();
+        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public VaccinationDTO getVaccinationById(Long id) {
-        return null;
+        Vaccination vaccination = vaccinationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id));
+        return vaccinationMapper.toDTO(vaccination);
     }
 
     @Override
     public List<VaccinationDTO> getVaccinationsByHealthProfileId(Long healthProfileId) {
-        return List.of();
+        List<Vaccination> vaccinations = vaccinationRepository.findByHealthProfileId(healthProfileId);
+        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<VaccinationDTO> getVaccinationsByName(String vaccineName) {
-        return List.of();
+        List<Vaccination> vaccinations = vaccinationRepository.findByVaccineName(vaccineName);
+        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<VaccinationDTO> getVaccinationsByDateRange(LocalDate startDate, LocalDate endDate) {
-        return List.of();
+        List<Vaccination> vaccinations = vaccinationRepository.findByVaccinationDateBetween(startDate, endDate);
+        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<VaccinationDTO> getUpcomingVaccinationsDue(LocalDate beforeDate) {
-        return List.of();
-    }
-
-    @Override
-    public void deleteVaccination(Long id) {
-
+        List<Vaccination> vaccinations = vaccinationRepository.findByNextDoseDateBefore(beforeDate);
+        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
     }
 
     @Override
@@ -210,3 +212,4 @@ public class VaccinationServiceImpl implements VaccinationService {
 //        return vaccination;
 //    }
 }
+
