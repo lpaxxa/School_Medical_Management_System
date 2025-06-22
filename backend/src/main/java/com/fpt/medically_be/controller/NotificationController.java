@@ -97,6 +97,12 @@ public class NotificationController {
     public ResponseEntity<?> getAcceptedNotificationsByParent(@PathVariable("parentId") Long parentId , @PathVariable("studentId") String studentId) {
         return ResponseEntity.ok(notification2Service.getAcceptedNotificationsByParent(parentId, studentId));
     }
+
+
+    @GetMapping("/getVacineByStudentIdAndNotiID/{studentId}/{id}")
+    public ResponseEntity<?> getVacineByStudentIdAndNotiID(@PathVariable("studentId") String studentId, @PathVariable("id") Long id) {
+        return ResponseEntity.ok(notification2Service.getVacineByStudentIdAndNotiID(studentId, id));
+    }
 }
 
 

@@ -172,32 +172,16 @@ public class Notification2ServiceImp implements Notification2Service {
     }
 
     @Override
-    public List<Notification2ResponseDTO> getNotificationsByParentId(Long parentId) {
+    public List<ParentNotificationResponseDTO> getNotificationsByParentId(Long parentId) {
         List<NotificationRecipients> recipients = notificationRecipientsRepo.findByReceiverId(parentId);
 
         if (recipients.isEmpty()) {
             throw new RuntimeException("No notifications found for the given parent ID");
         }
 
-        return recipients.stream().map(item -> {
-            Notification2 n = item.getNotification();
-            Notification2ResponseDTO dto = notification2Mapper.toNotificationResponseDTO(n);
-
-
-            // Gửi từ nurse nào
-            if (n.getCreatedBy() != null) {
-                dto.setSenderName(n.getCreatedBy().getFullName());
-            } else {
-                dto.setSenderName("Unknown");
-            }
-
-            // Phản hồi của parent
-//            dto.setResponse(item.getResponse()!= null ? item.getResponse().name().toLowerCase(): null);
-//            dto.setResponse(item.getResponse().name());
-//            dto.setResponseAt(item.getResponseAt());
-
-            return dto;
-        }).collect(Collectors.toList());
+        return recipients.stream()
+                .map(notification2Mapper::toParentNotificationResponseDTO)
+                .collect(Collectors.toList());
 
     }
 
@@ -334,6 +318,18 @@ public List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long pa
             .map(notification2Mapper::toNotificationResponseDTO)
             .collect(Collectors.toList());
 }
+
+    @Override
+    public VaccineInforRequest getVacineByStudentIdAndNotiID(String studendId, Long id) {
+
+        NotificationRecipients recipient = notificationRecipientsRepo.findByIdAndStudent_StudentId(id, studendId);
+
+        if (recipient == null) {
+            throw new RuntimeException("Notification recipient not found for the given ID and student ID");
+        }
+
+        return notification2Mapper.toVaccineInforRequest(recipient);
+    }
 
 
 //        @Override

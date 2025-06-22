@@ -1,7 +1,10 @@
 package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.VaccinationDTO;
+import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
 import com.fpt.medically_be.dto.response.VaccinationDetailResponse;
+import com.fpt.medically_be.dto.response.VaccineInforRequest;
+import com.fpt.medically_be.service.Notification2Service;
 import com.fpt.medically_be.service.VaccinationService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,8 @@ public class VaccinationController {
 
     @Autowired
     private VaccinationService vaccinationService;
+    @Autowired
+    private Notification2Service notification2Service;
 
 
 //    @GetMapping
@@ -60,11 +65,15 @@ public class VaccinationController {
 //        return ResponseEntity.ok(vaccinationService.getUpcomingVaccinationsDue(beforeDate));
 //    }
 //
-//    @PostMapping
+
+    @PostMapping("/create")
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-//    public ResponseEntity<VaccinationDTO> createVaccination(@RequestBody VaccinationDTO vaccinationDTO) {
-//        return ResponseEntity.ok(vaccinationService.createVaccination(vaccinationDTO));
-//    }
+    public ResponseEntity<VaccinationDetailResponse> createVaccination(@RequestBody VaccinationRequestDTO vaccinationRequestDTO) {
+        return ResponseEntity.ok(vaccinationService.createVaccination(vaccinationRequestDTO));
+    }
+
+
+
 //
 //    @PutMapping("/{id}")
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
@@ -89,10 +98,12 @@ public class VaccinationController {
 
     @Operation(summary = "Seccond, lấy chi tiết vaccine cho lịch sử",description = "lấy bằng id của notificationRecipient")
 
-    @GetMapping("/notification-recipient/{notificationRecipientId}")
+    @GetMapping("/notification-recipient/{notificationRecipientId}/{studentId}")
    // @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
-    public ResponseEntity<VaccinationDetailResponse> getVaccinationDetailByNotificationRecipientId(@PathVariable Long notificationRecipientId) {
-        return ResponseEntity.ok(vaccinationService.getVaccinationDetailByNotificationRecipientId(notificationRecipientId));
+    public ResponseEntity<VaccineInforRequest> getVaccinationDetailByNotificationRecipientId(@PathVariable("studentId") String studentId
+            ,@PathVariable("notificationRecipientId") Long notificationRecipientId
+                                                                                             )  {
+        return ResponseEntity.ok(notification2Service.getVacineByStudentIdAndNotiID(studentId, notificationRecipientId));
     }
 
 }

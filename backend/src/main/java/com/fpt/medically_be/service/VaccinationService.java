@@ -1,6 +1,7 @@
 package com.fpt.medically_be.service;
 
 import com.fpt.medically_be.dto.VaccinationDTO;
+import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
 import com.fpt.medically_be.dto.response.VaccinationDetailResponse;
 
 import java.time.LocalDate;
@@ -13,8 +14,7 @@ public interface VaccinationService {
     List<VaccinationDTO> getVaccinationsByName(String vaccineName);
     List<VaccinationDTO> getVaccinationsByDateRange(LocalDate startDate, LocalDate endDate);
     List<VaccinationDTO> getUpcomingVaccinationsDue(LocalDate beforeDate);
-    VaccinationDTO createVaccination(VaccinationDTO vaccinationDTO);
-    VaccinationDTO updateVaccination(Long id, VaccinationDTO vaccinationDTO);
+    VaccinationDetailResponse createVaccination(VaccinationRequestDTO vaccinationRequestDTO);
     void deleteVaccination(Long id);
 
     //dt

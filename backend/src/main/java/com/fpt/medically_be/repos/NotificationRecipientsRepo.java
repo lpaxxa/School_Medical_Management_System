@@ -1,5 +1,6 @@
 package com.fpt.medically_be.repos;
 
+import com.fpt.medically_be.dto.response.VaccineInforRequest;
 import com.fpt.medically_be.entity.Notification2;
 import com.fpt.medically_be.entity.NotificationRecipients;
 import com.fpt.medically_be.entity.NotificationType;
@@ -29,4 +30,6 @@ public interface NotificationRecipientsRepo extends JpaRepository<NotificationRe
             ResponseStatus response,
             NotificationType notificationType
     );
+
+    NotificationRecipients findByIdAndStudent_StudentId(Long id, String studentStudentId);
 }

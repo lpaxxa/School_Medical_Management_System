@@ -1,6 +1,7 @@
 package com.fpt.medically_be.mapper;
 
 import com.fpt.medically_be.dto.VaccinationDTO;
+import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
 import com.fpt.medically_be.dto.response.VaccinationDetailResponse;
 import com.fpt.medically_be.entity.Vaccination;
 import org.mapstruct.Mapper;
@@ -17,5 +18,7 @@ public interface VaccinationMapper {
     @Mapping(source = "healthProfile.student.className", target = "className")
     @Mapping(source = "nurse.fullName", target = "administeredBy")
     VaccinationDetailResponse toVaccinationDetailResponse(Vaccination vaccinationDetailResponse);
+
+    Vaccination toVaccinationDetailRequest(VaccinationRequestDTO vaccination);
 
 }
