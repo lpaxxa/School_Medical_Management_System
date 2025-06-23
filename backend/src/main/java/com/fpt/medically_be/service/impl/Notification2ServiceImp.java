@@ -8,6 +8,7 @@ import com.fpt.medically_be.dto.response.*;
 import com.fpt.medically_be.entity.*;
 import com.fpt.medically_be.mapper.Notification2Mapper;
 import com.fpt.medically_be.mapper.Notification2TitleMapper;
+import com.fpt.medically_be.mapper.NotificationRecipientMapper;
 import com.fpt.medically_be.repos.*;
 import com.fpt.medically_be.service.Notification2Service;
 import jakarta.transaction.Transactional;
@@ -31,7 +32,8 @@ public class Notification2ServiceImp implements Notification2Service {
     private Notification2Mapper notification2Mapper;
     @Autowired
     private Notification2TitleMapper notification2TitleMapper;
-
+    @Autowired
+    NotificationRecipientMapper notificationRecipientMapper;
     @Autowired
     private StudentRepository studentRepository;
 
@@ -161,12 +163,8 @@ public class Notification2ServiceImp implements Notification2Service {
         List<NotificationRecipients> recipients = notificationRecipientsRepo.findByReceiverId(parentId);
 
         return recipients.stream()
-                .map(r -> {
-                    Notification2 n = r.getNotification();
-
-                    Notification2TitleResponse noti = notification2TitleMapper.toNotificationTitleResponse(n);
-                    return noti;
-                }).collect(Collectors.toList());
+                .map(notification2TitleMapper::toNotificationTitleResponse)
+                .collect(Collectors.toList());
 
 
     }
@@ -329,6 +327,19 @@ public List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long pa
         }
 
         return notification2Mapper.toVaccineInforRequest(recipient);
+    }
+
+    @Override
+    public List<NotificationAccepted> getNotificationAcceptedByIdAndResponse(Long id, ResponseStatus studentId) {
+
+        List<NotificationRecipients> recipient = notificationRecipientsRepo.findByNotification_IdAndResponse(id, studentId);
+        if (recipient.isEmpty()) {
+            throw new RuntimeException("No recipients found with notificationId = " + id + " and responseStatus = " + studentId);
+        }
+
+        return recipient.stream()
+                .map(notificationRecipientMapper::toNotificationAccepted)
+                .collect(Collectors.toList());
     }
 
 

@@ -106,14 +106,21 @@ public class VaccinationController {
         return ResponseEntity.ok(vaccinationService.getVaccinationsByParent(id));
     }
 
-    @Operation(summary = "Seccond, lấy chi tiết vaccine cho lịch sử",description = "lấy bằng id của notificationRecipient")
-
-    @GetMapping("/notification-recipient/{notificationRecipientId}/{studentId}")
+    @Operation(summary = "Can delete")
+    @GetMapping("/notification-recipients/{notificationRecipientId}/{studentId}")
    // @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<VaccineInforRequest> getVaccinationDetailByNotificationRecipientId(@PathVariable("studentId") String studentId
             ,@PathVariable("notificationRecipientId") Long notificationRecipientId
                                                                                              )  {
         return ResponseEntity.ok(notification2Service.getVacineByStudentIdAndNotiID(studentId, notificationRecipientId));
+    }
+
+    @Operation(summary = "Seccond, lấy chi tiết vaccine cho lịch sử",description = "lấy bằng id của notificationRecipient")
+
+    @GetMapping("/notification-recipient/{notificationRecipientId}")
+    // @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+    public ResponseEntity<VaccinationDetailResponse> getVaccinationDetailByNotificationRecipientId(@PathVariable Long notificationRecipientId) {
+        return ResponseEntity.ok(vaccinationService.getVaccinationDetailByNotificationRecipientId(notificationRecipientId));
     }
 
 }

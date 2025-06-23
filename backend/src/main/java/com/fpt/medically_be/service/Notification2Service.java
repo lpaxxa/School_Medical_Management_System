@@ -6,6 +6,7 @@ import com.fpt.medically_be.dto.response.*;
 import com.fpt.medically_be.entity.Notification2;
 import com.fpt.medically_be.entity.NotificationType;
 import com.fpt.medically_be.entity.ResponseStatus;
+import com.fpt.medically_be.entity.Status;
 
 import java.util.List;
 
@@ -37,4 +38,7 @@ public interface Notification2Service {
 
     //dành cho khi bấm vào ghi nhận tiêm, thì sẽ hiển thị được nhiều thông tin
     VaccineInforRequest getVacineByStudentIdAndNotiID(String studendId, Long id);
+
+    // xem danh sach de tiem
+    List<NotificationAccepted> getNotificationAcceptedByIdAndResponse(Long id, ResponseStatus studentId);
 }
