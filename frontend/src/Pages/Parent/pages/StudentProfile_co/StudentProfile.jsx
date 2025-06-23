@@ -82,6 +82,23 @@ export default function StudentProfile() {
     });
   };
 
+  // Get student image URL - handle both old and new data structure
+  const getStudentImageUrl = (studentData) => {
+    // Debug: Log the student data structure
+    console.log("Student data for image:", studentData);
+    console.log("Image URL:", studentData?.imageUrl);
+
+    // Check for imageUrl at root level (new structure)
+    if (studentData?.imageUrl) {
+      return studentData.imageUrl;
+    }
+    // Check for imageUrl in nested student object (old structure)
+    if (studentData?.student?.imageUrl) {
+      return studentData.student.imageUrl;
+    }
+    return null;
+  };
+
   if (isLoading) {
     return <LoadingSpinner text="Đang tải thông tin học sinh..." />;
   }
@@ -133,14 +150,25 @@ export default function StudentProfile() {
           <div className="student-profile-card">
             <div className="student-header">
               <div className="student-avatar">
-                {extendedStudent.imageUrl ? (
+                {getStudentImageUrl(extendedStudent) ? (
                   <img
-                    src={extendedStudent.imageUrl}
+                    src={getStudentImageUrl(extendedStudent)}
                     alt={extendedStudent.fullName}
+                    onError={(e) => {
+                      // If image fails to load, show default icon
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "flex";
+                    }}
                   />
-                ) : (
-                  <i className="fas fa-user-graduate"></i>
-                )}
+                ) : null}
+                <i
+                  className="fas fa-user-graduate"
+                  style={{
+                    display: getStudentImageUrl(extendedStudent)
+                      ? "none"
+                      : "flex",
+                  }}
+                ></i>
               </div>
               <div className="student-basic-info">
                 <h2>{extendedStudent.fullName}</h2>

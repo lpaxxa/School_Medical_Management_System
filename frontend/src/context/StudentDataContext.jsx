@@ -52,6 +52,12 @@ export const StudentDataProvider = ({ children }) => {
 
         console.log("Student data received:", response.data);
         const studentsData = response.data || [];
+        
+        // Debug: Log each student's image data
+        studentsData.forEach(student => {
+          console.log("Student:", student.fullName, "Image URL:", student.imageUrl);
+        });
+        
         setStudents(studentsData);
 
         // If students data is available, fetch parent info
