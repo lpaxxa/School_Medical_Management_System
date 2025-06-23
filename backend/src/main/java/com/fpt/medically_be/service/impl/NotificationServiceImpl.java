@@ -1,7 +1,9 @@
 package com.fpt.medically_be.service.impl;
 
+import com.fpt.medically_be.dto.response.MedicationAdministrationResponseDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
 import com.fpt.medically_be.dto.response.NurseMedicationNotificationDTO;
+import com.fpt.medically_be.dto.response.ParentMedicationAdministrationNotificationDTO;
 import com.fpt.medically_be.dto.response.ParentMedicationResponseNotification;
 import com.fpt.medically_be.mapper.NotificationMapper;
 import com.fpt.medically_be.service.NotificationService;
@@ -72,6 +74,33 @@ public class NotificationServiceImpl implements NotificationService {
             
         } catch (Exception e) {
             logger.error("Failed to send notification to parent for medication request: {}", medicationRequest.getId(), e);
+            // Don't throw the exception - the main operation should still succeed even if notification fails
+        }
+    }
+
+    @Override
+    public void sendMedicationAdministrationNotificationToParent(MedicationAdministrationResponseDTO administrationRecord, String parentAccountId) {
+        try {
+            // Create the notification DTO
+            ParentMedicationAdministrationNotificationDTO notification = notificationMapper.mapToParentAdministrationNotification(administrationRecord);
+            
+            if (parentAccountId != null && !parentAccountId.trim().isEmpty()) {
+                // Send targeted notification to the specific parent only
+                messagingTemplate.convertAndSendToUser(
+                    parentAccountId,
+                    notificationMapper.getParentAdministrationDestination(), 
+                    notification
+                );
+                
+                logger.info("Medication administration notification sent successfully to parent {} for administration ID: {}", 
+                           parentAccountId, administrationRecord.getId());
+            } else {
+                logger.warn("Cannot send medication administration notification - parent account ID is missing for administration ID: {}", 
+                           administrationRecord.getId());
+            }
+            
+        } catch (Exception e) {
+            logger.error("Failed to send medication administration notification for administration ID: {}", administrationRecord.getId(), e);
             // Don't throw the exception - the main operation should still succeed even if notification fails
         }
     }
