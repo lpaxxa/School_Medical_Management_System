@@ -162,8 +162,21 @@
   color: #6a1b9a;
 }
 
-/* Status badges for MedicalIncidents - IMPORTANT: REMOVED */
-/* Styles have been moved to MedicalIncidents.css */
+/* Status badges for MedicalIncidents */
+.severity-low {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.severity-medium {
+  background-color: #fff8e1;
+  color: #f57f17;
+}
+
+.severity-high {
+  background-color: #ffebee;
+  color: #c62828;
+}
 
 /* Common action buttons for all medical event components */
 .btn-view, .btn-edit, .btn-delete {

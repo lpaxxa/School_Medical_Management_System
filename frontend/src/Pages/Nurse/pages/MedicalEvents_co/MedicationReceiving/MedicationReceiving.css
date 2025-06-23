@@ -1,0 +1,625 @@
+/* MedicationReceiving.css - Enhanced styles for Medication Receiving management */
+/* Các lớp không cần thiết đã được loại bỏ để tinh gọn code */
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+}
+
+.filter-label {
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.filter-select,
+.filter-input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.medications-list {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Các lớp table cũ đã được thay thế bằng events-table */
+
+/* Status badge styles have been moved to MedicalEventsMain.css for consistency */
+
+/* Status badge styles and colors have been moved to MedicalEventsMain.css for consistency */
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: #2196f3;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #1976d2;
+}
+
+.btn-success {
+  background-color: #4caf50;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #388e3c;
+}
+
+.btn-danger {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #d32f2f;
+}
+
+.btn-secondary {
+  background-color: #9e9e9e;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #757575;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 1.4rem;
+  margin: 0;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.checkbox-input {
+  margin-right: 8px;
+}
+
+.checkbox-label {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.modal-footer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 5px;
+}
+
+.page-button {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.page-button:hover {
+  background-color: #f0f0f0;
+}
+
+.page-button.active {
+  background-color: #2196f3;
+  color: white;
+  border-color: #2196f3;
+}
+
+.no-data {
+  text-align: center;
+  padding: 30px;
+  color: #777;
+  font-style: italic;
+}
+
+/* Inventory Summary Cards */
+.medication-inventory-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.medication-inventory-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.medication-inventory-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.medication-inventory-card.in-stock {
+  border-left-color: #2196f3;
+}
+
+.medication-inventory-card.expired {
+  border-left-color: #f44336;
+}
+
+.medication-inventory-card.low-stock {
+  border-left-color: #ff9800;
+}
+
+.medication-inventory-card.recent {
+  border-left-color: #4caf50;
+}
+
+.inventory-icon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  margin-right: 16px;
+  font-size: 22px;
+}
+
+.inventory-icon.in-stock {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+}
+
+.inventory-icon.expired {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.inventory-icon.low-stock {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+}
+
+.inventory-icon.recent {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.inventory-details {
+  flex: 1;
+}
+
+.inventory-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+  color: #2c3e50;
+}
+
+.inventory-label {
+  color: #7f8c8d;
+  font-size: 14px;
+  margin: 5px 0 0;
+}
+
+/* Filter and search section */
+.medication-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 25px;
+  align-items: center;
+}
+
+.medication-search {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 400px;
+}
+
+.medication-search input {
+  width: 100%;
+  padding: 12px 16px;
+  padding-left: 40px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.medication-search input:focus {
+  background-color: #fff;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+  outline: none;
+}
+
+.medication-search i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #90a4ae;
+  font-size: 18px;
+}
+
+.medication-filter select {
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background-color: #f8f9fa;
+  font-size: 15px;
+  min-width: 180px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23333' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: all 0.3s ease;
+}
+
+.medication-filter select:focus {
+  background-color: #fff;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+  outline: none;
+}
+
+/* Medications table - Styled similar to Inventory Management */
+/* Các lớp table cũ đã được thay thế bằng events-table */
+
+/* Status badges - similar to inventory management */
+.medication-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.medication-status.in-stock {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.medication-status.expired {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.medication-status.low-stock {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+/* Action buttons - similar to inventory management */
+.medication-action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.medication-action-button {
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+  color: white;
+  white-space: nowrap;
+  min-width: 45px;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.medication-action-button.view {
+  background-color: #4dabf7;
+}
+
+.medication-action-button.view:hover {
+  background-color: #339af0;
+}
+
+.medication-action-button.edit {
+  background-color: #4dabf7;
+}
+
+.medication-action-button.edit:hover {
+  background-color: #339af0;
+}
+
+.medication-action-button.delete {
+  background-color: #dc3545;
+}
+
+.medication-action-button.delete:hover {
+  background-color: #c82333;
+}
+
+/* Add medication button */
+.add-medication-btn {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);
+}
+
+.add-medication-btn:hover {
+  background-color: #1e88e5;
+  box-shadow: 0 6px 14px rgba(33, 150, 243, 0.4);
+  transform: translateY(-2px);
+}
+
+.add-medication-btn:active {
+  transform: translateY(0);
+}
+
+.add-medication-btn i {
+  font-size: 16px;
+}
+
+/* Modal styles */
+.medication-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.medication-modal {
+  background-color: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  animation: modalFadeIn 0.3s ease forwards;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.medication-modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #eeeeee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.medication-modal-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.medication-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #90a4ae;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.medication-modal-close:hover {
+  color: #f44336;
+}
+
+.medication-modal-body {
+  padding: 20px;
+}
+
+.medication-modal-footer {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #eeeeee;
+}
+
+/* Form styles */
+.medication-form-group {
+  margin-bottom: 20px;
+}
+
+.medication-form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #455a64;
+}
+
+.medication-form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.medication-form-control:focus {
+  border-color: #2196f3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+  outline: none;
+}
+
+/* Loading and error states - Like inventory management */
+.loading, .error, .no-items {
+  text-align: center;
+  padding: 20px;
+  font-size: 1rem;
+}
+
+.loading {
+  color: #4dabf7;
+}
+
+.error {
+  color: #dc3545;
+}
+
+.no-items {
+  color: #6c757d;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {  /* Các lớp không cần thiết đã được loại bỏ */
+  
+  .medication-filter select {
+    width: 100%;
+  }
+  
+  .medication-action-buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .medication-action-button {
+    width: 100%;
+  }
+}
+
+/* Events table styles have been moved to MedicalEventsMain.css for consistency */

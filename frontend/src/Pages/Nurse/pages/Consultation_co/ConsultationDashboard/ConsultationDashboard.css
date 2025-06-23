@@ -1,7 +1,5 @@
 .consultation-dashboard {
   padding: 0;
-  max-width: 1440px;
-  margin: 0 auto;
 }
 
 .dashboard-header {
@@ -9,49 +7,53 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--border-color);
+  padding: 0.5rem 0;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .dashboard-header h2 {
   font-size: 1.5rem;
-  color: var(--text-primary);
+  color: #2d3748;
   margin: 0;
   font-weight: 600;
   position: relative;
   padding-bottom: 0.5rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
 }
 
-.dashboard-header h2 i {
-  color: var(--accent-color);
+.dashboard-header h2::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-color: #3182ce;
+  border-radius: 2px;
 }
 
 .stats-overview {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .stat-card {
-  background-color: var(--bg-secondary);
-  border-radius: var(--border-radius);
-  box-shadow: var(--card-shadow);
-  padding: 1.5rem;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  padding: 1.75rem;
   transition: all 0.3s ease;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(226, 232, 240, 0.6);
   display: flex;
   align-items: center;
   overflow: hidden;
-  position: relative;}
+  position: relative;
+}
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  border-color: var(--accent-light);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.12);
 }
 
 .stat-card::before {
@@ -61,115 +63,88 @@
   left: 0;
   width: 5px;
   height: 100%;
-  border-radius: var(--border-radius) 0 0 var(--border-radius);
-  background-color: var(--border-color);
+  background-color: #e2e8f0;
 }
 
 .stat-card.total-consultations::before {
-  background-color: var(--accent-color);
+  background-color: #3182ce;
 }
 
 .stat-card.unread-consultations::before {
-  background-color: var(--warning-color);
+  background-color: #dd6b20;
 }
 
 .stat-card.replied-consultations::before {
-  background-color: var(--success-color);
+  background-color: #38a169;
 }
 
 .stat-card.needs-reply-consultations::before {
-  background-color: var(--danger-color);
+  background-color: #d53f8c;
 }
 
 .stat-icon {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
+  background-color: #edf2f7;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 1.25rem;
-  font-size: 1.5rem;
-  background: linear-gradient(135deg, var(--accent-light) 0%, rgba(255,255,255,0.15) 100%);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-right: 1.5rem;
+  font-size: 1.75rem;
 }
 
 .stat-card.total-consultations .stat-icon {
-  background: linear-gradient(135deg, var(--accent-light) 0%, rgba(13, 110, 253, 0.1) 100%);
-  color: var(--accent-color);
+  background-color: #ebf8ff;
+  color: #3182ce;
 }
 
 .stat-card.unread-consultations .stat-icon {
-  background: linear-gradient(135deg, var(--warning-light) 0%, rgba(255, 193, 7, 0.1) 100%);
-  color: var(--warning-color);
+  background-color: #fffaf0;
+  color: #dd6b20;
 }
 
 .stat-card.replied-consultations .stat-icon {
-  background: linear-gradient(135deg, var(--success-light) 0%, rgba(25, 135, 84, 0.1) 100%);
-  color: var(--success-color);
+  background-color: #f0fff4;
+  color: #38a169;
 }
 
 .stat-card.needs-reply-consultations .stat-icon {
-  background: linear-gradient(135deg, var(--danger-light) 0%, rgba(220, 53, 69, 0.1) 100%);
-  color: var(--danger-color);
-}
-
-.stat-content {
-  flex: 1;
+  background-color: #fff5f7;
+  color: #d53f8c;
 }
 
 .stat-content h3 {
   font-size: 1rem;
-  color: var(--text-secondary);
-  margin: 0 0 0.75rem;
+  color: #718096;
+  margin: 0 0 0.5rem;
   font-weight: 500;
 }
 
 .stat-number {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #2d3748;
   margin: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.stat-number .trend {
-  font-size: 0.9rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.trend.up {
-  color: var(--success-color);
-}
-
-.trend.down {
-  color: var(--danger-color);
 }
 
 .alert-cards-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .alert-card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--card-shadow);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .alert-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
 .alert-card-header {
@@ -305,7 +280,75 @@
   margin-right: 0.5rem;
 }
 
+.quick-actions {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  margin-bottom: 2rem;
+}
 
+.quick-actions h3 {
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.action-btn {
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  background-color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.action-btn i {
+  font-size: 1.5rem;
+  color: #718096;
+}
+
+.action-btn span {
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.action-btn.create {
+  border-color: #bee3f8;
+  background-color: #ebf8ff;
+}
+
+.action-btn.create i {
+  color: #3182ce;
+}
+
+.action-btn.create:hover {
+  background-color: #4299e1;
+  border-color: #4299e1;
+}
+
+.action-btn.create:hover i,
+.action-btn.create:hover span {
+  color: #fff;
+}
 
 .dashboard-loading, .dashboard-error {
   display: flex;

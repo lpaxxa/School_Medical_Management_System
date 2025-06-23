@@ -1,21 +1,135 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import './BlogManagement.css';
-import { useBlog } from '../../../../context/NurseContext/BlogContext';
+
+// Debugging: Log when module is imported
+console.log('BlogManagement module is being imported');
+
+// Mock data based on the schema from the provided image
+const mockBlogs = [
+  {
+    blogId: 1,
+    title: "Cách phòng ngừa bệnh cúm mùa cho học sinh",
+    content: "Cúm mùa là một bệnh truyền nhiễm phổ biến ở trẻ em trong độ tuổi đi học. Để phòng ngừa hiệu quả, phụ huynh cần đảm bảo con em mình được tiêm vắc-xin cúm hàng năm, rửa tay thường xuyên bằng xà phòng, tránh tiếp xúc gần với người bệnh, và giữ vệ sinh cá nhân sạch sẽ. Khi phát hiện các triệu chứng như sốt cao, ho, đau họng, nhức đầu, đau nhức cơ thể, hãy cho trẻ nghỉ học và đến cơ sở y tế để được thăm khám kịp thời.",
+    thumbnailImage: "https://example.com/images/flu-prevention.jpg",
+    tags: "cúm mùa, phòng bệnh, học sinh",
+    createdByUser: {
+      id: 2,
+      name: "Nguyễn Thị Bình",
+      role: "Y tá trưởng"
+    },
+    createdAt: "2025-05-10T08:30:00",
+    updatedAt: "2025-05-12T10:15:00",
+    isActive: true,
+    viewCount: 342,
+    notes: "Bài viết được cập nhật với thông tin mới về vắc-xin cúm mùa"
+  },
+  {
+    blogId: 2,
+    title: "Dinh dưỡng hợp lý cho học sinh trong mùa thi",
+    content: "Mùa thi là giai đoạn học sinh cần một chế độ dinh dưỡng đặc biệt để duy trì năng lượng và khả năng tập trung. Nên ăn đầy đủ các nhóm thực phẩm như protein (thịt, cá, trứng, đậu), carbohydrate phức hợp (gạo lứt, khoai lang), rau xanh và trái cây giàu vitamin. Tránh thức ăn nhanh, đồ ngọt và caffeine. Uống đủ nước và chia nhỏ bữa ăn trong ngày để duy trì năng lượng ổn định. Bổ sung omega-3 từ cá, hạt chia và óc chó giúp cải thiện trí nhớ và khả năng tập trung.",
+    thumbnailImage: "https://example.com/images/exam-nutrition.jpg",
+    tags: "dinh dưỡng, mùa thi, học sinh, sức khỏe",
+    createdByUser: {
+      id: 2,
+      name: "Nguyễn Thị Bình",
+      role: "Y tá trưởng"
+    },
+    createdAt: "2025-05-18T09:45:00",
+    updatedAt: null,
+    isActive: true,
+    viewCount: 287,
+    notes: ""
+  },
+  {
+    blogId: 3,
+    title: "Dấu hiệu nhận biết trẻ bị rối loạn tâm lý học đường",
+    content: "Rối loạn tâm lý học đường đang ngày càng phổ biến và cần được phát hiện sớm. Một số dấu hiệu cần lưu ý: thay đổi đột ngột về kết quả học tập, né tránh đến trường, cô lập bản thân, thay đổi thói quen ăn uống hoặc ngủ nghỉ, cáu gắt hoặc buồn chán kéo dài, mất hứng thú với các hoạt động yêu thích trước đây. Phụ huynh và giáo viên cần quan sát và lắng nghe học sinh, tạo môi trường an toàn để trẻ chia sẻ và tìm kiếm sự hỗ trợ từ chuyên gia tâm lý nếu cần.",
+    thumbnailImage: "https://example.com/images/mental-health.jpg",
+    tags: "tâm lý học đường, sức khỏe tâm thần, học sinh",
+    createdByUser: {
+      id: 3,
+      name: "Lê Văn Cường",
+      role: "Y tá trường"
+    },
+    createdAt: "2025-06-02T14:20:00",
+    updatedAt: "2025-06-03T09:10:00",
+    isActive: true,
+    viewCount: 156,
+    notes: "Tham khảo ý kiến từ chuyên gia tâm lý Đại học Y"
+  },
+  {
+    blogId: 4,
+    title: "Hướng dẫn sơ cứu cơ bản tại trường học",
+    content: "Sơ cứu đúng cách và kịp thời tại trường học có thể cứu sống học sinh trong trường hợp khẩn cấp. Bài viết này cung cấp hướng dẫn chi tiết về cách xử lý các tình huống thường gặp như: xử trí vết thương hở, cầm máu, sơ cứu gãy xương, xử trí khi học sinh bị ngất, cách thực hiện hô hấp nhân tạo và ép tim ngoài lồng ngực, xử trí khi học sinh bị hóc dị vật, bỏng và say nắng. Mỗi trường học nên có bộ dụng cụ sơ cứu và đảm bảo nhân viên được đào tạo về kỹ năng sơ cứu cơ bản.",
+    thumbnailImage: "https://example.com/images/first-aid.jpg",
+    tags: "sơ cứu, an toàn trường học, y tế học đường",
+    createdByUser: {
+      id: 2,
+      name: "Nguyễn Thị Bình",
+      role: "Y tá trưởng"
+    },
+    createdAt: "2025-06-10T11:00:00",
+    updatedAt: null,
+    isActive: true,
+    viewCount: 423,
+    notes: "Cần cập nhật thêm phần sơ cứu đuối nước"
+  },
+  {
+    blogId: 5,
+    title: "Các bài tập thể dục đơn giản giúp học sinh tăng cường sức khỏe",
+    content: "Hoạt động thể chất đóng vai trò quan trọng trong sự phát triển toàn diện của học sinh. Các bài tập đơn giản có thể thực hiện tại trường hoặc tại nhà bao gồm: bài tập khởi động cơ bản (xoay cổ, xoay vai, gập người), các bài tập cardio nhẹ nhàng (nhảy dây, đi bộ nhanh), các động tác tăng cường sức mạnh cơ bắp (chống đẩy, gập bụng), và các bài tập kéo giãn. Mỗi ngày chỉ cần 15-30 phút tập luyện sẽ giúp tăng cường sức đề kháng, cải thiện tập trung và giảm stress học tập.",
+    thumbnailImage: "https://example.com/images/exercise.jpg",
+    tags: "thể dục, sức khỏe, học sinh",
+    createdByUser: {
+      id: 3,
+      name: "Lê Văn Cường",
+      role: "Y tá trường"
+    },
+    createdAt: "2025-06-12T16:30:00",
+    updatedAt: "2025-06-13T08:45:00",
+    isActive: false,
+    viewCount: 98,
+    notes: "Đang chờ thêm tư vấn từ giáo viên thể dục"
+  }
+];
+
+// Placeholder URLs for thumbnail images
+const placeholderImages = [
+  "https://via.placeholder.com/800x450/4caf50/ffffff?text=Phòng+ngừa+bệnh+cúm+mùa",
+  "https://via.placeholder.com/800x450/2196f3/ffffff?text=Dinh+dưỡng+học+sinh",
+  "https://via.placeholder.com/800x450/f44336/ffffff?text=Sức+khỏe+tâm+lý",
+  "https://via.placeholder.com/800x450/ff9800/ffffff?text=Sơ+cứu+học+đường",
+  "https://via.placeholder.com/800x450/9c27b0/ffffff?text=Thể+dục+tăng+cường",
+];
+
+// Fix mock data with placeholder images - ensure they're using valid URLs
+mockBlogs.forEach((blog, index) => {
+  blog.thumbnailImage = placeholderImages[index % placeholderImages.length];
+  
+  // Log for debugging
+  console.log(`Assigned image URL to blog ${blog.blogId}:`, blog.thumbnailImage);
+});
 
 const BlogManagement = () => {
   console.log('BlogManagement component is rendering');
   
-  // Sử dụng BlogContext thay vì mockData
-  const { blogs, loading, error, fetchBlogs, addBlog, updateBlog, removeBlog } = useBlog();
-
+  // Add an effect to log when the component mounts
   useEffect(() => {
-    fetchBlogs();
-  }, [fetchBlogs]);
+    console.log('BlogManagement component mounted');
+    // Alert for immediate feedback when component mounts
+    alert('Blog Management Component Loaded');
+    
+    return () => {
+      console.log('BlogManagement component unmounted');
+    };
+  }, []);
   
+  const [blogs, setBlogs] = useState(mockBlogs);
+  const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [currentBlog, setCurrentBlog] = useState(null);
-  const [modalMode, setModalMode] = useState('view');
+  const [modalMode, setModalMode] = useState('view'); // view, add, edit
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -43,7 +157,14 @@ const BlogManagement = () => {
   const getFilteredBlogs = () => {
     let filtered = [...blogs];
     
-    // Chỉ giữ lại phần lọc theo search
+    // Apply tab filter
+    if (activeTab === 'active') {
+      filtered = filtered.filter(blog => blog.isActive);
+    } else if (activeTab === 'inactive') {
+      filtered = filtered.filter(blog => !blog.isActive);
+    }
+    
+    // Apply search term
     if (searchTerm.trim() !== '') {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(blog => 
@@ -68,7 +189,7 @@ const BlogManagement = () => {
     setFormData({
       title: '',
       content: '',
-      thumbnailImage: '',
+      thumbnailImage: placeholderImages[Math.floor(Math.random() * placeholderImages.length)],
       tags: '',
       isActive: true,
       notes: ''
@@ -95,36 +216,31 @@ const BlogManagement = () => {
   };
 
   // Handle delete blog
-  const handleDeleteBlog = async (blogId) => {
+  const handleDeleteBlog = (blogId) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này không?')) {
-      try {
-        await removeBlog(blogId);
-      } catch (error) {
-        console.error("Lỗi khi xóa bài viết:", error);
-      }
+      setBlogs(blogs.filter(blog => blog.blogId !== blogId));
     }
   };
 
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    setFormData(prevData => ({
-      ...prevData,
+    setFormData({
+      ...formData,
       [name]: type === 'checkbox' ? checked : value
-    }));
-
-    // Xóa error một cách riêng biệt để tránh việc re-render không cần thiết
+    });
+    
+    // Clear error when field is edited
     if (errors[name]) {
-      setErrors(prevErrors => ({
-        ...prevErrors,
-        [name]: ''
-      }));
+      setErrors({
+        ...errors,
+        [name]: null
+      });
     }
   };
 
   // Validate form
-  const validateForm = useCallback(() => {
+  const validateForm = () => {
     const newErrors = {};
     
     if (!formData.title.trim()) {
@@ -139,396 +255,69 @@ const BlogManagement = () => {
       newErrors.thumbnailImage = 'Vui lòng nhập đường dẫn ảnh đại diện';
     }
     
-    return newErrors;
-  }, [formData]);
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Handle form submit
-  const handleFormSubmit = async (e) => {
+  const handleFormSubmit = (e) => {
     e.preventDefault();
-    e.stopPropagation();
     
-    const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
+    if (!validateForm()) {
       return;
     }
     
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = modalMode === 'add' ? 'Đang thêm...' : 'Đang lưu...';
-    }
-
-    try {
-      const formattedData = {
+    if (modalMode === 'add') {
+      // Create new blog
+      const newBlog = {
         ...formData,
-        tags: typeof formData.tags === 'string' ? formData.tags : '',
-        viewCount: formData.viewCount || 0
+        blogId: blogs.length > 0 ? Math.max(...blogs.map(b => b.blogId)) + 1 : 1,
+        createdByUser: {
+          id: 2,
+          name: "Nguyễn Thị Bình",
+          role: "Y tá trưởng"
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: null,
+        viewCount: 0
       };
-
-      if (modalMode === 'add') {
-        const newBlog = {
-          ...formattedData,
-          blogId: blogs.length > 0 ? Math.max(...blogs.map(b => b.blogId || 0)) + 1 : 1,
-          createdByUser: {
-            id: 2,
-            name: "Nguyễn Thị Bình",
-            role: "Y tá trưởng"
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: null,
-          viewCount: 0
-        };
-        
-        await addBlog(newBlog);
-        
-        setFormData({
-          title: '',
-          content: '',
-          thumbnailImage: '',
-          tags: '',
-          isActive: true,
-          notes: ''
-        });
-      } else if (modalMode === 'edit') {
-        const updatedBlog = {
-          ...formattedData,
-          updatedAt: new Date().toISOString()
-        };
-        
-        await updateBlog(updatedBlog);
-      }
       
-      setShowModal(false);
-    } catch (error) {
-      console.error("Lỗi khi xử lý bài viết:", error);
-      alert(`Có lỗi xảy ra: ${error.message || 'Lỗi không xác định'}`);
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = modalMode === 'add' ? 'Thêm bài viết' : 'Lưu thay đổi';
-      }
+      setBlogs([...blogs, newBlog]);
+    } else if (modalMode === 'edit') {
+      // Update existing blog
+      const updatedBlogs = blogs.map(blog => 
+        blog.blogId === formData.blogId 
+          ? { 
+              ...blog, 
+              ...formData, 
+              updatedAt: new Date().toISOString() 
+            } 
+          : blog
+      );
+      
+      setBlogs(updatedBlogs);
     }
+    
+    setShowModal(false);
   };
 
   // Toggle blog active status
-  const toggleBlogStatus = async (blogId) => {
-    // Lấy blog hiện tại
-    const blogToToggle = blogs.find(blog => blog.blogId === blogId);
-    if (!blogToToggle) return;
-    
-    // Tạo bản sao và đổi trạng thái
-    const updatedBlog = { 
-      ...blogToToggle,
-      isActive: !blogToToggle.isActive,
-      updatedAt: new Date().toISOString()
-    };
-    
-    try {
-      // Gọi hàm updateBlog từ context
-      await updateBlog(updatedBlog);
-    } catch (error) {
-      console.error('Lỗi khi thay đổi trạng thái:', error);
-    }
-  };
-
-  // Load dữ liệu khi component mount
-  useEffect(() => {
-    console.log('BlogManagement component mounted');
-    fetchBlogs();
-    
-    return () => {
-      console.log('BlogManagement component unmounted');
-    };
-  }, [fetchBlogs]);
-  
-  // Simple Blog Card component
-  const BlogCard = ({ blog }) => (
-    <div className="blog-card">
-      <img 
-        src={blog.thumbnailImage} 
-        alt={blog.title} 
-        className="blog-image" 
-      />
-      <div className="blog-content">
-        <h3 className="blog-title">{blog.title}</h3>
-        <div className="blog-excerpt">
-          {blog.content.substring(0, 150)}...
-        </div>
-        <div className="blog-meta">
-          <span className={blog.isActive ? 'status-active' : 'status-inactive'}>
-            {blog.isActive ? 'Đang hoạt động' : ''}
-          </span>
-        </div>
-        <div className="tags">
-          {blog.tags && typeof blog.tags === 'string'
-            ? blog.tags.split(',').map((tag, index) => (
-                <span key={index} className="tag">{tag.trim()}</span>
-              ))
-            : Array.isArray(blog.tags)
-              ? blog.tags.map((tag, index) => (
-                  <span key={index} className="tag">{tag}</span>
-                ))
-              : null
-          }
-        </div>
-        <div className="blog-actions">
-          <button 
-            className="action-btn view" 
-            onClick={() => handleViewBlog(blog)}
-            title="Xem chi tiết"
-          >
-            <i className="fas fa-eye"></i> Xem
-          </button>
-          <button 
-            className="action-btn edit"
-            onClick={() => handleEditBlog(blog)}
-            title="Chỉnh sửa"
-          >
-            <i className="fas fa-edit"></i> Sửa
-          </button>
-          <button 
-            className="action-btn"
-            onClick={() => toggleBlogStatus(blog.blogId)}
-            title={blog.isActive ? 'Ẩn bài viết' : 'Hiện bài viết'}
-          >
-            <i className={`fas ${blog.isActive ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-            {blog.isActive ? ' Ẩn' : ' Hiện'}
-          </button>
-          <button 
-            className="action-btn delete"
-            onClick={() => handleDeleteBlog(blog.blogId)}
-            title="Xóa bài viết"
-          >
-            <i className="fas fa-trash"></i> Xóa
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-  
-  // Blog Detail component cho modal view
-  const BlogDetail = ({ blog }) => (
-    <div className="blog-detail">
-      <img 
-        src={blog.thumbnailImage} 
-        alt={blog.title} 
-        className="blog-detail-image"
-      />
-      
-      <div className="blog-detail-header">
-        <h2 className="blog-detail-title">{blog.title}</h2>
-        <div className="blog-detail-meta">
-          <span>
-            <i className="fas fa-user"></i> {blog.createdByUser.name}
-          </span>
-          <span>
-            <i className="fas fa-calendar"></i> Tạo: {formatDate(blog.createdAt)}
-          </span>
-          {blog.updatedAt && (
-            <span>
-              <i className="fas fa-edit"></i> Cập nhật: {formatDate(blog.updatedAt)}
-            </span>
-          )}
-          <span>
-            <i className="fas fa-eye"></i> {blog.viewCount} lượt xem
-          </span>
-        </div>
-        
-        <div className="tags">
-          {blog.tags && typeof blog.tags === 'string'
-            ? blog.tags.split(',').map((tag, index) => (
-                <span key={index} className="tag">{tag.trim()}</span>
-              ))
-            : Array.isArray(blog.tags)
-              ? blog.tags.map((tag, index) => (
-                  <span key={index} className="tag">{tag}</span>
-                ))
-              : null
-          }
-        </div>
-      </div>
-      
-      <div className="blog-detail-content">
-        {blog.content.split('\n').map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
-        ))}
-        
-        {blog.notes && (
-          <div className="blog-notes">
-            <h4>Ghi chú:</h4>
-            <p>{blog.notes}</p>
-          </div>
-        )}
-      </div>
-      
-      <div className="blog-detail-actions">
-        <button 
-          className="btn-secondary"
-          onClick={() => setShowModal(false)}
-        >
-          Đóng
-        </button>
-        <div>
-          <button 
-            className="btn-primary"
-            onClick={() => {
-              setModalMode('edit');
-              handleEditBlog(blog);
-            }}
-            style={{ marginRight: '10px' }}
-          >
-            <i className="fas fa-edit"></i> Chỉnh sửa
-          </button>
-          <button 
-            className={`btn-${blog.isActive ? 'secondary' : 'primary'}`}
-            onClick={() => {
-              toggleBlogStatus(blog.blogId);
-              setShowModal(false);
-            }}
-          >
-            <i className={`fas ${blog.isActive ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-            {blog.isActive ? ' Ẩn bài viết' : ' Hiện bài viết'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-  
-  // Form component
-  const BlogForm = () => {
-    return (
-      <form onSubmit={handleFormSubmit} className="blog-form">
-        <div className="form-group">
-          <label htmlFor="title">Tiêu đề bài viết <span className="required">*</span></label>
-          <input
-            id="title"
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            className={errors.title ? 'error' : ''}
-            placeholder="Nhập tiêu đề bài viết"
-          />
-          {errors.title && <span className="error-message">{errors.title}</span>}
-        </div>
-
-        <div className="form-group">
-          <label>
-            Ảnh đại diện <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="thumbnailImage"
-            value={formData.thumbnailImage}
-            onChange={handleInputChange}
-            placeholder="Nhập đường dẫn ảnh"
-            className={errors.thumbnailImage ? 'error' : ''}
-          />
-          {errors.thumbnailImage && <span className="error-text">{errors.thumbnailImage}</span>}
-          {formData.thumbnailImage && (
-            <div className="image-preview">
-              <img
-                src={formData.thumbnailImage}
-                alt="Preview"
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/400x200?text=Preview+Image';
-                }}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="form-group">
-          <label>
-            Nội dung <span className="required">*</span>
-          </label>
-          <textarea
-            name="content"
-            value={formData.content}
-            onChange={handleInputChange}
-            placeholder="Nhập nội dung bài viết"
-            rows="8"
-            className={errors.content ? 'error' : ''}
-          />
-          {errors.content && <span className="error-text">{errors.content}</span>}
-        </div>
-
-        <div className="form-group">
-          <label>Tags</label>
-          <input
-            type="text"
-            name="tags"
-            value={formData.tags}
-            onChange={handleInputChange}
-            placeholder="Nhập tags (phân cách bằng dấu phẩy)"
-          />
-          {formData.tags && (
-            <div className="tags-preview">
-              {formData.tags.split(',').map((tag, index) => (
-                <span key={index} className="tag-item">
-                  {tag.trim()}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="form-group">
-          <label>Ghi chú</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleInputChange}
-            placeholder="Nhập ghi chú nội bộ"
-            rows="4"
-          />
-        </div>
-
-        <div className="form-group checkbox">
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              name="isActive"
-              checked={formData.isActive}
-              onChange={handleInputChange}
-            />
-            <span>Kích hoạt bài viết</span>
-          </label>
-        </div>
-
-        <div className="form-actions-new">
-          <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>
-            Hủy
-          </button>
-          <button type="submit" className="btn-submit">
-            {modalMode === 'add' ? 'Thêm bài viết' : 'Cập nhật'}
-          </button>
-        </div>
-      </form>
+  const toggleBlogStatus = (blogId) => {
+    const updatedBlogs = blogs.map(blog => 
+      blog.blogId === blogId 
+        ? { 
+            ...blog, 
+            isActive: !blog.isActive,
+            updatedAt: new Date().toISOString()
+          } 
+        : blog
     );
+    
+    setBlogs(updatedBlogs);
   };
-  
-  // Main component render
+
   return (
     <div className="blog-management">
-      {/* Loading indicator */}
-      {loading && (
-        <div className="loading-overlay">
-          <div className="loading-spinner">Đang tải...</div>
-        </div>
-      )}
-      
-      {/* Error display */}
-      {error && !loading && (
-        <div className="error-message-container">
-          <p>{error}</p>
-          <button className="btn-primary" onClick={fetchBlogs}>
-            <i className="fas fa-sync"></i> Thử lại
-          </button>
-        </div>
-      )}
-      
       <div className="section-header">
         <div className="header-title">
           <h2>Quản lý Blog</h2>
@@ -537,6 +326,27 @@ const BlogManagement = () => {
         <button className="btn-primary" onClick={handleAddBlog}>
           <i className="fas fa-plus"></i> Thêm bài viết mới
         </button>
+      </div>
+      
+      <div className="blog-tabs">
+        <div 
+          className={`tab-item ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          Tất cả bài viết
+        </div>
+        <div 
+          className={`tab-item ${activeTab === 'active' ? 'active' : ''}`}
+          onClick={() => setActiveTab('active')}
+        >
+          Đang hoạt động
+        </div>
+        <div 
+          className={`tab-item ${activeTab === 'inactive' ? 'active' : ''}`}
+          onClick={() => setActiveTab('inactive')}
+        >
+          Ngừng hoạt động
+        </div>
       </div>
       
       <div className="filters">
@@ -551,7 +361,65 @@ const BlogManagement = () => {
       
       {getFilteredBlogs().length > 0 ? (
         <div className="blog-list">
-          {getFilteredBlogs().map(blog => <BlogCard key={blog.blogId} blog={blog} />)}
+          {getFilteredBlogs().map(blog => (
+            <div key={blog.blogId} className="blog-card">
+              <img 
+                src={blog.thumbnailImage} 
+                alt={blog.title} 
+                className="blog-image" 
+              />
+              <div className="blog-content">
+                <h3 className="blog-title">{blog.title}</h3>
+                <div className="blog-excerpt">
+                  {blog.content.substring(0, 150)}...
+                </div>
+                <div className="blog-meta">
+                  <span>
+                    <i className="fas fa-eye"></i> {blog.viewCount} lượt xem
+                  </span>
+                  <span className={blog.isActive ? 'status-active' : 'status-inactive'}>
+                    {blog.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                  </span>
+                </div>
+                <div className="tags">
+                  {blog.tags.split(',').map((tag, index) => (
+                    <span key={index} className="tag">{tag.trim()}</span>
+                  ))}
+                </div>
+                <div className="blog-actions">
+                  <button 
+                    className="action-btn view" 
+                    onClick={() => handleViewBlog(blog)}
+                    title="Xem chi tiết"
+                  >
+                    <i className="fas fa-eye"></i> Xem
+                  </button>
+                  <button 
+                    className="action-btn edit"
+                    onClick={() => handleEditBlog(blog)}
+                    title="Chỉnh sửa"
+                  >
+                    <i className="fas fa-edit"></i> Sửa
+                  </button>
+                  <button 
+                    className="action-btn"
+                    onClick={() => toggleBlogStatus(blog.blogId)}
+                    title={blog.isActive ? 'Ẩn bài viết' : 'Hiện bài viết'}
+                  >
+                    <i className={`fas ${blog.isActive ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                    {blog.isActive ? ' Ẩn' : ' Hiện'}
+                  </button>
+                  <button 
+                    className="action-btn delete"
+                    onClick={() => handleDeleteBlog(blog.blogId)}
+                    title="Xóa bài viết"
+                  >
+                    <i className="fas fa-trash"></i> Xóa
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className="empty-state">
@@ -570,47 +438,213 @@ const BlogManagement = () => {
                   ? 'Chi tiết bài viết' 
                   : modalMode === 'add' 
                     ? 'Thêm bài viết mới' 
-                    : 'Chỉnh sửa bài viết'}
+                    : 'Chỉnh sửa bài viết'
+                }
               </h3>
-              <button className="close-btn" onClick={() => setShowModal(false)}>
+              <button 
+                className="close-btn" 
+                onClick={() => setShowModal(false)}
+              >
                 <i className="fas fa-times"></i>
               </button>
             </div>
             
             <div className="modal-body">
-              {modalMode === 'view' ? (
-                <BlogDetail blog={currentBlog} />
-              ) : (
-                <BlogForm />
+              {modalMode === 'view' && currentBlog && (
+                <div className="blog-detail">
+                  <img 
+                    src={currentBlog.thumbnailImage} 
+                    alt={currentBlog.title} 
+                    className="blog-detail-image"
+                  />
+                  
+                  <div className="blog-detail-header">
+                    <h2 className="blog-detail-title">{currentBlog.title}</h2>
+                    <div className="blog-detail-meta">
+                      <span>
+                        <i className="fas fa-user"></i> {currentBlog.createdByUser.name}
+                      </span>
+                      <span>
+                        <i className="fas fa-calendar"></i> Tạo: {formatDate(currentBlog.createdAt)}
+                      </span>
+                      {currentBlog.updatedAt && (
+                        <span>
+                          <i className="fas fa-edit"></i> Cập nhật: {formatDate(currentBlog.updatedAt)}
+                        </span>
+                      )}
+                      <span>
+                        <i className="fas fa-eye"></i> {currentBlog.viewCount} lượt xem
+                      </span>
+                    </div>
+                    
+                    <div className="tags">
+                      {currentBlog.tags.split(',').map((tag, index) => (
+                        <span key={index} className="tag">{tag.trim()}</span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="blog-detail-content">
+                    {currentBlog.content.split('\n').map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
+                    
+                    {currentBlog.notes && (
+                      <div className="blog-notes">
+                        <h4>Ghi chú:</h4>
+                        <p>{currentBlog.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="blog-detail-actions">
+                    <button 
+                      className="btn-secondary"
+                      onClick={() => setShowModal(false)}
+                    >
+                      Đóng
+                    </button>
+                    <div>
+                      <button 
+                        className="btn-primary"
+                        onClick={() => {
+                          setModalMode('edit');
+                          handleEditBlog(currentBlog);
+                        }}
+                        style={{ marginRight: '10px' }}
+                      >
+                        <i className="fas fa-edit"></i> Chỉnh sửa
+                      </button>
+                      <button 
+                        className={`btn-${currentBlog.isActive ? 'secondary' : 'primary'}`}
+                        onClick={() => {
+                          toggleBlogStatus(currentBlog.blogId);
+                          setShowModal(false);
+                        }}
+                      >
+                        <i className={`fas ${currentBlog.isActive ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                        {currentBlog.isActive ? ' Ẩn bài viết' : ' Hiện bài viết'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {(modalMode === 'add' || modalMode === 'edit') && (
+                <form onSubmit={handleFormSubmit} className="blog-form">
+                  <div className="form-group">
+                    <label htmlFor="title">Tiêu đề bài viết <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      className={`form-control ${errors.title ? 'error' : ''}`}
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      placeholder="Nhập tiêu đề bài viết"
+                    />
+                    {errors.title && <div className="error-message">{errors.title}</div>}
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="thumbnailImage">Đường dẫn ảnh đại diện <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      id="thumbnailImage"
+                      name="thumbnailImage"
+                      className={`form-control ${errors.thumbnailImage ? 'error' : ''}`}
+                      value={formData.thumbnailImage}
+                      onChange={handleInputChange}
+                      placeholder="Nhập đường dẫn ảnh đại diện"
+                    />
+                    {errors.thumbnailImage && <div className="error-message">{errors.thumbnailImage}</div>}
+                    
+                    {formData.thumbnailImage && (
+                      <div className="thumbnail-preview" style={{ marginTop: '10px' }}>
+                        <img 
+                          src={formData.thumbnailImage} 
+                          alt="Preview" 
+                          style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'cover' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="content">Nội dung bài viết <span className="required">*</span></label>
+                    <textarea
+                      id="content"
+                      name="content"
+                      className={`form-control ${errors.content ? 'error' : ''}`}
+                      value={formData.content}
+                      onChange={handleInputChange}
+                      placeholder="Nhập nội dung bài viết chi tiết"
+                      rows="10"
+                    ></textarea>
+                    {errors.content && <div className="error-message">{errors.content}</div>}
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="tags">Thẻ (tags)</label>
+                    <input
+                      type="text"
+                      id="tags"
+                      name="tags"
+                      className="form-control"
+                      value={formData.tags}
+                      onChange={handleInputChange}
+                      placeholder="Nhập các thẻ, phân cách bằng dấu phẩy (vd: sức khỏe, dinh dưỡng)"
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="notes">Ghi chú nội bộ</label>
+                    <textarea
+                      id="notes"
+                      name="notes"
+                      className="form-control"
+                      value={formData.notes}
+                      onChange={handleInputChange}
+                      placeholder="Nhập ghi chú nội bộ (không hiển thị với người đọc)"
+                      rows="3"
+                    ></textarea>
+                  </div>
+                  
+                  <div className="form-group">
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <input
+                        type="checkbox"
+                        id="isActive"
+                        name="isActive"
+                        checked={formData.isActive}
+                        onChange={handleInputChange}
+                        style={{ marginRight: '10px' }}
+                      />
+                      <label htmlFor="isActive">Bài viết hoạt động (hiển thị công khai)</label>
+                    </div>
+                  </div>
+                  
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => setShowModal(false)}
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                    >
+                      {modalMode === 'add' ? 'Thêm bài viết' : 'Lưu thay đổi'}
+                    </button>
+                  </div>
+                </form>
               )}
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-};
-
-// Export simplified component for testing
-export const SimpleBlogManagement = () => {
-  console.log('Rendering SimpleBlogManagement component');
-  
-  React.useEffect(() => {
-    console.log('SimpleBlogManagement component mounted');
-    return () => {
-      console.log('SimpleBlogManagement component unmounted');
-    };
-  }, []);
-  
-  return (
-    <div className="blog-management-simple">
-      <h2>Blog Management</h2>
-      <p>This is a simplified version of the blog management component.</p>
-      
-      <div className="blog-card-simple">
-        <h3 className="blog-title-simple">Sample Blog Post</h3>
-        <p className="blog-content-simple">This is a sample blog post content to test if the component renders correctly.</p>
-      </div>
     </div>
   );
 };

@@ -1,235 +1,514 @@
-import axios from 'axios';
-
-// Base API URL
-const API_URL = 'http://localhost:8080/api/v1'; // Đảm bảo đúng URL
-
-// Tạo instance axios với URL cơ sở
-const axiosInstance = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-});
-
-// Thêm interceptor để gắn token vào mỗi request
-axiosInstance.interceptors.request.use(
-  (config) => {
-    // Sử dụng token từ AuthContext thông qua localStorage
-    const token = localStorage.getItem('authToken');
-    
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    } else {
-      console.log('No authentication token available');
-    }
-    
-    return config;
+// Dịch vụ để quản lý hồ sơ y tế của học sinh
+// Dữ liệu mẫu cho học sinh
+const studentsData = [
+  {    id: "SV001",
+    name: "Nguyễn Văn An",
+    class: "10A1",
+    homeRoomTeacher: "Nguyễn Thị Hương",
+    dateOfBirth: "2008-05-15",
+    gender: "Nam",
+    bloodType: "O+",
+    lastUpdated: "2025-05-15",
+    status: "Đã hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=1",
+    imageUrl: "https://i.pravatar.cc/300?img=1",
+    emergencyContact: {
+      parentName: "Nguyễn Văn Bình",
+      phone: "0912345678"
+    },
+    healthIndices: {
+      height: 165,
+      weight: 55,
+      bmi: 20.2,
+      bloodPressure: "110/70",
+      vision: "8/10",
+      hearing: "Bình thường"
+    },
+    medicalHistory: {
+      allergies: "Dị ứng phấn hoa, hải sản",
+      chronicDiseases: "Không",
+      medicalHistory: "Phẫu thuật ruột thừa năm 2023"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-05-15",
+        content: "Học sinh đã hoàn thành khám sức khỏe định kỳ. Cần theo dõi thêm về tình trạng dị ứng.",
+        author: "Y tá Ngọc"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2025-01-15",
+        height: 163,
+        weight: 52,
+        bmi: 19.6
+      },
+      {
+        date: "2025-05-15",
+        height: 165,
+        weight: 55,
+        bmi: 20.2
+      }
+    ]
   },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Thêm interceptor để xử lý response errors
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
+  {    id: "SV002",
+    name: "Trần Thị Bình",
+    class: "11A2",
+    homeRoomTeacher: "Lê Minh Tuấn",
+    dateOfBirth: "2007-08-20",
+    gender: "Nữ",
+    bloodType: "A+",
+    lastUpdated: "2025-05-10",
+    status: "Đã hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=5",
+    imageUrl: "https://i.pravatar.cc/300?img=5",
+    emergencyContact: {
+      parentName: "Trần Văn Chính",
+      phone: "0923456789"
+    },
+    healthIndices: {
+      height: 158,
+      weight: 48,
+      bmi: 19.2,
+      bloodPressure: "100/65",
+      vision: "9/10",
+      hearing: "Bình thường"
+    },
+    medicalHistory: {
+      allergies: "Không",
+      chronicDiseases: "Hen suyễn nhẹ",
+      medicalHistory: "Tiêm ngừa đầy đủ"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-05-10",
+        content: "Học sinh cần mang theo thuốc xịt hen suyễn khi tham gia hoạt động thể thao ngoài trời.",
+        author: "Y tá Linh"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2025-01-10",
+        height: 157,
+        weight: 46,
+        bmi: 18.7
+      },
+      {
+        date: "2025-05-10",
+        height: 158,
+        weight: 48,
+        bmi: 19.2
+      }
+    ]
   },
-  (error) => {
-    // Nếu token hết hạn (401) hoặc không có quyền (403)
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      console.error('Authentication error:', error.response.data);
-      // Có thể redirect đến trang login hoặc hiển thị thông báo
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Dữ liệu mẫu để sử dụng khi API không hoạt động
-// Kiểm tra mockStudents đã được định nghĩa chưa, nếu chưa thì định nghĩa
-const mockStudents = [
+  {    id: "SV003",
+    name: "Lê Hoàng Công",
+    class: "12B3",
+    homeRoomTeacher: "Trần Thị Mai",
+    dateOfBirth: "2006-12-03",
+    gender: "Nam",
+    bloodType: "B+",
+    lastUpdated: "2025-04-20",
+    status: "Đã hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=3",
+    imageUrl: "https://i.pravatar.cc/300?img=3",
+    emergencyContact: {
+      parentName: "Lê Thị Dung",
+      phone: "0934567890"
+    },
+    healthIndices: {
+      height: 175,
+      weight: 70,
+      bmi: 22.9,
+      bloodPressure: "120/80",
+      vision: "10/10",
+      hearing: "Bình thường"
+    },
+    medicalHistory: {
+      allergies: "Dị ứng bụi",
+      chronicDiseases: "Không",
+      medicalHistory: "Gãy tay phải năm 2022, đã phục hồi hoàn toàn"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-04-20",
+        content: "Học sinh có thể lực tốt, phù hợp tham gia đội tuyển thể thao của trường.",
+        author: "Y tá Hà"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2024-10-15",
+        height: 173,
+        weight: 68,
+        bmi: 22.7
+      },
+      {
+        date: "2025-04-20",
+        height: 175,
+        weight: 70,
+        bmi: 22.9
+      }
+    ]
+  },
+  {    id: "SV004",
+    name: "Phạm Thị Diệu",
+    class: "9C2",
+    homeRoomTeacher: "Phạm Văn Hiến",
+    dateOfBirth: "2009-02-25",
+    gender: "Nữ",
+    bloodType: "O-",
+    lastUpdated: "2025-05-20",
+    status: "Chưa hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=7",
+    imageUrl: "https://i.pravatar.cc/300?img=7",
+    emergencyContact: {
+      parentName: "Phạm Văn Em",
+      phone: "0945678901"
+    },
+    healthIndices: {
+      height: 155,
+      weight: 45,
+      bmi: 18.7,
+      bloodPressure: "105/65",
+      vision: "7/10",
+      hearing: "Cần kiểm tra thêm"
+    },
+    medicalHistory: {
+      allergies: "Không",
+      chronicDiseases: "Không",
+      medicalHistory: "Viêm họng thường xuyên"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-05-20",
+        content: "Học sinh cần kiểm tra thính lực chi tiết hơn vào đợt khám sức khỏe tiếp theo.",
+        author: "Y tá Ngọc"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2024-11-20",
+        height: 153,
+        weight: 42,
+        bmi: 17.9
+      },
+      {
+        date: "2025-05-20",
+        height: 155,
+        weight: 45,
+        bmi: 18.7
+      }
+    ]
+  },
   {
-    id: 1,
-    fullName: 'Nguyễn Văn A',
-    studentId: 'SV001',
-    dateOfBirth: '2010-05-15',
-    gender: 'Nam',
-    className: '6A1',
-    gradeLevel: '6',
-    schoolYear: '2023-2024',
-    imageUrl: 'https://via.placeholder.com/150?text=NVA',
-    healthProfileId: 'HP001',
-    parentId: 'P001'
+    id: "SV005",
+    name: "Hoàng Văn Duy",
+    class: "8A1",
+    dateOfBirth: "2010-07-10",
+    gender: "Nam",
+    bloodType: "AB+",
+    lastUpdated: "2025-05-05",
+    status: "Đã hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=8",
+    emergencyContact: {
+      parentName: "Hoàng Thị Giang",
+      phone: "0956789012"
+    },
+    healthIndices: {
+      height: 160,
+      weight: 52,
+      bmi: 20.3,
+      bloodPressure: "110/70",
+      vision: "9/10",
+      hearing: "Bình thường"
+    },
+    medicalHistory: {
+      allergies: "Dị ứng thời tiết",
+      chronicDiseases: "Không",
+      medicalHistory: "Tiêm ngừa đầy đủ"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-05-05",
+        content: "Học sinh có tình trạng dị ứng theo mùa, đã hướng dẫn cách phòng ngừa.",
+        author: "Y tá Linh"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2024-11-05",
+        height: 157,
+        weight: 48,
+        bmi: 19.5
+      },
+      {
+        date: "2025-05-05",
+        height: 160,
+        weight: 52,
+        bmi: 20.3
+      }
+    ]
   },
-  // Thêm các student mẫu khác nếu cần
+  {
+    id: "SV006",
+    name: "Vũ Thị Hà",
+    class: "10A2",
+    dateOfBirth: "2008-09-12",
+    gender: "Nữ",
+    bloodType: "A+",
+    lastUpdated: "2025-04-15",
+    status: "Đã hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=9",
+    emergencyContact: {
+      parentName: "Vũ Văn Hiếu",
+      phone: "0967890123"
+    },
+    healthIndices: {
+      height: 162,
+      weight: 50,
+      bmi: 19.1,
+      bloodPressure: "100/65",
+      vision: "8/10",
+      hearing: "Bình thường"
+    },
+    medicalHistory: {
+      allergies: "Không",
+      chronicDiseases: "Không",
+      medicalHistory: "Từng bị gãy tay trái năm 2022"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-04-15",
+        content: "Học sinh có sức khỏe tốt. Khuyến nghị nên đeo kính khi đọc sách.",
+        author: "Y tá Hà"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2024-10-15",
+        height: 160,
+        weight: 48,
+        bmi: 18.8
+      },
+      {
+        date: "2025-04-15",
+        height: 162,
+        weight: 50,
+        bmi: 19.1
+      }
+    ]
+  },
+  {
+    id: "SV007",
+    name: "Đỗ Minh Khánh",
+    class: "11B1",
+    dateOfBirth: "2007-03-30",
+    gender: "Nam",
+    bloodType: "B-",
+    lastUpdated: "2025-05-12",
+    status: "Chưa hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=12",
+    emergencyContact: {
+      parentName: "Đỗ Văn Lâm",
+      phone: "0978901234"
+    },
+    healthIndices: {
+      height: 170,
+      weight: 65,
+      bmi: 22.5,
+      bloodPressure: "115/75",
+      vision: "7/10",
+      hearing: "Bình thường"
+    },
+    medicalHistory: {
+      allergies: "Dị ứng hải sản",
+      chronicDiseases: "Viêm xoang",
+      medicalHistory: "Đã phẫu thuật viêm ruột thừa năm 2023"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-05-12",
+        content: "Học sinh cần kiểm tra thị lực và làm thêm xét nghiệm máu.",
+        author: "Y tá Ngọc"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2024-11-12",
+        height: 168,
+        weight: 62,
+        bmi: 22.0
+      },
+      {
+        date: "2025-05-12",
+        height: 170,
+        weight: 65,
+        bmi: 22.5
+      }
+    ]
+  },
+  {
+    id: "SV008",
+    name: "Ngô Thị Mai",
+    class: "12A3",
+    dateOfBirth: "2006-11-05",
+    gender: "Nữ",
+    bloodType: "AB-",
+    lastUpdated: "2025-04-25",
+    status: "Đã hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=20",
+    emergencyContact: {
+      parentName: "Ngô Văn Nam",
+      phone: "0989012345"
+    },
+    healthIndices: {
+      height: 165,
+      weight: 53,
+      bmi: 19.5,
+      bloodPressure: "110/70",
+      vision: "10/10",
+      hearing: "Bình thường"
+    },
+    medicalHistory: {
+      allergies: "Dị ứng phấn hoa",
+      chronicDiseases: "Không",
+      medicalHistory: "Tiêm ngừa đầy đủ"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-04-25",
+        content: "Học sinh có sức khỏe tốt. Đã tư vấn cách phòng ngừa dị ứng theo mùa.",
+        author: "Y tá Linh"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2024-10-25",
+        height: 164,
+        weight: 51,
+        bmi: 19.0
+      },
+      {
+        date: "2025-04-25",
+        height: 165,
+        weight: 53,
+        bmi: 19.5
+      }
+    ]
+  },
+  {
+    id: "SV009",
+    name: "Lý Văn Phong",
+    class: "9A1",
+    dateOfBirth: "2009-04-18",
+    gender: "Nam",
+    bloodType: "O+",
+    lastUpdated: "2025-05-18",
+    status: "Đã hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=15",
+    emergencyContact: {
+      parentName: "Lý Thị Quỳnh",
+      phone: "0990123456"
+    },
+    healthIndices: {
+      height: 162,
+      weight: 54,
+      bmi: 20.6,
+      bloodPressure: "115/75",
+      vision: "9/10",
+      hearing: "Bình thường"
+    },
+    medicalHistory: {
+      allergies: "Không",
+      chronicDiseases: "Không",
+      medicalHistory: "Không có bệnh lý đặc biệt"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-05-18",
+        content: "Học sinh có sức khỏe tốt. Đã tư vấn về chế độ dinh dưỡng phù hợp với lứa tuổi.",
+        author: "Y tá Hà"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2024-11-18",
+        height: 160,
+        weight: 50,
+        bmi: 19.5
+      },
+      {
+        date: "2025-05-18",
+        height: 162,
+        weight: 54,
+        bmi: 20.6
+      }
+    ]
+  },
+  {
+    id: "SV010",
+    name: "Trịnh Thị Rubi",
+    class: "8B2",
+    dateOfBirth: "2010-10-22",
+    gender: "Nữ",
+    bloodType: "A+",
+    lastUpdated: "2025-04-30",
+    status: "Chưa hoàn thành",
+    avatar: "https://i.pravatar.cc/150?img=25",
+    emergencyContact: {
+      parentName: "Trịnh Văn Sơn",
+      phone: "0901234567"
+    },
+    healthIndices: {
+      height: 155,
+      weight: 47,
+      bmi: 19.6,
+      bloodPressure: "105/65",
+      vision: "8/10",
+      hearing: "Bình thường"
+    },
+    medicalHistory: {
+      allergies: "Dị ứng thời tiết",
+      chronicDiseases: "Không",
+      medicalHistory: "Đã tiêm ngừa đầy đủ"
+    },
+    notes: [
+      {
+        id: 1,
+        date: "2025-04-30",
+        content: "Học sinh cần bổ sung giấy xác nhận tiêm chủng mới nhất.",
+        author: "Y tá Ngọc"
+      }
+    ],
+    healthRecords: [
+      {
+        date: "2024-10-30",
+        height: 152,
+        weight: 45,
+        bmi: 19.5
+      },
+      {
+        date: "2025-04-30",
+        height: 155,
+        weight: 47,
+        bmi: 19.6
+      }
+    ]
+  }
 ];
 
-// Lấy danh sách tất cả học sinh
-const getAllStudents = async () => {
-  try {
-    // Sử dụng trực tiếp fetch để tránh xác thực phức tạp
-    const response = await fetch(`${API_URL}/students`);
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    const data = await response.json();
-    console.log('API response data:', data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching students:', error);
-    // Fallback to mock data
-    return mockStudents;
-  }
-};
-
-// Lấy chi tiết một học sinh dựa vào ID
-const getStudentById = async (studentId) => {
-  try {
-    // Sửa lại endpoint đúng để lấy thông tin học sinh
-    const response = await axiosInstance.get(`/students/${studentId}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching student with ID ${studentId}:`, error);
-    // Tìm học sinh trong dữ liệu mẫu
-    const student = mockStudents.find(s => s.id === parseInt(studentId) || s.studentId === studentId);
-    if (student) return student;
-    throw error;
-  }
-};
-
-// Tìm kiếm học sinh theo các điều kiện
-const searchStudents = async (criteria) => {
-  try {
-    // Tạo params cho request
-    const params = {};
-    
-    if (criteria.keyword) {
-      params.keyword = criteria.keyword;
-    }
-    
-    if (criteria.class) {
-      params.className = criteria.class;
-    }
-    
-    if (criteria.bloodType) {
-      params.bloodType = criteria.bloodType;
-    }
-    
-    if (criteria.healthIssue) {
-      params.healthIssue = criteria.healthIssue;
-    }
-    
-    const response = await axiosInstance.get('/students/search', { params });
-    return response.data;
-  } catch (error) {
-    // Nếu API search chưa hoạt động, quay lại filter từ tất cả học sinh
-    console.warn('Search API failed, falling back to client-side filtering:', error);
-    
-    // Sử dụng dữ liệu mẫu thay vì gọi lại API
-    let results = [...mockStudents];
-    
-    if (criteria.keyword) {
-      const keyword = criteria.keyword.toLowerCase();
-      results = results.filter(student => 
-        student.name.toLowerCase().includes(keyword) || 
-        student.studentId.toLowerCase().includes(keyword)
-      );
-    }
-    
-    if (criteria.class) {
-      results = results.filter(student => 
-        student.className === criteria.class || student.class === criteria.class
-      );
-    }
-    
-    return results;
-  }
-};
-
-// Cập nhật thông tin học sinh
-const updateStudentRecord = async (studentId, updateData) => {
-  try {
-    const response = await axiosInstance.put(`/students/${studentId}`, updateData);
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating student with ID ${studentId}:`, error);
-    throw error;
-  }
-};
-
-// Thêm ghi chú cho học sinh
-const addStudentNote = async (studentId, note) => {
-  try {
-    console.log(`Adding note to student ${studentId}:`, note);
-    
-    // Gọi API để thêm ghi chú
-    const response = await fetch(`${API_URL}/students/${studentId}/notes`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(note)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    
-    const updatedStudent = await response.json();
-    return updatedStudent;
-  } catch (error) {
-    console.error('Error adding student note:', error);
-    
-    // Mock response cho trường hợp API lỗi
-    const student = mockStudents.find(s => s.id === parseInt(studentId));
-    if (!student) {
-      throw new Error('Student not found');
-    }
-    
-    // Thêm ghi chú vào mock data
-    if (!student.notes) {
-      student.notes = [];
-    }
-    student.notes.push({
-      ...note,
-      id: Math.floor(Math.random() * 1000),
-      createdAt: new Date().toISOString()
-    });
-    
-    return student;
-  }
-};
-
-// Lấy danh sách tất cả lớp học
-const getClassList = async () => {
-  try {
-    // Vì không có API riêng cho lớp học, lấy từ danh sách học sinh
-    const studentsData = await getAllStudents();
-    
-    // Kiểm tra dữ liệu học sinh
-    if (!Array.isArray(studentsData)) return [];
-    
-    // Trích xuất danh sách lớp học từ dữ liệu học sinh
-    const classNames = [...new Set(studentsData
-      .map(student => student?.className || student?.class || '')
-      .filter(Boolean)
-    )];
-    
-    return classNames;
-  } catch (error) {
-    console.warn('Error generating class list:', error);
-    return []; // Trả về mảng rỗng nếu có lỗi
-  }
-};
-
-// Lấy danh sách các nhóm máu
-const getBloodTypes = async () => {
-  // Bỏ qua việc gọi API và trả về dữ liệu mẫu trực tiếp
-  return ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-};
-
-// Tính toán chỉ số BMI và phân loại
-const calculateBMICategory = (bmi) => {
+// Hàm tính toán chỉ số BMI và phân loại
+export const calculateBMICategory = (bmi) => {
   if (bmi < 16) {
     return { category: "Thiếu cân nặng", color: "#ff9800" };
   } else if (bmi >= 16 && bmi < 18.5) {
@@ -244,18 +523,18 @@ const calculateBMICategory = (bmi) => {
 };
 
 // Lấy chuẩn BMI dựa trên tuổi và giới tính
-const getBMIStandardByAgeGender = (age, gender) => {
+export const getBMIStandardByAgeGender = (age, gender) => {
   // Đây là ví dụ đơn giản, trong thực tế sẽ phức tạp hơn dựa trên nghiên cứu y tế
   if (age < 13) {
     return { min: 15, max: 21 };
   } else if (age < 18) {
-    if (gender === "Nam" || gender === "Male") {
+    if (gender === "Nam") {
       return { min: 16, max: 23 };
     } else {
       return { min: 15, max: 22 };
     }
   } else {
-    if (gender === "Nam" || gender === "Male") {
+    if (gender === "Nam") {
       return { min: 18.5, max: 25 };
     } else {
       return { min: 18.5, max: 24 };
@@ -263,107 +542,209 @@ const getBMIStandardByAgeGender = (age, gender) => {
   }
 };
 
-// Cải thiện hàm lấy health profile
-const getStudentHealthProfile = async (healthProfileId) => {
-  if (!healthProfileId) {
-    console.warn('Không có ID hồ sơ y tế');
-    return {};
-  }
-
-  try {
-    console.log('===== HEALTH PROFILE API CALL =====');
-    console.log('Calling API endpoint with health profile ID:', healthProfileId);
-    
-    try {
-      // Sử dụng fetch API thay vì axiosInstance để đơn giản hơn
-      const response = await fetch(`${API_URL}/health-profiles/${healthProfileId}`);
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('API response successful. Response data:', data);
-      return data;
-    } catch (apiError) {
-      console.error('API call failed:', apiError.message);
-      // Nếu API lỗi, sử dụng mock data
-      console.log('Using mock data instead');
-      return getMockHealthProfile(healthProfileId);
-    }
-  } catch (error) {
-    console.error('Unexpected error in getStudentHealthProfile:', error);
-    return getMockHealthProfile(healthProfileId);
-  }
+// Lấy danh sách tất cả học sinh
+const getAllStudents = () => {
+  return Promise.resolve(studentsData);
 };
 
-// Tách riêng logic mock data để dễ quản lý
-const getMockHealthProfile = (healthProfileId) => {
-  const profileId = parseInt(healthProfileId);
+// Lấy chi tiết một học sinh dựa vào ID
+const getStudentById = (studentId) => {
+  const student = studentsData.find(student => student.id === studentId);
+  if (student) {
+    return Promise.resolve(student);
+  }
+  return Promise.reject(new Error("Không tìm thấy học sinh với ID đã cho"));
+};
+
+// Tìm kiếm học sinh theo các điều kiện
+const searchStudents = (criteria) => {
+  let results = [...studentsData];
   
-  if (profileId === 1) {
-    return {
-      id: 1,
-      bloodType: "O+",
-      height: 130.5,
-      bmi: 16.7,
-      weight: 28.5,
-      allergies: "Dị ứng tôm cua",
-      chronicDiseases: "Không có",
-      visionLeft: "10/10",
-      visionRight: "10/10",
-      hearingStatus: "Bình thường",
-      dietaryRestrictions: "Không ăn hải sản",
-      emergencyContactInfo: "Nguyễn Văn Hùng - 0945678901",
-      immunizationStatus: "Đã tiêm đủ vắc xin theo lịch",
-      lastPhysicalExamDate: "2024-01-15",
-      specialNeeds: "Không có",
-      lastUpdated: "2024-01-15T10:30:00"
+  if (criteria.keyword) {
+    const keyword = criteria.keyword.toLowerCase();
+    results = results.filter(student => 
+      student.name.toLowerCase().includes(keyword) || 
+      student.id.toLowerCase().includes(keyword)
+    );
+  }
+  
+  if (criteria.class) {
+    results = results.filter(student => 
+      student.class.includes(criteria.class)
+    );
+  }
+  
+  if (criteria.bloodType) {
+    results = results.filter(student => 
+      student.bloodType === criteria.bloodType
+    );
+  }
+  
+  if (criteria.healthIssue) {
+    const keyword = criteria.healthIssue.toLowerCase();
+    results = results.filter(student => 
+      student.medicalHistory.allergies.toLowerCase().includes(keyword) || 
+      student.medicalHistory.chronicDiseases.toLowerCase().includes(keyword) || 
+      student.medicalHistory.medicalHistory.toLowerCase().includes(keyword)
+    );
+  }
+    // Removed status filter
+  
+  return Promise.resolve(results);
+};
+
+// Cập nhật thông tin học sinh
+const updateStudentRecord = (studentId, updateData) => {
+  const index = studentsData.findIndex(student => student.id === studentId);
+  
+  // Nếu học sinh đã tồn tại, cập nhật thông tin
+  if (index !== -1) {
+    // Cập nhật BMI nếu có dữ liệu chiều cao và cân nặng
+    if (updateData.healthIndices?.height && updateData.healthIndices?.weight) {
+      const height = updateData.healthIndices.height / 100; // Chuyển từ cm sang m
+      const weight = updateData.healthIndices.weight;
+      updateData.healthIndices.bmi = parseFloat((weight / (height * height)).toFixed(1));
+    }
+    
+    // Cập nhật ngày cập nhật gần nhất
+    updateData.lastUpdated = new Date().toISOString().split('T')[0];
+    
+    // Thêm bản ghi sức khỏe mới nếu có dữ liệu chiều cao và cân nặng
+    if (updateData.healthIndices?.height && updateData.healthIndices?.weight) {
+      const newRecord = {
+        date: updateData.lastUpdated,
+        height: updateData.healthIndices.height,
+        weight: updateData.healthIndices.weight,
+        bmi: updateData.healthIndices.bmi
+      };
+      
+      if (!studentsData[index].healthRecords) {
+        studentsData[index].healthRecords = [];
+      }
+      
+      studentsData[index].healthRecords.push(newRecord);
+    }
+    
+    // Cập nhật dữ liệu học sinh
+    studentsData[index] = {
+      ...studentsData[index],
+      ...updateData,
+      healthIndices: {
+        ...studentsData[index].healthIndices,
+        ...updateData.healthIndices
+      },
+      medicalHistory: {
+        ...studentsData[index].medicalHistory,
+        ...updateData.medicalHistory
+      }
     };
+    
+    return Promise.resolve(studentsData[index]);
+  } 
+  // Nếu học sinh chưa tồn tại, tạo mới
+  else {
+    // Kiểm tra xem có trùng ID không
+    if (studentsData.some(student => student.id === studentId)) {
+      return Promise.reject(new Error("Mã học sinh đã tồn tại"));
+    }
+    
+    // Tạo cấu trúc mặc định cho học sinh mới
+    const newStudent = {
+      id: studentId,
+      name: updateData.name || 'Chưa có tên',
+      class: updateData.class || 'Chưa phân lớp',
+      homeRoomTeacher: updateData.homeRoomTeacher || 'Chưa phân công',
+      dateOfBirth: updateData.dateOfBirth || new Date().toISOString().split('T')[0],
+      gender: updateData.gender || 'Nam',
+      bloodType: updateData.bloodType || 'Chưa xác định',
+      lastUpdated: new Date().toISOString().split('T')[0],
+      status: 'Đã hoàn thành',
+      avatar: updateData.imageUrl || "https://via.placeholder.com/150",
+      imageUrl: updateData.imageUrl || "",
+      emergencyContact: updateData.emergencyContact || {
+        parentName: "Chưa cập nhật",
+        phone: "Chưa cập nhật"
+      },
+      healthIndices: updateData.healthIndices || {
+        height: '',
+        weight: '',
+        bmi: '',
+        bloodPressure: '',
+        vision: '',
+        hearing: ''
+      },
+      medicalHistory: updateData.medicalHistory || {
+        allergies: '',
+        chronicDiseases: '',
+        medicalHistory: ''
+      },
+      notes: updateData.notes || [],
+      healthRecords: []
+    };
+    
+    // Thêm bản ghi sức khỏe mới nếu có dữ liệu chiều cao và cân nặng
+    if (updateData.healthIndices?.height && updateData.healthIndices?.weight) {
+      const height = updateData.healthIndices.height / 100; // Chuyển từ cm sang m
+      const weight = updateData.healthIndices.weight;
+      const bmi = parseFloat((weight / (height * height)).toFixed(1));
+      
+      newStudent.healthIndices.bmi = bmi;
+      
+      newStudent.healthRecords.push({
+        date: newStudent.lastUpdated,
+        height: updateData.healthIndices.height,
+        weight: updateData.healthIndices.weight,
+        bmi: bmi
+      });
+    }
+    
+    // Thêm học sinh mới vào danh sách
+    studentsData.push(newStudent);
+    return Promise.resolve(newStudent);
   }
-  // Mock data cho các hồ sơ khác dựa trên ID
-  return {
-    id: profileId,
-    bloodType: profileId % 4 === 0 ? "A+" : profileId % 3 === 0 ? "B+" : profileId % 2 === 0 ? "AB+" : "O+",
-    height: 120 + (profileId * 2) % 30,
-    bmi: 15 + (profileId * 0.5) % 10,
-    weight: 25 + (profileId * 1.5) % 30,
-    allergies: profileId % 2 === 0 ? "Dị ứng phấn hoa" : "Không có dị ứng",
-    chronicDiseases: profileId % 3 === 0 ? "Hen suyễn nhẹ" : "Không có",
-    visionLeft: "10/10",
-    visionRight: "10/10",
-    hearingStatus: "Bình thường",
-    dietaryRestrictions: "Không có",
-    emergencyContactInfo: `Liên hệ khẩn cấp ${profileId}`,
-    immunizationStatus: "Đã tiêm đủ vắc xin",
-    lastPhysicalExamDate: "2024-01-01",
-    specialNeeds: "Không có",
-    lastUpdated: "2024-01-01T10:00:00"
-  };
 };
 
-// Thêm đoạn code này vào đầu file để test connection
-const testBackendConnection = async () => {
-  try {
-    const response = await axios.get('http://localhost:8080/api/v1/students');
-    console.log('Backend connection successful:', response.status);
-    return true;
-  } catch (error) {
-    console.error('Backend connection failed:', error.message);
-    return false;
+// Thêm ghi chú cho học sinh
+const addStudentNote = (studentId, note) => {
+  const index = studentsData.findIndex(student => student.id === studentId);
+  
+  if (index !== -1) {
+    const newNote = {
+      id: Date.now(),
+      date: new Date().toISOString().split('T')[0],
+      content: note.content,
+      author: note.author
+    };
+    
+    if (!studentsData[index].notes) {
+      studentsData[index].notes = [];
+    }
+    
+    studentsData[index].notes.push(newNote);
+    return Promise.resolve(studentsData[index]);
   }
+  
+  return Promise.reject(new Error("Không tìm thấy học sinh với ID đã cho"));
 };
 
-testBackendConnection();
+// Lấy các lớp học hiện có
+const getClassList = () => {
+  const classes = [...new Set(studentsData.map(student => student.class))];
+  return Promise.resolve(classes);
+};
 
-// Cuối file, trong export statement
+// Lấy các nhóm máu hiện có
+const getBloodTypes = () => {
+  const bloodTypes = [...new Set(studentsData.map(student => student.bloodType))];
+  return Promise.resolve(bloodTypes);
+};
+
 export {
   getAllStudents,
   getStudentById,
   searchStudents,
   updateStudentRecord,
-  addStudentNote,  // Đảm bảo hàm này được export
+  addStudentNote,
   getClassList,
-  getBloodTypes,
-  calculateBMICategory,
-  getBMIStandardByAgeGender,
-  getStudentHealthProfile
+  getBloodTypes
 };

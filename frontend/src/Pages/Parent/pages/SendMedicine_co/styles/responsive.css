@@ -1,0 +1,75 @@
+/* Responsive styles */
+
+@media (max-width: 768px) {
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .approval-info {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .form-actions button {
+    width: 100%;
+  }
+  
+  .success-actions {
+    flex-direction: column;
+  }
+  
+  .success-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .checkbox-group {
+    grid-template-columns: 1fr;
+  }
+  
+  .update-modal {
+    width: 95%;
+    margin: 0 15px;
+  }
+  
+  .update-modal .form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .update-modal .checkbox-group {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .update-modal .checkbox-item {
+    width: 100%;
+  }
+  
+  .update-modal .modal-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  
+  .update-modal .btn-secondary,
+  .update-modal .btn-primary {
+    width: 100%;
+  }
+}

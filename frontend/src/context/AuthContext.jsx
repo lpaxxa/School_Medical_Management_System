@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
+
 import axios from "axios";
-import AuthService from "../services/authService";
 
 // Base API URL
 const BASE_URL = "http://localhost:8080/api/v1";
@@ -106,14 +106,11 @@ export function useAuth() {
 //   }
 // ];
 
-const SKIP_TOKEN_VALIDATION = true; // Set là false nếu server đã hỗ trợ validate-token
-
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  // Removed reference to mockUserData as we're using real API now
 
   // Kiểm tra nếu người dùng đã đăng nhập (từ localStorage)
   useEffect(() => {
@@ -131,68 +128,8 @@ export const AuthProvider = ({ children }) => {
     checkLoggedInUser();
   }, []);
 
-  // Kiểm tra token khi component mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem("authToken");
-      const userData = localStorage.getItem("userData");
-
-      if (!token) {
-        setIsAuthenticated(false);
-        setUser(null);
-        setCurrentUser(null);
-        setLoading(false);
-        return;
-      }
-
-      // Nếu bỏ qua validate, chỉ cần set state từ localStorage
-      if (SKIP_TOKEN_VALIDATION) {
-        if (userData) {
-          const parsedUser = JSON.parse(userData);
-          setCurrentUser(parsedUser);
-          setUser(parsedUser);
-          setIsAuthenticated(true);
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Phần còn lại giữ nguyên (code validate-token)
-      try {
-        const response = await axios.get(`${BASE_URL}/auth/validate-token`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.data && response.data.valid) {
-          setIsAuthenticated(true);
-          setUser(response.data.user);
-        } else {
-          // Token không hợp lệ, xóa khỏi localStorage
-          localStorage.removeItem("authToken");
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Token validation failed:", error);
-        // Không xóa token nếu API lỗi để tránh tự đăng xuất
-        // (Chỉ xóa khi server trả về token thực sự hết hạn)
-        if (error.response && error.response.status === 401) {
-          localStorage.removeItem("authToken");
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-        // Với các lỗi khác như 404, giữ nguyên trạng thái đăng nhập
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
   // Hàm đăng nhập sử dụng exact API URL
+
   const login = async (username, password) => {
     try {
       setAuthError(null);
@@ -241,37 +178,11 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
-  // Đảm bảo hai state user và currentUser luôn đồng bộ
-  useEffect(() => {
-    if (user) {
-      setCurrentUser(user);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (currentUser) {
-      setUser(currentUser);
-      setIsAuthenticated(true);
-    }
-  }, [currentUser]);
-
-  // Google login function
-  const loginWithGoogle = () => {
-    try {
-      AuthService.initiateGoogleLogin();
-    } catch (error) {
-      console.error('Error initiating Google login:', error);
-      setAuthError('Không thể khởi tạo đăng nhập Google. Vui lòng thử lại.');
-    }
-  };
-
   const value = {
     currentUser,
     login,
     logout,
-    loginWithGoogle, // Add Google login function
     authError,
-    setCurrentUser, // Expose setCurrentUser for OAuth callback
     API_ENDPOINTS, // Make API endpoints available throughout the app
   };
 

@@ -114,25 +114,16 @@ const AddEditRecord = ({ student, onBack, onSave, students, mode }) => {  const 
     }
   }, [formData.healthIndices.height, formData.healthIndices.weight]);  // Xử lý khi nhập mã học sinh
   const handleStudentIdChange = (e) => {
-    const { value } = e.target;
-    setFormData({
-      ...formData,
-      studentId: value
-    });
+    const studentId = e.target.value;
+    setFormData(prev => ({ ...prev, studentId }));
     
-    // Thêm kiểm tra an toàn trước khi tìm kiếm
-    if (value && Array.isArray(students)) {
-      const foundStudent = students.find(s => s.studentId === value);
-      if (foundStudent) {
-        // Tự động điền các trường còn lại
-        setFormData({
-          ...formData,
-          studentId: value,
-          fullName: foundStudent.fullName || foundStudent.name || '',
-          dateOfBirth: foundStudent.dateOfBirth || '',
-          className: foundStudent.className || foundStudent.class || '',
-          gender: foundStudent.gender || ''
-        });
+    // Kiểm tra trùng mã học sinh trong mode add
+    if (studentId && mode === 'add') {
+      const existingStudent = students.find(s => s.id === studentId);
+      if (existingStudent) {
+        setError("Mã học sinh đã tồn tại. Vui lòng sử dụng mã khác.");
+      } else {
+        setError(null);
       }
     }
   };
