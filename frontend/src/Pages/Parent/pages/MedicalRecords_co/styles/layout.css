@@ -1,0 +1,159 @@
+/* Container chính */
+.medical-record-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+}
+
+/* Header của hồ sơ y tế */
+.medical-record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.header-content h1 {
+  color: #2c3e50;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+/* Thêm style mới cho phần student-basic-info */
+.student-basic-info {
+  margin-top: 16px;
+  background: linear-gradient(to right, #f0f9ff, #e6f7ff);
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 14px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.student-basic-info::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #0284c7;
+}
+
+.student-basic-info:hover {
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15);
+  border-color: #7dd3fc;
+}
+
+.student-basic-info h2 {
+  font-size: 18px;
+  margin-bottom: 5px;
+  color: #0c4a6e;
+  font-weight: 600;
+}
+
+.student-basic-info p {
+  color: #0369a1;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Nút quay lại */
+.back-button {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #f5f7fa;
+  border-radius: 6px;
+  color: #2c3e50;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.back-button i {
+  margin-right: 8px;
+}
+
+.back-button:hover {
+  background-color: #e5e9f0;
+}
+
+/* Navigation tabs */
+.medical-nav-tabs {
+  display: flex;
+  overflow-x: auto;
+  background-color: #f5f7fa;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  padding: 5px;
+  gap: 5px;
+}
+
+.medical-nav-tabs button {
+  border: none;
+  background: none;
+  padding: 12px 20px;
+  font-weight: 500;
+  color: #546e7a;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.medical-nav-tabs button svg {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.medical-nav-tabs button:hover {
+  background-color: #e5e9f0;
+  color: #3498db;
+}
+
+.medical-nav-tabs button.active {
+  background-color: #3498db;
+  color: white;
+}
+
+/* Phần nội dung chính */
+.medical-content {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 30px;
+  min-height: 400px;
+}
+
+/* Footer với nút in */
+.medical-record-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.print-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.print-button:hover {
+  background-color: #2980b9;
+}

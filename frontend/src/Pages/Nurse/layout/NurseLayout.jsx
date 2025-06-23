@@ -1,18 +1,8 @@
 import React, { useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-// Sửa đường dẫn import để trỏ đúng đến các component
 import Header from "../components/Header/Header";
 import Navigation from "../components/Navigation/Navigation";
-import { 
-  InventoryProvider, 
-  MedicalEventsProvider,
-  MedicineApprovalProvider
-} from "../../../context/NurseContext";
-import { StudentRecordsProvider } from "../../../context/NurseContext/StudentRecordsContext";
-import { BlogProvider } from "../../../context/NurseContext/BlogContext";
-import { HealthCheckupProvider } from "../../../context/NurseContext/HealthCheckupContext";
-import { VaccinationProvider } from "../../../context/NurseContext/VaccinationContext";
 import "./NurseLayout.css";
 
 const NurseLayout = ({ children }) => {
@@ -22,29 +12,13 @@ const NurseLayout = ({ children }) => {
   const handleLogout = () => {
     logout();
     navigate("/login");
-  };    
-  
-  return (
+  };    return (
     <div className="nurse-layout">
-      <Header />      
+      <Header />
       <div className="layout-container">
-        <Navigation />        
+        <Navigation />
         <main className="nurse-content">
-          <InventoryProvider>
-            <MedicalEventsProvider>
-              <MedicineApprovalProvider>
-                <StudentRecordsProvider>
-                  <HealthCheckupProvider>
-                    <BlogProvider>
-                      <VaccinationProvider>
-                        {children}
-                      </VaccinationProvider>
-                    </BlogProvider>
-                  </HealthCheckupProvider>
-                </StudentRecordsProvider>
-              </MedicineApprovalProvider>
-            </MedicalEventsProvider>
-          </InventoryProvider>
+          {children}
         </main>
       </div>
     </div>

@@ -1,7 +1,6 @@
 import React from "react";
 import { Route, Navigate } from "react-router-dom";
 import Login from "../Pages/Login";
-import OAuthCallback from "../components/OAuthCallback";
 import AdminRoutes from "./AdminRoutes";
 import NurseRoutes from "./NurseRoutes";
 import ParentRoutes from "./ParentRoutes";
@@ -30,18 +29,6 @@ const AppRoutes = ({ currentUser }) => {
       key="login"
       path="/login"
       element={currentUser ? redirectBasedOnRole() : <Login />}
-    />,
-
-    // OAuth callback routes (matching backend redirects)
-    <Route
-      key="oauth-callback"
-      path="/auth/oauth2/callback"
-      element={<OAuthCallback />}
-    />,
-    <Route
-      key="oauth-failure"
-      path="/auth/oauth2/failure"
-      element={<OAuthCallback />}
     />,
 
     // Root redirect

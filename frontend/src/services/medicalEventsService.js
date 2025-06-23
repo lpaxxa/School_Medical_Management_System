@@ -1,243 +1,223 @@
-// Service API cho sự kiện y tế
-// Sử dụng axios thông qua api.js instance để tận dụng cấu hình chung
-import api from './api.js';
-
-// Mock data cho trường hợp API fail
-const mockMedicalEvents = [
+// Cấu hình sử dụng dữ liệu giả hay API thật
+const config = {
+  useMockData: true, // Mặc định sử dụng dữ liệu giả
+  apiUrl: 'https://api.example.com/inventory' // URL API thật khi cần thay đổi
+};
+// Dữ liệu mẫu cho các sự kiện y tế
+let mockMedicalEvents = [
   {
     id: 1,
-    studentId: 'STU2024001',
-    studentName: 'Nguyễn Văn A',
-    incidentDate: '2025-06-15T10:30:00',
-    incidentType: 'ILLNESS',
-    description: 'Sốt nhẹ 38 độ C, đau đầu',
-    severityLevel: 'MILD',
-    actionTaken: 'Cho uống thuốc hạ sốt và nghỉ ngơi tại phòng y tế',
-    outcome: 'Đã hồi phục, quay lại lớp sau 1 giờ',
-    parentNotified: true,
-    notificationTime: '2025-06-15T10:45:00',
-    notifiedBy: 'Nguyễn Thị Y Tá',
-    requiresFollowUp: false,
-    followUpNotes: '',
-    class: '10A1'
+    studentId: "SV001",
+    studentName: "Nguyễn Văn An",
+    eventType: "Tai nạn nhỏ",
+    dateTime: "2023-05-28T09:15:00",
+    severity: "Nhẹ",
+    notifiedParent: true,
+    needsFollowUp: false,
+    symptoms: "Trầy xước đầu gối khi chơi thể thao",
+    treatment: "Làm sạch vết thương, băng vết thương vô trùng",
+    medication: "Dung dịch sát khuẩn, băng vô trùng",
+    notes: "Học sinh có thể tham gia các hoạt động bình thường sau khi được băng bó",
+    handledBy: "Nguyễn Thị Minh - Y tá",
+    createdAt: "2023-05-28T09:20:00"
   },
   {
     id: 2,
-    studentId: 'STU2024002',
-    studentName: 'Trần Thị B',
-    incidentDate: '2025-06-16T14:15:00',
-    incidentType: 'INJURY',
-    description: 'Té ngã trên sân trường, bị trầy xước đầu gối',
-    severityLevel: 'MODERATE',
-    actionTaken: 'Làm sạch vết thương, băng bó và theo dõi',
-    outcome: 'Đã xử lý vết thương, cần theo dõi thêm',
-    parentNotified: true,
-    notificationTime: '2025-06-16T14:30:00',
-    notifiedBy: 'Nguyễn Thị Y Tá',
-    requiresFollowUp: true,
-    followUpNotes: 'Kiểm tra vết thương sau 2 ngày',
-    class: '11B2'
+    studentId: "SV015",
+    studentName: "Trần Thị Bình",
+    eventType: "Sốt",
+    dateTime: "2023-05-29T10:30:00",
+    severity: "Trung bình",
+    notifiedParent: true,
+    needsFollowUp: true,
+    symptoms: "Sốt 38.5°C, đau đầu, mệt mỏi",
+    treatment: "Cho uống thuốc hạ sốt, nghỉ ngơi tại phòng y tế",
+    medication: "Paracetamol 500mg",
+    notes: "Đã liên hệ phụ huynh đến đón. Cần theo dõi thêm trong 2-3 ngày tới.",
+    handledBy: "Phạm Văn Hòa - Bác sĩ",
+    createdAt: "2023-05-29T10:45:00"
+  },
+  {
+    id: 3,
+    studentId: "SV042",
+    studentName: "Lê Hoàng Duy",
+    eventType: "Dị ứng",
+    dateTime: "2023-05-30T13:20:00",
+    severity: "Nghiêm trọng",
+    notifiedParent: true,
+    needsFollowUp: true,
+    symptoms: "Phát ban da, khó thở nhẹ, sưng môi",
+    treatment: "Tiêm thuốc chống dị ứng, theo dõi tình trạng hô hấp",
+    medication: "Diphenhydramine, Epinephrine (chuẩn bị sẵn nhưng không dùng đến)",
+    notes: "Dị ứng do thức ăn tại căn tin trường. Đã đưa học sinh đến bệnh viện và liên hệ phụ huynh.",
+    handledBy: "Phạm Văn Hòa - Bác sĩ",
+    createdAt: "2023-05-30T13:30:00"
   }
 ];
 
+// Danh sách các loại sự kiện y tế
+const eventTypes = [
+  "Tai nạn nhỏ",
+  "Sốt",
+  "Dị ứng",
+  "Đau đầu",
+  "Đau bụng",
+  "Chóng mặt",
+  "Nôn/Buồn nôn",
+  "Khó thở",
+  "Chấn thương thể thao",
+  "Vấn đề răng miệng",
+  "Khác"
+];
+
+// Danh sách mức độ nghiêm trọng
+const severityLevels = ["Nhẹ", "Trung bình", "Nghiêm trọng"];
+
+// Delay giả lập API
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Service API cho sự kiện y tế
 const medicalEventsService = {
-  // Lấy tất cả sự kiện y tế  
+  // Lấy tất cả sự kiện
   getAllEvents: async () => {
-    try {
-      console.log('Gọi API lấy tất cả sự kiện y tế');
-      const response = await api.get('/medical-incidents');
-      console.log('Kết quả API:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách sự kiện y tế:", error);
-      
-      if (error.response) {
-        console.error('Error response:', {
-          status: error.response.status,
-          headers: error.response.headers,
-          data: error.response.data
-        });
-      }
-      
-      // Fallback về mock data để không làm crash ứng dụng
-      console.warn("Trả về mock data do lỗi API");
+    if (config.useMockData) {
+      // Sử dụng mock data
+      await delay(500);
       return [...mockMedicalEvents];
-    }
-  },
-  
-  // Lấy sự kiện theo ID
-  getEventById: async (id) => {
-    try {
-      console.log(`Gọi API lấy sự kiện y tế ID: ${id}`);
-      const response = await api.get(`/medical-incidents/${id}`);
-      console.log('Kết quả API chi tiết:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Lỗi khi lấy sự kiện y tế với ID ${id}:`, error);
-      
-      if (error.response) {
-        console.error('Error response:', {
-          status: error.response.status,
-          headers: error.response.headers,
-          data: error.response.data
-        });
+    } else {
+      // Gọi API thực
+      try {
+        const response = await fetch(`${config.apiUrl}/medical-events`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        return await response.json();
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách sự kiện y tế:", error);
+        throw error;
       }
-      
-      // Tìm trong mock data nếu API lỗi
-      const mockEvent = mockMedicalEvents.find(event => event.id === parseInt(id));
-      if (mockEvent) return {...mockEvent};
-      
-      throw new Error("Không tìm thấy sự kiện y tế");
-    }
-  },
-  
-  // Tìm kiếm sự kiện
-  searchEvents: async (filters) => {
-    try {
-      console.log('Tìm kiếm sự kiện y tế với filters:', filters);
-      const response = await api.get('/medical-incidents/search', { params: filters });
-      console.log('Kết quả tìm kiếm:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Lỗi khi tìm kiếm sự kiện y tế:", error);
-      
-      if (error.response) {
-        console.error('Error response:', {
-          status: error.response.status,
-          headers: error.response.headers,
-          data: error.response.data
-        });
-      }
-      
-      // Return mock data khi có lỗi
-      return mockMedicalEvents.filter(event => {
-        let match = true;
-        // Lọc theo tất cả các trường filter nếu chúng được cung cấp
-        if (filters.studentId && event.studentId !== filters.studentId) match = false;
-        if (filters.incidentType && !event.incidentType.toLowerCase().includes(filters.incidentType.toLowerCase())) match = false;
-        if (filters.severityLevel && !event.severityLevel.toLowerCase().includes(filters.severityLevel.toLowerCase())) match = false;
-        return match;
-      });
-    }
-  },
-  
-  // Hàm mới để tìm kiếm sự kiện theo loại (severity)
-  searchByType: async (typeValue) => {
-    try {
-      console.log('Tìm kiếm sự kiện y tế theo loại:', typeValue);
-      const response = await api.get(`/medical-incidents/types/${encodeURIComponent(typeValue)}`);
-      console.log('Kết quả tìm kiếm theo loại:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Lỗi khi tìm kiếm sự kiện y tế theo loại:", error);
-      
-      if (error.response) {
-        console.error('Error response:', {
-          status: error.response.status,
-          headers: error.response.headers,
-          data: error.response.data
-        });
-      }
-      
-      // Return empty array on error
-      return [];
-    }
-  },
-  
-  // Thêm sự kiện mới
-  addEvent: async (eventData) => {
-    try {
-      console.log('Gọi API thêm sự kiện y tế mới với data:', eventData);
-      // Bỏ /api/v1 vì đã có trong baseURL
-      const response = await api.post('/medical-incidents/create', eventData);
-      console.log('Kết quả thêm sự kiện:', response.data);
-      return { success: true, event: response.data };
-    } catch (error) {
-      console.error("Lỗi khi thêm sự kiện y tế mới:", error);
-      
-      if (error.response) {
-        console.error('Error response:', {
-          status: error.response.status,
-          headers: error.response.headers,
-          data: error.response.data
-        });
-      } else if (error.request) {
-        console.error('Error request:', error.request);
-      } else {
-        console.error('Error message:', error.message);
-      }
-      
-      throw error;
-    }
-  },
-  
-  // Cập nhật sự kiện
-  updateEvent: async (id, eventData) => {
-    try {
-      console.log(`Gọi API cập nhật sự kiện y tế ID: ${id} với data:`, eventData);
-      const response = await api.put(`/medical-incidents/${id}`, eventData);
-      console.log('Kết quả cập nhật sự kiện:', response.data);
-      return { success: true, event: response.data };
-    } catch (error) {
-      console.error(`Lỗi khi cập nhật sự kiện y tế với ID ${id}:`, error);
-      
-      if (error.response) {
-        console.error('Error response:', {
-          status: error.response.status,
-          headers: error.response.headers,
-          data: error.response.data
-        });
-      }
-      
-      throw error;
-    }
-  },
-  
-  // Xóa sự kiện
-  deleteEvent: async (id) => {
-    try {
-      console.log(`Gọi API xóa sự kiện y tế ID: ${id}`);
-      await api.delete(`/medical-incidents/${id}`);
-      console.log('Xóa sự kiện thành công');
-      return { success: true, message: "Xóa thành công" };
-    } catch (error) {
-      console.error(`Lỗi khi xóa sự kiện y tế với ID ${id}:`, error);
-      
-      if (error.response) {
-        console.error('Error response:', {
-          status: error.response.status,
-          headers: error.response.headers,
-          data: error.response.data
-        });
-      }
-      
-      throw error;
     }
   },
 
-  // Thêm mới: Tìm kiếm sự kiện theo tên học sinh
-  searchByStudentName: async (name) => {
-    try {
-      console.log('Tìm kiếm sự kiện y tế theo tên học sinh:', name);
-      const response = await api.get(`/medical-incidents/student/name/${name}`);
-      console.log('Kết quả tìm kiếm theo tên học sinh:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Lỗi khi tìm kiếm sự kiện y tế theo tên học sinh:", error);
-      
-      if (error.response) {
-        console.error('Error response:', {
-          status: error.response.status,
-          headers: error.response.headers,
-          data: error.response.data
-        });
-      }
-      
-      // Filter mock data nếu API lỗi
-      return mockMedicalEvents.filter(event => 
-        event.studentName && event.studentName.toLowerCase().includes(name.toLowerCase())
-      );
+  // Lấy danh sách loại sự kiện
+  getEventTypes: async () => {
+    await delay(300);
+    return [...eventTypes];
+  },
+
+  // Lấy danh sách mức độ nghiêm trọng
+  getSeverityLevels: async () => {
+    await delay(300);
+    return [...severityLevels];
+  },
+
+  // Lấy sự kiện theo ID
+  getEventById: async (id) => {
+    await delay(400);
+    const event = mockMedicalEvents.find(e => e.id === id);
+    if (!event) {
+      throw new Error("Không tìm thấy sự kiện y tế");
     }
+    return { ...event };
+  },
+
+  // Tìm kiếm sự kiện
+  searchEvents: async (filters) => {
+    await delay(500);
+    let filteredEvents = [...mockMedicalEvents];
+    
+    // Debug thông tin lọc
+    console.log("Filters applied:", filters);
+    console.log("Total events before filtering:", filteredEvents.length);
+
+    // Lọc theo mã học sinh - cải thiện cách so sánh để tìm kiếm từng phần
+    if (filters.studentId && filters.studentId.trim() !== '') {
+      const searchTerm = filters.studentId.trim().toLowerCase();
+      filteredEvents = filteredEvents.filter(e => 
+        String(e.studentId).toLowerCase().includes(searchTerm)
+      );
+      console.log("After studentId filter:", filteredEvents.length);
+    }
+
+    // Lọc theo loại sự kiện
+    if (filters.eventType) {
+      filteredEvents = filteredEvents.filter(e => e.eventType === filters.eventType);
+    }
+
+    // Lọc theo mức độ nghiêm trọng
+    if (filters.severity) {
+      filteredEvents = filteredEvents.filter(e => e.severity === filters.severity);
+    }
+
+    // Lọc theo ngày (từ ngày)
+    if (filters.fromDate) {
+      const fromDate = new Date(filters.fromDate);
+      filteredEvents = filteredEvents.filter(e => new Date(e.dateTime) >= fromDate);
+    }
+
+    // Lọc theo ngày (đến ngày)
+    if (filters.toDate) {
+      const toDate = new Date(filters.toDate);
+      toDate.setHours(23, 59, 59); // Kết thúc ngày
+      filteredEvents = filteredEvents.filter(e => new Date(e.dateTime) <= toDate);
+    }
+
+    // Lọc theo trạng thái thông báo phụ huynh
+    if (filters.notifiedParent !== undefined && filters.notifiedParent !== '') {
+      filteredEvents = filteredEvents.filter(e => e.notifiedParent === filters.notifiedParent);
+    }
+
+    // Lọc theo trạng thái cần theo dõi
+    if (filters.needsFollowUp !== undefined && filters.needsFollowUp !== '') {
+      filteredEvents = filteredEvents.filter(e => e.needsFollowUp === filters.needsFollowUp);
+    }
+
+    console.log("Final filtered events:", filteredEvents.length);
+    return filteredEvents;
+  },
+
+  // Thêm sự kiện mới
+  addEvent: async (eventData) => {
+    await delay(600);
+    const newId = Math.max(...mockMedicalEvents.map(e => e.id)) + 1;
+    const now = new Date().toISOString();
+    
+    const newEvent = {
+      id: newId,
+      ...eventData,
+      createdAt: now
+    };
+    
+    mockMedicalEvents.push(newEvent);
+    return { success: true, event: newEvent };
+  },
+
+  // Cập nhật sự kiện
+  updateEvent: async (id, eventData) => {
+    await delay(600);
+    const index = mockMedicalEvents.findIndex(e => e.id === id);
+    
+    if (index === -1) {
+      throw new Error("Không tìm thấy sự kiện y tế");
+    }
+    
+    mockMedicalEvents[index] = {
+      ...mockMedicalEvents[index],
+      ...eventData
+    };
+    
+    return { success: true, event: mockMedicalEvents[index] };
+  },
+
+  // Xóa sự kiện
+  deleteEvent: async (id) => {
+    await delay(500);
+    const initialLength = mockMedicalEvents.length;
+    mockMedicalEvents = mockMedicalEvents.filter(e => e.id !== id);
+    
+    if (mockMedicalEvents.length === initialLength) {
+      throw new Error("Không tìm thấy sự kiện y tế");
+    }
+    
+    return { success: true, message: "Xóa thành công" };
   }
 };
 

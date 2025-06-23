@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./SendMedicine.css";
+import "./styles/index.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import { useAuth } from "../../../../context/AuthContext";
 import axios from "axios";
@@ -66,6 +66,9 @@ const SendMedicine = () => {
       const response = await api.get("/parent-medication-requests/my-requests");
       console.log("Medication history:", response.data);
       setMedicationHistory(response.data || []);
+
+      // Thêm dòng này để cuộn lên đầu trang sau khi tải xong dữ liệu
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       console.error("Error fetching medication history:", error);
       setHistoryError(
@@ -216,16 +219,18 @@ const SendMedicine = () => {
         API_ENDPOINTS.parent.submitMedicationRequest,
         requestData,
         {
-          headers:
-            {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
       console.log("API Response:", response.data);
       setFormSubmitted(true);
+
+      // Thêm dòng này để cuộn lên đầu trang
+      window.scrollTo({ top: 0, behavior: "smooth" });
 
       // Refresh lịch sử yêu cầu thuốc nếu cần
       if (activeTab === "history") {
@@ -331,14 +336,9 @@ const SendMedicine = () => {
 
   // Lấy class cho trạng thái
   const getStatusClass = (status) => {
-    const statusClasses = {
-      PENDING_APPROVAL: "status-pending",
-      APPROVED: "status-approved",
-      REJECTED: "status-rejected",
-      COMPLETED: "status-completed",
-      CANCELLED: "status-cancelled",
-    };
-    return statusClasses[status] || "";
+    // Chuyển đổi status code sang format CSS class mới
+    const statusCode = status.toLowerCase().replace("_", "-");
+    return `med-status-${statusCode}`;
   };
 
   // Lọc danh sách lịch sử theo học sinh
@@ -512,18 +512,20 @@ const SendMedicine = () => {
 
   const handleModalFormSubmit = async (e) => {
     e.preventDefault();
-    
+
     setLoading(true);
-    
+
     try {
       // Kiểm tra các trường bắt buộc
-      if (!editFormData.medicationName?.trim() ||
-          !editFormData.dosageInstructions?.trim() ||
-          !editFormData.frequencyPerDay?.trim() ||
-          !editFormData.startDate ||
-          !editFormData.endDate ||
-          !editFormData.timeToTake ||
-          editFormData.timeToTake.length === 0) {
+      if (
+        !editFormData.medicationName?.trim() ||
+        !editFormData.dosageInstructions?.trim() ||
+        !editFormData.frequencyPerDay?.trim() ||
+        !editFormData.startDate ||
+        !editFormData.endDate ||
+        !editFormData.timeToTake ||
+        editFormData.timeToTake.length === 0
+      ) {
         toast.error("Vui lòng điền đầy đủ thông tin thuốc");
         setLoading(false);
         return;
@@ -540,40 +542,41 @@ const SendMedicine = () => {
       // Chuẩn bị dữ liệu gửi đi với TẤT CẢ tên trường có thể
       const updateData = {
         id: editFormData.id,
-        submittedAt: editFormData.submittedAt || new Date().toISOString().split("T")[0],
+        submittedAt:
+          editFormData.submittedAt || new Date().toISOString().split("T")[0],
         healthProfileId: editFormData.healthProfileId,
         studentName: editFormData.studentName,
         requestedBy: editFormData.requestedBy,
         requestedByAccountId: editFormData.requestedByAccountId,
-        
+
         // Các trường thông tin thuốc - gửi tất cả các biến thể tên có thể
         medicationName: editFormData.medicationName.trim(),
-        medicineName: editFormData.medicationName.trim(),  // Thêm tên trường này
-        medicine: editFormData.medicationName.trim(),      // Thêm tên trường này
-        
+        medicineName: editFormData.medicationName.trim(), // Thêm tên trường này
+        medicine: editFormData.medicationName.trim(), // Thêm tên trường này
+
         dosageInstructions: editFormData.dosageInstructions.trim(),
-        dosage: editFormData.dosageInstructions.trim(),    // Thêm tên trường này
-        
+        dosage: editFormData.dosageInstructions.trim(), // Thêm tên trường này
+
         frequencyPerDay: editFormData.frequencyPerDay.trim(),
         frequency: editFormData.frequencyPerDay.trim(),
-        
+
         startDate: editFormData.startDate,
         endDate: editFormData.endDate,
-        
+
         // Thêm nhiều biến thể cho timeOfDay/timeToTake
-        timeOfDay: Array.isArray(editFormData.timeToTake) ? 
-          `[${editFormData.timeToTake.join(', ')}]` : 
-          `[${editFormData.timeToTake}]`,
+        timeOfDay: Array.isArray(editFormData.timeToTake)
+          ? `[${editFormData.timeToTake.join(", ")}]`
+          : `[${editFormData.timeToTake}]`,
         timeToTake: editFormData.timeToTake,
-        
+
         specialInstructions: editFormData.specialInstructions?.trim() || "",
         notes: editFormData.specialInstructions?.trim() || "",
-        
+
         parentProvided: true,
         status: "PENDING_APPROVAL",
         rejectionReason: null,
         approvedBy: null,
-        responseDate: null
+        responseDate: null,
       };
 
       console.log("JSON gửi đi:", JSON.stringify(updateData, null, 2));
@@ -594,25 +597,25 @@ const SendMedicine = () => {
       toast.success("Cập nhật yêu cầu thuốc thành công!");
       setIsModalOpen(false);
       fetchMedicationHistory();
-      
     } catch (error) {
       console.error("Lỗi khi cập nhật yêu cầu thuốc:", error);
-      
+
       // Hiển thị chi tiết lỗi
       if (error.response) {
         console.error("Dữ liệu lỗi:", error.response.data);
         console.error("Mã trạng thái:", error.response.status);
       }
-      
+
       let errorMessage;
-      if (typeof error.response?.data === 'string') {
+      if (typeof error.response?.data === "string") {
         errorMessage = error.response.data;
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else {
-        errorMessage = "Không thể cập nhật yêu cầu thuốc. Vui lòng thử lại sau.";
+        errorMessage =
+          "Không thể cập nhật yêu cầu thuốc. Vui lòng thử lại sau.";
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -695,6 +698,19 @@ const SendMedicine = () => {
     }
   };
 
+  useEffect(() => {
+    // Cuộn lên đầu trang khi component được load
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Đảm bảo trang luôn cuộn về đầu khi hiển thị thông báo thành công
+  useEffect(() => {
+    // Cuộn lên đầu trang khi formSubmitted thay đổi
+    if (formSubmitted) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [formSubmitted]);
+
   return (
     <div className="send-medicine-container">
       <div className="send-medicine-header">
@@ -709,13 +725,19 @@ const SendMedicine = () => {
       <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === "form" ? "active" : ""}`}
-          onClick={() => setActiveTab("form")}
+          onClick={() => {
+            setActiveTab("form");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
         >
           <i className="fas fa-prescription-bottle-alt"></i> Gửi yêu cầu thuốc
         </button>
         <button
           className={`tab-button ${activeTab === "history" ? "active" : ""}`}
-          onClick={() => setActiveTab("history")}
+          onClick={() => {
+            setActiveTab("history");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
         >
           <i className="fas fa-history"></i> Lịch sử yêu cầu
         </button>
@@ -738,6 +760,7 @@ const SendMedicine = () => {
                 className="btn-primary"
                 onClick={() => {
                   setFormSubmitted(false);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               >
                 Gửi yêu cầu mới
@@ -747,6 +770,7 @@ const SendMedicine = () => {
                 onClick={() => {
                   setActiveTab("history");
                   fetchMedicationHistory();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               >
                 Xem lịch sử yêu cầu
@@ -1026,25 +1050,27 @@ const SendMedicine = () => {
             <div className="medication-request-list">
               {getFilteredHistory().map((request) => (
                 <div className="medication-request-card" key={request.id}>
-                  <div className="request-header">
-                    <div className="request-title">
+                  <div className="med-request-header">
+                    <div className="med-request-title">
                       <h3>{request.medicationName}</h3>
-                      <p className="request-student">{request.studentName}</p>
-                      <p className="request-date">
+                      <p className="med-request-student">
+                        {request.studentName}
+                      </p>
+                      <p className="med-request-date">
                         Ngày yêu cầu: {formatDate(request.submittedAt)}
                       </p>
                     </div>
-                    <div className="request-actions">
+                    <div className="med-request-actions">
                       {request.status === "PENDING_APPROVAL" && (
                         <>
                           <button
-                            className="btn-update"
+                            className="med-btn med-btn-primary"
                             onClick={() => handleUpdateRequest(request.id)}
                           >
                             <i className="fas fa-edit"></i> Cập nhật
                           </button>
                           <button
-                            className="btn-delete"
+                            className="med-btn med-btn-danger"
                             onClick={() => handleDeleteRequest(request.id)}
                           >
                             <i className="fas fa-trash"></i> Xóa
@@ -1052,32 +1078,40 @@ const SendMedicine = () => {
                         </>
                       )}
                       <div
-                        className={`request-status ${getStatusClass(
-                          request.status
-                        )}`}
+                        className={`med-status med-status-${request.status
+                          .toLowerCase()
+                          .replace("_", "-")}`}
                       >
                         {getStatusLabel(request.status)}
                       </div>
                     </div>
                   </div>
 
-                  <div className="request-details">
+                  {/* <div className="request-details">
                     <div className="detail-row">
                       <div className="detail-item">
                         <span className="detail-label">Liều lượng:</span>
-                        <span className="detail-value">
-                          {request.dosageInstructions}
-                        </span>
+                        <div className="dosage-display">
+                          <span>{request.dosageInstructions}</span>
+                        </div>
                       </div>
+
                       <div className="detail-item">
                         <span className="detail-label">Tần suất:</span>
-                        <span className="detail-value">
-                          {request.frequencyPerDay} lần/ngày
-                        </span>
-                        <span className="detail-value">
-                          {formatDate(request.startDate)} -{" "}
-                          {formatDate(request.endDate)}
-                        </span>
+                        <div className="frequency-display">
+                          <div className="frequency-row">
+                            <span className="frequency-value">
+                              {request.frequencyPerDay} lần/ngày
+                            </span>
+                          </div>
+                          <div className="date-value">
+                            <i className="far fa-calendar-alt"></i>
+                            <span>
+                              {formatDate(request.startDate)} -{" "}
+                              {formatDate(request.endDate)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -1114,6 +1148,67 @@ const SendMedicine = () => {
                           </span>
                         </div>
                       )}
+                  </div> */}
+
+                  {/* Thay thế phần hiển thị chi tiết thuốc trong thẻ request-details */}
+                  <div className="request-details">
+                    <div className="med-info-container">
+                      <div className="med-info-row">
+                        <div className="med-info-item">
+                          <span className="med-info-label">Liều lượng:</span>
+                          <div className="med-info-value">
+                            {request.dosageInstructions || "3"}
+                          </div>
+                        </div>
+
+                        <div className="med-info-item">
+                          <span className="med-info-label">Tần suất:</span>
+                          <div className="med-info-value">
+                            <strong>{request.frequencyPerDay || "3"} lần/ngày</strong>
+                            <div className="med-date-range">
+                              <i className="far fa-calendar-alt"></i>
+                              <span>
+                                {formatDate(request.startDate)} -{" "}
+                                {formatDate(request.endDate)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="med-info-row">
+                        <div className="med-info-full">
+                          <span className="med-info-label">Thời điểm uống:</span>
+                          <div className="time-tags">
+                            {parseTimeOfDay(request.timeOfDay).map((time, index) => (
+                              <span className="time-tag" key={index}>
+                                {getTimeOfDayLabel(time)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {request.specialInstructions && (
+                        <div className="med-info-row">
+                          <div className="med-info-full">
+                            <span className="med-info-label">Hướng dẫn đặc biệt:</span>
+                            <div className="med-info-note">
+                              {request.specialInstructions}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {request.status === "REJECTED" && request.rejectionReason && (
+                        <div className="rejection-reason">
+                          <span className="detail-label">Lý do từ chối:</span>
+                          <span className="detail-value">
+                            {request.rejectionReason}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {request.approvedBy && (
@@ -1141,21 +1236,21 @@ const SendMedicine = () => {
 
       {/* Modal cập nhật */}
       {isModalOpen && (
-        <div className="update-modal-overlay">
-          <div className="update-modal">
-            <div className="modal-header">
+        <div className="med-modal-overlay">
+          <div className="med-modal">
+            <div className="med-modal-header">
               <h3>Cập nhật yêu cầu thuốc</h3>
               <button
-                className="close-modal"
+                className="med-modal-close"
                 onClick={() => setIsModalOpen(false)}
               >
                 <i className="fas fa-times"></i>
               </button>
             </div>
 
-            <div className="modal-content">
+            <div className="med-modal-content">
               <form onSubmit={handleModalFormSubmit}>
-                <div className="form-group">
+                <div className="med-form-group">
                   <label htmlFor="modal-medicineName">Tên thuốc:</label>
                   <input
                     type="text"
@@ -1165,11 +1260,17 @@ const SendMedicine = () => {
                     onChange={handleModalInputChange}
                     placeholder="Nhập tên thuốc"
                     required
+                    className={modalErrors.medicationName ? "med-error" : ""}
                   />
+                  {modalErrors.medicationName && (
+                    <span className="med-error-text">
+                      {modalErrors.medicationName}
+                    </span>
+                  )}
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
+                <div className="med-form-row">
+                  <div className="med-form-group">
                     <label htmlFor="modal-dosage">Liều lượng:</label>
                     <input
                       type="text"
@@ -1179,10 +1280,18 @@ const SendMedicine = () => {
                       onChange={handleModalInputChange}
                       placeholder="VD: 1 viên, 5ml, ..."
                       required
+                      className={
+                        modalErrors.dosageInstructions ? "med-error" : ""
+                      }
                     />
+                    {modalErrors.dosageInstructions && (
+                      <span className="med-error-text">
+                        {modalErrors.dosageInstructions}
+                      </span>
+                    )}
                   </div>
 
-                  <div className="form-group">
+                  <div className="med-form-group">
                     <label htmlFor="modal-frequency">Tần suất:</label>
                     <input
                       type="text"
@@ -1192,12 +1301,18 @@ const SendMedicine = () => {
                       onChange={handleModalInputChange}
                       placeholder="VD: 2 lần/ngày"
                       required
+                      className={modalErrors.frequencyPerDay ? "med-error" : ""}
                     />
+                    {modalErrors.frequencyPerDay && (
+                      <span className="med-error-text">
+                        {modalErrors.frequencyPerDay}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
+                <div className="med-form-row">
+                  <div className="med-form-group">
                     <label htmlFor="modal-startDate">Ngày bắt đầu:</label>
                     <input
                       type="date"
@@ -1209,7 +1324,7 @@ const SendMedicine = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="med-form-group">
                     <label htmlFor="modal-endDate">Ngày kết thúc:</label>
                     <input
                       type="date"
@@ -1222,7 +1337,7 @@ const SendMedicine = () => {
                   </div>
                 </div>
 
-                <div className="form-group">
+                <div className="med-form-group">
                   <label>Thời điểm uống thuốc:</label>
                   <div className="checkbox-group">
                     {timeOptions.map((option) => (
@@ -1245,19 +1360,21 @@ const SendMedicine = () => {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="modal-notes">Ghi chú:</label>
+                <div className="med-form-group">
+                  <label htmlFor="modal-specialInstructions">
+                    Hướng dẫn đặc biệt:
+                  </label>
                   <textarea
-                    id="modal-notes"
+                    id="modal-specialInstructions"
                     name="specialInstructions"
                     value={editFormData.specialInstructions}
                     onChange={handleModalInputChange}
-                    placeholder="Các lưu ý đặc biệt về việc dùng thuốc (nếu có)"
-                    rows="3"
+                    placeholder="Nhập hướng dẫn đặc biệt (nếu có)"
+                    rows="4"
                   ></textarea>
                 </div>
 
-                <div className="modal-actions">
+                <div className="med-modal-actions">
                   <button
                     type="button"
                     className="btn-secondary"
@@ -1270,13 +1387,7 @@ const SendMedicine = () => {
                     className="btn-primary"
                     disabled={loading}
                   >
-                    {loading ? (
-                      <>
-                        <span className="spinner"></span> Đang cập nhật...
-                      </>
-                    ) : (
-                      "Cập nhật yêu cầu"
-                    )}
+                    {loading ? <span className="spinner"></span> : "Cập nhật"}
                   </button>
                 </div>
               </form>
