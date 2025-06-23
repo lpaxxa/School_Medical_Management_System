@@ -13,7 +13,7 @@ const mockMedicineRequests = [
     requestedBy: 'Nguyễn Thị B (Phụ huynh)',
     startDate: '2025-06-18',
     endDate: '2025-06-25',
-    status: 0, // 0: chờ phê duyệt, 1: đã duyệt, 2: từ chối, 3: đã hủy
+    status: 'PENDING_APPROVAL', // Use proper enum string values
     notes: 'Thuốc hạ sốt Paracetamol, 3 lần/ngày sau bữa ăn',
     class: '10A1',
     medicationDetails: [
@@ -28,7 +28,7 @@ const mockMedicineRequests = [
     requestedBy: 'Trần Văn D (Phụ huynh)',
     startDate: '2025-06-17',
     endDate: '2025-06-24',
-    status: 1,
+    status: 'APPROVED',
     notes: 'Thuốc kháng sinh theo đơn của bác sĩ',
     class: '11B2',
     medicationDetails: [
@@ -43,7 +43,7 @@ const mockMedicineRequests = [
     requestedBy: 'Lê Thị F (Phụ huynh)',
     startDate: '2025-06-19',
     endDate: '2025-07-03',
-    status: 0,
+    status: 'PENDING_APPROVAL',
     notes: 'Vitamin tổng hợp để tăng cường sức đề kháng',
     class: '9A3',
     medicationDetails: [
@@ -59,7 +59,7 @@ const mockMedicineRequests = [
     requestedBy: 'Phạm Văn H (Phụ huynh)',
     startDate: '2025-06-15',
     endDate: '2025-06-20',
-    status: 2,
+    status: 'REJECTED',
     notes: 'Thuốc chống dị ứng, cần uống sau bữa sáng',
     class: '10A2',
     medicationDetails: [
@@ -75,7 +75,7 @@ const mockMedicineRequests = [
     requestedBy: 'Hoàng Thị K (Phụ huynh)',
     startDate: '2025-06-16',
     endDate: '2025-06-30',
-    status: 1,
+    status: 'APPROVED',
     notes: 'Thuốc điều trị hen suyễn, cần sử dụng khi có dấu hiệu khó thở',
     class: '12A1',
     medicationDetails: [
@@ -90,7 +90,7 @@ const mockMedicineRequests = [
     requestedBy: 'Đặng Thị M (Phụ huynh)',
     startDate: '2025-06-20',
     endDate: '2025-06-27',
-    status: 0,
+    status: 'PENDING_APPROVAL',
     notes: 'Thuốc kháng histamine điều trị viêm mũi dị ứng',
     class: '11A3',
     medicationDetails: [
@@ -105,7 +105,7 @@ const mockMedicineRequests = [
     requestedBy: 'Vũ Văn P (Phụ huynh)',
     startDate: '2025-06-14',
     endDate: '2025-06-21',
-    status: 3,
+    status: 'REJECTED',
     notes: 'Thuốc giảm đau cho đau bụng kinh',
     class: '11A1',
     medicationDetails: [
@@ -120,7 +120,7 @@ const mockMedicineRequests = [
     requestedBy: 'Ngô Thị R (Phụ huynh)',
     startDate: '2025-06-19',
     endDate: '2025-06-26',
-    status: 0,
+    status: 'PENDING_APPROVAL',
     notes: 'Probiotics để cải thiện hệ tiêu hóa',
     class: '10B2',
     medicationDetails: [
@@ -232,7 +232,7 @@ const receiveMedicineService = {  // API thật để lấy tất cả yêu cầ
         const newId = Math.max(...mockMedicineRequests.map(item => item.id)) + 1;
         const newMedicineRequest = {
           id: newId,
-          status: 0, // Mặc định là chờ phê duyệt
+          status: 'PENDING_APPROVAL', // Mặc định là chờ phê duyệt - sử dụng enum string
           ...medicineData,
           startDate: medicineData.startDate || new Date().toISOString().split('T')[0],
           endDate: medicineData.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
@@ -342,8 +342,8 @@ const receiveMedicineService = {  // API thật để lấy tất cả yêu cầ
         // Tìm request trong mock data
         const index = mockMedicineRequests.findIndex(req => req.id === Number(id));
         if (index !== -1) {
-          // Cập nhật trạng thái theo quyết định
-          const newStatus = requestData.decision === 'APPROVED' ? 1 : 2;
+          // Cập nhật trạng thái theo quyết định - sử dụng enum string thay vì số
+          const newStatus = requestData.decision === 'APPROVED' ? 'APPROVED' : 'REJECTED';
           
           // Cập nhật mock data
           mockMedicineRequests[index] = {
@@ -422,8 +422,20 @@ const receiveMedicineService = {  // API thật để lấy tất cả yêu cầ
       }
         
       if (filters.status !== undefined) {
+        // Convert numeric filter to enum string if needed
+        let statusToFilter = filters.status;
+        if (typeof filters.status === 'number' || !isNaN(parseInt(filters.status))) {
+          const numericStatus = parseInt(filters.status);
+          switch (numericStatus) {
+            case 0: statusToFilter = 'PENDING_APPROVAL'; break;
+            case 1: statusToFilter = 'APPROVED'; break;
+            case 2: statusToFilter = 'REJECTED'; break;
+            default: statusToFilter = filters.status;
+          }
+        }
+        
         filteredData = filteredData.filter(item => 
-          item.status === parseInt(filters.status)
+          item.status === statusToFilter
         );
       }
         

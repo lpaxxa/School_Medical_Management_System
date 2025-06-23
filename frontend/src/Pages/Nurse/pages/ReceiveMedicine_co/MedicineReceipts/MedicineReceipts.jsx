@@ -296,7 +296,7 @@ const MedicineReceipts = () => {
 
 // Hàm chuyển đổi status thành text và class
 const getStatusInfo = (status) => {
-  // Xử lý cả trường hợp status là string và number
+  // Xử lý cả trường hợp status là string và number (để tương thích với dữ liệu cũ)
   let statusText = status;
   if (typeof status === 'number') {
     switch (status) {
@@ -317,8 +317,12 @@ const getStatusInfo = (status) => {
     }
   }
 
+  // Chuẩn hóa statusText thành uppercase để đảm bảo matching
+  statusText = statusText ? statusText.toString().toUpperCase() : 'UNKNOWN';
+
   switch (statusText) {
     case 'PENDING_APPROVAL':
+    case 'PENDING':
       return {
         text: "Chờ phê duyệt",
         class: "status-pending" // Màu vàng

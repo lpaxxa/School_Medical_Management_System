@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Repository
 public interface MedicationAdministrationRepository extends JpaRepository<MedicationAdministration, Long> {
@@ -29,7 +29,7 @@ public interface MedicationAdministrationRepository extends JpaRepository<Medica
 
     
     // Find administrations by date range with pagination
-    Page<MedicationAdministration> findByAdministeredAtBetweenOrderByAdministeredAtDesc(LocalDateTime start, LocalDateTime end, Pageable pageable);
+    Page<MedicationAdministration> findByAdministeredAtBetweenOrderByAdministeredAtDesc(Date start, Date end, Pageable pageable);
     
     // Find administrations by status with pagination
     Page<MedicationAdministration> findByAdministrationStatusOrderByAdministeredAtDesc(AdministrationStatus status, Pageable pageable);

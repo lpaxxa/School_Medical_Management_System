@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-
 import axios from "axios";
+import AuthService from "../services/authService";
 
 // Base API URL
 const BASE_URL = "http://localhost:8080/api/v1";
@@ -255,11 +255,23 @@ export const AuthProvider = ({ children }) => {
     }
   }, [currentUser]);
 
+  // Google login function
+  const loginWithGoogle = () => {
+    try {
+      AuthService.initiateGoogleLogin();
+    } catch (error) {
+      console.error('Error initiating Google login:', error);
+      setAuthError('Không thể khởi tạo đăng nhập Google. Vui lòng thử lại.');
+    }
+  };
+
   const value = {
     currentUser,
     login,
     logout,
+    loginWithGoogle, // Add Google login function
     authError,
+    setCurrentUser, // Expose setCurrentUser for OAuth callback
     API_ENDPOINTS, // Make API endpoints available throughout the app
   };
 

@@ -4,7 +4,7 @@ import com.fpt.medically_be.entity.AdministrationStatus;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 public class MedicationAdministrationRequestDTO {
@@ -13,7 +13,7 @@ public class MedicationAdministrationRequestDTO {
     private Long medicationInstructionId;
     
     @NotNull(message = "Administration time is required")
-    private LocalDateTime administeredAt;
+    private Date administeredAt;
     
     @NotNull(message = "Administration status is required")
     private AdministrationStatus administrationStatus;
