@@ -59,6 +59,38 @@ api.interceptors.response.use(
   }
 );
 
+// Thêm hàm tiện ích để xử lý dữ liệu trả về
+const processResponseData = (response) => {
+  // Nếu là dữ liệu JSON, đảm bảo tất cả các trường đều nhất quán
+  if (response && response.data) {
+    if (Array.isArray(response.data)) {
+      // Nếu là mảng, xử lý từng phần tử
+      response.data = response.data.map(item => {
+        // Đảm bảo các trường thời gian nhất quán
+        if (item.receivedDate && !item.createdAt) {
+          item.createdAt = item.receivedDate;
+        }
+        return item;
+      });
+    } else if (typeof response.data === 'object') {
+      // Nếu là object đơn lẻ, đảm bảo các trường thời gian
+      if (response.data.receivedDate && !response.data.createdAt) {
+        response.data.createdAt = response.data.receivedDate;
+      }
+    }
+  }
+  return response;
+};
+
+// Thêm vào interceptor response
+api.interceptors.response.use(
+  (response) => processResponseData(response),
+  (error) => {
+    // ... phần xử lý lỗi giữ nguyên
+    return Promise.reject(error);
+  }
+);
+
 // Define specific API endpoints
 const endpoints = {
   login: `${API_URL}/auth/login`,

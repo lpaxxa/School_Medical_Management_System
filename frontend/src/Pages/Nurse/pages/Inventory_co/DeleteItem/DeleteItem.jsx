@@ -2,18 +2,19 @@ import React, { useState } from 'react';
 import './DeleteItem.css';
 import inventoryService from '../../../../../services/inventoryService';
 
-const DeleteItem = ({ item, onClose, onDeleteItem }) => {
+const DeleteItem = ({ item, onClose, onItemDeleted }) => {
   const [loading, setLoading] = useState(false);
+
   const handleDelete = async () => {
     try {
       setLoading(true);
-      console.log('Deleting item with itemId:', item.itemId);
-      
-      // Call the parent component's onDeleteItem with the item's itemId
-      await onDeleteItem(item.itemId);
+      await inventoryService.deleteItem(item.id);
       
       // Thông báo thành công
       alert("Xóa vật tư thành công!");
+      
+      // Gọi callback để thông báo việc xóa thành công
+      onItemDeleted(item.id);
       
       // Đóng modal
       onClose();
@@ -33,7 +34,8 @@ const DeleteItem = ({ item, onClose, onDeleteItem }) => {
             <i className="fas fa-times"></i>
           </button>
         </div>
-        <div className="delete-modal-body">          <p>Bạn có chắc chắn muốn xóa vật tư <strong>"{item.itemName || item.name}"</strong> không?</p>
+        <div className="delete-modal-body">
+          <p>Bạn có chắc chắn muốn xóa vật tư <strong>"{item.name}"</strong> không?</p>
           <p className="delete-warning">
             <i className="fas fa-exclamation-triangle"></i>
             Thao tác này không thể hoàn tác!
@@ -41,12 +43,20 @@ const DeleteItem = ({ item, onClose, onDeleteItem }) => {
           
           <div className="item-details">
             <div className="item-detail">
-              <span>ID:</span>
-              <span>{item.itemId}</span>
+              <span>Tên vật tư:</span>
+              <span>{item.name}</span>
             </div>
             <div className="item-detail">
-              <span>Tên vật tư:</span>
-              <span>{item.itemName || item.name}</span>
+              <span>Đơn vị:</span>
+              <span>{item.unit}</span>
+            </div>
+            <div className="item-detail">
+              <span>Số lượng:</span>
+              <span>{item.quantity}</span>
+            </div>
+            <div className="item-detail">
+              <span>Danh mục:</span>
+              <span>{item.category}</span>
             </div>
           </div>
           
