@@ -1,5 +1,11 @@
+/* Đảm bảo file CSS nằm đúng thư mục */
 .student-detail-container {
   padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 120px);
+  overflow-y: auto;
 }
 
 .detail-header {
@@ -7,389 +13,389 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.detail-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.back-button,
+.edit-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .back-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
   background-color: #f0f0f0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  color: #333;
 }
 
-.header-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.edit-button, .export-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
+.back-button:hover {
+  background-color: #e0e0e0;
 }
 
 .edit-button {
-  background-color: #ffa726;
+  background-color: #2196F3;
   color: white;
 }
 
-.export-button {
-  background-color: #4a90e2;
-  color: white;
+.edit-button:hover {
+  background-color: #0b7dda;
 }
 
-.student-profile-header {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  background: #fff;
-  padding: 20px;
+.detail-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 30px;
+}
+
+.student-info-section {
+  background-color: #f9f9f9;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.student-avatar img {
-  width: 120px;
-  height: 120px;
+.student-avatar {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.student-image {
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #f0f0f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 4px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.student-basic-info h2 {
+.basic-info h3 {
   margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 24px;
-}
-
-.info-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.badge-id {
-  background-color: #e3f2fd;
-  color: #1976d2;
-}
-
-.badge-class {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-}
-
-.badge-blood {
-  background-color: #ffebee;
-  color: #c62828;
-}
-
-.badge-status.status-complete {
-  background-color: #e3f7e3;
-  color: #2e7d32;
-}
-
-.badge-status.status-incomplete {
-  background-color: #fff4e5;
-  color: #ed6c02;
-}
-
-.detail-tabs {
-  display: flex;
-  margin-bottom: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.tab {
-  flex: 1;
-  padding: 15px;
-  text-align: center;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.tab:hover {
-  background-color: #f9f9f9;
-}
-
-.tab.active {
-  border-bottom-color: #4a90e2;
-  color: #4a90e2;
-  font-weight: 600;
-}
-
-.tab-content {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-}
-
-/* Tab Thông tin cá nhân */
-.personal-info-content .info-section {
-  margin-bottom: 30px;
-}
-
-.personal-info-content h3 {
-  margin-top: 0;
+  font-size: 18px;
+  color: #333;
   margin-bottom: 15px;
   padding-bottom: 10px;
   border-bottom: 1px solid #eee;
-  color: #333;
 }
 
-.info-grid {
+.basic-info p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.health-info-section {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.health-info-section h3 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.info-group {
+  background-color: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.info-group h4 {
+  margin-top: 0;
+  font-size: 16px;
+  color: #444;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Metrics styling */
+.metrics-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 15px;
 }
 
-.info-item {
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 10px;
-  border-radius: 4px;
-  background-color: #f9f9f9;
-}
-
-.info-label {
-  display: block;
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 5px;
-}
-
-.info-value {
-  font-weight: 500;
-  color: #333;
-}
-
-/* Tab Chỉ số sức khỏe */
-.health-indices-content .health-section {
-  margin-bottom: 30px;
-}
-
-.health-indices-content h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
-  color: #333;
-}
-
-.health-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.health-item {
-  padding: 15px;
   border-radius: 8px;
-  background-color: #f9f9f9;
-  text-align: center;
+  background-color: #f5f5f5;
+  transition: all 0.2s;
 }
 
-.health-item-header {
+.metric-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.health-item-header i {
-  color: #4a90e2;
+.metric-icon i {
   font-size: 18px;
 }
 
-.health-item-header h4 {
-  margin: 0;
-  font-size: 16px;
+.metric-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #777;
+}
+
+.metric-value {
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 2px;
+  color: #333;
+}
+
+.metric-unit {
+  font-size: 12px;
+  color: #777;
+  margin-left: 4px;
+}
+
+.metric-status {
+  font-size: 12px;
+  margin-top: 2px;
   font-weight: 500;
 }
 
-.health-item-value {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 5px;
-}
-
-.health-item-description {
-  display: block;
-  font-size: 14px;
-  font-weight: normal;
-  margin-top: 5px;
-}
-
-.health-item-standard {
-  margin-top: 5px;
-  font-size: 12px;
-  color: #666;
-}
-
-.charts-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-}
-
-.chart-section {
-  background-color: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.chart-section h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 16px;
-  text-align: center;
-}
-
-.chart-wrapper {
-  height: 300px;
-}
-
-/* Tab Tiền sử bệnh */
-.medical-history-content .medical-section {
-  margin-bottom: 30px;
-}
-
-.medical-history-content h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
-  color: #333;
-}
-
-.medical-text {
-  padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  line-height: 1.5;
-}
-
-/* Tab Ghi chú */
-.notes-content .add-note-section,
-.notes-content .notes-list-section {
-  margin-bottom: 30px;
-}
-
-.notes-content h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
-  color: #333;
-}
-
-.note-input-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.note-input {
-  width: 100%;
-  height: 120px;
-  padding: 12px;
-  border: 1px solid #ddd;
+.blood-type {
+  background-color: #f44336;
+  color: white;
+  font-weight: 600;
   border-radius: 4px;
-  resize: vertical;
-  font-family: inherit;
+  padding: 2px 8px;
+  display: inline-block;
   font-size: 14px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
 }
 
-.add-note-button {
-  align-self: flex-end;
+/* Health history styling */
+.health-history-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  gap: 15px;
+  transition: all 0.2s;
+}
+
+.health-history-item:hover {
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 6px;
+  transform: translateX(5px);
+}
+
+.health-history-icon {
+  width: 36px;
+  height: 36px;
+  background-color: #f5f5f5;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.health-history-content {
+  flex: 1;
+}
+
+.health-history-label {
+  font-weight: 600;
+  margin: 0 0 5px 0;
+  color: #444;
+  font-size: 14px;
+}
+
+.health-history-value {
+  margin: 0;
+  color: #666;
+  font-size: 15px;
+  background-color: rgba(0, 0, 0, 0.02);
+  padding: 4px 8px;
   border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
 }
 
-.add-note-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.notes-list {
+/* Vaccination styling */
+.vaccination-info {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: 15px;
 }
 
-.note-item {
-  padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  border-left: 4px solid #4a90e2;
-}
-
-.note-header {
+.vaccination-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #f5f5f5;
+  border-radius: 50%;
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
 }
 
-.note-author {
-  font-weight: 600;
-  color: #333;
+.vaccination-icon i {
+  font-size: 18px;
 }
 
-.note-date {
-  font-size: 13px;
-  color: #666;
+.vaccination-content {
+  flex: 1;
 }
 
-.note-content {
-  line-height: 1.5;
+.last-exam-date {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #777;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.no-notes {
+/* Emergency contact styling */
+.emergency-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.emergency-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #f5f5f5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.emergency-icon i {
+  font-size: 18px;
+}
+
+.emergency-content {
+  flex: 1;
+}
+
+.last-updated {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #777;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: flex-end;
+}
+
+/* Loading and error messages */
+.loading-message {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 30px;
-  color: #666;
   text-align: center;
 }
 
-.no-notes i {
-  font-size: 24px;
-  color: #999;
+.loading-spinner {
+  border: 3px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 3px solid #2196F3;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
   margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  padding: 20px;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #ffc107;
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+  .detail-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .metrics-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .metrics-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .health-history-item,
+  .vaccination-info,
+  .emergency-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .health-history-icon,
+  .vaccination-icon,
+  .emergency-icon {
+    margin-bottom: 5px;
+  }
 }

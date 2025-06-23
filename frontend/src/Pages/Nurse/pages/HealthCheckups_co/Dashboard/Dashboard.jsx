@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-import healthCheckupService from '../../../../../services/healthCheckupService';
+import * as healthCheckupService from '../../../../../services/healthCheckupService';
 import './Dashboard.css';
+import { Button } from 'react-bootstrap';
 
 // Đăng ký các components cho Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
-const Dashboard = ({ stats, campaignsData, onCampaignSelect, refreshData }) => {
+const Dashboard = ({ stats, campaignsData, onCampaignSelect, refreshData, onCreateNewCheckup }) => {
   const [recentCampaigns, setRecentCampaigns] = useState([]);
   const [followupStudents, setFollowupStudents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -17,17 +18,27 @@ const Dashboard = ({ stats, campaignsData, onCampaignSelect, refreshData }) => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const studentsRequiringFollowup = await healthCheckupService.getStudentsRequiringFollowup();
+        const studentsRequiringFollowup = await healthCheckupService.getStudentsRequiringFollowup() || [];
         setFollowupStudents(studentsRequiringFollowup);
         
-        // Lấy 5 đợt khám gần nhất (sắp xếp theo ngày tạo giảm dần)
-        const sortedCampaigns = [...campaignsData].sort((a, b) => 
-          new Date(b.createdAt) - new Date(a.createdAt)
-        ).slice(0, 5);
-        
-        setRecentCampaigns(sortedCampaigns);
+        // Lấy các đợt khám gần nhất và kiểm tra dữ liệu có tồn tại không
+        if (Array.isArray(campaignsData) && campaignsData.length > 0) {
+          // Sắp xếp theo ngày bắt đầu mới nhất
+          const sortedCampaigns = [...campaignsData].sort((a, b) => {
+            // Dùng startDate nếu có, nếu không thì dùng createdAt
+            const dateA = a.startDate ? new Date(a.startDate) : (a.createdAt ? new Date(a.createdAt) : new Date());
+            const dateB = b.startDate ? new Date(b.startDate) : (b.createdAt ? new Date(b.createdAt) : new Date());
+            return dateB - dateA;
+          }).slice(0, 5);
+          
+          setRecentCampaigns(sortedCampaigns);
+        } else {
+          setRecentCampaigns([]);
+        }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
+        setFollowupStudents([]);
+        setRecentCampaigns([]);
       } finally {
         setLoading(false);
       }
@@ -58,17 +69,26 @@ const Dashboard = ({ stats, campaignsData, onCampaignSelect, refreshData }) => {
     ],
   };
 
-  // Biểu đồ giả định cho tiến độ hoàn thành của các đợt khám đang diễn ra
+  // Kiểm tra dữ liệu cho biểu đồ tiến độ
   const progressChart = {
-    labels: campaignsData
-      .filter(c => c.status === 'Đang diễn ra')
-      .map(c => c.name.length > 25 ? c.name.substring(0, 25) + '...' : c.name),
+    labels: Array.isArray(campaignsData) ? 
+      campaignsData
+        .filter(c => c.status === 'Đang diễn ra')
+        .map(c => c.name && c.name.length > 25 ? c.name.substring(0, 25) + '...' : (c.name || 'Không có tên')) :
+      [],
     datasets: [
       {
         label: 'Hoàn thành (%)',
-        data: campaignsData
-          .filter(c => c.status === 'Đang diễn ra')
-          .map(c => Math.round((c.completedStudents / c.totalStudents) * 100)),
+        data: Array.isArray(campaignsData) ?
+          campaignsData
+            .filter(c => c.status === 'Đang diễn ra')
+            .map(c => {
+              // Kiểm tra các trường dữ liệu trước khi tính toán
+              const completed = c.completedStudents || c.examinedStudents || 0;
+              const total = c.totalStudents || 1; // Tránh chia cho 0
+              return Math.round((completed / total) * 100);
+            }) :
+          [],
         backgroundColor: '#3498db',
       },
     ],
@@ -186,21 +206,24 @@ const Dashboard = ({ stats, campaignsData, onCampaignSelect, refreshData }) => {
                     <tbody>
                       {recentCampaigns.map(campaign => (
                         <tr key={campaign.id}>
-                          <td>{campaign.name}</td>
-                          <td>{campaign.scheduledDate}</td>
+                          <td>{campaign.name || 'Không có tên'}</td>
+                          <td>{campaign.scheduledDate || campaign.startDate || 'Chưa xác định'}</td>
                           <td>
-                            <span className={`status-badge ${campaign.status.toLowerCase().replace(' ', '-')}`}>
-                              {campaign.status}
+                            <span className={`status-badge ${(campaign.status || '').toLowerCase().replace(' ', '-')}`}>
+                              {campaign.status || 'Chưa cập nhật'}
                             </span>
                           </td>
                           <td>
                             <div className="progress-bar-container">
                               <div 
                                 className="progress-bar" 
-                                style={{ width: `${Math.round((campaign.completedStudents / campaign.totalStudents) * 100)}%` }}
+                                style={{ 
+                                  width: `${Math.round(((campaign.completedStudents || campaign.examinedStudents || 0) / (campaign.totalStudents || 1)) * 100)}%` 
+                                }}
                               ></div>
                               <span className="progress-text">
-                                {campaign.completedStudents}/{campaign.totalStudents} ({Math.round((campaign.completedStudents / campaign.totalStudents) * 100)}%)
+                                {campaign.completedStudents || campaign.examinedStudents || 0}/{campaign.totalStudents || 0} 
+                                ({Math.round(((campaign.completedStudents || campaign.examinedStudents || 0) / (campaign.totalStudents || 1)) * 100)}%)
                               </span>
                             </div>
                           </td>
@@ -229,7 +252,7 @@ const Dashboard = ({ stats, campaignsData, onCampaignSelect, refreshData }) => {
               <p>Đang tải...</p>
             ) : (
               <>
-                {followupStudents.length > 0 ? (
+                {followupStudents && followupStudents.length > 0 ? (
                   <table className="students-table">
                     <thead>
                       <tr>
@@ -244,13 +267,13 @@ const Dashboard = ({ stats, campaignsData, onCampaignSelect, refreshData }) => {
                     <tbody>
                       {followupStudents.map((student, index) => (
                         <tr key={index}>
-                          <td>{student.studentCode}</td>
-                          <td>{student.studentName}</td>
-                          <td>{student.className}</td>
-                          <td>{student.issue}</td>
+                          <td>{student.id || student.studentCode || 'N/A'}</td>
+                          <td>{student.fullName || student.studentName || 'N/A'}</td>
+                          <td>{student.class || student.className || 'N/A'}</td>
+                          <td>{student.diagnosis || student.issue || 'Không có thông tin'}</td>
                           <td>{student.followupDate || 'Chưa xác định'}</td>
                           <td>
-                            {student.notifiedToParent ? (
+                            {(student.parentNotified || student.notifiedToParent) ? (
                               <span className="notified yes"><i className="fas fa-check-circle"></i> Đã thông báo</span>
                             ) : (
                               <span className="notified no"><i className="fas fa-times-circle"></i> Chưa thông báo</span>
@@ -267,6 +290,17 @@ const Dashboard = ({ stats, campaignsData, onCampaignSelect, refreshData }) => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Thêm nút tạo mới ở đây */}
+      <div className="dashboard-actions">
+        <Button 
+          variant="primary" 
+          className="create-checkup-btn"
+          onClick={onCreateNewCheckup}
+        >
+          <i className="fas fa-plus-circle"></i> Tạo khám sức khỏe mới
+        </Button>
       </div>
     </div>
   );

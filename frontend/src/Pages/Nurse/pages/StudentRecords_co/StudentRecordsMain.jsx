@@ -6,9 +6,9 @@ import './StudentRecordsMain.css';
 // Component StudentRecords gốc từ file StudentRecords.jsx
 const StudentRecords = () => {
   const [activeTab, setActiveTab] = useState('list');
-  
-  return (
+    return (
     <div className="student-records-container">
+      <h1 className="page-title">Hồ sơ Y tế Học sinh</h1>
       <div className="student-records-tabs">
         <div 
           className={`sr-tab ${activeTab === 'list' ? 'active' : ''}`}

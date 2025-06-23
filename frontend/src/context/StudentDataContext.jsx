@@ -160,22 +160,13 @@ export const StudentDataProvider = ({ children }) => {
     }
   };
 
-  // Sửa hàm fetchHealthProfile để sử dụng đúng endpoint
+  // Thêm function để fetch và cập nhật health profile
   const fetchHealthProfile = async (studentId) => {
     if (!studentId) return null;
 
     setIsLoadingHealthProfiles(true);
     try {
-      // SỬA: Sử dụng đúng endpoint API với student ID
-      const response = await api.get(
-        `/health-profiles/student/${studentId}`
-      );
-
-      console.log("Health profile data received:", response.data);
-      // In chi tiết các trường dữ liệu
-      console.log("dietaryRestrictions:", response.data.dietaryRestrictions);
-      console.log("immunizationStatus:", response.data.immunizationStatus);
-      console.log("emergencyContactInfo:", response.data.emergencyContactInfo);
+      const response = await api.get(`/health-profiles/student/${studentId}`);
 
       // Cập nhật dữ liệu trong context
       setHealthProfiles((prev) => ({
@@ -186,80 +177,26 @@ export const StudentDataProvider = ({ children }) => {
       return response.data;
     } catch (error) {
       console.error("Error fetching health profile:", error);
-
-      // Nếu không tìm thấy hồ sơ (404), trả về null thay vì throw error
-      if (error.response?.status === 404) {
-        console.log("No health profile found for student:", studentId);
-        return null;
-      }
-
-      throw error;
+      return null;
     } finally {
       setIsLoadingHealthProfiles(false);
     }
   };
 
-  // Sửa hàm updateHealthProfile để sử dụng đúng endpoint
-  const updateHealthProfile = async (healthProfileData) => {
+  // Thêm function để cập nhật health profile
+  const updateHealthProfile = async (profileData) => {
     try {
-      // Kiểm tra token trước khi gửi
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-      }
+      const response = await api.post("/health-profiles", profileData);
 
-      // Chuẩn bị dữ liệu gửi API (đảm bảo format đúng)
-      const apiData = {
-        id: healthProfileData.id,
-        bloodType: healthProfileData.bloodType || "Chưa cập nhật",
-        height: healthProfileData.height || 0,
-        weight: healthProfileData.weight || 0,
-        allergies: healthProfileData.allergies || "Không",
-        chronicDiseases: healthProfileData.chronicDiseases || "Không",
-        visionLeft: healthProfileData.visionLeft || "Bình thường",
-        visionRight: healthProfileData.visionRight || "Bình thường",
-        hearingStatus: healthProfileData.hearingStatus || "Bình thường",
-        dietaryRestrictions: healthProfileData.dietaryRestrictions || "Không",
-        emergencyContactInfo:
-          healthProfileData.emergencyContactInfo || "Không có",
-        immunizationStatus: healthProfileData.immunizationStatus || "Không",
-        lastPhysicalExamDate:
-          healthProfileData.lastPhysicalExamDate ||
-          new Date().toISOString().split("T")[0],
-        specialNeeds: healthProfileData.specialNeeds || "Không",
-      };
-
-      console.log("Sending health profile data to API:", apiData);
-
-      // SỬA: Sử dụng đúng endpoint API
-      const response = await api.post("/health-profiles", apiData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("API response received:", response.data);
-
-      // Cập nhật dữ liệu trong context với response từ server
-      const responseData = response.data;
+      // Cập nhật dữ liệu cache trong context
       setHealthProfiles((prev) => ({
         ...prev,
-        [responseData.id]: { ...responseData },
+        [profileData.id]: response.data,
       }));
 
-      // Trả về dữ liệu từ server (bao gồm BMI và lastUpdated)
       return response.data;
     } catch (error) {
       console.error("Error updating health profile:", error);
-
-      // Log chi tiết lỗi để debug
-      if (error.response) {
-        console.error("Error response data:", error.response.data);
-        console.error("Error response status:", error.response.status);
-        console.error("Error response headers:", error.response.headers);
-      }
-
       throw error;
     }
   };

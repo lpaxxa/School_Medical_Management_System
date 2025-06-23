@@ -1,0 +1,113 @@
+.schedule-consultation-container {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-consultation-container h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+  border-bottom: 2px solid #eaeaea;
+  padding-bottom: 10px;
+}
+
+.required {
+  color: #e74c3c;
+}
+
+.student-search-container {
+  position: relative;
+}
+
+.student-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.student-search-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.student-search-item:hover {
+  background-color: #f5f5f5;
+}
+
+.student-search-item:last-child {
+  border-bottom: none;
+}
+
+.student-id {
+  font-weight: bold;
+  color: #666;
+  width: 15%;
+}
+
+.student-name {
+  flex-grow: 1;
+}
+
+.student-class {
+  color: #888;
+  width: 20%;
+  text-align: right;
+}
+
+.selected-student-info {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #e8f4fd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.consultations-table-container {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.consultation-actions {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.status-badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-scheduled {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-completed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-cancelled {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-no-show {
+  background-color: #fafafa;
+  color: #757575;
+}

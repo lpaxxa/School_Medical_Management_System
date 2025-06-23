@@ -1,124 +1,123 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  getAllStudents,
-  searchStudents,
-  getClassList,
-  getBloodTypes 
-} from '../../../../../services/studentRecordsService';
+import { useStudentRecords } from '../../../../../context/NurseContext/StudentRecordsContext';
 import './StudentList.css';
 import StudentDetail from '../StudentDetail/StudentDetail';
 import AddEditRecord from '../AddEditRecord/AddEditRecord';
+import { Form } from 'react-bootstrap';
 
 const StudentList = () => {
-  const [students, setStudents] = useState([]);
-  const [filteredStudents, setFilteredStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-    // State cho tìm kiếm và lọc
+  // Sử dụng context thay vì local state và API calls
+  const {
+    filteredStudents,
+    loading,
+    error,
+    classes,
+    bloodTypes,
+    searchCriteria,
+    handleSearch,
+    resetFilters,
+    setSelectedStudent
+  } = useStudentRecords();
+  
+  // Local state
+  const [viewMode, setViewMode] = useState('list');
+  const [selectedStudentLocal, setSelectedStudentLocal] = useState(null);
+  
+  // Local state cho form tìm kiếm
   const [keyword, setKeyword] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedBloodType, setSelectedBloodType] = useState('');
   const [selectedHealthIssue, setSelectedHealthIssue] = useState('');
   
-  // State cho danh sách lớp và nhóm máu
-  const [classes, setClasses] = useState([]);
-  const [bloodTypes, setBloodTypes] = useState([]);
-  
-  // State cho xem chi tiết và thêm/sửa hồ sơ
-  const [viewMode, setViewMode] = useState('list');
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  // Đồng bộ state tìm kiếm local với context khi component mount
+  useEffect(() => {
+    setKeyword(searchCriteria.keyword);
+    setSelectedClass(searchCriteria.class);
+    setSelectedBloodType(searchCriteria.bloodType);
+    setSelectedHealthIssue(searchCriteria.healthIssue);
+  }, [searchCriteria]);
 
-  useEffect(() => {
-    // Lấy danh sách học sinh
-    const fetchData = async () => {
-      try {
-        const studentsData = await getAllStudents();
-        setStudents(studentsData);
-        setFilteredStudents(studentsData);
-        
-        // Lấy danh sách lớp và nhóm máu
-        const classesList = await getClassList();
-        const bloodTypesList = await getBloodTypes();
-        
-        setClasses(classesList);
-        setBloodTypes(bloodTypesList);
-        
-        setLoading(false);
-      } catch (error) {
-        setError('Có lỗi xảy ra khi lấy dữ liệu: ' + error.message);
-        setLoading(false);
-      }
-    };
+  // Thêm hàm xử lý cho Form.Control
+  const handleSearchInputChange = (e) => {
+    const { name, value } = e.target;
     
-    fetchData();
-  }, []);
-  useEffect(() => {
-    // Lọc học sinh khi các điều kiện thay đổi
-    const filterStudents = async () => {
-      try {
-        const filteredData = await searchStudents({
-          keyword,
-          class: selectedClass,
-          bloodType: selectedBloodType,
-          healthIssue: selectedHealthIssue
-        });
-        
-        setFilteredStudents(filteredData);
-      } catch (error) {
-        setError('Có lỗi xảy ra khi lọc dữ liệu: ' + error.message);
-      }
-    };
-    
-    filterStudents();
-  }, [keyword, selectedClass, selectedBloodType, selectedHealthIssue]);
+    switch (name) {
+      case 'keyword':
+        setKeyword(value);
+        break;
+      case 'class':
+        setSelectedClass(value);
+        break;
+      case 'bloodType':
+        setSelectedBloodType(value);
+        break;
+      case 'healthIssue':
+        setSelectedHealthIssue(value);
+        break;
+      default:
+        break;
+    }
+  };
 
   // Xử lý khi nhấn nút tìm kiếm
-  const handleSearch = (e) => {
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
-    // Đã xử lý tìm kiếm tự động trong useEffect
+    handleSearch({
+      keyword,
+      class: selectedClass,
+      bloodType: selectedBloodType,
+      healthIssue: selectedHealthIssue
+    });
   };
+  
   // Xử lý khi nhấn nút Reset
-  const handleReset = () => {
+  const handleResetFilters = () => {
     setKeyword('');
     setSelectedClass('');
     setSelectedBloodType('');
     setSelectedHealthIssue('');
+    resetFilters();
   };
 
   // Xử lý khi nhấn vào một học sinh
   const handleViewStudent = (student) => {
-    setSelectedStudent(student);
+    if (!student) {
+      console.error('Không có thông tin học sinh hợp lệ');
+      return;
+    }
+    
+    // Đảm bảo giữ nguyên ID học sinh và healthProfileId
+    const studentWithId = {
+      ...student,
+      // Không tự động thêm hoặc sửa ID, giữ nguyên ID từ API
+    };
+    
+    console.log('Selected student (before modification):', student);
+    console.log('Selected student (after modification):', studentWithId);
+    setSelectedStudentLocal(studentWithId);
+    setSelectedStudent(studentWithId);
     setViewMode('detail');
   };
 
   // Xử lý khi quay lại danh sách
   const handleBackToList = () => {
     setViewMode('list');
+    setSelectedStudentLocal(null);
     setSelectedStudent(null);
   };
 
   // Xử lý khi muốn thêm hồ sơ mới
   const handleAddRecord = () => {
     setViewMode('add');
+    setSelectedStudentLocal(null);
     setSelectedStudent(null);
   };
 
   // Xử lý khi muốn chỉnh sửa hồ sơ
   const handleEditRecord = (student) => {
+    setSelectedStudentLocal(student);
     setSelectedStudent(student);
     setViewMode('edit');
-  };
-
-  // Cập nhật danh sách sau khi thêm/sửa
-  const handleRecordUpdated = async () => {
-    try {
-      const updatedStudents = await getAllStudents();
-      setStudents(updatedStudents);
-      setFilteredStudents(updatedStudents);
-      setViewMode('list');
-    } catch (error) {
-      setError('Có lỗi xảy ra khi cập nhật danh sách: ' + error.message);
-    }
   };
 
   // Hiển thị trạng thái loading
@@ -143,40 +142,104 @@ const StudentList = () => {
   }
 
   // Hiển thị chi tiết học sinh
-  if (viewMode === 'detail' && selectedStudent) {
+  if (viewMode === 'detail' && selectedStudentLocal) {
     return (
       <StudentDetail 
-        student={selectedStudent} 
+        student={selectedStudentLocal} 
         onBack={handleBackToList} 
-        onEdit={() => handleEditRecord(selectedStudent)}
+        onEdit={() => handleEditRecord(selectedStudentLocal)}
       />
     );
   }
 
   // Hiển thị form thêm/sửa hồ sơ
-  if ((viewMode === 'add' || viewMode === 'edit') && (viewMode === 'add' || selectedStudent)) {
+  if ((viewMode === 'add' || viewMode === 'edit') && (viewMode === 'add' || selectedStudentLocal)) {
     return (
       <AddEditRecord
-        student={viewMode === 'edit' ? selectedStudent : null}
+        student={viewMode === 'edit' ? selectedStudentLocal : null}
         onBack={handleBackToList}
-        onSave={handleRecordUpdated}
-        students={students}
         mode={viewMode}
       />
     );
   }
 
+  // Hàm render bảng học sinh
+  const renderStudentTable = () => {
+    return (
+      <div className="student-table-container">
+        {filteredStudents.length === 0 ? (
+          <div className="no-results">
+            <i className="fas fa-search"></i>
+            <p>Không tìm thấy học sinh nào phù hợp với tiêu chí tìm kiếm</p>
+            <button onClick={resetFilters} className="btn-reset">
+              Xóa bộ lọc
+            </button>
+          </div>
+        ) : (
+          <table className="student-table">
+            <thead>
+              <tr>
+                <th>ID Hồ sơ y tế</th>
+                <th>Họ và tên</th>
+                <th>Mã học sinh</th>
+                <th>Lớp</th>
+                <th>Giới tính</th>
+                <th>Ngày sinh</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.map((student) => (
+                <tr key={student.id} onClick={() => handleViewStudent(student)}>
+                  <td>{student.healthProfileId || 'N/A'}</td>
+                  <td className="student-name">
+                    <span>{student.fullName || student.name}</span>
+                  </td>
+                  <td>{student.studentId}</td>
+                  <td>{student.className || student.class}</td>
+                  <td>{student.gender}</td>
+                  <td>{new Date(student.dateOfBirth).toLocaleDateString('vi-VN')}</td>
+                  <td className="action-buttons">
+                    <button
+                      className="btn-view"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewStudent(student);
+                      }}
+                    >
+                      <i className="fas fa-eye"></i>
+                    </button>
+                    <button
+                      className="btn-edit"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditRecord(student);
+                      }}
+                    >
+                      <i className="fas fa-edit"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    );
+  };
+
   // Hiển thị danh sách học sinh
   return (
     <div className="student-records-container">
       <div className="search-filter-container">
-        <form onSubmit={handleSearch} className="search-form">
+        <form onSubmit={handleSearchSubmit} className="search-form">
           <div className="search-bar">
             <input
               type="text"
+              name="keyword"
               placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
               value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
+              onChange={handleSearchInputChange}
               className="search-input"
             />
             <button type="submit" className="search-button">
@@ -187,30 +250,41 @@ const StudentList = () => {
           <div className="filter-options">
             <div className="filter-group">
               <label>Lớp:</label>
-              <select
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-                className="filter-select"
-              >
-                <option value="">Tất cả</option>
-                {classes.map((cls) => (
-                  <option key={cls} value={cls}>
-                    {cls}
-                  </option>
-                ))}
-              </select>
+              <Form.Group controlId="formClass">
+                <Form.Label>Lớp</Form.Label>
+                <Form.Control
+                  as="select"
+                  name="class"
+                  value={selectedClass} // Sử dụng state local thay vì context trực tiếp
+                  onChange={handleSearchInputChange}
+                >
+                  <option value="">Tất cả các lớp</option>
+                  {Array.isArray(classes) && classes.map((classItem, index) => {
+                    // Xử lý an toàn cho classItem
+                    const classKey = typeof classItem === 'string' ? classItem : (classItem?.id || index);
+                    const classValue = typeof classItem === 'string' ? classItem : (classItem?.className || classItem?.name || '');
+                    
+                    return (
+                      <option key={classKey} value={classValue}>
+                        {classValue}
+                      </option>
+                    );
+                  })}
+                </Form.Control>
+              </Form.Group>
             </div>
             
             <div className="filter-group">
               <label>Nhóm máu:</label>
               <select
+                name="bloodType"
                 value={selectedBloodType}
-                onChange={(e) => setSelectedBloodType(e.target.value)}
+                onChange={handleSearchInputChange}
                 className="filter-select"
               >
                 <option value="">Tất cả</option>
-                {bloodTypes.map((type) => (
-                  <option key={type} value={type}>
+                {bloodTypes.map((type, index) => (
+                  <option key={type || index} value={type || ''}>
                     {type}
                   </option>
                 ))}
@@ -221,15 +295,15 @@ const StudentList = () => {
               <label>Vấn đề sức khỏe:</label>
               <input
                 type="text"
+                name="healthIssue"
                 placeholder="Dị ứng, bệnh mãn tính..."
                 value={selectedHealthIssue}
-                onChange={(e) => setSelectedHealthIssue(e.target.value)}
+                onChange={handleSearchInputChange}
                 className="filter-input"
               />
             </div>
-  
             
-            <button type="button" onClick={handleReset} className="reset-button">
+            <button type="button" onClick={handleResetFilters} className="reset-button">
               Đặt lại bộ lọc
             </button>
           </div>
@@ -244,56 +318,7 @@ const StudentList = () => {
         </button>
       </div>
       
-      <div className="student-table-container">
-        <table className="student-table">          <thead>
-            <tr>
-              <th>Mã học sinh</th>
-              <th>Họ và tên</th>
-              <th>Lớp/Khối</th>
-              <th>Ngày sinh</th>
-              <th>Nhóm máu</th>
-              <th>Cập nhật gần nhất</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredStudents.length > 0 ? (
-              filteredStudents.map((student) => (
-                <tr key={student.id} onClick={() => handleViewStudent(student)}>                  <td>{student.id}</td>
-                  <td>{student.name}</td>
-                  <td>{student.class}</td>
-                  <td>{new Date(student.dateOfBirth).toLocaleDateString('vi-VN')}</td>
-                  <td>{student.bloodType}</td>
-                  <td>{new Date(student.lastUpdated).toLocaleDateString('vi-VN')}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewStudent(student);
-                      }} className="action-button view">
-                        <i className="fas fa-eye"></i>
-                      </button>
-                      <button onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditRecord(student);
-                      }} className="action-button edit">
-                        <i className="fas fa-edit"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>                <td colSpan="7" className="no-data">
-                  <i className="fas fa-info-circle"></i>                  {keyword || selectedClass || selectedBloodType || selectedHealthIssue
-                    ? "Không tìm thấy học sinh phù hợp với điều kiện lọc."
-                    : "Chưa có dữ liệu học sinh nào."}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {renderStudentTable()}
     </div>
   );
 };

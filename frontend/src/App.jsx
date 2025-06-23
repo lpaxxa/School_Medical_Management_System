@@ -13,7 +13,6 @@ import "./styles/global.css";
 
 // Import routes from the route files
 import AppRoutes from "./routes";
-import ErrorBoundary from "./components/ErrorBoundary";
 
 function AppRoutesContainer() {
   const { currentUser } = useAuth();
@@ -35,9 +34,7 @@ export default function App() {
       <AuthProvider>
         <StudentDataProvider>
           <div className="app">
-            <ErrorBoundary>
-              <AppRoutesContainer />
-            </ErrorBoundary>
+            <AppRoutesContainer />
           </div>
         </StudentDataProvider>
       </AuthProvider>

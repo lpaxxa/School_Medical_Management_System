@@ -16,16 +16,6 @@ const medicalService = {
   getMedicalIncidents: async (studentId) => {
     return api.get(`/medical-incidents/student/${studentId}`);
   },
-
-  // Thêm API cho vaccination
-  getVaccinationNotifications: async (parentId, studentCode) => {
-    return api.get(`/notifications/getAcceptedNotificationsByParent/${parentId}/${studentCode}`);
-  },
-
-  // Lấy chi tiết vaccination
-  getVaccinationDetail: async (notificationId) => {
-    return api.get(`/vaccinations/notification-recipient/${notificationId}`);
-  }
 };
 
 export default medicalService;

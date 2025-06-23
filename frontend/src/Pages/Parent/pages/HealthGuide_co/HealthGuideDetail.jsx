@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import "./HealthGuideDetail.css";
-import { CATEGORIES } from "./HealthGuide";
-import HealthGuideService from "../../../../services/HealthGuideService";
+import "./HealthGuideDetail.css"; // Tạo file CSS riêng cho trang này
+import { MOCK_HEALTH_ARTICLES, CATEGORIES } from "./HealthGuide";
 
 const HealthGuideDetail = () => {
   const { articleId } = useParams();
@@ -12,23 +11,26 @@ const HealthGuideDetail = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchArticleDetails = async () => {
+    // Simulate API call
+    setIsLoading(true);
+    setError(null);
+
+    setTimeout(() => {
       try {
-        setIsLoading(true);
-        setError(null);
+        const foundArticle = MOCK_HEALTH_ARTICLES.find(
+          (art) => art.id === articleId
+        );
 
-        // Fetch article details
-        const articleData = await HealthGuideService.getArticleById(articleId);
-        const currentArticle = articleData.article;
-        setArticle(currentArticle);
+        if (!foundArticle) {
+          setError("Không tìm thấy bài viết này.");
+        } else {
+          setArticle(foundArticle);
 
-        // Fetch related articles if we have a category
-        if (currentArticle && currentArticle.category) {
-          const related = await HealthGuideService.getRelatedArticles(
-            articleId,
-            currentArticle.category,
-            3
-          );
+          // Find related articles in the same category
+          const related = MOCK_HEALTH_ARTICLES.filter(
+            (art) =>
+              art.id !== articleId && art.category === foundArticle.category
+          ).slice(0, 3);
           setRelatedArticles(related);
         }
       } catch (err) {
@@ -39,9 +41,7 @@ const HealthGuideDetail = () => {
         // Scroll to top when article changes
         window.scrollTo(0, 0);
       }
-    };
-
-    fetchArticleDetails();
+    }, 800);
   }, [articleId]);
 
   // Hiển thị loading spinner
@@ -75,7 +75,9 @@ const HealthGuideDetail = () => {
   // Format date
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("vi-VN", options);
+    return new Date(
+      dateString.split("/").reverse().join("-")
+    ).toLocaleDateString("vi-VN", options);
   };
 
   // Estimated reading time
@@ -90,6 +92,15 @@ const HealthGuideDetail = () => {
 
   return (
     <div className="article-detail-container">
+      {/* Banner thông báo sử dụng dữ liệu giả */}
+      <div className="demo-banner">
+        <i className="fas fa-info-circle"></i>
+        <span>
+          Đang sử dụng dữ liệu mẫu trong quá trình phát triển. Dữ liệu thực tế
+          sẽ được kết nối từ server.
+        </span>
+      </div>
+
       <div className="article-detail-header">
         <Link to="/parent/health-guide" className="btn-back">
           <i className="fas fa-arrow-left"></i> Quay lại danh sách
@@ -97,11 +108,12 @@ const HealthGuideDetail = () => {
         <div className="article-meta">
           <span className="article-category">
             <i className="fas fa-folder"></i>
-            {article.category || "Chưa phân loại"}
+            {CATEGORIES.find((cat) => cat.id === article.category)?.name ||
+              "Chưa phân loại"}
           </span>
           <span className="article-date">
             <i className="far fa-calendar-alt"></i>
-            {formatDate(article.publishDate)}
+            {formatDate(article.date)}
           </span>
           <span className="article-reading-time">
             <i className="far fa-clock"></i>
@@ -161,10 +173,14 @@ const HealthGuideDetail = () => {
                       <div className="related-meta">
                         <span className="related-article-date">
                           <i className="far fa-calendar-alt"></i>
-                          {formatDate(relatedArticle.publishDate)}
+                          {relatedArticle.date}
                         </span>
                         <span className="related-article-category">
-                          {relatedArticle.category}
+                          {
+                            CATEGORIES.find(
+                              (cat) => cat.id === relatedArticle.category
+                            )?.name
+                          }
                         </span>
                       </div>
                     </div>
