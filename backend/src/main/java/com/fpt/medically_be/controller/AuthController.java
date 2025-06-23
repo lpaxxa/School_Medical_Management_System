@@ -60,7 +60,8 @@ public class AuthController {
         }
     }
     //
-//     Example request body for registration(NURSE):{
+//     Example request body for registration(NURSE):
+//     {
 //      "email": "nurse@hospital.com",
 //      "password": "secure123",
 //      "fullName": "Jane Smith",
@@ -134,7 +135,12 @@ public class AuthController {
 
         AccountMember accountMember = authService.processOAuth2Callback(code, state);
         if (accountMember == null) {
-            return ResponseEntity.status(401).body(null);
+            // User tried to login with Google but no account exists
+            logger.warning("OAuth2 login failed: No account found. User must be created by admin first.");
+            return ResponseEntity.status(401)
+                    .header("X-Auth-Error", "NO_ACCOUNT_FOUND")
+                    .header("X-Auth-Message", "Your Google account is not registered. Please contact admin to create your account.")
+                    .body(null);
         }
 
         AuthResponseDTO authResponseDTO = new AuthResponseDTO().toObject(accountMember);
