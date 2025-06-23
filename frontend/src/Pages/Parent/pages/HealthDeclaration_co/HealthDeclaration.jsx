@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import api from "../../../../services/api";
-import "./HealthDeclarationFix.css";
-import "./HealthDeclaration.css";
+import "../shared/student-selector.css"; // Import CSS shared trước
+import "./HealthDeclaration.css"; // CSS chung của component
+import "./HealthDeclarationFix.css"; // CSS override và fix lỗi
 
 // Mock data cho trường học
 const MOCK_SCHOOL = {
@@ -402,7 +403,7 @@ const HealthDeclaration = () => {
       const height = formData.height ? parseFloat(formData.height) : 0;
       const weight = formData.weight ? parseFloat(formData.weight) : 0;
       let calculatedBMI = 0;
-      
+
       if (height > 0 && weight > 0) {
         calculatedBMI = weight / Math.pow(height / 100, 2);
         calculatedBMI = parseFloat(calculatedBMI.toFixed(1));
@@ -448,44 +449,44 @@ const HealthDeclaration = () => {
         bmi: response.bmi || calculatedBMI, // Server sẽ tính BMI chính xác
         lastUpdated: response.lastUpdated || new Date().toISOString(),
         // Merge tất cả dữ liệu từ server response
-        ...response
-    };
+        ...response,
+      };
 
-    console.log("Complete profile data for event:", updatedProfileData);
+      console.log("Complete profile data for event:", updatedProfileData);
 
-    // Kích hoạt sự kiện để thông báo cập nhật hồ sơ y tế
-    import("../../../../services/eventBus").then((module) => {
-      const eventBus = module.default;
-      eventBus.emit(
-        "healthProfileUpdated",
-        updatedProfileData.id,
-        updatedProfileData // Gửi dữ liệu đầy đủ từ server
-      );
-      console.log("Đã gửi sự kiện cập nhật cho ID:", updatedProfileData.id);
-    });
-
-    // Hiển thị thông báo thành công
-    setFormSubmitStatus({
-      submitted: true,
-      success: true,
-      message: "Khai báo sức khỏe đã được gửi thành công và đã cập nhật vào hồ sơ y tế!",
-    });
-
-    // Thêm vào lịch sử với dữ liệu đầy đủ
-    addToHistory(updatedProfileData);
-
-    // Reset form
-    resetForm();
-
-    // Auto-hide success message after 5 seconds
-    setTimeout(() => {
-      setFormSubmitStatus({
-        submitted: false,
-        success: false,
-        message: "",
+      // Kích hoạt sự kiện để thông báo cập nhật hồ sơ y tế
+      import("../../../../services/eventBus").then((module) => {
+        const eventBus = module.default;
+        eventBus.emit(
+          "healthProfileUpdated",
+          updatedProfileData.id,
+          updatedProfileData // Gửi dữ liệu đầy đủ từ server
+        );
+        console.log("Đã gửi sự kiện cập nhật cho ID:", updatedProfileData.id);
       });
-    }, 5000);
 
+      // Hiển thị thông báo thành công
+      setFormSubmitStatus({
+        submitted: true,
+        success: true,
+        message:
+          "Khai báo sức khỏe đã được gửi thành công và đã cập nhật vào hồ sơ y tế!",
+      });
+
+      // Thêm vào lịch sử với dữ liệu đầy đủ
+      addToHistory(updatedProfileData);
+
+      // Reset form
+      resetForm();
+
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setFormSubmitStatus({
+          submitted: false,
+          success: false,
+          message: "",
+        });
+      }, 5000);
     } catch (error) {
       console.error("Error submitting health declaration:", error);
 
@@ -494,10 +495,13 @@ const HealthDeclaration = () => {
       if (error.response) {
         // Lỗi từ server
         console.error("Server error details:", error.response.data);
-        errorMessage = error.response.data?.message || `Lỗi server: ${error.response.status}`;
+        errorMessage =
+          error.response.data?.message ||
+          `Lỗi server: ${error.response.status}`;
       } else if (error.request) {
         // Không nhận được phản hồi từ server
-        errorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.";
+        errorMessage =
+          "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.";
       } else {
         // Lỗi khác
         errorMessage = error.message || "Đã xảy ra lỗi không xác định.";
@@ -682,58 +686,37 @@ const HealthDeclaration = () => {
               ) : (
                 <>
                   {/* Phần chọn học sinh */}
-                  <div className="student-selection">
-                    {students.length > 1 ? (
-                      <div className="student-tabs-container">
-                        <p className="selection-label">Chọn học sinh:</p>
-                        <div className="student-tabs">
-                          {students.map((student) => (
-                            <div
-                              key={student.id}
-                              className={`student-tab ${
-                                formData.id === student.id ? "active" : ""
-                              }`}
-                              onClick={() => handleStudentChange(student.id)}
-                            >
-                              <img
-                                src={
-                                  student.avatar ||
-                                  "https://i.pravatar.cc/150?img=11"
-                                }
-                                alt={student.fullName || student.name}
-                                className="student-avatar"
-                              />
-                              <div className="student-tab-info">
-                                <span className="student-name">
-                                  {student.fullName || student.name}
-                                </span>
-                                <span className="student-class">
-                                  Lớp {student.className || student.class}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
+                  <div className="student-tabs-container">
+                    <p className="selection-label">Chọn học sinh:</p>
+                    <div className="student-tabs">
+                      {students.map((student) => (
+                        <div
+                          key={student.id}
+                          className={`student-tab ${
+                            formData.id === student.id ? "active" : ""
+                          }`}
+                          onClick={() => handleStudentChange(student.id)}
+                        >
+                          <div className="student-avatar">
+                            <img
+                              src={
+                                student.avatar ||
+                                "https://i.pravatar.cc/150?img=11"
+                              }
+                              alt={student.fullName || student.name}
+                            />
+                          </div>
+                          <div className="student-tab-info">
+                            <span className="student-name">
+                              {student.fullName || student.name}
+                            </span>
+                            <span className="student-class">
+                              Lớp {student.className || student.class}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="single-student-info">
-                        <img
-                          src={
-                            students[0].avatar ||
-                            "https://i.pravatar.cc/150?img=11"
-                          }
-                          alt={students[0].fullName || students[0].name}
-                          className="student-avatar"
-                        />
-                        <div className="student-details">
-                          <h4>{students[0].fullName || students[0].name}</h4>
-                          <p>
-                            Lớp {students[0].className || students[0].class} •{" "}
-                            {MOCK_SCHOOL.name}
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </div>
 
                   {/* Hiển thị thông tin chi tiết học sinh đã chọn */}

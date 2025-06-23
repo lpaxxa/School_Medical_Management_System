@@ -47,23 +47,17 @@ const notificationService = {
         throw new Error(`Invalid response value: ${response}`);
       }
       
-      // Gửi JSON response đơn giản (không bọc trong object)
-      const jsonString = `"${response}"`;  // Chuỗi JSON đúng định dạng: "ACCEPTED"
-      console.log("Sending raw JSON string:", jsonString);
-      
-      // Gửi dữ liệu dạng JSON
-      const apiResponse = await axios({
+      // Sử dụng api instance thay vì axios trực tiếp
+      // Và sử dụng đúng endpoints đã định nghĩa
+      const apiResponse = await api({
         method: 'put',
-        url: `http://localhost:8080/api/v1/notifications/respond/${notificationId}/${parentId}`,
-        data: jsonString,  // Gửi chuỗi JSON đã định dạng đúng
+        url: endpoints.notifications.respond(notificationId, parentId),
+        data: `"${response}"`,  // Format chuỗi JSON đúng
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Content-Type': 'application/json'
+          // Không cần thêm Authorization vì interceptor đã xử lý
         },
-        transformRequest: [(data) => { 
-          // Không để axios xử lý data nữa, vì chúng ta đã định dạng sẵn
-          return data; 
-        }]
+        transformRequest: [(data) => data] // Không để axios tự xử lý dữ liệu
       });
       
       console.log("Response from server:", apiResponse);

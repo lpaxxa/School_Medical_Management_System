@@ -1,0 +1,148 @@
+/* ===== PHẦN SỰ CỐ Y TẾ ===== */
+/* Container chính */
+.incidents-panel {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.incidents-panel h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  padding: 16px 20px;
+  margin: 0;
+  border-bottom: 1px solid #eaedf0;
+  display: flex;
+  align-items: center;
+}
+
+.incidents-panel h3 svg {
+  margin-right: 10px;
+  color: #3498db;
+}
+
+/* Danh sách sự cố */
+.incidents-list {
+  padding: 16px;
+}
+
+/* Thẻ sự cố y tế */
+.incident-card {
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* Phần header của thẻ */
+.incident-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eaedf0;
+  padding: 12px 16px;
+}
+
+/* Loại sự cố và mức độ nghiêm trọng */
+.incident-type {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.severity-tag {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 4px;
+  margin-right: 10px;
+  text-transform: uppercase;
+}
+
+.severity-tag.nhẹ {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.severity-tag.trung_bình,
+.severity-tag.vừa {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.severity-tag.nặng {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.incident-type h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Ngày xảy ra sự cố */
+.incident-date {
+  font-size: 13px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.incident-date svg {
+  margin-right: 5px;
+  color: #888;
+}
+
+/* Mô tả sự cố */
+.incident-description {
+  padding: 12px 16px;
+}
+
+.incident-description p {
+  margin: 0;
+  font-size: 14px;
+  color: #4a5568;
+  line-height: 1.6;
+}
+
+.no-description {
+  color: #a0aec0;
+  font-style: italic;
+}
+
+/* Phần footer của thẻ */
+.incident-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #eaedf0;
+}
+
+.incident-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Nút xem chi tiết */
+.view-details {
+  color: #3498db;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.incident-card:hover .view-details {
+  color: #2980b9;
+}

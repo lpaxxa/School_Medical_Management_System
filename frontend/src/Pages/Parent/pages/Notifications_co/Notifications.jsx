@@ -171,10 +171,28 @@ const Notifications = () => {
         parentId
       );
 
-      setCurrentNotification(response.data);
+      // Xử lý và tiêu chuẩn hóa dữ liệu để đảm bảo có tất cả trường cần thiết
+      const notificationData = response.data;
+      const standardizedData = {
+        id: notificationData.id,
+        title: notificationData.title || "Không có tiêu đề",
+        message: notificationData.message || "",
+        isRequest: !!notificationData.isRequest,
+        // Xử lý các trường thời gian để đảm bảo nhất quán
+        createdAt:
+          notificationData.createdAt ||
+          notificationData.receivedDate ||
+          new Date().toISOString(),
+        senderName: notificationData.senderName || "Không xác định",
+        response: notificationData.response || "PENDING",
+        responseAt: notificationData.responseAt || null,
+      };
+
+      setCurrentNotification(standardizedData);
       markAsRead(notificationId);
     } catch (error) {
       console.error("Error fetching notification detail:", error);
+      toast.error("Không thể tải chi tiết thông báo. Vui lòng thử lại sau.");
       setCurrentNotification(null);
     } finally {
       setDetailLoading(false);
@@ -276,24 +294,61 @@ const Notifications = () => {
     })}, ${time}`;
   };
 
+  // Hiển thị trạng thái thông báo
+  const renderNotificationStatus = () => {
+    if (!currentNotification || !currentNotification.isRequest) return null;
+
+    const responseStatus = currentNotification.response || "PENDING";
+
+    return (
+      <div className="notif-status">
+        <div className="notif-status-container">
+          <strong>Trạng thái:</strong>
+          {responseStatus === "ACCEPTED" ? (
+            <span className="notif-status-badge accepted">
+              <i className="fas fa-check-circle"></i> Đã xác nhận
+            </span>
+          ) : responseStatus === "REJECTED" ? (
+            <span className="notif-status-badge rejected">
+              <i className="fas fa-times-circle"></i> Đã từ chối
+            </span>
+          ) : (
+            <span className="notif-status-badge pending">
+              <i className="fas fa-clock"></i> Chưa phản hồi
+            </span>
+          )}
+        </div>
+
+        {currentNotification.responseAt && (
+          <span className="notif-response-time">
+            <i className="far fa-calendar-check"></i>
+            Phản hồi lúc:{" "}
+            {new Date(currentNotification.responseAt).toLocaleString("vi-VN")}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   // Hiển thị nút phản hồi cho thông báo yêu cầu
   const renderResponseButtons = () => {
     if (!currentNotification) return null;
 
+    // Chỉ hiển thị nút phản hồi khi là request và đang ở trạng thái PENDING
     if (
-      currentNotification.isRequest &&
+      currentNotification.isRequest === true &&
       currentNotification.response === "PENDING"
     ) {
       return (
-        <div className="notification-response-buttons">
+        <div className="notif-response-buttons">
           <button
-            className="telegram-button primary"
+            className="notif-btn notif-btn-primary"
             onClick={() => handleResponse("ACCEPT")}
           >
             <i className="fas fa-check"></i> Xác nhận
           </button>
           <button
-            className="telegram-button secondary"
+            className="notif-btn notif-btn-secondary"
             onClick={() => handleResponse("REJECT")}
           >
             <i className="fas fa-times"></i> Từ chối
@@ -309,6 +364,13 @@ const Notifications = () => {
   const handleResponse = async (response) => {
     if (!currentNotification) return;
 
+    // Kiểm tra xem thông báo có phải là request không
+    if (!currentNotification.isRequest) {
+      console.error("This notification is not a request");
+      toast.error("Không thể phản hồi cho thông báo này");
+      return;
+    }
+
     const parentId = getParentId();
     if (!parentId) {
       console.error("Parent ID is undefined");
@@ -317,14 +379,15 @@ const Notifications = () => {
     }
 
     try {
+      // Thêm loading state
+      setDetailLoading(true);
+
       // Đảm bảo apiResponse là đúng giá trị
       const apiResponse = response === "ACCEPT" ? "ACCEPTED" : "REJECTED";
 
       console.log(
         `Sending response ${apiResponse} for notification ${currentNotification.id}`
       );
-      console.log("Parent ID:", parentId);
-      console.log("Notification ID:", currentNotification.id);
 
       // Gọi API phản hồi thông báo
       const result = await notificationService.respondToNotification(
@@ -335,18 +398,11 @@ const Notifications = () => {
 
       console.log("API returned successfully:", result);
 
-      // Cập nhật UI ngay lập tức với thông tin từ server
-      if (result && result.data) {
-        // Sử dụng dữ liệu trả về từ API nếu có
-        setCurrentNotification(result.data);
-      } else {
-        // Fallback nếu API không trả về dữ liệu đầy đủ
-        setCurrentNotification({
-          ...currentNotification,
-          response: apiResponse,
-          responseAt: new Date().toISOString(),
-        });
-      }
+      // Tái fetch cả chi tiết thông báo để đồng bộ dữ liệu
+      await fetchNotificationDetail(currentNotification.id, parentId);
+
+      // Cập nhật lại danh sách thông báo
+      await fetchNotifications();
 
       // Thông báo thành công
       toast.success(
@@ -354,14 +410,13 @@ const Notifications = () => {
           ? "Đã xác nhận thành công"
           : "Đã từ chối thành công"
       );
-
-      // Cập nhật lại danh sách thông báo
-      fetchNotifications();
     } catch (error) {
       console.error("Error responding to notification:", error);
       toast.error(
         `Không thể xử lý phản hồi: ${error.message || "Lỗi không xác định"}`
       );
+    } finally {
+      setDetailLoading(false);
     }
   };
 
@@ -384,30 +439,31 @@ const Notifications = () => {
   };
 
   return (
-    <>
-      <div className="telegram-header">
-        <h1>
+    <div className="notif-container">
+      <div className="notif-header">
+        <h1 className="notif-header-title">
           <i className="fas fa-bell-slash"></i> Thông báo
         </h1>
         {unreadCount > 0 && (
-          <div className="unread-badge-header">{unreadCount}</div>
+          <div className="notif-unread-badge">{unreadCount}</div>
         )}
       </div>
 
-      <div className="telegram-notifications">
-        <div className="telegram-sidebar">
-          <div className="telegram-search">
-            <div className="search-input-container">
-              <i className="fas fa-search search-icon"></i>
+      <div className="notif-layout">
+        <div className="notif-sidebar">
+          <div className="notif-search">
+            <div className="notif-search-container">
+              <i className="fas fa-search notif-search-icon"></i>
               <input
                 type="text"
+                className="notif-search-input"
                 placeholder="Tìm kiếm thông báo..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               {searchQuery && (
                 <button
-                  className="clear-search"
+                  className="notif-search-clear"
                   onClick={() => setSearchQuery("")}
                 >
                   <i className="fas fa-times"></i>
@@ -416,27 +472,29 @@ const Notifications = () => {
             </div>
           </div>
 
-          <div className="telegram-filters">
+          <div className="notif-filters">
             <button
-              className={`filter-btn ${filter === "all" ? "active" : ""}`}
+              className={`notif-filter-btn ${filter === "all" ? "active" : ""}`}
               onClick={() => setFilter("all")}
             >
               <i className="fas fa-list-ul"></i> Tất cả
             </button>
             <button
-              className={`filter-btn ${filter === "unread" ? "active" : ""}`}
+              className={`notif-filter-btn ${
+                filter === "unread" ? "active" : ""
+              }`}
               onClick={() => setFilter("unread")}
             >
               <i className="fas fa-envelope"></i> Chưa đọc
               {unreadCount > 0 && (
-                <span className="filter-badge">{unreadCount}</span>
+                <span className="notif-filter-badge">{unreadCount}</span>
               )}
             </button>
           </div>
 
-          <div className="category-filters">
+          <div className="notif-categories">
             <button
-              className={`category-btn ${
+              className={`notif-category-btn ${
                 activeCategory === "all" ? "active" : ""
               }`}
               onClick={() => setActiveCategory("all")}
@@ -444,7 +502,7 @@ const Notifications = () => {
               <i className="fas fa-th-large"></i> Tất cả
             </button>
             <button
-              className={`category-btn ${
+              className={`notif-category-btn ${
                 activeCategory === "health" ? "active" : ""
               }`}
               onClick={() => setActiveCategory("health")}
@@ -452,7 +510,7 @@ const Notifications = () => {
               <i className="fas fa-heartbeat"></i> Sức khỏe
             </button>
             <button
-              className={`category-btn ${
+              className={`notif-category-btn ${
                 activeCategory === "medicine" ? "active" : ""
               }`}
               onClick={() => setActiveCategory("medicine")}
@@ -460,7 +518,7 @@ const Notifications = () => {
               <i className="fas fa-pills"></i> Thuốc
             </button>
             <button
-              className={`category-btn ${
+              className={`notif-category-btn ${
                 activeCategory === "vaccine" ? "active" : ""
               }`}
               onClick={() => setActiveCategory("vaccine")}
@@ -468,7 +526,7 @@ const Notifications = () => {
               <i className="fas fa-syringe"></i> Vắc-xin
             </button>
             <button
-              className={`category-btn ${
+              className={`notif-category-btn ${
                 activeCategory === "warning" ? "active" : ""
               }`}
               onClick={() => setActiveCategory("warning")}
@@ -477,14 +535,19 @@ const Notifications = () => {
             </button>
           </div>
 
-          <div className="telegram-chat-list">
+          <div className="notif-list">
             {loading ? (
-              <LoadingSpinner text="Đang tải thông báo..." />
+              <div className="notif-loading">
+                <LoadingSpinner text="Đang tải thông báo..." />
+              </div>
             ) : error ? (
-              <div className="error-message">
+              <div className="notif-error">
                 <i className="fas fa-exclamation-circle"></i>
                 <p>{error}</p>
-                <button onClick={fetchNotifications} className="retry-button">
+                <button
+                  onClick={fetchNotifications}
+                  className="notif-retry-btn"
+                >
                   <i className="fas fa-redo"></i> Thử lại
                 </button>
               </div>
@@ -493,35 +556,33 @@ const Notifications = () => {
               filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`telegram-chat-item ${
+                  className={`notif-item ${
                     !notification.isRead ? "unread" : ""
                   } ${
                     selectedNotificationId === notification.id ? "selected" : ""
                   } category-${notification.category}`}
                   onClick={() => selectNotification(notification)}
                 >
-                  <div className="telegram-avatar">
+                  <div className="notif-avatar">
                     {getCategoryIcon(notification.category)}
                   </div>
-                  <div className="telegram-chat-content">
-                    <div className="telegram-chat-header">
-                      <h4 className="telegram-chat-name">
-                        {notification.title}
-                      </h4>
-                      <span className="telegram-chat-time">
+                  <div className="notif-item-content">
+                    <div className="notif-item-header">
+                      <h4 className="notif-item-title">{notification.title}</h4>
+                      <span className="notif-item-time">
                         {formatDate(notification.receivedDate)}
                       </span>
                     </div>
-                    <div className="telegram-chat-message">
+                    <div className="notif-item-preview">
                       {!notification.isRead && (
-                        <span className="telegram-unread-badge"></span>
+                        <span className="notif-item-unread-dot"></span>
                       )}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="empty-state">
+              <div className="notif-empty">
                 <i className="fas fa-bell-slash"></i>
                 <p>
                   {notifications.length === 0
@@ -532,7 +593,7 @@ const Notifications = () => {
                   filter !== "all" ||
                   activeCategory !== "all") && (
                   <button
-                    className="clear-filters-btn"
+                    className="notif-empty-btn"
                     onClick={() => {
                       setFilter("all");
                       setSearchQuery("");
@@ -546,9 +607,9 @@ const Notifications = () => {
             )}
           </div>
 
-          <div className="telegram-actions">
+          <div className="notif-actions">
             <button
-              className="telegram-action-btn"
+              className="notif-action-btn"
               onClick={markAllAsRead}
               title="Đánh dấu tất cả là đã đọc"
               disabled={notifications.every((n) => n.isRead)}
@@ -556,7 +617,7 @@ const Notifications = () => {
               <i className="fas fa-check-double"></i>
             </button>
             <button
-              className="telegram-action-btn"
+              className="notif-action-btn"
               onClick={fetchNotifications}
               title="Làm mới thông báo"
             >
@@ -565,33 +626,35 @@ const Notifications = () => {
           </div>
         </div>
 
-        <div className="telegram-content" ref={notificationContentRef}>
+        <div className="notif-content" ref={notificationContentRef}>
           {detailLoading ? (
-            <div className="loading-container">
+            <div className="notif-loading">
               <LoadingSpinner text="Đang tải chi tiết..." />
             </div>
           ) : currentNotification ? (
-            <div className="telegram-message-view">
-              <div className="telegram-message-header">
-                <div className="telegram-message-info">
-                  <h3>{currentNotification.title}</h3>
-                  <span className="telegram-message-date">
-                    {new Date(currentNotification.createdAt).toLocaleString(
-                      "vi-VN",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )}
+            <div className="notif-message">
+              <div className="notif-message-header">
+                <div className="notif-message-info">
+                  <h3 className="notif-message-title">
+                    {currentNotification?.title}
+                  </h3>
+                  <span className="notif-message-date">
+                    <i className="far fa-calendar-alt"></i>
+                    {new Date(
+                      currentNotification?.createdAt || new Date()
+                    ).toLocaleString("vi-VN", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                 </div>
-                <div className="telegram-message-actions">
+                <div className="notif-message-actions">
                   <button
-                    className="telegram-icon-btn"
+                    className="notif-message-btn"
                     onClick={() => deleteNotification(currentNotification.id)}
                     title="Xóa thông báo"
                   >
@@ -600,51 +663,32 @@ const Notifications = () => {
                 </div>
               </div>
 
-              <div className="telegram-message-body">
-                <div className="telegram-message-bubble">
-                  <div className="sender-info">
+              <div className="notif-message-body">
+                <div className="notif-message-bubble">
+                  <div className="notif-sender">
                     <i className="fas fa-user-md"></i>
-                    <strong>Từ: {currentNotification.senderName}</strong>
+                    <strong>
+                      Từ: {currentNotification?.senderName || "Không xác định"}
+                    </strong>
                   </div>
 
-                  <div className="message-content">
-                    <ReactMarkdown>{currentNotification.message}</ReactMarkdown>
+                  <div className="notif-message-content">
+                    <ReactMarkdown>
+                      {currentNotification?.message || ""}
+                    </ReactMarkdown>
                   </div>
 
-                  {currentNotification.isRequest && (
-                    <div className="request-status">
-                      <strong>Trạng thái: </strong>
-                      <span
-                        className={`status-badge ${currentNotification.response?.toLowerCase()}`}
-                      >
-                        {currentNotification.response === "PENDING"
-                          ? "Chưa phản hồi"
-                          : currentNotification.response === "ACCEPTED"
-                          ? "Đã xác nhận"
-                          : "Đã từ chối"}
-                      </span>
+                  {/* Hiển thị trạng thái thông báo */}
+                  {renderNotificationStatus()}
 
-                      {currentNotification.responseAt && (
-                        <span className="response-time">
-                          (Phản hồi lúc:{" "}
-                          {new Date(
-                            currentNotification.responseAt
-                          ).toLocaleString("vi-VN")}
-                          )
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="telegram-message-footer">
-                    {renderResponseButtons()}
-                  </div>
+                  {/* Hiển thị nút phản hồi */}
+                  {renderResponseButtons()}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="telegram-empty-content">
-              <div className="telegram-empty-content-icon">
+            <div className="notif-content-empty">
+              <div className="notif-content-empty-icon">
                 <i className="far fa-comment-dots"></i>
               </div>
               <h3>Chọn một thông báo để xem chi tiết</h3>
@@ -653,7 +697,7 @@ const Notifications = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

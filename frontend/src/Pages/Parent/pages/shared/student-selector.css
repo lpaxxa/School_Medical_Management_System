@@ -1,0 +1,246 @@
+/* CSS chung cho các thành phần chọn học sinh - được sử dụng trong toàn bộ ứng dụng */
+
+/* Container cơ bản cho việc chọn học sinh */
+.student-selector {
+  background-color: #f8fafc;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.student-selector label {
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+
+/* Select dropdown style - dùng cho StudentProfile */
+.student-selector select {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #1e293b;
+  background-color: #ffffff;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.student-selector select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.student-selector select:hover {
+  border-color: #94a3b8;
+}
+
+/* Tabs học sinh - dùng cho HealthDeclaration */
+.student-tabs-container {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.selection-label {
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.student-tabs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
+}
+
+.student-tabs::-webkit-scrollbar {
+  height: 6px;
+  background-color: #f1f5f9;
+}
+
+.student-tabs::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+}
+
+.student-tab {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: white;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.student-tab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
+}
+
+.student-tab.active {
+  background-color: #ebf5ff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Student avatar styles */
+.student-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.student-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.student-avatar i {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  font-size: 18px;
+}
+
+/* Student info text */
+.student-tab-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.student-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 15px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-class {
+  color: #64748b;
+  font-size: 13px;
+  margin: 4px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Single student display */
+.single-student-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 16px 20px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.student-details {
+  flex: 1;
+}
+
+.student-details h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #1e293b;
+}
+
+.student-details p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Student profile card - dùng cho StudentProfile */
+.student-profile-card {
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.student-header {
+  display: flex;
+  padding: 24px 30px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
+  gap: 24px;
+  align-items: center;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .student-selector {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .student-selector select {
+    width: 100%;
+  }
+  
+  .student-tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .student-tab {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .student-header {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+  
+  .single-student-info {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
+}
