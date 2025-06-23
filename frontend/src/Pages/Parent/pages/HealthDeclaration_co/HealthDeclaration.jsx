@@ -114,7 +114,7 @@ const HealthDeclaration = () => {
     dietaryRestrictions: "",
     emergencyContactInfo: "",
     immunizationStatus: "",
-    lastPhysicalExamDate: new Date().toISOString().split("T")[0],
+    lastPhysicalExamDate: new Date().toISOString().split("T")[0], // Ngày mặc định là hôm nay
     specialNeeds: "",
     symptoms: [],
     notes: "",
@@ -148,36 +148,6 @@ const HealthDeclaration = () => {
       fetchHealthProfile(firstStudent.id);
     }
   }, [students, formData.id, fetchHealthProfile]);
-
-  // Khi có hồ sơ y tế, tự động điền vào form
-  useEffect(() => {
-    const studentId = formData.id;
-    if (studentId && healthProfiles && healthProfiles[studentId]) {
-      const profile = healthProfiles[studentId];
-
-      // Auto-populate form with existing health data
-      setFormData((prev) => ({
-        ...prev,
-        bloodType: profile.bloodType || prev.bloodType,
-        height: profile.height ? String(profile.height) : prev.height,
-        weight: profile.weight ? String(profile.weight) : prev.weight,
-        allergies: profile.allergies || prev.allergies,
-        chronicDiseases: profile.chronicDiseases || prev.chronicDiseases,
-        visionLeft: profile.visionLeft || prev.visionLeft,
-        visionRight: profile.visionRight || prev.visionRight,
-        hearingStatus: profile.hearingStatus || prev.hearingStatus,
-        dietaryRestrictions:
-          profile.dietaryRestrictions || prev.dietaryRestrictions,
-        emergencyContactInfo:
-          profile.emergencyContactInfo || prev.emergencyContactInfo,
-        immunizationStatus:
-          profile.immunizationStatus || prev.immunizationStatus,
-        specialNeeds: profile.specialNeeds || prev.specialNeeds,
-        lastPhysicalExamDate:
-          profile.lastPhysicalExamDate || prev.lastPhysicalExamDate,
-      }));
-    }
-  }, [formData.id, healthProfiles]);
 
   // Kiểm tra kết nối API khi component mount
   useEffect(() => {
@@ -259,13 +229,26 @@ const HealthDeclaration = () => {
     setFormData((prev) => ({
       ...prev,
       id: studentId,
+      // Reset các trường về trạng thái rỗng
+      bloodType: "",
+      height: "",
+      weight: "",
+      allergies: "",
+      chronicDiseases: "",
+      visionLeft: "",
+      visionRight: "",
+      hearingStatus: "",
+      dietaryRestrictions: "",
+      emergencyContactInfo: "",
+      immunizationStatus: "",
+      specialNeeds: "",
+      // Vẫn giữ ngày là ngày hiện tại
+      lastPhysicalExamDate: new Date().toISOString().split("T")[0],
+      symptoms: [],
+      notes: "",
     }));
 
-    setIsLoadingProfile(true);
-
-    fetchHealthProfile(studentId).finally(() => {
-      setIsLoadingProfile(false);
-    });
+    setIsLoadingProfile(false); // Không cần loading profile nữa vì không lấy dữ liệu
   };
 
   // Handle checkbox changes for symptoms
@@ -403,7 +386,6 @@ const HealthDeclaration = () => {
     // Validate form
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
-      console.log("Validation errors:", errors);
       setFormErrors(errors);
       return;
     }
@@ -416,79 +398,143 @@ const HealthDeclaration = () => {
     });
 
     try {
-      // Chuẩn bị dữ liệu để gửi API
+      // Tính BMI trước khi gửi (server sẽ tính lại nhưng chúng ta cũng tính để hiển thị)
+      const height = formData.height ? parseFloat(formData.height) : 0;
+      const weight = formData.weight ? parseFloat(formData.weight) : 0;
+      let calculatedBMI = 0;
+      
+      if (height > 0 && weight > 0) {
+        calculatedBMI = weight / Math.pow(height / 100, 2);
+        calculatedBMI = parseFloat(calculatedBMI.toFixed(1));
+      }
+
+      // QUAN TRỌNG: Đảm bảo dữ liệu đúng định dạng theo API
       const healthProfileData = {
-        id: parseInt(formData.id),
+        id: parseInt(formData.id), // ID học sinh
         bloodType: formData.bloodType || "Chưa cập nhật",
-        height: formData.height ? parseFloat(formData.height) : 0.1,
-        weight: formData.weight ? parseFloat(formData.weight) : 0.1,
-        allergies: formData.allergies || "Không có",
-        chronicDiseases: formData.chronicDiseases || "Không có",
-        visionLeft: formData.visionLeft || "Chưa kiểm tra",
-        visionRight: formData.visionRight || "Chưa kiểm tra",
+        height: formData.height ? parseFloat(formData.height) : 0,
+        weight: formData.weight ? parseFloat(formData.weight) : 0,
+        allergies: formData.allergies || "Không",
+        chronicDiseases: formData.chronicDiseases || "Không",
+        visionLeft: formData.visionLeft || "Bình thường",
+        visionRight: formData.visionRight || "Bình thường",
         hearingStatus: formData.hearingStatus || "Bình thường",
-        dietaryRestrictions: formData.dietaryRestrictions || "Không có",
-        emergencyContactInfo:
-          formData.emergencyContactInfo || "Liên hệ phụ huynh",
-        immunizationStatus: formData.immunizationStatus || "Đã cập nhật",
+        dietaryRestrictions: formData.dietaryRestrictions || "Không",
+        emergencyContactInfo: formData.emergencyContactInfo || "Không có",
+        immunizationStatus: formData.immunizationStatus || "Không",
         lastPhysicalExamDate: formData.lastPhysicalExamDate,
-        specialNeeds: formData.specialNeeds || "Không có",
+        specialNeeds: formData.specialNeeds || "Không",
       };
+
+      // Validate dữ liệu trước khi gửi
+      if (!healthProfileData.id || healthProfileData.id <= 0) {
+        throw new Error("ID học sinh không hợp lệ");
+      }
+
+      if (!healthProfileData.lastPhysicalExamDate) {
+        throw new Error("Ngày khai báo không được để trống");
+      }
 
       console.log("Sending health profile data:", healthProfileData);
 
-      // Sử dụng hàm từ context để cập nhật hồ sơ y tế
+      // Gọi API qua context
       const response = await updateHealthProfile(healthProfileData);
-      console.log("Health profile response:", response);
+      console.log("Health profile API response:", response);
 
-      // Hiển thị thông báo thành công
+      // Chuẩn bị dữ liệu đầy đủ để cập nhật UI (bao gồm cả BMI và lastUpdated từ server)
+      const updatedProfileData = {
+        ...healthProfileData,
+        // Sử dụng dữ liệu từ server response nếu có
+        bmi: response.bmi || calculatedBMI, // Server sẽ tính BMI chính xác
+        lastUpdated: response.lastUpdated || new Date().toISOString(),
+        // Merge tất cả dữ liệu từ server response
+        ...response
+    };
+
+    console.log("Complete profile data for event:", updatedProfileData);
+
+    // Kích hoạt sự kiện để thông báo cập nhật hồ sơ y tế
+    import("../../../../services/eventBus").then((module) => {
+      const eventBus = module.default;
+      eventBus.emit(
+        "healthProfileUpdated",
+        updatedProfileData.id,
+        updatedProfileData // Gửi dữ liệu đầy đủ từ server
+      );
+      console.log("Đã gửi sự kiện cập nhật cho ID:", updatedProfileData.id);
+    });
+
+    // Hiển thị thông báo thành công
+    setFormSubmitStatus({
+      submitted: true,
+      success: true,
+      message: "Khai báo sức khỏe đã được gửi thành công và đã cập nhật vào hồ sơ y tế!",
+    });
+
+    // Thêm vào lịch sử với dữ liệu đầy đủ
+    addToHistory(updatedProfileData);
+
+    // Reset form
+    resetForm();
+
+    // Auto-hide success message after 5 seconds
+    setTimeout(() => {
       setFormSubmitStatus({
-        submitted: true,
-        success: true,
-        message:
-          "Khai báo sức khỏe đã được gửi thành công và đã cập nhật vào hồ sơ y tế của học sinh.",
+        submitted: false,
+        success: false,
+        message: "",
       });
+    }, 5000);
 
-      // Reset form sau khi gửi thành công
-      resetForm();
-
-      // Thêm khai báo mới vào danh sách lịch sử
-      addToHistory(healthProfileData);
-
-      // Cập nhật dữ liệu học sinh trong context
-      refreshStudents();
-
-      // Hiển thị thông báo thành công trong 5 giây
-      setTimeout(() => {
-        setFormSubmitStatus({
-          submitted: false,
-          success: false,
-          message: "",
-        });
-      }, 5000);
-
-      // Tự động chuyển sang tab lịch sử nếu đây là khai báo đầu tiên của học sinh
-      if (getStudentDeclarations(formData.id).length === 1) {
-        setTimeout(() => {
-          setActiveTab("history");
-        }, 2000);
-      }
     } catch (error) {
       console.error("Error submitting health declaration:", error);
 
-      // Hiển thị thông báo lỗi chi tiết
+      let errorMessage = "Không thể gửi khai báo sức khỏe.";
+
+      if (error.response) {
+        // Lỗi từ server
+        console.error("Server error details:", error.response.data);
+        errorMessage = error.response.data?.message || `Lỗi server: ${error.response.status}`;
+      } else if (error.request) {
+        // Không nhận được phản hồi từ server
+        errorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.";
+      } else {
+        // Lỗi khác
+        errorMessage = error.message || "Đã xảy ra lỗi không xác định.";
+      }
+
       setFormSubmitStatus({
         submitted: true,
         success: false,
-        message: `Lỗi: ${
-          error.response?.data?.message ||
-          error.message ||
-          "Không thể kết nối tới server"
-        }`,
+        message: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Thêm hàm mới để tính toán trạng thái sức khỏe
+  const calculateHealthStatus = (data) => {
+    // Kiểm tra các điều kiện để xác định trạng thái sức khỏe
+    if (
+      data.symptoms &&
+      data.symptoms.length > 0 &&
+      !data.symptoms.includes("none")
+    ) {
+      return "Cần chú ý";
+    }
+
+    // Nếu có bệnh mãn tính
+    if (data.chronicDiseases && data.chronicDiseases !== "Không có") {
+      return "Theo dõi";
+    }
+
+    // Nếu có dị ứng đáng chú ý
+    if (data.allergies && data.allergies !== "Không có") {
+      return "Lưu ý dị ứng";
+    }
+
+    return "Bình thường";
   };
 
   // Get the selected student
@@ -860,7 +906,7 @@ const HealthDeclaration = () => {
                     type="number"
                     id="height"
                     name="height"
-                    placeholder="Ví dụ: 160"
+                    placeholder="Nhập chiều cao (cm)"
                     value={formData.height}
                     onChange={handleInputChange}
                     min="0"
@@ -877,7 +923,7 @@ const HealthDeclaration = () => {
                     type="number"
                     id="weight"
                     name="weight"
-                    placeholder="Ví dụ: 50"
+                    placeholder="Nhập cân nặng (kg)"
                     value={formData.weight}
                     onChange={handleInputChange}
                     min="0"

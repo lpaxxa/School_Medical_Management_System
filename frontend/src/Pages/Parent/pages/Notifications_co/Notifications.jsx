@@ -3,7 +3,7 @@ import "./Notifications.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
-import axios from "axios";
+import notificationService from "../../../../services/notificationService";
 import ReactMarkdown from "react-markdown";
 import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
@@ -16,10 +16,10 @@ const Notifications = () => {
   const [selectedNotificationId, setSelectedNotificationId] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
   const [parentId, setParentId] = useState(null);
-  
+
   const notificationContentRef = useRef(null);
   const location = useLocation();
 
@@ -60,12 +60,12 @@ const Notifications = () => {
     if (parentId) {
       console.log("Fetching notifications for parent ID:", parentId);
       fetchNotifications();
-      
+
       // Set interval để tự động làm mới mỗi 2 phút
       const refreshInterval = setInterval(() => {
         fetchNotifications();
       }, 120000); // 120000ms = 2 phút
-      
+
       // Clear interval khi unmount hoặc parentId thay đổi
       return () => clearInterval(refreshInterval);
     }
@@ -86,7 +86,7 @@ const Notifications = () => {
     }
   }, [notifications, currentNotification, parentId]);
 
-  // Fetch notifications từ API
+  // Fetch notifications từ API - cập nhật để sử dụng notificationService
   const fetchNotifications = async () => {
     if (!parentId) {
       console.log("No parent ID available, skipping fetch");
@@ -97,44 +97,44 @@ const Notifications = () => {
     setError(null);
 
     try {
-      const token = localStorage.getItem("authToken");
-      const apiUrl = `http://localhost:8080/api/notifications/getTitlesByParentId/${parentId}`;
-      
-      console.log("Calling API:", apiUrl);
+      console.log("Fetching notifications for parent ID:", parentId);
 
-      const response = await axios.get(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await notificationService.getNotifications(parentId);
       console.log("API response:", response.data);
 
       if (Array.isArray(response.data)) {
         // Thêm trường isRead và category vào mỗi thông báo
-        const notificationsWithReadStatus = response.data.map((notification) => {
-          // Xác định category dựa vào tiêu đề hoặc nội dung
-          let category = 'general';
-          
-          if (notification.title?.toLowerCase().includes('sức khỏe') ||
-              notification.title?.toLowerCase().includes('khám')) {
-            category = 'health';
-          } else if (notification.title?.toLowerCase().includes('thuốc')) {
-            category = 'medicine';
-          } else if (notification.title?.toLowerCase().includes('tiêm') || 
-                     notification.title?.toLowerCase().includes('vắc-xin')) {
-            category = 'vaccine';
-          } else if (notification.title?.toLowerCase().includes('cảnh báo') || 
-                     notification.title?.toLowerCase().includes('dịch bệnh')) {
-            category = 'warning';
+        const notificationsWithReadStatus = response.data.map(
+          (notification) => {
+            // Xác định category dựa vào tiêu đề hoặc nội dung
+            let category = "general";
+
+            if (
+              notification.title?.toLowerCase().includes("sức khỏe") ||
+              notification.title?.toLowerCase().includes("khám")
+            ) {
+              category = "health";
+            } else if (notification.title?.toLowerCase().includes("thuốc")) {
+              category = "medicine";
+            } else if (
+              notification.title?.toLowerCase().includes("tiêm") ||
+              notification.title?.toLowerCase().includes("vắc-xin")
+            ) {
+              category = "vaccine";
+            } else if (
+              notification.title?.toLowerCase().includes("cảnh báo") ||
+              notification.title?.toLowerCase().includes("dịch bệnh")
+            ) {
+              category = "warning";
+            }
+
+            return {
+              ...notification,
+              isRead: false,
+              category,
+            };
           }
-          
-          return {
-            ...notification,
-            isRead: false, 
-            category
-          };
-        });
+        );
 
         console.log("Processed notifications:", notificationsWithReadStatus);
         setNotifications(notificationsWithReadStatus);
@@ -156,21 +156,20 @@ const Notifications = () => {
     }
   };
 
-  // Fetch chi tiết thông báo
-  const fetchNotificationDetail = async (notificationId, parentId = getParentId()) => {
+  // Fetch chi tiết thông báo - cập nhật để sử dụng notificationService
+  const fetchNotificationDetail = async (
+    notificationId,
+    parentId = getParentId()
+  ) => {
     if (!notificationId) return;
 
     setDetailLoading(true);
 
     try {
-      const token = localStorage.getItem("authToken");
-      const apiUrl = `http://localhost:8080/api/notifications/getDetail/${notificationId}/${parentId}`;
-
-      const response = await axios.get(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await notificationService.getNotificationDetail(
+        notificationId,
+        parentId
+      );
 
       setCurrentNotification(response.data);
       markAsRead(notificationId);
@@ -225,22 +224,26 @@ const Notifications = () => {
     if (filter === "unread" && notification.isRead) {
       return false;
     }
-    
+
     // Lọc theo category
-    if (activeCategory !== 'all' && notification.category !== activeCategory) {
+    if (activeCategory !== "all" && notification.category !== activeCategory) {
       return false;
     }
-    
+
     // Lọc theo search query
-    if (searchQuery && searchQuery.trim() !== '') {
-      return notification.title.toLowerCase().includes(searchQuery.toLowerCase());
+    if (searchQuery && searchQuery.trim() !== "") {
+      return notification.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
     }
-    
+
     return true;
   });
 
   // Đếm số thông báo chưa đọc
-  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+  const unreadCount = notifications.filter(
+    (notification) => !notification.isRead
+  ).length;
 
   // Format date theo kiểu telegram
   const formatDate = (dateString) => {
@@ -250,7 +253,8 @@ const Notifications = () => {
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
     const isYesterday =
-      new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString();
+      new Date(now.setDate(now.getDate() - 1)).toDateString() ===
+      date.toDateString();
 
     const time = date.toLocaleTimeString("vi-VN", {
       hour: "2-digit",
@@ -276,13 +280,22 @@ const Notifications = () => {
   const renderResponseButtons = () => {
     if (!currentNotification) return null;
 
-    if (currentNotification.isRequest && currentNotification.response === "PENDING") {
+    if (
+      currentNotification.isRequest &&
+      currentNotification.response === "PENDING"
+    ) {
       return (
         <div className="notification-response-buttons">
-          <button className="telegram-button primary" onClick={() => handleResponse("ACCEPT")}>
+          <button
+            className="telegram-button primary"
+            onClick={() => handleResponse("ACCEPT")}
+          >
             <i className="fas fa-check"></i> Xác nhận
           </button>
-          <button className="telegram-button secondary" onClick={() => handleResponse("REJECT")}>
+          <button
+            className="telegram-button secondary"
+            onClick={() => handleResponse("REJECT")}
+          >
             <i className="fas fa-times"></i> Từ chối
           </button>
         </div>
@@ -297,42 +310,74 @@ const Notifications = () => {
     if (!currentNotification) return;
 
     const parentId = getParentId();
+    if (!parentId) {
+      console.error("Parent ID is undefined");
+      toast.error("Không thể xác định ID phụ huynh");
+      return;
+    }
 
     try {
-      const token = localStorage.getItem("authToken");
+      // Đảm bảo apiResponse là đúng giá trị
+      const apiResponse = response === "ACCEPT" ? "ACCEPTED" : "REJECTED";
 
-      await axios.post(
-        `http://localhost:8080/api/notifications/respond/${currentNotification.id}/${parentId}`,
-        { response },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      console.log(
+        `Sending response ${apiResponse} for notification ${currentNotification.id}`
+      );
+      console.log("Parent ID:", parentId);
+      console.log("Notification ID:", currentNotification.id);
+
+      // Gọi API phản hồi thông báo
+      const result = await notificationService.respondToNotification(
+        currentNotification.id,
+        parentId,
+        apiResponse
       );
 
-      fetchNotificationDetail(currentNotification.id);
+      console.log("API returned successfully:", result);
+
+      // Cập nhật UI ngay lập tức với thông tin từ server
+      if (result && result.data) {
+        // Sử dụng dữ liệu trả về từ API nếu có
+        setCurrentNotification(result.data);
+      } else {
+        // Fallback nếu API không trả về dữ liệu đầy đủ
+        setCurrentNotification({
+          ...currentNotification,
+          response: apiResponse,
+          responseAt: new Date().toISOString(),
+        });
+      }
+
+      // Thông báo thành công
       toast.success(
-        response === "ACCEPT" ? "Đã xác nhận thành công" : "Đã từ chối thành công"
+        response === "ACCEPT"
+          ? "Đã xác nhận thành công"
+          : "Đã từ chối thành công"
       );
+
+      // Cập nhật lại danh sách thông báo
+      fetchNotifications();
     } catch (error) {
       console.error("Error responding to notification:", error);
-      toast.error("Không thể xử lý phản hồi. Vui lòng thử lại sau.");
+      toast.error(
+        `Không thể xử lý phản hồi: ${error.message || "Lỗi không xác định"}`
+      );
     }
   };
 
   // Hiển thị icon cho danh mục thông báo
   const getCategoryIcon = (category) => {
     switch (category) {
-      case 'health':
+      case "health":
         return <i className="fas fa-heartbeat category-icon health"></i>;
-      case 'medicine':
+      case "medicine":
         return <i className="fas fa-pills category-icon medicine"></i>;
-      case 'vaccine':
+      case "vaccine":
         return <i className="fas fa-syringe category-icon vaccine"></i>;
-      case 'warning':
-        return <i className="fas fa-exclamation-triangle category-icon warning"></i>;
+      case "warning":
+        return (
+          <i className="fas fa-exclamation-triangle category-icon warning"></i>
+        );
       default:
         return <i className="fas fa-bell category-icon general"></i>;
     }
@@ -341,7 +386,9 @@ const Notifications = () => {
   return (
     <>
       <div className="telegram-header">
-        <h1><i className="fas fa-bell-slash"></i> Thông báo</h1>
+        <h1>
+          <i className="fas fa-bell-slash"></i> Thông báo
+        </h1>
         {unreadCount > 0 && (
           <div className="unread-badge-header">{unreadCount}</div>
         )}
@@ -352,14 +399,17 @@ const Notifications = () => {
           <div className="telegram-search">
             <div className="search-input-container">
               <i className="fas fa-search search-icon"></i>
-              <input 
-                type="text" 
-                placeholder="Tìm kiếm thông báo..." 
+              <input
+                type="text"
+                placeholder="Tìm kiếm thông báo..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               {searchQuery && (
-                <button className="clear-search" onClick={() => setSearchQuery('')}>
+                <button
+                  className="clear-search"
+                  onClick={() => setSearchQuery("")}
+                >
                   <i className="fas fa-times"></i>
                 </button>
               )}
@@ -383,34 +433,44 @@ const Notifications = () => {
               )}
             </button>
           </div>
-          
+
           <div className="category-filters">
             <button
-              className={`category-btn ${activeCategory === "all" ? "active" : ""}`}
+              className={`category-btn ${
+                activeCategory === "all" ? "active" : ""
+              }`}
               onClick={() => setActiveCategory("all")}
             >
               <i className="fas fa-th-large"></i> Tất cả
             </button>
             <button
-              className={`category-btn ${activeCategory === "health" ? "active" : ""}`}
+              className={`category-btn ${
+                activeCategory === "health" ? "active" : ""
+              }`}
               onClick={() => setActiveCategory("health")}
             >
               <i className="fas fa-heartbeat"></i> Sức khỏe
             </button>
             <button
-              className={`category-btn ${activeCategory === "medicine" ? "active" : ""}`}
+              className={`category-btn ${
+                activeCategory === "medicine" ? "active" : ""
+              }`}
               onClick={() => setActiveCategory("medicine")}
             >
               <i className="fas fa-pills"></i> Thuốc
             </button>
             <button
-              className={`category-btn ${activeCategory === "vaccine" ? "active" : ""}`}
+              className={`category-btn ${
+                activeCategory === "vaccine" ? "active" : ""
+              }`}
               onClick={() => setActiveCategory("vaccine")}
             >
               <i className="fas fa-syringe"></i> Vắc-xin
             </button>
             <button
-              className={`category-btn ${activeCategory === "warning" ? "active" : ""}`}
+              className={`category-btn ${
+                activeCategory === "warning" ? "active" : ""
+              }`}
               onClick={() => setActiveCategory("warning")}
             >
               <i className="fas fa-exclamation-triangle"></i> Cảnh báo
@@ -445,7 +505,9 @@ const Notifications = () => {
                   </div>
                   <div className="telegram-chat-content">
                     <div className="telegram-chat-header">
-                      <h4 className="telegram-chat-name">{notification.title}</h4>
+                      <h4 className="telegram-chat-name">
+                        {notification.title}
+                      </h4>
                       <span className="telegram-chat-time">
                         {formatDate(notification.receivedDate)}
                       </span>
@@ -462,17 +524,21 @@ const Notifications = () => {
               <div className="empty-state">
                 <i className="fas fa-bell-slash"></i>
                 <p>
-                  {notifications.length === 0 
-                    ? "Không có thông báo nào" 
-                    : "Không có thông báo nào phù hợp với bộ lọc"
-                  }
+                  {notifications.length === 0
+                    ? "Không có thông báo nào"
+                    : "Không có thông báo nào phù hợp với bộ lọc"}
                 </p>
-                {(searchQuery || filter !== "all" || activeCategory !== 'all') && (
-                  <button className="clear-filters-btn" onClick={() => {
-                    setFilter("all");
-                    setSearchQuery("");
-                    setActiveCategory("all");
-                  }}>
+                {(searchQuery ||
+                  filter !== "all" ||
+                  activeCategory !== "all") && (
+                  <button
+                    className="clear-filters-btn"
+                    onClick={() => {
+                      setFilter("all");
+                      setSearchQuery("");
+                      setActiveCategory("all");
+                    }}
+                  >
                     <i className="fas fa-times-circle"></i> Xóa bộ lọc
                   </button>
                 )}
@@ -485,7 +551,7 @@ const Notifications = () => {
               className="telegram-action-btn"
               onClick={markAllAsRead}
               title="Đánh dấu tất cả là đã đọc"
-              disabled={notifications.every(n => n.isRead)}
+              disabled={notifications.every((n) => n.isRead)}
             >
               <i className="fas fa-check-double"></i>
             </button>
@@ -553,7 +619,7 @@ const Notifications = () => {
                       >
                         {currentNotification.response === "PENDING"
                           ? "Chưa phản hồi"
-                          : currentNotification.response === "ACCEPT"
+                          : currentNotification.response === "ACCEPTED"
                           ? "Đã xác nhận"
                           : "Đã từ chối"}
                       </span>

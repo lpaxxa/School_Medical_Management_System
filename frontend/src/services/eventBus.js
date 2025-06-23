@@ -1,21 +1,26 @@
 const eventBus = {
-  events: {},
+  listeners: {},
   
-  subscribe: function(event, callback) {
-    if (!this.events[event]) {
-      this.events[event] = [];
+  subscribe(event, callback) {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
     }
-    this.events[event].push(callback);
+    this.listeners[event].push(callback);
+    return () => this.unsubscribe(event, callback);
   },
   
-  publish: function(event, data) {
-    if (!this.events[event]) return;
-    this.events[event].forEach(callback => callback(data));
+  unsubscribe(event, callback) {
+    if (this.listeners[event]) {
+      this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+    }
   },
   
-  unsubscribe: function(event, callback) {
-    if (!this.events[event]) return;
-    this.events[event] = this.events[event].filter(cb => cb !== callback);
+  emit(event, ...args) {
+    if (this.listeners[event]) {
+      this.listeners[event].forEach(callback => {
+        callback(...args);
+      });
+    }
   }
 };
 

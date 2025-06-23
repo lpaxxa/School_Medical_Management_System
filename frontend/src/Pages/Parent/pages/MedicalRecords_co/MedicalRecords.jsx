@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "./MedicalRecords.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
@@ -66,38 +66,31 @@ class ErrorBoundary extends React.Component {
 }
 
 const MedicalRecord = () => {
-  // Sử dụng useParams để lấy healthProfileId từ URL
+  // --- TẤT CẢ HOOKS PHẢI ĐƯỢC KHAI BÁO Ở ĐÂY ---
   const { healthProfileId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
-
-  // State cho dữ liệu tổng quát (General Health)
   const [isLoadingGeneral, setIsLoadingGeneral] = useState(true);
   const [healthProfileData, setHealthProfileData] = useState(null);
   const [healthProfileError, setHealthProfileError] = useState(null);
-
-  // State cho lịch sử kiểm tra (Checkups)
   const [isLoadingCheckups, setIsLoadingCheckups] = useState(false);
   const [checkupsData, setCheckupsData] = useState([]);
   const [checkupsError, setCheckupsError] = useState(null);
-
-  // Thêm state cho sự cố y tế
   const [medicalIncidents, setMedicalIncidents] = useState([]);
   const [isLoadingIncidents, setIsLoadingIncidents] = useState(false);
   const [incidentsError, setIncidentsError] = useState(null);
-
-  // DI CHUYỂN 2 HOOK NÀY LÊN ĐÂY
   const [modalImage, setModalImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [hasInitialized, setHasInitialized] = useState(false);
-
-  // Lấy thông tin học sinh từ context
-  const { students, isLoading: studentsLoading } = useStudentData();
-
-  // State lưu trữ học sinh được chọn và ID của học sinh
+  const { students } = useStudentData();
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
+
+  // --- THÊM HOOK CHO MODAL CHECKUP Ở ĐÂY ---
+  const [isCheckupModalOpen, setIsCheckupModalOpen] = useState(false);
+  const [selectedCheckup, setSelectedCheckup] = useState(null);
+  const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
+  const [selectedIncident, setSelectedIncident] = useState(null);
 
   // Thêm các hàm xử lý modal ảnh
   const openImageModal = (imageUrl) => {
@@ -112,64 +105,42 @@ const MedicalRecord = () => {
 
   // Khởi tạo selectedStudent dựa vào healthProfileId từ URL
   useEffect(() => {
-    if (studentsLoading) return;
-
-    if (!hasInitialized && students && students.length > 0) {
-      console.log("Initializing selected student");
-
-      let foundStudent = null;
-
-      if (healthProfileId) {
-        // Tìm học sinh theo healthProfileId từ URL
-        foundStudent = students.find((student) => {
-          if (!student) return false;
-
-          // So sánh cả string và number
-          const profileId = student.healthProfileId;
-          return (
-            profileId && profileId.toString() === healthProfileId.toString()
-          );
-        });
-
-        console.log("Found student by healthProfileId:", foundStudent);
-      }
-
-      if (!foundStudent) {
-        foundStudent = students[0];
-        console.log("Using first student as fallback:", foundStudent);
-      }
-
-      if (foundStudent) {
-        setSelectedStudent(foundStudent);
-        setSelectedStudentId(foundStudent.id);
-      }
-
+    if (!students) return; // Đợi context sẵn sàng
+    if (students.length === 0) {
+      setSelectedStudent(null);
+      setSelectedStudentId(null);
       setHasInitialized(true);
+      return;
     }
-  }, [students, healthProfileId, studentsLoading, hasInitialized]);
+
+    let foundStudent = students.find(
+      (s) => s && s.healthProfileId?.toString() === healthProfileId?.toString()
+    );
+
+    setSelectedStudent(foundStudent || null);
+    setSelectedStudentId(foundStudent ? foundStudent.id : null);
+    setHasInitialized(true);
+  }, [students, healthProfileId]);
 
   // Handler cho sự kiện thay đổi học sinh
   const handleStudentChange = (e) => {
     try {
       const selectedId = parseInt(e.target.value);
-      console.log("Selected student ID from dropdown:", selectedId);
-
       const student = students.find((s) => s && s.id === selectedId);
 
-      if (!student) {
-        console.error("Could not find student with ID:", selectedId);
-        return;
-      }
+      if (!student) return;
 
-      console.log("Setting selected student to:", student);
       setSelectedStudent(student);
       setSelectedStudentId(student.id);
 
-      // Cập nhật URL nếu có healthProfileId
+      // Chỉ navigate nếu có healthProfileId
       if (student.healthProfileId) {
         navigate(`/parent/health-profile/${student.healthProfileId}`, {
           replace: true,
         });
+      } else {
+        // Nếu không có healthProfileId, có thể chỉ set state mà không navigate
+        // hoặc navigate về một route mặc định nếu muốn
       }
     } catch (err) {
       console.error("Error in handleStudentChange:", err);
@@ -178,31 +149,18 @@ const MedicalRecord = () => {
 
   // Fetch dữ liệu sức khỏe tổng quát từ API khi selectedStudentId thay đổi
   useEffect(() => {
-    if (!selectedStudentId) return;
+    if (!selectedStudentId || !hasInitialized) return;
 
     const fetchHealthProfileData = async () => {
       setIsLoadingGeneral(true);
       setHealthProfileError(null);
 
       try {
-        console.log(
-          `Fetching health profile data for student ID: ${selectedStudentId}`
-        );
-
-        // Sử dụng API endpoint mới cho health profile
         const response = await api.get(
-          `health-profiles/student/${selectedStudentId}`
+          `/health-profiles/student/${selectedStudentId}`
         );
-        console.log("Health profile response:", response);
-
-        if (response.data) {
-          setHealthProfileData(response.data);
-        } else {
-          console.log("No health profile data available");
-          setHealthProfileData(null);
-        }
+        setHealthProfileData(response.data || null);
       } catch (err) {
-        console.error("Error fetching health profile data:", err);
         setHealthProfileError(
           "Không thể tải dữ liệu sức khỏe tổng quát. Vui lòng thử lại sau."
         );
@@ -213,7 +171,7 @@ const MedicalRecord = () => {
     };
 
     fetchHealthProfileData();
-  }, [selectedStudentId]);
+  }, [selectedStudentId, hasInitialized]);
 
   // Fetch dữ liệu kiểm tra định kỳ khi chuyển tab
   useEffect(() => {
@@ -323,21 +281,20 @@ const MedicalRecord = () => {
 
   // Format date with time for display
   const formatDateTime = (dateTimeString) => {
-    if (!dateTimeString) return "Không có dữ liệu";
-    try {
-      const dateTime = new Date(dateTimeString);
-      if (isNaN(dateTime.getTime())) return "Không có dữ liệu";
+    if (!dateTimeString) return "Chưa cập nhật";
 
-      return new Intl.DateTimeFormat("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
+    try {
+      const options = {
         year: "numeric",
+        month: "long", // Cập nhật để hiển thị tháng đầy đủ
+        day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      }).format(dateTime);
-    } catch (err) {
-      console.error("Error formatting date time:", err);
-      return "Không có dữ liệu";
+      };
+      return new Date(dateTimeString).toLocaleDateString("vi-VN", options);
+    } catch (error) {
+      console.error("Error formatting datetime:", error);
+      return "Định dạng không hợp lệ";
     }
   };
 
@@ -352,7 +309,8 @@ const MedicalRecord = () => {
     }
   };
 
-  // Thêm function fetchHealthProfile để lấy thông tin mới nhất
+  // Cập nhật hàm fetchHealthProfile để lấy dữ liệu mới nhất từ API
+  // Cập nhật hàm fetchHealthProfile
   const fetchHealthProfile = async () => {
     if (!selectedStudentId) return;
 
@@ -362,49 +320,132 @@ const MedicalRecord = () => {
     try {
       console.log(`Fetching health profile for student: ${selectedStudentId}`);
 
-      // Thêm timestamp để tránh cache
-      const timestamp = new Date().getTime();
+      // SỬA: Sử dụng đúng endpoint API để lấy hồ sơ y tế của học sinh
       const response = await api.get(
-        `health-profiles/student/${selectedStudentId}?_t=${timestamp}`
+        `/health-profiles/student/${selectedStudentId}`,
+        {
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        }
       );
 
       if (response.data) {
         console.log("Health profile data received:", response.data);
         setHealthProfileData(response.data);
+
+        // Lưu dữ liệu vào localStorage để dự phòng
+        localStorage.setItem(
+          `healthProfile_${selectedStudentId}`,
+          JSON.stringify(response.data)
+        );
       } else {
-        setHealthProfileData(null);
-        console.log("No health profile data available");
+        console.log("No health profile data available from API");
+        // Thử lấy từ localStorage nếu không có data từ API
+        const cachedData = localStorage.getItem(
+          `healthProfile_${selectedStudentId}`
+        );
+        if (cachedData) {
+          setHealthProfileData(JSON.parse(cachedData));
+        } else {
+          setHealthProfileData(null);
+        }
       }
     } catch (err) {
       console.error("Error fetching health profile:", err);
-      setHealthProfileError(
-        "Không thể tải thông tin sức khỏe tổng quát. Vui lòng thử lại sau."
-      );
-      setHealthProfileData(null);
+
+      // Nếu lỗi 404 (không tìm thấy hồ sơ), không hiển thị lỗi
+      if (err.response?.status === 404) {
+        console.log("No health profile found for student");
+        setHealthProfileData(null);
+        return;
+      }
+
+      // Thử lấy từ localStorage nếu API lỗi
+      try {
+        const cachedData = localStorage.getItem(
+          `healthProfile_${selectedStudentId}`
+        );
+        if (cachedData) {
+          setHealthProfileData(JSON.parse(cachedData));
+        } else {
+          setHealthProfileError(
+            "Không thể tải thông tin sức khỏe. Vui lòng thử lại sau."
+          );
+        }
+      } catch (storageErr) {
+        console.error("Error accessing localStorage:", storageErr);
+        setHealthProfileError(
+          "Không thể tải thông tin sức khỏe. Vui lòng thử lại sau."
+        );
+      }
     } finally {
       setIsLoadingGeneral(false);
     }
   };
-
   // Thêm useEffect để gọi API mỗi khi selectedStudentId thay đổi
   useEffect(() => {
-    if (selectedStudentId) {
+    if (selectedStudentId && hasInitialized) {
       fetchHealthProfile();
     }
-  }, [selectedStudentId]);
+  }, [selectedStudentId, hasInitialized]);
 
   // Thêm useEffect để đăng ký lắng nghe sự kiện cập nhật hồ sơ sức khỏe
   useEffect(() => {
-    const handleHealthProfileUpdate = (studentId) => {
+    const handleHealthProfileUpdate = (studentId, profileData) => {
       console.log(
         `Received healthProfileUpdated event for student ID: ${studentId}`
       );
+      console.log("Profile data received:", profileData);
+
       if (
         selectedStudentId &&
         parseInt(selectedStudentId) === parseInt(studentId)
       ) {
         console.log("Refreshing health profile due to update event");
-        fetchHealthProfile();
+
+        // Cập nhật trực tiếp với dữ liệu từ sự kiện
+        if (profileData) {
+          console.log("Updating with provided data:", profileData);
+
+          // Đảm bảo dữ liệu có đầy đủ các trường cần thiết
+          const completeProfileData = {
+            // Dữ liệu mặc định
+            height: 0,
+            weight: 0,
+            bmi: 0,
+            bloodType: "Chưa cập nhật",
+            allergies: "Không",
+            chronicDiseases: "Không",
+            visionLeft: "Chưa kiểm tra",
+            visionRight: "Chưa kiểm tra",
+            hearingStatus: "Bình thường",
+            dietaryRestrictions: "Không",
+            emergencyContactInfo: "Không có",
+            immunizationStatus: "Không",
+            specialNeeds: "Không",
+            lastPhysicalExamDate: new Date().toISOString().split("T")[0],
+            lastUpdated: new Date().toISOString(),
+            // Ghi đè với dữ liệu thực tế
+            ...profileData,
+          };
+
+          setHealthProfileData(completeProfileData);
+
+          // Lưu vào localStorage
+          try {
+            localStorage.setItem(
+              `healthProfile_${studentId}`,
+              JSON.stringify(completeProfileData)
+            );
+          } catch (storageErr) {
+            console.warn("Could not save to localStorage:", storageErr);
+          }
+        } else {
+          // Nếu không có dữ liệu kèm theo, gọi API để lấy dữ liệu mới nhất
+          fetchHealthProfile();
+        }
       }
     };
 
@@ -418,7 +459,7 @@ const MedicalRecord = () => {
   }, [selectedStudentId]);
 
   // Hiển thị trạng thái loading
-  if (studentsLoading || (isLoadingGeneral && !hasInitialized)) {
+  if (isLoadingGeneral) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
@@ -427,8 +468,18 @@ const MedicalRecord = () => {
     );
   }
 
-  // Hiển thị thông báo nếu không có học sinh
-  if (!selectedStudent && hasInitialized && !studentsLoading) {
+  // Hiển thị trạng thái loading khi context chưa sẵn sàng hoặc chưa khởi tạo xong
+  if (!students || !hasInitialized) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Đang tải danh sách học sinh...</p>
+      </div>
+    );
+  }
+
+  // Hiển thị thông báo nếu không có học sinh hoặc không tìm thấy học sinh phù hợp
+  if ((!selectedStudent || !selectedStudentId) && hasInitialized) {
     return (
       <div className="error-container">
         <h2>Không tìm thấy thông tin học sinh</h2>
@@ -441,6 +492,41 @@ const MedicalRecord = () => {
       </div>
     );
   }
+
+  // Thêm vào đây
+  const displayData = healthProfileData
+    ? {
+        ...healthProfileData,
+        dietaryRestrictions:
+          healthProfileData.dietaryRestrictions || "Không có hạn chế đặc biệt",
+        immunizationStatus:
+          healthProfileData.immunizationStatus || "Chưa có thông tin",
+        emergencyContactInfo:
+          healthProfileData.emergencyContactInfo || "Chưa cập nhật",
+      }
+    : null;
+
+  // State cho modal hiển thị chi tiết checkup
+  const openCheckupModal = (checkup) => {
+    setSelectedCheckup(checkup);
+    setIsCheckupModalOpen(true);
+  };
+
+  const closeCheckupModal = () => {
+    setIsCheckupModalOpen(false);
+    setSelectedCheckup(null);
+  };
+
+  // State cho modal hiển thị chi tiết sự cố y tế
+  const openIncidentModal = (incident) => {
+    setSelectedIncident(incident);
+    setIsIncidentModalOpen(true);
+  };
+
+  const closeIncidentModal = () => {
+    setIsIncidentModalOpen(false);
+    setSelectedIncident(null);
+  };
 
   // Render UI chính
   return (
@@ -549,10 +635,20 @@ const MedicalRecord = () => {
                 <div className="loading-spinner small"></div>
                 <p>Đang tải dữ liệu sức khỏe...</p>
               </div>
+            ) : !healthProfileData ? (
+              <div className="no-data-message">
+                <i className="fas fa-info-circle"></i>
+                <h4>Chưa có thông tin sức khỏe</h4>
+                <p>Học sinh chưa có thông tin sức khỏe trong hệ thống.</p>
+                <p>
+                  Vui lòng thực hiện khai báo sức khỏe để cập nhật thông tin.
+                </p>
+              </div>
             ) : (
+              // Nội dung hiển thị khi có dữ liệu
               <>
                 {/* Hiển thị thời gian cập nhật gần nhất */}
-                {healthProfileData.lastUpdated && (
+                {healthProfileData && healthProfileData.lastUpdated && (
                   <div className="last-update-info">
                     <p>
                       Cập nhật lần cuối:{" "}
@@ -560,12 +656,14 @@ const MedicalRecord = () => {
                         {formatDateTime(healthProfileData.lastUpdated)}
                       </strong>
                     </p>
-                    <p>
-                      Ngày khám gần nhất:{" "}
-                      <strong>
-                        {formatDate(healthProfileData.lastPhysicalExamDate)}
-                      </strong>
-                    </p>
+                    {healthProfileData.lastPhysicalExamDate && (
+                      <p>
+                        Ngày khám gần nhất:{" "}
+                        <strong>
+                          {formatDate(healthProfileData.lastPhysicalExamDate)}
+                        </strong>
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -577,7 +675,7 @@ const MedicalRecord = () => {
                     </div>
                     <div className="stat-content">
                       <h4>Chiều cao</h4>
-                      <p>{healthProfileData.height} cm</p>
+                      <p>{healthProfileData?.height || 0} cm</p>
                     </div>
                   </div>
 
@@ -587,7 +685,7 @@ const MedicalRecord = () => {
                     </div>
                     <div className="stat-content">
                       <h4>Cân nặng</h4>
-                      <p>{healthProfileData.weight} kg</p>
+                      <p>{healthProfileData?.weight || 0} kg</p>
                     </div>
                   </div>
 
@@ -597,8 +695,12 @@ const MedicalRecord = () => {
                     </div>
                     <div className="stat-content">
                       <h4>Chỉ số BMI</h4>
-                      <p>{Number(healthProfileData.bmi).toFixed(1)}</p>
-                      <small>{getBMIStatus(healthProfileData.bmi)}</small>
+                      <p>
+                        {healthProfileData?.bmi
+                          ? Number(healthProfileData.bmi).toFixed(1)
+                          : "N/A"}
+                      </p>
+                      <small>{getBMIStatus(healthProfileData?.bmi)}</small>
                     </div>
                   </div>
 
@@ -608,7 +710,7 @@ const MedicalRecord = () => {
                     </div>
                     <div className="stat-content">
                       <h4>Nhóm máu</h4>
-                      <p>{healthProfileData.bloodType}</p>
+                      <p>{healthProfileData?.bloodType || "Chưa cập nhật"}</p>
                     </div>
                   </div>
                 </div>
@@ -622,11 +724,11 @@ const MedicalRecord = () => {
                     <div className="detail-content">
                       <p>
                         Mắt trái:{" "}
-                        {healthProfileData.visionLeft || "Chưa kiểm tra"}
+                        {healthProfileData?.visionLeft || "Chưa kiểm tra"}
                       </p>
                       <p>
                         Mắt phải:{" "}
-                        {healthProfileData.visionRight || "Chưa kiểm tra"}
+                        {healthProfileData?.visionRight || "Chưa kiểm tra"}
                       </p>
                     </div>
                   </div>
@@ -635,21 +737,21 @@ const MedicalRecord = () => {
                     <h4>
                       <FaStethoscope /> Thính lực
                     </h4>
-                    <p>{healthProfileData.hearingStatus || "Chưa kiểm tra"}</p>
+                    <p>{healthProfileData?.hearingStatus || "Chưa kiểm tra"}</p>
                   </div>
 
                   <div className="medical-detail">
                     <h4>
                       <FaAllergies /> Dị ứng
                     </h4>
-                    <p>{healthProfileData.allergies || "Không có"}</p>
+                    <p>{healthProfileData?.allergies || "Không có"}</p>
                   </div>
 
                   <div className="medical-detail">
                     <h4>
                       <FaNotesMedical /> Bệnh mãn tính
                     </h4>
-                    <p>{healthProfileData.chronicDiseases || "Không có"}</p>
+                    <p>{healthProfileData?.chronicDiseases || "Không có"}</p>
                   </div>
 
                   <div className="medical-detail">
@@ -657,7 +759,7 @@ const MedicalRecord = () => {
                       <FaUtensils /> Chế độ ăn uống đặc biệt
                     </h4>
                     <p>
-                      {healthProfileData.dietaryRestrictions ||
+                      {healthProfileData?.dietaryRestrictions ||
                         "Không có hạn chế đặc biệt"}
                     </p>
                   </div>
@@ -667,7 +769,7 @@ const MedicalRecord = () => {
                       <FaShieldVirus /> Tình trạng tiêm chủng
                     </h4>
                     <p>
-                      {healthProfileData.immunizationStatus ||
+                      {healthProfileData?.immunizationStatus ||
                         "Chưa có thông tin"}
                     </p>
                   </div>
@@ -676,7 +778,7 @@ const MedicalRecord = () => {
                     <h4>
                       <FaWheelchair /> Nhu cầu đặc biệt
                     </h4>
-                    <p>{healthProfileData.specialNeeds || "Không có"}</p>
+                    <p>{healthProfileData?.specialNeeds || "Không có"}</p>
                   </div>
 
                   <div className="medical-detail emergency-info">
@@ -684,7 +786,7 @@ const MedicalRecord = () => {
                       <FaPhoneVolume /> Thông tin liên hệ khẩn cấp
                     </h4>
                     <p>
-                      {healthProfileData.emergencyContactInfo ||
+                      {healthProfileData?.emergencyContactInfo ||
                         "Chưa cập nhật"}
                     </p>
                   </div>
@@ -728,100 +830,197 @@ const MedicalRecord = () => {
                 </p>
               </div>
             ) : (
-              <div className="checkups-list">
+              <div className="checkups-compact-list">
                 {checkupsData.map((checkup) => (
-                  <div className="checkup-card" key={checkup.id}>
-                    <div className="checkup-header">
-                      <div className="checkup-date">
+                  <div
+                    className="checkup-compact-card"
+                    key={checkup.id}
+                    onClick={() => openCheckupModal(checkup)}
+                  >
+                    <div className="compact-header">
+                      <div className="compact-date-time">
                         <i className="fas fa-calendar-check"></i>
-                        {formatDateTime(checkup.checkupDate)}
+                        <span className="compact-time">
+                          lúc {formatTimeOnly(checkup.checkupDate)}
+                        </span>
+                        <span className="compact-date">
+                          {formatDateOnly(checkup.checkupDate)}
+                        </span>
                       </div>
-                      {checkup.checkupType && (
-                        <div className="checkup-type">
-                          {checkup.checkupType}
-                        </div>
-                      )}
+
+                      <button className="view-details-btn">Tổng quát</button>
                     </div>
-
-                    <div className="checkup-stats-grid">
-                      <div className="checkup-stat height-stat">
-                        <span className="stat-label">Chiều cao</span>
-                        <span className="stat-value">{checkup.height} cm</span>
-                      </div>
-                      <div className="checkup-stat weight-stat">
-                        <span className="stat-label">Cân nặng</span>
-                        <span className="stat-value">{checkup.weight} kg</span>
-                      </div>
-                      <div className="checkup-stat bmi-stat">
-                        <span className="stat-label">BMI</span>
-                        <span className="stat-value">
-                          {Number(checkup.bmi).toFixed(1)}
-                        </span>
-                      </div>
-                      <div className="checkup-stat blood-pressure-stat">
-                        <span className="stat-label">Huyết áp</span>
-                        <span className="stat-value">
-                          {checkup.bloodPressure || "N/A"}
-                        </span>
-                      </div>
-                      <div className="checkup-stat temperature-stat">
-                        <span className="stat-label">Nhiệt độ</span>
-                        <span className="stat-value">
-                          {formatTemperature(checkup.bodyTemperature)}
-                        </span>
-                      </div>
-                      <div className="checkup-stat heart-rate-stat">
-                        <span className="stat-label">Nhịp tim</span>
-                        <span className="stat-value">
-                          {checkup.heartRate || "N/A"} BPM
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="checkup-details">
-                      <div className="vision-hearing">
-                        <div className="vision-info">
-                          <h5>Thị lực</h5>
-                          <p>Mắt trái: {checkup.visionLeft || "N/A"}</p>
-                          <p>Mắt phải: {checkup.visionRight || "N/A"}</p>
-                        </div>
-                        <div className="hearing-info">
-                          <h5>Thính lực</h5>
-                          <p>{checkup.hearingStatus || "Chưa có dữ liệu"}</p>
-                        </div>
-                      </div>
-
-                      <div>
-                        {checkup.diagnosis && (
-                          <div className="diagnosis-section">
-                            <h5>Chẩn đoán</h5>
-                            <p>{checkup.diagnosis}</p>
-                          </div>
-                        )}
-
-                        {checkup.recommendations && (
-                          <div className="recommendations-section">
-                            <h5>Khuyến nghị</h5>
-                            <p>{checkup.recommendations}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {checkup.followUpNeeded && (
-                      <div className="follow-up-alert">
-                        <i className="fas fa-exclamation-triangle"></i>
-                        Cần theo dõi thêm
-                      </div>
-                    )}
-
-                    {checkup.medicalStaffName && (
-                      <div className="staff-info">
-                        <p>{checkup.medicalStaffName}</p>
-                      </div>
-                    )}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Modal hiển thị chi tiết checkup */}
+            {isCheckupModalOpen && selectedCheckup && (
+              <div
+                className="checkup-modal-overlay"
+                onClick={closeCheckupModal}
+              >
+                <div
+                  className="checkup-modal-content"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="modal-header">
+                    <h3>Chi tiết kiểm tra sức khỏe</h3>
+                    <button
+                      className="close-modal-btn"
+                      onClick={closeCheckupModal}
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div className="modal-body">
+                    <div className="checkup-details-group">
+                      <div className="checkup-stats-detailed">
+                        <div className="stats-row">
+                          <div className="stat-box height-box">
+                            <div className="stat-icon">
+                              <i className="fas fa-ruler-vertical"></i>
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-label">CHIỀU CAO</span>
+                              <span className="stat-value">
+                                {selectedCheckup.height} cm
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="stat-box weight-box">
+                            <div className="stat-icon">
+                              <i className="fas fa-weight"></i>
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-label">CÂN NẶNG</span>
+                              <span className="stat-value">
+                                {selectedCheckup.weight} kg
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="stat-box bmi-box">
+                            <div className="stat-icon">
+                              <i className="fas fa-chart-line"></i>
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-label">BMI</span>
+                              <span className="stat-value">
+                                {Number(selectedCheckup.bmi).toFixed(1)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="stats-row">
+                          <div className="stat-box blood-pressure-box">
+                            <div className="stat-icon">
+                              <i className="fas fa-heartbeat"></i>
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-label">HUYẾT ÁP</span>
+                              <span className="stat-value">
+                                {selectedCheckup.bloodPressure || "120/80"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="stat-box temperature-box">
+                            <div className="stat-icon">
+                              <i className="fas fa-thermometer-half"></i>
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-label">NHIỆT ĐỘ</span>
+                              <span className="stat-value">
+                                {formatTemperature(
+                                  selectedCheckup.bodyTemperature
+                                )}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="stat-box heart-rate-box">
+                            <div className="stat-icon">
+                              <i className="fas fa-heart"></i>
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-label">NHỊP TIM</span>
+                              <span className="stat-value">
+                                {selectedCheckup.heartRate || "75"} BPM
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="detailed-sections">
+                        <div className="detail-section vision-section">
+                          <div className="section-header">
+                            <h4>Thị lực</h4>
+                          </div>
+                          <div className="vision-details">
+                            <p>
+                              Mắt trái: {selectedCheckup.visionLeft || "10/10"}
+                            </p>
+                            <p>
+                              Mắt phải: {selectedCheckup.visionRight || "10/10"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="detail-section hearing-section">
+                          <div className="section-header">
+                            <h4>Thính lực</h4>
+                          </div>
+                          <div className="hearing-details">
+                            <p>
+                              {selectedCheckup.hearingStatus || "Bình thường"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="detail-section diagnosis-section">
+                          <div className="section-header">
+                            <h4>
+                              <i className="fas fa-stethoscope"></i> Chẩn đoán
+                            </h4>
+                          </div>
+                          <div className="diagnosis-content">
+                            <p>{selectedCheckup.diagnosis || "Không vấn đề"}</p>
+                          </div>
+                        </div>
+
+                        <div className="detail-section recommendations-section">
+                          <div className="section-header">
+                            <h4>
+                              <i className="fas fa-lightbulb"></i> Khuyến nghị
+                            </h4>
+                          </div>
+                          <div className="recommendations-content">
+                            <p>
+                              {selectedCheckup.recommendations ||
+                                "Duy trì tập luyện"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Thông tin nhân viên y tế */}
+                    <div className="staff-signature">
+                      <div className="staff-info">
+                        <i className="fas fa-user-md"></i>
+                        <span>
+                          {selectedCheckup.medicalStaffName ||
+                            "Nguyễn Thị Y Tá"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -831,7 +1030,6 @@ const MedicalRecord = () => {
         {activeTab === "incidents" && (
           <div className="incidents-panel">
             <h3>Lịch sử sự cố y tế</h3>
-
             {incidentsError ? (
               <div className="error-message">
                 <i className="fas fa-exclamation-circle"></i> {incidentsError}
@@ -853,6 +1051,7 @@ const MedicalRecord = () => {
                   <div
                     className={`incident-card ${incident.severityLevel.toLowerCase()}`}
                     key={incident.incidentId}
+                    onClick={() => openIncidentModal(incident)} // Thêm dòng này
                   >
                     <div className="incident-header">
                       <div className="incident-type">
@@ -867,154 +1066,6 @@ const MedicalRecord = () => {
                         <i className="fas fa-calendar-alt"></i>
                         {formatDate(incident.dateTime)}
                       </div>
-                    </div>
-
-                    <div className="incident-details">
-                      <div className="detail-row">
-                        <span className="detail-label">
-                          <i className="fas fa-info-circle"></i> Mô tả
-                        </span>
-                        <span className="detail-value">
-                          {incident.description}
-                        </span>
-                      </div>
-
-                      {incident.symptoms && (
-                        <div className="detail-row">
-                          <span className="detail-label">
-                            <i className="fas fa-thermometer-half"></i> Triệu
-                            chứng
-                          </span>
-                          <div className="symptoms-container">
-                            <div className="symptoms-value">
-                              {incident.symptoms}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {incident.treatment && (
-                        <div className="detail-row">
-                          <span className="detail-label">
-                            <i className="fas fa-first-aid"></i> Xử lý
-                          </span>
-                          <span className="detail-value">
-                            {incident.treatment}
-                          </span>
-                        </div>
-                      )}
-
-                      {incident.medicationsUsed && (
-                        <div className="detail-row">
-                          <span className="detail-label">
-                            <i className="fas fa-pills"></i> Thuốc đã dùng
-                          </span>
-                          <div className="medications-used">
-                            {incident.medicationsUsed
-                              .split(",")
-                              .map((med, idx) => (
-                                <span key={idx} className="medication-tag">
-                                  <i className="fas fa-capsules"></i>{" "}
-                                  {med.trim()}
-                                </span>
-                              ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {incident.requiresFollowUp && incident.followUpNotes && (
-                        <div className="detail-row">
-                          <span className="detail-label">
-                            <i className="fas fa-clipboard-check"></i> Theo dõi
-                          </span>
-                          <div className="followup-container">
-                            <div className="followup-title">
-                              <i className="fas fa-exclamation-triangle"></i>{" "}
-                              Yêu cầu theo dõi
-                            </div>
-                            <div className="followup-value">
-                              {incident.followUpNotes}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="detail-row">
-                        <span className="detail-label">
-                          <i className="fas fa-bell"></i> Thông báo phụ huynh
-                        </span>
-                        <span className="notification-status">
-                          {incident.parentNotified ? (
-                            <>
-                              <i className="fas fa-check-circle status-icon success"></i>
-                              Đã thông báo cho phụ huynh
-                            </>
-                          ) : (
-                            <>
-                              <i className="fas fa-times-circle status-icon warning"></i>
-                              Chưa thông báo cho phụ huynh
-                            </>
-                          )}
-                        </span>
-                      </div>
-
-                      <div className="detail-row">
-                        <span className="detail-label">
-                          <i className="fas fa-clock"></i> Thời gian xảy ra
-                        </span>
-                        <div className="incident-time">
-                          <span className="incident-time-value">
-                            {formatTimeOnly(incident.dateTime)}
-                          </span>
-                          <span className="detail-date">
-                            <i className="fas fa-calendar-day"></i>{" "}
-                            {formatDateOnly(incident.dateTime)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Hiển thị ảnh thu nhỏ nếu có */}
-                      {incident.imgUrl && (
-                        <div className="detail-row">
-                          <span className="detail-label">
-                            <i className="fas fa-image"></i> Hình ảnh
-                          </span>
-                          <div
-                            className="incident-image-container"
-                            onClick={() => openImageModal(incident.imgUrl)}
-                          >
-                            <img
-                              src={incident.imgUrl}
-                              alt="Hình ảnh sự cố"
-                              className="incident-image"
-                            />
-                            <div className="image-overlay">
-                              <i className="fas fa-search-plus"></i> Phóng to
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="incident-footer">
-                      <p>
-                        <i className="fas fa-user-md"></i>{" "}
-                        {incident.staffName || "Không xác định"}
-                      </p>
-
-                      {incident.imgUrl ? (
-                        <button
-                          className="view-image-btn"
-                          onClick={() => openImageModal(incident.imgUrl)}
-                        >
-                          <i className="fas fa-search-plus"></i> Xem hình ảnh
-                        </button>
-                      ) : (
-                        <span className="no-image-text">
-                          <i className="fas fa-image-slash"></i> Không có hình
-                          ảnh
-                        </span>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -1059,6 +1110,94 @@ const MedicalRecord = () => {
           </div>
         </div>
       )}
+
+      {isIncidentModalOpen && selectedIncident && (
+        <div className="checkup-modal-overlay" onClick={closeIncidentModal}>
+          <div
+            className="checkup-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h3>Chi tiết sự cố y tế</h3>
+              <button className="close-modal-btn" onClick={closeIncidentModal}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="incident-details-modal">
+                <div className="stats-row">
+                  <div className="stat-box">
+                    <span className="stat-label">Thời gian</span>
+                    <span className="stat-value">
+                      {formatDateTime(selectedIncident.dateTime)}
+                    </span>
+                  </div>
+                  <div className="stat-box">
+                    <span className="stat-label">Mức độ</span>
+                    <span
+                      className={`severity-tag ${selectedIncident.severityLevel
+                        .replace(" ", "_")
+                        .toLowerCase()}`}
+                    >
+                      {selectedIncident.severityLevel}
+                    </span>
+                  </div>
+                  <div className="stat-box">
+                    <span className="stat-label">Loại sự cố</span>
+                    <span className="stat-value">
+                      {selectedIncident.incidentType}
+                    </span>
+                  </div>
+                </div>
+                <div className="detail-section">
+                  <h4>Mô tả</h4>
+                  <p>{selectedIncident.description}</p>
+                </div>
+                {selectedIncident.symptoms && (
+                  <div className="detail-section">
+                    <h4>Triệu chứng</h4>
+                    <p>{selectedIncident.symptoms}</p>
+                  </div>
+                )}
+                {selectedIncident.treatment && (
+                  <div className="detail-section">
+                    <h4>Xử lý</h4>
+                    <p>{selectedIncident.treatment}</p>
+                  </div>
+                )}
+                {selectedIncident.medicationsUsed && (
+                  <div className="detail-section">
+                    <h4>Thuốc đã dùng</h4>
+                    <p>{selectedIncident.medicationsUsed}</p>
+                  </div>
+                )}
+                {selectedIncident.requiresFollowUp &&
+                  selectedIncident.followUpNotes && (
+                    <div className="detail-section">
+                      <h4>Theo dõi</h4>
+                      <p>{selectedIncident.followUpNotes}</p>
+                    </div>
+                  )}
+                <div className="detail-section">
+                  <h4>Nhân viên y tế</h4>
+                  <p>{selectedIncident.staffName || "Không xác định"}</p>
+                </div>
+                {selectedIncident.imgUrl && (
+                  <div className="detail-section">
+                    <h4>Hình ảnh</h4>
+                    <img
+                      src={selectedIncident.imgUrl}
+                      alt="Hình ảnh sự cố"
+                      className="incident-image"
+                      style={{ maxWidth: "100%", borderRadius: 8 }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1084,29 +1223,28 @@ const formatDate = (dateString) => {
 
 // Format date with time for display
 const formatDateTime = (dateTimeString) => {
-  if (!dateTimeString) return "Không có dữ liệu";
-  try {
-    const dateTime = new Date(dateTimeString);
-    if (isNaN(dateTime.getTime())) return "Không có dữ liệu";
+  if (!dateTimeString) return "Chưa cập nhật";
 
-    return new Intl.DateTimeFormat("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
+  try {
+    const options = {
       year: "numeric",
+      month: "long", // Cập nhật để hiển thị tháng đầy đủ
+      day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(dateTime);
-  } catch (err) {
-    console.error("Error formatting date time:", err);
-    return "Không có dữ liệu";
+    };
+    return new Date(dateTimeString).toLocaleDateString("vi-VN", options);
+  } catch (error) {
+    console.error("Error formatting datetime:", error);
+    return "Định dạng không hợp lệ";
   }
 };
 
 const formatTimeOnly = (dateTimeString) => {
-  if (!dateTimeString) return "Không có dữ liệu";
+  if (!dateTimeString) return "00:00";
   try {
     const dateTime = new Date(dateTimeString);
-    if (isNaN(dateTime.getTime())) return "Không có dữ liệu";
+    if (isNaN(dateTime.getTime())) return "00:00";
 
     return new Intl.DateTimeFormat("vi-VN", {
       hour: "2-digit",
@@ -1114,7 +1252,7 @@ const formatTimeOnly = (dateTimeString) => {
     }).format(dateTime);
   } catch (err) {
     console.error("Error formatting time:", err);
-    return "Không có dữ liệu";
+    return "00:00";
   }
 };
 
@@ -1125,7 +1263,6 @@ const formatDateOnly = (dateTimeString) => {
     if (isNaN(dateTime.getTime())) return "Không có dữ liệu";
 
     return new Intl.DateTimeFormat("vi-VN", {
-      weekday: "long",
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -1138,12 +1275,14 @@ const formatDateOnly = (dateTimeString) => {
 
 // Determine BMI status
 const getBMIStatus = (bmi) => {
-  if (!bmi || isNaN(parseFloat(bmi))) return "Không có dữ liệu";
+  if (!bmi || bmi === 0 || isNaN(bmi)) return "Chưa có dữ liệu";
 
   const bmiValue = parseFloat(bmi);
-  if (bmiValue < 18.5) return "Gầy";
-  if (bmiValue >= 18.5 && bmiValue < 24.9) return "Bình thường";
-  if (bmiValue >= 25 && bmiValue < 29.9) return "Thừa cân";
+  if (isNaN(bmiValue)) return "Chưa có dữ liệu";
+
+  if (bmiValue < 18.5) return "Thiếu cân";
+  if (bmiValue < 25) return "Bình thường";
+  if (bmiValue < 30) return "Thừa cân";
   return "Béo phì";
 };
 
