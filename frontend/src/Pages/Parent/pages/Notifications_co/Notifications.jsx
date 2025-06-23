@@ -1,90 +1,205 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Notifications.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
+import { useAuth } from "../../../../context/AuthContext";
+import { useStudentData } from "../../../../context/StudentDataContext";
+import notificationService from "../../../../services/notificationService";
+import ReactMarkdown from "react-markdown";
+import { toast } from "react-toastify";
+import { useLocation } from "react-router-dom";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
-  const [showModal, setShowModal] = useState(false);
   const [currentNotification, setCurrentNotification] = useState(null);
   const [selectedNotificationId, setSelectedNotificationId] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [parentId, setParentId] = useState(null);
 
+  const notificationContentRef = useRef(null);
+  const location = useLocation();
+
+  const { currentUser } = useAuth();
+  const { students, parentInfo } = useStudentData();
+
+  // Tách getParentId ra khỏi fetchNotifications để theo dõi thay đổi
+  const getParentId = () => {
+    if (parentInfo?.id) {
+      return parentInfo.id;
+    }
+
+    if (students && students.length > 0 && students[0].parentId) {
+      return students[0].parentId;
+    }
+
+    return null; // Thay đổi từ 1 -> null
+  };
+
+  // Cập nhật parentId khi students hoặc parentInfo thay đổi
   useEffect(() => {
-    // Giả lập API call
-    const fetchNotifications = async () => {
-      try {
-        // Trong thực tế, đây sẽ là API call
-        // const response = await fetch('/api/notifications');
-        // const data = await response.json();
+    const id = getParentId();
+    if (id) {
+      setParentId(id);
+    }
+  }, [students, parentInfo]);
 
-        // Dữ liệu mẫu
-        const mockData = [
-          {
-            id: 1,
-            type: "health",
-            title: "Kết quả khám sức khỏe định kỳ",
-            content:
-              "Kết quả khám sức khỏe định kỳ học kỳ 1 đã có. Vui lòng xem chi tiết.",
-            date: "2023-05-28T08:30:00",
-            isRead: false,
-            link: "/health-records",
-          },
-          {
-            id: 2,
-            type: "medicine",
-            title: "Thuốc đã được cấp phát",
-            content:
-              "Thuốc kháng sinh theo yêu cầu đã được cấp phát cho học sinh vào ngày 26/05/2023.",
-            date: "2023-05-26T14:15:00",
-            isRead: true,
-            link: "/medicine-records",
-          },
-          {
-            id: 3,
-            type: "alert",
-            title: "Cảnh báo dịch bệnh",
-            content:
-              "Phát hiện học sinh lớp 6A mắc bệnh thủy đậu. Phụ huynh vui lòng theo dõi sức khỏe học sinh.",
-            date: "2023-05-25T09:00:00",
-            isRead: false,
-            link: "/disease-alerts",
-          },
-          {
-            id: 4,
-            type: "activity",
-            title: "Lịch tiêm chủng sắp tới",
-            content:
-              "Nhà trường sẽ tổ chức tiêm vắc-xin phòng cúm vào ngày 10/06/2023. Vui lòng đăng ký cho học sinh.",
-            date: "2023-05-20T11:30:00",
-            isRead: true,
-            link: "/vaccination-schedule",
-          },
-          {
-            id: 5,
-            type: "health",
-            title: "Kết quả khám nha khoa",
-            content:
-              "Kết quả khám nha khoa định kỳ của học sinh đã có. Vui lòng xem chi tiết.",
-            date: "2023-05-18T15:45:00",
-            isRead: false,
-            link: "/dental-records",
-          },
-        ];
+  // Cuộn lên đầu khi chọn thông báo mới
+  useEffect(() => {
+    if (notificationContentRef.current) {
+      notificationContentRef.current.scrollTop = 0;
+    }
+  }, [currentNotification]);
 
-        setTimeout(() => {
-          setNotifications(mockData);
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-        setLoading(false);
+  // Fetch notifications khi có parentId
+  useEffect(() => {
+    // Chỉ fetch khi có parentId
+    if (parentId) {
+      console.log("Fetching notifications for parent ID:", parentId);
+      fetchNotifications();
+
+      // Set interval để tự động làm mới mỗi 2 phút
+      const refreshInterval = setInterval(() => {
+        fetchNotifications();
+      }, 120000); // 120000ms = 2 phút
+
+      // Clear interval khi unmount hoặc parentId thay đổi
+      return () => clearInterval(refreshInterval);
+    }
+  }, [parentId, location.pathname]);
+
+  // 1. Thêm hiển thị debug để xác định điểm lỗi
+  useEffect(() => {
+    console.log("Current notifications state:", notifications);
+    console.log("Selected notification ID:", selectedNotificationId);
+  }, [notifications, selectedNotificationId]);
+
+  // 2. Đảm bảo luôn chọn thông báo đầu tiên nếu có thông báo và không có thông báo nào được chọn
+  useEffect(() => {
+    if (notifications.length > 0 && !currentNotification) {
+      console.log("Auto-selecting first notification");
+      setSelectedNotificationId(notifications[0].id);
+      fetchNotificationDetail(notifications[0].id, parentId);
+    }
+  }, [notifications, currentNotification, parentId]);
+
+  // Fetch notifications từ API - cập nhật để sử dụng notificationService
+  const fetchNotifications = async () => {
+    if (!parentId) {
+      console.log("No parent ID available, skipping fetch");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log("Fetching notifications for parent ID:", parentId);
+
+      const response = await notificationService.getNotifications(parentId);
+      console.log("API response:", response.data);
+
+      if (Array.isArray(response.data)) {
+        // Thêm trường isRead và category vào mỗi thông báo
+        const notificationsWithReadStatus = response.data.map(
+          (notification) => {
+            // Xác định category dựa vào tiêu đề hoặc nội dung
+            let category = "general";
+
+            if (
+              notification.title?.toLowerCase().includes("sức khỏe") ||
+              notification.title?.toLowerCase().includes("khám")
+            ) {
+              category = "health";
+            } else if (notification.title?.toLowerCase().includes("thuốc")) {
+              category = "medicine";
+            } else if (
+              notification.title?.toLowerCase().includes("tiêm") ||
+              notification.title?.toLowerCase().includes("vắc-xin")
+            ) {
+              category = "vaccine";
+            } else if (
+              notification.title?.toLowerCase().includes("cảnh báo") ||
+              notification.title?.toLowerCase().includes("dịch bệnh")
+            ) {
+              category = "warning";
+            }
+
+            return {
+              ...notification,
+              isRead: false,
+              category,
+            };
+          }
+        );
+
+        console.log("Processed notifications:", notificationsWithReadStatus);
+        setNotifications(notificationsWithReadStatus);
+
+        // Nếu có thông báo và chưa chọn thông báo nào, chọn thông báo đầu tiên
+        if (response.data.length > 0 && !selectedNotificationId) {
+          setSelectedNotificationId(response.data[0].id);
+          fetchNotificationDetail(response.data[0].id, parentId);
+        }
+      } else {
+        console.error("API không trả về mảng:", response.data);
+        setNotifications([]);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      setError("Không thể tải danh sách thông báo. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchNotifications();
-  }, []);
+  // Fetch chi tiết thông báo - cập nhật để sử dụng notificationService
+  const fetchNotificationDetail = async (
+    notificationId,
+    parentId = getParentId()
+  ) => {
+    if (!notificationId) return;
 
+    setDetailLoading(true);
+
+    try {
+      const response = await notificationService.getNotificationDetail(
+        notificationId,
+        parentId
+      );
+
+      // Xử lý và tiêu chuẩn hóa dữ liệu để đảm bảo có tất cả trường cần thiết
+      const notificationData = response.data;
+      const standardizedData = {
+        id: notificationData.id,
+        title: notificationData.title || "Không có tiêu đề",
+        message: notificationData.message || "",
+        isRequest: !!notificationData.isRequest,
+        // Xử lý các trường thời gian để đảm bảo nhất quán
+        createdAt:
+          notificationData.createdAt ||
+          notificationData.receivedDate ||
+          new Date().toISOString(),
+        senderName: notificationData.senderName || "Không xác định",
+        response: notificationData.response || "PENDING",
+        responseAt: notificationData.responseAt || null,
+      };
+
+      setCurrentNotification(standardizedData);
+      markAsRead(notificationId);
+    } catch (error) {
+      console.error("Error fetching notification detail:", error);
+      toast.error("Không thể tải chi tiết thông báo. Vui lòng thử lại sau.");
+      setCurrentNotification(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  // Đánh dấu thông báo đã đọc
   const markAsRead = (id) => {
     setNotifications(
       notifications.map((notification) =>
@@ -95,12 +210,21 @@ const Notifications = () => {
     );
   };
 
+  // Chọn thông báo để xem chi tiết
+  const selectNotification = (notification) => {
+    setSelectedNotificationId(notification.id);
+    fetchNotificationDetail(notification.id);
+  };
+
+  // Đánh dấu tất cả là đã đọc
   const markAllAsRead = () => {
     setNotifications(
       notifications.map((notification) => ({ ...notification, isRead: true }))
     );
+    toast.success("Đã đánh dấu tất cả thông báo là đã đọc");
   };
 
+  // Xóa thông báo
   const deleteNotification = (id) => {
     setNotifications(
       notifications.filter((notification) => notification.id !== id)
@@ -109,26 +233,40 @@ const Notifications = () => {
       setSelectedNotificationId(null);
       setCurrentNotification(null);
     }
+    toast.success("Đã xóa thông báo thành công");
   };
 
-  const selectNotification = (notification) => {
-    setSelectedNotificationId(notification.id);
-    setCurrentNotification(notification);
-    markAsRead(notification.id);
-  };
-
+  // Lọc thông báo theo filter và search
   const filteredNotifications = notifications.filter((notification) => {
-    if (filter === "all") return true;
-    if (filter === "unread") return !notification.isRead;
-    return notification.type === filter;
+    // Lọc theo unread/all
+    if (filter === "unread" && notification.isRead) {
+      return false;
+    }
+
+    // Lọc theo category
+    if (activeCategory !== "all" && notification.category !== activeCategory) {
+      return false;
+    }
+
+    // Lọc theo search query
+    if (searchQuery && searchQuery.trim() !== "") {
+      return notification.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+    }
+
+    return true;
   });
 
+  // Đếm số thông báo chưa đọc
   const unreadCount = notifications.filter(
     (notification) => !notification.isRead
   ).length;
 
-  // Format date to telegram style (today/yesterday or date)
+  // Format date theo kiểu telegram
   const formatDate = (dateString) => {
+    if (!dateString) return "";
+
     const date = new Date(dateString);
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
@@ -156,262 +294,367 @@ const Notifications = () => {
     })}, ${time}`;
   };
 
-  const getNotificationDetailContent = () => {
+  // Hiển thị trạng thái thông báo
+  const renderNotificationStatus = () => {
+    if (!currentNotification || !currentNotification.isRequest) return null;
+
+    const responseStatus = currentNotification.response || "PENDING";
+
+    return (
+      <div className="notif-status">
+        <div className="notif-status-container">
+          <strong>Trạng thái:</strong>
+          {responseStatus === "ACCEPTED" ? (
+            <span className="notif-status-badge accepted">
+              <i className="fas fa-check-circle"></i> Đã xác nhận
+            </span>
+          ) : responseStatus === "REJECTED" ? (
+            <span className="notif-status-badge rejected">
+              <i className="fas fa-times-circle"></i> Đã từ chối
+            </span>
+          ) : (
+            <span className="notif-status-badge pending">
+              <i className="fas fa-clock"></i> Chưa phản hồi
+            </span>
+          )}
+        </div>
+
+        {currentNotification.responseAt && (
+          <span className="notif-response-time">
+            <i className="far fa-calendar-check"></i>
+            Phản hồi lúc:{" "}
+            {new Date(currentNotification.responseAt).toLocaleString("vi-VN")}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  // Hiển thị nút phản hồi cho thông báo yêu cầu
+  const renderResponseButtons = () => {
     if (!currentNotification) return null;
 
-    let detailContent = null;
-
-    if (currentNotification.type === "health") {
-      detailContent = (
-        <div className="notification-details">
-          <h4>Chi tiết kết quả khám</h4>
-          <div className="detail-item">
-            <span className="detail-label">Ngày khám:</span>
-            <span className="detail-value">
-              {new Date(currentNotification.date).toLocaleDateString("vi-VN")}
-            </span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Bác sĩ khám:</span>
-            <span className="detail-value">BS. Nguyễn Minh Tuấn</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Kết quả:</span>
-            <span className="detail-value">Sức khỏe bình thường</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Ghi chú:</span>
-            <span className="detail-value">
-              Học sinh cần chú ý chế độ ăn uống và nghỉ ngơi đầy đủ
-            </span>
-          </div>
-        </div>
-      );
-    } else if (currentNotification.type === "medicine") {
-      detailContent = (
-        <div className="notification-details">
-          <h4>Chi tiết thuốc</h4>
-          <div className="detail-item">
-            <span className="detail-label">Loại thuốc:</span>
-            <span className="detail-value">Kháng sinh Amoxicillin</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Liều lượng:</span>
-            <span className="detail-value">500mg, 3 lần/ngày</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Thời gian điều trị:</span>
-            <span className="detail-value">5 ngày</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Lưu ý:</span>
-            <span className="detail-value">Uống sau bữa ăn</span>
-          </div>
-        </div>
-      );
-    } else if (currentNotification.type === "alert") {
-      detailContent = (
-        <div className="notification-details alert-details">
-          <h4>Thông tin cảnh báo</h4>
-          <div className="detail-item">
-            <span className="detail-label">Mức độ:</span>
-            <span className="detail-value warning">Cần chú ý</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Triệu chứng cần theo dõi:</span>
-            <ul className="symptoms-list">
-              <li>Phát ban, nổi mụn nước</li>
-              <li>Sốt cao</li>
-              <li>Ngứa</li>
-            </ul>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Hướng dẫn:</span>
-            <span className="detail-value">
-              Nếu học sinh có các triệu chứng trên, vui lòng không đến trường và
-              liên hệ với nhà trường qua số điện thoại: 028.3456.7890
-            </span>
-          </div>
-        </div>
-      );
-    } else if (currentNotification.type === "activity") {
-      detailContent = (
-        <div className="notification-details">
-          <h4>Chi tiết hoạt động</h4>
-          <div className="detail-item">
-            <span className="detail-label">Thời gian:</span>
-            <span className="detail-value">07:30 - 11:30, 10/06/2023</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Địa điểm:</span>
-            <span className="detail-value">Phòng Y tế trường</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Chuẩn bị:</span>
-            <span className="detail-value">Mang theo sổ tiêm chủng</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Đăng ký trước:</span>
-            <span className="detail-value">Hạn cuối 05/06/2023</span>
-          </div>
+    // Chỉ hiển thị nút phản hồi khi là request và đang ở trạng thái PENDING
+    if (
+      currentNotification.isRequest === true &&
+      currentNotification.response === "PENDING"
+    ) {
+      return (
+        <div className="notif-response-buttons">
+          <button
+            className="notif-btn notif-btn-primary"
+            onClick={() => handleResponse("ACCEPT")}
+          >
+            <i className="fas fa-check"></i> Xác nhận
+          </button>
+          <button
+            className="notif-btn notif-btn-secondary"
+            onClick={() => handleResponse("REJECT")}
+          >
+            <i className="fas fa-times"></i> Từ chối
+          </button>
         </div>
       );
     }
 
-    return detailContent;
+    return null;
   };
 
-  // Render component
+  // Xử lý phản hồi thông báo
+  const handleResponse = async (response) => {
+    if (!currentNotification) return;
+
+    // Kiểm tra xem thông báo có phải là request không
+    if (!currentNotification.isRequest) {
+      console.error("This notification is not a request");
+      toast.error("Không thể phản hồi cho thông báo này");
+      return;
+    }
+
+    const parentId = getParentId();
+    if (!parentId) {
+      console.error("Parent ID is undefined");
+      toast.error("Không thể xác định ID phụ huynh");
+      return;
+    }
+
+    try {
+      // Thêm loading state
+      setDetailLoading(true);
+
+      // Đảm bảo apiResponse là đúng giá trị
+      const apiResponse = response === "ACCEPT" ? "ACCEPTED" : "REJECTED";
+
+      console.log(
+        `Sending response ${apiResponse} for notification ${currentNotification.id}`
+      );
+
+      // Gọi API phản hồi thông báo
+      const result = await notificationService.respondToNotification(
+        currentNotification.id,
+        parentId,
+        apiResponse
+      );
+
+      console.log("API returned successfully:", result);
+
+      // Tái fetch cả chi tiết thông báo để đồng bộ dữ liệu
+      await fetchNotificationDetail(currentNotification.id, parentId);
+
+      // Cập nhật lại danh sách thông báo
+      await fetchNotifications();
+
+      // Thông báo thành công
+      toast.success(
+        response === "ACCEPT"
+          ? "Đã xác nhận thành công"
+          : "Đã từ chối thành công"
+      );
+    } catch (error) {
+      console.error("Error responding to notification:", error);
+      toast.error(
+        `Không thể xử lý phản hồi: ${error.message || "Lỗi không xác định"}`
+      );
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  // Hiển thị icon cho danh mục thông báo
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case "health":
+        return <i className="fas fa-heartbeat category-icon health"></i>;
+      case "medicine":
+        return <i className="fas fa-pills category-icon medicine"></i>;
+      case "vaccine":
+        return <i className="fas fa-syringe category-icon vaccine"></i>;
+      case "warning":
+        return (
+          <i className="fas fa-exclamation-triangle category-icon warning"></i>
+        );
+      default:
+        return <i className="fas fa-bell category-icon general"></i>;
+    }
+  };
+
   return (
-    <>
-      <div className="telegram-header">
-        <h1>Thông báo</h1>
+    <div className="notif-container">
+      <div className="notif-header">
+        <h1 className="notif-header-title">
+          <i className="fas fa-bell-slash"></i> Thông báo
+        </h1>
+        {unreadCount > 0 && (
+          <div className="notif-unread-badge">{unreadCount}</div>
+        )}
       </div>
 
-      <div className="telegram-notifications">
-        <div className="telegram-sidebar">
-          <div className="telegram-search">
-            <div className="search-input-container">
-              <i className="fas fa-search search-icon"></i>
-              <input type="text" placeholder="Tìm kiếm thông báo..." />
+      <div className="notif-layout">
+        <div className="notif-sidebar">
+          <div className="notif-search">
+            <div className="notif-search-container">
+              <i className="fas fa-search notif-search-icon"></i>
+              <input
+                type="text"
+                className="notif-search-input"
+                placeholder="Tìm kiếm thông báo..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  className="notif-search-clear"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              )}
             </div>
           </div>
 
-          <div className="telegram-filters">
+          <div className="notif-filters">
             <button
-              className={`filter-btn ${filter === "all" ? "active" : ""}`}
+              className={`notif-filter-btn ${filter === "all" ? "active" : ""}`}
               onClick={() => setFilter("all")}
             >
-              Tất cả
+              <i className="fas fa-list-ul"></i> Tất cả
             </button>
             <button
-              className={`filter-btn ${filter === "unread" ? "active" : ""}`}
+              className={`notif-filter-btn ${
+                filter === "unread" ? "active" : ""
+              }`}
               onClick={() => setFilter("unread")}
             >
-              Chưa đọc
+              <i className="fas fa-envelope"></i> Chưa đọc
               {unreadCount > 0 && (
-                <span className="filter-badge">{unreadCount}</span>
+                <span className="notif-filter-badge">{unreadCount}</span>
               )}
-            </button>
-            <button
-              className={`filter-btn ${filter === "health" ? "active" : ""}`}
-              onClick={() => setFilter("health")}
-            >
-              Sức khỏe
-            </button>
-            <button
-              className={`filter-btn ${filter === "medicine" ? "active" : ""}`}
-              onClick={() => setFilter("medicine")}
-            >
-              Thuốc
-            </button>
-            <button
-              className={`filter-btn ${filter === "alert" ? "active" : ""}`}
-              onClick={() => setFilter("alert")}
-            >
-              Cảnh báo
-            </button>
-            <button
-              className={`filter-btn ${filter === "activity" ? "active" : ""}`}
-              onClick={() => setFilter("activity")}
-            >
-              Hoạt động
             </button>
           </div>
 
-          <div className="telegram-chat-list">
+          <div className="notif-categories">
+            <button
+              className={`notif-category-btn ${
+                activeCategory === "all" ? "active" : ""
+              }`}
+              onClick={() => setActiveCategory("all")}
+            >
+              <i className="fas fa-th-large"></i> Tất cả
+            </button>
+            <button
+              className={`notif-category-btn ${
+                activeCategory === "health" ? "active" : ""
+              }`}
+              onClick={() => setActiveCategory("health")}
+            >
+              <i className="fas fa-heartbeat"></i> Sức khỏe
+            </button>
+            <button
+              className={`notif-category-btn ${
+                activeCategory === "medicine" ? "active" : ""
+              }`}
+              onClick={() => setActiveCategory("medicine")}
+            >
+              <i className="fas fa-pills"></i> Thuốc
+            </button>
+            <button
+              className={`notif-category-btn ${
+                activeCategory === "vaccine" ? "active" : ""
+              }`}
+              onClick={() => setActiveCategory("vaccine")}
+            >
+              <i className="fas fa-syringe"></i> Vắc-xin
+            </button>
+            <button
+              className={`notif-category-btn ${
+                activeCategory === "warning" ? "active" : ""
+              }`}
+              onClick={() => setActiveCategory("warning")}
+            >
+              <i className="fas fa-exclamation-triangle"></i> Cảnh báo
+            </button>
+          </div>
+
+          <div className="notif-list">
             {loading ? (
-              <LoadingSpinner text="Đang tải thông báo..." />
+              <div className="notif-loading">
+                <LoadingSpinner text="Đang tải thông báo..." />
+              </div>
+            ) : error ? (
+              <div className="notif-error">
+                <i className="fas fa-exclamation-circle"></i>
+                <p>{error}</p>
+                <button
+                  onClick={fetchNotifications}
+                  className="notif-retry-btn"
+                >
+                  <i className="fas fa-redo"></i> Thử lại
+                </button>
+              </div>
             ) : filteredNotifications.length > 0 ? (
+              // Hiển thị danh sách thông báo
               filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`telegram-chat-item ${
+                  className={`notif-item ${
                     !notification.isRead ? "unread" : ""
                   } ${
                     selectedNotificationId === notification.id ? "selected" : ""
-                  }`}
+                  } category-${notification.category}`}
                   onClick={() => selectNotification(notification)}
                 >
-                  <div className={`telegram-avatar ${notification.type}`}>
-                    {notification.type === "health" && (
-                      <i className="fas fa-heartbeat"></i>
-                    )}
-                    {notification.type === "medicine" && (
-                      <i className="fas fa-pills"></i>
-                    )}
-                    {notification.type === "alert" && (
-                      <i className="fas fa-exclamation-triangle"></i>
-                    )}
-                    {notification.type === "activity" && (
-                      <i className="fas fa-calendar-check"></i>
-                    )}
+                  <div className="notif-avatar">
+                    {getCategoryIcon(notification.category)}
                   </div>
-                  <div className="telegram-chat-content">
-                    <div className="telegram-chat-header">
-                      <h4 className="telegram-chat-name">
-                        {notification.title}
-                      </h4>
-                      <span className="telegram-chat-time">
-                        {formatDate(notification.date)}
+                  <div className="notif-item-content">
+                    <div className="notif-item-header">
+                      <h4 className="notif-item-title">{notification.title}</h4>
+                      <span className="notif-item-time">
+                        {formatDate(notification.receivedDate)}
                       </span>
                     </div>
-                    <div className="telegram-chat-message">
-                      <p className="telegram-message-preview">
-                        {notification.content}
-                      </p>
+                    <div className="notif-item-preview">
                       {!notification.isRead && (
-                        <span className="telegram-unread-badge"></span>
+                        <span className="notif-item-unread-dot"></span>
                       )}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="empty-state">
+              <div className="notif-empty">
                 <i className="fas fa-bell-slash"></i>
                 <p>
-                  Không có thông báo nào{" "}
-                  {filter !== "all" ? "phù hợp với bộ lọc" : ""}
+                  {notifications.length === 0
+                    ? "Không có thông báo nào"
+                    : "Không có thông báo nào phù hợp với bộ lọc"}
                 </p>
+                {(searchQuery ||
+                  filter !== "all" ||
+                  activeCategory !== "all") && (
+                  <button
+                    className="notif-empty-btn"
+                    onClick={() => {
+                      setFilter("all");
+                      setSearchQuery("");
+                      setActiveCategory("all");
+                    }}
+                  >
+                    <i className="fas fa-times-circle"></i> Xóa bộ lọc
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          <div className="telegram-actions">
+          <div className="notif-actions">
             <button
-              className="telegram-action-btn"
+              className="notif-action-btn"
               onClick={markAllAsRead}
               title="Đánh dấu tất cả là đã đọc"
+              disabled={notifications.every((n) => n.isRead)}
             >
               <i className="fas fa-check-double"></i>
+            </button>
+            <button
+              className="notif-action-btn"
+              onClick={fetchNotifications}
+              title="Làm mới thông báo"
+            >
+              <i className="fas fa-sync-alt"></i>
             </button>
           </div>
         </div>
 
-        <div className="telegram-content">
-          {currentNotification ? (
-            <div className="telegram-message-view">
-              <div className="telegram-message-header">
-                <div className="telegram-message-info">
-                  <h3>{currentNotification.title}</h3>
-                  <span className="telegram-message-date">
-                    {new Date(currentNotification.date).toLocaleString(
-                      "vi-VN",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )}
+        <div className="notif-content" ref={notificationContentRef}>
+          {detailLoading ? (
+            <div className="notif-loading">
+              <LoadingSpinner text="Đang tải chi tiết..." />
+            </div>
+          ) : currentNotification ? (
+            <div className="notif-message">
+              <div className="notif-message-header">
+                <div className="notif-message-info">
+                  <h3 className="notif-message-title">
+                    {currentNotification?.title}
+                  </h3>
+                  <span className="notif-message-date">
+                    <i className="far fa-calendar-alt"></i>
+                    {new Date(
+                      currentNotification?.createdAt || new Date()
+                    ).toLocaleString("vi-VN", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                 </div>
-                <div className="telegram-message-actions">
+                <div className="notif-message-actions">
                   <button
-                    className="telegram-icon-btn"
+                    className="notif-message-btn"
                     onClick={() => deleteNotification(currentNotification.id)}
                     title="Xóa thông báo"
                   >
@@ -420,48 +663,32 @@ const Notifications = () => {
                 </div>
               </div>
 
-              <div className="telegram-message-body">
-                <div
-                  className={`telegram-message-bubble ${currentNotification.type}`}
-                >
-                  <p>{currentNotification.content}</p>
-
-                  {getNotificationDetailContent()}
-
-                  <div className="telegram-message-footer">
-                    {currentNotification.type === "activity" && (
-                      <button className="telegram-button primary">
-                        <i className="fas fa-calendar-check"></i> Đăng ký tham
-                        gia
-                      </button>
-                    )}
-
-                    {currentNotification.type === "health" && (
-                      <button className="telegram-button primary">
-                        <i className="fas fa-download"></i> Tải kết quả PDF
-                      </button>
-                    )}
-
-                    {currentNotification.type === "medicine" && (
-                      <button className="telegram-button primary">
-                        <i className="fas fa-clipboard-check"></i> Xác nhận đã
-                        nhận
-                      </button>
-                    )}
-
-                    {currentNotification.type === "alert" && (
-                      <button className="telegram-button primary">
-                        <i className="fas fa-info-circle"></i> Xem hướng dẫn chi
-                        tiết
-                      </button>
-                    )}
+              <div className="notif-message-body">
+                <div className="notif-message-bubble">
+                  <div className="notif-sender">
+                    <i className="fas fa-user-md"></i>
+                    <strong>
+                      Từ: {currentNotification?.senderName || "Không xác định"}
+                    </strong>
                   </div>
+
+                  <div className="notif-message-content">
+                    <ReactMarkdown>
+                      {currentNotification?.message || ""}
+                    </ReactMarkdown>
+                  </div>
+
+                  {/* Hiển thị trạng thái thông báo */}
+                  {renderNotificationStatus()}
+
+                  {/* Hiển thị nút phản hồi */}
+                  {renderResponseButtons()}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="telegram-empty-content">
-              <div className="telegram-empty-content-icon">
+            <div className="notif-content-empty">
+              <div className="notif-content-empty-icon">
                 <i className="far fa-comment-dots"></i>
               </div>
               <h3>Chọn một thông báo để xem chi tiết</h3>
@@ -470,7 +697,7 @@ const Notifications = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

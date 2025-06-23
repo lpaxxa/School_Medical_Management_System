@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./StudentProfile.css";
+import "../shared/student-selector.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
@@ -46,6 +47,11 @@ export default function StudentProfile() {
       setExtendedStudent(null);
     }
   }, [selectedStudentId, students, parentInfo, fetchParentInfo]);
+
+  // Fetch parent info when component mounts
+  useEffect(() => {
+    fetchParentInfo();
+  }, [fetchParentInfo]);
 
   // Calculate age from date of birth
   const calculateAge = (dob) => {

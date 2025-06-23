@@ -1,831 +1,997 @@
-/* Bảng màu chính */
-:root {
-  --primary-blue: #1b91db;
-  --primary-light: rgba(27, 145, 219, 0.1);
-  --primary-lighter: rgba(27, 145, 219, 0.05);
-  --primary-dark: #0d76b8;
-  
-  --surface-white: #ffffff;
-  --surface-light: #f8f9fa;
-  --surface-gray: #f2f4f7;
-  
-  --text-dark: #1e293b;
-  --text-medium: #475569;
-  --text-light: #94a3b8;
-  
-  --border-light: rgba(203, 213, 225, 0.8);
-  
-  --health: #10b981;
-  --medicine: #f59e0b;
-  --alert: #ef4444;
-  --activity: #8b5cf6;
+/* MODERN NOTIFICATIONS DESIGN */
 
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+:root {
+  /* Colors */
+  --primary-blue: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-lighter: #60a5fa;
+  --primary-lightest: #dbeafe;
+  --primary-dark: #1e40af;
   
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
-  --radius-full: 9999px;
+  /* Status Colors */
+  --status-pending: #f59e0b;
+  --status-pending-light: #fef3c7;
+  --status-accepted: #10b981;
+  --status-accepted-light: #d1fae5;
+  --status-rejected: #ef4444;
+  --status-rejected-light: #fee2e2;
   
-  --font-sans: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'SF Mono', SFMono-Regular, ui-monospace, 'Cascadia Code', monospace;
+  /* Category Colors */
+  --category-health: #10b981;
+  --category-medicine: #6366f1;
+  --category-vaccine: #0ea5e9;
+  --category-warning: #f43f5e;
+  
+  /* Neutrals */
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05);
+  --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.05);
+
+  /* Typography */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Reset và Base Styles */
-* {
+/* Reset & Base */
+.notif-container * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Main Container */
-.telegram-notifications {
-  display: flex;
-  height: calc(100vh - 80px);
-  background-color: var(--surface-white);
-  margin-top: 80px;
-  margin-bottom: 80px;
+.notif-container {
   font-family: var(--font-sans);
-  box-shadow: var(--shadow-lg);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  max-width: 1250px;
-  margin-left: auto;
-  margin-right: auto;
-  border: 1px solid var(--border-light);
-}
-
-/* HEADER */
-.telegram-header {
-  max-width: 1250px;
-  margin: 30px auto 15px;
-  padding: 0 15px;
-}
-
-.telegram-header h1 {
-  font-family: var(--font-sans);
-  color: var(--text-dark);
-  font-size: 32px;
-  font-weight: 600;
-  margin: 0;
-  position: relative;
-  display: inline-block;
-}
-
-.telegram-header h1::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -6px;
-  width: 40px;
-  height: 3px;
-  background-color: var(--primary-blue);
-  border-radius: 2px;
-}
-
-/* Điều chỉnh margin-top của telegram-notifications để phù hợp với header mới */
-.telegram-notifications {
-  margin-top: 25px;
-}
-
-/* SIDEBAR */
-.telegram-sidebar {
-  width: 450px; /* Tăng từ 420px lên 450px */
-  border-right: 1px solid var(--border-light);
-  display: flex;
-  flex-direction: column;
-  background-color: var(--surface-light);
-  flex-shrink: 0;
-  transition: width 0.3s ease;
-}
-
-/* Search Section */
-.telegram-search {
-  padding: 16px;
-  border-bottom: 1px solid var(--border-light);
-  background-color: var(--surface-white);
-}
-
-.search-input-container {
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-light);
-  font-size: 15px;
-  transition: all 0.2s ease;
-}
-
-.telegram-search input {
+  color: var(--gray-800);
   width: 100%;
-  padding: 12px 12px 12px 40px;
-  border: none;
-  border-radius: var(--radius-md);
-  background-color: var(--surface-gray);
-  font-size: 15px;
-  outline: none;
-  transition: all 0.3s ease;
-  color: var(--text-dark);
-}
-
-.telegram-search input:focus {
-  background-color: var(--surface-white);
-  box-shadow: 0 0 0 2px var(--primary-light), var(--shadow-xs);
-}
-
-.telegram-search input:focus + .search-icon {
-  color: var(--primary-blue);
-}
-
-.telegram-search input::placeholder {
-  color: var(--text-light);
-}
-
-/* Filters Section */
-.telegram-filters {
-  padding: 12px 16px; /* Tăng padding ngang từ 12px lên 16px */
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-bottom: 1px solid var(--border-light);
-  background-color: var(--surface-white);
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 5;
 }
 
-.telegram-filters::-webkit-scrollbar {
-  display: none;
+/* Header */
+.notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
 }
 
-.filter-btn {
-  background: none;
-  border: none;
-  padding: 8px 14px;
-  border-radius: var(--radius-full);
-  margin-right: 6px; /* Tăng khoảng cách giữa các nút */
-  font-size: 13.5px; /* Giảm font size để nút ngắn hơn */
-  color: var(--text-medium);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-  position: relative;
-  font-weight: 500;
-  flex-shrink: 0; /* Đảm bảo nút không bị co */
+.notif-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-800);
 }
 
-.filter-btn:hover {
-  background-color: var(--surface-gray);
+.notif-header-title i {
   color: var(--primary-blue);
 }
 
-.filter-btn.active {
-  background-color: var(--primary-light);
-  color: var(--primary-blue);
-  font-weight: 600;
-}
-
-.filter-badge {
+.notif-unread-badge {
   background-color: var(--primary-blue);
   color: white;
-  font-size: 11px;
-  border-radius: var(--radius-full);
-  padding: 1px 6px; /* Giảm padding dọc để badge gọn hơn */
-  margin-left: 4px; /* Giảm margin để badge gần với text hơn */
-  font-weight: bold;
-}
-
-/* Chat List */
-.telegram-chat-list {
-  flex-grow: 1;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-
-.telegram-chat-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.telegram-chat-list::-webkit-scrollbar-thumb {
-  background-color: var(--border-light);
-  border-radius: var(--radius-full);
-}
-
-.telegram-chat-item {
-  display: flex;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border-light);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.telegram-chat-item:hover {
-  background-color: var(--primary-lighter);
-}
-
-.telegram-chat-item.selected {
-  background-color: var(--primary-light);
-}
-
-.telegram-chat-item.selected::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 3px;
-  background-color: var(--primary-blue);
-  border-radius: 0 2px 2px 0;
-}
-
-.telegram-chat-item.unread {
-  background-color: var(--primary-lighter);
-}
-
-/* Avatar */
-.telegram-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-full);
-  margin-right: 14px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-weight: 600;
+  font-size: 12px;
+  box-shadow: var(--shadow-sm);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+/* Layout */
+.notif-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  height: calc(100vh - 200px);
+  min-height: 600px;
+  position: relative;
+  z-index: 5;
+}
+
+/* Sidebar */
+.notif-sidebar {
+  background-color: white;
+  border-radius: 16px;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;
+  height: 100%;
+}
+
+/* Search */
+.notif-search {
+  padding: 16px;
+  border-bottom: 1px solid var(--gray-200);
+  background-color: var(--gray-50);
+}
+
+.notif-search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notif-search-input {
+  width: 100%;
+  padding: 12px 16px 12px 40px;
+  border-radius: 100px;
+  border: 1px solid var(--gray-200);
+  background-color: white;
+  font-size: 14px;
+  color: var(--gray-800);
+  transition: all 0.2s ease;
+}
+
+.notif-search-input:focus {
+  outline: none;
+  border-color: var(--primary-lighter);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+.notif-search-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--gray-500);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.notif-search-clear {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--gray-500);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.notif-search-clear:hover {
+  opacity: 1;
+  background-color: var(--gray-100);
+}
+
+/* Filters */
+.notif-filters {
+  display: flex;
+  padding: 12px 16px;
+  gap: 8px;
+  border-bottom: 1px solid var(--gray-200);
+  background-color: white;
+}
+
+.notif-filter-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--gray-600);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.notif-filter-btn i {
+  font-size: 14px;
+}
+
+.notif-filter-btn:hover {
+  background-color: var(--gray-100);
+  color: var(--gray-800);
+}
+
+.notif-filter-btn.active {
+  background-color: var(--primary-lightest);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.notif-filter-badge {
+  background-color: var(--primary-light);
   color: white;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Categories */
+.notif-categories {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 12px;
+  gap: 8px;
+  border-bottom: 1px solid var(--gray-200);
+  background-color: white;
+}
+
+.notif-category-btn {
+  flex: 1;
+  min-width: calc(50% - 8px);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--gray-600);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.notif-category-btn i {
+  font-size: 12px;
+}
+
+.notif-category-btn:hover {
+  background-color: var(--gray-100);
+  color: var(--gray-800);
+}
+
+.notif-category-btn.active {
+  background-color: var(--gray-100);
+  color: var(--gray-800);
+  font-weight: 500;
+  box-shadow: var(--shadow-inner);
+}
+
+/* Category-specific colors */
+.notif-category-btn:nth-child(1).active i {
+  color: var(--primary-blue);
+}
+
+.notif-category-btn:nth-child(2).active i {
+  color: var(--category-health);
+}
+
+.notif-category-btn:nth-child(3).active i {
+  color: var(--category-medicine);
+}
+
+.notif-category-btn:nth-child(4).active i {
+  color: var(--category-vaccine);
+}
+
+.notif-category-btn:nth-child(5).active i {
+  color: var(--category-warning);
+}
+
+/* List */
+.notif-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) var(--gray-100);
+  background-color: white;
+}
+
+.notif-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notif-list::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+
+.notif-list::-webkit-scrollbar-thumb {
+  background-color: var(--gray-300);
+  border-radius: 10px;
+}
+
+/* Item */
+.notif-item {
+  display: flex;
+  padding: 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  background-color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.notif-item:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--gray-200);
+}
+
+.notif-item.selected {
+  background-color: var(--primary-lightest);
+  border-color: var(--primary-lighter);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.notif-item.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 70%;
+  background-color: var(--primary-blue);
+  border-radius: 0 4px 4px 0;
+}
+
+.notif-item.unread .notif-item-title {
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.notif-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease;
 }
 
-.telegram-chat-item:hover .telegram-avatar {
-  transform: scale(1.05);
+.notif-avatar i {
+  font-size: 18px;
+  color: white;
 }
 
-.telegram-avatar.health {
-  background: linear-gradient(135deg, var(--health), #059669);
+/* Avatar colors */
+.notif-item.category-general .notif-avatar {
+  background: linear-gradient(145deg, var(--gray-600), var(--gray-700));
 }
 
-.telegram-avatar.medicine {
-  background: linear-gradient(135deg, var(--medicine), #d97706);
+.notif-item.category-health .notif-avatar {
+  background: linear-gradient(145deg, var(--category-health), #059669);
 }
 
-.telegram-avatar.alert {
-  background: linear-gradient(135deg, var(--alert), #dc2626);
+.notif-item.category-medicine .notif-avatar {
+  background: linear-gradient(145deg, var(--category-medicine), #4f46e5);
 }
 
-.telegram-avatar.activity {
-  background: linear-gradient(135deg, var(--activity), #7c3aed);
+.notif-item.category-vaccine .notif-avatar {
+  background: linear-gradient(145deg, var(--category-vaccine), #0284c7);
 }
 
-.telegram-avatar i {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+.notif-item.category-warning .notif-avatar {
+  background: linear-gradient(145deg, var(--category-warning), #e11d48);
 }
 
-/* Chat Content */
-.telegram-chat-content {
-  flex-grow: 1;
+.notif-item-content {
+  flex: 1;
   overflow: hidden;
 }
 
-.telegram-chat-header {
+.notif-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
 }
 
-.telegram-chat-name {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--text-dark);
-}
-
-.telegram-chat-item.unread .telegram-chat-name {
-  font-weight: 600;
-}
-
-.telegram-chat-time {
-  font-size: 12px;
-  color: var(--text-light);
-  white-space: nowrap;
-  margin-left: 8px;
-}
-
-.telegram-chat-message {
-  display: flex;
-  align-items: center;
-}
-
-.telegram-message-preview {
+.notif-item-title {
   margin: 0;
   font-size: 14px;
-  color: var(--text-light);
+  font-weight: 500;
+  color: var(--gray-800);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex-grow: 1;
+  max-width: 190px;
 }
 
-.telegram-chat-item.unread .telegram-message-preview {
-  color: var(--text-medium);
+.notif-item-time {
+  color: var(--gray-500);
+  font-size: 12px;
+  white-space: nowrap;
 }
 
-.telegram-unread-badge {
+.notif-item-preview {
+  display: flex;
+  align-items: center;
+  color: var(--gray-500);
+  font-size: 13px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.notif-item-unread-dot {
   width: 8px;
   height: 8px;
-  border-radius: var(--radius-full);
   background-color: var(--primary-blue);
-  margin-left: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px white;
 }
 
-/* Actions */
-.telegram-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding: 12px;
-  border-top: 1px solid var(--border-light);
-  background-color: var(--surface-white);
-}
-
-.telegram-action-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-full);
-  background: var(--primary-lighter);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-blue);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.telegram-action-btn:hover {
-  background-color: var(--primary-light);
-}
-
-/* MESSAGE CONTENT */
-.telegram-content {
-  flex-grow: 1;
+/* Empty */
+.notif-empty {
   display: flex;
   flex-direction: column;
-  background-color: var(--surface-white);
-  position: relative;
-}
-
-/* Message Header */
-.telegram-message-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-light);
-  background-color: var(--surface-white);
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+  color: var(--gray-500);
 }
 
-.telegram-message-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-
-.telegram-message-date {
-  font-size: 13px;
-  color: var(--text-light);
-}
-
-.telegram-message-actions {
-  display: flex;
-}
-
-.telegram-icon-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-full);
-  background: none;
-  border: none;
+.notif-empty i {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: var(--gray-300);
+  background-color: var(--gray-100);
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-light);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  border-radius: 50%;
 }
 
-.telegram-icon-btn:hover {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: var(--alert);
+.notif-empty p {
+  margin-bottom: 16px;
+  color: var(--gray-600);
+  font-size: 15px;
 }
 
-/* Message Body */
-.telegram-message-body {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 20px;
-  background-color: var(--surface-gray);
-  scrollbar-width: thin;
-}
-
-.telegram-message-body::-webkit-scrollbar {
-  width: 4px;
-}
-
-.telegram-message-body::-webkit-scrollbar-thumb {
-  background-color: var(--border-light);
-  border-radius: var(--radius-full);
-}
-
-.telegram-message-bubble {
-  max-width: 100%;
-  padding: 18px 20px;
-  border-radius: var(--radius-md);
-  background-color: var(--surface-white);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 12px;
-  position: relative;
-  opacity: 0;
-  animation: slideIn 0.3s ease-out forwards;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.telegram-message-bubble.health {
-  border-left: 4px solid var(--health);
-}
-
-.telegram-message-bubble.medicine {
-  border-left: 4px solid var(--medicine);
-}
-
-.telegram-message-bubble.alert {
-  border-left: 4px solid var(--alert);
-}
-
-.telegram-message-bubble.activity {
-  border-left: 4px solid var(--activity);
-}
-
-.telegram-message-bubble p {
-  margin: 0 0 16px 0;
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--text-dark);
-}
-
-/* Message Footer */
-.telegram-message-footer {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: 20px;
-  gap: 10px;
-}
-
-.telegram-button {
-  padding: 10px 18px;
-  border-radius: var(--radius-md);
+.notif-empty-btn {
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  color: var(--gray-600);
+  border-radius: 50px;
+  padding: 10px 20px;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.telegram-button.primary {
-  background-color: var(--primary-blue);
-  color: white;
+.notif-empty-btn:hover {
+  background-color: var(--gray-200);
+  color: var(--gray-800);
 }
 
-.telegram-button.primary:hover {
-  background-color: var(--primary-dark);
+/* Error */
+.notif-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+  color: var(--gray-500);
+}
+
+.notif-error i {
+  color: var(--status-rejected);
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+
+.notif-retry-btn {
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  color: var(--gray-600);
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  transition: all 0.2s;
+}
+
+.notif-retry-btn:hover {
+  background-color: var(--gray-200);
+  color: var(--gray-800);
+}
+
+/* Actions */
+.notif-actions {
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--gray-200);
+  background-color: var(--gray-50);
+}
+
+.notif-action-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-600);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.notif-action-btn:hover {
+  background-color: var(--primary-lightest);
+  color: var(--primary-dark);
+  border-color: var(--primary-lighter);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 
-/* Empty Content */
-.telegram-empty-content {
-  flex-grow: 1;
+.notif-action-btn:active {
+  transform: translateY(0);
+}
+
+.notif-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Content */
+.notif-content {
+  background-color: white;
+  border-radius: 16px;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;
+  height: 100%;
+}
+
+/* Empty Content */
+.notif-content-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 20px;
-  background-color: var(--surface-gray);
-}
-
-.telegram-empty-content-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-  color: var(--text-light);
-  opacity: 0.7;
-}
-
-.telegram-empty-content h3 {
-  margin: 0 0 10px 0;
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--text-dark);
-}
-
-.telegram-empty-content p {
-  margin: 0;
-  font-size: 15px;
+  justify-content: center;
+  padding: 40px 20px;
   text-align: center;
-  max-width: 300px;
-  color: var(--text-medium);
+  background-color: white;
+}
+
+.notif-content-empty-icon {
+  font-size: 40px;
+  color: var(--gray-300);
+  margin-bottom: 24px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: var(--gray-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--gray-200);
+}
+
+.notif-content-empty h3 {
+  margin: 0 0 12px;
+  color: var(--gray-800);
+  font-size: 20px;
+}
+
+.notif-content-empty p {
+  margin: 0;
+  color: var(--gray-500);
+  font-size: 16px;
+  max-width: 350px;
   line-height: 1.6;
 }
 
-/* Notification Details */
-.notification-details {
-  background-color: var(--surface-light);
-  border-radius: var(--radius-md);
-  padding: 16px 20px;
-  margin-top: 16px;
-  border: 1px solid var(--border-light);
-}
-
-.notification-details h4 {
-  font-size: 16px;
-  margin: 0 0 14px 0;
-  color: var(--text-dark);
+/* Loading */
+.notif-loading {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  flex: 1;
+  gap: 16px;
+}
+
+/* Message */
+.notif-message {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Message Header */
+.notif-message-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, white, var(--gray-50));
+}
+
+.notif-message-info {
+  flex: 1;
+}
+
+.notif-message-title {
+  margin: 0 0 8px 0;
+  color: var(--gray-800);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.notif-message-date {
+  color: var(--gray-500);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notif-message-date i {
+  font-size: 14px;
+  color: var(--gray-400);
+}
+
+.notif-message-actions {
+  display: flex;
   gap: 8px;
 }
 
-.notification-details h4::before {
-  content: '';
-  display: block;
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-full);
-  background-color: var(--primary-blue);
-}
-
-.detail-item {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-left: 3px solid var(--primary-light);
-  background-color: var(--surface-white);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-}
-
-.detail-label {
-  display: block;
-  font-size: 13px;
-  color: var(--primary-blue);
-  margin-bottom: 3px;
-  font-weight: 500;
-}
-
-.detail-value {
-  font-size: 14px;
-  color: var(--text-dark);
-}
-
-.detail-value.warning {
-  color: var(--medicine);
-  font-weight: 500;
-  padding: 2px 8px;
-  background-color: rgba(245, 158, 11, 0.1);
-  border-radius: var(--radius-sm);
-  display: inline-block;
-}
-
-.symptoms-list {
-  margin: 6px 0 0 0;
-  padding-left: 15px;
-  list-style: none;
-}
-
-.symptoms-list li {
-  margin-bottom: 6px;
-  position: relative;
-  padding: 6px 10px;
-  background-color: rgba(239, 68, 68, 0.05);
-  border-radius: var(--radius-sm);
-}
-
-.symptoms-list li::before {
-  content: '•';
-  position: absolute;
-  left: -10px;
-  top: 6px;
-  color: var(--alert);
-}
-
-/* Loading styles */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-  text-align: center;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  margin: 20px auto;
-  width: 100%;
-  padding: 40px;
-}
-
-.spinner-container {
-  margin-bottom: 20px;
-}
-
-.spinner-border {
-  display: inline-block;
-  width: 60px;
-  height: 60px;
-  border: 5px solid rgba(52, 152, 219, 0.2);
+.notif-message-btn {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border-top-color: #3498db;
-  animation: spin 1s linear infinite;
-  box-sizing: border-box;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-container p {
-  font-size: 1.1rem;
-  color: #4a5568;
-  margin-top: 15px;
-  font-weight: 500;
-}
-
-/* Empty state */
-.empty-state {
+  background: white;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-600);
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 0;
-  color: var(--text-light);
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
-.empty-state i {
-  font-size: 40px;
-  margin-bottom: 15px;
-  opacity: 0.7;
+.notif-message-btn:hover {
+  background-color: var(--status-rejected-light);
+  color: var(--status-rejected);
+  border-color: rgba(239, 68, 68, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
 }
 
-.empty-state p {
+.notif-message-btn:active {
+  transform: translateY(0);
+}
+
+/* Message Body */
+.notif-message-body {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background-color: white;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) var(--gray-100);
+}
+
+.notif-message-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notif-message-body::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+
+.notif-message-body::-webkit-scrollbar-thumb {
+  background-color: var(--gray-300);
+  border-radius: 10px;
+}
+
+/* Message Bubble */
+.notif-message-bubble {
+  background-color: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 16px;
+}
+
+/* Sender */
+.notif-sender {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: var(--gray-700);
   font-size: 15px;
-  text-align: center;
-  max-width: 270px;
-  margin: 0;
-  color: var(--text-medium);
-  line-height: 1.6;
+  border-bottom: 1px solid var(--gray-100);
+  padding-bottom: 16px;
 }
 
-/* Responsive styles */
-@media (max-width: 1400px) {
-  .telegram-sidebar {
-    width: 400px; /* Điều chỉnh phù hợp với màn hình nhỏ hơn */
-  }
-  
-  .filter-btn {
-    padding: 8px 12px; /* Giảm padding ngang để tiết kiệm không gian */
-    margin-right: 5px; /* Giảm margin để các nút gần nhau hơn */
-  }
+.notif-sender i {
+  width: 36px;
+  height: 36px;
+  background-color: var(--primary-lightest);
+  color: var(--primary-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
 }
 
-@media (max-width: 1200px) {
-  .telegram-sidebar {
-    width: 380px;
-  }
-  
-  .filter-btn {
-    padding: 8px 10px;
-    font-size: 13px;
-  }
-  
-  .telegram-notifications {
-    max-width: 98%;
-  }
+.notif-sender strong {
+  color: var(--gray-800);
 }
 
+/* Message Content */
+.notif-message-content {
+  color: var(--gray-800);
+  line-height: 1.7;
+  font-size: 16px;
+  margin-bottom: 24px;
+  background-color: var(--gray-50);
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid var(--primary-light);
+}
+
+.notif-message-content p {
+  margin-bottom: 16px;
+}
+
+.notif-message-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Status */
+.notif-status {
+  padding: 16px 20px;
+  background-color: var(--gray-50);
+  border-radius: 12px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--gray-200);
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.notif-status-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  color: var(--gray-700);
+}
+
+/* Status Badges */
+.notif-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 13px;
+  gap: 6px;
+}
+
+.notif-status-badge.accepted {
+  background-color: var(--status-accepted);
+  color: white;
+  box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
+}
+
+.notif-status-badge.pending {
+  background-color: var(--status-pending);
+  color: white;
+  box-shadow: 0 2px 5px rgba(245, 158, 11, 0.3);
+}
+
+.notif-status-badge.rejected {
+  background-color: var(--status-rejected);
+  color: white;
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+}
+
+.notif-status-badge i {
+  font-size: 12px;
+}
+
+.notif-response-time {
+  color: var(--gray-600);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notif-response-time i {
+  font-size: 14px;
+  color: var(--gray-400);
+}
+
+/* Response Buttons */
+.notif-response-buttons {
+  margin-top: 24px;
+  display: flex;
+  gap: 16px;
+  border-top: 1px solid var(--gray-200);
+  padding-top: 24px;
+}
+
+.notif-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 140px;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.notif-btn-primary {
+  background-color: var(--status-accepted);
+  color: white;
+  border: none;
+}
+
+.notif-btn-primary:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.notif-btn-primary:active {
+  transform: translateY(0);
+}
+
+.notif-btn-secondary {
+  background-color: white;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-200);
+}
+
+.notif-btn-secondary:hover {
+  background-color: var(--status-rejected-light);
+  color: var(--status-rejected);
+  border-color: rgba(239, 68, 68, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.1);
+}
+
+.notif-btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
 @media (max-width: 992px) {
-  .telegram-notifications {
-    flex-direction: column;
-    height: auto;
-    max-height: calc(100vh - 100px);
-  }
-  
-  .telegram-sidebar {
-    width: 100%;
-    max-height: 45vh;
-    border-right: none;
-    border-bottom: 1px solid var(--border-light);
-  }
-  
-  .telegram-content {
-    height: 55vh;
-  }
-  
-  .telegram-filters {
-    padding: 12px 14px;
-    justify-content: flex-start;
-    overflow-x: auto;
-  }
-  
-  .filter-btn {
-    flex-shrink: 0;
-    margin-right: 8px; /* Tăng khoảng cách giữa các nút trên mobile */
-    font-size: 13px;
+  .notif-layout {
+    grid-template-columns: 300px 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .telegram-notifications {
-    margin-top: 70px;
-    max-width: 100%;
-    border-radius: 0;
+  .notif-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 16px;
   }
   
-  .telegram-sidebar {
-    max-height: 40vh;
+  .notif-sidebar {
+    height: 400px;
   }
   
-  .telegram-content {
-    height: 60vh;
+  .notif-content {
+    min-height: 500px;
+  }
+  
+  .notif-categories {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .notif-response-buttons {
+    flex-direction: column;
   }
 }
 
 @media (max-width: 576px) {
-  .telegram-notifications {
-    height: calc(100vh - 70px);
+  .notif-message-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
   
-  .telegram-sidebar {
-    max-height: 35vh;
+  .notif-message-actions {
+    align-self: flex-end;
   }
   
-  .telegram-content {
-    height: 65vh;
+  .notif-status {
+    flex-direction: column;
+    align-items: flex-start;
   }
   
-  .telegram-chat-item {
-    padding: 12px;
-  }
-  
-  .telegram-avatar {
-    width: 42px;
-    height: 42px;
-    margin-right: 12px;
-  }
-  
-  .telegram-message-footer {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 768px) {
-  .telegram-header {
-    margin-top: 20px;
-    margin-bottom: 10px;
-  }
-  
-  .telegram-header h1 {
-    font-size: 28px;
-  }
-  
-  .telegram-notifications {
-    margin-top: 20px;
+  .notif-response-time {
+    align-self: flex-start;
+    margin-left: 0;
+    margin-top: 8px;
   }
 }
