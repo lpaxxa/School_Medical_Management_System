@@ -98,7 +98,7 @@ const endpoints = {
   
   // Health profile endpoints
   healthProfiles: {
-    getByStudentId: (studentId) => `${API_URL}/health-profiles/${studentId}`,
+    getByStudentId: (studentId) => `${API_URL}/health-profiles/student/${studentId}`,
     submitDeclaration: `${API_URL}/health-profiles`
   },
   

@@ -12,6 +12,16 @@ const VaccinationModal = ({
 }) => {
   if (!isOpen) return null;
 
+  // Debug log
+  console.log('🔍 VaccinationModal render with props:', {
+    isOpen,
+    isLoading,
+    error,
+    vaccinationDetail,
+    vaccinationDetailType: typeof vaccinationDetail,
+    vaccinationDetailKeys: vaccinationDetail ? Object.keys(vaccinationDetail) : null
+  });
+
   const { 
     modalOverlayClass, 
     modalContentClass, 
@@ -50,15 +60,21 @@ const VaccinationModal = ({
                 <div className="info-content">
                   <div className="info-row">
                     <span className="info-label">Họ tên:</span>
-                    <span className="info-value">{vaccinationDetail.studentName}</span>
+                    <span className="info-value">
+                      {vaccinationDetail.studentName || "Không có thông tin"}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Mã học sinh:</span>
-                    <span className="info-value">{vaccinationDetail.studentId}</span>
+                    <span className="info-value">
+                      {vaccinationDetail.studentId || "Không có thông tin"}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Lớp:</span>
-                    <span className="info-value">{vaccinationDetail.className}</span>
+                    <span className="info-value">
+                      {vaccinationDetail.className || "Không có thông tin"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -71,23 +87,35 @@ const VaccinationModal = ({
                 <div className="info-content">
                   <div className="info-row">
                     <span className="info-label">Tên vắc xin:</span>
-                    <span className="info-value">{vaccinationDetail.vaccineName}</span>
+                    <span className="info-value">
+                      {vaccinationDetail.vaccineName || "Không có thông tin"}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Ngày tiêm:</span>
-                    <span className="info-value">{formatDateTime(vaccinationDetail.vaccinationDate)}</span>
+                    <span className="info-value">
+                      {vaccinationDetail.vaccinationDate
+                        ? formatDateTime(vaccinationDetail.vaccinationDate)
+                        : "Không có thông tin"}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Địa điểm:</span>
-                    <span className="info-value">{vaccinationDetail.administeredAt}</span>
+                    <span className="info-value">
+                      {vaccinationDetail.administeredAt || "Không có thông tin"}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Người thực hiện:</span>
-                    <span className="info-value">{vaccinationDetail.administeredBy}</span>
+                    <span className="info-value">
+                      {vaccinationDetail.administeredBy || "Không có thông tin"}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Mũi thứ:</span>
-                    <span className="info-value">{vaccinationDetail.doseNumber}</span>
+                    <span className="info-value">
+                      {vaccinationDetail.doseNumber || "Không có thông tin"}
+                    </span>
                   </div>
                   {vaccinationDetail.nextDoseDate && (
                     <div className="info-row">
@@ -100,7 +128,9 @@ const VaccinationModal = ({
                   {vaccinationDetail.notes && (
                     <div className="info-row notes-row">
                       <span className="info-label">Ghi chú:</span>
-                      <span className="info-value">{vaccinationDetail.notes}</span>
+                      <span className="info-value">
+                        {vaccinationDetail.notes}
+                      </span>
                     </div>
                   )}
                 </div>

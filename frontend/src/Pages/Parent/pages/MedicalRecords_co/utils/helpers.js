@@ -63,3 +63,26 @@ export const modalClasses = {
   closeModalBtnClass: "close-modal-btn",
   modalSectionClass: "modal-section"
 };
+
+export const clearCache = (key) => {
+  try {
+    localStorage.removeItem(key);
+    console.log(`Cache cleared for key: ${key}`);
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+  }
+};
+
+export const clearAllHealthProfileCache = () => {
+  try {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith('healthProfile_')) {
+        localStorage.removeItem(key);
+      }
+    });
+    console.log('All health profile cache cleared');
+  } catch (error) {
+    console.error('Error clearing all cache:', error);
+  }
+};

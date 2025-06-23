@@ -21,8 +21,8 @@ import GrowthTab from "./components/tabs/GrowthTab";
 import { cacheData, getCachedData } from "./utils/helpers";
 
 const MedicalRecord = () => {
-  // --- STATE HOOKS ---
-  const { healthProfileId } = useParams();
+  // Đổi từ healthProfileId thành studentId
+  const { studentId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
   const [isLoadingGeneral, setIsLoadingGeneral] = useState(true);
@@ -46,9 +46,9 @@ const MedicalRecord = () => {
     setModalImage(null);
   };
 
-  // Khởi tạo selectedStudent dựa vào healthProfileId từ URL
+  // Khởi tạo selectedStudent dựa vào studentId từ URL
   useEffect(() => {
-    if (!students) return; // Đợi context sẵn sàng
+    if (!students) return;
 
     if (students.length === 0) {
       setSelectedStudent(null);
@@ -57,9 +57,9 @@ const MedicalRecord = () => {
       return;
     }
 
-    // Tìm học sinh phù hợp với healthProfileId
+    // Tìm học sinh phù hợp với studentId từ URL
     let foundStudent = students.find(
-      (s) => s && String(s.healthProfileId) === String(healthProfileId)
+      (s) => s && String(s.id) === String(studentId)
     );
 
     // Nếu không tìm thấy, dùng học sinh đầu tiên
@@ -70,7 +70,7 @@ const MedicalRecord = () => {
     setSelectedStudent(foundStudent || null);
     setSelectedStudentId(foundStudent ? foundStudent.id : null);
     setHasInitialized(true);
-  }, [students, healthProfileId]);
+  }, [students, studentId]);
 
   // Handler cho sự kiện thay đổi học sinh
   const handleStudentChange = (e) => {
@@ -85,44 +85,47 @@ const MedicalRecord = () => {
       setSelectedStudent(student);
       setSelectedStudentId(student.id);
 
-      // Chỉ navigate nếu có healthProfileId
-      if (student.healthProfileId) {
-        navigate(`/parent/health-profile/${student.healthProfileId}`, {
-          replace: true,
-        });
-      } else {
-        // Log thông báo nếu không có healthProfileId
-        console.log("Học sinh này chưa có hồ sơ y tế");
-      }
+      // Navigate với student ID thay vì healthProfileId
+      navigate(`/health-profile/student/${student.id}`, {
+        replace: true,
+      });
     } catch (err) {
       console.error("Error in handleStudentChange:", err);
     }
   };
 
-  // Fetch dữ liệu sức khỏe tổng quát từ API khi selectedStudentId thay đổi
-  const fetchHealthProfile = async () => {
-    if (!selectedStudentId) return;
+  // Fetch dữ liệu sức khỏe tổng quát từ API khi selectedStudent thay đổi
+  const fetchHealthProfile = async (useCache = false) => {
+    if (!selectedStudent || !selectedStudent.id) return;
 
     setIsLoadingGeneral(true);
     setHealthProfileError(null);
 
     try {
-      // Check cache first
-      const cacheKey = `healthProfile_${selectedStudentId}`;
-      const cachedData = getCachedData(cacheKey);
+      const cacheKey = `healthProfile_${selectedStudent.id}`;
 
-      if (cachedData) {
-        setHealthProfileData(cachedData);
-        setIsLoadingGeneral(false);
-        return;
+      // Chỉ sử dụng cache khi useCache = true
+      if (useCache) {
+        const cachedData = getCachedData(cacheKey);
+        if (cachedData) {
+          setHealthProfileData(cachedData);
+          setIsLoadingGeneral(false);
+          return;
+        }
       }
 
-      // Không có cache, gọi API
-      const response = await medicalService.getHealthProfile(selectedStudentId);
-      setHealthProfileData(response.data);
+      // Luôn gọi API để lấy dữ liệu mới nhất
+      console.log(
+        "Fetching fresh health profile data for student:",
+        selectedStudent.id
+      );
+      const response = await medicalService.getHealthProfile(
+        selectedStudent.id
+      );
+      setHealthProfileData(response);
 
-      // Cache data
-      cacheData(cacheKey, response.data);
+      // Cache data mới (optional)
+      cacheData(cacheKey, response);
     } catch (err) {
       console.error("Error fetching health profile:", err);
       setHealthProfileError(
@@ -133,20 +136,39 @@ const MedicalRecord = () => {
     }
   };
 
-  // Thêm useEffect để gọi API mỗi khi selectedStudentId thay đổi
+  // Thêm useEffect để gọi API mỗi khi selectedStudent thay đổi (không dùng cache)
   useEffect(() => {
-    if (!selectedStudentId || !hasInitialized) return;
-    fetchHealthProfile();
-  }, [selectedStudentId, hasInitialized]);
+    if (!selectedStudent || !selectedStudent.id || !hasInitialized) return;
+
+    console.log("Selected student changed, fetching fresh data");
+    fetchHealthProfile(false); // Không sử dụng cache
+  }, [selectedStudent, hasInitialized]);
+
+  // Thêm useEffect để gọi API mỗi khi activeTab thay đổi về "general"
+  useEffect(() => {
+    if (activeTab === "general" && selectedStudent && selectedStudent.id) {
+      console.log("General tab activated, fetching fresh data");
+      fetchHealthProfile(false); // Không sử dụng cache
+    }
+  }, [activeTab, selectedStudent]);
 
   // Thêm useEffect để đăng ký lắng nghe sự kiện cập nhật hồ sơ sức khỏe
   useEffect(() => {
-    if (!selectedStudentId) return;
+    if (!selectedStudent || !selectedStudent.id) return;
 
-    const handleProfileUpdate = (data) => {
-      if (data && data.studentId === selectedStudentId) {
-        console.log("Received health profile update event", data);
-        fetchHealthProfile();
+    const handleProfileUpdate = (studentId, data) => {
+      if (studentId === selectedStudent.id) {
+        console.log(
+          "Received health profile update event for student:",
+          studentId,
+          data
+        );
+
+        // Xóa cache cũ và fetch lại
+        const cacheKey = `healthProfile_${selectedStudent.id}`;
+        localStorage.removeItem(cacheKey);
+
+        fetchHealthProfile(false); // Không sử dụng cache
       }
     };
 
@@ -158,7 +180,7 @@ const MedicalRecord = () => {
     return () => {
       unsubscribe();
     };
-  }, [selectedStudentId]);
+  }, [selectedStudent]);
 
   // Hiển thị trạng thái loading
   if (isLoadingGeneral && !healthProfileData) {
@@ -242,7 +264,7 @@ const MedicalRecord = () => {
               isLoading={isLoadingGeneral}
               error={healthProfileError}
               studentId={selectedStudentId}
-              onRefresh={fetchHealthProfile}
+              onRefresh={() => fetchHealthProfile(false)} // Force fresh data
             />
           )}
 

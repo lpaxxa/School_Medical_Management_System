@@ -187,15 +187,6 @@ const GeneralTab = ({ healthProfileData, isLoading, error, studentId, onRefresh 
               </p>
             </div>
           </div>
-
-          {/* Thêm nút làm mới dữ liệu */}
-          <button
-            className="refresh-button"
-            onClick={onRefresh}
-            disabled={isLoading}
-          >
-            <FaSyncAlt /> Làm mới dữ liệu
-          </button>
         </>
       )}
     </div>

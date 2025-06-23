@@ -17,38 +17,26 @@ const IncidentsTab = ({ studentId }) => {
   const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
 
   useEffect(() => {
-    if (!studentId) return;
-    
-    const fetchIncidents = async () => {
-      setIsLoadingIncidents(true);
-      setIncidentsError(null);
-      
+    const fetchIncidentsData = async () => {
+      if (!studentId || typeof studentId !== 'number') {
+        console.log('Invalid studentId:', studentId);
+        return;
+      }
+
       try {
-        // Check cache first
-        const cacheKey = `incidents_${studentId}`;
-        const cachedData = getCachedData(cacheKey);
-        
-        if (cachedData) {
-          setMedicalIncidents(cachedData);
-          setIsLoadingIncidents(false);
-          return;
-        }
-        
-        const response = await medicalService.getMedicalIncidents(studentId);
-        const incidents = response.data || [];
-        setMedicalIncidents(incidents);
-        
-        // Cache data
-        cacheData(cacheKey, incidents);
-      } catch (err) {
-        console.error('Error fetching incidents:', err);
-        setIncidentsError('Không thể tải dữ liệu sự cố y tế. Vui lòng thử lại sau.');
+        setIsLoadingIncidents(true);
+        // Sử dụng studentId (number, ví dụ: 1)
+        const data = await medicalService.getMedicalIncidents(studentId);
+        setMedicalIncidents(data);
+      } catch (error) {
+        console.error('Error fetching incidents data:', error);
+        setIncidentsError('Không thể tải dữ liệu sự cố y tế');
       } finally {
         setIsLoadingIncidents(false);
       }
     };
-    
-    fetchIncidents();
+
+    fetchIncidentsData();
   }, [studentId]);
 
   const openIncidentModal = (incident) => {

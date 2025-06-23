@@ -459,10 +459,10 @@ const HealthDeclaration = () => {
         const eventBus = module.default;
         eventBus.emit(
           "healthProfileUpdated",
-          updatedProfileData.id,
-          updatedProfileData // Gửi dữ liệu đầy đủ từ server
+          updatedProfileData.id, // studentId
+          updatedProfileData     // dữ liệu đầy đủ
         );
-        console.log("Đã gửi sự kiện cập nhật cho ID:", updatedProfileData.id);
+        console.log("Đã gửi sự kiện cập nhật cho student ID:", updatedProfileData.id);
       });
 
       // Hiển thị thông báo thành công
