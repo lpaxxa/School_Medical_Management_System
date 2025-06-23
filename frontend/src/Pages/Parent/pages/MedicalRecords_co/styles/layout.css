@@ -16,9 +16,10 @@
 }
 
 .header-content h1 {
-  color: #2c3e50;
+  font-size: 2.2rem;
+  color: #2980B9;
   margin-bottom: 5px;
-  font-weight: 600;
+  font-weight: 2000;
 }
 
 /* Thêm style mới cho phần student-basic-info */
