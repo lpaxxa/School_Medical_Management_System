@@ -139,6 +139,7 @@ public class StudentServiceImpl implements StudentService {
         dto.setClassName(student.getClassName());
         dto.setGradeLevel(student.getGradeLevel());
         dto.setSchoolYear(student.getSchoolYear());
+        dto.setImageUrl(student.getImageUrl()); // Thêm dòng này để lấy URL ảnh
 
         if (student.getHealthProfile() != null) {
             dto.setHealthProfileId(student.getHealthProfile().getId());
@@ -162,6 +163,7 @@ public class StudentServiceImpl implements StudentService {
         student.setClassName(dto.getClassName());
         student.setGradeLevel(dto.getGradeLevel());
         student.setSchoolYear(dto.getSchoolYear());
+        student.setImageUrl(dto.getImageUrl()); // Thêm dòng này để thiết lập URL ảnh
 
         // Thiết lập HealthProfile nếu có
         if (dto.getHealthProfileId() != null) {

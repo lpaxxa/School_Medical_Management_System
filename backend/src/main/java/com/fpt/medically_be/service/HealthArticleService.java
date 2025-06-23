@@ -12,4 +12,13 @@ public interface HealthArticleService {
     List<HealthArticleDTO> getRelatedArticles(Long articleId, String category);
     HealthArticleDTO createArticle(HealthArticleCreateDTO createDTO);
     void deleteArticle(Long id);
+
+    /**
+     * Cập nhật đường dẫn hình ảnh của bài viết y tế
+     *
+     * @param id ID của bài viết cần cập nhật
+     * @param imageUrl Đường dẫn hình ảnh mới
+     * @return HealthArticleDTO đối tượng bài viết sau khi cập nhật
+     */
+    HealthArticleDTO updateArticleImage(Long id, String imageUrl);
 }

@@ -97,6 +97,20 @@ public class HealthArticleServiceImpl implements HealthArticleService {
         healthArticleRepository.save(article);
     }
 
+    @Override
+    public HealthArticleDTO updateArticleImage(Long id, String imageUrl) {
+        HealthArticle article = healthArticleRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy bài viết với ID: " + id));
+
+        // Cập nhật đường dẫn hình ảnh mới
+        article.setImageUrl(imageUrl);
+
+        // Lưu thay đổi vào cơ sở dữ liệu
+        HealthArticle updatedArticle = healthArticleRepository.save(article);
+
+        return mapToDTO(updatedArticle);
+    }
+
     private HealthArticleDTO mapToDTO(HealthArticle article) {
         HealthArticleDTO dto = HealthArticleDTO.builder()
                 .id(article.getId())
