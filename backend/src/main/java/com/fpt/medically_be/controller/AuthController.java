@@ -21,7 +21,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.view.RedirectView;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -123,39 +126,62 @@ public class AuthController {
     }
 
     @GetMapping("/oauth2/success")
-    public ResponseEntity<AuthResponseDTO> oauth2Success(
+    public RedirectView oauth2Success(
             @RequestParam(required = false) String code, 
             @RequestParam(required = false) String state, 
             @RequestParam(required = false) String error) {
         
+        String frontendUrl = "http://localhost:5173/auth/oauth2/callback";
+        
         if (error != null) {
             logger.warning("OAuth2 login failed: " + error);
-            return ResponseEntity.badRequest().body(null);
+            return new RedirectView(frontendUrl + "?error=" + URLEncoder.encode(error, StandardCharsets.UTF_8));
         }
 
-        AccountMember accountMember = authService.processOAuth2Callback(code, state);
-        if (accountMember == null) {
-            // User tried to login with Google but no account exists
-            logger.warning("OAuth2 login failed: No account found. User must be created by admin first.");
-            return ResponseEntity.status(401)
-                    .header("X-Auth-Error", "NO_ACCOUNT_FOUND")
-                    .header("X-Auth-Message", "Your Google account is not registered. Please contact admin to create your account.")
-                    .body(null);
-        }
+        try {
+            AccountMember accountMember = authService.processOAuth2Callback(code, state);
+            if (accountMember == null) {
+                // User tried to login with Google but no account exists
+                logger.warning("OAuth2 login failed: No account found. User must be created by admin first.");
+                String errorMessage = "Your Google account is not registered. Please contact admin to create your account.";
+                return new RedirectView(frontendUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
+            }
 
-        AuthResponseDTO authResponseDTO = new AuthResponseDTO().toObject(accountMember);
-        authResponseDTO.setToken(jwtService.generateToken(
-                accountMember.getId(),
-                accountMember.getEmail(),
-                accountMember.getPhoneNumber(),
-                accountMember.getRole()
-        ));
-        return ResponseEntity.ok(authResponseDTO);
+            // Generate JWT token
+            String token = jwtService.generateToken(
+                    accountMember.getId(),
+                    accountMember.getEmail(),
+                    accountMember.getPhoneNumber(),
+                    accountMember.getRole()
+            );
+
+            // Redirect to frontend with user data
+            String redirectUrl = String.format(
+                "%s?token=%s&memberId=%s&email=%s&role=%s&phoneNumber=%s",
+                frontendUrl,
+                URLEncoder.encode(token, StandardCharsets.UTF_8),
+                URLEncoder.encode(accountMember.getId(), StandardCharsets.UTF_8),
+                URLEncoder.encode(accountMember.getEmail(), StandardCharsets.UTF_8),
+                URLEncoder.encode(accountMember.getRole().name(), StandardCharsets.UTF_8),
+                URLEncoder.encode(accountMember.getPhoneNumber() != null ? accountMember.getPhoneNumber() : "", StandardCharsets.UTF_8)
+            );
+            
+            logger.info("OAuth2 login successful, redirecting to: " + redirectUrl);
+            return new RedirectView(redirectUrl);
+            
+        } catch (Exception e) {
+            logger.warning("OAuth2 processing error: " + e.getMessage());
+            String errorMessage = "OAuth2 authentication failed: " + e.getMessage();
+            return new RedirectView(frontendUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
+        }
     }
 
     @GetMapping("/oauth2/failure")
-    public ResponseEntity<String> oauth2Failure() {
-        return ResponseEntity.status(401).body("OAuth2 authentication failed");
+    public RedirectView oauth2Failure() {
+        String frontendUrl = "http://localhost:5173/auth/oauth2/callback";
+        String errorMessage = "OAuth2 authentication failed";
+        logger.warning("OAuth2 authentication failed, redirecting to frontend");
+        return new RedirectView(frontendUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
     }
 
     @GetMapping("/me")

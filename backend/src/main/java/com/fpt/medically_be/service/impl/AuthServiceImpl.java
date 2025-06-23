@@ -184,10 +184,7 @@ public class AuthServiceImpl implements AuthService {
             OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) auth;
             OAuth2User oauth2User = token.getPrincipal();
             String email = oauth2User.getAttribute("email");
-            String name = oauth2User.getAttribute("name");
-            
             logger.info("OAuth2 email: " + email);
-            logger.info("OAuth2 name: " + name);
             
             // Only allow login for existing users (accounts created by admin)
             Optional<AccountMember> existingUser = accountMemberRepos.findAccountMemberByEmail(email);

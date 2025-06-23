@@ -4,7 +4,7 @@ import com.fpt.medically_be.entity.AdministrationStatus;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Builder
@@ -12,7 +12,7 @@ public class ParentMedicationAdministrationNotificationDTO {
     private Long administrationId;
     private String medicationName;
     private String studentName;
-    private LocalDateTime administeredAt;
+    private Date administeredAt;
     private String administeredBy;
     private AdministrationStatus administrationStatus;
     private String notes;

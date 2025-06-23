@@ -21,7 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -131,7 +131,7 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
 
 
     @Override
-    public PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByDateRange(LocalDateTime start, LocalDateTime end, int page, int size) {
+    public PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByDateRange(Date start, Date end, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<MedicationAdministration> administrations = administrationRepository.findByAdministeredAtBetweenOrderByAdministeredAtDesc(start, end, pageable);
         

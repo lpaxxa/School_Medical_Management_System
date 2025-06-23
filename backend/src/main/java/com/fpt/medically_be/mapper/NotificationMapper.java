@@ -85,7 +85,7 @@ public class NotificationMapper {
             case SUCCESSFUL:
                 return String.format("Your child %s has successfully received %s at %s.", 
                     record.getStudentName(), record.getMedicationName(), 
-                    record.getAdministeredAt().toLocalTime().toString());
+                    record.getAdministeredAt().toString());
             case REFUSED:
                 return String.format("Your child %s refused to take %s. Please contact the school for more details.", 
                     record.getStudentName(), record.getMedicationName());

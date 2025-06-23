@@ -13,7 +13,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
 
-  const { login, authError } = useAuth();
+  const { login, loginWithGoogle, authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
@@ -29,7 +29,12 @@ const Login = () => {
       const savedUsername = localStorage.getItem("savedUsername");
       if (savedUsername) setUsername(savedUsername);
     }
-  }, []);
+
+    // Check for Google OAuth error from callback
+    if (location.state?.error) {
+      setError(location.state.error);
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,10 +83,12 @@ const Login = () => {
 
 
   const handleGoogleLogin = () => {
-    // Implementation for Google login would go here
-    // For now, just showing an alert
-    alert("Tính năng đăng nhập Google đang được phát triển");
-
+    try {
+      loginWithGoogle();
+    } catch (error) {
+      console.error('Error initiating Google login:', error);
+      setError('Không thể khởi tạo đăng nhập Google. Vui lòng thử lại.');
+    }
   };
 
   return (
