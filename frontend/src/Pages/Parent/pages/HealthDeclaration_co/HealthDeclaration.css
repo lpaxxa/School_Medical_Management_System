@@ -1,4 +1,4 @@
-Thiết lập chung
+/* Thiết lập chung */
 :root {
   --primary-color: #154082;
   --primary-light: #3b82f6;
@@ -56,10 +56,12 @@ Thiết lập chung
 }
 
 .health-declaration-header h1 {
-  color: var(--dark-color);
+  color: #2980b9;
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 10px 0;
+  /* Thêm một chút text-shadow để làm nổi bật tiêu đề */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .health-declaration-header p {
@@ -217,13 +219,6 @@ Thiết lập chung
   object-fit: cover;
   margin-right: 12px;
   border: 1px solid #e2e8f0;
-}
-
-.student-avatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
 }
 
 .student-tab-info {
@@ -994,3 +989,4 @@ Thiết lập chung
     margin-bottom: 4px;
   }
 }
+
