@@ -144,18 +144,6 @@ const ParentRoutes = () => {
     />,
 
     <Route
-      key="parent-health-profile"
-      path="/parent/health-profile/:healthProfileId"
-      element={
-        <ProtectedRoute allowedRoles={["parent"]}>
-          <MainLayout>
-            <MedicalRecords />
-          </MainLayout>
-        </ProtectedRoute>
-      }
-/>,
-
-    <Route
       key="parent-community"
       path="/parent/community"
       element={
