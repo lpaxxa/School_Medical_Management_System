@@ -32,4 +32,6 @@ public interface NotificationRecipientsRepo extends JpaRepository<NotificationRe
     );
 
     NotificationRecipients findByIdAndStudent_StudentId(Long id, String studentStudentId);
+
+    List<NotificationRecipients> findByNotification_IdAndResponse(Long notificationId, ResponseStatus response);
 }

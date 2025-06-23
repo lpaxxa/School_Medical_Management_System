@@ -103,6 +103,13 @@ public class NotificationController {
     public ResponseEntity<?> getVacineByStudentIdAndNotiID(@PathVariable("studentId") String studentId, @PathVariable("id") Long id) {
         return ResponseEntity.ok(notification2Service.getVacineByStudentIdAndNotiID(studentId, id));
     }
+
+    @Operation(summary = "Lấy thông báo đã chấp nhận", description = "Lấy danh sách thông báo đã chấp nhận theo ID và trạng thái phản hồi")
+    // id của Notification, còn response của NotificationRecipients
+    @GetMapping("/getNotificationAcceptedByIdAndResponse/{id}/{response}")
+    public ResponseEntity<?> getNotificationAcceptedByIdAndResponse(@PathVariable("id") Long id, @PathVariable("response") ResponseStatus response) {
+        return ResponseEntity.ok(notification2Service.getNotificationAcceptedByIdAndResponse(id, response));
+    }
 }
 
 

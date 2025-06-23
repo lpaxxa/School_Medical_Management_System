@@ -3,21 +3,16 @@ package com.fpt.medically_be.service.impl;
 import com.fpt.medically_be.dto.VaccinationDTO;
 import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
 import com.fpt.medically_be.dto.response.VaccinationDetailResponse;
-import com.fpt.medically_be.entity.HealthProfile;
-import com.fpt.medically_be.entity.NotificationRecipients;
-import com.fpt.medically_be.entity.Student;
-import com.fpt.medically_be.entity.Vaccination;
+import com.fpt.medically_be.entity.*;
 import com.fpt.medically_be.mapper.VaccinationMapper;
-import com.fpt.medically_be.repos.HealthProfileRepository;
-import com.fpt.medically_be.repos.NotificationRecipientsRepo;
-import com.fpt.medically_be.repos.StudentRepository;
-import com.fpt.medically_be.repos.VaccinationRepository;
+import com.fpt.medically_be.repos.*;
 import com.fpt.medically_be.service.VaccinationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,7 +30,8 @@ public class VaccinationServiceImpl implements VaccinationService {
     private VaccinationMapper vaccinationMapper;
     @Autowired
     private NotificationRecipientsRepo notificationRecipientsRepo;
-
+    @Autowired
+    private NurseRepository nurseRepository;
 
 
 
@@ -96,7 +92,17 @@ public class VaccinationServiceImpl implements VaccinationService {
         HealthProfile heathProfile = healthProfileRepository
                 .findById(vaccinationRequestDTO.getHealthProfileId()).orElseThrow(() -> new EntityNotFoundException("Health Profile Not Found"));
 
+        NotificationRecipients nr = notificationRecipientsRepo.findById(vaccinationRequestDTO.getNotificationRecipientID())
+                .orElseThrow(() -> new EntityNotFoundException("Notification Recipient Not Found"));
+
+        Nurse staff = nurseRepository.findById(vaccinationRequestDTO.getAdministeredBy())
+                .orElseThrow(() -> new EntityNotFoundException("Medical Staff Not Found"));
+
         Vaccination vaccination = vaccinationMapper.toVaccinationDetailRequest(vaccinationRequestDTO);
+        vaccination.setHealthProfile(heathProfile);
+        vaccination.setNotificationRecipient(nr);
+        vaccination.setNurse(staff);
+        vaccination.setVaccinationDate(LocalDateTime.now());
         Vaccination savedVaccination = vaccinationRepository.save(vaccination);
         return vaccinationMapper.toVaccinationDetailResponse(savedVaccination);
     }
