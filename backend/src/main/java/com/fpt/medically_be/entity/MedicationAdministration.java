@@ -36,6 +36,10 @@ public class MedicationAdministration {
     @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
     private String notes;
     
+    // URL of confirmation image
+    @Column(name = "confirmation_image_url", columnDefinition = "NVARCHAR(255)")
+    private String confirmationImageUrl;
+
     @Column(name = "created_at")
     private Date createdAt;
     
@@ -43,4 +47,5 @@ public class MedicationAdministration {
     protected void onCreate() {
         createdAt = new Date();
     }
-} 
+}
+

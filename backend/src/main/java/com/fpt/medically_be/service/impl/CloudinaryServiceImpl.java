@@ -56,6 +56,25 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     }
 
     @Override
+    public String uploadMedicationConfirmImage(MultipartFile file, Long medicationAdminId) throws IOException {
+        // Tạo public_id có chứa ID của lần cho uống thuốc
+        String publicId = "medication_confirmation_" + medicationAdminId + "_" + UUID.randomUUID().toString();
+
+        // Upload ảnh lên Cloudinary với thư mục medication_confirmations
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(
+            file.getBytes(),
+            ObjectUtils.asMap(
+                "public_id", publicId,
+                "folder", "medication_confirmations/" + medicationAdminId,
+                "resource_type", "auto"
+            )
+        );
+
+        // Trả về secure URL của ảnh đã upload
+        return (String) uploadResult.get("secure_url");
+    }
+
+    @Override
     public Map<?, ?> deleteImage(String publicId) throws IOException {
         // Xóa ảnh từ Cloudinary theo public_id
         return cloudinary.uploader().destroy(
