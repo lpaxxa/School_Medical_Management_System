@@ -5,7 +5,9 @@ import com.fpt.medically_be.dto.request.MedicationAdministrationRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationAdministrationResponseDTO;
 import com.fpt.medically_be.entity.AdministrationStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 public interface MedicationAdministrationService {
@@ -33,4 +35,8 @@ public interface MedicationAdministrationService {
     
     // Update administration record
     MedicationAdministrationResponseDTO updateAdministration(Long id, MedicationAdministrationRequestDTO request, Authentication auth);
-} 
+
+    // Upload confirmation image for medication administration
+    MedicationAdministrationResponseDTO uploadConfirmationImage(Long administrationId, MultipartFile imageFile, Authentication auth) throws IOException;
+}
+

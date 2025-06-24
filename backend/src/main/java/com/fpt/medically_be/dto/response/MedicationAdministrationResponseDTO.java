@@ -15,4 +15,6 @@ public class MedicationAdministrationResponseDTO {
     private String administeredBy; // Nurse name
     private AdministrationStatus administrationStatus;
     private String notes; // Combined: dosage, response, side effects, refusal reason, etc.
-} 
+    private String confirmationImageUrl; // URL của ảnh xác nhận đã cho uống thuốc
+}
+

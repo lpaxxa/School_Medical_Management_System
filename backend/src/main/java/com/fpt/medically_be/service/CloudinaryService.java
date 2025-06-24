@@ -26,6 +26,16 @@ public interface CloudinaryService {
     String uploadImage(MultipartFile file, Long articleId) throws IOException;
 
     /**
+     * Tải lên một file ảnh xác nhận cho thuốc lên Cloudinary
+     *
+     * @param file File ảnh cần upload
+     * @param medicationAdminId ID của lần cho uống thuốc
+     * @return URL của ảnh đã upload
+     * @throws IOException nếu có lỗi khi xử lý file
+     */
+    String uploadMedicationConfirmImage(MultipartFile file, Long medicationAdminId) throws IOException;
+
+    /**
      * Xóa một ảnh từ Cloudinary
      *
      * @param publicId public ID của ảnh cần xóa
