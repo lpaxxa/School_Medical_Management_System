@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import Dashboard from "../pages/Dashboard_co/Dashboard";
-import UserManagement from "../pages/UserManagement_co/UserManagement";
-import PermissionManagement from "../pages/Permissions_co/PermissionsManagement";
+import UserManagement from "../pages/UserManagement"; // Import từ thư mục UserManagement mới
+import MedicalEventPlanning from "../pages/MedicalEventPlanning";
 import Reports from "../pages/Reports_co";
 import "./AdminLayout.css";
 
@@ -22,12 +22,11 @@ const AdminLayout = () => {
 
     switch (activeSection) {
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard />; // Chỉ import và render Dashboard, không phải AdminDashboard
       case "users":
-        console.log("Rendering UserManagement component");
         return <UserManagement />;
-      case "permissions":
-        return <PermissionManagement />;
+      case "medical-planning":
+        return <MedicalEventPlanning />;
       case "reports":
         return <Reports />;
       default:

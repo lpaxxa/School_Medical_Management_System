@@ -1,208 +1,252 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./ReportGenerator.css";
+import ReportTypeSelector from "./components/ReportTypeSelector";
+import DateRangeSelector from "./components/DateRangeSelector";
+import ReportDisplay from "./components/ReportDisplay";
+import DetailView from "./components/DetailView";
+import NotificationDetail from "./components/NotificationDetail";
+import StudentListView from "./components/StudentListView";
+import StudentDetailView from "./components/StudentDetailView";
+import { reportService, getPeriodLabel } from "./services/reportService";
 
 const ReportGenerator = () => {
-  const [reportType, setReportType] = useState('health');
-  const [dateRange, setDateRange] = useState('month');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [reportType, setReportType] = useState("health");
+  const [dateRange, setDateRange] = useState("month");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [generatedReport, setGeneratedReport] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const reportTypes = [
-    {
-      id: 'health',
-      title: 'Báo cáo sức khỏe',
-      icon: 'fas fa-heartbeat',
-      description: 'Thống kê sức khỏe học sinh'
-    },
-    {
-      id: 'vaccination',
-      title: 'Báo cáo tiêm chủng',
-      icon: 'fas fa-syringe',
-      description: 'Kết quả chiến dịch tiêm chủng'
-    },
-    {
-      id: 'medication',
-      title: 'Báo cáo thuốc',
-      icon: 'fas fa-pills',
-      description: 'Thống kê sử dụng thuốc'
-    },
-    {
-      id: 'users',
-      title: 'Báo cáo người dùng',
-      icon: 'fas fa-users',
-      description: 'Thống kê tài khoản'
+  // States cho detail view
+  const [detailData, setDetailData] = useState(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
+
+  // State cho notification và student detail
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  // State để theo dõi loại data đang xem (notification hoặc student)
+  const [detailViewType, setDetailViewType] = useState(null); // 'notification' hoặc 'student'
+
+  const generateReport = async () => {
+    console.log("Generating report:", {
+      reportType,
+      dateRange,
+      startDate,
+      endDate,
+    });
+
+    setIsLoading(true);
+    setError(null);
+    setShowDetailView(false);
+    setSelectedNotification(null);
+    setSelectedStudent(null);
+    setDetailViewType(null);
+
+    try {
+      let reportData;
+      const period = getPeriodLabel(dateRange, startDate, endDate);
+
+      switch (reportType) {
+        case "vaccination":
+          reportData = await reportService.getVaccinationReport();
+          break;
+        case "checkup":
+          reportData = await reportService.getCheckupReport();
+          break;
+        case "health":
+          reportData = reportService.getHealthReport();
+          break;
+        case "medication":
+          reportData = await reportService.getMedicationReport();
+          break;
+        default:
+          throw new Error("Loại báo cáo không hỗ trợ");
+      }
+
+      // Add period to report data
+      reportData.period = period;
+      setGeneratedReport(reportData);
+    } catch (err) {
+      console.error("Error generating report:", err);
+      setError(err.message || "Không thể tạo báo cáo. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
     }
-  ];
-
-  const generateReport = () => {
-    console.log('Generating report:', { reportType, dateRange, startDate, endDate });
-    
-    // Mock report data based on type
-    const mockReports = {
-      health: getMockHealthReport(),
-      vaccination: getMockVaccinationReport(),
-      medication: getMockMedicationReport(),
-      users: getMockUsersReport()
-    };
-    
-    setGeneratedReport(mockReports[reportType]);
   };
 
-  const getMockHealthReport = () => {
-    return {
-      title: 'Báo cáo sức khỏe học sinh',
-      period: getPeriodLabel(),
-      summary: {
-        totalExaminations: 1234,
-        abnormalFindings: 43,
-        referralsIssued: 12,
-        completionRate: '94%'
-      },
-      charts: [
-        {
-          type: 'pie',
-          title: 'Phân loại sức khỏe',
-          data: [
-            { label: 'Rất tốt', value: 560 },
-            { label: 'Tốt', value: 450 },
-            { label: 'Trung bình', value: 190 },
-            { label: 'Cần theo dõi', value: 34 }
-          ]
-        },
-        {
-          type: 'bar',
-          title: 'Chỉ số BMI theo khối lớp',
-          data: [
-            { label: 'Lớp 10', normal: 342, overweight: 28, underweight: 15 },
-            { label: 'Lớp 11', normal: 321, overweight: 32, underweight: 12 },
-            { label: 'Lớp 12', normal: 315, overweight: 24, underweight: 18 }
-          ]
+  const viewDetailData = async () => {
+    setIsLoadingDetail(true);
+    setError(null);
+
+    try {
+      let rawData;
+
+      if (reportType === "health") {
+        setDetailViewType("student");
+        // Gọi API lấy danh sách học sinh
+        const response = await fetch("http://localhost:8080/api/v1/students");
+        if (!response.ok) {
+          throw new Error("Không thể kết nối đến máy chủ");
         }
-      ]
-    };
-  };
+        rawData = await response.json();
+      } else {
+        setDetailViewType("notification");
+        // Lấy dữ liệu thông báo cho các báo cáo khác
+        if (reportType === "vaccination") {
+          rawData = await reportService.getVaccinationDetailData();
+        } else if (reportType === "checkup") {
+          rawData = await reportService.getCheckupDetailData();
+        } else {
+          rawData = await reportService.getMedicationDetailData();
+        }
+      }
 
-  // Helper function to get date range label
-  const getPeriodLabel = () => {
-    switch(dateRange) {
-      case 'week':
-        return 'Tuần này (5/6/2025 - 11/6/2025)';
-      case 'month':
-        return 'Tháng này (1/6/2025 - 30/6/2025)';
-      case 'quarter':
-        return 'Quý này (1/4/2025 - 30/6/2025)';
-      case 'year':
-        return 'Năm học 2024-2025';
-      case 'custom':
-        return `Từ ${startDate || '...'} đến ${endDate || '...'}`;
-      default:
-        return 'Thời gian không xác định';
+      setDetailData(rawData);
+      setShowDetailView(true);
+      setSelectedNotification(null);
+      setSelectedStudent(null);
+    } catch (err) {
+      console.error("Error fetching detail data:", err);
+      setError(
+        err.message || "Không thể tải chi tiết dữ liệu. Vui lòng thử lại."
+      );
+    } finally {
+      setIsLoadingDetail(false);
     }
   };
 
-  // Mock function stubs for other report types
-  const getMockVaccinationReport = () => ({ title: 'Báo cáo tiêm chủng', period: getPeriodLabel() });
-  const getMockMedicationReport = () => ({ title: 'Báo cáo thuốc', period: getPeriodLabel() });
-  const getMockUsersReport = () => ({ title: 'Báo cáo người dùng', period: getPeriodLabel() });
+  // Hàm xử lý nút quay lại từ DetailView
+  const handleBackFromDetail = () => {
+    setShowDetailView(false);
+    setDetailViewType(null);
+  };
+
+  const handleViewDetail = (item) => {
+    if (detailViewType === "student") {
+      setSelectedStudent(item);
+    } else {
+      setSelectedNotification(item);
+    }
+  };
+
+  const handleBackToList = () => {
+    setSelectedStudent(null);
+    setSelectedNotification(null);
+  };
 
   return (
-    <div className="reports-page">
+    <>
       <div className="reports-header">
         <h1 className="reports-title">
-          <i className="fas fa-chart-bar"></i> Báo cáo &amp; Thống kê
+          <i className="fas fa-chart-bar"></i> Báo cáo & Thống kê
         </h1>
         <p className="reports-subtitle">
-          Tạo và xem các báo cáo thống kê về sức khỏe học sinh và hoạt động của hệ thống
+          Tạo và xem các báo cáo thống kê về sức khỏe học sinh và hoạt động của
+          hệ thống
         </p>
       </div>
-      
-      <div className="report-generator">
-        <h2 className="generator-title">Tạo báo cáo mới</h2>
-        
-        <div className="report-types">
-          {reportTypes.map(type => (
-            <div 
-              key={type.id}
-              className={`report-type-item ${reportType === type.id ? 'selected' : ''}`}
-              onClick={() => setReportType(type.id)}
+
+      {!showDetailView && !selectedNotification && !selectedStudent && (
+        <div className="report-generator">
+          <h2 className="generator-title">Tạo báo cáo mới</h2>
+          <ReportTypeSelector
+            reportType={reportType}
+            setReportType={setReportType}
+          />
+          <DateRangeSelector
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+          />
+          <div className="action-buttons">
+            <button
+              className="btn btn-primary"
+              onClick={generateReport}
+              disabled={isLoading}
             >
-              <div className="report-type-icon">
-                <i className={type.icon}></i>
-              </div>
-              <h3 className="report-type-title">{type.title}</h3>
-              <p className="report-type-desc">{type.description}</p>
+              {isLoading ? (
+                <>
+                  <i className="fas fa-spinner"></i> Đang tạo...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-chart-line"></i> Tạo báo cáo
+                </>
+              )}
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={viewDetailData}
+              disabled={isLoadingDetail}
+            >
+              {isLoadingDetail ? (
+                <>
+                  <i className="fas fa-spinner"></i> Đang tải...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-search"></i> Xem chi tiết
+                </>
+              )}
+            </button>
+          </div>
+          {error && (
+            <div className="error-message">
+              <i className="fas fa-exclamation-circle"></i> {error}
             </div>
-          ))}
-        </div>
-        
-        <div className="date-ranges">
-          <div 
-            className={`date-range-item ${dateRange === 'week' ? 'selected' : ''}`}
-            onClick={() => setDateRange('week')}
-          >
-            <i className="far fa-calendar-alt"></i> Tuần này
-          </div>
-          <div 
-            className={`date-range-item ${dateRange === 'month' ? 'selected' : ''}`}
-            onClick={() => setDateRange('month')}
-          >
-            <i className="far fa-calendar-alt"></i> Tháng này
-          </div>
-          <div 
-            className={`date-range-item ${dateRange === 'quarter' ? 'selected' : ''}`}
-            onClick={() => setDateRange('quarter')}
-          >
-            <i className="far fa-calendar-alt"></i> Quý này
-          </div>
-          <div 
-            className={`date-range-item ${dateRange === 'year' ? 'selected' : ''}`}
-            onClick={() => setDateRange('year')}
-          >
-            <i className="far fa-calendar-alt"></i> Năm học
-          </div>
-          <div 
-            className={`date-range-item ${dateRange === 'custom' ? 'selected' : ''}`}
-            onClick={() => setDateRange('custom')}
-          >
-            <i className="fas fa-calendar-plus"></i> Tùy chọn
-          </div>
-        </div>
-        
-        {dateRange === 'custom' && (
-          <div className="custom-date-range">
-            <input 
-              type="date" 
-              className="date-input"
-              placeholder="Ngày bắt đầu"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-            <span>đến</span>
-            <input 
-              type="date" 
-              className="date-input"
-              placeholder="Ngày kết thúc"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-        )}
-        
-        <button className="generate-btn" onClick={generateReport}>
-          <i className="fas fa-chart-line"></i> Tạo báo cáo
-        </button>
-      </div>
-      
-      {generatedReport && (
-        <div className="generated-report">
-          <h2>{generatedReport.title}</h2>
-          <p className="report-period">{generatedReport.period}</p>
-          
-          <p>Báo cáo đã được tạo thành công. Chi tiết báo cáo sẽ hiển thị tại đây.</p>
+          )}
         </div>
       )}
-    </div>
+
+      {/* Hiển thị báo cáo */}
+      {generatedReport &&
+        !showDetailView &&
+        !selectedNotification &&
+        !selectedStudent && <ReportDisplay report={generatedReport} />}
+
+      {/* Hiển thị view chi tiết theo loại */}
+      {showDetailView &&
+        detailData &&
+        !selectedNotification &&
+        !selectedStudent &&
+        (detailViewType === "student" ? (
+          <StudentListView
+            students={detailData}
+            isLoading={isLoadingDetail}
+            onViewDetail={handleViewDetail}
+            onBack={handleBackFromDetail}
+          />
+        ) : (
+          <DetailView
+            data={detailData}
+            reportType={reportType}
+            isLoading={isLoadingDetail}
+            onViewDetail={handleViewDetail}
+            onBack={handleBackFromDetail}
+          />
+        ))}
+
+      {/* Hiển thị chi tiết thông báo hoặc học sinh */}
+      {selectedNotification && (
+        <NotificationDetail
+          notification={selectedNotification}
+          onBack={handleBackToList}
+        />
+      )}
+
+      {selectedStudent && (
+        <StudentDetailView
+          student={selectedStudent}
+          onBack={handleBackToList}
+        />
+      )}
+    </>
   );
 };
 

@@ -1,0 +1,166 @@
+.user-table-wrapper {
+  overflow-x: auto;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.user-table th,
+.user-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.user-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.user-table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+/* Badges */
+.role-badge,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.role-badge.admin {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.role-badge.nurse {
+  background-color: #d1fae5;
+  color: #047857;
+}
+
+.role-badge.parent {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-badge {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.status-badge:hover {
+  transform: translateY(-1px);
+}
+
+.status-badge.active {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.inactive {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.btn-action:hover {
+  transform: translateY(-1px);
+}
+
+.btn-action.view {
+  color: #3b82f6;
+}
+.btn-action.view:hover {
+  background-color: #dbeafe;
+}
+
+.btn-action.edit {
+  color: #f59e0b;
+}
+.btn-action.edit:hover {
+  background-color: #fef3c7;
+}
+
+.btn-action.delete {
+  color: #ef4444;
+}
+.btn-action.delete:hover {
+  background-color: #fee2e2;
+}
+
+/* Loading State */
+.user-table-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.user-table-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #64748b;
+  font-size: 1rem;
+}

@@ -1,0 +1,158 @@
+.student-detail-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.detail-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-header h2 {
+  margin: 12px 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+}
+
+.detail-content {
+  padding: 24px;
+}
+
+/* Profile section */
+.student-profile-section {
+  display: flex;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.student-avatar {
+  margin-right: 24px;
+  flex-shrink: 0;
+}
+
+.student-avatar img,
+.avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+.student-basic-info {
+  flex-grow: 1;
+}
+
+.student-basic-info h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.info-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background-color: #f3f4f6;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.info-badge svg {
+  margin-right: 6px;
+}
+
+/* Detail sections */
+.detail-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.detail-section {
+  width: 100%;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.info-label svg {
+  margin-right: 6px;
+}
+
+.info-value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .student-profile-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .student-avatar {
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+  
+  .info-badges {
+    justify-content: center;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .detail-header h2 {
+    padding: 0 40px;
+  }
+}

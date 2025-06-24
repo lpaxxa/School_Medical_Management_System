@@ -1,113 +1,182 @@
 import React from "react";
+import {
+  FaChild,
+  FaCalendarCheck,
+  FaUserMd,
+  FaClipboardList,
+} from "react-icons/fa";
 import "./Dashboard.css";
 
 const Dashboard = () => {
-  // Mock data
-  const stats = [
+  // Dữ liệu thống kê
+  const stats = {
+    totalStudents: 1250,
+    totalMedicalEvents: 15,
+    upcomingEvents: 3,
+    pendingReports: 8,
+  };
+
+  // Dữ liệu sự kiện gần đây
+  const recentEvents = [
     {
       id: 1,
-      label: "Tổng số học sinh",
-      value: 1234,
-      icon: "fas fa-users",
-      color: "#4361ee",
+      title: "Kiểm tra sức khỏe định kỳ Lớp 1A",
+      date: "20/06/2025",
+      type: "health-check",
+      status: "completed",
     },
     {
       id: 2,
-      label: "Báo cáo y tế hôm nay",
-      value: 15,
-      icon: "fas fa-notes-medical",
-      color: "#3498db",
+      title: "Tiêm chủng vắc-xin HPV",
+      date: "15/06/2025",
+      type: "vaccination",
+      status: "completed",
     },
     {
       id: 3,
-      label: "Báo cáo sức khỏe",
-      value: 45,
-      icon: "fas fa-file-medical-alt",
-      color: "#2ecc71",
-    },
-    {
-      id: 4,
-      label: "Tổng số thuốc đăng ký",
-      value: 28,
-      icon: "fas fa-pills",
-      color: "#e74c3c",
+      title: "Khám sàng lọc răng miệng",
+      date: "10/06/2025",
+      type: "screening",
+      status: "completed",
     },
   ];
+
+  // Cảnh báo y tế
+  const healthAlerts = [
+    {
+      id: 1,
+      title: "Cảnh báo dịch cúm mùa",
+      severity: "medium",
+      date: "24/06/2025",
+      description:
+        "Phát hiện một số ca cúm mùa trong khu vực, cần theo dõi và thực hiện biện pháp phòng ngừa.",
+    },
+    {
+      id: 2,
+      title: "Học sinh có triệu chứng sốt",
+      severity: "high",
+      date: "23/06/2025",
+      description: "5 học sinh lớp 3B báo cáo có triệu chứng sốt và đau họng.",
+    },
+    {
+      id: 3,
+      title: "Nhắc nhở kiểm tra sức khỏe",
+      severity: "low",
+      date: "22/06/2025",
+      description:
+        "Lớp 2C cần hoàn thành kiểm tra sức khỏe định kỳ trong tuần này.",
+    },
+  ];
+
   return (
-    <div className="admin-dashboard-content">
-      <div className="welcome-banner">
-        <div className="welcome-content">
-          <h2>Quản lý Y tế Học đường</h2>
-          <p>Hệ thống quản lý sức khỏe toàn diện dành cho nhà trường</p>
-          <div className="date-display">
-            <i className="fas fa-calendar-day"></i> {new Date().toLocaleDateString('vi-VN', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}
+    <div className="dashboard-content">
+      <div className="dashboard-header">
+        <h1>Tổng quan Y tế học đường</h1>
+        <p>Xin chào! Đây là tổng quan hoạt động y tế của trường.</p>
+      </div>
+
+      {/* Thống kê */}
+      <div className="stats-container">
+        <div className="stat-card">
+          <div className="stat-icon students">
+            <FaChild />
+          </div>
+          <div className="stat-details">
+            <h3>Tổng số học sinh</h3>
+            <p className="stat-value">{stats.totalStudents}</p>
           </div>
         </div>
-        <div className="welcome-image"></div>
+
+        <div className="stat-card">
+          <div className="stat-icon events">
+            <FaCalendarCheck />
+          </div>
+          <div className="stat-details">
+            <h3>Sự kiện y tế năm nay</h3>
+            <p className="stat-value">{stats.totalMedicalEvents}</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon upcoming">
+            <FaUserMd />
+          </div>
+          <div className="stat-details">
+            <h3>Sự kiện sắp tới</h3>
+            <p className="stat-value">{stats.upcomingEvents}</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon reports">
+            <FaClipboardList />
+          </div>
+          <div className="stat-details">
+            <h3>Báo cáo chờ xử lý</h3>
+            <p className="stat-value">{stats.pendingReports}</p>
+          </div>
+        </div>
       </div>
-      
-      <h2 className="dashboard-title">Tổng quan hệ thống</h2>      <div className="stats-container">
-        {stats.map((stat) => (
-          <div
-            key={stat.id}
-            className="stat-card"
-            style={{ borderLeft: `4px solid ${stat.color}` }}
-          >
-            <div className="stat-icon" style={{ color: stat.color, backgroundColor: `${stat.color}15` }}>
-              <i className={stat.icon}></i>
-            </div>            <div className="stat-info">
-              <h3 className="stat-value" style={{ color: stat.color }}>{stat.value.toLocaleString()}</h3>
-              <p className="stat-label">{stat.label}</p>
+
+      {/* Phần sự kiện và cảnh báo */}
+      <div className="dashboard-row">
+        {/* Recent Medical Events */}
+        <div className="dashboard-card events-list">
+          <div className="card-header">
+            <h2>Sự kiện y tế gần đây</h2>
+            <button className="view-all-btn">Xem tất cả</button>
+          </div>
+          <div className="card-content">
+            <table className="events-table">
+              <thead>
+                <tr>
+                  <th>Tên sự kiện</th>
+                  <th>Ngày</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentEvents.map((event) => (
+                  <tr key={event.id}>
+                    <td>{event.title}</td>
+                    <td>{event.date}</td>
+                    <td>
+                      <span className={`status-badge ${event.status}`}>
+                        {event.status === "completed"
+                          ? "Hoàn thành"
+                          : event.status === "upcoming"
+                          ? "Sắp diễn ra"
+                          : event.status === "in-progress"
+                          ? "Đang diễn ra"
+                          : "Tạm hoãn"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Health Alerts */}
+        <div className="dashboard-card alerts-list">
+          <div className="card-header">
+            <h2>Cảnh báo y tế</h2>
+            <button className="view-all-btn">Xem tất cả</button>
+          </div>
+          <div className="card-content">
+            <div className="alerts">
+              {healthAlerts.map((alert) => (
+                <div key={alert.id} className={`alert-item ${alert.severity}`}>
+                  <div className="alert-header">
+                    <h3>{alert.title}</h3>
+                    <span className="alert-date">{alert.date}</span>
+                  </div>
+                  <p className="alert-description">{alert.description}</p>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="dashboard-widgets">
-        <div className="widget">
-          <h3 className="widget-title">Hoạt động gần đây</h3>
-          <ul className="activity-list">
-            <li>
-              <span className="activity-time">10:30</span>
-              <span className="activity-text">Y tá đã tạo báo cáo mới</span>
-            </li>
-            <li>
-              <span className="activity-time">09:15</span>
-              <span className="activity-text">
-                Phụ huynh Nguyễn Văn A đã gửi thuốc cho con
-              </span>
-            </li>
-            <li>
-              <span className="activity-time">08:45</span>
-              <span className="activity-text">
-                Khai báo sức khỏe mới từ lớp 3A
-              </span>
-            </li>
-            <li>
-              <span className="activity-time">Hôm qua</span>
-              <span className="activity-text">
-                Cập nhật dữ liệu cho 5 học sinh
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="widget">
-          <h3 className="widget-title">Thông báo hệ thống</h3>
-          <ul className="notification-list">
-            <li className="notification-urgent">
-              <i className="fas fa-exclamation-circle"></i>
-              <span>Cần phê duyệt 3 đơn thuốc mới</span>
-            </li>
-            <li>
-              <i className="fas fa-info-circle"></i>
-              <span>Hệ thống sẽ bảo trì lúc 23:00 tối nay</span>
-            </li>
-            <li>
-              <i className="fas fa-clipboard-check"></i>
-              <span>Báo cáo tháng đã sẵn sàng để xuất</span>
-            </li>
-          </ul>
         </div>
       </div>
     </div>

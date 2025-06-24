@@ -1,193 +1,194 @@
-/* Reports styling with school medical theme */
+/* Reset và Base */
 .reports-page {
-  padding: 30px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: calc(100vh - 70px);
+  padding: 20px;
+  background: #f8f9fa;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
 .reports-header {
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(26, 123, 181, 0.1); /* Medical blue shadow */
-  margin-bottom: 30px;
+  background: var(--bg-white);
+  padding: 24px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+  text-align: center;
 }
 
 .reports-title {
-  margin: 0 0 10px 0;
-  font-size: 2rem;
-  color: #1a7bb5; /* Medical blue */
+  margin: 0 0 12px 0;
+  font-size: 1.8rem;
+  color: var(--text-dark);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  font-weight: 600;
+  font-family: var(--font-heading);
 }
 
 .reports-title i {
-  font-size: 1.8rem;
+  color: var(--primary-color);
 }
 
 .reports-subtitle {
-  color: #667;
   margin: 0;
-  font-size: 1rem;
+  color: var(--text-medium);
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .report-generator {
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(26, 123, 181, 0.1); /* Medical blue shadow */
-  margin-bottom: 30px;
+  background: var(--bg-white);
+  padding: 24px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
 }
 
 .generator-title {
-  margin: 0 0 20px 0;
-  font-size: 1.4rem;
-  color: #2c3e50;
-  border-bottom: 2px solid #1a7bb5; /* Medical blue */
-  padding-bottom: 10px;
-}
-
-.report-types {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
-  flex-wrap: wrap;
-}
-
-.report-type-item {
-  flex: 1;
-  min-width: 200px;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #eee;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-.report-type-item:hover {
-  transform: translateY(-5px);
-  border-color: #1a7bb5; /* Medical blue */
-  box-shadow: 0 10px 25px rgba(26, 123, 181, 0.1); /* Medical blue shadow */
-}
-
-.report-type-item.selected {
-  background: rgba(26, 123, 181, 0.05); /* Light medical blue */
-  border-color: #1a7bb5; /* Medical blue */
-  box-shadow: 0 5px 15px rgba(26, 123, 181, 0.1); /* Medical blue shadow */
-}
-
-.report-type-icon {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  color: #1a7bb5; /* Medical blue */
-}
-
-.report-type-title {
-  margin: 0;
+  margin: 0 0 24px 0;
+  font-size: 1.3rem;
+  color: var(--text-dark);
   font-weight: 600;
-  font-size: 1rem;
-  color: #333;
-}
-
-.report-type-desc {
-  margin: 8px 0 0 0;
-  font-size: 0.85rem;
-  color: #777;
-}
-
-.date-ranges {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
-  flex-wrap: wrap;
-}
-
-.date-range-item {
-  flex: 1;
-  min-width: 120px;
-  padding: 15px;
   text-align: center;
-  border-radius: 8px;
-  border: 1px solid #eee;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-color);
+  font-family: var(--font-heading);
 }
 
-.date-range-item:hover {
-  background: #f9f9f9;
+/* Action Buttons */
+.action-buttons {
+  display: flex !important; /* Bắt buộc nằm ngang */
+  flex-direction: row !important; /* Đảm bảo hướng ngang */
+  width: 100% !important;
+  gap: 16px !important;
+  margin-top: 24px !important;
 }
 
-.date-range-item.selected {
-  background: rgba(26, 123, 181, 0.05); /* Light medical blue */
-  border-color: #1a7bb5; /* Medical blue */
-}
-
-.custom-date-range {
-  display: flex;
-  gap: 15px;
-  margin-top: 15px;
-  align-items: center;
-}
-
-.date-input {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-family: inherit;
-}
-
-.date-input:focus {
-  outline: none;
-  border-color: #1a7bb5; /* Medical blue */
-}
-
-.generate-btn {
-  display: block;
-  width: 100%;
-  padding: 15px;
-  background: #1a7bb5; /* Medical blue */
-  color: white;
+.btn {
+  flex: 1 1 0 !important; /* Đảm bảo mỗi nút chiếm không gian bằng nhau */
+  width: 50% !important;
+  padding: 14px 20px;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 20px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
 }
 
-.generate-btn:hover {
-  background: #0a5d8f; /* Darker medical blue */
+.btn-primary {
+  background: var(--primary-color, #007bff);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-color, #0056b3);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(26, 123, 181, 0.2); /* Medical blue shadow */
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
-/* Responsive styles */
+.btn-secondary {
+  background: var(--text-light, #6c757d);
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--text-medium, #5a6268);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn i {
+  font-size: 16px;
+}
+
+/* Error Message */
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-left: 4px solid #dc3545;
+}
+
+.error-message i {
+  color: #dc3545;
+}
+
+/* Loading Animation */
+.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .reports-page {
-    padding: 20px;
-  }
-  
-  .reports-header {
-    padding: 20px;
-  }
-  
+  .reports-header,
   .report-generator {
     padding: 20px;
   }
+  
+  .reports-title {
+    font-size: 1.5rem;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .action-buttons {
+    /* Vẫn giữ nút nằm ngang trên mobile nhưng giảm padding */
+    gap: 10px;
+  }
+  
+  .btn {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+  }
 }
 
-@media (max-width: 576px) {
-  .report-types,
-  .date-ranges {
+@media (max-width: 480px) {
+  .reports-page {
+    padding: 10px;
+  }
+  
+  .reports-header,
+  .report-generator {
+    padding: 15px;
+  }
+  
+  .reports-title {
+    font-size: 1.4rem;
+  }
+  
+  .generator-title {
+    font-size: 1.3rem;
+  }
+  
+  .action-buttons {
+    /* Chuyển sang dạng dọc nếu màn hình quá nhỏ */
     flex-direction: column;
   }
   
-  .custom-date-range {
-    flex-direction: column;
-    align-items: stretch;
+  .btn {
+    width: 100%;
   }
 }
