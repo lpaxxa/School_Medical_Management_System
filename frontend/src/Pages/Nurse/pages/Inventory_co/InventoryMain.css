@@ -123,78 +123,44 @@
   color: #555;
 }
 
-/* Table styling - Thu nhỏ bảng */
+/* Table styling */
 .table-container {
   flex: 1;
-  overflow-x: auto; /* Cho phép cuộn ngang nếu bảng quá rộng */
+  overflow: visible; /* Không tạo thanh cuộn riêng */
   margin-bottom: 20px;
 }
 
 .inventory-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem; /* Thu nhỏ kích thước chữ hơn nữa */
 }
 
 .inventory-table th,
 .inventory-table td {
-  padding: 6px 8px; /* Thu nhỏ padding hơn nữa */
+  padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #eee;
-  white-space: nowrap; /* Ngăn văn bản xuống dòng */
 }
 
 .inventory-table th {
   font-weight: 600;
   color: #333;
   background-color: #f8f9fa;
-  position: sticky; /* Giữ header cố định khi cuộn */
-  top: 0;
-  z-index: 1;
+  position: relative; /* Ensure headers scroll with content */
 }
 
 .inventory-table tr:hover {
   background-color: #f5f8ff;
 }
 
-/* ID column specific styling */
-.id-column {
-  font-weight: bold;
-  color: #3c4b64;
-  text-align: center;
-  background-color: #f8f9fa;
-  width: 50px; /* Thu nhỏ cột ID */
-}
-
-/* Thêm kích thước cụ thể cho các cột */
-.inventory-table th:nth-child(1), .inventory-table td:nth-child(1) { width: 50px; } /* ID */
-.inventory-table th:nth-child(2), .inventory-table td:nth-child(2) { width: 150px; } /* Tên */
-.inventory-table th:nth-child(3), .inventory-table td:nth-child(3) { width: 80px; } /* Loại */
-.inventory-table th:nth-child(4), .inventory-table td:nth-child(4) { width: 70px; } /* Số lượng */
-.inventory-table th:nth-child(5), .inventory-table td:nth-child(5) { width: 70px; } /* Đơn vị */
-.inventory-table th:nth-child(6), .inventory-table td:nth-child(6) { width: 100px; } /* NSX */
-.inventory-table th:nth-child(7), .inventory-table td:nth-child(7) { width: 100px; } /* Hạn */
-.inventory-table th:nth-child(8), .inventory-table td:nth-child(8) { width: 150px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; } /* Mô tả */
-.inventory-table th:nth-child(9), .inventory-table td:nth-child(9) { width: 80px; } /* Trạng thái */
-.inventory-table th:nth-child(10), .inventory-table td:nth-child(10) { width: 110px; } /* Thao tác */
-
-/* Giới hạn nội dung mô tả và thêm dấu ... */
-.inventory-table td:nth-child(8) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 150px;
-}
-
 /* Status badges */
 .status {
   display: inline-block;
-  padding: 3px 6px; /* Thu nhỏ status badges */
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 500;
   text-align: center;
-  white-space: nowrap;
 }
 
 .status.available {
@@ -233,29 +199,28 @@
   background-color: #dc3545;
 }
 
-/* Action buttons - Thu nhỏ buttons */
+/* Action buttons */
 .action-buttons {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   justify-content: flex-start;
-  width: 100px; /* Cố định chiều rộng cột action */
 }
 
 .edit-button, .delete-button {
   border: none;
-  border-radius: 3px;
-  padding: 3px 6px; /* Thu nhỏ padding hơn nữa */
-  font-size: 11px; /* Thu nhỏ kích thước chữ hơn nữa */
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 5px;
   transition: all 0.2s;
   color: white;
   white-space: nowrap;
-  min-width: 35px;
+  min-width: 45px;
   justify-content: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .edit-button {
@@ -413,59 +378,6 @@ button.search-button:hover {
 
 .dropdown:hover .dropbtn {
   background-color: #5a6268;
-}
-
-/* CSS cho phân trang */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 15px;
-  margin-bottom: 15px;
-  gap: 10px;
-  font-size: 0.85rem;
-}
-
-.pagination-button {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px;
-  height: 36px;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #dee2e6;
-}
-
-.pagination-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pagination-info {
-  padding: 6px 10px;
-  font-size: 0.9rem;
-  color: #495057;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pagination-text {
-  margin-left: 10px;
-  font-size: 0.85rem;
-  color: #6c757d;
 }
 
 /* Responsive styles */

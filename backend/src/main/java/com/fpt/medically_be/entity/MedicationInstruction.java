@@ -1,12 +1,12 @@
 package com.fpt.medically_be.entity;
 
+
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.SQLDelete;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
 @Table(name = "medication_instructions")
@@ -50,7 +50,7 @@ public class MedicationInstruction {
     private LocalDate submittedAt;
 
     @Column(name = "status", columnDefinition = "NVARCHAR(50)")
-    @Enumerated(EnumType.STRING)
+
     private Status status;
 
     @Column(name = "rejection_reason", columnDefinition = "NVARCHAR(MAX)")

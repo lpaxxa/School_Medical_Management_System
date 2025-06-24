@@ -1,0 +1,9 @@
+/* Import tất cả các module CSS */
+@import 'variables.css';
+@import 'base.css';
+@import 'form.css';
+@import 'modal.css';
+@import 'history.css';
+@import 'success.css';
+@import 'buttons.css'; /* Giữ lại file này, đã chứa tất cả style button */
+@import 'responsive.css';

@@ -7,8 +7,12 @@ import com.fpt.medically_be.entity.AdministrationStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
+
 import java.io.IOException;
-import java.time.LocalDateTime;
+//import java.time.LocalDateTime;
+
+import java.util.Date;
+
 
 public interface MedicationAdministrationService {
     
@@ -25,7 +29,7 @@ public interface MedicationAdministrationService {
     PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByStudent(String studentId, int page, int size);
     
     // Get administrations by date range with pagination
-    PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByDateRange(LocalDateTime start, LocalDateTime end, int page, int size);
+    PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByDateRange(Date start, Date end, int page, int size);
     
     // Get administrations by status with pagination
     PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByStatus(AdministrationStatus status, int page, int size);

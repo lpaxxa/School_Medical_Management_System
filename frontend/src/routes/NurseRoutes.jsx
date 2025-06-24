@@ -9,11 +9,11 @@ import HealthCheckupsPage from "../Pages/Nurse/pages/HealthCheckups_co";
 import InventoryPage from "../Pages/Nurse/pages/Inventory_co";
 import MedicalEventsPage from "../Pages/Nurse/pages/MedicalEvents_co";
 import VaccinationPage from "../Pages/Nurse/pages/Vaccination_co";
-import ReceiveMedicine from "../Pages/Nurse/pages/ReceiveMedicine_co";
-// Sửa lại đường dẫn import
-import BlogManagement, { SimpleBlogManagement } from "../Pages/Nurse/pages/Blog_co/BlogManagement";
-// Hoặc import từ index.js, cả hai đều được
-// import BlogPage, { BlogManagement, SimpleBlogManagement } from "../Pages/Nurse/pages/Blog_co";
+// Import BlogManagement directly from the file to avoid potential issues with index.js
+import BlogManagement from "../Pages/Nurse/pages/Blog_co/BlogManagement";
+import SimpleBlogManagement from "../Pages/Nurse/pages/Blog_co/SimpleBlogManagement";
+
+// NurseLayout đã được import từ file riêng
 
 const NurseRoutes = () => {
   return [
@@ -27,20 +27,11 @@ const NurseRoutes = () => {
               <Route index element={<Dashboard />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="consultations" element={<Consultation />} />
-              <Route path="student-records" element={<StudentRecordsPage />} />
-              <Route path="health-checkups" element={<HealthCheckupsPage />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="medical-events" element={<MedicalEventsPage />} />
-              <Route path="vaccination" element={<VaccinationPage />} />
-              <Route path="receive-medicine" element={<ReceiveMedicine />} />
-              <Route 
+              <Route path="student-records" element={<StudentRecordsPage />} />              <Route path="health-checkups" element={<HealthCheckupsPage />} />
+              <Route path="inventory" element={<InventoryPage />} />              <Route path="medical-events" element={<MedicalEventsPage />} />
+              <Route path="vaccination" element={<VaccinationPage />} />              <Route 
                 path="blog-management" 
                 element={<BlogManagement />} 
-              />
-              {/* Nếu muốn thêm route cho SimpleBlogManagement */}
-              <Route 
-                path="simple-blog" 
-                element={<SimpleBlogManagement />} 
               />
             </Routes>
           </NurseLayout>

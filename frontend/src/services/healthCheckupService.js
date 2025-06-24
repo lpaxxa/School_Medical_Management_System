@@ -1,551 +1,983 @@
-import axios from 'axios';
-
 // Cấu hình sử dụng dữ liệu giả hay API thật
 const config = {
-  useMockData: false,  // Đây là cài đặt, nhưng có thể bị ghi đè
-  apiUrl: 'http://localhost:8080/api/v1/medical-checkups'
+  useMockData: true, // Mặc định sử dụng dữ liệu giả
+  apiUrl: 'https://api.example.com/health-checkups' // URL API thật khi cần thay đổi
 };
 
-// Hàm trễ để mô phỏng API delay
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Hàm lấy tất cả bản ghi khám sức khỏe
-export const getAllHealthCheckups = async () => {
-  try {
-    if (config.useMockData) {
-      // Trả về dữ liệu mẫu nếu đang sử dụng mock data
-      await delay(500); // Giả lập độ trễ mạng
-      return mockHealthCheckups;
-    }
-
-    // Sử dụng fetch API thay vì axios để đảm bảo tính nhất quán
-    const response = await fetch(config.apiUrl);
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log("API data:", data); // Debug: kiểm tra dữ liệu trả về
-    return data;
-  } catch (error) {
-    console.error('Error fetching health checkups:', error);
-    // Fallback về dữ liệu mẫu khi API gặp lỗi
-    return mockHealthCheckups;
-  }
-};
-
-// Hàm lấy chi tiết một bản ghi khám sức khỏe theo ID
-export const getHealthCheckupById = async (id) => {
-  try {
-    if (config.useMockData) {
-      // Tìm trong dữ liệu mẫu
-      await delay(300);
-      const checkup = mockHealthCheckups.find(c => c.id === id);
-      return checkup || null;
-    }
-
-    const response = await fetch(`${config.apiUrl}/${id}`);
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching health checkup with ID ${id}:`, error);
-    // Fallback về dữ liệu mẫu khi API gặp lỗi
-    const checkup = mockHealthCheckups.find(c => c.id === id);
-    return checkup || null;
-  }
-};
-
-// Thêm bản ghi khám sức khỏe mới
-export const addHealthCheckup = async (checkupData) => {
-  try {
-    if (config.useMockData) {
-      // Code xử lý mock data không thay đổi
-      await delay(800);
-      const newId = Math.max(...mockHealthCheckups.map(c => c.id), 0) + 1;
-      const newCheckup = { id: newId, ...checkupData };
-      mockHealthCheckups.push(newCheckup);
-      return newCheckup;
-    } else {
-      // Loại bỏ trường id nếu có trong dữ liệu gửi đi
-      const { id, ...dataToSend } = checkupData;
-      
-      // BẮT BUỘC phải chuyển đổi định dạng ngày tháng theo yêu cầu API
-      const formattedData = {
-        ...dataToSend,
-        // Chuyển đổi thành định dạng yyyy-MM-dd theo yêu cầu API
-        checkupDate: dataToSend.checkupDate.split('T')[0]
-      };
-      
-      console.log('Formatted data to send:', formattedData);
-      
-      // Sử dụng axios để gọi API
-      const response = await axios({
-        method: 'POST',
-        url: config.apiUrl,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        data: formattedData
-      });
-      
-      console.log('API response:', response.data);
-      return response.data;
-    }
-  } catch (error) {
-    console.error('Error creating health checkup:', error);
-    
-    // Hiển thị chi tiết lỗi từ API để debug
-    if (error.response) {
-      console.error('Response error data:', error.response.data);
-      console.error('Response error status:', error.response.status);
-      console.error('Response error headers:', error.response.headers);
-      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
-    } else if (error.request) {
-      console.error('Request was made but no response received:', error.request);
-      throw new Error('Không nhận được phản hồi từ máy chủ');
-    } else {
-      console.error('Error setting up request:', error.message);
-      throw error;
-    }
-  }
-};
-
-// Cập nhật bản ghi khám sức khỏe
-export const updateHealthCheckup = async (id, checkupData) => {
-  try {
-    if (config.useMockData) {
-      // Cập nhật trong dữ liệu mẫu
-      const index = mockHealthCheckups.findIndex(c => c.id === id);
-      if (index !== -1) {
-        mockHealthCheckups[index] = {
-          ...mockHealthCheckups[index],
-          ...checkupData
-        };
-        return mockHealthCheckups[index];
-      }
-      throw new Error(`Health checkup with ID ${id} not found`);
-    }
-
-    // Sử dụng fetch thay vì axios
-    const response = await fetch(`${config.apiUrl}/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(checkupData)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} - ${response.statusText}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error(`Error updating health checkup with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-// Xóa bản ghi khám sức khỏe
-export const deleteHealthCheckup = async (id) => {
-  try {
-    if (config.useMockData) {
-      // Xóa từ dữ liệu mẫu
-      const index = mockHealthCheckups.findIndex(c => c.id === id);
-      if (index !== -1) {
-        mockHealthCheckups.splice(index, 1);
-        return true;
-      }
-      throw new Error(`Health checkup with ID ${id} not found`);
-    }
-
-    // Sử dụng fetch thay vì axios
-    const response = await fetch(`${config.apiUrl}/${id}`, {
-      method: 'DELETE'
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} - ${response.statusText}`);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error(`Error deleting health checkup with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-// Lấy tất cả các chiến dịch khám sức khỏe
-export const getAllCheckupCampaigns = async () => {
-  try {
-    if (config.useMockData) {
-      // Giả lập độ trễ mạng
-      await delay(600);
-      return mockCampaigns;
-    } else {
-      // Trong thực tế, API của bạn có thể có endpoint riêng cho campaigns
-      // Nhưng hiện tại, ta tạm coi đây là cùng API medical-checkups
-      const response = await fetch(config.apiUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
-      
-      const checkups = await response.json();
-      
-      // Chuyển đổi dữ liệu từ checkups thành định dạng campaigns
-      // Đây chỉ là ví dụ, bạn cần điều chỉnh theo cấu trúc thực của API
-      const campaigns = [
-        {
-          id: 1,
-          name: 'Khám sức khỏe định kỳ năm 2024',
-          startDate: '2024-03-15',
-          endDate: '2024-04-15',
-          description: 'Khám sức khỏe định kỳ cho học sinh toàn trường',
-          status: 'Đã hoàn thành',
-          totalStudents: 5,
-          examinedStudents: 5,
-          flaggedStudents: 3
-        }
-      ];
-      
-      return campaigns;
-    }
-  } catch (error) {
-    console.error('Error fetching checkup campaigns:', error);
-    // Fallback về dữ liệu mẫu khi API gặp lỗi
-    return mockCampaigns;
-  }
-};
-
-// Lấy danh sách học sinh cần theo dõi sức khỏe
-export const getStudentsRequiringFollowup = async () => {
-  try {
-    if (config.useMockData) {
-      // Giả lập độ trễ mạng
-      await delay(500);
-      
-      // Lọc ra những học sinh cần theo dõi từ kết quả khám
-      const followupResults = mockHealthCheckups.filter(checkup => checkup.followUpNeeded === true);
-      
-      // Tạo danh sách học sinh không trùng lặp
-      const studentsWithFollowup = [];
-      const studentIdsAdded = new Set();
-      
-      // Thêm thông tin học sinh (từ mockStudents) vào kết quả
-      for (const result of followupResults) {
-        if (!studentIdsAdded.has(result.studentId)) {
-          studentIdsAdded.add(result.studentId);
-          
-          // Tìm học sinh tương ứng từ danh sách học sinh mẫu
-          const student = mockStudents.find(s => s.id === result.studentId);
-          
-          if (student) {
-            studentsWithFollowup.push({
-              ...student,
-              checkupId: result.id,
-              checkupDate: result.checkupDate,
-              diagnosis: result.diagnosis,
-              recommendations: result.recommendations
-            });
-          }
-        }
-      }
-      
-      return studentsWithFollowup;
-    } else {
-      // Trong thực tế, backend có thể có API riêng để lấy danh sách học sinh cần theo dõi
-      // Hiện tại, chúng ta sẽ lọc từ dữ liệu checkups
-      const response = await fetch(config.apiUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
-      
-      const checkups = await response.json();
-      const followupStudents = checkups
-        .filter(c => c.followUpNeeded === true)
-        .map(c => ({
-          id: c.studentId,
-          fullName: c.studentName,
-          checkupId: c.id,
-          checkupDate: c.checkupDate,
-          diagnosis: c.diagnosis,
-          recommendations: c.recommendations,
-          class: "N/A" // Dữ liệu API của bạn không có field này
-        }));
-      
-      return followupStudents;
-    }
-  } catch (error) {
-    console.error('Error fetching students requiring followup:', error);
-    return []; // Trả về mảng rỗng nếu có lỗi
-  }
-};
-
-// Lấy tiêu chuẩn sức khỏe theo độ tuổi
-export const getHealthStandards = async () => {
-  try {
-    // Luôn sử dụng dữ liệu mẫu cho health standards
-    await delay(400); // Giả lập độ trễ mạng để trải nghiệm UI tốt hơn
-    return mockHealthStandards;
-  } catch (error) {
-    console.error('Error fetching health standards:', error);
-    return mockHealthStandards; // Fallback về dữ liệu mẫu
-  }
-};
-
-// Fetch health checkup notifications
-export const getHealthCheckupNotifications = async () => {
-  try {
-    const response = await fetch('http://localhost:8080/api/v1/notifications/nurse/getNotificationsByType/HEALTH_CHECKUP');
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log("Health checkup notifications:", data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching health checkup notifications:', error);
-    throw error;
-  }
-};
-
-// Create a health checkup notification
-export const createHealthCheckupNotification = async (notificationData) => {
-  try {
-    const response = await fetch('http://localhost:8080/api/v1/notifications', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ...notificationData,
-        type: 'HEALTH_CHECKUP'
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error creating health checkup notification:', error);
-    throw error;
-  }
-};
-
-// Dữ liệu mẫu để sử dụng khi API không hoạt động
-const mockHealthCheckups = [
-  {
-    id: 5,
-    studentId: 3,
-    studentName: "Haha Smith",
-    checkupDate: "2025-06-21T17:04:03.714",
-    checkupType: "Định kỳ",
-    height: 160,
-    weight: 50,
-    bmi: 19.5,
-    bloodPressure: "120/80",
-    visionLeft: "20/20",
-    visionRight: "20/20",
-    hearingStatus: "Bình thường",
-    heartRate: 75,
-    bodyTemperature: 36.5,
-    diagnosis: "Khỏe mạnh",
-    recommendations: "Tiếp tục duy trì chế độ ăn uống và tập luyện",
-    followUpNeeded: false,
-    parentNotified: true,
-    medicalStaffId: 1,
-    medicalStaffName: "Nguyễn Thị Y Tá"
-  },
-  {
-    id: 6,
-    studentId: 4,
-    studentName: "Hihi Smith",
-    checkupDate: "2025-06-21T17:04:03.714",
-    checkupType: "Khám thường",
-    height: 145,
-    weight: 40,
-    bmi: 18.9,
-    bloodPressure: "110/70",
-    visionLeft: "20/30",
-    visionRight: "20/25",
-    hearingStatus: "Bình thường",
-    heartRate: 80,
-    bodyTemperature: 36.8,
-    diagnosis: "Cần điều chỉnh thị lực",
-    recommendations: "Đề nghị khám mắt chuyên sâu",
-    followUpNeeded: true,
-    parentNotified: true,
-    medicalStaffId: 1,
-    medicalStaffName: "Nguyễn Thị Y Tá"
-  }
-];
-
-// Dữ liệu mẫu về các đợt khám sức khỏe
-const mockCampaigns = [
+// Mock data - Trong thực tế, dữ liệu này sẽ được lấy từ API
+const mockHealthCheckupCampaigns = [
   {
     id: 1,
-    name: 'Khám sức khỏe đầu năm 2025-2026',
-    startDate: '2025-05-15',
-    endDate: '2025-06-30',
-    description: 'Khám sức khỏe định kỳ đầu năm học cho học sinh toàn trường',
-    status: 'Đang diễn ra',
-    totalStudents: 800,
-    examinedStudents: 650,
-    flaggedStudents: 45
+    name: 'Khám sức khoẻ định kỳ đầu năm học 2025-2026',
+    type: 'Toàn trường',
+    targetGrades: 'Tất cả',
+    targetClasses: 'Tất cả',
+    scheduledDate: '2025-08-15',
+    endDate: '2025-09-15',
+    checkupItems: [
+      'Chiều cao', 'Cân nặng', 'Thị lực', 'Thính lực',
+      'Huyết áp', 'Nhịp tim', 'Tình trạng răng'
+    ],
+    description: 'Kiểm tra sức khoẻ toàn diện cho học sinh đầu năm học mới',
+    status: 'Đã hoàn thành',
+    totalStudents: 1200,
+    completedStudents: 1200,
+    specialCases: 45,
+    createdAt: '2025-07-01',
+    createdBy: 'Nguyễn Thị Hoa'
   },
   {
     id: 2,
-    name: 'Khám sức khỏe cho học sinh Khối 10',
-    startDate: '2025-07-10',
-    endDate: '2025-07-20',
-    description: 'Khám sức khỏe chuyên sâu dành cho học sinh Khối 10',
-    status: 'Sắp diễn ra',
-    totalStudents: 320,
-    examinedStudents: 0,
-    flaggedStudents: 0
+    name: 'Khám sức khoẻ đặc biệt - Phòng chống cận thị',
+    type: 'Theo khối',
+    targetGrades: '6, 7',
+    targetClasses: 'Tất cả lớp khối 6, 7',
+    scheduledDate: '2025-10-10',
+    endDate: '2025-10-25',
+    checkupItems: ['Thị lực', 'Kiểm tra mắt chuyên sâu'],
+    description: 'Kiểm tra và phát hiện sớm tình trạng cận thị ở học sinh cấp 2',
+    status: 'Đang diễn ra',
+    totalStudents: 400,
+    completedStudents: 280,
+    specialCases: 32,
+    createdAt: '2025-09-15',
+    createdBy: 'Trần Văn Bình'
   },
   {
     id: 3,
-    name: 'Khám sức khỏe răng miệng',
-    startDate: '2025-04-01',
-    endDate: '2025-04-15',
-    description: 'Chương trình khám và chăm sóc răng miệng cho học sinh',
-    status: 'Đã hoàn thành',
-    totalStudents: 800,
-    examinedStudents: 780,
-    flaggedStudents: 120
+    name: 'Khám răng và tư vấn chăm sóc răng miệng',
+    type: 'Theo lớp',
+    targetGrades: '6',
+    targetClasses: '6A1, 6A2, 6B1, 6B2',
+    scheduledDate: '2025-11-05',
+    endDate: '2025-11-10',
+    checkupItems: ['Tình trạng răng', 'Vệ sinh răng miệng'],
+    description: 'Kiểm tra răng miệng và hướng dẫn chăm sóc răng cho học sinh lớp 6',
+    status: 'Sắp diễn ra',
+    totalStudents: 160,
+    completedStudents: 0,
+    specialCases: 0,
+    createdAt: '2025-10-01',
+    createdBy: 'Lê Thị Dung'
   },
   {
     id: 4,
-    name: 'Khám sức khỏe mắt',
-    startDate: '2025-03-01',
-    endDate: '2025-03-10',
-    description: 'Chương trình kiểm tra thị lực và sức khỏe mắt',
-    status: 'Đã hoàn thành',
-    totalStudents: 800,
-    examinedStudents: 790,
-    flaggedStudents: 95
+    name: 'Khám và tư vấn dinh dưỡng',
+    type: 'Định kỳ quý',
+    targetGrades: '8, 9',
+    targetClasses: 'Tất cả lớp khối 8, 9',
+    scheduledDate: '2025-11-20',
+    endDate: '2025-12-05',
+    checkupItems: ['Chiều cao', 'Cân nặng', 'BMI', 'Tư vấn dinh dưỡng'],
+    description: 'Đánh giá tình trạng dinh dưỡng và tư vấn chế độ ăn phù hợp với lứa tuổi',
+    status: 'Sắp diễn ra',
+    totalStudents: 450,
+    completedStudents: 0,
+    specialCases: 0,
+    createdAt: '2025-10-15',
+    createdBy: 'Phạm Thị Hoa'
+  },
+  {
+    id: 5,
+    name: 'Kiểm tra sức khoẻ định kỳ giữa năm học',
+    type: 'Định kỳ học kỳ',
+    targetGrades: 'Tất cả',
+    targetClasses: 'Tất cả',
+    scheduledDate: '2026-01-10',
+    endDate: '2026-02-10',
+    checkupItems: [
+      'Chiều cao', 'Cân nặng', 'Thị lực', 'Huyết áp',
+      'Nhịp tim', 'Nhiệt độ'
+    ],
+    description: 'Kiểm tra sức khoẻ tổng quát giữa năm học',
+    status: 'Chưa bắt đầu',
+    totalStudents: 1200,
+    completedStudents: 0,
+    specialCases: 0,
+    createdAt: '2025-11-20',
+    createdBy: 'Nguyễn Thị Hoa'
   }
 ];
 
-// Import dữ liệu từ studentService để tránh trùng lặp
-import { mockStudents } from './studentService';
+// Dữ liệu mẫu cho học sinh
+const mockStudents = [
+  {
+    id: 1,
+    studentCode: 'HS001',
+    name: 'Nguyễn Văn An',
+    dateOfBirth: '2012-05-15',
+    gender: 'Nam',
+    className: '6A1',
+    grade: 6,
+    parentPhone: '0901234567',
+    parentName: 'Nguyễn Văn Bình',
+    address: '123 Nguyễn Trãi, Quận 1, TP.HCM'
+  },
+  {
+    id: 2,
+    studentCode: 'HS002',
+    name: 'Trần Thị Bình',
+    dateOfBirth: '2012-08-20',
+    gender: 'Nữ',
+    className: '6A2',
+    grade: 6,
+    parentPhone: '0909876543',
+    parentName: 'Trần Văn Cường',
+    address: '456 Lê Lai, Quận 3, TP.HCM'
+  },
+  {
+    id: 3,
+    studentCode: 'HS003',
+    name: 'Lê Hoàng Công',
+    dateOfBirth: '2011-03-10',
+    gender: 'Nam',
+    className: '7B1',
+    grade: 7,
+    parentPhone: '0977123456',
+    parentName: 'Lê Văn Dũng',
+    address: '789 Trần Hưng Đạo, Quận 5, TP.HCM'
+  },
+  {
+    id: 4,
+    studentCode: 'HS004',
+    name: 'Phạm Thị Diệu',
+    dateOfBirth: '2011-11-25',
+    gender: 'Nữ',
+    className: '7B2',
+    grade: 7,
+    parentPhone: '0988654321',
+    parentName: 'Phạm Thị Em',
+    address: '246 Nguyễn Du, Quận 1, TP.HCM'
+  },
+  {
+    id: 5,
+    studentCode: 'HS005',
+    name: 'Hoàng Văn Duy',
+    dateOfBirth: '2010-07-30',
+    gender: 'Nam',
+    className: '8C1',
+    grade: 8,
+    parentPhone: '0966789123',
+    parentName: 'Hoàng Thị Giang',
+    address: '357 Lê Lợi, Quận 1, TP.HCM'
+  },
+  // Thêm nhiều học sinh khác...
+];
 
-// Định nghĩa dữ liệu mẫu về tiêu chuẩn sức khỏe theo độ tuổi
+// Mock dữ liệu kết quả khám sức khoẻ của học sinh
+const mockCheckupResults = [
+  {
+    id: 1,
+    checkupCampaignId: 1,
+    studentId: 1,
+    date: '2025-08-16',
+    height: 158,
+    weight: 50.5,
+    bmi: 20.2,
+    visionLeft: 10,
+    visionRight: 10,
+    hearing: 'Bình thường',
+    teethStatus: 'Có 1 sâu răng nhẹ',
+    bloodPressure: '110/70',
+    heartRate: 85,
+    temperature: 36.8,
+    otherFindings: 'Không có dấu hiệu bất thường',
+    recommendations: 'Nên khám định kỳ răng 6 tháng/lần',
+    followupRequired: false,
+    followupDate: null,
+    followupNote: null,
+    examiner: 'Bs. Nguyễn Thị Hoa',
+    notifiedToParent: true,
+    notes: 'Học sinh phát triển tốt'
+  },
+  {
+    id: 2,
+    checkupCampaignId: 1,
+    studentId: 2,
+    date: '2025-08-17',
+    height: 152,
+    weight: 42.0,
+    bmi: 18.2,
+    visionLeft: 7,
+    visionRight: 8,
+    hearing: 'Bình thường',
+    teethStatus: 'Bình thường',
+    bloodPressure: '105/68',
+    heartRate: 88,
+    temperature: 36.7,
+    otherFindings: 'Thị lực hơi kém, có dấu hiệu cận thị nhẹ',
+    recommendations: 'Nên đi khám mắt chuyên sâu, hạn chế dùng thiết bị điện tử kéo dài',
+    followupRequired: true,
+    followupDate: '2025-11-17',
+    followupNote: 'Cần kiểm tra lại thị lực sau 3 tháng',
+    examiner: 'Bs. Lê Thị Tuyết',
+    notifiedToParent: true,
+    notes: 'Phụ huynh đã được tư vấn về việc kiểm tra mắt'
+  },
+  {
+    id: 3,
+    checkupCampaignId: 1,
+    studentId: 3,
+    date: '2025-08-18',
+    height: 162,
+    weight: 55.5,
+    bmi: 21.1,
+    visionLeft: 10,
+    visionRight: 9,
+    hearing: 'Bình thường',
+    teethStatus: 'Cần chỉnh nha',
+    bloodPressure: '115/72',
+    heartRate: 80,
+    temperature: 36.5,
+    otherFindings: 'Vấn đề về răng cần được điều trị chỉnh nha',
+    recommendations: 'Nên đến nha sĩ để được tư vấn chỉnh nha',
+    followupRequired: true,
+    followupDate: '2025-09-18',
+    followupNote: 'Theo dõi tình trạng răng',
+    examiner: 'Bs. Trần Văn Bình',
+    notifiedToParent: true,
+    notes: 'Phụ huynh đã được tư vấn về việc chỉnh nha'
+  },
+  // Thêm nhiều kết quả khác...
+];
+
+// Dữ liệu mẫu cho tiêu chuẩn sức khoẻ theo độ tuổi
 const mockHealthStandards = {
-  heightWeight: [
-    { ageGroup: '6-7', gender: 'Nam', minHeight: 110, maxHeight: 125, minWeight: 18, maxWeight: 25 },
-    { ageGroup: '6-7', gender: 'Nữ', minHeight: 108, maxHeight: 122, minWeight: 17, maxWeight: 24 },
-    { ageGroup: '8-9', gender: 'Nam', minHeight: 124, maxHeight: 135, minWeight: 23, maxWeight: 32 },
-    { ageGroup: '8-9', gender: 'Nữ', minHeight: 122, maxHeight: 134, minWeight: 22, maxWeight: 31 },
-    { ageGroup: '10-11', gender: 'Nam', minHeight: 134, maxHeight: 145, minWeight: 28, maxWeight: 40 },
-    { ageGroup: '10-11', gender: 'Nữ', minHeight: 132, maxHeight: 147, minWeight: 27, maxWeight: 42 },
-    { ageGroup: '12-13', gender: 'Nam', minHeight: 144, maxHeight: 160, minWeight: 35, maxWeight: 50 },
-    { ageGroup: '12-13', gender: 'Nữ', minHeight: 145, maxHeight: 158, minWeight: 35, maxWeight: 52 },
-    { ageGroup: '14-15', gender: 'Nam', minHeight: 155, maxHeight: 175, minWeight: 43, maxWeight: 65 },
-    { ageGroup: '14-15', gender: 'Nữ', minHeight: 150, maxHeight: 165, minWeight: 43, maxWeight: 58 },
-    { ageGroup: '16-17', gender: 'Nam', minHeight: 165, maxHeight: 185, minWeight: 55, maxWeight: 75 },
-    { ageGroup: '16-17', gender: 'Nữ', minHeight: 154, maxHeight: 170, minWeight: 47, maxWeight: 63 }
-  ],
-  bmi: [
-    { category: 'Thiếu cân', range: '< 18.5', risk: 'Tăng nguy cơ một số vấn đề sức khỏe' },
-    { category: 'Bình thường', range: '18.5 - 22.9', risk: 'Nguy cơ thấp' },
-    { category: 'Thừa cân', range: '23 - 24.9', risk: 'Nguy cơ tăng nhẹ' },
-    { category: 'Béo phì độ I', range: '25 - 29.9', risk: 'Nguy cơ cao' },
-    { category: 'Béo phì độ II', range: '≥ 30', risk: 'Nguy cơ rất cao' }
-  ],
-  bloodPressure: [
-    { ageGroup: '6-9', category: 'Bình thường', systolic: '< 110', diastolic: '< 70' },
-    { ageGroup: '6-9', category: 'Tiền tăng huyết áp', systolic: '110-120', diastolic: '70-80' },
-    { ageGroup: '6-9', category: 'Tăng huyết áp', systolic: '> 120', diastolic: '> 80' },
-    { ageGroup: '10-12', category: 'Bình thường', systolic: '< 115', diastolic: '< 75' },
-    { ageGroup: '10-12', category: 'Tiền tăng huyết áp', systolic: '115-125', diastolic: '75-85' },
-    { ageGroup: '10-12', category: 'Tăng huyết áp', systolic: '> 125', diastolic: '> 85' },
-    { ageGroup: '13-15', category: 'Bình thường', systolic: '< 120', diastolic: '< 80' },
-    { ageGroup: '13-15', category: 'Tiền tăng huyết áp', systolic: '120-130', diastolic: '80-85' },
-    { ageGroup: '13-15', category: 'Tăng huyết áp', systolic: '> 130', diastolic: '> 85' },
-    { ageGroup: '16-18', category: 'Bình thường', systolic: '< 130', diastolic: '< 85' },
-    { ageGroup: '16-18', category: 'Tiền tăng huyết áp', systolic: '130-140', diastolic: '85-90' },
-    { ageGroup: '16-18', category: 'Tăng huyết áp', systolic: '> 140', diastolic: '> 90' }
-  ],
-  vision: [
-    { category: 'Bình thường', range: '20/20 - 20/30' },
-    { category: 'Cận thị nhẹ', range: '20/40 - 20/60' },
-    { category: 'Cận thị trung bình', range: '20/70 - 20/160' },
-    { category: 'Cận thị nặng', range: '20/200 hoặc kém hơn' }
-  ],
-  heartRate: [
-    { ageGroup: '6-8', minRate: 70, maxRate: 110 },
-    { ageGroup: '9-11', minRate: 65, maxRate: 105 },
-    { ageGroup: '12-15', minRate: 60, maxRate: 100 },
-    { ageGroup: '16-18', minRate: 55, maxRate: 95 }
-  ],
-  
-  // Thêm một số tiêu chuẩn mới
-  bodyTemperature: [
-    { category: 'Hạ thân nhiệt', range: '< 35.0°C', risk: 'Nguy hiểm, cần chăm sóc y tế ngay lập tức' },
-    { category: 'Bình thường thấp', range: '35.0 - 36.5°C', risk: 'Theo dõi' },
-    { category: 'Bình thường', range: '36.5 - 37.5°C', risk: 'Không có rủi ro' },
-    { category: 'Sốt nhẹ', range: '37.5 - 38.0°C', risk: 'Theo dõi' },
-    { category: 'Sốt', range: '38.0 - 39.0°C', risk: 'Cần điều trị hạ sốt' },
-    { category: 'Sốt cao', range: '39.0 - 40.0°C', risk: 'Cần điều trị và theo dõi' },
-    { category: 'Sốt rất cao', range: '> 40.0°C', risk: 'Nguy hiểm, cần chăm sóc y tế ngay lập tức' }
-  ],
-  
-  nutrition: [
-    { category: 'Thiếu dinh dưỡng', signs: 'BMI thấp, thiếu năng lượng, chậm phát triển', recommendations: 'Cải thiện chế độ ăn, bổ sung dinh dưỡng' },
-    { category: 'Dinh dưỡng tốt', signs: 'BMI bình thường, năng lượng tốt, phát triển phù hợp', recommendations: 'Duy trì chế độ ăn cân bằng' },
-    { category: 'Thừa cân', signs: 'BMI cao, dễ mệt mỏi', recommendations: 'Điều chỉnh chế độ ăn, tăng hoạt động thể chất' }
-  ],
-  
-  physicalActivity: [
-    { ageGroup: '6-10', minActivity: '60 phút/ngày', type: 'Hoạt động vui chơi, thể thao nhẹ nhàng' },
-    { ageGroup: '11-14', minActivity: '60 phút/ngày', type: 'Kết hợp các hoạt động aerobic và tăng cường sức mạnh' },
-    { ageGroup: '15-18', minActivity: '60 phút/ngày', type: 'Kết hợp các hoạt động aerobic cường độ vừa đến mạnh và tăng cường sức mạnh' }
-  ],
-  
-  oralHealth: [
-    { category: 'Tốt', description: 'Không có sâu răng, nướu khỏe mạnh', recommendations: 'Kiểm tra nha khoa 6 tháng/lần' },
-    { category: 'Trung bình', description: 'Có dấu hiệu sâu răng nhẹ hoặc viêm nướu nhẹ', recommendations: 'Kiểm tra nha khoa 3-6 tháng/lần' },
-    { category: 'Kém', description: 'Sâu răng, viêm nướu, có thể đau nhức', recommendations: 'Cần điều trị nha khoa ngay' }
-  ],
-  
-  sleepRequirements: [
-    { ageGroup: '6-12', hoursNeeded: '9-12 giờ/ngày' },
-    { ageGroup: '13-18', hoursNeeded: '8-10 giờ/ngày' }
-  ],
-  
-  immunizationSchedule: [
-    { age: '4-6 tuổi', vaccines: ['Bạch hầu, Uốn ván, Ho gà (DTP)', 'Bại liệt', 'Sởi, Quai bị, Rubella (MMR)'] },
-    { age: '11-12 tuổi', vaccines: ['Viêm gan B', 'HPV (2 liều, cách nhau 6 tháng)'] },
-    { age: '16 tuổi', vaccines: ['Viêm màng não cầu khuẩn'] },
-    { age: 'Hàng năm', vaccines: ['Cúm mùa'] }
-  ]
+  height: {
+    // Chiều cao trung bình theo tuổi (cm)
+    male: {
+      11: { low: 135, normal: 145, high: 158 },
+      12: { low: 140, normal: 150, high: 163 },
+      13: { low: 145, normal: 156, high: 170 },
+      14: { low: 150, normal: 163, high: 175 },
+      15: { low: 155, normal: 170, high: 182 },
+      16: { low: 160, normal: 173, high: 185 },
+      17: { low: 163, normal: 175, high: 187 },
+      18: { low: 165, normal: 177, high: 190 }
+    },
+    female: {
+      11: { low: 135, normal: 146, high: 157 },
+      12: { low: 140, normal: 152, high: 162 },
+      13: { low: 145, normal: 157, high: 166 },
+      14: { low: 148, normal: 160, high: 168 },
+      15: { low: 150, normal: 162, high: 169 },
+      16: { low: 152, normal: 163, high: 170 },
+      17: { low: 153, normal: 164, high: 170 },
+      18: { low: 154, normal: 164, high: 171 }
+    }
+  },
+  weight: {
+    // Cân nặng trung bình theo tuổi (kg)
+    male: {
+      11: { low: 30, normal: 35, high: 46 },
+      12: { low: 33, normal: 40, high: 52 },
+      13: { low: 36, normal: 45, high: 58 },
+      14: { low: 40, normal: 50, high: 63 },
+      15: { low: 45, normal: 55, high: 69 },
+      16: { low: 50, normal: 60, high: 74 },
+      17: { low: 54, normal: 63, high: 77 },
+      18: { low: 56, normal: 65, high: 80 }
+    },
+    female: {
+      11: { low: 30, normal: 37, high: 48 },
+      12: { low: 33, normal: 42, high: 54 },
+      13: { low: 36, normal: 46, high: 58 },
+      14: { low: 38, normal: 48, high: 60 },
+      15: { low: 40, normal: 50, high: 62 },
+      16: { low: 42, normal: 52, high: 64 },
+      17: { low: 43, normal: 53, high: 65 },
+      18: { low: 44, normal: 54, high: 66 }
+    }
+  },
+  bmi: {
+    // BMI tiêu chuẩn
+    children: {
+      low: 18.5,
+      normal: 22.9,
+      high: 25,
+      veryHigh: 30
+    }
+  },
+  vision: {
+    normal: 10, // Thị lực tiêu chuẩn
+    moderate: 7, // Thị lực trung bình
+    poor: 4 // Thị lực kém
+  },
+  bloodPressure: {
+    // Huyết áp theo tuổi (mmHg)
+    '11-13': {
+      low: '90/55',
+      normal: '110/65',
+      high: '120/80'
+    },
+    '14-16': {
+      low: '100/60',
+      normal: '115/70',
+      high: '125/82'
+    },
+    '17-18': {
+      low: '105/65',
+      normal: '120/75',
+      high: '130/85'
+    }
+  }
 };
 
-// Unified export to make imports consistent
+// Delay giả lập API
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// Health Checkup Service API
 const healthCheckupService = {
-  getAllHealthCheckups,
-  getHealthCheckupById,
-  addHealthCheckup,
-  updateHealthCheckup,
-  deleteHealthCheckup,
-  getAllCheckupCampaigns,
-  getStudentsRequiringFollowup,
-  getHealthStandards,
-  getHealthCheckupNotifications,
-  createHealthCheckupNotification
+  // Lấy tất cả đợt khám sức khoẻ
+  getAllCheckupCampaigns: async () => {
+    try {
+      await delay(500);
+
+      if (config.useMockData) {
+        console.log('Returning mock campaigns data');
+        return [...mockHealthCheckupCampaigns];
+      } else {
+        const response = await fetch(`${config.apiUrl}/campaigns`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch checkup campaigns');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching checkup campaigns:', error);
+      return [];
+    }
+  },
+
+  // Lấy chi tiết một đợt khám
+  getCheckupCampaignById: async (id) => {
+    try {
+      await delay(300);
+
+      if (config.useMockData) {
+        const campaign = mockHealthCheckupCampaigns.find(c => c.id === parseInt(id));
+        if (!campaign) {
+          throw new Error('Không tìm thấy đợt khám sức khoẻ');
+        }
+        return { ...campaign };
+      } else {
+        const response = await fetch(`${config.apiUrl}/campaigns/${id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch campaign details');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching campaign details:', error);
+      throw error;
+    }
+  },
+  // Tạo đợt khám sức khoẻ mới
+  createCheckupCampaign: async (campaignData) => {
+    try {
+      await delay(600);
+      
+      if (config.useMockData) {
+        // Tính toán số lượng học sinh dự kiến dựa trên thông tin đợt khám
+        let estimatedStudents = 0;
+        
+        if (campaignData.targetGrades === 'Tất cả') {
+          estimatedStudents = 1200; // Ước tính toàn trường
+        } else if (campaignData.type === 'Theo khối') {
+          // Đếm số khối và ước tính
+          const grades = campaignData.targetGrades.split(',').length;
+          estimatedStudents = grades * 200; // Trung bình 200 học sinh/khối
+        } else if (campaignData.type === 'Theo lớp') {
+          // Đếm số lớp và ước tính
+          const classes = campaignData.targetClasses.split(',').length;
+          estimatedStudents = classes * 40; // Trung bình 40 học sinh/lớp
+        }
+        
+        // Tạo đợt khám mới với đầy đủ thông tin
+        const newCampaign = {
+          id: mockHealthCheckupCampaigns.length + 1,
+          ...campaignData,
+          createdAt: new Date().toISOString().split('T')[0],
+          totalStudents: estimatedStudents,
+          completedStudents: 0,
+          specialCases: 0,
+          // Đảm bảo các trường bắt buộc
+          status: campaignData.status || 'Chưa bắt đầu',
+          createdBy: campaignData.createdBy || 'Hệ thống'
+        };
+
+        mockHealthCheckupCampaigns.push(newCampaign);
+        return newCampaign;
+      } else {
+        const response = await fetch(`${config.apiUrl}/campaigns`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(campaignData)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create checkup campaign');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error creating checkup campaign:', error);
+      throw error;
+    }
+  },
+
+  // Cập nhật đợt khám sức khoẻ
+  updateCheckupCampaign: async (id, campaignData) => {
+    try {
+      await delay(500);
+
+      if (config.useMockData) {
+        const index = mockHealthCheckupCampaigns.findIndex(c => c.id === parseInt(id));
+        if (index === -1) {
+          throw new Error('Không tìm thấy đợt khám sức khoẻ');
+        }
+
+        mockHealthCheckupCampaigns[index] = {
+          ...mockHealthCheckupCampaigns[index],
+          ...campaignData
+        };
+
+        return mockHealthCheckupCampaigns[index];
+      } else {
+        const response = await fetch(`${config.apiUrl}/campaigns/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(campaignData)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update checkup campaign');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error updating checkup campaign:', error);
+      throw error;
+    }
+  },
+  // Cập nhật trạng thái đợt khám sức khoẻ
+  updateCheckupCampaignStatus: async (id, newStatus) => {
+    try {
+      await delay(400);
+
+      if (config.useMockData) {
+        const index = mockHealthCheckupCampaigns.findIndex(c => c.id === parseInt(id));
+        if (index === -1) {
+          throw new Error('Không tìm thấy đợt khám sức khoẻ');
+        }
+        
+        // Cập nhật trạng thái
+        mockHealthCheckupCampaigns[index] = {
+          ...mockHealthCheckupCampaigns[index],
+          status: newStatus
+        };
+        
+        return mockHealthCheckupCampaigns[index];
+      } else {
+        const response = await fetch(`${config.apiUrl}/campaigns/${id}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update campaign status');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error updating campaign status:', error);
+      throw error;
+    }
+  },
+
+  // Xoá đợt khám sức khoẻ
+  deleteCheckupCampaign: async (id) => {
+    try {
+      await delay(500);
+
+      if (config.useMockData) {
+        const index = mockHealthCheckupCampaigns.findIndex(c => c.id === parseInt(id));
+        if (index === -1) {
+          throw new Error('Không tìm thấy đợt khám sức khoẻ');
+        }
+
+        mockHealthCheckupCampaigns.splice(index, 1);
+        return { success: true, message: 'Xoá thành công' };
+      } else {
+        const response = await fetch(`${config.apiUrl}/campaigns/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete checkup campaign');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error deleting checkup campaign:', error);
+      throw error;
+    }
+  },
+
+  // Lấy danh sách học sinh trong một đợt khám
+  getStudentsByCheckupCampaign: async (campaignId) => {
+    try {
+      await delay(400);
+
+      if (config.useMockData) {
+        // Trong thực tế, bạn sẽ lọc các học sinh thuộc đợt khám dựa vào lớp/khối
+        const campaign = mockHealthCheckupCampaigns.find(c => c.id === parseInt(campaignId));
+        if (!campaign) {
+          throw new Error('Không tìm thấy đợt khám sức khoẻ');
+        }
+
+        // Giả lập việc lọc học sinh dựa vào thông tin lớp/khối của đợt khám
+        let studentsInCampaign = [...mockStudents];
+
+        // Lọc theo thông tin trong campaign
+        if (campaign.targetGrades !== 'Tất cả') {
+          const grades = campaign.targetGrades.split(',').map(g => parseInt(g.trim()));
+          studentsInCampaign = studentsInCampaign.filter(s => grades.includes(s.grade));
+        }
+
+        // Thêm thông tin về trạng thái đã khám chưa
+        return studentsInCampaign.map(student => {
+          const result = mockCheckupResults.find(r => 
+            r.checkupCampaignId === parseInt(campaignId) && r.studentId === student.id
+          );
+          
+          return {
+            ...student,
+            checkupStatus: result ? 'Đã khám' : 'Chưa khám',
+            checkupResultId: result ? result.id : null,
+            notifiedToParent: result ? result.notifiedToParent : false
+          };
+        });
+      } else {
+        const response = await fetch(`${config.apiUrl}/campaigns/${campaignId}/students`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch students for checkup campaign');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching students for campaign:', error);
+      return [];
+    }
+  },
+
+  // Lấy kết quả khám sức khoẻ của một học sinh trong một đợt khám
+  getStudentCheckupResult: async (campaignId, studentId) => {
+    try {
+      await delay(300);
+
+      if (config.useMockData) {
+        const result = mockCheckupResults.find(r => 
+          r.checkupCampaignId === parseInt(campaignId) && r.studentId === parseInt(studentId)
+        );
+        
+        if (!result) {
+          return null; // Chưa có kết quả
+        }
+        
+        const student = mockStudents.find(s => s.id === parseInt(studentId));
+        return {
+          ...result,
+          studentName: student ? student.name : 'Không xác định',
+          studentClass: student ? student.className : 'Không xác định',
+          studentGrade: student ? student.grade : 'Không xác định'
+        };
+      } else {
+        const response = await fetch(`${config.apiUrl}/results/${campaignId}/${studentId}`);
+        if (response.status === 404) {
+          return null; // Chưa có kết quả
+        }
+        if (!response.ok) {
+          throw new Error('Failed to fetch checkup result');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching checkup result:', error);
+      return null;
+    }
+  },
+
+  // Lưu kết quả khám sức khoẻ mới
+  saveCheckupResult: async (resultData) => {
+    try {
+      await delay(600);
+
+      if (config.useMockData) {
+        const newResult = {
+          id: mockCheckupResults.length + 1,
+          ...resultData,
+          date: resultData.date || new Date().toISOString().split('T')[0]
+        };
+
+        // Nếu đã có kết quả trước đó, cập nhật
+        const existingIndex = mockCheckupResults.findIndex(r => 
+          r.checkupCampaignId === parseInt(resultData.checkupCampaignId) && 
+          r.studentId === parseInt(resultData.studentId)
+        );
+
+        if (existingIndex !== -1) {
+          mockCheckupResults[existingIndex] = newResult;
+        } else {
+          mockCheckupResults.push(newResult);
+          
+          // Cập nhật số lượng học sinh đã khám trong chiến dịch
+          const campaignIndex = mockHealthCheckupCampaigns.findIndex(c => 
+            c.id === parseInt(resultData.checkupCampaignId)
+          );
+          
+          if (campaignIndex !== -1) {
+            mockHealthCheckupCampaigns[campaignIndex].completedStudents += 1;
+            
+            if (resultData.followupRequired) {
+              mockHealthCheckupCampaigns[campaignIndex].specialCases += 1;
+            }
+          }
+        }
+
+        return newResult;
+      } else {
+        const response = await fetch(`${config.apiUrl}/results`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(resultData)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save checkup result');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error saving checkup result:', error);
+      throw error;
+    }
+  },
+
+  // Cập nhật kết quả khám sức khoẻ
+  updateCheckupResult: async (id, resultData) => {
+    try {
+      await delay(500);
+
+      if (config.useMockData) {
+        const index = mockCheckupResults.findIndex(r => r.id === parseInt(id));
+        if (index === -1) {
+          throw new Error('Không tìm thấy kết quả khám sức khoẻ');
+        }
+
+        const oldResult = mockCheckupResults[index];
+        const newResult = {
+          ...oldResult,
+          ...resultData
+        };
+        
+        mockCheckupResults[index] = newResult;
+        
+        // Cập nhật số lượng trường hợp đặc biệt nếu thay đổi
+        if (oldResult.followupRequired !== newResult.followupRequired) {
+          const campaignIndex = mockHealthCheckupCampaigns.findIndex(c => 
+            c.id === parseInt(newResult.checkupCampaignId)
+          );
+          
+          if (campaignIndex !== -1) {
+            if (newResult.followupRequired) {
+              mockHealthCheckupCampaigns[campaignIndex].specialCases += 1;
+            } else {
+              mockHealthCheckupCampaigns[campaignIndex].specialCases -= 1;
+            }
+          }
+        }
+
+        return newResult;
+      } else {
+        const response = await fetch(`${config.apiUrl}/results/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(resultData)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update checkup result');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error updating checkup result:', error);
+      throw error;
+    }
+  },
+
+  // Lấy lịch sử khám sức khoẻ của một học sinh
+  getStudentCheckupHistory: async (studentId) => {
+    try {
+      await delay(500);
+
+      if (config.useMockData) {
+        // Lọc tất cả kết quả của học sinh
+        const results = mockCheckupResults
+          .filter(r => r.studentId === parseInt(studentId))
+          .map(result => {
+            const campaign = mockHealthCheckupCampaigns.find(c => c.id === result.checkupCampaignId);
+            return {
+              ...result,
+              checkupName: campaign ? campaign.name : 'Không xác định',
+              checkupDate: result.date
+            };
+          })
+          .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sắp xếp theo ngày giảm dần
+        
+        return results;
+      } else {
+        const response = await fetch(`${config.apiUrl}/students/${studentId}/history`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch student checkup history');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching student history:', error);
+      return [];
+    }
+  },
+
+  // Lấy tiêu chuẩn sức khoẻ theo độ tuổi
+  getHealthStandards: async () => {
+    try {
+      await delay(200);
+
+      if (config.useMockData) {
+        return mockHealthStandards;
+      } else {
+        const response = await fetch(`${config.apiUrl}/standards`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch health standards');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching health standards:', error);
+      return mockHealthStandards; // Fallback to mock data
+    }
+  },
+
+  // Lấy báo cáo thống kê
+  getStatisticalReport: async (filters) => {
+    try {
+      await delay(700);
+
+      if (config.useMockData) {
+        // Lọc kết quả theo filter
+        let filteredResults = [...mockCheckupResults];
+        
+        if (filters.campaignId) {
+          filteredResults = filteredResults.filter(r => r.checkupCampaignId === parseInt(filters.campaignId));
+        }
+        
+        if (filters.grade) {
+          const studentsInGrade = mockStudents.filter(s => s.grade === parseInt(filters.grade)).map(s => s.id);
+          filteredResults = filteredResults.filter(r => studentsInGrade.includes(r.studentId));
+        }
+        
+        if (filters.className) {
+          const studentsInClass = mockStudents.filter(s => s.className === filters.className).map(s => s.id);
+          filteredResults = filteredResults.filter(r => studentsInClass.includes(r.studentId));
+        }
+        
+        if (filters.fromDate) {
+          filteredResults = filteredResults.filter(r => r.date >= filters.fromDate);
+        }
+        
+        if (filters.toDate) {
+          filteredResults = filteredResults.filter(r => r.date <= filters.toDate);
+        }
+        
+        // Thống kê
+        const totalRecords = filteredResults.length;
+        const normalCount = filteredResults.filter(r => !r.followupRequired).length;
+        const followupCount = filteredResults.filter(r => r.followupRequired).length;
+        
+        const eyesightIssues = filteredResults.filter(r => r.visionLeft < 7 || r.visionRight < 7).length;
+        const weightIssues = filteredResults.filter(r => r.bmi < 18.5 || r.bmi > 25).length;
+        const teethIssues = filteredResults.filter(r => r.teethStatus && r.teethStatus.toLowerCase().includes('sâu')).length;
+        
+        return {
+          totalRecords,
+          healthStatus: {
+            normal: normalCount,
+            requireFollowup: followupCount,
+            notifiedToParent: filteredResults.filter(r => r.notifiedToParent).length
+          },
+          commonIssues: {
+            eyesight: eyesightIssues,
+            weight: weightIssues,
+            teeth: teethIssues
+          },
+          bmiDistribution: {
+            underweight: filteredResults.filter(r => r.bmi < 18.5).length,
+            normal: filteredResults.filter(r => r.bmi >= 18.5 && r.bmi <= 25).length,
+            overweight: filteredResults.filter(r => r.bmi > 25 && r.bmi <= 30).length,
+            obese: filteredResults.filter(r => r.bmi > 30).length
+          }
+        };
+      } else {
+        const queryParams = new URLSearchParams(filters).toString();
+        const response = await fetch(`${config.apiUrl}/reports/statistics?${queryParams}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch statistical report');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching statistical report:', error);
+      return {
+        totalRecords: 0,
+        healthStatus: { normal: 0, requireFollowup: 0, notifiedToParent: 0 },
+        commonIssues: { eyesight: 0, weight: 0, teeth: 0 },
+        bmiDistribution: { underweight: 0, normal: 0, overweight: 0, obese: 0 }
+      };
+    }
+  },
+
+  // Xuất báo cáo
+  exportReport: async (format, filters) => {
+    try {
+      await delay(800);
+
+      if (config.useMockData) {
+        // Giả lập xuất báo cáo, trả về URL file giả định
+        const fileType = format.toLowerCase();
+        let fileContent = '';
+        
+        if (fileType === 'csv') {
+          // Tạo mẫu nội dung CSV
+          fileContent = 'STT,Mã học sinh,Họ và tên,Lớp,Chiều cao (cm),Cân nặng (kg),BMI,Thị lực trái,Thị lực phải,Tình trạng răng,Huyết áp,Nhịp tim,Cần theo dõi\n';
+          
+          // Thêm một số dòng dữ liệu giả định
+          fileContent += '1,HS001,Nguyễn Văn An,6A1,158,50.5,20.2,10,10,"Bình thường",110/70,85,Không\n';
+          fileContent += '2,HS002,Trần Thị Bình,6A2,152,42,18.2,7,8,"Bình thường",105/68,88,Có\n';
+          // Mã hoá để tạo URL có thể tải xuống
+          const encodedContent = encodeURIComponent(fileContent);
+          return {
+            success: true,
+            fileUrl: `data:text/csv;charset=utf-8,${encodedContent}`,
+            fileName: `bao-cao-kham-suc-khoe-${new Date().toISOString().slice(0,10)}.csv`
+          };
+        } else if (fileType === 'pdf') {
+          // Trong thực tế sẽ trả về URL của file PDF đã tạo
+          return {
+            success: true,
+            fileUrl: '#',
+            fileName: `bao-cao-kham-suc-khoe-${new Date().toISOString().slice(0,10)}.pdf`,
+            message: 'PDF được tạo (giả lập)'
+          };
+        } else {
+          throw new Error('Định dạng không được hỗ trợ');
+        }
+      } else {
+        const queryParams = new URLSearchParams({ format, ...filters }).toString();
+        const response = await fetch(`${config.apiUrl}/reports/export?${queryParams}`);
+        if (!response.ok) {
+          throw new Error('Failed to export report');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      throw error;
+    }
+  },
+
+  // Lấy danh sách học sinh cần theo dõi
+  getStudentsRequiringFollowup: async () => {
+    try {
+      await delay(600);
+
+      if (config.useMockData) {
+        // Lấy các học sinh cần theo dõi từ kết quả khám
+        const followupResults = mockCheckupResults.filter(r => r.followupRequired);
+        
+        // Map sang thông tin học sinh và kết quả khám
+        const studentsWithFollowup = followupResults.map(result => {
+          const student = mockStudents.find(s => s.id === result.studentId);
+          const campaign = mockHealthCheckupCampaigns.find(c => c.id === result.checkupCampaignId);
+          
+          return {
+            resultId: result.id,
+            studentId: result.studentId,
+            studentName: student ? student.name : 'Không xác định',
+            studentCode: student ? student.studentCode : 'Không xác định',
+            className: student ? student.className : 'Không xác định',
+            grade: student ? student.grade : 'Không xác định',
+            checkupName: campaign ? campaign.name : 'Không xác định',
+            checkupDate: result.date,
+            followupDate: result.followupDate,
+            issue: result.otherFindings,
+            recommendations: result.recommendations,
+            notifiedToParent: result.notifiedToParent
+          };
+        });
+        
+        return studentsWithFollowup.sort((a, b) => new Date(a.followupDate) - new Date(b.followupDate));
+      } else {
+        const response = await fetch(`${config.apiUrl}/students/followup`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch students requiring followup');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching students requiring followup:', error);
+      return [];
+    }
+  },
+  
+  // Lấy danh sách lớp học
+  getClassList: async () => {
+    try {
+      await delay(300);
+
+      if (config.useMockData) {
+        // Lấy danh sách lớp từ học sinh
+        const classes = [...new Set(mockStudents.map(s => s.className))].sort();
+        const grades = [...new Set(mockStudents.map(s => s.grade))].sort((a, b) => a - b);
+        
+        return {
+          classes: classes.map(c => ({ name: c, grade: parseInt(c) })),
+          grades: grades.map(g => ({ grade: g, count: mockStudents.filter(s => s.grade === g).length }))
+        };
+      } else {
+        const response = await fetch(`${config.apiUrl}/classes`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch class list');
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching class list:', error);
+      return { classes: [], grades: [] };
+    }
+  }
 };
 
 export default healthCheckupService;

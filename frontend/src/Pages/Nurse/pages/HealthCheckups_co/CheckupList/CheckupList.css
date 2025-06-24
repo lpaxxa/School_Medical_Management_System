@@ -1,8 +1,12 @@
 /* Styles for the CheckupList component */
 .checkup-list-container {
-  padding: 1rem;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 120px);
+  overflow-y: auto;
   position: relative;
-  min-height: 400px;
 }
 
 /* Header styles */
@@ -11,28 +15,15 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eaeaea;
 }
 
-/* Button styles */
-.create-btn {
-  padding: 8px 16px;
-  background-color: var(--primary-color);
-  border: none;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-}
-
-.create-btn:hover {
-  background-color: var(--primary-color-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.create-btn i {
-  font-size: 14px;
+.checkup-list-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+  font-weight: 600;
 }
 
 /* Search and filter controls */
@@ -47,18 +38,11 @@
 }
 
 .search-input {
-  padding: 10px 15px;
+  padding: 8px 12px;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 4px;
   min-width: 240px;
   font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
 .filter-select {
@@ -70,26 +54,34 @@
   cursor: pointer;
 }
 
+.add-btn {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.2s;
+}
+
+.add-btn:hover {
+  background-color: #219653;
+}
+
 /* Table styles */
 .table-container {
   overflow-x: auto;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  position: relative;
-  margin-bottom: 10px; /* Space for pagination */
 }
 
 .checkup-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   margin-top: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-  overflow: hidden;
-  flex: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .checkup-table thead th {
@@ -115,13 +107,6 @@
 .checkup-table td {
   padding: 12px;
   border-bottom: 1px solid #eaeaea;
-  vertical-align: middle; /* Center content vertically */
-}
-
-.checkup-table th:last-child,
-.checkup-table td:last-child {
-  min-width: 160px; /* Ensure the action column is wide enough */
-  text-align: center; /* Center the action buttons */
   vertical-align: top;
 }
 
@@ -206,64 +191,30 @@
 
 .action-buttons {
   display: flex;
-  gap: 10px;
-  justify-content: center; /* Center the buttons in the container */
-  min-width: 150px; /* Increase minimum width to fit all buttons */
-  flex-wrap: nowrap; /* Prevent wrapping of buttons */
+  gap: 8px;
 }
 
 .action-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
   border: none;
-  margin: 0 2px;
-  background-color: #f8f9fa;
+  background-color: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  position: relative; /* Ensure proper positioning */
-  z-index: 5; /* Higher z-index to prevent being hidden */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  flex-shrink: 0; /* Prevent button from shrinking */
-}
-
-.view-btn {
-  color: #27ae60;
-  background-color: rgba(46, 204, 113, 0.1);
-}
-
-.view-btn:hover {
-  background-color: rgba(46, 204, 113, 0.2);
-  color: #27ae60;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(46, 204, 113, 0.2);
-}
-
-.edit-btn {
-  color: #2980b9;
-  background-color: rgba(52, 152, 219, 0.1);
+  transition: background-color 0.2s;
 }
 
 .edit-btn:hover {
-  background-color: rgba(52, 152, 219, 0.2);
+  background-color: rgba(52, 152, 219, 0.1);
   color: #2980b9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
-}
-
-.delete-btn {
-  color: #c0392b;
-  background-color: rgba(231, 76, 60, 0.1);
 }
 
 .delete-btn:hover {
-  background-color: rgba(231, 76, 60, 0.2);
+  background-color: rgba(231, 76, 60, 0.1);
   color: #c0392b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
 }
 
 .status-btn:hover {
@@ -300,13 +251,6 @@
   background-color: transparent;
   cursor: pointer;
   font-size: 14px;
-}
-
-/* Ensure icons in action buttons are visible */
-.action-btn i.fas {
-  font-size: 16px;
-  line-height: 1;
-  display: block;
 }
 
 .status-dropdown-content button:hover {
@@ -441,8 +385,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   background-color: rgba(255, 255, 255, 0.7);
   display: flex;
   justify-content: center;
@@ -451,184 +395,47 @@
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(0, 123, 255, 0.2);
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
   border-radius: 50%;
-  border-top-color: #007bff;
+  border-left-color: #3498db;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-/* Pagination styles */
-.pagination-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-  padding: 15px 10px;
-  border-top: 1px solid #eaeaea;
-  background-color: #f9f9f9;
-  border-radius: 0 0 8px 8px;
-}
-
-.pagination {
-  margin-bottom: 10px;
-}
-
-.pagination .page-item .page-link {
-  color: #3498db;
-  border-color: #e0e0e0;
-  transition: all 0.2s;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #3498db;
-  border-color: #3498db;
-  color: white;
-}
-
-.pagination .page-item:not(.active) .page-link:hover {
-  background-color: #e8f4fc;
-  color: #2980b9;
-  border-color: #c5e2f6;
-  transform: translateY(-1px);
-}
-
-.pagination .page-item:first-child .page-link,
-.pagination .page-item:last-child .page-link {
-  border-radius: 4px;
-}
-
-.pagination-info {
-  color: #666;
-  font-size: 14px;
-  margin-top: 10px;
-  font-weight: 500;
-}
-
-/* New Enhanced Pagination Styles */
-.pagination-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-top: 20px;
-  padding: 15px 0;
-  position: relative;
-  width: 100%;
-  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.9) 40%);
-}
-
-.pagination-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: white;
-  border-radius: 30px;
-  padding: 8px 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 15px;
-}
-
-.page-item-text {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  margin: 0 5px;
-  color: #555;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.page-item-text svg {
-  width: 14px;
-  height: 14px;
-  margin: 0 5px;
-}
-
-.page-item-text:hover {
-  color: #3498db;
-}
-
-.current-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #3498db;
-  color: white;
-  font-weight: 600;
-  margin: 0 5px;
-  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
-}
-
-.page-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: transparent;
-  color: #555;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin: 0 5px;
-}
-
-.page-number:hover {
-  background-color: #f1f8ff;
-  transform: translateY(-2px);
-}
-
-.page-separator {
-  margin: 0 5px;
-  color: #999;
-  font-weight: bold;
-}
-
-.pagination-info {
-  color: #666;
-  font-size: 14px;
-  text-align: center;
-  border-radius: 4px;
-  padding: 8px 15px;
-  background-color: #f8f9fa;
-  margin-top: 10px;
-  border: 1px solid #eee;
-  display: inline-block;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  font-weight: 500;
-}
-
-/* Ensure pagination is properly centered on all screen sizes */
-@media (max-width: 768px) {
-  .pagination-wrapper {
-    flex-wrap: wrap;
-    padding: 8px 10px;
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .checkup-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
   }
   
-  .page-item-text {
-    padding: 6px 8px;
-    font-size: 13px;
-    margin: 2px;
+  .controls {
+    flex-direction: column;
+    width: 100%;
   }
   
-  .current-page, .page-number {
-    width: 36px;
-    height: 36px;
-    font-size: 13px;
-    margin: 2px;
+  .search-filter-container {
+    width: 100%;
+  }
+  
+  .search-input, .filter-select {
+    width: 100%;
+  }
+  
+  .add-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -681,486 +488,4 @@
   color: #155724;
   background-color: #d4edda;
   border-color: #c3e6cb;
-}
-
-/* Thêm vào file CheckupList.css */
-
-/* Xóa những class liên quan đến add/create button */
-.add-btn {
-  background-color: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: background-color 0.2s;
-}
-
-.add-btn:hover {
-  background-color: #219653;
-}
-
-/* Xóa những class cho create checkup modal */
-.add-checkup-btn {
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.create-checkup-modal {
-  max-width: 90% !important;
-  margin: 30px auto !important;
-}
-
-.create-checkup-modal .modal-content {
-  background-color: #ffffff !important;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0,0,0,.5);
-  border: 1px solid rgba(0,0,0,.2);
-}
-
-.create-checkup-modal-body {
-  padding: 20px !important;
-  background-color: #ffffff !important;
-}
-
-/* Xóa class cho form thêm mới */
-.checkup-form-container {
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  margin: 20px 0;
-  position: relative;
-  animation: slideDown 0.3s ease-out;
-  border: 1px solid #e0e0e0;
-}
-
-.checkup-form-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #eaeaea;
-  border-radius: 8px 8px 0 0;
-}
-
-.checkup-form-header h3 {
-  margin: 0;
-  color: #333;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: #777;
-  cursor: pointer;
-  font-size: 18px;
-  padding: 5px;
-  transition: all 0.2s;
-}
-
-.close-btn:hover {
-  color: #e74c3c;
-  transform: scale(1.1);
-}
-
-.checkup-form {
-  padding: 20px;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-/* Styles cho phần tìm kiếm học sinh */
-.student-search-container {
-  position: relative;
-}
-
-.student-search-results {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-  background-color: white;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
-  z-index: 1000;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.student-search-item {
-  padding: 8px 12px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.student-search-item:hover {
-  background-color: #f5f5f5;
-}
-
-.student-search-item:last-child {
-  border-bottom: none;
-}
-
-.student-id {
-  font-weight: bold;
-  color: #666;
-  width: 15%;
-}
-
-.student-name {
-  flex-grow: 1;
-}
-
-.student-class {
-  color: #888;
-  width: 20%;
-  text-align: right;
-}
-
-.selected-student-info {
-  margin-top: 8px;
-  padding: 8px;
-  background-color: #e8f4fd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-/* Xóa student search related classes */
-.student-search-container {
-  margin-bottom: 1.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1rem;
-  background-color: #f9fafb;
-}
-
-.student-search-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 1rem;
-}
-
-.student-search-results {
-  max-height: 200px;
-  overflow-y: auto;
-  margin-top: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background-color: white;
-}
-
-.student-item {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.student-item:hover {
-  background-color: #f3f4f6;
-}
-
-.student-item:last-child {
-  border-bottom: none;
-}
-
-/* Xóa selected student related classes */
-.selected-student {
-  background-color: #f0f9ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.selected-student-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.selected-student-name {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #1e40af;
-}
-
-.selected-student-details {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-  font-size: 0.9rem;
-}
-
-/* Xóa animation cho form thêm mới */
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Điều chỉnh style cho modal thêm mới */
-.modal-backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1040;
-}
-
-.modal-open {
-  overflow: hidden;
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1050;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  outline: 0;
-}
-
-.modal-dialog {
-  position: relative;
-  width: auto;
-  margin: 1.75rem auto;
-  pointer-events: all;
-}
-
-.modal-content {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  background-color: #fff;
-  border-radius: 0.3rem;
-  outline: 0;
-}
-
-/* Đảm bảo modal hiển thị trên top */
-.modal-backdrop ~ .modal-backdrop {
-  z-index: 1041 !important;
-}
-
-/* Page Header */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.page-header h2 {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  font-size: 1.5rem;
-  color: #333;
-}
-
-.page-header h2 svg {
-  margin-right: 0.5rem;
-  color: #007bff;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.action-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Notification list */
-.notification-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-
-.notification-card {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.notification-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.notification-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.notification-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.notification-icon {
-  color: #007bff;
-  font-size: 1.2rem;
-}
-
-.notification-title h5 {
-  margin: 0;
-  font-weight: 600;
-}
-
-.notification-date {
-  font-size: 0.85rem;
-  color: #6c757d;
-}
-
-.notification-message {
-  min-height: 60px;
-  max-height: 80px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 1rem;
-  position: relative;
-}
-
-.notification-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.9rem;
-  color: #555;
-  margin-bottom: 1rem;
-}
-
-.notification-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
-/* No data message */
-.no-data {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 3rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  color: #6c757d;
-}
-
-/* Student selection */
-.search-container {
-  margin-bottom: 1rem;
-}
-
-.search-input-wrapper {
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6c757d;
-}
-
-.search-input {
-  padding-left: 35px;
-}
-
-.student-selection-container {
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-}
-
-.selected-count {
-  margin-top: 0.5rem;
-  text-align: right;
-  font-weight: bold;
-  color: #007bff;
-}
-
-/* Notification details */
-.notification-detail-header {
-  border-bottom: 1px solid #dee2e6;
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.notification-timestamp {
-  color: #6c757d;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
-
-.notification-detail-content {
-  margin-bottom: 1.5rem;
-}
-
-.notification-message-box {
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-top: 0.5rem;
-  border-left: 4px solid #007bff;
-}
-
-.notification-recipients-section {
-  margin-top: 1.5rem;
-}
-
-.notification-recipients-section h5 {
-  margin-bottom: 1rem;
-}
-
-/* Responsiveness */
-@media (max-width: 768px) {
-  .notification-list {
-    grid-template-columns: 1fr;
-  }
-  
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .header-actions {
-    width: 100%;
-  }
-  
-  .action-button {
-    flex: 1;
-  }
 }
