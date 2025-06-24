@@ -58,8 +58,10 @@ public class AccountMemberServiceImp implements AccountMemberService {
                 .orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
 
 
-        member.setPassword(passwordEncoder.encode(obj.getPassword()));
+        // Update email and phone number first
+        accountMemberMapper.updateAccountMember(member, obj);
 
+        // Only update password if provided
         if (obj.getPassword() != null && !obj.getPassword().isEmpty()) {
             member.setPassword(passwordEncoder.encode(obj.getPassword()));
         }

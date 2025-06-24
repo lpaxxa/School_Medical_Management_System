@@ -13,7 +13,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
 
-  const { login, authError } = useAuth();
+  const { login, loginWithGoogle, authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
@@ -29,7 +29,14 @@ const Login = () => {
       const savedUsername = localStorage.getItem("savedUsername");
       if (savedUsername) setUsername(savedUsername);
     }
-  }, []);
+
+    // Check for OAuth2 error in URL parameters
+    const urlParams = new URLSearchParams(location.search);
+    const oauthError = urlParams.get('error');
+    if (oauthError) {
+      setError(decodeURIComponent(oauthError));
+    }
+  }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,10 +85,13 @@ const Login = () => {
 
 
   const handleGoogleLogin = () => {
-    // Implementation for Google login would go here
-    // For now, just showing an alert
-    alert("Tính năng đăng nhập Google đang được phát triển");
-
+    try {
+      setError("");
+      loginWithGoogle();
+    } catch (err) {
+      console.error("Google login error:", err);
+      setError(err.message || "Đăng nhập Google thất bại. Vui lòng thử lại.");
+    }
   };
 
   return (

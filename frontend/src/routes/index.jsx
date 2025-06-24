@@ -4,6 +4,7 @@ import Login from "../Pages/Login";
 import AdminRoutes from "./AdminRoutes";
 import NurseRoutes from "./NurseRoutes";
 import ParentRoutes from "./ParentRoutes";
+import OAuthCallback from "../components/OAuthCallback";
 
 // Define base routes and auth redirect logic in one place
 const AppRoutes = ({ currentUser }) => {
@@ -29,6 +30,13 @@ const AppRoutes = ({ currentUser }) => {
       key="login"
       path="/login"
       element={currentUser ? redirectBasedOnRole() : <Login />}
+    />,
+
+    // OAuth2 callback route (matches backend redirect)
+    <Route
+      key="oauth2-callback"
+      path="/auth/oauth2/callback"
+      element={<OAuthCallback />}
     />,
 
     // Root redirect
