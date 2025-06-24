@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js';
-import vaccinationService from '../../../../../services/vaccinationService';
+import vaccinationService from '../../../../../services/APINurse/vaccinationService';
 import './VaccinationDashboard.css';
 
 // Đăng ký components cần thiết cho Chart.js

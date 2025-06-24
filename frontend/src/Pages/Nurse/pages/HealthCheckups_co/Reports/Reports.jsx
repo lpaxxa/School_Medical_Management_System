@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Row, Col, Tabs, Tab } from 'react-bootstrap';
-import healthCheckupService from '../../../../../services/healthCheckupService';
+import healthCheckupService from '../../../../../services/APINurse/healthCheckupService';
 import './Reports.css';
 
 const Reports = ({ campaigns, refreshData }) => {

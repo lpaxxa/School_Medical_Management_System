@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import vaccinationService from '../../../../../services/vaccinationService';
+import vaccinationService from '../../../../../services/APINurse/vaccinationService';
 import './VaccineManagement.css';
 // Import component VaccineForm từ thư mục mới
 import VaccineForm from './VaccineManagement_Components/VaccineForm';

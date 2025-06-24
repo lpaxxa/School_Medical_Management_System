@@ -11,7 +11,6 @@ import MedicalEventsPage from "../Pages/Nurse/pages/MedicalEvents_co";
 import VaccinationPage from "../Pages/Nurse/pages/Vaccination_co";
 // Import BlogManagement directly from the file to avoid potential issues with index.js
 import BlogManagement from "../Pages/Nurse/pages/Blog_co/BlogManagement";
-import SimpleBlogManagement from "../Pages/Nurse/pages/Blog_co/SimpleBlogManagement";
 
 // NurseLayout đã được import từ file riêng
 

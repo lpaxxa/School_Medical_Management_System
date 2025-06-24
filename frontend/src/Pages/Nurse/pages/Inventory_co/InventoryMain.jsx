@@ -1,112 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import './InventoryMain.css';
-import inventoryService from '../../../../services/inventoryService';
+import { useInventory } from '../../../../context/NurseContext';
+import inventoryService from '../../../../../services/APINurse/inventoryService';
 import AddItem from './AddItem/AddItem';
 import EditItem from './EditItem/EditItem';
 import DeleteItem from './DeleteItem/DeleteItem';
 import ExportData from './ExportData/ExportData';
 
-// Mock Data for Inventory
-// Generate mock data with status calculated automatically
-const mockInventoryData = [
-  {
-    id: 1,
-    name: "Băng cá nhân",
-    category: "Vật tư sơ cứu",
-    quantity: 150,
-    unit: "Cái",
-    dateAdded: "01/06/2025",
-    expiryDate: "01/06/2026"
-  },
-  {
-    id: 2,
-    name: "Paracetamol 500mg",
-    category: "Thuốc",
-    quantity: 30,
-    unit: "Vỉ",
-    dateAdded: "05/05/2025",
-    expiryDate: "05/05/2027"
-  },
-  {
-    id: 3,
-    name: "Cồn y tế 70%",
-    category: "Vật tư y tế",
-    quantity: 5,
-    unit: "Chai",
-    dateAdded: "10/05/2025",
-    expiryDate: "10/05/2026"
-  },
-  {
-    id: 4,
-    name: "Bông gòn y tế",
-    category: "Vật tư y tế",
-    quantity: 19,
-    unit: "Gói",
-    dateAdded: "15/05/2025",
-    expiryDate: "15/05/2027"
-  },
-  {
-    id: 5,
-    name: "Vitamin C 500mg",
-    category: "Thuốc",
-    quantity: 0,
-    unit: "Hộp",
-    dateAdded: "20/05/2025",
-    expiryDate: "20/05/2026"
-  },
-  {
-    id: 6,
-    name: "Nhiệt kế điện tử",
-    category: "Thiết bị",
-    quantity: 8,
-    unit: "Cái",
-    dateAdded: "25/05/2025",
-    expiryDate: "25/05/2030"
-  },
-  {
-    id: 7,
-    name: "Khẩu trang y tế",
-    category: "Vật tư y tế",
-    quantity: 200,
-    unit: "Cái",
-    dateAdded: "30/05/2025",
-    expiryDate: "30/05/2026"
-  },
-  {
-    id: 8,
-    name: "Dung dịch sát khuẩn tay",
-    category: "Vật tư y tế",
-    quantity: 3,
-    unit: "Chai",
-    dateAdded: "01/06/2025",
-    expiryDate: "01/06/2026"
-  },
-  {
-    id: 9,
-    name: "Thuốc ho",
-    category: "Thuốc",
-    quantity: 0,
-    unit: "Chai",
-    dateAdded: "10/04/2025",
-    expiryDate: "10/04/2026"
-  },
-  {
-    id: 10,
-    name: "Găng tay y tế",
-    category: "Vật tư y tế",
-    quantity: 100,
-    unit: "Đôi",
-    dateAdded: "15/05/2025",
-    expiryDate: "15/05/2027"
-  }
-];
-
-const InventoryPage = () => {  
+const InventoryPage = () => {    // Use context directly without fallback mechanism to prevent double renders
+  const {
+    items: inventoryItems,
+    loading,
+    error,
+    addItem,
+    updateItem,
+    deleteItem,
+    fetchItems
+  } = useInventory();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
-  const [inventoryItems, setInventoryItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // const [inventoryItems, setInventoryItems] = useState([]);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);  // Hiển thị 10 vật phẩm mỗi trang
 
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
@@ -114,84 +34,140 @@ const InventoryPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-    // Sử dụng dữ liệu giả thay vì gọi service
+  
+  // Combined useEffect to reduce renders
   useEffect(() => {
-    // Simulated loading to mimic API call
-    setLoading(true);
-    setTimeout(() => {
-      setInventoryItems(mockInventoryData);
-      setFilteredItems(mockInventoryData);
-      setLoading(false);
-    }, 500);
-  }, []);  // Xử lý lọc dữ liệu khi searchTerm thay đổi
+    // Call fetchItems only once on component mount
+    fetchItems();
+  }, [fetchItems]);
+    // Update filtered items when inventory items or search term changes
   useEffect(() => {
-    filterItems();
-  }, [searchTerm, inventoryItems]);
-  // Hàm lọc dữ liệu (tìm kiếm theo tên, loại và đơn vị)
-  const filterItems = () => {
     if (!searchTerm.trim()) {
-      setFilteredItems(inventoryItems);
-      return;
+      // No search term, just use all items
+      setFilteredItems(inventoryItems || []);
+    } else {
+      // There's a search term, filter the items
+      if (inventoryItems && Array.isArray(inventoryItems)) {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+        const filtered = inventoryItems.filter(item => {
+          // Hàm trợ giúp để lấy giá trị từ nhiều trường khả dụng
+          const getValue = (possibleFields) => {
+            for (let field of possibleFields) {
+              if (item[field]) return item[field].toLowerCase();
+            }
+            return '';
+          };
+          
+          // Tìm theo tên, loại hoặc đơn vị
+          const itemName = getValue(['itemName', 'name']);
+          const itemType = getValue(['itemType', 'category']);
+          const unit = (item.unit || '').toLowerCase();
+          
+          return itemName.includes(lowerCaseSearchTerm) || 
+                 itemType.includes(lowerCaseSearchTerm) ||
+                 unit.includes(lowerCaseSearchTerm);
+        });
+        setFilteredItems(filtered);
+      } else {
+        setFilteredItems([]);
+      }
     }
-
-    const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
-    const filtered = inventoryItems.filter(item => {
-      // Tìm theo tên, loại hoặc đơn vị
-      return item.name.toLowerCase().includes(lowerCaseSearchTerm) || 
-             item.category.toLowerCase().includes(lowerCaseSearchTerm) ||
-             item.unit.toLowerCase().includes(lowerCaseSearchTerm);
-    });
-    setFilteredItems(filtered);
-  };
-
+    
+    // Reset về trang đầu tiên khi thay đổi bộ lọc hoặc searchTerm
+    setCurrentPage(1);
+  }, [searchTerm, inventoryItems]);
+  
   // Handlers cho việc thêm, sửa, xóa item
   const handleAddItem = async (newItem) => {
     try {
-      // Vì đang dùng mock data nên mô phỏng thêm item mới
-      const newId = inventoryItems.length > 0 ? Math.max(...inventoryItems.map(item => item.id)) + 1 : 1;
-      const dateFormatted = new Date().toLocaleDateString('vi-VN');
+      // Format dates if needed
+      const today = new Date().toISOString().split('T')[0];
       
-      // Tạo item mới với ID tự động tăng
+      // Tạo item mới với cấu trúc dữ liệu API mới
       const itemToAdd = {
         ...newItem,
-        id: newId,
-        dateAdded: dateFormatted,
+        manufactureDate: newItem.manufactureDate || today
+        // Không cần set createdAt, backend tự xử lý
       };
       
-      // Trong thực tế sẽ gọi API
-      // const addedItem = await inventoryService.addItem(itemToAdd);
-      
-      // Mô phỏng thêm thành công
-      setInventoryItems([...inventoryItems, itemToAdd]);
-      setFilteredItems([...inventoryItems, itemToAdd]);
+      console.log('Adding new item:', itemToAdd);
+      // Đóng modal trước khi gọi API để tránh lỗi state
       setShowAddModal(false);
+      
+      // Gọi hàm addItem từ context
+      const result = await addItem(itemToAdd);
+      if (result) {
+        console.log('Item added successfully:', result);
+        // Refresh để hiển thị item mới (optional)
+        fetchItems();
+      }
     } catch (err) {
       console.error("Lỗi khi thêm vật phẩm:", err);
-      setError("Không thể thêm vật phẩm. Vui lòng thử lại sau.");
+      alert(`Không thể thêm vật phẩm: ${err.message || 'Lỗi không xác định'}`);
+      // Mở lại modal trong trường hợp lỗi nếu muốn
+      // setShowAddModal(true);
     }
   };
-
+  
   const handleEditItem = async (updatedItem) => {
     try {
-      const updated = await inventoryService.updateItem(updatedItem);
-      setInventoryItems(inventoryItems.map(item => item.id === updated.id ? updated : item));
+      console.log('Original selected item:', selectedItem);
+      console.log('Updating item from modal:', updatedItem);
+      
+      // Đảm bảo ID luôn được giữ đúng - sử dụng itemId thay vì id
+      const itemId = updatedItem.itemId || selectedItem.itemId;
+      
+      if (!itemId) {
+        throw new Error("Không tìm thấy ID vật phẩm để cập nhật");
+      }
+      
+      // Create a properly formatted object for the API
+      const itemToUpdate = {
+        itemId: itemId, // Sử dụng itemId thay vì id
+        itemName: updatedItem.itemName,
+        itemType: updatedItem.itemType,
+        stockQuantity: updatedItem.stockQuantity,
+        unit: updatedItem.unit,
+        manufactureDate: updatedItem.manufactureDate,
+        expiryDate: updatedItem.expiryDate,
+        itemDescription: updatedItem.itemDescription
+      };
+        // Log for debugging
+      console.log('Formatted item for API:', itemToUpdate);
+      console.log('Sending update with ID:', itemId);
+        // Call the updateItem function with the id and formatted item - sử dụng itemId
+      const result = await updateItem(itemId, itemToUpdate);
+      console.log('Update result:', result);
+      
+      // Debug cập nhật dữ liệu
+      debugUpdateItem(result);
+      
       setShowEditModal(false);
       setSelectedItem(null);
+      
+      // Chạy fetchItems để đảm bảo UI được cập nhật với dữ liệu mới nhất
+      console.log("Đang gọi fetchItems() để làm mới dữ liệu...");
+      await fetchItems();
+      console.log("Hoàn tất fetchItems()");
     } catch (err) {
       console.error("Lỗi khi cập nhật vật phẩm:", err);
-      setError("Không thể cập nhật vật phẩm. Vui lòng thử lại sau.");
+      alert("Có lỗi xảy ra khi cập nhật vật phẩm: " + (err.message || "Vui lòng thử lại."));
     }
   };
-
+  
   const handleDeleteItem = async (id) => {
     try {
-      await inventoryService.deleteItem(id);
-      setInventoryItems(inventoryItems.filter(item => item.id !== id));
+      console.log("Xóa vật phẩm với itemId:", id);
+      // Đảm bảo sử dụng itemId khi xóa vật phẩm
+      await deleteItem(id); 
       setShowDeleteModal(false);
       setSelectedItem(null);
+      
+      // Chạy fetchItems để đảm bảo UI được cập nhật với dữ liệu mới nhất
+      await fetchItems();
     } catch (err) {
       console.error("Lỗi khi xóa vật phẩm:", err);
-      setError("Không thể xóa vật phẩm. Vui lòng thử lại sau.");
+      alert("Có lỗi xảy ra khi xóa vật phẩm: " + (err.message || "Vui lòng thử lại."));
     }
   };
 
@@ -204,81 +180,198 @@ const InventoryPage = () => {
   const openDeleteModal = (item) => {
     setSelectedItem(item);
     setShowDeleteModal(true);
+  };  // Function to format date from ISO string to dd/mm/yyyy format
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    try {
+      // Handle different date formats
+      let date;
+      if (dateString.includes('T')) {
+        // ISO format like "2023-07-01T01:00:00.000+00:00"
+        date = new Date(dateString);
+      } else if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        // YYYY-MM-DD format
+        const [year, month, day] = dateString.split('-');
+        date = new Date(year, month - 1, day);
+      } else {
+        // Already formatted or unknown format
+        return dateString;
+      }
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+      
+      // Format as DD/MM/YYYY
+      return date.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (err) {
+      console.error('Error formatting date:', err);
+      return dateString; // Return original string if fails
+    }
   };
+
   // Function to calculate status based on quantity
   const getItemStatus = (quantity) => {
-    if (quantity === 0) {
+    // Convert to number in case it's a string
+    const qty = Number(quantity);
+    
+    if (qty === 0) {
       return 'Hết hàng';
-    } else if (quantity <= 20) {
+    } else if (qty <= 20) {
       return 'Sắp hết';
     } else {
       return 'Sẵn có';
     }
-  };
-
-  // Render inventory table
+  };  // Render inventory table with pagination
   const renderInventoryTable = () => {
-    if (loading) return <div className="loading">Đang tải dữ liệu...</div>;
+    // Only show loading on initial load, not during filtering or other operations
+    if (loading && (!inventoryItems || inventoryItems.length === 0)) {
+      return <div className="loading">Đang tải dữ liệu...</div>;
+    }
     
     if (error) return <div className="error">{error}</div>;
     
-    if (filteredItems.length === 0) {
+    if (!filteredItems || filteredItems.length === 0) {
       return <div className="no-items">Không tìm thấy vật phẩm nào phù hợp.</div>;
-    }    return (
-      <div className="table-container">
-        <table className="inventory-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Tên vật phẩm</th>
-            <th>Loại</th>
-            <th>Số lượng</th>
-            <th>Đơn vị</th>            <th>Ngày nhập</th>
-            <th>Ngày hết hạn</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredItems.map(item => (
-            <tr key={item.id}>
-              <td>{item.id}</td>
-              <td>{item.name}</td>
-              <td>{item.category}</td>
-              <td>{item.quantity}</td>
-              <td>{item.unit}</td>
-              <td>{item.dateAdded}</td>
-              <td>{item.expiryDate || 'N/A'}</td>                <td>
-                {(() => {
-                  const status = getItemStatus(item.quantity);
-                  return (
-                    <span className={`status ${status === 'Sẵn có' ? 'available' : 
-                                            status === 'Sắp hết' ? 'low' : 
-                                            status === 'Hết hàng' ? 'out' : ''}`}>
-                      {status}
-                    </span>
-                  );
-                })()}
-              </td>
-              <td className="action-buttons">
-                <button 
-                  className="edit-button"
-                  onClick={() => openEditModal(item)}
-                >
-                  <i className="fas fa-edit"></i> Sửa
-                </button>
-                <button 
-                  className="delete-button"
-                  onClick={() => openDeleteModal(item)}
-                >
-                  <i className="fas fa-trash-alt"></i> Xóa
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>      </table>
-      </div>
+    }
+    
+    // Logic phân trang
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+    
+    // Tổng số trang
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    
+    return (
+      <>
+        <div className="table-container">
+          <table className="inventory-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tên vật phẩm</th>
+                <th>Loại</th>
+                <th>Số lượng</th>
+                <th>Đơn vị</th>
+                <th>Ngày sản xuất</th>
+                <th>Ngày hết hạn</th>
+                <th>Mô tả</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map((item, index) => (
+                <tr key={item.itemId || index}>
+                  <td className="id-column">{item.itemId || 'N/A'}</td>
+                  <td>{item.itemName || item.name}</td>
+                  <td>{item.itemType || item.category}</td>
+                  <td>{item.stockQuantity || item.quantity}</td>
+                  <td>{item.unit}</td>              
+                  <td>{formatDate(item.manufactureDate || item.dateAdded)}</td>
+                  <td>{formatDate(item.expiryDate) || 'N/A'}</td>
+                  <td>{item.itemDescription || item.description || '-'}</td>
+                  <td>
+                    {(() => {
+                      const quantity = item.stockQuantity || item.quantity;
+                      const status = getItemStatus(quantity);
+                      return (
+                        <span className={`status ${status === 'Sẵn có' ? 'available' : 
+                                                status === 'Sắp hết' ? 'low' : 
+                                                status === 'Hết hàng' ? 'out' : ''}`}>
+                          {status}
+                        </span>
+                      );
+                    })()}
+                  </td>
+                  <td className="action-buttons">
+                    <button 
+                      className="edit-button"
+                      onClick={() => openEditModal(item)}
+                    >
+                      <i className="fas fa-edit"></i> Sửa
+                    </button>
+                    <button 
+                      className="delete-button"
+                      onClick={() => openDeleteModal(item)}
+                    >
+                      <i className="fas fa-trash-alt"></i> Xóa
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Phân trang */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button 
+              onClick={() => setCurrentPage(1)} 
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              <i className="fas fa-angle-double-left"></i>
+            </button>
+            
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              <i className="fas fa-angle-left"></i>
+            </button>
+            
+            <div className="pagination-info">
+              Trang {currentPage} / {totalPages}
+            </div>
+            
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              <i className="fas fa-angle-right"></i>
+            </button>
+            
+            <button 
+              onClick={() => setCurrentPage(totalPages)} 
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              <i className="fas fa-angle-double-right"></i>
+            </button>
+            
+            <div className="pagination-text">
+              Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredItems.length)} trên {filteredItems.length} vật phẩm
+            </div>
+          </div>
+        )}
+      </>
     );
+  };
+
+  // Function để debug và xác nhận rằng UI được update đúng
+  const debugUpdateItem = (updatedItem) => {
+    console.log("===== DEBUG UPDATE ITEM =====");
+    console.log("Dữ liệu cập nhật:", updatedItem);
+    
+    // Tìm item trong danh sách hiện tại
+    const currentItemIndex = inventoryItems.findIndex(i => i.itemId === updatedItem.itemId);
+    if (currentItemIndex > -1) {
+      console.log("Item trước khi cập nhật:", inventoryItems[currentItemIndex]);
+      console.log("Item sau khi cập nhật:", updatedItem);
+    } else {
+      console.log("Không tìm thấy item trong danh sách hiện tại với itemId:", updatedItem.itemId);
+    }
   };
 
   return (
@@ -292,8 +385,7 @@ const InventoryPage = () => {
           {/* <div className="filter-buttons">
             <button className="filter-button active">Tên vật phẩm</button>
           </div> */}            
-          <div className="search-area">
-              <div className="search-input-container">
+          <div className="search-area">              <div className="search-input-container">
                 <input 
                   type="text" 
                   placeholder="Tìm kiếm..." 
@@ -313,7 +405,6 @@ const InventoryPage = () => {
               </div>
               <button 
                 className="search-button"
-                onClick={() => filterItems()}
                 title="Tìm kiếm"
               >
                 <i className="fas fa-search"></i>
@@ -326,33 +417,44 @@ const InventoryPage = () => {
             </button>
             <button className="export-button" onClick={() => setShowExportModal(true)}>
               <i className="fas fa-file-export"></i> Xuất báo cáo
-            </button>
-            <div className="dropdown">
+            </button>            <div className="dropdown">
               <button className="dropbtn filter-btn">
                 <i className="fas fa-filter"></i> Lọc
-              </button>
-              <div className="dropdown-content">                
+              </button>              <div className="dropdown-content">                
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
-                  setFilteredItems(inventoryItems.filter(item => getItemStatus(item.quantity) === 'Sẵn có'));
+                  setFilteredItems(inventoryItems.filter(item => {
+                    const quantity = item.stockQuantity || item.quantity;
+                    return getItemStatus(quantity) === 'Sẵn có';
+                  }));
+                  setCurrentPage(1); // Reset về trang 1 khi lọc
                 }}>
                   <span className="status-dot available"></span> Sẵn có
                 </a>
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
-                  setFilteredItems(inventoryItems.filter(item => getItemStatus(item.quantity) === 'Sắp hết'));
+                  setFilteredItems(inventoryItems.filter(item => {
+                    const quantity = item.stockQuantity || item.quantity;
+                    return getItemStatus(quantity) === 'Sắp hết';
+                  }));
+                  setCurrentPage(1); // Reset về trang 1 khi lọc
                 }}>
                   <span className="status-dot low"></span> Sắp hết
                 </a>
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
-                  setFilteredItems(inventoryItems.filter(item => getItemStatus(item.quantity) === 'Hết hàng'));
+                  setFilteredItems(inventoryItems.filter(item => {
+                    const quantity = item.stockQuantity || item.quantity;
+                    return getItemStatus(quantity) === 'Hết hàng';
+                  }));
+                  setCurrentPage(1); // Reset về trang 1 khi lọc
                 }}>
                   <span className="status-dot out"></span> Hết hàng
                 </a>
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
-                  setFilteredItems(inventoryItems);                
+                  setFilteredItems(inventoryItems);
+                  setCurrentPage(1); // Reset về trang 1 khi lọc
                 }}>
                   <i className="fas fa-redo-alt"></i> Hiển thị tất cả
                 </a>
@@ -373,11 +475,13 @@ const InventoryPage = () => {
           onAddItem={handleAddItem}
         />
       )}
-      
-      {showEditModal && selectedItem && (
+        {showEditModal && selectedItem && (
         <EditItem
           item={selectedItem}
-          onClose={() => setShowEditModal(false)}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedItem(null);
+          }}
           onEditItem={handleEditItem}
         />
       )}

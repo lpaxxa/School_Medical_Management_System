@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './BatchManagement.css';
-import vaccinationService from '../../../../../../services/vaccinationService';
+import vaccinationService from '../../../../../../services/APINurse/vaccinationService';
 
 const BatchManagement = ({ vaccineId, onClose }) => {
   const [batches, setBatches] = useState([]);

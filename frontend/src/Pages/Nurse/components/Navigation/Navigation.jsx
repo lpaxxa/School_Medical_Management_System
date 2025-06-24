@@ -9,9 +9,9 @@ const Navigation = () => {
   const isActive = (path) => {
     return location.pathname.startsWith(path) ? 'active' : '';
   };
-  
-  return (
+    return (
     <aside className="nurse-sidebar">
+
       <nav>        <ul>
           <li>
             <Link to="/nurse/dashboard" className={isActive('/nurse/dashboard')}>
@@ -37,17 +37,17 @@ const Navigation = () => {
             <Link to="/nurse/health-checkups" className={isActive('/nurse/health-checkups')}>
               <i className="fas fa-stethoscope"></i> Khám sức khỏe định kỳ
             </Link>
-          </li>
-          <li>
+          </li>          <li>
             <Link to="/nurse/student-records" className={isActive('/nurse/student-records')}>
               <i className="fas fa-file-medical"></i> Hồ sơ y tế học sinh
             </Link>
           </li>
           <li>
-            <Link to="/nurse/consultations" className={isActive('/nurse/consultations')}>
-              <i className="fas fa-comments"></i> Hỗ trợ tư vấn
+            <Link to="/nurse/receive-medicine" className={isActive('/nurse/receive-medicine')}>
+              <i className="fas fa-pills"></i> Nhận thuốc từ phụ huynh
             </Link>
           </li>
+          
           <li>
             <Link to="/nurse/blog-management" className={isActive('/nurse/blog-management')}>
               <i className="fas fa-blog"></i> Quản lý blog

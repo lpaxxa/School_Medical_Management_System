@@ -4,7 +4,7 @@ import {
   getUsers, 
   getStudents, 
   getConsultationTypes 
-} from '../../../../../services/consultationService';
+} from '../../../../../services/APINurse/consultationService';
 import './CreateConsultation.css';
 
 const CreateConsultation = ({ onBack, onConsultationCreated }) => {

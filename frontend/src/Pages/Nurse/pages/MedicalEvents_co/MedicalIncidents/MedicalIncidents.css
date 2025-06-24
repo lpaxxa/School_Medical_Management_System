@@ -1,42 +1,321 @@
 /* MedicalIncidents.css - Enhanced styles for Medical Incidents management */
 /* Các lớp không cần thiết đã được loại bỏ để tinh gọn code */
 
-.filter-group {
+/* CSS cho container chứa bộ lọc */
+.filter-section {
+  padding: 15px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Style cho medical-events-header - container chứa search và button trên cùng một hàng */
+.medical-events-header {
   display: flex;
-  flex-direction: column;
-  min-width: 150px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  width: 100%;
+  flex-wrap: nowrap; /* Ngăn các phần tử bị xuống dòng */
 }
 
-.filter-label {
-  font-size: 0.9rem;
-  margin-bottom: 5px;
-  color: #555;
+/* CSS cho thanh tìm kiếm mới - dựa theo mẫu */
+.search-container {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 600px;
 }
 
-.filter-select,
-.filter-input {
-  padding: 8px;
-  border: 1px solid #ddd;
+.search-box {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  border: 1px solid #e0e0e0;
   border-radius: 4px;
-  font-size: 0.9rem;
+  overflow: hidden;
+  background-color: #fff;
+  height: 38px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* .incidents-list đã bị loại bỏ vì không được sử dụng trong JSX */
+.search-type-dropdown {
+  width: 160px;
+  padding: 0 10px;
+  border: none;
+  border-right: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
+  outline: none;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 30px;
+  height: 100%;
+}
 
-/* Using events-table classes to match what's in the JSX */
-/* Events table styles have been moved to MedicalEventsMain.css for consistency */
+.search-input {
+  flex-grow: 1;
+  padding: 0 15px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  height: 100%;
+}
 
-.severity-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.8rem;
+.search-btn {
+  background-color: #5a8dee;
+  color: white;
+  border: none;
+  padding: 0 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 14px;
   font-weight: 500;
+  min-width: 100px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-btn:hover {
+  background-color: #4a7fd6;
+}
+
+.search-btn i {
+  margin-right: 5px;
+}
+
+/* Bảng nhỏ gọn hơn */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* CSS cụ thể cho bảng events */
+.events-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 950px; /* Đảm bảo bảng đủ rộng */
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem; /* Font size nhỏ hơn */
+}
+
+table th, 
+table td {
+  padding: 10px 12px; /* Tăng padding đủ để thấy nội dung */
+  border: 1px solid #e0e0e0;
+  text-align: left;
+}
+
+table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Định nghĩa độ rộng cụ thể cho các cột trong events-table */
+.events-table th:nth-child(1) { width: 5%; } /* ID */
+.events-table th:nth-child(2) { width: 10%; } /* Mã học sinh */
+.events-table th:nth-child(3) { width: 15%; } /* Tên học sinh */
+.events-table th:nth-child(4) { width: 15%; } /* Ngày giờ */
+.events-table th:nth-child(5) { width: 10%; } /* Mức độ */
+.events-table th:nth-child(6) { width: 10%; } /* Thông báo PH */
+.events-table th:nth-child(7) { width: 10%; } /* Theo dõi */
+.events-table th:nth-child(8) { width: 15%; } /* Hành động */
+
+.events-table td {
+  word-break: break-word;
+}
+
+/* Cột action nhỏ gọn hơn */
+.action-cell {
+  width: 100px; /* Thu hẹp độ rộng */
   text-align: center;
   white-space: nowrap;
 }
 
-/* Severity badge styles and colors have been moved to MedicalEventsMain.css for consistency */
+.action-cell button {
+  padding: 5px 6px; /* Thu nhỏ padding */
+  margin: 0 2px; /* Giảm margin */
+  background: none;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.9em;
+  color: #555;
+  transition: all 0.2s;
+}
+
+.action-cell .btn-view {
+  color: #2196f3;
+}
+
+.action-cell .btn-edit {
+  color: #4caf50;
+}
+
+.action-cell .btn-delete {
+  color: #f44336;
+}
+
+.action-cell button:hover {
+  background-color: rgba(0,0,0,0.05);
+  transform: scale(1.1);
+}
+
+/* Làm mô tả ngắn gọn với tooltip */
+td {
+  max-width: 200px; /* Tăng kích thước tối đa cho cell */
+  min-width: 80px; /* Đảm bảo có min-width để không bị thu nhỏ quá */
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Thêm tooltip khi hover để xem đầy đủ thông tin */
+td:hover {
+  overflow: visible;
+  white-space: normal;
+  position: relative;
+}
+
+td:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: white;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 100;
+  max-width: 200px;
+  white-space: normal;
+}
+
+/* Filter section đã được định nghĩa ở trên */
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.filter-item {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-item label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #555;
+}
+
+.filter-item input,
+.filter-item select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background-color: #fff;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #fff;
+}
+
+.filter-btn.apply {
+  background-color: #2196f3;
+}
+
+.filter-btn.apply:hover {
+  background-color: #0d8aee;
+}
+
+.filter-btn.reset {
+  background-color: #9e9e9e;
+}
+
+.filter-btn.reset:hover {
+  background-color: #757575;
+}
+
+.add-event-btn {
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+
+.add-event-btn:hover {
+  background-color: #388e3c;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 80px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
 .action-buttons {
   display: flex;
@@ -98,325 +377,519 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
 }
 
-.modal-content {
-  background-color: #fff;
-  border-radius: 8px;
-  max-width: 800px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+/* Status icons */
+.status-icon {
+  font-size: 1.2rem;
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 15px;
-  margin-bottom: 20px;
-}
-
-.modal-title {
-  font-size: 1.4rem;
-  margin: 0;
-  color: #333;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #999;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 0.95rem;
-  color: #555;
-}
-
-.form-input,
-.form-select,
-.form-textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-
-.form-checkbox {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.checkbox-input {
-  margin-right: 8px;
-}
-
-.checkbox-label {
-  font-size: 0.95rem;
-  color: #555;
-}
-
-.modal-footer {
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  gap: 5px;
-}
-
-.page-button {
-  padding: 5px 10px;
-  border: 1px solid #ddd;
-  background-color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.page-button:hover {
-  background-color: #f0f0f0;
-}
-
-.page-button.active {
-  background-color: #2196f3;
-  color: white;
-  border-color: #2196f3;
-}
-
-.no-data {
-  text-align: center;
-  padding: 30px;
-  color: #777;
-  font-style: italic;
-}
-
-/* Dashboard Stats - đã loại bỏ lớp không cần thiết */
-
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  margin-right: 16px;
-  font-size: 22px;
-}
-
-.stat-icon.severity-high {
-  background-color: rgba(244, 67, 54, 0.1);
-  color: #f44336;
-}
-
-.stat-icon.severity-medium {
-  background-color: rgba(255, 152, 0, 0.1);
-  color: #ff9800;
-}
-
-.stat-icon.severity-low {
-  background-color: rgba(76, 175, 80, 0.1);
+.status-icon.notified {
   color: #4caf50;
 }
 
-.stat-icon.pending {
-  background-color: rgba(33, 150, 243, 0.1);
+.status-icon.not-notified {
+  color: #ff9800;
+}
+
+.status-icon.follow-up {
   color: #2196f3;
 }
 
-.stat-details {
-  flex: 1;
+.status-icon.no-follow-up {
+  color: #4caf50;
 }
 
-.stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.2;
-  color: #2c3e50;
+/* Severity colors - Enhanced for better visibility */
+td .severity-high, 
+td .severity-critical,
+.status-badge.severity-high, 
+.status-badge.severity-critical {
+  background-color: #ffebee !important;
+  color: #d32f2f !important;
+  border: 1px solid #ef9a9a !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 
-/* Filter and search section - đã loại bỏ lớp không cần thiết */
-
-.incidents-search input:focus {
-  background-color: #fff;
-  border-color: #4caf50;
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
-  outline: none;
+td .severity-medium, 
+td .severity-moderate,
+.status-badge.severity-medium, 
+.status-badge.severity-moderate {
+  background-color: #fff8e1 !important;
+  color: #ff8f00 !important;
+  border: 1px solid #ffe082 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 
-.incidents-search i {
+td .severity-low, 
+td .severity-mild,
+.status-badge.severity-low, 
+.status-badge.severity-mild {
+  background-color: #e8f5e9 !important;
+  color: #388e3c !important;
+  border: 1px solid #a5d6a7 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+td .severity-unknown,
+.status-badge.severity-unknown {
+  background-color: #f5f5f5 !important;
+  color: #757575 !important;
+  border: 1px solid #e0e0e0 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+/* Styles for view details modal */
+.view-details-modal {
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.view-details-modal .modal-body {
+  padding: 15px 20px;
+}
+
+/* Detail sections */
+.detail-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.detail-section {
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  padding: 15px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.detail-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 15px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Grid and row layouts for details */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.detail-item {
+  margin-bottom: 10px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+  margin-right: 8px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.detail-value {
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* Status indicators in detail view */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Image in detail view */
+.image-container {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.incident-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Medications list */
+.medications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.medication-item {
+  background-color: white;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Modal footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Styles for medication search */
+.search-container {
+  position: relative;
+  width: 100%;
+}
+
+.search-results {
   position: absolute;
-  left: 14px;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.search-result-item {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: #f5f5f5;
+}
+
+.search-result-item .item-name {
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.search-result-item .item-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.search-loading {
+  position: absolute;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: #90a4ae;
-  font-size: 18px;
+  color: #666;
 }
 
-.filter-dropdown select {
-  padding: 12px 16px;
-  border: 1px solid #e0e0e0;
+.selected-item-info {
+  margin-top: 5px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.id-badge {
+  display: inline-block;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 2px 8px;
   border-radius: 10px;
-  background-color: #f8f9fa;
-  font-size: 15px;
-  min-width: 180px;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='%23333' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
-.filter-dropdown select:focus {
-  background-color: #fff;
-  border-color: #4caf50;
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
+.medication-search-field {
+  flex: 2; /* Tăng kích thước cho trường tìm kiếm thuốc */
+}
+
+/* Enhanced medication display */
+.medication-detail-item {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-left: 4px solid #4caf50;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.medication-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+
+.medication-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.medication-quantity {
+  background-color: #e8f5e9;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: #2e7d32;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.medication-note {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.no-medications {
+  color: #757575;
+  font-style: italic;
+  text-align: center;
+  padding: 10px;
+}
+
+.image-caption {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
+  margin-top: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Enhanced Filter Styles */
+.filter-container {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 12px;
+}
+
+.filter-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #2196f3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-body {
+  padding-bottom: 10px;
+}
+
+.filter-input,
+.filter-select {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 12px;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
   outline: none;
 }
 
-/* Data table đã chuyển sang sử dụng lớp events-table */
+.filter-item label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #555;
+}
 
-/* Status badges - similar to inventory management */
-.incident-severity {
-  display: inline-block;
-  padding: 4px 8px;
+.filter-item label i {
+  color: #2196f3;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: none;
   border-radius: 4px;
-  font-size: 0.8rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-btn.apply {
+  background-color: #2196f3;
+  color: white;
+}
+
+.filter-btn.apply:hover {
+  background-color: #1976d2;
+}
+
+.filter-btn.reset {
+  background-color: #f5f5f5;
+  color: #555;
+}
+
+.filter-btn.reset:hover {
+  background-color: #e0e0e0;
+}
+
+.add-event-btn {
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-event-btn:hover {
+  background-color: #388e3c;
+}
+
+.search-result-message {
+  margin: 15px 0;
+  padding: 10px;
+  border-radius: 4px;
   font-weight: 500;
   text-align: center;
 }
 
-.incident-severity.high {
-  background-color: #f8d7da;
-  color: #721c24;
+.search-result-message.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
 }
 
-.incident-severity.medium {
-  background-color: #fff3cd;
-  color: #856404;
+.search-result-message.no-result {
+  background-color: #fff8e1;
+  color: #ff8f00;
+  border: 1px solid #ffecb3;
 }
 
-.incident-severity.low {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-/* Action buttons - similar to inventory management */
-.incident-action-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-start;
-}
-
-.incident-action-button {
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
+/* Form validation styles */
+.form-error {
+  color: #d32f2f;
+  font-size: 0.8rem;
+  margin-top: 4px;
   display: flex;
   align-items: center;
   gap: 5px;
-  transition: all 0.2s;
-  color: white;
-  white-space: nowrap;
-  min-width: 45px;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.incident-action-button.view {
-  background-color: #4dabf7;
+.form-error i {
+  font-size: 0.9rem;
 }
 
-.incident-action-button.view:hover {
-  background-color: #339af0;
+.input-error {
+  border-color: #d32f2f !important;
+  background-color: #ffebee !important;
 }
 
-.incident-action-button.edit {
-  background-color: #4dabf7;
+.form-group label .required {
+  color: #d32f2f;
+  margin-left: 3px;
 }
 
-.incident-action-button.edit:hover {
-  background-color: #339af0;
+/* CSS cho phần nội dung chính */
+.medical-events-content {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 1600px; /* Tăng kích thước tối đa */
+  width: 98%; /* Tăng chiều rộng */
+  overflow-x: auto; /* Đảm bảo nếu nội dung quá rộng có thể scroll */
 }
 
-.incident-action-button.delete {
-  background-color: #dc3545;
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .filter-item {
+    width: 100%;
+  }
+  
+  .filter-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-btn, .add-event-btn {
+    width: 100%;
+    margin: 5px 0;
+  }
+  
+  .view-details-modal {
+    width: 95%;
+  }
+  
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.incident-action-button.delete:hover {
-  background-color: #c82333;
-}
-
-/* Add incident button */
-.add-incident-btn {
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
-}
-
-.add-incident-btn:hover {
-  background-color: #43a047;
-  box-shadow: 0 6px 14px rgba(76, 175, 80, 0.4);
-  transform: translateY(-2px);
-}
-
-.add-incident-btn:active {
-  transform: translateY(0);
-}
-
-.add-incident-btn i {
-  font-size: 16px;
-}
-
-/* Modal styles */
-.incident-modal-overlay {
+/* Modal overlay and container */
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -427,148 +900,255 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(3px);
 }
 
-.incident-modal {
-  background-color: #fff;
-  border-radius: 12px;
-  width: 90%;
+.modal-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  width: 80%;
   max-width: 700px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  animation: modalFadeIn 0.3s ease forwards;
+  position: relative;
 }
 
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.incident-modal-header {
-  padding: 20px;
-  border-bottom: 1px solid #eeeeee;
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.incident-modal-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #2c3e50;
+.modal-header h3 {
   margin: 0;
+  font-size: 1.25rem;
+  color: #333;
 }
 
-.incident-modal-close {
+.close-btn {
   background: none;
   border: none;
-  font-size: 24px;
-  color: #90a4ae;
+  font-size: 1.2rem;
   cursor: pointer;
-  transition: color 0.2s;
+  color: #555;
+  transition: color 0.3s;
 }
 
-.incident-modal-close:hover {
+.close-btn:hover {
   color: #f44336;
 }
 
-.incident-modal-body {
+.modal-body {
   padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
-.incident-modal-footer {
-  padding: 15px 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid #eeeeee;
-}
-
-/* Form styles */
-.incident-form-group {
-  margin-bottom: 20px;
-}
-
-.incident-form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #455a64;
-}
-
-.incident-form-control {
-  width: 100%;
-  padding: 10px 14px;
+/* Styles for medications section */
+.medications-container {
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 15px;
-  transition: all 0.3s ease;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 10px 0;
+  background-color: #f9f9f9;
 }
 
-.incident-form-control:focus {
-  border-color: #4caf50;
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
-  outline: none;
+.medication-item {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #ddd;
 }
 
-.incident-checkbox-group {
+.medication-item:last-child {
+  border-bottom: none;
+  margin-bottom: 5px;
+}
+
+.medication-row {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-.incident-checkbox-label {
-  margin-left: 10px;
-  font-size: 15px;
-  color: #455a64;
+.medication-field {
+  flex: 1;
+  min-width: 150px;
 }
 
-/* Responsive styles */
-@media (max-width: 768px) {
-  /* Các lớp không cần thiết đã được loại bỏ */
-  .filter-dropdown {
-    width: 100%;
-  }
-  
-  .filter-dropdown select {
-    width: 100%;
-  }
-    .incident-action-buttons {
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  .incident-action-button {
-    width: 100%;
-  }
+.medication-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #555;
 }
 
-/* Loading and error states - Like inventory management */
-.loading, .error, .no-items {
-  text-align: center;
+.medication-field input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.add-medication-btn {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  margin-top: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.add-medication-btn:hover {
+  background-color: #219653;
+  transform: translateY(-2px);
+}
+
+.remove-medication-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.remove-medication-btn:hover {
+  background-color: #c0392b;
+}
+
+/* Image Modal Styles */
+.image-modal-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.image-modal-body {
+  flex: 1;
   padding: 20px;
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  overflow: auto;
+  max-height: 70vh;
 }
 
-.loading {
-  color: #4dabf7;
+.full-size-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
 }
 
-.error {
-  color: #dc3545;
+.full-size-image:hover {
+  transform: scale(1.02);
 }
 
-.no-items {
-  color: #6c757d;
+.image-container {
+  margin: 10px 0;
+  text-align: center;
 }
 
-/* Table styles were consolidated higher up in the file */
+.incident-image {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.incident-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+/* Add this to your MedicalIncidents.css file */
+.medication-search-container {
+  position: relative;
+  width: 100%;
+}
+
+.medication-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.medication-search-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.medication-search-item:hover {
+  background-color: #f5f5f5;
+}
+
+.medication-search-item:last-child {
+  border-bottom: none;
+}
+
+.medication-search-item .item-name {
+  font-weight: bold;
+}
+
+.medication-search-item .item-details {
+  font-size: 0.85em;
+  color: #666;
+}
+
+.medication-search-loading {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  padding: 10px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+  color: #666;
+  z-index: 1000;
+}

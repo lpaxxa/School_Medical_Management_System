@@ -1,6 +1,6 @@
 import React from 'react';
 import './ExportData.css';
-import inventoryService from '../../../../../services/inventoryService';
+import inventoryService from '../../../../../services/APINurse/inventoryService';
 
 const ExportData = ({ items, onClose }) => {
   // Chuyển đổi dữ liệu thành CSV với hỗ trợ tiếng Việt
