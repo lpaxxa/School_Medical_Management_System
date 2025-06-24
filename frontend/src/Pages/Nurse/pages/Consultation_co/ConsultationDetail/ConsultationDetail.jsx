@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { markConsultationAsRead, addConsultationResponse } from '../../../../../services/consultationService';
+import { markConsultationAsRead, addConsultationResponse } from '../../../../../services/APINurse/consultationService';
 import './ConsultationDetail.css';
 
 const ConsultationDetail = ({ consultation, onBack, onConsultationUpdated }) => {

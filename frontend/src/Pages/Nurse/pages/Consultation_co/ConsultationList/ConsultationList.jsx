@@ -3,7 +3,7 @@ import {
   getConsultations, 
   getConsultationTypes, 
   getStudents 
-} from '../../../../../services/consultationService';
+} from '../../../../../services/APINurse/consultationService';
 import './ConsultationList.css';
 
 const ConsultationList = ({ onConsultationSelect, onCreateNew, initialFilter = null, showFilters, isDarkMode }) => {

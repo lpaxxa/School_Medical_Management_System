@@ -1,0 +1,167 @@
+/* Combined CSS for MedicineReceipts with Bootstrap */
+
+/* Custom styling for medicine receipts */
+.medicine-receipts-container {
+  padding: 1.25rem;
+}
+
+/* Status badge styling - using Bootstrap colors */
+.status-badge {
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 120px;
+}
+
+/* Row status highlighting with Bootstrap-compatible colors */
+tr.status-pending-row {
+  background-color: rgba(255, 193, 7, 0.05);
+}
+
+tr.status-approved-row {
+  background-color: rgba(19, 225, 67, 0.05);
+}
+
+tr.status-rejected-row {
+  background-color: rgba(220, 53, 69, 0.05);
+}
+
+tr.status-cancelled-row {
+  background-color: rgba(108, 117, 125, 0.05);
+}
+
+/* Medicine receipt detail modal customization */
+.medicine-receipt-detail-modal .modal-content {
+  border: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.medicine-receipt-detail-modal .modal-header {
+  border-bottom: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+}
+
+.medicine-receipt-detail-modal .modal-footer {
+  border-top: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+}
+
+/* Animation for modals */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Info panel styling */
+.medicine-receipt-detail-modal dl.row dt {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.medicine-receipt-detail-modal dl.row dd {
+  font-weight: 500;
+}
+
+/* Animated fade-in for cards and content */
+.medicine-receipt-detail-modal .card {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .medicine-receipt-detail-modal .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .medicine-receipt-detail-modal dl.row dt,
+  .medicine-receipt-detail-modal dl.row dd {
+    padding: 0.25rem 0;
+  }
+}
+
+/* Cập nhật CSS cho badge */
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #212529;
+}
+
+.badge.bg-success {
+  background-color: #28a745 !important;
+  color: white;
+}
+
+.badge.bg-danger {
+  background-color: #dc3545 !important;
+  color: white;
+}
+
+.badge.bg-secondary {
+  background-color: #6c757d !important;
+  color: white;
+}
+
+.badge.bg-light {
+  background-color: #f8f9fa !important;
+  color: #212529;
+  border: 1px solid #dee2e6;
+}
+
+/* Modal rộng hơn */
+.modal-90w {
+  max-width: 90%;
+  width: 1200px;
+}
+
+/* Cải thiện hiển thị cho ListGroup */
+.list-group-item {
+  padding: 0.75rem 1.25rem;
+}
+
+/* Đảm bảo text không bị overflow và wrap đúng */
+.table td {
+  white-space: normal;
+  vertical-align: middle;
+  word-wrap: break-word;
+  max-width: 300px;
+}
+
+/* Cải thiện style cho badge */
+.modal-header {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* Cải thiện hiển thị nội dung */ 
+.card-body p {
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* Tăng kích thước cho các tiêu đề card */
+.card-header h5 {
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+
+/* Cải thiện ListGroup responsive */
+.list-group-item {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 576px) {
+  .modal-90w {
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+  
+  .list-group-item {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .list-group-item strong {
+    margin-bottom: 0.5rem;
+  }
+}
