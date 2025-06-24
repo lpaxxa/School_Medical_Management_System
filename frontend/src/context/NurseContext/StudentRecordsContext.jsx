@@ -7,7 +7,7 @@ import {
   addStudentNote,
   getClassList,
   getBloodTypes
-} from '../../../services/APINurse/studentRecordsService';
+} from '../../services/APINurse/studentRecordsService';
 
 // Tạo context cho StudentRecords
 export const StudentRecordsContext = createContext();

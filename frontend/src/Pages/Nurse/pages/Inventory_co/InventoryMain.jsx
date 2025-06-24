@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './InventoryMain.css';
 import { useInventory } from '../../../../context/NurseContext';
-import inventoryService from '../../../../../services/APINurse/inventoryService';
+import inventoryService from '../../../../services/APINurse/inventoryService';
 import AddItem from './AddItem/AddItem';
 import EditItem from './EditItem/EditItem';
 import DeleteItem from './DeleteItem/DeleteItem';

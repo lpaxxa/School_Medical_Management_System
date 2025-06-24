@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Table } from 'react-bootstrap';
-import healthCheckupService from '../../../../../services/APINurse/healthCheckupService';
+import healthCheckupService from '../../../../../services/healthCheckupService';
 import './CheckupResults.css';
 
 const CheckupResults = ({ campaign, onStudentSelect, refreshData, healthStandards }) => {

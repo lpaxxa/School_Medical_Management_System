@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import vaccinationService from '../../../../../../services/APINurse/vaccinationService';
+import vaccinationService from '../../../../../../services/vaccinationService';
 import './InventoryStatus.css';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
