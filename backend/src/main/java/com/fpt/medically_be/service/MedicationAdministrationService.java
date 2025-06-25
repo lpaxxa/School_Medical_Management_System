@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 public interface MedicationAdministrationService {
@@ -40,5 +41,25 @@ public interface MedicationAdministrationService {
 
     // Upload confirmation image for medication administration
     MedicationAdministrationResponseDTO uploadConfirmationImage(Long administrationId, MultipartFile imageFile, Authentication auth) throws IOException;
+    
+    // Non-paginated methods
+    
+    // Get all administrations for a medication instruction (no pagination)
+    List<MedicationAdministrationResponseDTO> getAllAdministrationsByMedicationInstruction(Long medicationInstructionId);
+    
+    // Get all administrations by student (no pagination)
+    List<MedicationAdministrationResponseDTO> getAllAdministrationsByStudent(String studentId);
+    
+    // Get all administrations by date range (no pagination)
+    List<MedicationAdministrationResponseDTO> getAllAdministrationsByDateRange(LocalDateTime start, LocalDateTime end);
+    
+    // Get all administrations by status (no pagination)
+    List<MedicationAdministrationResponseDTO> getAllAdministrationsByStatus(AdministrationStatus status);
+    
+    // Get all recent administrations (no pagination)
+    List<MedicationAdministrationResponseDTO> getAllRecentAdministrations();
+    
+    // Get all administrations (no pagination)
+    List<MedicationAdministrationResponseDTO> getAllAdministrations();
 }
 

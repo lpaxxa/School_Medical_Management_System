@@ -271,4 +271,54 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
         return responseDTO;
     }
 
+    // Non-paginated methods implementation
+    
+    @Override
+    public List<MedicationAdministrationResponseDTO> getAllAdministrationsByMedicationInstruction(Long medicationInstructionId) {
+        List<MedicationAdministration> administrations = administrationRepository.findByMedicationInstructionIdOrderByAdministeredAtDesc(medicationInstructionId);
+        return administrations.stream()
+                .map(administrationMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationAdministrationResponseDTO> getAllAdministrationsByStudent(String studentId) {
+        List<MedicationAdministration> administrations = administrationRepository.findAllByStudentId(studentId);
+        return administrations.stream()
+                .map(administrationMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationAdministrationResponseDTO> getAllAdministrationsByDateRange(LocalDateTime start, LocalDateTime end) {
+        List<MedicationAdministration> administrations = administrationRepository.findByAdministeredAtBetweenOrderByAdministeredAtDesc(start, end);
+        return administrations.stream()
+                .map(administrationMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationAdministrationResponseDTO> getAllAdministrationsByStatus(AdministrationStatus status) {
+        List<MedicationAdministration> administrations = administrationRepository.findByAdministrationStatusOrderByAdministeredAtDesc(status);
+        return administrations.stream()
+                .map(administrationMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationAdministrationResponseDTO> getAllRecentAdministrations() {
+        List<MedicationAdministration> administrations = administrationRepository.findAllRecentAdministrations();
+        return administrations.stream()
+                .map(administrationMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicationAdministrationResponseDTO> getAllAdministrations() {
+        List<MedicationAdministration> administrations = administrationRepository.findAllOrderByAdministeredAtDesc();
+        return administrations.stream()
+                .map(administrationMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
 }
