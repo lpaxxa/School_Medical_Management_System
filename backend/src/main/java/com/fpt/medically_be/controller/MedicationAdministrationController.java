@@ -17,14 +17,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-
 import java.io.IOException;
-//import java.time.LocalDateTime;
-
-import java.util.Date;
-
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+
 
 /**
  * Controller for Medication Administration operations
@@ -38,6 +35,8 @@ public class MedicationAdministrationController {
 
     @Autowired
     private MedicationAdministrationService administrationService;
+
+
 
     /**
      * Record a new medication administration
@@ -98,16 +97,14 @@ public class MedicationAdministrationController {
         return ResponseEntity.ok(response);
     }
 
-
-
     /**
      * Get administration records by date range with pagination
      * GET /api/v1/medication-administrations/date-range?start=2024-01-01T09:00:00&end=2024-01-31T17:00:00&page=1&size=10
      */
     @GetMapping("/date-range")
     public ResponseEntity<Map<String, Object>> getAdministrationsByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date end,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         PageResponse<MedicationAdministrationResponseDTO> pageResponse = administrationService.getAdministrationsByDateRange(start, end, page, size);
@@ -216,5 +213,7 @@ public class MedicationAdministrationController {
                 ));
         }
     }
+
+
 }
 

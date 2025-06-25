@@ -13,6 +13,7 @@ import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.MedicationInstructionService;
 import com.fpt.medically_be.service.ParentService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.core.Authentication;
@@ -34,7 +35,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     private final ParentRepository parentRepository;
     private final NurseRepository nurseRepository;
 
-    @Autowired
+@Autowired
     public MedicationInstructionServiceImpl(MedicationInstructionRepository medicationInstructionRepository,
                                             HealthProfileRepository healthProfileRepository,
                                             StudentRepository studentRepository, ParentService parentService, 
@@ -304,7 +305,7 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     }
 
     @Override
-    public MedicationInstructionDTO processApprovalRequest(Long requestId, NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication) {
+    public MedicationInstructionDTO processApprovalRequest(Long requestId, @Valid NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication) {
         //1.find the medication request
         MedicationInstruction request = medicationInstructionRepository.findById(requestId)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy yêu cầu hướng dẫn thuốc với ID: " + requestId));

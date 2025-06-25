@@ -14,6 +14,7 @@ public interface MedicationAdministrationMapper {
     @Mapping(source = "medicationInstruction.medicationName", target = "medicationName")
     @Mapping(source = "medicationInstruction.healthProfile.student.fullName", target = "studentName")
     @Mapping(source = "administeredBy.fullName", target = "administeredBy")
+    @Mapping(source = "confirmationImageUrl", target = "confirmationImageUrl")
     MedicationAdministrationResponseDTO toResponseDTO(MedicationAdministration entity);
 
     // Map request DTO to entity (partial - relationships need to be set in service)
@@ -21,5 +22,6 @@ public interface MedicationAdministrationMapper {
     @Mapping(target = "medicationInstruction", ignore = true)
     @Mapping(target = "administeredBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(source = "imgUrl", target = "confirmationImageUrl")
     MedicationAdministration toEntity(MedicationAdministrationRequestDTO dto);
 } 
