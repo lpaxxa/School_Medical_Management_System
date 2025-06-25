@@ -44,10 +44,11 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
     @Autowired
     private NurseRepository nurseRepository;
 
-    @Qualifier("medicationAdministrationMapper")
+
     @Autowired
+
     private MedicationAdministrationMapper administrationMapper;
-    
+
     @Autowired
     private NotificationService notificationService;
 
