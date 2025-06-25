@@ -5,11 +5,8 @@ import com.fpt.medically_be.dto.response.MedicationAdministrationResponseDTO;
 import com.fpt.medically_be.entity.MedicationAdministration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
-import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = "spring")
-
 public interface MedicationAdministrationMapper {
 
     // Map entity to response DTO
@@ -24,7 +21,7 @@ public interface MedicationAdministrationMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "medicationInstruction", ignore = true)
     @Mapping(target = "administeredBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true) // Will be set by @PrePersist
     @Mapping(source = "imgUrl", target = "confirmationImageUrl")
     MedicationAdministration toEntity(MedicationAdministrationRequestDTO dto);
 } 
