@@ -13,6 +13,7 @@ import com.fpt.medically_be.service.MedicationAdministrationService;
 import com.fpt.medically_be.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,9 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.IOException;
-//import java.time.LocalDateTime;
-
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,8 +44,8 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
     @Autowired
     private NurseRepository nurseRepository;
 
+    @Qualifier("medicationAdministrationMapper")
     @Autowired
-    @Qualifier("medicationAdministrationMapperImpl")
     private MedicationAdministrationMapper administrationMapper;
     
     @Autowired
@@ -141,7 +140,7 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
 
 
     @Override
-    public PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByDateRange(Date start, Date end, int page, int size) {
+    public PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByDateRange(LocalDateTime start, LocalDateTime end, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<MedicationAdministration> administrations = administrationRepository.findByAdministeredAtBetweenOrderByAdministeredAtDesc(start, end, pageable);
         
@@ -200,6 +199,7 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
         administration.setAdministeredAt(request.getAdministeredAt());
         administration.setAdministrationStatus(request.getAdministrationStatus());
         administration.setNotes(request.getNotes());
+        administration.setConfirmationImageUrl(request.getImgUrl());
         
         MedicationAdministration updated = administrationRepository.save(administration);
         MedicationAdministrationResponseDTO responseDTO = administrationMapper.toResponseDTO(updated);
