@@ -2,6 +2,7 @@ package com.fpt.medically_be.dto.auth;
 
 import com.fpt.medically_be.base.BaseMapper;
 import com.fpt.medically_be.entity.AccountMember;
+import jakarta.validation.constraints.Email;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -12,7 +13,6 @@ import java.util.logging.Logger;
 public class AuthResponseDTO extends BaseMapper<AccountMember, AuthResponseDTO> {
     
     private static final Logger logger = Logger.getLogger(AuthResponseDTO.class.getName());
-    
     private String memberId;
     private String email;
     private String role;

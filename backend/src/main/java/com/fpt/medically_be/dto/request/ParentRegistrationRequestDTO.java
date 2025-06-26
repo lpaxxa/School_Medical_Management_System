@@ -1,9 +1,6 @@
 package com.fpt.medically_be.dto.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -18,9 +15,11 @@ import java.util.List;
 @Setter
 public class ParentRegistrationRequestDTO extends RegistrationDTO {
     @Size(max = 255, message = "Address cannot exceed 255 characters")
+    @NotNull(message = "Address is required")
     private String address;
 
     @Pattern(regexp = "^\\d{10}$", message = "Phone number should be between 10 digits")
+    @NotNull(message = "Emergency phone number is required")
     private String emergencyPhoneNumber;
 
     @Size(max = 50, message = "Relationship type cannot exceed 50 characters")

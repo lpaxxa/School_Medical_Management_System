@@ -9,6 +9,7 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface AccountMemberMapper {
 
+
     AccountAdminResponseDTO memberToMemberDTO(AccountMember member);
 
     void updateAccountMember(@MappingTarget AccountMember obj, AccountUpdateRequestDTO obj2);

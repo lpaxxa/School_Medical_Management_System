@@ -28,5 +28,8 @@ public class AccountMember {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "NVARCHAR(20)")
     private MemberRole role;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
 }
 
