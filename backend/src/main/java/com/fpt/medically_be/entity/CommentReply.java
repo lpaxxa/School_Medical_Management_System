@@ -6,34 +6,31 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "post_comments")
+@Table(name = "comment_replies")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PostComment {
+public class CommentReply {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    @JoinColumn(name = "comment_id", nullable = false)
+    private PostComment comment;
 
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
     private AccountMember author;
 
-    @Column(columnDefinition = "NVARCHAR(50)", nullable = false)
+    @Column(columnDefinition = "NVARCHAR(1000)", nullable = false)
     private String content;
 
     @Column(name = "likes_count")
     private int likesCount = 0;
-
-    @Column(name = "replies_count")
-    private int repliesCount = 0;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

@@ -23,10 +23,10 @@ public class Post {
     @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
     private String title;
 
-    @Column(length = 500, columnDefinition = "NVARCHAR(500)")
+    @Column(length = 500, columnDefinition = "NVARCHAR(MAX)", nullable = false)
     private String excerpt;
 
-    @Column(columnDefinition = "NVARCHAR(500)", nullable = false)
+    @Column(columnDefinition = "NVARCHAR(MAX)", nullable = false)
     private String content;
 
     @Column(name = "category", columnDefinition = "NVARCHAR(500)")
@@ -41,7 +41,7 @@ public class Post {
 
     @ElementCollection
     @CollectionTable(name = "post_tags", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "tag")
+    @Column(name = "tag", columnDefinition = "NVARCHAR(50)")
     private Set<String> tags = new HashSet<>();
 
     @Column(name = "likes_count")

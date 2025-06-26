@@ -3,12 +3,22 @@ package com.fpt.medically_be.mapper;
 import com.fpt.medically_be.dto.PostDTO;
 import com.fpt.medically_be.entity.AccountMember;
 import com.fpt.medically_be.entity.Post;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class PostMapper {
 
     public PostDTO toDTO(Post post) {
+        return toDTO(post, null, false, false);
+    }
+
+    public PostDTO toDTO(Post post, String currentUserId) {
+        return toDTO(post, currentUserId, false, false);
+    }
+
+    public PostDTO toDTO(Post post, String currentUserId, boolean isLiked, boolean isBookmarked) {
         if (post == null) {
             return null;
         }
@@ -25,6 +35,8 @@ public class PostMapper {
                 .likes(post.getLikes())
                 .commentsCount(post.getCommentsCount())
                 .isPinned(post.isPinned())
+                .isLiked(isLiked)
+                .isBookmarked(isBookmarked)
                 .tags(post.getTags())
                 .build();
     }

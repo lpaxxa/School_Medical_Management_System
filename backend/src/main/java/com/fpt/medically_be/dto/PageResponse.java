@@ -12,8 +12,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PageResponse<T> {
-    private long totalItems;
+    private List<T> content;
+    private int page;
+    private int size;
+    private long totalElements;
     private int totalPages;
-    private int currentPage;
-    private List<T> posts;
+    private boolean first;
+    private boolean last;
 }

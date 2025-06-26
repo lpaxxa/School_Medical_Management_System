@@ -13,61 +13,58 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PostLikeServiceImpl implements PostLikeService {
 
-    private final PostLikeRepository likeRepository;
+    private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
     private final AccountMemberRepository accountMemberRepository;
 
     @Override
-    @Transactional
     public boolean toggleLike(Long postId, String userId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         AccountMember user = accountMemberRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        boolean liked = false;
+        boolean isLiked = postLikeRepository.existsByPostAndUser(post, user);
 
-        // Kiểm tra xem người dùng đã thích bài viết này chưa
-        if (likeRepository.existsByPostAndUser(post, user)) {
-            // Nếu đã thích rồi thì xóa like
-            likeRepository.deleteByPostAndUser(post, user);
-            liked = false;
+        if (isLiked) {
+            // Bỏ thích
+            postLikeRepository.deleteByPostAndUser(post, user);
+            post.setLikes(Math.max(0, post.getLikes() - 1));
+            postRepository.save(post);
+            return false;
         } else {
-            // Nếu chưa thích thì thêm like mới
-            PostLike like = PostLike.builder()
+            // Thích
+            PostLike postLike = PostLike.builder()
                     .post(post)
                     .user(user)
                     .build();
-            likeRepository.save(like);
-            liked = true;
+            postLikeRepository.save(postLike);
+            post.setLikes(post.getLikes() + 1);
+            postRepository.save(post);
+            return true;
         }
-
-        // Cập nhật số lượng like trong bài viết
-        post.setLikes((int)likeRepository.countByPost(post));
-        postRepository.save(post);
-
-        return liked;
     }
 
     @Override
     public boolean isPostLikedByUser(Long postId, String userId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         AccountMember user = accountMemberRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        return likeRepository.existsByPostAndUser(post, user);
+        return postLikeRepository.existsByPostAndUser(post, user);
     }
 
     @Override
     public long getPostLikesCount(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
-        return likeRepository.countByPost(post);
+        return postLikeRepository.countByPost(post);
     }
 }
