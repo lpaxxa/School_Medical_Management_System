@@ -14,5 +14,5 @@ public interface AccountMemberService {
          List<AccountAdminResponseDTO> getAllMember();
          AccountAdminResponseDTO createMember(AccountMember obj);
           AccountAdminResponseDTO updateMember(String id, AccountUpdateRequestDTO obj);
-         void deleteMember(String id);
+          void deactivateMember(String id);
 }

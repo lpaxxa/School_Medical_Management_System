@@ -1,12 +1,24 @@
 package com.fpt.medically_be.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fpt.medically_be.dto.request.AccountUpdateRequestDTO;
+import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
+import com.fpt.medically_be.dto.request.ParentRegistrationRequestDTO;
 import com.fpt.medically_be.dto.response.AccountAdminResponseDTO;
 import com.fpt.medically_be.service.AccountMemberService;
+import com.fpt.medically_be.service.AuthService;
+import com.fpt.medically_be.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+import static com.fpt.medically_be.entity.MemberRole.NURSE;
+import static com.fpt.medically_be.entity.MemberRole.PARENT;
 
 @RestController
 @RequestMapping("/api/v1/account-members")
@@ -15,8 +27,37 @@ public class AccountMemberController {
     @Autowired
     AccountMemberService accountMemberService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private AuthService authService;
+
+
+    // pa
+    @PostMapping("/addNewMember")
+     // @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> register(@RequestBody Map<String, Object> requestData) {
+        try {
+            String role = (String) requestData.get("role");
+
+            if (PARENT.name().equals(role)) {
+                ParentRegistrationRequestDTO parentDTO = objectMapper.convertValue(requestData, ParentRegistrationRequestDTO.class);
+                return ResponseEntity.ok(authService.registerParent(parentDTO));
+            } else if (NURSE.name().equals(role)) {
+                NurseRegistrationRequestDTO nurseDTO = objectMapper.convertValue(requestData, NurseRegistrationRequestDTO.class);
+                return ResponseEntity.ok(authService.registerNurse(nurseDTO));
+            } else {
+                return ResponseEntity.badRequest().body("Invalid role specified in registration request");
+            }
+        }catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+
     @Operation(summary = "Get all members", description = "lấy danh sách tất cả thành viên")
     @GetMapping("/getAll")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllMembers() {
         return ResponseEntity.ok(accountMemberService.getAllMember());
     }
@@ -24,6 +65,7 @@ public class AccountMemberController {
 
     @Operation(summary = "Get member by ID", description = "lấy thông tin thành viên theo ID")
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AccountAdminResponseDTO> getMemberById(@PathVariable("id") String id) {
 
         AccountAdminResponseDTO memberResponseDTO = accountMemberService.getMemberById(id);
@@ -36,25 +78,21 @@ public class AccountMemberController {
 
     }
 
-    @Operation(summary = "Update member", description = "Cập nhật thông tin thành viên")
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AccountAdminResponseDTO> updateMember(@PathVariable("id") String id,
-                                                                @RequestBody AccountUpdateRequestDTO accountUpdateRequestDTO) {
-        try {
-            AccountAdminResponseDTO updatedMember = accountMemberService.updateMember(id, accountUpdateRequestDTO);
-            return ResponseEntity.ok(updatedMember);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
-        }
+                                                                @Valid @RequestBody AccountUpdateRequestDTO accountUpdateRequestDTO) {
+        AccountAdminResponseDTO updatedMember = accountMemberService.updateMember(id, accountUpdateRequestDTO);
+        return ResponseEntity.ok(updatedMember);
     }
 
 
     @Operation(summary = "Delete member,not yet implement", description = "Xoá thành viên theo ID")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteMember(@PathVariable("id") String id) {
         try {
-            accountMemberService.deleteMember(id);
+            accountMemberService.deactivateMember(id);
             return ResponseEntity.ok("Member deleted successfully");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error deleting member: " + e.getMessage());

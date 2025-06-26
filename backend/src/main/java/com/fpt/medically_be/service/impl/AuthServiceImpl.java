@@ -118,18 +118,18 @@ public class AuthServiceImpl implements AuthService {
             createStudentsForParent(parent, parentRegistrationRequestDTO.getStudents());
         }
         
-        String token = jwtService.generateToken(
-                member.getId(),
-                member.getEmail(),
-                member.getPhoneNumber(),
-                member.getRole()
-        );
+//        String token = jwtService.generateToken(
+//                member.getId(),
+//                member.getEmail(),
+//                member.getPhoneNumber(),
+//                member.getRole()
+//        );
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setMemberId(member.getId());
         authResponseDTO.setEmail(member.getEmail());
         authResponseDTO.setPhoneNumber(member.getPhoneNumber());
         authResponseDTO.setRole(member.getRole().name());
-        authResponseDTO.setToken(token);
+       // authResponseDTO.setToken(token);
         return authResponseDTO;
     }
 
@@ -161,18 +161,18 @@ public class AuthServiceImpl implements AuthService {
         nurse.setAccount(member);
         nurseRepository.save(nurse);
         
-        String token = jwtService.generateToken(
-                member.getId(),
-                member.getEmail(),
-                member.getPhoneNumber(),
-                member.getRole()
-        );
+//        String token = jwtService.generateToken(
+//                member.getId(),
+//                member.getEmail(),
+//                member.getPhoneNumber(),
+//                member.getRole()
+//        );
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setMemberId(member.getId());
         authResponseDTO.setEmail(member.getEmail());
         authResponseDTO.setPhoneNumber(member.getPhoneNumber());
         authResponseDTO.setRole(member.getRole().name());
-        authResponseDTO.setToken(token);
+       // authResponseDTO.setToken(token);
         return authResponseDTO;
     }
 

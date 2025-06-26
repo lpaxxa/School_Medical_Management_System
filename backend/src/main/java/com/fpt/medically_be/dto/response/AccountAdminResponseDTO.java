@@ -10,4 +10,5 @@ public class AccountAdminResponseDTO {
     private String phoneNumber;
     private String role;
     private String username;
+    private Boolean isActive;
 }
