@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface MedicationAdministrationRepository extends JpaRepository<MedicationAdministration, Long> {
@@ -44,4 +45,32 @@ public interface MedicationAdministrationRepository extends JpaRepository<Medica
            "JOIN FETCH ma.administeredBy n " +
            "WHERE ma.id = :id")
     MedicationAdministration findByIdWithDetails(@Param("id") Long id);
+    
+    // Non-paginated methods
+    
+    // Find all administrations for a specific medication instruction (no pagination)
+    List<MedicationAdministration> findByMedicationInstructionIdOrderByAdministeredAtDesc(Long medicationInstructionId);
+    
+    // Find all administrations by student (no pagination)
+    @Query("SELECT ma FROM MedicationAdministration ma " +
+           "JOIN ma.medicationInstruction mi " +
+           "JOIN mi.healthProfile hp " +
+           "JOIN hp.student s " +
+           "WHERE s.studentId = :studentId " +
+           "ORDER BY ma.administeredAt DESC")
+    List<MedicationAdministration> findAllByStudentId(@Param("studentId") String studentId);
+    
+    // Find all administrations by date range (no pagination)
+    List<MedicationAdministration> findByAdministeredAtBetweenOrderByAdministeredAtDesc(LocalDateTime start, LocalDateTime end);
+    
+    // Find all administrations by status (no pagination)
+    List<MedicationAdministration> findByAdministrationStatusOrderByAdministeredAtDesc(AdministrationStatus status);
+    
+    // Find all recent administrations (no pagination)
+    @Query("SELECT ma FROM MedicationAdministration ma ORDER BY ma.administeredAt DESC")
+    List<MedicationAdministration> findAllRecentAdministrations();
+    
+    // Find all administrations (no pagination)
+    @Query("SELECT ma FROM MedicationAdministration ma ORDER BY ma.administeredAt DESC")
+    List<MedicationAdministration> findAllOrderByAdministeredAtDesc();
 } 
