@@ -70,8 +70,12 @@ public class AuthServiceImpl implements AuthService {
                     loginRequest.getPassword()
             );
         }
+
         if(accountMemberOpt.isPresent()) {
             AccountMember member = accountMemberOpt.get();
+            if(!member.getStatus()) {
+                throw new RuntimeException("Account is locked or inactive. Please contact support.");
+            }
             return member;
         }
         return null;

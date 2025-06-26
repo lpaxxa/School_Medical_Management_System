@@ -19,6 +19,8 @@ public class AuthResponseDTO extends BaseMapper<AccountMember, AuthResponseDTO> 
     private String phoneNumber;
     private String token;
 
+
+
     public AuthResponseDTO() {
     }
 
@@ -28,7 +30,10 @@ public class AuthResponseDTO extends BaseMapper<AccountMember, AuthResponseDTO> 
         this.phoneNumber = phoneNumber;
         this.role = role;
         this.token = token;
+
     }
+
+
 
     @Override
     public AuthResponseDTO toObject(AccountMember entity) {

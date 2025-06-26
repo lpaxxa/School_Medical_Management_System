@@ -111,7 +111,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
         AccountMember member = authService.login(loginRequest);
-        if (member == null) {
+        if (member == null ||!member.getStatus()) {
             return ResponseEntity.badRequest().build();
         }
         String token = jwtService.generateToken(
