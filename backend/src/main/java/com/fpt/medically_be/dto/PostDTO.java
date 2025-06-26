@@ -1,6 +1,5 @@
 package com.fpt.medically_be.dto;
 
-import com.fpt.medically_be.entity.AccountMember;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,16 +18,16 @@ public class PostDTO {
     private String title;
     private String excerpt;
     private String content;
-    private AuthorDTO author;
     private String category;
+    private AuthorDTO author;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private int likes;
     private int commentsCount;
     private boolean isPinned;
+    private boolean isLiked; // Người dùng hiện tại đã thích hay chưa
+    private boolean isBookmarked; // Người dùng hiện tại đã ghim hay chưa
     private Set<String> tags;
-    private boolean isLikedByCurrentUser;
-    private boolean isBookmarkedByCurrentUser; // Thêm trường mới để theo dõi trạng thái ghim
     private List<RelatedPostDTO> relatedPosts;
 
     @Data
@@ -36,7 +35,7 @@ public class PostDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AuthorDTO {
-        private String id; // Đã đổi từ Long sang String để phù hợp với AccountMember
+        private String id;
         private String name;
         private String avatar;
         private String role;

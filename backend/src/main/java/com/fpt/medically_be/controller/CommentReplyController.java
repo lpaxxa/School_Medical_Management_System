@@ -1,10 +1,10 @@
 package com.fpt.medically_be.controller;
 
-import com.fpt.medically_be.dto.CommentDTO;
-import com.fpt.medically_be.dto.CommentRequest;
+import com.fpt.medically_be.dto.CommentReplyDTO;
+import com.fpt.medically_be.dto.CommentReplyRequest;
 import com.fpt.medically_be.dto.PageResponse;
-import com.fpt.medically_be.service.CommentService;
-import com.fpt.medically_be.service.impl.CommentServiceImpl;
+import com.fpt.medically_be.service.CommentReplyService;
+import com.fpt.medically_be.service.impl.CommentReplyServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,21 +24,21 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/community")
 @RequiredArgsConstructor
-@Tag(name = "Bình luận bài viết", description = "API quản lý bình luận trên các bài viết cộng đồng")
-public class CommentController {
+@Tag(name = "Phản hồi bình luận", description = "API quản lý phản hồi trên các bình luận")
+public class CommentReplyController {
 
-    private final CommentService commentService;
+    private final CommentReplyService commentReplyService;
 
-    @Operation(summary = "Lấy danh sách bình luận", description = "Trả về danh sách các bình luận của bài viết được phân trang")
+    @Operation(summary = "Lấy danh sách phản hồi của bình luận", description = "Trả về danh sách các phản hồi của một bình luận được phân trang")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lấy danh sách bình luận thành công",
+        @ApiResponse(responseCode = "200", description = "Lấy danh sách phản hồi thành công",
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponse.class))),
         @ApiResponse(responseCode = "401", description = "Chưa xác thực", content = @Content),
-        @ApiResponse(responseCode = "404", description = "Không tìm thấy bài viết", content = @Content)
+        @ApiResponse(responseCode = "404", description = "Không tìm thấy bình luận", content = @Content)
     })
-    @GetMapping("/posts/{postId}/comments")
-    public ResponseEntity<Map<String, Object>> getPostComments(
-            @PathVariable Long postId,
+    @GetMapping("/comments/{commentId}/replies")
+    public ResponseEntity<Map<String, Object>> getCommentReplies(
+            @PathVariable Long commentId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -46,8 +46,8 @@ public class CommentController {
         String currentUserId = authentication.getName();
 
         // Gọi method với currentUserId để kiểm tra trạng thái liked
-        PageResponse<CommentDTO> pageResponse =
-            ((CommentServiceImpl) commentService).getPostComments(postId, page, size, currentUserId);
+        PageResponse<CommentReplyDTO> pageResponse =
+            ((CommentReplyServiceImpl) commentReplyService).getCommentReplies(commentId, page, size, currentUserId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
@@ -56,74 +56,74 @@ public class CommentController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Tạo bình luận mới", description = "Tạo bình luận mới cho bài viết")
+    @Operation(summary = "Tạo phản hồi bình luận mới", description = "Tạo phản hồi mới cho một bình luận")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Tạo bình luận thành công",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = CommentDTO.class))),
+        @ApiResponse(responseCode = "201", description = "Tạo phản hồi thành công",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = CommentReplyDTO.class))),
         @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ", content = @Content),
         @ApiResponse(responseCode = "401", description = "Chưa xác thực", content = @Content),
-        @ApiResponse(responseCode = "404", description = "Không tìm thấy bài viết", content = @Content)
+        @ApiResponse(responseCode = "404", description = "Không tìm thấy bình luận", content = @Content)
     })
-    @PostMapping("/posts/{postId}/comments")
-    public ResponseEntity<Map<String, Object>> createComment(
-            @PathVariable Long postId,
-            @RequestBody CommentRequest commentRequest) {
+    @PostMapping("/comments/{commentId}/replies")
+    public ResponseEntity<Map<String, Object>> createReply(
+            @PathVariable Long commentId,
+            @RequestBody CommentReplyRequest replyRequest) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
 
-        CommentDTO createdComment = commentService.createComment(postId, commentRequest, currentUserId);
+        CommentReplyDTO createdReply = commentReplyService.createReply(commentId, replyRequest, currentUserId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("data", createdComment);
+        response.put("data", createdReply);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Cập nhật bình luận", description = "Cập nhật nội dung bình luận hiện có")
+    @Operation(summary = "Cập nhật phản hồi bình luận", description = "Cập nhật nội dung phản hồi bình luận hiện có")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Cập nhật bình luận thành công",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = CommentDTO.class))),
+        @ApiResponse(responseCode = "200", description = "Cập nhật phản hồi thành công",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = CommentReplyDTO.class))),
         @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ", content = @Content),
         @ApiResponse(responseCode = "401", description = "Chưa xác thực", content = @Content),
         @ApiResponse(responseCode = "403", description = "Không có quyền cập nhật", content = @Content),
-        @ApiResponse(responseCode = "404", description = "Không tìm thấy bình luận", content = @Content)
+        @ApiResponse(responseCode = "404", description = "Không tìm thấy phản hồi", content = @Content)
     })
-    @PutMapping("/comments/{commentId}")
-    public ResponseEntity<Map<String, Object>> updateComment(
-            @PathVariable Long commentId,
-            @RequestBody CommentRequest commentRequest) {
+    @PutMapping("/replies/{replyId}")
+    public ResponseEntity<Map<String, Object>> updateReply(
+            @PathVariable Long replyId,
+            @RequestBody CommentReplyRequest replyRequest) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
 
-        CommentDTO updatedComment = commentService.updateComment(commentId, commentRequest, currentUserId);
+        CommentReplyDTO updatedReply = commentReplyService.updateReply(replyId, replyRequest, currentUserId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("data", updatedComment);
+        response.put("data", updatedReply);
 
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Xóa bình luận", description = "Xóa bình luận hiện có")
+    @Operation(summary = "Xóa phản hồi bình luận", description = "Xóa phản hồi bình luận hiện có")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Xóa bình luận thành công"),
+        @ApiResponse(responseCode = "200", description = "Xóa phản hồi thành công"),
         @ApiResponse(responseCode = "401", description = "Chưa xác thực", content = @Content),
         @ApiResponse(responseCode = "403", description = "Không có quyền xóa", content = @Content),
-        @ApiResponse(responseCode = "404", description = "Không tìm thấy bình luận", content = @Content)
+        @ApiResponse(responseCode = "404", description = "Không tìm thấy phản hồi", content = @Content)
     })
-    @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<Map<String, Object>> deleteComment(@PathVariable Long commentId) {
+    @DeleteMapping("/replies/{replyId}")
+    public ResponseEntity<Map<String, Object>> deleteReply(@PathVariable Long replyId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
 
-        commentService.deleteComment(commentId, currentUserId);
+        commentReplyService.deleteReply(replyId, currentUserId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("message", "Bình luận đã được xóa thành công");
+        response.put("message", "Phản hồi đã được xóa thành công");
 
         return ResponseEntity.ok(response);
     }

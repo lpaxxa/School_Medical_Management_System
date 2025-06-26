@@ -146,10 +146,10 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
                 .collect(Collectors.toList());
 
         return PageResponse.<MedicationAdministrationResponseDTO>builder()
-                .totalItems(administrations.getTotalElements())
+                .totalElements(administrations.getTotalElements())
                 .totalPages(administrations.getTotalPages())
-                .currentPage(page)
-                .posts(administrationDTOs)
+                .page(page)
+                .content(administrationDTOs)
                 .build();
     }
 
@@ -163,10 +163,10 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
                 .collect(Collectors.toList());
 
         return PageResponse.<MedicationAdministrationResponseDTO>builder()
-                .totalItems(administrations.getTotalElements())
+                .totalElements(administrations.getTotalElements())
                 .totalPages(administrations.getTotalPages())
-                .currentPage(page)
-                .posts(administrationDTOs)
+                .page(page)
+                .content(administrationDTOs)
                 .build();
     }
 
@@ -182,10 +182,10 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
                 .collect(Collectors.toList());
 
         return PageResponse.<MedicationAdministrationResponseDTO>builder()
-                .totalItems(administrations.getTotalElements())
+                .totalElements(administrations.getTotalElements())
                 .totalPages(administrations.getTotalPages())
-                .currentPage(page)
-                .posts(administrationDTOs)
+                .page(page)
+                .content(administrationDTOs)
                 .build();
     }
 
@@ -199,10 +199,10 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
                 .collect(Collectors.toList());
 
         return PageResponse.<MedicationAdministrationResponseDTO>builder()
-                .totalItems(administrations.getTotalElements())
+                .totalElements(administrations.getTotalElements())
                 .totalPages(administrations.getTotalPages())
-                .currentPage(page)
-                .posts(administrationDTOs)
+                .page(page)
+                .content(administrationDTOs)
                 .build();
     }
 
@@ -216,10 +216,10 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
                 .collect(Collectors.toList());
 
         return PageResponse.<MedicationAdministrationResponseDTO>builder()
-                .totalItems(administrations.getTotalElements())
+                .totalElements(administrations.getTotalElements())
                 .totalPages(administrations.getTotalPages())
-                .currentPage(page)
-                .posts(administrationDTOs)
+                .page(page)
+                .content(administrationDTOs)
                 .build();
     }
 

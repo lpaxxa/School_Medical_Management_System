@@ -11,12 +11,11 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentDTO {
+public class CommentReplyDTO {
     private Long id;
-    private Long postId;
+    private Long commentId;
     private String content;
     private int likesCount;
-    private int repliesCount;
     private boolean isLiked; // Người dùng hiện tại đã thích hay chưa
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
