@@ -23,7 +23,7 @@ public interface MedicationAdministrationRepository extends JpaRepository<Medica
            "JOIN ma.medicationInstruction mi " +
            "JOIN mi.healthProfile hp " +
            "JOIN hp.student s " +
-           "WHERE s.studentId = :studentId " +
+           "WHERE s.id = :studentId " +
            "ORDER BY ma.administeredAt DESC")
     Page<MedicationAdministration> findByStudentId(@Param("studentId") String studentId, Pageable pageable);
     

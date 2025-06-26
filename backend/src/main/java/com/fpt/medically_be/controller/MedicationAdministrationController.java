@@ -1,10 +1,10 @@
 package com.fpt.medically_be.controller;
 
-import com.fpt.medically_be.dto.PageResponse;
 import com.fpt.medically_be.dto.request.MedicationAdministrationRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationAdministrationResponseDTO;
 import com.fpt.medically_be.entity.AdministrationStatus;
 import com.fpt.medically_be.service.MedicationAdministrationService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +45,7 @@ public class MedicationAdministrationController {
      */
     @PostMapping
     @PreAuthorize("hasRole('NURSE')")
+    @Operation(summary = "ghi nhận thông tin uống thuốc")
     public ResponseEntity<MedicationAdministrationResponseDTO> recordAdministration(
             @Valid @RequestBody MedicationAdministrationRequestDTO request,
             Authentication authentication) {
@@ -57,100 +58,19 @@ public class MedicationAdministrationController {
      * GET /api/v1/medication-administrations/{id}
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('NURSE') or hasRole('PARENT')")
+    @Operation(summary = "lấy thông tin bản ghi uống thuốc theo ID")
     public ResponseEntity<MedicationAdministrationResponseDTO> getAdministrationById(@PathVariable Long id) {
         MedicationAdministrationResponseDTO result = administrationService.getAdministrationById(id);
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * Get all administration records for a specific medication instruction with pagination
-     * GET /api/v1/medication-administrations/medication-instruction/{medicationInstructionId}?page=1&size=10
-     */
-    @GetMapping("/medication-instruction/{medicationInstructionId}")
-    public ResponseEntity<Map<String, Object>> getAdministrationsByMedicationInstruction(
-            @PathVariable Long medicationInstructionId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        PageResponse<MedicationAdministrationResponseDTO> pageResponse = administrationService.getAdministrationsByMedicationInstruction(medicationInstructionId, page, size);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("data", pageResponse);
-        
-        return ResponseEntity.ok(response);
-    }
 
-    /**
-     * Get all administration records for a specific student with pagination
-     * GET /api/v1/medication-administrations/student/{studentId}?page=1&size=10
-     */
-    @GetMapping("/student/{studentId}")
-    public ResponseEntity<Map<String, Object>> getAdministrationsByStudent(
-            @PathVariable String studentId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        PageResponse<MedicationAdministrationResponseDTO> pageResponse = administrationService.getAdministrationsByStudent(studentId, page, size);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("data", pageResponse);
-        
-        return ResponseEntity.ok(response);
-    }
 
-    /**
-     * Get administration records by date range with pagination
-     * GET /api/v1/medication-administrations/date-range?start=2024-01-01T09:00:00&end=2024-01-31T17:00:00&page=1&size=10
-     */
-    @GetMapping("/date-range")
-    public ResponseEntity<Map<String, Object>> getAdministrationsByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        PageResponse<MedicationAdministrationResponseDTO> pageResponse = administrationService.getAdministrationsByDateRange(start, end, page, size);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("data", pageResponse);
-        
-        return ResponseEntity.ok(response);
-    }
 
-    /**
-     * Get administration records by status with pagination
-     * GET /api/v1/medication-administrations/status/{status}?page=1&size=10
-     */
-    @GetMapping("/status/{status}")
-    public ResponseEntity<Map<String, Object>> getAdministrationsByStatus(
-            @PathVariable AdministrationStatus status,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        PageResponse<MedicationAdministrationResponseDTO> pageResponse = administrationService.getAdministrationsByStatus(status, page, size);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("data", pageResponse);
-        
-        return ResponseEntity.ok(response);
-    }
 
-    /**
-     * Get recent administration records (for dashboard) with pagination
-     * GET /api/v1/medication-administrations/recent?page=1&size=10
-     */
-    @GetMapping("/recent")
-    public ResponseEntity<Map<String, Object>> getRecentAdministrations(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        PageResponse<MedicationAdministrationResponseDTO> pageResponse = administrationService.getRecentAdministrations(page, size);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("data", pageResponse);
-        
-        return ResponseEntity.ok(response);
-    }
+
+
 
     /**
      * Update an administration record
@@ -223,15 +143,17 @@ public class MedicationAdministrationController {
      * GET /api/v1/medication-administrations/all/medication-instruction/{medicationInstructionId}
      */
     @GetMapping("/all/medication-instruction/{medicationInstructionId}")
+    @PreAuthorize("hasRole('NURSE') or hasRole('PARENT')")
+    @Operation(summary = "lấy tất cả bản ghi uống thuốc theo ID hướng dẫn uống thuốc ( phụ huỵnh gửi")
     public ResponseEntity<Map<String, Object>> getAllAdministrationsByMedicationInstruction(
             @PathVariable Long medicationInstructionId) {
         List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllAdministrationsByMedicationInstruction(medicationInstructionId);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
         response.put("data", administrations);
         response.put("count", administrations.size());
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -240,6 +162,8 @@ public class MedicationAdministrationController {
      * GET /api/v1/medication-administrations/all/student/{studentId}
      */
     @GetMapping("/all/student/{studentId}")
+    @PreAuthorize("hasRole('NURSE') or hasRole('PARENT')")
+    @Operation(summary = "lấy tất cả bản ghi uống thuốc của học sinh theo ID học sinh")
     public ResponseEntity<Map<String, Object>> getAllAdministrationsByStudent(
             @PathVariable String studentId) {
         List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllAdministrationsByStudent(studentId);
@@ -257,6 +181,8 @@ public class MedicationAdministrationController {
      * GET /api/v1/medication-administrations/all/date-range?start=2024-01-01T09:00:00&end=2024-01-31T17:00:00
      */
     @GetMapping("/all/date-range")
+    @PreAuthorize("hasRole('NURSE') or hasRole('PARENT')")
+
     public ResponseEntity<Map<String, Object>> getAllAdministrationsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
@@ -308,6 +234,7 @@ public class MedicationAdministrationController {
      * GET /api/v1/medication-administrations/all
      */
     @GetMapping("/all")
+    @PreAuthorize("hasRole('PARENT')")
     public ResponseEntity<Map<String, Object>> getAllAdministrations() {
         List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllAdministrations();
         
