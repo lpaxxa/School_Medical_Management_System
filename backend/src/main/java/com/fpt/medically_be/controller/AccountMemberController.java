@@ -89,7 +89,7 @@ public class AccountMemberController {
         }
 
     }
-
+        // mail sender
     @PutMapping("/update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AccountAdminResponseDTO> updateMember(@PathVariable("id") String id,
