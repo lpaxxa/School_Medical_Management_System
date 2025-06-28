@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.fpt.medically_be.entity.MemberRole.NURSE;
@@ -35,7 +36,7 @@ public class AccountMemberController {
 
     // pa
     @PostMapping("/addNewMember")
-     // @PreAuthorize("hasRole('ADMIN')")
+      @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> register(@RequestBody Map<String, Object> requestData) {
         try {
             String role = (String) requestData.get("role");
@@ -59,8 +60,19 @@ public class AccountMemberController {
     @GetMapping("/getAll")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllMembers() {
+
         return ResponseEntity.ok(accountMemberService.getAllMember());
     }
+
+    @Operation(summary = "Get all members", description = "lấy danh sách tất cả thành viên chưa gửi email")
+    @GetMapping("/getAllToSendEmail")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllToSendEmail() {
+
+        return ResponseEntity.ok(accountMemberService.getAllMemberToSendEmail());
+    }
+
+
 
 
     @Operation(summary = "Get member by ID", description = "lấy thông tin thành viên theo ID")
@@ -98,6 +110,8 @@ public class AccountMemberController {
             return ResponseEntity.badRequest().body("Error deleting member: " + e.getMessage());
         }
     }
+
+
 
 
 

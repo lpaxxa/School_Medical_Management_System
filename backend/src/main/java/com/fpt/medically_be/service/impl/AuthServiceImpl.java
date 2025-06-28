@@ -100,6 +100,8 @@ public class AuthServiceImpl implements AuthService {
        // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
         member.setPassword(parentRegistrationRequestDTO.getPassword());
         member.setRole(MemberRole.PARENT);
+        member.setIsActive(true);
+        member.setEmailSent(false);
         member = accountMemberRepos.save(member);
         
         // Create Parent profile
@@ -150,6 +152,8 @@ public class AuthServiceImpl implements AuthService {
         // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
         member.setPassword(nurseRegistrationRequestDTO.getPassword());
         member.setRole(MemberRole.NURSE);
+        member.setIsActive(true);
+        member.setEmailSent(false);
         member = accountMemberRepos.save(member);
         
         // Create Nurse profile
