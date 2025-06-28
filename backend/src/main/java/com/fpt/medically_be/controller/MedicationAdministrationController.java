@@ -31,7 +31,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/medication-administrations")
 @CrossOrigin(origins = "*")
-@PreAuthorize("hasRole('NURSE') or hasRole('ADMIN')")
+@PreAuthorize("hasRole('NURSE') or hasRole('PARENT')")
 public class MedicationAdministrationController {
 
     @Autowired

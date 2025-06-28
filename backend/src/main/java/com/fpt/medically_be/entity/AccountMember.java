@@ -29,7 +29,7 @@ public class AccountMember {
     @Column(columnDefinition = "NVARCHAR(20)")
     private MemberRole role;
 
-    @Column(name = "is_active")
-    private Boolean isActive;
+    @Column(name = "is_active", nullable = false, columnDefinition = "bit default 1")
+    private Boolean isActive = true;
 }
 
