@@ -34,7 +34,7 @@ public class EmailController {
     }
 
 
-    @Operation(summary = "Send email to member", description = "Gửi thông tin tài khoản qua email cho thành viên")
+    @Operation(summary = "Gửi Email Bằng Id Member", description = "Gửi thông tin tài khoản qua email cho 1 thành viên")
     @PostMapping("/sendAccountEmail/{memberId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> sendAccountEmail(@PathVariable("memberId") String memberId) {
@@ -42,7 +42,7 @@ public class EmailController {
         return ResponseEntity.ok("Email sent!");
     }
 
-    @Operation(summary = "Send email to multiple members", description = "Gửi thông tin tài khoản cho nhiều thành viên")
+    @Operation(summary = "Gửi Email cho nhiều người", description = "Gửi thông tin tài khoản cho nhiều thành viên")
     @PostMapping("/sendAccountEmail")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> sendAccountEmail(@RequestBody List<String> memberIds) {
