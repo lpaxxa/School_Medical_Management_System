@@ -24,7 +24,7 @@ public interface AccountMemberRepos extends JpaRepository<AccountMember, String>
     List<AccountMember> findAllByIsActiveTrue();
     Optional<AccountMember> findAccountMemberByIdAndIsActiveTrue(String id);
 
-
+    List<AccountMember> findAllByIsActiveTrueAndEmailSent(Boolean emailSent);
 
 
 }

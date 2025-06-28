@@ -62,6 +62,14 @@ public class AccountMemberController {
         return ResponseEntity.ok(accountMemberService.getAllMember());
     }
 
+    @Operation(summary = "Get all members", description = "lấy danh sách tất cả thành viên chưa gửi email")
+    @GetMapping("/getAllToSendEmail")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllToSendEmail() {
+
+        return ResponseEntity.ok(accountMemberService.getAllMemberToSendEmail());
+    }
+
 
     @Operation(summary = "Get member by ID", description = "lấy thông tin thành viên theo ID")
     @GetMapping("/{id}")

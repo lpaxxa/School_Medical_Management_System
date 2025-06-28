@@ -31,5 +31,8 @@ public class AccountMember {
 
     @Column(name = "is_active")
     private Boolean isActive;
+
+    @Column(name = "email_sent",nullable = false)
+    private Boolean emailSent = false;
 }
 
