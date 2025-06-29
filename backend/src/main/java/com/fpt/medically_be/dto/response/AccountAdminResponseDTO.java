@@ -11,4 +11,5 @@ public class AccountAdminResponseDTO {
     private String role;
     private String username;
     private Boolean isActive;
+    private Boolean emailSent;
 }
