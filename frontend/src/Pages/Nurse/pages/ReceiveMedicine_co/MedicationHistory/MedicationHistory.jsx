@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Alert, Table, Button, Spinner, Badge, Form, InputGroup, Pagination } from 'react-bootstrap';
-import { FaEye, FaSyncAlt, FaSearch, FaFilter, FaAngleLeft, FaAngleRight, FaAngleDoubleLeft, FaAngleDoubleRight } from 'react-icons/fa';
+import { Container, Row, Col, Card, Alert, Table, Button, Spinner, Badge, Form, InputGroup, Pagination, Modal } from 'react-bootstrap';
+import { FaEye, FaSyncAlt, FaSearch, FaFilter, FaAngleLeft, FaAngleRight, FaAngleDoubleLeft, FaAngleDoubleRight, FaImage, FaTimes } from 'react-icons/fa';
 import receiveMedicineService from '../../../../../services/APINurse/receiveMedicineService';
 import './MedicationHistory.css';
 
@@ -22,6 +22,10 @@ const MedicationHistory = () => {
   const [pageSize, setPageSize] = useState(10); // Default to 10 records per page
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+
+  // Image modal state
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // Fetch recent medication administrations with pagination
   const fetchAdministrations = async (page = currentPage, size = pageSize) => {
@@ -157,6 +161,22 @@ const MedicationHistory = () => {
     }
   };
 
+  // Handle image click
+  const handleImageClick = (imageUrl, studentName, medicationName) => {
+    setSelectedImage({
+      url: imageUrl,
+      studentName: studentName,
+      medicationName: medicationName
+    });
+    setShowImageModal(true);
+  };
+
+  // Close image modal
+  const handleCloseImageModal = () => {
+    setShowImageModal(false);
+    setSelectedImage(null);
+  };
+
 
 
   return (
@@ -166,10 +186,7 @@ const MedicationHistory = () => {
           <Row className="align-items-center">
             <Col>
               <h5 className="mb-0 fw-bold text-primary">Lịch sử dùng thuốc</h5>
-              <small className="text-muted">
-                Danh sách các lần cung cấp thuốc gần đây 
-                {totalItems > 0 && ` (${totalItems} bản ghi)`}
-              </small>
+              
             </Col>
             <Col xs="auto">
               <Button
@@ -236,10 +253,7 @@ const MedicationHistory = () => {
                   title="Đến ngày"
                 />
               </div>
-              <div className="text-muted small text-center page-info ms-2">
-                <strong>Trang {currentPage}</strong> / {totalPages || 1}<br/>
-                <span className="text-primary">{totalItems} bản ghi</span>
-              </div>
+           
             </Col>
           </Row>
 
@@ -271,37 +285,26 @@ const MedicationHistory = () => {
               ) : (
                 <>
                   <div className="mb-3 d-flex justify-content-between align-items-center">
-                    <small className="text-muted">
-                      Hiển thị <strong>{((currentPage - 1) * pageSize) + 1}</strong> đến{' '}
-                      <strong>{Math.min(currentPage * pageSize, totalItems)}</strong> của{' '}
-                      <strong>{totalItems}</strong> bản ghi
-                    </small>
-                    {filteredAdministrations.length !== (Array.isArray(administrations) ? administrations.length : 0) && (
-                      <small className="text-warning filter-indicator">
-                        <i className="fas fa-filter me-1"></i>
-                        Đã lọc {filteredAdministrations.length} / {Array.isArray(administrations) ? administrations.length : 0} bản ghi
-                      </small>
-                    )}
+                   
+                   
                   </div>
                   
                   <div className="table-responsive">
                     <Table hover className="align-middle mb-0">
                       <thead className="bg-light">
                         <tr>
-                          <th>ID</th>
                           <th>Học sinh</th>
                           <th>Thuốc</th>
-                          <th>Liều lượng</th>
                           <th>Thời gian</th>
                           <th>Y tá thực hiện</th>
                           <th>Trạng thái</th>
+                          <th>Hình ảnh</th>
                           <th>Ghi chú</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredAdministrations.map((admin) => (
                           <tr key={admin.id}>
-                            <td className="fw-bold">#{admin.id}</td>
                             <td>
                               <div>
                                 <div className="fw-medium">{admin.studentName}</div>
@@ -309,7 +312,6 @@ const MedicationHistory = () => {
                               </div>
                             </td>
                             <td className="fw-medium">{admin.medicationName}</td>
-                            <td>{admin.dosage}</td>
                             <td>
                               <small>{formatDate(admin.administeredAt)}</small>
                             </td>
@@ -320,9 +322,60 @@ const MedicationHistory = () => {
                               </Badge>
                             </td>
                             <td>
+                              {admin.imageUrl ? (
+                                <div 
+                                  className="image-thumbnail-container"
+                                  onClick={() => handleImageClick(admin.imageUrl, admin.studentName, admin.medicationName)}
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  <img 
+                                    src={admin.imageUrl} 
+                                    alt="Medication administration"
+                                    className="medication-image-thumbnail"
+                                    style={{ 
+                                      width: '40px', 
+                                      height: '40px', 
+                                      objectFit: 'cover', 
+                                      borderRadius: '4px',
+                                      border: '1px solid #dee2e6'
+                                    }}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                  />
+                                  <div 
+                                    className="d-none align-items-center justify-content-center bg-light text-muted"
+                                    style={{ 
+                                      width: '40px', 
+                                      height: '40px', 
+                                      borderRadius: '4px',
+                                      border: '1px solid #dee2e6',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    <FaImage />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div 
+                                  className="d-flex align-items-center justify-content-center bg-light text-muted"
+                                  style={{ 
+                                    width: '40px', 
+                                    height: '40px', 
+                                    borderRadius: '4px',
+                                    border: '1px solid #dee2e6',
+                                    fontSize: '12px'
+                                  }}
+                                >
+                                  <span>N/A</span>
+                                </div>
+                              )}
+                            </td>
+                            <td>
                               <div style={{ maxWidth: '200px' }}>
                                 {admin.notes ? (
-                                  <small className="text-muted">
+                                  <small >
                                     {admin.notes.length > 50 
                                       ? `${admin.notes.substring(0, 50)}...` 
                                       : admin.notes
@@ -397,6 +450,62 @@ const MedicationHistory = () => {
           )}
         </Card.Body>
       </Card>
+
+      {/* Image Modal */}
+      <Modal 
+        show={showImageModal} 
+        onHide={handleCloseImageModal} 
+        size="lg" 
+        centered
+        className="medication-image-modal"
+      >
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="text-primary">
+            <FaImage className="me-2" />
+            Hình ảnh cung cấp thuốc
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center p-4">
+          {selectedImage && (
+            <>
+              <div className="mb-3">
+                <h6 className="text-muted mb-1">Học sinh: <span className="text-dark fw-medium">{selectedImage.studentName}</span></h6>
+                <h6 className="text-muted mb-3">Thuốc: <span className="text-dark fw-medium">{selectedImage.medicationName}</span></h6>
+              </div>
+              <div className="medication-image-container">
+                <img 
+                  src={selectedImage.url} 
+                  alt="Medication administration" 
+                  className="img-fluid rounded shadow"
+                  style={{ 
+                    maxHeight: '500px',
+                    maxWidth: '100%',
+                    objectFit: 'contain',
+                    border: '1px solid #dee2e6'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+                <div 
+                  className="d-none alert alert-warning"
+                  role="alert"
+                >
+                  <FaImage className="me-2" />
+                  Không thể tải hình ảnh
+                </div>
+              </div>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0">
+          <Button variant="secondary" onClick={handleCloseImageModal}>
+            <FaTimes className="me-1" />
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

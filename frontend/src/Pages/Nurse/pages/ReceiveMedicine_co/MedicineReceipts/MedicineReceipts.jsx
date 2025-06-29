@@ -719,11 +719,7 @@ const MedicineReceipts = () => {
               ) : (
                 <>
                   <div className="mb-3 d-flex justify-content-between align-items-center">
-                    <small className="text-muted">
-                      Hiển thị <strong>{startIndex + 1}</strong> đến{' '}
-                      <strong>{Math.min(endIndex, totalItems)}</strong> của{' '}
-                      <strong>{totalItems}</strong> bản ghi
-                    </small>
+                    
                   </div>
                   
                   <Table hover responsive className="align-middle mb-0">

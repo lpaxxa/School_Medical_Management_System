@@ -664,3 +664,72 @@
     min-width: 70px;
   }
 }
+
+/* Image thumbnail and modal styles */
+.image-thumbnail-container {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.image-thumbnail-container:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.medication-image-thumbnail {
+  transition: all 0.2s ease;
+}
+
+.medication-image-thumbnail:hover {
+  border-color: #0d6efd !important;
+}
+
+.medication-image-modal .modal-dialog {
+  max-width: 800px;
+}
+
+.medication-image-modal .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+.medication-image-modal .modal-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+.medication-image-modal .modal-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.medication-image-container {
+  position: relative;
+  display: inline-block;
+}
+
+.medication-image-container img {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.medication-image-container img:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+}
+
+/* Responsive adjustments for image modal */
+@media (max-width: 768px) {
+  .medication-image-modal .modal-dialog {
+    max-width: 95%;
+    margin: 1rem auto;
+  }
+  
+  .medication-image-container img {
+    max-height: 300px !important;
+  }
+  
+  .medication-image-modal .modal-title {
+    font-size: 1rem;
+  }
+}

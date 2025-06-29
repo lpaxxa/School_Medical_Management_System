@@ -665,13 +665,14 @@ const receiveMedicineService = {
   // Lấy lịch sử dùng thuốc gần đây - Function được gọi bởi MedicationHistory.jsx
   getRecentMedicationAdministrations: async (page = 1, size = 10) => {
     try {
-      console.log(`Getting recent medication administrations (page ${page}, size ${size})`);
+      console.log(`Getting recent medication administrations with images (page ${page}, size ${size})`);
       
-      // Gọi API thật với pagination (1-based)
+      // Gọi API thật với pagination (1-based) và include images
       const response = await apiService1.get('/recent', {
         params: { 
           page: page, // API sử dụng 1-based index
-          size: size 
+          size: size,
+          includeImages: true // Request to include image URLs in response
         }
       });
       
@@ -723,6 +724,33 @@ const receiveMedicineService = {
         }
       }
       
+      // Process and enhance data to include image URLs if not present
+      if (Array.isArray(actualData)) {
+        actualData = actualData.map(item => {
+          // Log each item to see its structure
+          console.log('🔍 Processing administration item:', item);
+          
+          // Ensure imageUrl field exists - check various possible field names
+          const imageUrl = item.imageUrl || 
+                          item.confirmationImageUrl || 
+                          item.image_url || 
+                          item.confirmation_image_url ||
+                          item.attachmentUrl ||
+                          null;
+          
+          return {
+            ...item,
+            imageUrl: imageUrl
+          };
+        });
+        
+        console.log(`🔍 DEBUG - Enhanced data with images: ${actualData.length} items`);
+        // Log first item to see structure
+        if (actualData.length > 0) {
+          console.log('🔍 DEBUG - First item structure:', actualData[0]);
+        }
+      }
+      
       console.log(`🔍 DEBUG - Extracted data: ${actualData.length} items`);
       console.log(`🔍 DEBUG - Total items: ${totalItems}, Total pages: ${totalPages}`);
       
@@ -741,9 +769,26 @@ const receiveMedicineService = {
       };
     } catch (error) {
       console.error("Error in getRecentMedicationAdministrations:", error);
+      console.error("API call failed, attempting fallback to mock data with images");
+      
+      // Fallback to enhanced mock data with sample images
+      const enhancedMockData = mockMedicationAdministrations.map(item => ({
+        ...item,
+        imageUrl: item.id % 3 === 0 ? `https://via.placeholder.com/400x300?text=Medication+${item.id}` : null
+      }));
+      
+      // Apply pagination to mock data
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      const paginatedData = enhancedMockData.slice(startIndex, endIndex);
+      
       return {
         success: false,
-        message: error.response?.data?.message || error.message || "Không thể tải lịch sử dùng thuốc gần đây"
+        data: paginatedData,
+        totalItems: enhancedMockData.length,
+        totalPages: Math.ceil(enhancedMockData.length / size),
+        currentPage: page,
+        message: error.response?.data?.message || error.message || "Sử dụng dữ liệu mẫu - không thể kết nối API"
       };
     }
   },
