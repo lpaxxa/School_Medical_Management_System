@@ -135,9 +135,13 @@ public class AccountMemberServiceImp implements AccountMemberService {
         memberRepos.save(member);
     }
 
-
-
-
+    @Override
+    public List<AccountAdminResponseDTO> getAllMemberToSendEmail() {
+        List<AccountMember> members = memberRepos.findAllByIsActiveTrueAndEmailSent(false);
+        return members.stream()
+                .map(accountMemberMapper::memberToMemberDTO)
+                .toList();
+    }
 
 
 //    @Transactional
