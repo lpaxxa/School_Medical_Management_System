@@ -3,6 +3,7 @@ package com.fpt.medically_be.service.impl;
 import com.fpt.medically_be.dto.request.AccountUpdateRequestDTO;
 import com.fpt.medically_be.dto.response.AccountAdminResponseDTO;
 import com.fpt.medically_be.entity.AccountMember;
+import com.fpt.medically_be.entity.MemberRole;
 import com.fpt.medically_be.mapper.AccountMemberMapper;
 import com.fpt.medically_be.repos.AccountMemberRepos;
 import com.fpt.medically_be.repos.NurseRepository;
@@ -32,7 +33,7 @@ public class AccountMemberServiceImp implements AccountMemberService {
     @Override
     public AccountAdminResponseDTO getMemberById(String id) {
 
-        AccountMember member = memberRepos.findAccountMemberById(id).orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
+        AccountMember member = memberRepos.findAccountMemberByIdAndIsActiveTrue(id).orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
 
         return accountMemberMapper.memberToMemberDTO(member);
     }
@@ -40,7 +41,7 @@ public class AccountMemberServiceImp implements AccountMemberService {
     @Override
     public List<AccountAdminResponseDTO> getAllMember() {
 
-        return memberRepos.findAll()
+        return memberRepos.findAllByIsActiveTrue()
                 .stream()
                 .map(accountMemberMapper::memberToMemberDTO)
                 .toList();
@@ -51,36 +52,68 @@ public class AccountMemberServiceImp implements AccountMemberService {
         return null;
     }
 
+    @Transactional
     @Override
     public AccountAdminResponseDTO updateMember(String id, AccountUpdateRequestDTO obj) {
 
-        AccountMember member = memberRepos.findAccountMemberById(id)
+        AccountMember member = memberRepos.findAccountMemberByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
 
+        // Optional: Prevent updating deactivated account
+        if (member.getIsActive() != null && !member.getIsActive()) {
+            throw new RuntimeException("This member is deactivated.");
+        }
 
-        // Update email and phone number first
-        accountMemberMapper.updateAccountMember(member, obj);
 
         // Only update password if provided
         if (obj.getPassword() != null && !obj.getPassword().isEmpty()) {
             member.setPassword(passwordEncoder.encode(obj.getPassword()));
         }
 
+        if (obj.getEmail() != null) {
+            member.setEmail(obj.getEmail());
+        }
+
+        if (obj.getPhoneNumber() != null) {
+            member.setPhoneNumber(obj.getPhoneNumber());
+        }
+
+        //nếu muốn update role, thì qua AccountUpdateRequestDTO thêm role
+//        if (obj.getRole() != null) {
+//            try {
+//                MemberRole newRole = MemberRole.valueOf(obj.getRole().toUpperCase());
+//                member.setRole(newRole);
+//            } catch (IllegalArgumentException e) {
+//                throw new RuntimeException("Invalid role value: " + obj.getRole());
+//            }
+//        }
+
+
         switch (member.getRole()) {
             case PARENT:
                 parentRepository.findByAccountId(id).ifPresent(parent -> {
-                    parent.setEmail(member.getEmail());
-                    parent.setPhoneNumber(member.getPhoneNumber());
+                    if (obj.getEmail() != null) {
+                        parent.setEmail(obj.getEmail());
+                    }
+                    if (obj.getPhoneNumber() != null) {
+                        parent.setPhoneNumber(obj.getPhoneNumber());
+                    }
                     parentRepository.save(parent);
                 });
                 break;
+
             case NURSE:
                 nurseRepository.findByAccountId(id).ifPresent(nurse -> {
-                    nurse.setEmail(member.getEmail());
-                    nurse.setPhoneNumber(member.getPhoneNumber());
+                    if (obj.getEmail() != null) {
+                        nurse.setEmail(obj.getEmail());
+                    }
+                    if (obj.getPhoneNumber() != null) {
+                        nurse.setPhoneNumber(obj.getPhoneNumber());
+                    }
                     nurseRepository.save(nurse);
                 });
                 break;
+
             default:
                 break;
         }
@@ -92,31 +125,26 @@ public class AccountMemberServiceImp implements AccountMemberService {
 
     @Transactional
     @Override
-    public void deleteMember(String id) {
+    public void deactivateMember(String id) {
+        AccountMember member = memberRepos.findAccountMemberByIdAndIsActiveTrue(id)
+                .orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
 
-        AccountMember member = memberRepos.findAccountMemberById(id).orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
-
-        String role = member.getRole().name();
-
-        switch (role) {
-            case "ADMIN":
-                memberRepos.delete(member);
-                break;
-            case "NURSE":
-                nurseRepository.findByAccountId(id)
-                        .ifPresent(nurseRepository::delete);
-                memberRepos.delete(member);
-                break;
-            case "PARENT":
-                parentRepository.findByAccountId(id)
-                        .ifPresent(parentRepository::delete);
-                memberRepos.delete(member);
-                break;
-            default:
-                throw new RuntimeException("Role not found !!");
+        if (Boolean.FALSE.equals(member.getIsActive())) {
+            throw new RuntimeException("Member is already deactivated.");
         }
 
+        member.setIsActive(false);
+        memberRepos.save(member);
     }
+
+    @Override
+    public List<AccountAdminResponseDTO> getAllMemberToSendEmail() {
+        List<AccountMember> members = memberRepos.findAllByIsActiveTrueAndEmailSent(false);
+        return members.stream()
+                .map(accountMemberMapper::memberToMemberDTO)
+                .toList();
+    }
+
 
 //    @Transactional
 //    public void deleteAccountMember(String accountId) {

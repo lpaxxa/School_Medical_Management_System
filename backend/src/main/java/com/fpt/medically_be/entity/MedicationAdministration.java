@@ -2,7 +2,8 @@ package com.fpt.medically_be.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.util.Date;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "medication_administrations")
@@ -25,10 +26,10 @@ public class MedicationAdministration {
     
     // When was it administered
     @Column(name = "administered_at", nullable = false)
-    private Date administeredAt;
+    private LocalDateTime administeredAt;
     
     // Status of administration
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "administration_status", nullable = false)
     private AdministrationStatus administrationStatus;
     
@@ -41,11 +42,12 @@ public class MedicationAdministration {
     private String confirmationImageUrl;
 
     @Column(name = "created_at")
-    private Date createdAt;
+    private LocalDateTime createdAt;
     
     @PrePersist
     protected void onCreate() {
-        createdAt = new Date();
+        this.createdAt = LocalDateTime.now();
     }
+
 }
 

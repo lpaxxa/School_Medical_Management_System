@@ -43,25 +43,25 @@ public class AuthController {
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
 
-    @PostMapping("/register")
-  //  @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> register(@RequestBody Map<String, Object> requestData) {
-        try {
-            String role = (String) requestData.get("role");
-            
-            if (PARENT.name().equals(role)) {
-                ParentRegistrationRequestDTO parentDTO = objectMapper.convertValue(requestData, ParentRegistrationRequestDTO.class);
-                return ResponseEntity.ok(authService.registerParent(parentDTO));
-            } else if (NURSE.name().equals(role)) {
-                NurseRegistrationRequestDTO nurseDTO = objectMapper.convertValue(requestData, NurseRegistrationRequestDTO.class);
-                return ResponseEntity.ok(authService.registerNurse(nurseDTO));
-            } else {
-                return ResponseEntity.badRequest().body("Invalid role specified in registration request");
-            }
-        }catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+//    @PostMapping("/register")
+//  //  @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<?> register(@RequestBody Map<String, Object> requestData) {
+//        try {
+//            String role = (String) requestData.get("role");
+//
+//            if (PARENT.name().equals(role)) {
+//                ParentRegistrationRequestDTO parentDTO = objectMapper.convertValue(requestData, ParentRegistrationRequestDTO.class);
+//                return ResponseEntity.ok(authService.registerParent(parentDTO));
+//            } else if (NURSE.name().equals(role)) {
+//                NurseRegistrationRequestDTO nurseDTO = objectMapper.convertValue(requestData, NurseRegistrationRequestDTO.class);
+//                return ResponseEntity.ok(authService.registerNurse(nurseDTO));
+//            } else {
+//                return ResponseEntity.badRequest().body("Invalid role specified in registration request");
+//            }
+//        }catch (Exception e) {
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//    }
     //
 //     Example request body for registration(NURSE):
 //     {

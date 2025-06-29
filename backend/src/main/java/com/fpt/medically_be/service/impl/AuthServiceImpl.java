@@ -72,6 +72,9 @@ public class AuthServiceImpl implements AuthService {
         }
         if(accountMemberOpt.isPresent()) {
             AccountMember member = accountMemberOpt.get();
+            if(!member.getIsActive().equals(true)) {
+                throw new RuntimeException("Account is locked or inactive. Please contact support.");
+            }
             return member;
         }
         return null;
@@ -100,6 +103,8 @@ public class AuthServiceImpl implements AuthService {
        // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
         member.setPassword(parentRegistrationRequestDTO.getPassword());
         member.setRole(MemberRole.PARENT);
+        member.setIsActive(true);
+        member.setEmailSent(false);
         member = accountMemberRepos.save(member);
         
         // Create Parent profile
@@ -118,18 +123,18 @@ public class AuthServiceImpl implements AuthService {
             createStudentsForParent(parent, parentRegistrationRequestDTO.getStudents());
         }
         
-        String token = jwtService.generateToken(
-                member.getId(),
-                member.getEmail(),
-                member.getPhoneNumber(),
-                member.getRole()
-        );
+//        String token = jwtService.generateToken(
+//                member.getId(),
+//                member.getEmail(),
+//                member.getPhoneNumber(),
+//                member.getRole()
+//        );
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setMemberId(member.getId());
         authResponseDTO.setEmail(member.getEmail());
         authResponseDTO.setPhoneNumber(member.getPhoneNumber());
         authResponseDTO.setRole(member.getRole().name());
-        authResponseDTO.setToken(token);
+       // authResponseDTO.setToken(token);
         return authResponseDTO;
     }
 
@@ -150,6 +155,8 @@ public class AuthServiceImpl implements AuthService {
         // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
         member.setPassword(nurseRegistrationRequestDTO.getPassword());
         member.setRole(MemberRole.NURSE);
+        member.setIsActive(true);
+        member.setEmailSent(false);
         member = accountMemberRepos.save(member);
         
         // Create Nurse profile
@@ -161,18 +168,18 @@ public class AuthServiceImpl implements AuthService {
         nurse.setAccount(member);
         nurseRepository.save(nurse);
         
-        String token = jwtService.generateToken(
-                member.getId(),
-                member.getEmail(),
-                member.getPhoneNumber(),
-                member.getRole()
-        );
+//        String token = jwtService.generateToken(
+//                member.getId(),
+//                member.getEmail(),
+//                member.getPhoneNumber(),
+//                member.getRole()
+//        );
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setMemberId(member.getId());
         authResponseDTO.setEmail(member.getEmail());
         authResponseDTO.setPhoneNumber(member.getPhoneNumber());
         authResponseDTO.setRole(member.getRole().name());
-        authResponseDTO.setToken(token);
+       // authResponseDTO.setToken(token);
         return authResponseDTO;
     }
 

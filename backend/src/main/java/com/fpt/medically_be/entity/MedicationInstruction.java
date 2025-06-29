@@ -3,14 +3,14 @@ package com.fpt.medically_be.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.SQLDelete;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "medication_instructions")
-@SQLDelete(sql = "UPDATE medication_instructions SET status = 3 WHERE id=?")
+
 @Data
 public class MedicationInstruction {
 
@@ -49,8 +49,8 @@ public class MedicationInstruction {
     @Column(name = "submitted_at")
     private LocalDate submittedAt;
 
-    @Column(name = "status", columnDefinition = "NVARCHAR(50)")
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", columnDefinition = "NVARCHAR(20)")
     private Status status;
 
     @Column(name = "rejection_reason", columnDefinition = "NVARCHAR(MAX)")

@@ -15,6 +15,9 @@ public class CommentDTO {
     private Long id;
     private Long postId;
     private String content;
+    private int likesCount;
+    private int repliesCount;
+    private boolean isLiked; // Người dùng hiện tại đã thích hay chưa
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private AuthorDTO author;

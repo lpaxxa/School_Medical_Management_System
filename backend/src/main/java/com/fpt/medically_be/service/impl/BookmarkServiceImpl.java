@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BookmarkServiceImpl implements BookmarkService {
 
     private final PostBookmarkRepository bookmarkRepository;
@@ -30,41 +31,37 @@ public class BookmarkServiceImpl implements BookmarkService {
     private final PostMapper postMapper;
 
     @Override
-    @Transactional
     public boolean toggleBookmark(Long postId, String userId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         AccountMember user = accountMemberRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        boolean bookmarked = false;
+        boolean isBookmarked = bookmarkRepository.existsByPostAndUser(post, user);
 
-        // Kiểm tra xem người dùng đã ghim bài viết này chưa
-        if (bookmarkRepository.existsByPostAndUser(post, user)) {
-            // Nếu đã ghim rồi thì bỏ ghim
+        if (isBookmarked) {
+            // Bỏ ghim
             bookmarkRepository.deleteByPostAndUser(post, user);
-            bookmarked = false;
+            return false;
         } else {
-            // Nếu chưa ghim thì thêm bookmark mới
+            // Ghim
             PostBookmark bookmark = PostBookmark.builder()
                     .post(post)
                     .user(user)
                     .build();
             bookmarkRepository.save(bookmark);
-            bookmarked = true;
+            return true;
         }
-
-        return bookmarked;
     }
 
     @Override
     public boolean isPostBookmarkedByUser(Long postId, String userId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         AccountMember user = accountMemberRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
         return bookmarkRepository.existsByPostAndUser(post, user);
     }
@@ -72,20 +69,23 @@ public class BookmarkServiceImpl implements BookmarkService {
     @Override
     public PageResponse<PostDTO> getUserBookmarkedPosts(String userId, int page, int size) {
         AccountMember user = accountMemberRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<PostBookmark> bookmarks = bookmarkRepository.findByUserOrderByCreatedAtDesc(user, pageable);
+        Page<PostBookmark> bookmarksPage = bookmarkRepository.findByUserOrderByCreatedAtDesc(user, pageable);
 
-        List<PostDTO> postDTOs = bookmarks.getContent().stream()
+        List<PostDTO> postDTOs = bookmarksPage.getContent().stream()
                 .map(bookmark -> postMapper.toDTO(bookmark.getPost()))
                 .collect(Collectors.toList());
 
         return PageResponse.<PostDTO>builder()
-                .totalItems(bookmarks.getTotalElements())
-                .totalPages(bookmarks.getTotalPages())
-                .currentPage(page)
-                .posts(postDTOs)
+                .content(postDTOs)
+                .page(page)
+                .size(size)
+                .totalElements(bookmarksPage.getTotalElements())
+                .totalPages(bookmarksPage.getTotalPages())
+                .first(bookmarksPage.isFirst())
+                .last(bookmarksPage.isLast())
                 .build();
     }
 }

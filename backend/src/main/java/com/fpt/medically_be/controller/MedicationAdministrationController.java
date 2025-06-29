@@ -17,14 +17,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-
 import java.io.IOException;
-//import java.time.LocalDateTime;
-
-import java.util.Date;
-
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
 
 /**
  * Controller for Medication Administration operations
@@ -33,11 +31,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/medication-administrations")
 @CrossOrigin(origins = "*")
-@PreAuthorize("hasRole('NURSE') or hasRole('ADMIN')")
+@PreAuthorize("hasRole('NURSE') or hasRole('PARENT')")
 public class MedicationAdministrationController {
 
     @Autowired
     private MedicationAdministrationService administrationService;
+
+
 
     /**
      * Record a new medication administration
@@ -98,16 +98,14 @@ public class MedicationAdministrationController {
         return ResponseEntity.ok(response);
     }
 
-
-
     /**
      * Get administration records by date range with pagination
      * GET /api/v1/medication-administrations/date-range?start=2024-01-01T09:00:00&end=2024-01-31T17:00:00&page=1&size=10
      */
     @GetMapping("/date-range")
     public ResponseEntity<Map<String, Object>> getAdministrationsByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date end,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         PageResponse<MedicationAdministrationResponseDTO> pageResponse = administrationService.getAdministrationsByDateRange(start, end, page, size);
@@ -216,5 +214,111 @@ public class MedicationAdministrationController {
                 ));
         }
     }
+
+
+    // Non-paginated endpoints
+
+    /**
+     * Get all administration records for a specific medication instruction (no pagination)
+     * GET /api/v1/medication-administrations/all/medication-instruction/{medicationInstructionId}
+     */
+    @GetMapping("/all/medication-instruction/{medicationInstructionId}")
+    public ResponseEntity<Map<String, Object>> getAllAdministrationsByMedicationInstruction(
+            @PathVariable Long medicationInstructionId) {
+        List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllAdministrationsByMedicationInstruction(medicationInstructionId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("data", administrations);
+        response.put("count", administrations.size());
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all administration records for a specific student (no pagination)
+     * GET /api/v1/medication-administrations/all/student/{studentId}
+     */
+    @GetMapping("/all/student/{studentId}")
+    public ResponseEntity<Map<String, Object>> getAllAdministrationsByStudent(
+            @PathVariable String studentId) {
+        List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllAdministrationsByStudent(studentId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("data", administrations);
+        response.put("count", administrations.size());
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all administration records by date range (no pagination)
+     * GET /api/v1/medication-administrations/all/date-range?start=2024-01-01T09:00:00&end=2024-01-31T17:00:00
+     */
+    @GetMapping("/all/date-range")
+    public ResponseEntity<Map<String, Object>> getAllAdministrationsByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllAdministrationsByDateRange(start, end);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("data", administrations);
+        response.put("count", administrations.size());
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all administration records by status (no pagination)
+     * GET /api/v1/medication-administrations/all/status/{status}
+     */
+    @GetMapping("/all/status/{status}")
+    public ResponseEntity<Map<String, Object>> getAllAdministrationsByStatus(
+            @PathVariable AdministrationStatus status) {
+        List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllAdministrationsByStatus(status);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("data", administrations);
+        response.put("count", administrations.size());
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all recent administration records (no pagination)
+     * GET /api/v1/medication-administrations/all/recent
+     */
+    @GetMapping("/all/recent")
+    public ResponseEntity<Map<String, Object>> getAllRecentAdministrations() {
+        List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllRecentAdministrations();
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("data", administrations);
+        response.put("count", administrations.size());
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all administration records (no pagination)
+     * GET /api/v1/medication-administrations/all
+     */
+    @GetMapping("/all")
+    public ResponseEntity<Map<String, Object>> getAllAdministrations() {
+        List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllAdministrations();
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("data", administrations);
+        response.put("count", administrations.size());
+        
+        return ResponseEntity.ok(response);
+    }
+
+
 }
 

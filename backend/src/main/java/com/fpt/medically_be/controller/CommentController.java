@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.CommentDTO;
 import com.fpt.medically_be.dto.CommentRequest;
 import com.fpt.medically_be.dto.PageResponse;
 import com.fpt.medically_be.service.CommentService;
+import com.fpt.medically_be.service.impl.CommentServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -41,7 +42,12 @@ public class CommentController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        PageResponse<CommentDTO> pageResponse = commentService.getPostComments(postId, page, size);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = authentication.getName();
+
+        // Gọi method với currentUserId để kiểm tra trạng thái liked
+        PageResponse<CommentDTO> pageResponse =
+            ((CommentServiceImpl) commentService).getPostComments(postId, page, size, currentUserId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
@@ -117,7 +123,7 @@ public class CommentController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("message", "Comment deleted successfully");
+        response.put("message", "Bình luận đã được xóa thành công");
 
         return ResponseEntity.ok(response);
     }

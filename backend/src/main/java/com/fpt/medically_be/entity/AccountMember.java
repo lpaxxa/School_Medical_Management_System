@@ -28,5 +28,14 @@ public class AccountMember {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "NVARCHAR(20)")
     private MemberRole role;
+
+
+    @Column(name = "is_active", nullable = false, columnDefinition = "bit default 1")
+    private Boolean isActive = true;
+
+
+    @Column(name = "email_sent",nullable = false)
+    private Boolean emailSent = false;
+
 }
 

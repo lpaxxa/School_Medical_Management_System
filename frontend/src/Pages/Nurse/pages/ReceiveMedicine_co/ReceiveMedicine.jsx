@@ -1,14 +1,38 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Nav, Tab, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
 import './ReceiveMedicine.css';
 import MedicineReceipts from './MedicineReceipts/MedicineReceipts';
 import MedicationHistory from './MedicationHistory/MedicationHistory';
 
-// Component ReceiveMedicineMain (đã gộp từ file ReceiveMedicineMain.jsx và áp dụng Bootstrap)
+// Component ReceiveMedicineMain
 const ReceiveMedicineMain = () => {
+  const [activeTab, setActiveTab] = useState('receipts');
+
+  // Tab configuration - removed administration tab
+  const tabs = [
+    {
+      key: 'receipts',
+      title: 'Đơn nhận thuốc',
+      icon: 'fas fa-prescription-bottle-alt',
+      component: <MedicineReceipts />
+    },
+    {
+      key: 'history',
+      title: 'Lịch sử dùng thuốc',
+      icon: 'fas fa-history',
+      component: <MedicationHistory />
+    }
+  ];
+
+  // Get the currently active component
+  const getCurrentComponent = () => {
+    const currentTab = tabs.find(tab => tab.key === activeTab);
+    return currentTab ? currentTab.component : null;
+  };
+
   return (
     <Container fluid className="py-4">
-      {/* Page header with Bootstrap styling */}
+      {/* Page header */}
       <Row className="mb-4">
         <Col>
           <h2 className="text-primary fw-bold mb-2">Quản lý nhận thuốc</h2>
@@ -16,43 +40,38 @@ const ReceiveMedicineMain = () => {
         </Col>
       </Row>
       
-      {/* Bootstrap Tab navigation */}
-      <Tab.Container defaultActiveKey="receipts">
-        <Card className="border-0 shadow-sm">
-          <Card.Header className="bg-white border-0">
-            <Nav variant="tabs" className="nav-pills-custom">
-              <Nav.Item>
-                <Nav.Link eventKey="receipts" className="d-flex align-items-center">
-                  <i className="fas fa-prescription-bottle-alt me-2"></i>
-                  Đơn nhận thuốc
+      {/* Tab navigation */}
+      <Card className="border-0 shadow-sm">
+        <Card.Header className="bg-white border-0">
+          <Nav variant="tabs" className="nav-pills-custom">
+            {tabs.map((tab) => (
+              <Nav.Item key={tab.key}>
+                <Nav.Link 
+                  active={activeTab === tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className="d-flex align-items-center"
+                  style={{ cursor: 'pointer' }}
+                >
+                  <i className={`${tab.icon} me-2`}></i>
+                  {tab.title}
                 </Nav.Link>
               </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey="history" className="d-flex align-items-center">
-                  <i className="fas fa-history me-2"></i>
-                  Lịch sử dùng thuốc
-                </Nav.Link>
-              </Nav.Item>
-            </Nav>
-          </Card.Header>
-          
-          <Card.Body className="p-0">
-            <Tab.Content>
-              <Tab.Pane eventKey="receipts">
-                <MedicineReceipts />
-              </Tab.Pane>
-              <Tab.Pane eventKey="history">
-                <MedicationHistory />
-              </Tab.Pane>
-            </Tab.Content>
-          </Card.Body>
-        </Card>
-      </Tab.Container>
+            ))}
+          </Nav>
+        </Card.Header>
+        
+        <Card.Body className="p-0">
+          {/* Render only the active component */}
+          <div className="active-tab-content">
+            {getCurrentComponent()}
+          </div>
+        </Card.Body>
+      </Card>
     </Container>
   );
 };
 
-// Component chính ReceiveMedicine
+// Main component
 const ReceiveMedicine = () => {
   return (
     <div className="receive-medicine-wrapper bg-light min-vh-100">
@@ -61,8 +80,5 @@ const ReceiveMedicine = () => {
   );
 };
 
-// Xuất component riêng để có thể tái sử dụng ở nơi khác nếu cần
 export { ReceiveMedicineMain };
-
-// Export component chính
 export default ReceiveMedicine;

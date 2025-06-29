@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -19,6 +20,11 @@ public interface AccountMemberRepos extends JpaRepository<AccountMember, String>
     Optional<AccountMember> findByPhoneNumber(String phoneNumber);
     Optional<AccountMember> findAccountMemberByUsernameAndPassword(String username, String password);
 
+    // dt
+    List<AccountMember> findAllByIsActiveTrue();
+    Optional<AccountMember> findAccountMemberByIdAndIsActiveTrue(String id);
+
+    List<AccountMember> findAllByIsActiveTrueAndEmailSent(Boolean emailSent);
 
 
 }
