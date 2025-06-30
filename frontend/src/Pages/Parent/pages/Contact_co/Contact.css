@@ -1,27 +1,29 @@
 .parent-contact-page {
-  --primary: #3b82f6;
-  --primary-dark: #2563eb;
-  --secondary: #f59e0b;
+  --primary: #015C92;
+  --primary-dark: #2D82B5;
+  --secondary: #88CDF6;
   --text-dark: #1e293b;
-  --text-medium: #475569;
-  --text-light: #94a3b8;
-  --success: #10b981;
+  --text-medium: #4a5568;
+  --text-light: #718096;
+  --success: #428CD4;
   --error: #ef4444;
-  --warning: #f59e0b;
-  background-color: #f8fafc;
+  --warning: #88CDF6;
+  background-color: #ffffff;
+  min-height: 100vh;
 }
 
 /* Header */
 .contact-header {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%);
+  color: #ffffff;
   padding: 50px 0;
   text-align: center;
   position: relative;
   overflow: hidden;
   border-radius: 0 0 50px 50px;
   margin-bottom: 40px;
-  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 10px 25px -5px rgba(1, 92, 146, 0.3);
+  border: none;
 }
 
 .contact-header::after {

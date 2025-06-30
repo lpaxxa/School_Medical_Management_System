@@ -1,135 +1,214 @@
-/* Button styles với tiền tố med- để tránh xung đột */
+/* Button styles đã được tích hợp vào index.css */
 
-/* Reset nút để tránh kế thừa styles từ files khác */
-.med-btn {
-  all: unset;
-  box-sizing: border-box;
-  font-family: 'Nunito', 'Segoe UI', sans-serif;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-align: center;
-  font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  padding: 10px 20px;
+/* Enhanced Buttons */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing);
+  padding: var(--spacing-xl);
+  background: var(--blue-gradient-soft);
+  border-top: 1px solid var(--border-blue);
 }
 
-/* Button primary */
-.med-btn-primary {
-  background-color: #2563eb;
+.btn-primary,
+.btn-secondary {
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.025em;
+}
+
+.btn-primary::before,
+.btn-secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left var(--transition-slow);
+}
+
+.btn-primary:hover::before,
+.btn-secondary:hover::before {
+  left: 100%;
+}
+
+.btn-primary {
+  background: var(--blue-gradient-main);
   color: white;
+  border-color: transparent;
+  box-shadow: var(--shadow);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(30, 64, 175, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: var(--background);
+  color: var(--text-secondary);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+/* Enhanced Status Badges */
+.med-status {
+  padding: var(--spacing-xs) var(--spacing);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  overflow: hidden;
+}
+
+.med-status::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left var(--transition-slow);
+}
+
+.med-status:hover::before {
+  left: 100%;
+}
+
+.med-status-pending-approval {
+  background: var(--warning-gradient);
+  color: white;
+  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+}
+
+.med-status-approved {
+  background: var(--success-gradient);
+  color: white;
+  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+}
+
+.med-status-rejected {
+  background: var(--danger-gradient);
+  color: white;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+.med-status-completed {
+  background: var(--blue-gradient-main);
+  color: white;
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+}
+
+.med-status-cancelled {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
+}
+
+/* Enhanced Action Buttons */
+.med-btn {
+  padding: var(--spacing-xs) var(--spacing);
+  border-radius: var(--radius);
   border: none;
-  min-width: 110px;
-  height: 36px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.med-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left var(--transition-slow);
+}
+
+.med-btn:hover::before {
+  left: 100%;
+}
+
+.med-btn-primary {
+  background: var(--blue-gradient-main);
+  color: white;
+  box-shadow: var(--shadow-sm);
 }
 
 .med-btn-primary:hover {
-  background-color: #1d4ed8;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 10px 25px rgba(30, 64, 175, 0.3);
 }
 
-.med-btn-primary:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.med-btn-primary:disabled {
-  background-color: #93c5fd;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* Button secondary */
-.med-btn-secondary {
-  background-color: #f3f4f6;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
-  min-width: 110px;
-  height: 36px;
-}
-
-.med-btn-secondary:hover {
-  background-color: #e5e7eb;
-  border-color: #9ca3af;
-}
-
-.med-btn-secondary:active {
-  background-color: #d1d5db;
-}
-
-/* Button danger */
-.med-btn-danger {
-  background-color: #ef4444;
+.med-btn-success {
+  background: var(--success-gradient);
   color: white;
-  border: none;
-  min-width: 110px;
-  height: 36px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+}
+
+.med-btn-success:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(5, 150, 105, 0.3);
+}
+
+.med-btn-danger {
+  background: var(--danger-gradient);
+  color: white;
+  box-shadow: var(--shadow-sm);
 }
 
 .med-btn-danger:hover {
-  background-color: #dc2626;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
 }
 
-.med-btn-danger:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Button trong modal */
-.med-modal .med-btn-primary {
-  background: linear-gradient(135deg, #7579ff, #b224ef);
-  min-width: 120px;
-}
-
-.med-modal .med-btn-primary:hover {
-  background: linear-gradient(135deg, #6469ff, #a114df);
-  box-shadow: 0 4px 12px rgba(181, 36, 239, 0.2);
-}
-
-.med-modal .med-btn-primary:disabled {
-  background: linear-gradient(135deg, #c4c5ff, #d893f3);
-}
-
-/* Spinner cho loading state */
-.med-spinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: med-spin 1s ease-in-out infinite;
-}
-
-@keyframes med-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Container nút hành động */
-.med-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-/* Responsive cho nút */
-@media (max-width: 640px) {
-  .med-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .med-actions .med-btn {
-    width: 100%;
-  }
+.med-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
 }

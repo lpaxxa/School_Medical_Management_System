@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import api from "../../../../services/api";
-import "../shared/student-selector.css"; // Import CSS shared trước
-import "./HealthDeclaration.css"; // CSS chung của component
-import "./HealthDeclarationFix.css"; // CSS override và fix lỗi
+import "./HealthDeclaration.css"; // CSS chính - Design system hiện đại
+import "./HealthDeclarationFix.css"; // CSS bổ sung - History & Enhancements
+import "../shared/student-selector.css"; // CSS shared
+import "../SendMedicine_co/styles/success.css"; // Import CSS của success message
 
 // Mock data cho trường học
 const MOCK_SCHOOL = {
@@ -129,6 +130,9 @@ const HealthDeclaration = () => {
     message: "",
   });
 
+  // Thêm state mới trong component HealthDeclaration
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
   // Fetch danh sách khai báo sức khỏe từ API
   useEffect(() => {
     if (currentUser && currentUser.role === "parent") {
@@ -192,11 +196,22 @@ const HealthDeclaration = () => {
     setFetchError(null);
 
     try {
-      // Sử dụng mock data cho demo
-      setTimeout(() => {
-        setDeclarations(MOCK_DECLARATIONS);
+      // Đầu tiên, thử lấy từ localStorage
+      const savedDeclarations = JSON.parse(
+        localStorage.getItem("healthDeclarations") || "[]"
+      );
+
+      if (savedDeclarations.length > 0) {
+        // Nếu có dữ liệu trong localStorage, sử dụng nó
+        setDeclarations(savedDeclarations);
         setIsLoading(false);
-      }, 800);
+      } else {
+        // Nếu không có, sử dụng mock data
+        setTimeout(() => {
+          setDeclarations(MOCK_DECLARATIONS);
+          setIsLoading(false);
+        }, 800);
+      }
     } catch (error) {
       console.error("Error fetching health declarations:", error);
       setFetchError(
@@ -359,24 +374,42 @@ const HealthDeclaration = () => {
   const addToHistory = (healthProfileData) => {
     const student = students.find((s) => s.id === healthProfileData.id);
 
+    // Tạo ID ngẫu nhiên độc nhất cho khai báo mới
+    const newDeclarationId = `DEC${Date.now()}`;
+
     const newDeclaration = {
-      id: `DEC${Math.floor(Math.random() * 10000)}`,
+      id: newDeclarationId,
       studentId: healthProfileData.id,
       studentName: student?.fullName || student?.name || "Học sinh",
-      date: healthProfileData.lastPhysicalExamDate,
-      status: "pending",
+      date:
+        healthProfileData.lastPhysicalExamDate ||
+        new Date().toISOString().split("T")[0],
+      status: "pending", // Trạng thái ban đầu luôn là "đang chờ"
       symptoms: formData.symptoms.includes("none")
         ? ["Không có triệu chứng"]
         : formData.symptoms.map(
             (id) =>
               SYMPTOM_OPTIONS.find((option) => option.id === id)?.label || id
           ),
+      temperature: 0, // Có thể thêm nhiệt độ nếu form có trường này
       notes: formData.notes || "",
       attendanceDecision: "Chờ xác nhận",
+      reviewedBy: null,
+      reviewedAt: null,
+      createdAt: new Date().toISOString(), // Thêm thời gian tạo chính xác
     };
 
     // Thêm vào đầu danh sách declarations
     setDeclarations((prev) => [newDeclaration, ...prev]);
+
+    // Lưu vào localStorage để duy trì khi refresh trang
+    const currentDeclarations = JSON.parse(
+      localStorage.getItem("healthDeclarations") || "[]"
+    );
+    localStorage.setItem(
+      "healthDeclarations",
+      JSON.stringify([newDeclaration, ...currentDeclarations])
+    );
   };
 
   // Handle form submission
@@ -460,32 +493,26 @@ const HealthDeclaration = () => {
         eventBus.emit(
           "healthProfileUpdated",
           updatedProfileData.id, // studentId
-          updatedProfileData     // dữ liệu đầy đủ
+          updatedProfileData // dữ liệu đầy đủ
         );
-        console.log("Đã gửi sự kiện cập nhật cho student ID:", updatedProfileData.id);
+        console.log(
+          "Đã gửi sự kiện cập nhật cho student ID:",
+          updatedProfileData.id
+        );
       });
 
-      // Hiển thị thông báo thành công
-      setFormSubmitStatus({
-        submitted: true,
-        success: true,
-        message:
-          "Khai báo sức khỏe đã được gửi thành công và đã cập nhật vào hồ sơ y tế!",
-      });
+      // Reset form trước
+      resetForm();
 
-      // Thêm vào lịch sử với dữ liệu đầy đủ
+      // Thêm vào lịch sử
       addToHistory(updatedProfileData);
 
-      // Reset form
-      resetForm();
+      // Hiển thị thông báo thành công - đặt sau cùng để đảm bảo mọi thứ đã sẵn sàng
+      setShowSuccessMessage(true);
 
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
-        setFormSubmitStatus({
-          submitted: false,
-          success: false,
-          message: "",
-        });
+        setShowSuccessMessage(false);
       }, 5000);
     } catch (error) {
       console.error("Error submitting health declaration:", error);
@@ -579,6 +606,20 @@ const HealthDeclaration = () => {
     );
   };
 
+  // Sắp xếp khai báo theo thời gian mới nhất
+  const sortedDeclarations = declarations
+    .filter((declaration) =>
+      formData.studentId ? declaration.studentId === formData.studentId : true
+    )
+    .sort((a, b) => {
+      // Sắp xếp theo ngày tạo mới nhất (nếu có)
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      // Nếu không có createdAt, sắp xếp theo date
+      return new Date(b.date) - new Date(a.date);
+    });
+
   return (
     <div className="health-declaration-container">
       {/* Header */}
@@ -614,6 +655,50 @@ const HealthDeclaration = () => {
         </button>
       </div>
 
+      {/* Hiển thị thông báo thành công dạng modal overlay */}
+      {showSuccessMessage && (
+        <div className="success-container">
+          <div className="success-message">
+            <div className="success-icon">
+              <i className="fas fa-check-circle"></i>
+            </div>
+            <h2>Gửi khai báo thành công!</h2>
+            <p>
+              Khai báo sức khỏe của bạn đã được gửi đi. Nhà trường sẽ xem xét và
+              phản hồi sớm.
+            </p>
+            <div className="success-actions">
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setShowSuccessMessage(false);
+                  setActiveTab("form");
+                }}
+              >
+                Tạo khai báo mới
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setShowSuccessMessage(false);
+                  setActiveTab("history");
+                  // Cuộn lên đầu phần lịch sử để thấy khai báo mới nhất
+                  setTimeout(() => {
+                    const historySection =
+                      document.querySelector(".declarations-list");
+                    if (historySection)
+                      historySection.scrollIntoView({ behavior: "smooth" });
+                  }, 100);
+                }}
+              >
+                Xem lịch sử khai báo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hiển thị nội dung tab dưới thông báo thành công */}
       {activeTab === "form" ? (
         <div className="declaration-form-section">
           {/* Thông báo lỗi kết nối */}
@@ -1213,97 +1298,95 @@ const HealthDeclaration = () => {
             </div>
           ) : (
             <div className="declarations-list">
-              {declarations
-                .filter((declaration) =>
-                  formData.studentId
-                    ? declaration.studentId === formData.studentId
-                    : true
-                )
-                .map((declaration) => (
-                  <div className="declaration-card" key={declaration.id}>
-                    <div className="declaration-header">
-                      <div className="declaration-info">
-                        <h3>{declaration.studentName}</h3>
-                        <p className="declaration-date">
-                          <i className="far fa-calendar-alt"></i>{" "}
-                          {formatDate(declaration.date)}
-                        </p>
-                      </div>
-                      <div
-                        className={`status-badge ${getStatusBadgeClass(
-                          declaration.status
-                        )}`}
-                      >
-                        {declaration.status === "approved"
-                          ? "Đã duyệt"
-                          : declaration.status === "rejected"
-                          ? "Từ chối"
-                          : "Đang chờ"}
+              {sortedDeclarations.map((declaration) => (
+                <div className="declaration-card" key={declaration.id}>
+                  <div className="declaration-header">
+                    <div className="declaration-info">
+                      <h3>{declaration.studentName}</h3>
+                      <p className="declaration-date">
+                        <i className="far fa-calendar-alt"></i>{" "}
+                        {formatDate(declaration.date)}
+                        {declaration.createdAt && (
+                          <span className="declaration-time">
+                            {" "}
+                            ({formatTime(declaration.createdAt)})
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div
+                      className={`status-badge ${getStatusBadgeClass(
+                        declaration.status
+                      )}`}
+                    >
+                      {declaration.status === "approved"
+                        ? "Đã duyệt"
+                        : declaration.status === "rejected"
+                        ? "Từ chối"
+                        : "Đang chờ"}
+                    </div>
+                  </div>
+
+                  <div className="declaration-body">
+                    <div className="declaration-item">
+                      <span className="label">Triệu chứng:</span>
+                      <div className="symptoms-list">
+                        {declaration.symptoms.length > 0 ? (
+                          declaration.symptoms.map((symptom, index) => (
+                            <span className="symptom-tag" key={index}>
+                              {symptom}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="no-symptoms">
+                            Không có triệu chứng
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="declaration-body">
+                    {declaration.temperature > 0 && (
                       <div className="declaration-item">
-                        <span className="label">Triệu chứng:</span>
-                        <div className="symptoms-list">
-                          {declaration.symptoms.length > 0 ? (
-                            declaration.symptoms.map((symptom, index) => (
-                              <span className="symptom-tag" key={index}>
-                                {symptom}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="no-symptoms">
-                              Không có triệu chứng
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {declaration.temperature > 0 && (
-                        <div className="declaration-item">
-                          <span className="label">Nhiệt độ:</span>
-                          <span
-                            className={`temperature-value ${
-                              declaration.temperature >= 37.5 ? "high-temp" : ""
-                            }`}
-                          >
-                            {declaration.temperature}°C
-                          </span>
-                        </div>
-                      )}
-
-                      {declaration.notes && (
-                        <div className="declaration-item">
-                          <span className="label">Ghi chú:</span>
-                          <span className="notes-value">
-                            {declaration.notes}
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="declaration-item">
-                        <span className="label">Kết quả:</span>
-                        <span className="decision-value">
-                          {declaration.attendanceDecision}
+                        <span className="label">Nhiệt độ:</span>
+                        <span
+                          className={`temperature-value ${
+                            declaration.temperature >= 37.5 ? "high-temp" : ""
+                          }`}
+                        >
+                          {declaration.temperature}°C
                         </span>
                       </div>
-                    </div>
+                    )}
 
-                    {declaration.reviewedBy && (
-                      <div className="declaration-footer">
-                        <p>
-                          <i className="fas fa-user-nurse"></i> Phản hồi bởi:{" "}
-                          {declaration.reviewedBy}
-                        </p>
-                        <p>
-                          <i className="far fa-clock"></i> Thời gian:{" "}
-                          {declaration.reviewedAt}
-                        </p>
+                    {declaration.notes && (
+                      <div className="declaration-item">
+                        <span className="label">Ghi chú:</span>
+                        <span className="notes-value">{declaration.notes}</span>
                       </div>
                     )}
+
+                    <div className="declaration-item">
+                      <span className="label">Kết quả:</span>
+                      <span className="decision-value">
+                        {declaration.attendanceDecision}
+                      </span>
+                    </div>
                   </div>
-                ))}
+
+                  {declaration.reviewedBy && (
+                    <div className="declaration-footer">
+                      <p>
+                        <i className="fas fa-user-nurse"></i> Phản hồi bởi:{" "}
+                        {declaration.reviewedBy}
+                      </p>
+                      <p>
+                        <i className="far fa-clock"></i> Thời gian:{" "}
+                        {declaration.reviewedAt}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -1326,6 +1409,22 @@ const formatDate = (dateString) => {
   } catch (error) {
     console.error("Error formatting date:", error);
     return ""; // Return empty string if can't format
+  }
+};
+
+// Hàm định dạng thời gian
+const formatTime = (dateTimeString) => {
+  if (!dateTimeString) return "";
+
+  try {
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch (error) {
+    console.error("Error formatting time:", error);
+    return "";
   }
 };
 

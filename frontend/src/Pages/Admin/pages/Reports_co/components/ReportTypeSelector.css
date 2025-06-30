@@ -1,0 +1,309 @@
+/* Report Type Selector - Horizontal Layout */
+.report-type-section {
+  margin-bottom: 32px;
+}
+
+.report-type-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: #1e293b;
+  margin: 0 0 24px 0;
+  text-align: center;
+  letter-spacing: -0.025em;
+}
+
+.report-types {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.report-type-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 160px;
+  flex: 1;
+  min-width: 200px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.report-type-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--card-color, #64748b);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.report-type-item:hover::before {
+  transform: scaleY(1);
+}
+
+.report-type-item:hover {
+  border-color: var(--card-color, #64748b);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.report-type-item.selected {
+  border-color: var(--card-color, #64748b);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.report-type-item.selected::before {
+  transform: scaleY(1);
+}
+
+/* Icon Styles */
+.report-type-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  border-radius: 16px;
+  background: var(--card-color, #64748b);
+  color: white;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.report-type-item[data-type="health"] {
+  --card-color: #3b82f6;
+}
+
+.report-type-item[data-type="vaccination"] {
+  --card-color: #10b981;
+}
+
+.report-type-item[data-type="checkup"] {
+  --card-color: #f59e0b;
+}
+
+.report-type-item[data-type="medication"] {
+  --card-color: #8b5cf6;
+}
+
+.report-type-item:hover .report-type-icon {
+  transform: scale(1.1);
+}
+
+.report-type-item.selected .report-type-icon {
+  background: var(--card-color, #64748b);
+  transform: scale(1.05);
+}
+
+/* Text Styles */
+.report-type-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: #1e293b;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.025em;
+  transition: all 0.3s ease;
+}
+
+.report-type-desc {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 400;
+  transition: all 0.3s ease;
+}
+
+/* Selection Indicator */
+.report-type-item.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  background: var(--card-color, #64748b);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.875rem;
+  animation: checkmarkAppear 0.3s ease;
+}
+
+@keyframes checkmarkAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Hover Effects */
+.report-type-item:not(.selected):hover .report-type-title {
+  color: var(--card-color, #64748b);
+}
+
+.report-type-item:not(.selected):hover .report-type-desc {
+  color: #475569;
+}
+
+/* Loading State */
+.report-type-item.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.report-type-item.loading .report-type-icon {
+  animation: iconSpin 1.5s linear infinite;
+}
+
+@keyframes iconSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Content Animation */
+.report-type-section > * {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .report-types {
+    gap: 12px;
+    max-width: 800px;
+  }
+  
+  .report-type-item {
+    padding: 20px 16px;
+    min-height: 140px;
+    min-width: 180px;
+    max-width: 240px;
+  }
+  
+  .report-type-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.75rem;
+    margin-bottom: 14px;
+  }
+  
+  .report-type-title {
+    font-size: 1rem;
+  }
+  
+  .report-type-desc {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .report-types {
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+  }
+  
+  .report-type-item {
+    flex-direction: row;
+    text-align: left;
+    padding: 16px 20px;
+    min-height: auto;
+    max-width: none;
+  }
+  
+  .report-type-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+    margin: 0 16px 0 0;
+    flex-shrink: 0;
+  }
+  
+  .report-type-content {
+    flex: 1;
+  }
+  
+  .report-type-title {
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  
+  .report-type-desc {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .report-type-title {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+  }
+
+  .report-type-item {
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+  
+  .report-type-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+    margin-right: 12px;
+    border-radius: 12px;
+  }
+  
+  .report-type-title {
+    font-size: 0.875rem;
+  }
+  
+  .report-type-desc {
+    font-size: 0.75rem;
+  }
+
+  .report-type-item.selected::after {
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    top: 10px;
+    right: 10px;
+  }
+} 

@@ -1,100 +1,104 @@
-/* Biến CSS */
+/* Modern CSS Variables with Blue Theme */
 :root {
-  --primary: #3182ce;
-  --primary-dark: #2c5282;
-  --primary-light: #ebf8ff;
-  --secondary: #e2e8f0;
-  --text-dark: #2d3748;
-  --text-medium: #4a5568;
-  --text-light: #718096;
-  --error: #e53e3e;
-  --success: #38a169;
-  --warning: #ffc107;
-  --info: #3498db;
-  --border-color: #e2e8f0;
-  --border-radius: 8px;
-  --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    /* Primary Colors - Professional Blue Theme */
+  --primary-color: #015C92;
+  --primary-hover: #2D82B5;
+  --primary-dark: #428CD4;
+  --primary-light: #BCE6FF;
+  --primary-gradient: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%);
+  --primary-gradient-light: linear-gradient(135deg, #BCE6FF 0%, #88CDF6 30%, #428CD4 60%, #2D82B5 100%);
+  --primary-gradient-subtle: linear-gradient(135deg, rgba(1, 92, 146, 0.1) 0%, rgba(45, 130, 181, 0.05) 100%);
   
-  /* Status colors */
-  --status-pending-bg: #fff3cd;
-  --status-pending-text: #856404;
-  --status-approved-bg: #d4edda;
-  --status-approved-text: #155724;
-  --status-rejected-bg: #f8d7da;
-  --status-rejected-text: #721c24;
-  --status-completed-bg: #d1ecf1;
-  --status-completed-text: #0c5460;
-  --status-cancelled-bg: #e2e3e5;
-  --status-cancelled-text: #383d41;
+   /* Professional Blue Gradients for Components */
+  --blue-gradient-main: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 85%, #BCE6FF 100%);
+  --blue-gradient-soft: linear-gradient(135deg, #BCE6FF 0%, #88CDF6 30%, #428CD4 60%, #2D82B5 100%);
+  --blue-gradient-dark: linear-gradient(135deg, #015C92 0%, #2D82B5 50%, #428CD4 100%);
+  
+  /* Secondary Colors */
+  --secondary-color: #475569;
+  --secondary-light: #94a3b8;
+  --secondary-dark: #334155;
+  
+  /* Status Colors */
+  --success-color: #059669;
+  --success-light: #d1fae5;
+  --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --danger-color: #dc2626;
+  --danger-light: #fee2e2;
+  --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --warning-color: #d97706;
+  --warning-light: #fef3c7;
+  --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --info-color: #0284c7;
+  --info-light: #e0f2fe;
+  --info-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  
+  /* Background Colors with Professional Blue Theme */
+  --background: #ffffff;
+  --background-secondary: #BCE6FF;
+  --background-blue: linear-gradient(135deg, #BCE6FF 0%, #88CDF6 100%);
+  --surface: #ffffff;
+  --surface-hover: #BCE6FF;
+  --surface-blue: linear-gradient(135deg, rgba(1, 92, 146, 0.03) 0%, rgba(45, 130, 181, 0.02) 100%);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-blue: rgba(1, 92, 146, 0.1);
+  
+  /* Border and Text */
+  --border: #88CDF6;
+  --border-light: #BCE6FF;
+  --border-blue: #428CD4;
+  --border-focus: #015C92;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-blue: #015C92;
+  
+  /* Shadows - Enhanced */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-colored: 0 10px 25px rgba(59, 130, 246, 0.15);
+  
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
   
   /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Typography */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
   
   /* Transitions */
-  --transition-speed: 0.3s;
-  --transition-function: ease;
+  --transition-fast: 0.15s ease-out;
+  --transition-base: 0.2s ease-out;
+  --transition-slow: 0.3s ease-out;
 }
 
-/* CSS Variables cho SendMedicine */
-
-:root {
-  /* Ghi đè các biến global với namespace */
-  --sm-primary: #8860ff;
-  --sm-primary-dark: #7566ff;
-  --sm-primary-light: #e9e5ff;
-  --sm-secondary: #2563eb;
-  --sm-secondary-dark: #1d4ed8;
-  --sm-error: #ef4444;
-  --sm-error-light: #fef2f2;
-  --sm-success: #10b981;
-  --sm-success-light: #ecfdf5;
-  --sm-warning: #f59e0b;
-  --sm-warning-light: #fff8e6;
-  --sm-info: #3b82f6;
-  --sm-info-light: #eff6ff;
-  
-  /* Text colors */
-  --sm-text-primary: #1e293b;
-  --sm-text-secondary: #475569;
-  --sm-text-muted: #64748b;
-  
-  /* Background colors */
-  --sm-bg-light: #f8fafc;
-  --sm-bg-lighter: #f1f5f9;
-  --sm-bg-white: #ffffff;
-  
-  /* Border colors */
-  --sm-border-light: #e2e8f0;
-  --sm-border-medium: #cbd5e1;
-  
-  /* Status colors */
-  --sm-status-pending-bg: var(--sm-warning-light);
-  --sm-status-pending-text: #b45309;
-  --sm-status-approved-bg: var(--sm-success-light);
-  --sm-status-approved-text: #065f46;
-  --sm-status-rejected-bg: var(--sm-error-light);
-  --sm-status-rejected-text: #991b1b;
-  --sm-status-completed-bg: var(--sm-info-light);
-  --sm-status-completed-text: #1e40af;
-  
-  /* Border radius */
-  --sm-border-radius-sm: 8px;
-  --sm-border-radius: 12px;
-  --sm-border-radius-lg: 16px;
-  --sm-border-radius-xl: 20px;
-  
-  /* Shadows */
-  --sm-shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.05);
-  --sm-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  --sm-shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.12);
-  --sm-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+/* Base Styles */
+* {
+  box-sizing: border-box;
 }
 
-/* Bổ sung font styles */
-.send-medicine-container {
-  font-family: var(--font-body, 'Nunito', -apple-system, system-ui, sans-serif);
-}
+/* Gradient backgrounds - White theme */
+--blue-gradient-main: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+--blue-gradient-soft: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+--blue-gradient-header: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);

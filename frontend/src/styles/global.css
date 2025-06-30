@@ -8,36 +8,67 @@ body {
   overflow-x: hidden;
 }
 
-/* Đảm bảo các biến CSS chính toàn cục */
+/* Đảm bảo các biến CSS chính toàn cục - Dark Blue Theme for Parent Pages */
 :root {
-  /* Colors */
-  --primary-color: #2563eb; /* Xanh dương chính */
-  --secondary-color: #3b82f6; /* Xanh dương phụ */
-  --accent-color: #1d4ed8; /* Xanh dương nhấn */
-  --primary-gradient: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  /* Primary Dark Blue Colors - Darker and more professional */
+  --primary-color: #1e40af; /* Blue-700 - Xanh dương đen chính */
+  --primary-hover: #1d4ed8; /* Blue-700 - Hover state */
+  --primary-dark: #1e3a8a; /* Blue-800 - Dark variant */
+  --primary-darker: #1e1b4b; /* Indigo-900 - Darkest variant */
+  --primary-light: #3b82f6; /* Blue-500 - Light variant */
+  --primary-bg: #eff6ff; /* Blue-50 - Background */
+  --primary-border: #bfdbfe; /* Blue-200 - Borders */
+  
+  /* Secondary Colors */
+  --secondary-color: #475569; /* Slate-600 */
+  --secondary-light: #94a3b8; /* Slate-400 */
+  --secondary-dark: #334155; /* Slate-700 */
+  --accent-color: #1e3a8a; /* Blue-800 - Xanh dương đen nhấn */
+  
+  /* Gradient Variations - Darker blues */
+  --primary-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  --primary-gradient-light: linear-gradient(135deg, var(--primary-bg), var(--primary-border));
+  --blue-gradient-main: linear-gradient(135deg, #1e40af 0%, #1d4ed8 25%, #1e3a8a 50%, #1e1b4b 100%);
+  --blue-gradient-dark: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 50%, #0f172a 100%);
+  --blue-gradient-soft: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%);
   
   /* Text colors */
-  --text-dark: #1e293b; 
-  --text-medium: #475569;
-  --text-light: #64748b;
+  --text-primary: #1e3a8a; /* Blue-800 */
+  --text-dark: #1f2937; /* Gray-800 */
+  --text-medium: #4b5563; /* Gray-600 */
+  --text-light: #6b7280; /* Gray-500 */
   
   /* Backgrounds */
-  --background-light: #f8fafc;
-  --background-content: #f2f5fa;
+  --background-light: #f8fafc; /* Slate-50 */
+  --background-content: #f1f5f9; /* Slate-100 */
   --bg-white: #ffffff;
+  --bg-blue-light: #eff6ff; /* Blue-50 */
+  
+  /* Status Colors */
+  --success-color: #059669; /* Emerald-600 */
+  --success-light: #d1fae5; /* Emerald-100 */
+  --danger-color: #dc2626; /* Red-600 */
+  --danger-light: #fee2e2; /* Red-100 */
+  --warning-color: #d97706; /* Amber-600 */
+  --warning-light: #fef3c7; /* Amber-100 */
+  --info-color: #0284c7; /* Sky-600 */
+  --info-light: #e0f2fe; /* Sky-100 */
   
   /* Borders */
-  --border-light: #e2e8f0;
+  --border-light: #e2e8f0; /* Slate-200 */
+  --border-medium: #cbd5e1; /* Slate-300 */
   
   /* Shadows */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-blue: 0 4px 20px rgba(30, 64, 175, 0.25);
   
   /* Border radius */
   --border-radius: 12px;
   --border-radius-large: 20px;
+  --border-radius-small: 8px;
   
   /* Fonts */
   --font-heading: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -46,6 +77,7 @@ body {
   /* Transitions */
   --transition-fast: all 0.2s ease;
   --transition-normal: all 0.3s ease;
+  --transition-slow: all 0.5s ease;
 }
 
 * {
@@ -58,11 +90,13 @@ body {
   font-family: var(--font-body);
   line-height: 1.6;
   color: var(--text-dark);
+  background: var(--bg-white);
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 700;
+  color: var(--text-dark);
 }
 
 .app {
@@ -90,6 +124,10 @@ main {
   font-weight: 700;
   margin-bottom: 20px;
   text-align: center;
+  background: var(--blue-gradient-main);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .section-subtitle {
@@ -97,41 +135,71 @@ main {
   font-weight: 400;
   text-align: center;
   margin-bottom: 40px;
-  color: #666;
+  color: var(--text-medium);
 }
 
 .btn {
   display: inline-block;
   padding: 12px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--border-radius-small);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-normal);
+  font-family: var(--font-body);
 }
 
 .btn-primary {
-  background-color: var(--primary-color);
-  color: var(--text-light);
+  background: var(--blue-gradient-main);
+  color: white;
+  box-shadow: var(--shadow-blue);
 }
 
 .btn-primary:hover {
-  background-color: #0f2f5c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.35);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+  background: var(--primary-color);
+  color: white;
   transform: translateY(-2px);
 }
 
 .card {
-  background: var(--accent-color);
+  background: var(--bg-white);
   border-radius: var(--border-radius);
   padding: 30px;
-  box-shadow: var(--shadow);
-  transition: transform 0.3s ease;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-normal);
+  border: 1px solid var(--border-light);
 }
 
 .card:hover {
   transform: translateY(-5px);
+  box-shadow: var(--shadow-blue);
 }
+
+/* Utility Classes */
+.text-primary { color: var(--primary-color); }
+.text-secondary { color: var(--secondary-color); }
+.text-dark { color: var(--text-dark); }
+.text-medium { color: var(--text-medium); }
+.text-light { color: var(--text-light); }
+
+.bg-primary { background-color: var(--primary-color); }
+.bg-primary-light { background-color: var(--primary-bg); }
+.bg-gradient { background: var(--blue-gradient-main); }
+
+.border-primary { border-color: var(--primary-color); }
+.border-light { border-color: var(--border-light); }
 
 /* Thêm vào global.css */
 .section + .section,

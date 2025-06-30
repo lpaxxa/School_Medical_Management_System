@@ -10,16 +10,17 @@
 .student-info-section,
 .vaccination-info-section {
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #BCE6FF;
   border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(1, 92, 146, 0.05);
 }
 
 /* Thông tin học sinh */
 .info-header {
-  background-color: #f1f5f9;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.05) 0%, rgba(188, 230, 255, 0.3) 100%);
   padding: 12px 20px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #88CDF6;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -28,7 +29,7 @@
 .info-header h4 {
   margin: 0;
   font-size: 16px;
-  color: #0f172a;
+  color: #015C92;
   font-weight: 600;
 }
 
@@ -40,32 +41,42 @@
   display: flex;
   margin-bottom: 12px;
   align-items: baseline;
+  transition: all 0.2s ease;
 }
 
 .info-row:last-child {
   margin-bottom: 0;
 }
 
+.info-row:hover {
+  background: linear-gradient(135deg, rgba(188, 230, 255, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: -4px -8px 8px -8px;
+}
+
 .info-label {
   flex: 0 0 140px;
   font-weight: 500;
-  color: #64748b;
+  color: #015C92;
   font-size: 14px;
 }
 
 .info-value {
   flex: 1;
   color: #0f172a;
+  font-weight: 500;
 }
 
 /* Highlight cho liều tiêm kế tiếp */
 .highlight-next-dose {
-  background-color: #f0f9ff;
-  border-left: 3px solid #0ea5e9;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.05) 0%, rgba(188, 230, 255, 0.2) 100%);
+  border-left: 3px solid #015C92;
   padding: 6px 12px;
   border-radius: 4px;
   font-weight: 500;
-  color: #0369a1;
+  color: #015C92;
+  box-shadow: 0 2px 8px rgba(1, 92, 146, 0.1);
 }
 
 /* Phần ghi chú */
@@ -75,24 +86,35 @@
 
 .notes-row .info-label {
   margin-bottom: 6px;
+  color: #015C92;
 }
 
 .notes-row .info-value {
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, rgba(188, 230, 255, 0.1) 0%, rgba(255, 255, 255, 1) 100%);
   padding: 12px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #88CDF6;
   line-height: 1.6;
+  transition: all 0.2s ease;
+}
+
+.notes-row .info-value:hover {
+  border-color: #015C92;
+  box-shadow: 0 2px 8px rgba(1, 92, 146, 0.1);
 }
 
 /* Thông báo không có dữ liệu */
 .no-detail-message {
   text-align: center;
   padding: 30px 20px;
+  background: linear-gradient(135deg, rgba(188, 230, 255, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+  border-radius: 8px;
+  border: 1px solid #BCE6FF;
 }
 
 .no-detail-message p {
-  color: #64748b;
+  color: #015C92;
   font-size: 16px;
   margin: 0;
+  font-weight: 500;
 }
