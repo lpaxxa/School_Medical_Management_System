@@ -20,9 +20,16 @@ public class SpecialCheckupConsent {
     @Column(name = "checkup_type", nullable = false)
     private SpecialCheckupType checkupType;
 
-    @Column(name = "is_consented")
-    private Boolean isConsented; // true = đồng ý, false = không đồng ý, null = chưa phản hồi
+    @Column(name = "is_consented", columnDefinition = "BIT DEFAULT 0")
+    private Boolean isConsented = false; // Mặc định là false (chưa đồng ý)
 
     @Column(name = "parent_note", columnDefinition = "NVARCHAR(500)")
     private String parentNote; // Ghi chú của phụ huynh (nếu có)
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.isConsented == null) {
+            this.isConsented = false;
+        }
+    }
 }
