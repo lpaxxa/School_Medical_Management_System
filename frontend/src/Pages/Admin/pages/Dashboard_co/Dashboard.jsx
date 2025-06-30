@@ -46,31 +46,24 @@ const Dashboard = () => {
   const recentEvents = [
     {
       id: 1,
-      label: "Tổng số học sinh",
-      value: 1234,
-      icon: "fas fa-users",
-      color: "#4361ee",
+      title: "Kiểm tra sức khỏe định kỳ Lớp 1A",
+      date: "20/06/2025",
+      type: "health-check",
+      status: "completed",
     },
     {
       id: 2,
-      label: "Báo cáo y tế hôm nay",
-      value: 15,
-      icon: "fas fa-notes-medical",
-      color: "#3498db",
+      title: "Tiêm chủng vắc-xin HPV",
+      date: "15/06/2025",
+      type: "vaccination",
+      status: "completed",
     },
     {
       id: 3,
-      label: "Báo cáo sức khỏe",
-      value: 45,
-      icon: "fas fa-file-medical-alt",
-      color: "#2ecc71",
-    },
-    {
-      id: 4,
-      label: "Tổng số thuốc đăng ký",
-      value: 28,
-      icon: "fas fa-pills",
-      color: "#e74c3c",
+      title: "Khám sàng lọc răng miệng",
+      date: "10/06/2025",
+      type: "screening",
+      status: "completed",
     },
   ];
 
@@ -445,54 +438,6 @@ const Dashboard = () => {
               ))}
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="dashboard-widgets">
-        <div className="widget">
-          <h3 className="widget-title">Hoạt động gần đây</h3>
-          <ul className="activity-list">
-            <li>
-              <span className="activity-time">10:30</span>
-              <span className="activity-text">Y tá đã tạo báo cáo mới</span>
-            </li>
-            <li>
-              <span className="activity-time">09:15</span>
-              <span className="activity-text">
-                Phụ huynh Nguyễn Văn A đã gửi thuốc cho con
-              </span>
-            </li>
-            <li>
-              <span className="activity-time">08:45</span>
-              <span className="activity-text">
-                Khai báo sức khỏe mới từ lớp 3A
-              </span>
-            </li>
-            <li>
-              <span className="activity-time">Hôm qua</span>
-              <span className="activity-text">
-                Cập nhật dữ liệu cho 5 học sinh
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="widget">
-          <h3 className="widget-title">Thông báo hệ thống</h3>
-          <ul className="notification-list">
-            <li className="notification-urgent">
-              <i className="fas fa-exclamation-circle"></i>
-              <span>Cần phê duyệt 3 đơn thuốc mới</span>
-            </li>
-            <li>
-              <i className="fas fa-info-circle"></i>
-              <span>Hệ thống sẽ bảo trì lúc 23:00 tối nay</span>
-            </li>
-            <li>
-              <i className="fas fa-clipboard-check"></i>
-              <span>Báo cáo tháng đã sẵn sàng để xuất</span>
-            </li>
-          </ul>
         </div>
       </div>
     </div>

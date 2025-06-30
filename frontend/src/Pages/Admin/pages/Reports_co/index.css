@@ -1,12 +1,5 @@
 /* Reports Module Index - Modern Professional Design */
 .reports-page {
-<<<<<<< Updated upstream
-  width: 100%;
-  background-color: #f0f9ff; /* Light medical blue background */
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(26, 123, 181, 0.1); /* Medical blue shadow */
-}
-=======
   min-height: 100vh;
   background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
   font-family: var(--font-body);
@@ -76,4 +69,3 @@
     padding: 16px;
   }
 } 
->>>>>>> Stashed changes

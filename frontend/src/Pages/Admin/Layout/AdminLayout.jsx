@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
@@ -22,9 +22,8 @@ const AdminLayout = () => {
 
     switch (activeSection) {
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard />; // Chỉ import và render Dashboard, không phải AdminDashboard
       case "users":
-        console.log("Rendering UserManagement component");
         return <UserManagement />;
       case "medical-planning":
         return <PlanManager />;

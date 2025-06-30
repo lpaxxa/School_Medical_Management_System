@@ -247,6 +247,248 @@
   color: #6b7280;
 }
 
+.dashboard-content {
+  padding: 1.5rem;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  font-size: 1.75rem;
+  color: #1e293b;
+  margin: 0;
+}
+
+.dashboard-header p {
+  color: #64748b;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Stats Cards */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  color: white;
+  margin-right: 1rem;
+  font-size: 1.25rem;
+}
+
+.stat-icon.students {
+  background-color: #3b82f6;
+}
+
+.stat-icon.events {
+  background-color: #10b981;
+}
+
+.stat-icon.upcoming {
+  background-color: #f59e0b;
+}
+
+.stat-icon.reports {
+  background-color: #6366f1;
+}
+
+.stat-details h3 {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.stat-value {
+  color: #1e293b;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Dashboard Row with Cards */
+.dashboard-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.dashboard-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.card-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.view-all-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+/* Events Table */
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.events-table th,
+.events-table td {
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.events-table th {
+  color: #64748b;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.events-table tr:not(:last-child) td {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.completed {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.upcoming {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.status-badge.in-progress {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge.postponed {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Alerts */
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.alert-item {
+  border-radius: 0.375rem;
+  padding: 1rem;
+  position: relative;
+}
+
+.alert-item.high {
+  background-color: #fee2e2;
+  border-left: 4px solid #dc2626;
+}
+
+.alert-item.medium {
+  background-color: #fef3c7;
+  border-left: 4px solid #d97706;
+}
+
+.alert-item.low {
+  background-color: #e0e7ff;
+  border-left: 4px solid #4f46e5;
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.alert-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1e293b;
+}
+
+.alert-date {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.alert-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .dashboard-row {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-container {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
 @media (max-width: 1024px) {
   .admin-recent {
     grid-template-columns: 1fr;

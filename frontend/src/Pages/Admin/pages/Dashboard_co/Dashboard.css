@@ -405,31 +405,7 @@
   border-color: #3b82f6;
 }
 
-.widget {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(26, 123, 181, 0.1); /* Medical blue shadow */
-}
-
-.widget-title {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #1a7bb5; /* Medical blue */
-  font-size: 1.2rem;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-}
-
-.activity-list, .notification-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.activity-list li, .notification-list li {
-  padding: 10px 0;
-  border-bottom: 1px solid #f5f5f5;
+.alert-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
