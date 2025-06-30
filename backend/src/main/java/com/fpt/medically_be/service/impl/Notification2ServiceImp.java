@@ -1,5 +1,6 @@
 package com.fpt.medically_be.service.impl;
 
+import com.fpt.medically_be.dto.SpecialCheckupConsentDTO;
 import com.fpt.medically_be.dto.request.Notification2RequestDTO;
 import com.fpt.medically_be.dto.request.Notification2UpdateDTO;
 import com.fpt.medically_be.dto.request.StudentReceiverRequest;
@@ -11,6 +12,7 @@ import com.fpt.medically_be.mapper.Notification2TitleMapper;
 import com.fpt.medically_be.mapper.NotificationRecipientMapper;
 import com.fpt.medically_be.repos.*;
 import com.fpt.medically_be.service.Notification2Service;
+import com.fpt.medically_be.service.SpecialCheckupConsentService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,9 @@ public class Notification2ServiceImp implements Notification2Service {
 
     @Autowired
     private NotificationRecipientsRepo notificationRecipientsRepo;
+
+    @Autowired
+    private SpecialCheckupConsentService specialCheckupConsentService;
 
     // FIX PARENT ID SAI VẪN GƯI ĐƯỢC, CLASS Y CHANG
     @Transactional
@@ -114,6 +119,14 @@ public class Notification2ServiceImp implements Notification2Service {
         }
 
         notificationRecipientsRepo.saveAll(recipients);
+
+        // Tự động tạo các phần khám đặc biệt khi gửi thông báo khám sức khỏe
+        if (noti.getType() == NotificationType.HEALTH_CHECKUP) {
+            for (NotificationRecipients recipient : recipients) {
+                specialCheckupConsentService.createDefaultSpecialCheckupConsents(recipient);
+            }
+        }
+
         noti.setNotificationRecipients(recipients);
         return notification2Mapper.toNotificationResponseDTO(noti);
     }
@@ -236,7 +249,43 @@ public class Notification2ServiceImp implements Notification2Service {
         return noti;
     }
 
+    /**
+     * Lấy chi tiết thông báo khám sức khỏe bao gồm các phần khám đặc biệt
+     */
+    public HealthCheckupNotificationResponse getHealthCheckupNotificationDetail(Long notiId, Long parentId) {
+        NotificationRecipients recipient = notificationRecipientsRepo
+                .findByIdAndReceiverId(notiId, parentId);
 
+        if (recipient == null) {
+            throw new RuntimeException("Notification not found for the given ID and parent ID");
+        }
+
+        // Chỉ áp dụng cho thông báo khám sức khỏe
+        if (recipient.getNotification().getType() != NotificationType.HEALTH_CHECKUP) {
+            throw new RuntimeException("This notification is not a health checkup notification");
+        }
+
+        HealthCheckupNotificationResponse response = new HealthCheckupNotificationResponse();
+        response.setNotificationId(recipient.getNotification().getId());
+        response.setNotificationRecipientId(recipient.getId());
+        response.setTitle(recipient.getNotification().getTitle());
+        response.setMessage(recipient.getNotification().getMessage());
+        response.setCreatedAt(recipient.getNotification().getCreatedAt());
+        response.setResponse(recipient.getResponse() != null ? recipient.getResponse().toString() : "PENDING");
+        response.setResponseAt(recipient.getResponseAt());
+
+        if (recipient.getStudent() != null) {
+            response.setStudentName(recipient.getStudent().getFullName());
+            response.setStudentId(recipient.getStudent().getStudentId());
+        }
+
+        // Lấy danh sách các phần khám đặc biệt
+        List<SpecialCheckupConsentDTO> specialCheckups = specialCheckupConsentService
+                .getSpecialCheckupConsents(recipient.getId());
+        response.setSpecialCheckupConsents(specialCheckups);
+
+        return response;
+    }
 
     @Override
     public Notification2ResponseStatusDTO getNotificationResponses(Long notificationId) {
