@@ -125,13 +125,13 @@ public class VaccinationServiceImpl implements VaccinationService {
 //        return convertToDTO(updatedVaccination);
 //    }
 //
-    @Override
-    public void deleteVaccination(Long id) {
-        if (!vaccinationRepository.existsById(id)) {
-            throw new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id);
-        }
-        vaccinationRepository.deleteById(id);
+@Override
+public void deleteVaccination(Long id) {
+    if (!vaccinationRepository.existsById(id)) {
+        throw new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id);
     }
+    vaccinationRepository.deleteById(id);
+}
 
     @Override
     public List<VaccinationDTO> getAllVaccinations() {
