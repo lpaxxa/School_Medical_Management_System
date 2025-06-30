@@ -1,5 +1,6 @@
 package com.fpt.medically_be.dto;
 
+import com.fpt.medically_be.entity.ResponseStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,8 +20,9 @@ public class VaccinationDTO {
     private LocalDate vaccinationDate;
     private LocalDate nextDoseDate;
     private Integer doseNumber;
+    private Long administeredById;
     private String administeredBy;
     private String administeredAt;
     private String notes;
-    private Boolean parentConsent;
+    private ResponseStatus parentResponse;
 }
