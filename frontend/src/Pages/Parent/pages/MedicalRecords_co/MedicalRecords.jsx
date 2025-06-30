@@ -5,11 +5,20 @@ import "./styles/index.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import medicalService from "../../../../services/medicalService";
 import eventBus from "../../../../services/eventBus";
-import { FaPrint, FaArrowLeft, FaTimes, FaImage } from "react-icons/fa";
+import {
+  FaPrint,
+  FaArrowLeft,
+  FaTimes,
+  FaImage,
+  FaUser,
+  FaHeartbeat,
+  FaChevronDown,
+  FaSpinner,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 // Import các component khác
 import ErrorBoundary from "../../../../components/ErrorBoundary";
-import StudentSelector from "./components/StudentSelector";
 import TabNavigation from "./components/TabNavigation";
 import GeneralTab from "./components/tabs/GeneralTab";
 import CheckupsTab from "./components/tabs/CheckupsTab";
@@ -21,21 +30,21 @@ import GrowthTab from "./components/tabs/GrowthTab";
 import { cacheData, getCachedData } from "./utils/helpers";
 
 const MedicalRecord = () => {
-  // Đổi từ healthProfileId thành studentId
   const { studentId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("general");
-  const [isLoadingGeneral, setIsLoadingGeneral] = useState(true);
-  const [healthProfileData, setHealthProfileData] = useState(null);
-  const [healthProfileError, setHealthProfileError] = useState(null);
-  const [hasInitialized, setHasInitialized] = useState(false);
   const { students, parentInfo } = useStudentData();
+
+  // State management - đơn giản hóa
+  const [activeTab, setActiveTab] = useState("general");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [healthProfileData, setHealthProfileData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [modalImage, setModalImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Thêm vào đây
+  // Modal handlers
   const openImageModal = (imageUrl) => {
     setModalImage(imageUrl);
     setIsModalOpen(true);
@@ -46,285 +55,263 @@ const MedicalRecord = () => {
     setModalImage(null);
   };
 
-  // Khởi tạo selectedStudent dựa vào studentId từ URL
+  // Khởi tạo selectedStudent
   useEffect(() => {
-    if (!students) return;
-
-    if (students.length === 0) {
-      setSelectedStudent(null);
-      setSelectedStudentId(null);
-      setHasInitialized(true);
+    if (!students || students.length === 0) {
+      setIsLoading(false);
       return;
     }
 
-    // Tìm học sinh phù hợp với studentId từ URL
     let foundStudent = students.find(
       (s) => s && String(s.id) === String(studentId)
     );
 
-    // Nếu không tìm thấy, dùng học sinh đầu tiên
     if (!foundStudent && students.length > 0) {
       foundStudent = students[0];
     }
 
     setSelectedStudent(foundStudent || null);
     setSelectedStudentId(foundStudent ? foundStudent.id : null);
-    setHasInitialized(true);
   }, [students, studentId]);
 
-  // Handler cho sự kiện thay đổi học sinh
-  const handleStudentChange = (e) => {
-    try {
-      const selectedId = e.target.value;
-      const student = students.find(
-        (s) => s && String(s.id) === String(selectedId)
-      );
-
-      if (!student) return;
-
-      setSelectedStudent(student);
-      setSelectedStudentId(student.id);
-
-      // Navigate với student ID thay vì healthProfileId
-      navigate(`/health-profile/student/${student.id}`, {
-        replace: true,
-      });
-    } catch (err) {
-      console.error("Error in handleStudentChange:", err);
+  // Fetch dữ liệu sức khỏe - đơn giản hóa
+  const fetchHealthProfile = async () => {
+    if (!selectedStudentId) {
+      setIsLoading(false);
+      return;
     }
-  };
 
-  // Fetch dữ liệu sức khỏe tổng quát từ API khi selectedStudent thay đổi
-  const fetchHealthProfile = async (useCache = false) => {
-    if (!selectedStudent || !selectedStudent.id) return;
-
-    setIsLoadingGeneral(true);
-    setHealthProfileError(null);
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const cacheKey = `healthProfile_${selectedStudent.id}`;
-
-      // Chỉ sử dụng cache khi useCache = true
-      if (useCache) {
-        const cachedData = getCachedData(cacheKey);
-        if (cachedData) {
-          setHealthProfileData(cachedData);
-          setIsLoadingGeneral(false);
-          return;
-        }
-      }
-
-      // Luôn gọi API để lấy dữ liệu mới nhất
-      console.log(
-        "Fetching fresh health profile data for student:",
-        selectedStudent.id
-      );
-      const response = await medicalService.getHealthProfile(
-        selectedStudent.id
-      );
+      console.log("Fetching health profile for student:", selectedStudentId);
+      const response = await medicalService.getHealthProfile(selectedStudentId);
       setHealthProfileData(response);
-
-      // Cache data mới (optional)
-      cacheData(cacheKey, response);
     } catch (err) {
       console.error("Error fetching health profile:", err);
-      setHealthProfileError(
-        "Không thể tải dữ liệu hồ sơ sức khỏe. Vui lòng thử lại sau."
-      );
+      setError("Không thể tải dữ liệu hồ sơ sức khỏe. Vui lòng thử lại.");
+      setHealthProfileData(null);
     } finally {
-      setIsLoadingGeneral(false);
+      setIsLoading(false);
     }
   };
 
-  // Thêm useEffect để gọi API mỗi khi selectedStudent thay đổi (không dùng cache)
+  // Effect để fetch data khi selectedStudentId thay đổi
   useEffect(() => {
-    if (!selectedStudent || !selectedStudent.id || !hasInitialized) return;
-
-    console.log("Selected student changed, fetching fresh data");
-    fetchHealthProfile(false); // Không sử dụng cache
-  }, [selectedStudent, hasInitialized]);
-
-  // Thêm useEffect để gọi API mỗi khi activeTab thay đổi về "general"
-  useEffect(() => {
-    if (activeTab === "general" && selectedStudent && selectedStudent.id) {
-      console.log("General tab activated, fetching fresh data");
-      fetchHealthProfile(false); // Không sử dụng cache
+    if (selectedStudentId) {
+      fetchHealthProfile();
     }
-  }, [activeTab, selectedStudent]);
+  }, [selectedStudentId]);
 
-  // Thêm useEffect để đăng ký lắng nghe sự kiện cập nhật hồ sơ sức khỏe
+  // Effect để refetch khi chuyển về tab general
   useEffect(() => {
-    if (!selectedStudent || !selectedStudent.id) return;
+    if (activeTab === "general" && selectedStudentId) {
+      fetchHealthProfile();
+    }
+  }, [activeTab]);
 
-    const handleProfileUpdate = (studentId, data) => {
-      if (studentId === selectedStudent.id) {
-        console.log(
-          "Received health profile update event for student:",
-          studentId,
-          data
-        );
+  // Handler cho việc thay đổi học sinh
+  const handleStudentChange = (e) => {
+    const selectedId = e.target.value;
+    if (!selectedId) return;
 
-        // Xóa cache cũ và fetch lại
-        const cacheKey = `healthProfile_${selectedStudent.id}`;
-        localStorage.removeItem(cacheKey);
-
-        fetchHealthProfile(false); // Không sử dụng cache
-      }
-    };
-
-    const unsubscribe = eventBus.subscribe(
-      "healthProfileUpdated",
-      handleProfileUpdate
+    const student = students.find(
+      (s) => s && String(s.id) === String(selectedId)
     );
+    if (!student) return;
 
-    return () => {
-      unsubscribe();
-    };
-  }, [selectedStudent]);
+    setSelectedStudent(student);
+    setSelectedStudentId(student.id);
+    navigate(`/health-profile/student/${student.id}`, { replace: true });
+  };
 
-  // Hiển thị trạng thái loading
-  if (isLoadingGeneral && !healthProfileData) {
+  // Loading state
+  if (!students) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Đang tải hồ sơ y tế...</p>
+      <div className="medical-loading">
+        <div className="loading-content">
+          <FaSpinner className="loading-spinner" />
+          <p>Đang tải danh sách học sinh...</p>
+        </div>
       </div>
     );
   }
 
-  // Hiển thị trạng thái loading khi context chưa sẵn sàng
-  if (!students || !hasInitialized) {
+  // No students state
+  if (students.length === 0 || !selectedStudent) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Đang tải danh sách học sinh...</p>
-      </div>
-    );
-  }
-
-  // Hiển thị thông báo nếu không có học sinh hoặc không tìm thấy học sinh phù hợp
-  if ((!selectedStudent || !selectedStudentId) && hasInitialized) {
-    return (
-      <div className="error-container">
-        <h2>Không tìm thấy thông tin học sinh</h2>
-        <p>
-          Vui lòng quay lại sau khi hệ thống đã cập nhật thông tin học sinh.
-        </p>
-        <Link to="/parent/student-profile" className="btn-primary">
-          Quay lại hồ sơ
-        </Link>
-      </div>
-    );
-  }
-
-  // Render UI chính
-  return (
-    <ErrorBoundary>
-      <div className="medical-record-container">
-        <div className="medical-record-header">
-          <div className="header-content">
-            <h1>Hồ Sơ Y Tế</h1>
-
-            {/* Chọn học sinh */}
-            {students && students.length > 0 && (
-              <StudentSelector
-                students={students}
-                selectedStudentId={selectedStudentId}
-                onStudentChange={handleStudentChange}
-                isLoading={isLoadingGeneral}
-              />
-            )}
-
-            {selectedStudent && (
-              <div className="student-basic-info">
-                <h2>{selectedStudent.fullName || "Chưa có tên"}</h2>
-                <p>
-                  {selectedStudent.studentId
-                    ? `Mã học sinh: ${selectedStudent.studentId} | `
-                    : ""}
-                  {selectedStudent.className
-                    ? `Lớp: ${selectedStudent.className}`
-                    : ""}
-                </p>
-              </div>
-            )}
-          </div>
-          <Link to={`/parent/student-profile`} className="back-button">
-            <FaArrowLeft /> Trở về hồ sơ
+      <div className="medical-error">
+        <div className="error-content">
+          <FaExclamationTriangle className="error-icon" />
+          <h2>Không tìm thấy thông tin học sinh</h2>
+          <p>Vui lòng kiểm tra lại thông tin hoặc liên hệ nhà trường.</p>
+          <Link to="/parent/student-profile" className="btn-primary">
+            <FaArrowLeft />
+            Quay lại hồ sơ
           </Link>
         </div>
+      </div>
+    );
+  }
 
-        <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+  return (
+    <ErrorBoundary>
+      <div className="medical-container">
+        {/* Header */}
+        <header className="medical-header">
+          <div className="header-content">
+            <div className="header-left">
+              <div className="header-icon">
+                <FaHeartbeat />
+              </div>
+              <div className="header-info">
+                <h1>Hồ Sơ Y Tế</h1>
+                <p>Theo dõi sức khỏe học sinh toàn diện</p>
+              </div>
+            </div>
 
-        <div className="medical-content">
-          {/* TAB THÔNG TIN CHUNG */}
-          {activeTab === "general" && (
-            <GeneralTab
-              healthProfileData={healthProfileData}
-              isLoading={isLoadingGeneral}
-              error={healthProfileError}
-              studentId={selectedStudentId}
-              onRefresh={() => fetchHealthProfile(false)} // Force fresh data
-            />
-          )}
+            <div className="header-actions">
+              <Link to="/parent/student-profile" className="back-btn">
+                <FaArrowLeft />
+                <span>Trở về</span>
+              </Link>
+            </div>
+          </div>
+        </header>
 
-          {/* TAB KIỂM TRA ĐỊNH KỲ */}
-          {activeTab === "checkups" && (
-            <CheckupsTab studentId={selectedStudentId} />
-          )}
+        {/* Main Content */}
+        <main className="medical-main">
+          {/* Student Selector */}
+          <section className="student-section">
+            <div className="student-selector">
+              <div className="selector-header">
+                <h2>Chọn học sinh</h2>
+                <p>Xem hồ sơ y tế của học sinh</p>
+              </div>
 
-          {/* TAB TIÊM CHỦNG */}
-          {activeTab === "vaccinations" && (
-            <VaccinationsTab
-              studentId={selectedStudentId}
-              parentInfo={parentInfo}
-              studentCode={selectedStudent?.studentId}
-            />
-          )}
+              <div className="selector-content">
+                <div className="select-wrapper">
+                  <select
+                    className="student-select"
+                    value={selectedStudentId || ""}
+                    onChange={handleStudentChange}
+                    disabled={isLoading}
+                  >
+                    <option value="">-- Chọn học sinh --</option>
+                    {students.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.fullName} - {student.studentId} (
+                        {student.className})
+                      </option>
+                    ))}
+                  </select>
+                  <FaChevronDown className="select-arrow" />
+                </div>
+              </div>
+            </div>
 
-          {/* TAB SỰ CỐ Y TẾ */}
-          {activeTab === "incidents" && (
-            <IncidentsTab studentId={selectedStudentId} />
-          )}
+            {/* Selected Student Info */}
+            {selectedStudent && (
+              <div className="student-info">
+                <div className="student-avatar">
+                  <FaUser />
+                </div>
+                <div className="student-details">
+                  <h3>{selectedStudent.fullName}</h3>
+                  <div className="student-meta">
+                    <span className="meta-item">
+                      Mã HS: {selectedStudent.studentId}
+                    </span>
+                    <span className="meta-item">
+                      Lớp: {selectedStudent.className}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
 
-          {/* TAB TĂNG TRƯỞNG */}
-          {activeTab === "growth" && (
-            <GrowthTab studentId={selectedStudentId} />
-          )}
-        </div>
+          {/* Content */}
+          <section className="content-section">
+            <div className="content-header">
+              <h2>
+                {activeTab === "general" && "Thông tin sức khỏe tổng quát"}
+                {activeTab === "checkups" && "Kiểm tra sức khỏe định kỳ"}
+                {activeTab === "vaccinations" && "Tiêm chủng"}
+                {activeTab === "incidents" && "Sự cố y tế"}
+                {activeTab === "growth" && "Biểu đồ tăng trưởng"}
+              </h2>
 
-        <div className="medical-record-footer">
-          <button className="print-button" onClick={() => window.print()}>
-            <FaPrint /> In hồ sơ y tế
-          </button>
-        </div>
+              {/* Tab Navigation trong content header */}
+              <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+            </div>
 
+            <div className="content-body">
+              {activeTab === "general" && (
+                <GeneralTab
+                  healthProfileData={healthProfileData}
+                  isLoading={isLoading}
+                  error={error}
+                  studentId={selectedStudentId}
+                  onRefresh={fetchHealthProfile}
+                />
+              )}
+
+              {activeTab === "checkups" && (
+                <CheckupsTab studentId={selectedStudentId} />
+              )}
+
+              {activeTab === "vaccinations" && (
+                <VaccinationsTab
+                  studentId={selectedStudentId}
+                  parentInfo={parentInfo}
+                  studentCode={selectedStudent?.studentId}
+                />
+              )}
+
+              {activeTab === "incidents" && (
+                <IncidentsTab studentId={selectedStudentId} />
+              )}
+
+              {activeTab === "growth" && (
+                <GrowthTab studentId={selectedStudentId} />
+              )}
+            </div>
+          </section>
+
+          {/* Print Button */}
+          <div className="print-section">
+            <button className="print-btn" onClick={() => window.print()}>
+              <FaPrint />
+              <span>In hồ sơ y tế</span>
+            </button>
+          </div>
+        </main>
+
+        {/* Image Modal */}
         {isModalOpen && (
           <div className="image-modal" onClick={closeImageModal}>
+            <div className="modal-backdrop"></div>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <button className="close-modal" onClick={closeImageModal}>
+              <button className="modal-close" onClick={closeImageModal}>
                 <FaTimes />
               </button>
               {modalImage ? (
                 <img
                   src={modalImage}
-                  alt="Hình ảnh sự cố y tế"
+                  alt="Hình ảnh y tế"
+                  className="modal-image"
                   onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.parentNode.innerHTML = `
-                  <div class="image-placeholder">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Không thể tải hình ảnh</p>
-                  </div>
-                `;
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "flex";
                   }}
                 />
-              ) : (
-                <div className="image-placeholder">
-                  <FaImage />
-                  <p>Không có hình ảnh</p>
-                </div>
-              )}
+              ) : null}
+              <div className="image-error" style={{ display: "none" }}>
+                <FaImage />
+                <p>Không thể tải hình ảnh</p>
+              </div>
             </div>
           </div>
         )}

@@ -1,13 +1,18 @@
 .introduction-page {
   margin-top: 0;
+  background-color: #ffffff;
+  min-height: 100vh;
 }
 
 .page-banner {
-  background: linear-gradient(135deg, #3498db, #1a5276);
-  color: #fff;
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%);
+  color: #ffffff;
   padding: 60px 0;
   text-align: center;
   margin-bottom: 50px;
+  box-shadow: 0 4px 15px -3px rgba(1, 92, 146, 0.3);
+  border: none;
+  border-radius: 0 0 30px 30px;
 }
 
 .page-title {

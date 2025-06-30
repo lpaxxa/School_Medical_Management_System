@@ -3,9 +3,9 @@ import { useAuth } from "../../../context/AuthContext";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import Dashboard from "../pages/Dashboard_co/Dashboard";
-import UserManagement from "../pages/UserManagement_co/UserManagement";
-import PermissionManagement from "../pages/Permissions_co/PermissionsManagement";
-import Reports from "../pages/Reports_co";
+import UserManagement from "../pages/UserManagement";
+import { PlanManager } from "../pages/MedicalEventPlanning";
+import Reports from "../pages/Reports_co/index.jsx";
 import "./AdminLayout.css";
 
 const AdminLayout = () => {
@@ -26,8 +26,8 @@ const AdminLayout = () => {
       case "users":
         console.log("Rendering UserManagement component");
         return <UserManagement />;
-      case "permissions":
-        return <PermissionManagement />;
+      case "medical-planning":
+        return <PlanManager />;
       case "reports":
         return <Reports />;
       default:

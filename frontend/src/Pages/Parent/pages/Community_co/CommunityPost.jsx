@@ -6,9 +6,12 @@ import { useAuth } from "../../../../context/AuthContext";
 import communityService from "../../../../services/communityService"; // Import communityService
 
 const CommunityPost = () => {
-  const { postId } = useParams();
+  const { postId: postIdParam } = useParams();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+
+  // Convert postId từ URL parameter thành number
+  const postId = parseInt(postIdParam);
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,13 +26,36 @@ const CommunityPost = () => {
   const [sortBy, setSortBy] = useState("latest");
   const [relatedPosts, setRelatedPosts] = useState([]);
 
+  // States cho edit comments
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentContent, setEditCommentContent] = useState("");
+
+  // States cho replies
+  const [showReplies, setShowReplies] = useState({});
+  const [replyingToComment, setReplyingToComment] = useState(null);
+  const [newReply, setNewReply] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
+  const [editingReplyId, setEditingReplyId] = useState(null);
+  const [editReplyContent, setEditReplyContent] = useState("");
+  const [commentReplies, setCommentReplies] = useState({}); // Store replies by commentId
+
   // Lấy chi tiết bài đăng từ API
   useEffect(() => {
     const fetchPostDetail = async () => {
+      // Validate postId
+      if (!postId || isNaN(postId)) {
+        console.error("❌ Invalid postId:", postIdParam);
+        navigate("/parent/community");
+        return;
+      }
+
       setLoading(true);
+      console.log("📄 Fetching post detail for ID:", postId);
+
       try {
         // Gọi API lấy chi tiết bài đăng
         const result = await communityService.getPostDetail(postId);
+        console.log("📄 Post detail result:", result);
 
         if (result.status === "success") {
           setPost(result.data);
@@ -40,11 +66,16 @@ const CommunityPost = () => {
             setRelatedPosts(result.data.relatedPosts);
           }
         } else {
-          // Nếu không tìm thấy bài viết, chuyển hướng về trang danh sách
+          console.warn("⚠️ Post not found, redirecting to community");
           navigate("/parent/community");
         }
       } catch (error) {
-        console.error("Error fetching post detail:", error);
+        console.error("❌ Error fetching post detail:", error);
+        console.error("❌ Error details:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
         navigate("/parent/community");
       } finally {
         setLoading(false);
@@ -57,9 +88,16 @@ const CommunityPost = () => {
   // Lấy bình luận của bài đăng
   useEffect(() => {
     const fetchComments = async () => {
-      if (!postId) return;
+      if (!postId || isNaN(postId)) return;
 
       setLoadingComments(true);
+      console.log(
+        "💬 Fetching comments for post:",
+        postId,
+        "page:",
+        commentPage
+      );
+
       try {
         const result = await communityService.getComments(
           postId,
@@ -67,12 +105,42 @@ const CommunityPost = () => {
           10
         );
 
+        console.log("💬 Comments result:", result);
+
         if (result.status === "success") {
-          setComments(result.data.posts); // API trả về bình luận trong trường "posts"
-          setCommentTotalPages(result.data.totalPages);
+          // API có thể trả về comments trong nhiều structure khác nhau
+          let commentsData = [];
+
+          if (Array.isArray(result.data)) {
+            // Trường hợp API trả về array trực tiếp
+            commentsData = result.data;
+          } else if (
+            result.data.content &&
+            Array.isArray(result.data.content)
+          ) {
+            // Trường hợp API trả về với pagination structure như posts
+            commentsData = result.data.content;
+            setCommentTotalPages(result.data.totalPages || 1);
+          } else if (
+            result.data.comments &&
+            Array.isArray(result.data.comments)
+          ) {
+            // Trường hợp API trả về trong field comments
+            commentsData = result.data.comments;
+            setCommentTotalPages(
+              result.data.totalPages || result.totalPages || 1
+            );
+          }
+
+          console.log(
+            "💬 Comments data processed:",
+            commentsData.length,
+            "comments"
+          );
+          setComments(commentsData);
         }
       } catch (error) {
-        console.error("Error fetching comments:", error);
+        console.error("❌ Error fetching comments:", error);
         setComments([]);
       } finally {
         setLoadingComments(false);
@@ -190,6 +258,223 @@ const CommunityPost = () => {
         })
       : [];
 
+  // Xử lý like comment
+  const handleCommentLike = async (commentId) => {
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để thích bình luận");
+      return;
+    }
+
+    try {
+      console.log("👍 Toggling like for comment:", commentId);
+      const result = await communityService.toggleCommentLike(commentId);
+      console.log("👍 Comment like result:", result);
+
+      if (result.status === "success") {
+        const { liked, likesCount } = result.data;
+
+        // Cập nhật comment trong danh sách
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment.id === commentId
+              ? { ...comment, liked, likesCount }
+              : comment
+          )
+        );
+      }
+    } catch (error) {
+      console.error("❌ Error liking comment:", error);
+      alert("Không thể thực hiện thao tác. Vui lòng thử lại sau.");
+    }
+  };
+
+  // Xử lý edit comment
+  const handleEditComment = async (commentId) => {
+    if (!editCommentContent.trim()) return;
+
+    try {
+      console.log("✏️ Updating comment:", commentId);
+      const result = await communityService.updateComment(
+        commentId,
+        editCommentContent
+      );
+      console.log("✏️ Update comment result:", result);
+
+      if (result.status === "success") {
+        // Cập nhật comment trong danh sách
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment.id === commentId
+              ? {
+                  ...comment,
+                  content: result.data.content,
+                  updatedAt: result.data.updatedAt,
+                }
+              : comment
+          )
+        );
+
+        // Reset edit state
+        setEditingCommentId(null);
+        setEditCommentContent("");
+      }
+    } catch (error) {
+      console.error("❌ Error updating comment:", error);
+      alert("Không thể cập nhật bình luận. Vui lòng thử lại sau.");
+    }
+  };
+
+  // Xử lý delete comment
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) return;
+
+    try {
+      console.log("🗑️ Deleting comment:", commentId);
+      const result = await communityService.deleteComment(commentId);
+      console.log("🗑️ Delete comment result:", result);
+
+      if (result.status === "success") {
+        // Xóa comment khỏi danh sách
+        setComments((prev) =>
+          prev.filter((comment) => comment.id !== commentId)
+        );
+
+        // Cập nhật số lượng comments trong post
+        if (post) {
+          setPost((prev) => ({
+            ...prev,
+            commentsCount: Math.max(0, (prev.commentsCount || 0) - 1),
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error deleting comment:", error);
+      alert("Không thể xóa bình luận. Vui lòng thử lại sau.");
+    }
+  };
+
+  // Xử lý gửi reply
+  const handleReplySubmit = async (commentId) => {
+    if (!newReply.trim()) return;
+
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để phản hồi");
+      return;
+    }
+
+    setSubmittingReply(true);
+
+    try {
+      console.log("💬 Adding reply to comment:", commentId);
+      const result = await communityService.addReply(commentId, newReply);
+      console.log("💬 Add reply result:", result);
+
+      if (result.status === "success") {
+        // Thêm reply vào danh sách replies của comment
+        setCommentReplies((prev) => ({
+          ...prev,
+          [commentId]: [...(prev[commentId] || []), result.data],
+        }));
+
+        // Cập nhật replies count cho comment
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment.id === commentId
+              ? { ...comment, repliesCount: (comment.repliesCount || 0) + 1 }
+              : comment
+          )
+        );
+
+        // Reset reply form
+        setNewReply("");
+        setReplyingToComment(null);
+      }
+    } catch (error) {
+      console.error("❌ Error adding reply:", error);
+      alert("Không thể gửi phản hồi. Vui lòng thử lại sau.");
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  // Load replies cho comment
+  const loadReplies = async (commentId) => {
+    try {
+      console.log("📄 Loading replies for comment:", commentId);
+      const result = await communityService.getReplies(commentId);
+      console.log("📄 Replies result:", result);
+
+      if (result.status === "success") {
+        // API có thể trả về replies trong nhiều structure khác nhau
+        let repliesData = [];
+
+        if (Array.isArray(result.data)) {
+          repliesData = result.data;
+        } else if (result.data.content && Array.isArray(result.data.content)) {
+          repliesData = result.data.content;
+        } else if (result.data.replies && Array.isArray(result.data.replies)) {
+          repliesData = result.data.replies;
+        }
+
+        console.log(
+          "📄 Replies data processed:",
+          repliesData.length,
+          "replies"
+        );
+        setCommentReplies((prev) => ({
+          ...prev,
+          [commentId]: repliesData,
+        }));
+      }
+    } catch (error) {
+      console.error("❌ Error loading replies:", error);
+    }
+  };
+
+  // Toggle hiển thị replies
+  const toggleReplies = (commentId) => {
+    const isShowing = showReplies[commentId];
+
+    setShowReplies((prev) => ({
+      ...prev,
+      [commentId]: !isShowing,
+    }));
+
+    // Load replies nếu chưa load và đang mở
+    if (!isShowing && !commentReplies[commentId]) {
+      loadReplies(commentId);
+    }
+  };
+
+  // Xử lý like reply
+  const handleReplyLike = async (replyId, commentId) => {
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để thích phản hồi");
+      return;
+    }
+
+    try {
+      console.log("👍 Toggling like for reply:", replyId);
+      const result = await communityService.toggleReplyLike(replyId);
+      console.log("👍 Reply like result:", result);
+
+      if (result.status === "success") {
+        const { liked, likesCount } = result.data;
+
+        // Cập nhật reply trong danh sách
+        setCommentReplies((prev) => ({
+          ...prev,
+          [commentId]: prev[commentId].map((reply) =>
+            reply.id === replyId ? { ...reply, liked, likesCount } : reply
+          ),
+        }));
+      }
+    } catch (error) {
+      console.error("❌ Error liking reply:", error);
+      alert("Không thể thực hiện thao tác. Vui lòng thử lại sau.");
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner text="Đang tải bài viết..." />;
   }
@@ -226,20 +511,33 @@ const CommunityPost = () => {
           <h1 className="post-title">{post.title}</h1>
 
           <div className="post-author">
-            <img
-              src={
-                post.author.avatar ||
-                "https://randomuser.me/api/portraits/lego/1.jpg"
-              }
-              alt={post.author.name}
-              className="author-avatar"
-            />
+            {post.author.role === "PARENT" ? (
+              // Icon cho phụ huynh
+              <div className="author-icon parent-icon">
+                <i className="fas fa-user-friends"></i>
+              </div>
+            ) : post.author.role === "NURSE" ? (
+              // Icon cho y tá
+              <div className="author-icon nurse-icon">
+                <i className="fas fa-user-nurse"></i>
+              </div>
+            ) : (
+              // Icon mặc định cho các vai trò khác
+              <div className="author-icon default-icon">
+                <i className="fas fa-user"></i>
+              </div>
+            )}
             <div className="author-info">
               <div className="author-name">
                 {post.author.name}
                 {post.author.role === "NURSE" && (
                   <span className="author-badge nurse">
                     <i className="fas fa-user-nurse"></i> Y tá
+                  </span>
+                )}
+                {post.author.role === "PARENT" && (
+                  <span className="author-badge parent">
+                    <i className="fas fa-users"></i> Phụ huynh
                   </span>
                 )}
               </div>
@@ -325,55 +623,244 @@ const CommunityPost = () => {
         {/* Danh sách bình luận */}
         {loadingComments ? (
           <div className="loading-comments">
-            <i className="fas fa-spinner fa-spin"></i> Đang tải bình luận...
+            <LoadingSpinner text="Đang tải bình luận..." />
           </div>
-        ) : sortedComments.length > 0 ? (
+        ) : comments.length === 0 ? (
+          <div className="no-comments">
+            <i className="fas fa-comment-slash"></i>
+            <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+          </div>
+        ) : (
           <div className="comments-list">
             {sortedComments.map((comment) => (
               <div key={comment.id} className="comment-item">
                 <div className="comment-header">
                   <div className="comment-author">
-                    <img
-                      src={
-                        comment.author.avatar ||
-                        "https://randomuser.me/api/portraits/lego/1.jpg"
-                      }
-                      alt={comment.author.name}
-                      className="comment-author-avatar"
-                    />
+                    {comment.author.role === "PARENT" ? (
+                      <div className="comment-author-icon parent-icon">
+                        <i className="fas fa-user-friends"></i>
+                      </div>
+                    ) : comment.author.role === "NURSE" ? (
+                      <div className="comment-author-icon nurse-icon">
+                        <i className="fas fa-user-nurse"></i>
+                      </div>
+                    ) : (
+                      <div className="comment-author-icon default-icon">
+                        <i className="fas fa-user"></i>
+                      </div>
+                    )}
                     <div className="comment-author-info">
-                      <div className="comment-author-name">
+                      <span className="comment-author-name">
                         {comment.author.name}
                         {comment.author.role === "NURSE" && (
-                          <span className="comment-author-badge">
+                          <span className="author-badge nurse">
                             <i className="fas fa-user-nurse"></i> Y tá
                           </span>
                         )}
-                      </div>
-                      <div className="comment-time">
+                      </span>
+                      <span className="comment-time">
                         {formatDate(comment.createdAt)}
-                      </div>
+                        {comment.updatedAt !== comment.createdAt && (
+                          <span className="edited-indicator">
+                            {" "}
+                            • đã chỉnh sửa
+                          </span>
+                        )}
+                      </span>
                     </div>
                   </div>
+
+                  {/* Actions menu cho comment của current user */}
+                  {currentUser && currentUser.id === comment.author.id && (
+                    <div className="comment-actions-menu">
+                      <button
+                        onClick={() => {
+                          setEditingCommentId(comment.id);
+                          setEditCommentContent(comment.content);
+                        }}
+                        className="edit-comment-btn"
+                        title="Chỉnh sửa"
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        className="delete-comment-btn"
+                        title="Xóa"
+                      >
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                <div className="comment-content">{comment.content}</div>
+                <div className="comment-content">
+                  {editingCommentId === comment.id ? (
+                    <div className="edit-comment-form">
+                      <textarea
+                        value={editCommentContent}
+                        onChange={(e) => setEditCommentContent(e.target.value)}
+                        className="edit-comment-textarea"
+                        rows="3"
+                      />
+                      <div className="edit-comment-actions">
+                        <button
+                          onClick={() => handleEditComment(comment.id)}
+                          className="save-edit-btn"
+                        >
+                          Lưu
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingCommentId(null);
+                            setEditCommentContent("");
+                          }}
+                          className="cancel-edit-btn"
+                        >
+                          Hủy
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p>{comment.content}</p>
+                  )}
+                </div>
 
                 <div className="comment-actions">
-                  <button className="comment-like-btn">
-                    <i className="far fa-heart"></i> Thích
+                  <button
+                    className={`comment-like-btn ${
+                      comment.liked ? "liked" : ""
+                    }`}
+                    onClick={() => handleCommentLike(comment.id)}
+                  >
+                    <i
+                      className={`${comment.liked ? "fas" : "far"} fa-heart`}
+                    ></i>
+                    <span>{comment.likesCount || 0}</span>
                   </button>
-                  <button className="comment-reply-btn">
-                    <i className="fas fa-reply"></i> Trả lời
+
+                  <button
+                    className="reply-btn"
+                    onClick={() =>
+                      setReplyingToComment(
+                        replyingToComment === comment.id ? null : comment.id
+                      )
+                    }
+                  >
+                    <i className="fas fa-reply"></i>
+                    Phản hồi
                   </button>
+
+                  {comment.repliesCount > 0 && (
+                    <button
+                      className="show-replies-btn"
+                      onClick={() => toggleReplies(comment.id)}
+                    >
+                      <i
+                        className={`fas fa-chevron-${
+                          showReplies[comment.id] ? "up" : "down"
+                        }`}
+                      ></i>
+                      {showReplies[comment.id] ? "Ẩn" : "Hiện"}{" "}
+                      {comment.repliesCount} phản hồi
+                    </button>
+                  )}
                 </div>
+
+                {/* Reply form */}
+                {replyingToComment === comment.id && (
+                  <div className="reply-form">
+                    <textarea
+                      value={newReply}
+                      onChange={(e) => setNewReply(e.target.value)}
+                      placeholder="Viết phản hồi..."
+                      rows="3"
+                      className="reply-textarea"
+                    />
+                    <div className="reply-actions">
+                      <button
+                        onClick={() => handleReplySubmit(comment.id)}
+                        disabled={submittingReply}
+                        className="submit-reply-btn"
+                      >
+                        {submittingReply ? "Đang gửi..." : "Gửi phản hồi"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setReplyingToComment(null);
+                          setNewReply("");
+                        }}
+                        className="cancel-reply-btn"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Replies list */}
+                {showReplies[comment.id] && commentReplies[comment.id] && (
+                  <div className="replies-list">
+                    {commentReplies[comment.id].map((reply) => (
+                      <div key={reply.id} className="reply-item">
+                        <div className="reply-header">
+                          <div className="reply-author">
+                            {reply.author.role === "PARENT" ? (
+                              <div className="reply-author-icon parent-icon">
+                                <i className="fas fa-user-friends"></i>
+                              </div>
+                            ) : reply.author.role === "NURSE" ? (
+                              <div className="reply-author-icon nurse-icon">
+                                <i className="fas fa-user-nurse"></i>
+                              </div>
+                            ) : (
+                              <div className="reply-author-icon default-icon">
+                                <i className="fas fa-user"></i>
+                              </div>
+                            )}
+                            <div className="reply-author-info">
+                              <span className="reply-author-name">
+                                {reply.author.name}
+                                {reply.author.role === "NURSE" && (
+                                  <span className="author-badge nurse">
+                                    <i className="fas fa-user-nurse"></i> Y tá
+                                  </span>
+                                )}
+                              </span>
+                              <span className="reply-time">
+                                {formatDate(reply.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="reply-content">
+                          <p>{reply.content}</p>
+                        </div>
+
+                        <div className="reply-actions">
+                          <button
+                            className={`reply-like-btn ${
+                              reply.liked ? "liked" : ""
+                            }`}
+                            onClick={() =>
+                              handleReplyLike(reply.id, comment.id)
+                            }
+                          >
+                            <i
+                              className={`${
+                                reply.liked ? "fas" : "far"
+                              } fa-heart`}
+                            ></i>
+                            <span>{reply.likesCount || 0}</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
-          </div>
-        ) : (
-          <div className="empty-comments">
-            <i className="fas fa-comments"></i>
-            <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
           </div>
         )}
 
@@ -423,14 +910,19 @@ const CommunityPost = () => {
 
                 <div className="related-post-meta">
                   <div className="related-post-author">
-                    <img
-                      src={
-                        relatedPost.author.avatar ||
-                        "https://randomuser.me/api/portraits/lego/1.jpg"
-                      }
-                      alt={relatedPost.author.name}
-                      className="related-author-avatar"
-                    />
+                    {relatedPost.author.role === "PARENT" ? (
+                      <div className="related-author-icon parent-icon">
+                        <i className="fas fa-user-friends"></i>
+                      </div>
+                    ) : relatedPost.author.role === "NURSE" ? (
+                      <div className="related-author-icon nurse-icon">
+                        <i className="fas fa-user-nurse"></i>
+                      </div>
+                    ) : (
+                      <div className="related-author-icon default-icon">
+                        <i className="fas fa-user"></i>
+                      </div>
+                    )}
                     <span>{relatedPost.author.name}</span>
                   </div>
                   <div className="related-post-stats">

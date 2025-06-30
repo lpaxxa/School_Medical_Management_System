@@ -1,6 +1,79 @@
+/* Reports Module Index - Modern Professional Design */
 .reports-page {
+<<<<<<< Updated upstream
   width: 100%;
   background-color: #f0f9ff; /* Light medical blue background */
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(26, 123, 181, 0.1); /* Medical blue shadow */
 }
+=======
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+  font-family: var(--font-body);
+}
+
+/* Global Reset for Reports Module */
+.reports-page * {
+  box-sizing: border-box;
+}
+
+.reports-page h1,
+.reports-page h2,
+.reports-page h3,
+.reports-page h4,
+.reports-page h5,
+.reports-page h6 {
+  margin: 0;
+  font-family: var(--font-heading);
+}
+
+.reports-page p {
+  margin: 0;
+  font-family: var(--font-body);
+}
+
+/* Loading States */
+.reports-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.reports-loading-content {
+  text-align: center;
+  color: white;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 32px;
+  border-radius: 16px;
+}
+
+.reports-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reports-page {
+    padding: 16px;
+  }
+} 
+>>>>>>> Stashed changes

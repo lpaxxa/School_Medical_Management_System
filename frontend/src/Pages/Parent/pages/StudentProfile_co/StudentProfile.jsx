@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./StudentProfile.css";
-import "../shared/student-selector.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
@@ -36,7 +35,6 @@ export default function StudentProfile() {
       const studentData = students.find((s) => s.id === selectedStudentId);
       setExtendedStudent(studentData || null);
 
-      // If the selected student has a different parentId, fetch that parent's info
       if (
         studentData &&
         (!parentInfo || parentInfo.id !== studentData.parentId)
@@ -48,12 +46,10 @@ export default function StudentProfile() {
     }
   }, [selectedStudentId, students, parentInfo, fetchParentInfo]);
 
-  // Fetch parent info when component mounts
   useEffect(() => {
     fetchParentInfo();
   }, [fetchParentInfo]);
 
-  // Calculate age from date of birth
   const calculateAge = (dob) => {
     if (!dob) return "";
     const birthDate = new Date(dob);
@@ -71,7 +67,6 @@ export default function StudentProfile() {
     return age;
   };
 
-  // Format date (e.g., "2023-06-15" to "15/06/2023")
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -83,196 +78,214 @@ export default function StudentProfile() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner text="Đang tải thông tin học sinh..." />;
+    return <div className="sp-loading"><LoadingSpinner text="Đang tải thông tin học sinh..." /></div>;
   }
 
   if (error) {
     return (
-      <div className="error-container">
+      <div className="sp-error">
         <i className="fas fa-exclamation-circle"></i>
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Thử lại</button>
+        <button className="sp-btn sp-btn-primary" onClick={() => window.location.reload()}>Thử lại</button>
       </div>
     );
   }
 
   if (students.length === 0) {
     return (
-      <div className="no-students-container">
-        <i className="fas fa-user-graduate"></i>
-        <p>Không tìm thấy thông tin học sinh nào.</p>
+      <div className="sp-card">
+        <div className="sp-card-body" style={{textAlign: "center"}}>
+          <i className="fas fa-user-graduate" style={{fontSize: "48px", color: "#d1d5db", marginBottom: "16px"}}></i>
+          <p>Không tìm thấy thông tin học sinh nào.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="student-profile-container">
-      <h1 className="page-title">Hồ Sơ Học Sinh</h1>
-
+    <div className="sp-container">
+      {/* Header với nút Back đã được di chuyển lên trên */}
+      <div className="sp-header">
+        <button
+          className="sp-btn sp-btn-secondary sp-back-btn"
+          onClick={() => navigate("/parent/dashboard")}
+        >
+          <i className="fas fa-arrow-left"></i> Quay lại
+        </button>
+        <h1 className="sp-title">Thông tin học sinh</h1>
+      </div>
+      
       {/* Student selection */}
       {students.length > 1 && (
-        <div className="student-selector">
-          <label htmlFor="student-select">Chọn học sinh:</label>
-          <select
-            id="student-select"
-            value={selectedStudentId || ""}
-            onChange={(e) => setSelectedStudentId(Number(e.target.value))}
-          >
-            {students.map((student) => (
-              <option key={student.id} value={student.id}>
-                {student.fullName}
-              </option>
-            ))}
-          </select>
+        <div className="sp-card" style={{marginBottom: "20px"}}>
+          <div className="sp-card-body">
+            <label htmlFor="student-select" style={{display: "block", marginBottom: "8px", fontWeight: "500"}}>Chọn học sinh:</label>
+            <select
+              id="student-select"
+              value={selectedStudentId || ""}
+              onChange={(e) => setSelectedStudentId(Number(e.target.value))}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: "8px",
+                border: "1px solid #e5e7eb",
+                fontSize: "14px"
+              }}
+            >
+              {students.map((student) => (
+                <option key={student.id} value={student.id}>
+                  {student.fullName}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 
-      {/* Student details */}
+      {/* Student details - giữ nguyên */}
       {extendedStudent && (
-        <div className="student-details">
-          <div className="student-profile-card">
-            <div className="student-header">
-              <div className="student-avatar">
+        <>
+          {/* Student header card */}
+          <div className="sp-student-card">
+            <div className="sp-student-header">
+              <div className="sp-student-avatar">
                 {extendedStudent.imageUrl ? (
                   <img
                     src={extendedStudent.imageUrl}
                     alt={extendedStudent.fullName}
                   />
                 ) : (
-                  <i className="fas fa-user-graduate"></i>
+                  <img
+                    src="https://via.placeholder.com/150"
+                    alt="Default Avatar"
+                  />
                 )}
               </div>
-              <div className="student-basic-info">
-                <h2>{extendedStudent.fullName}</h2>
-                <p>Mã học sinh: {extendedStudent.studentId}</p>
-                <p>Lớp: {extendedStudent.className}</p>
-                <p>Khối: {extendedStudent.gradeLevel}</p>
+              <div className="sp-student-info">
+                <h2 className="sp-student-name">{extendedStudent.fullName}</h2>
+                <div className="sp-student-details">
+                  <div>Mã học sinh: {extendedStudent.studentId || extendedStudent.id}</div>
+                  <div>Lớp: {extendedStudent.className || extendedStudent.class}</div>
+                  <div>Khối: {extendedStudent.gradeLevel || "Lớp " + extendedStudent.grade || "1"}</div>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="student-info-sections">
-              <section className="info-section">
-                <h3>Thông tin cá nhân</h3>
-                <div className="info-grid">
-                  <div className="info-item">
-                    <span className="label">Ngày sinh:</span>
-                    <span>{formatDate(extendedStudent.dateOfBirth)}</span>
+          {/* Personal information */}
+          <div className="sp-card">
+            <div className="sp-card-header">
+              <div className="sp-card-icon">
+                <i className="fas fa-user sp-icon-blue"></i>
+              </div>
+              <div className="sp-card-title">Thông tin cá nhân</div>
+            </div>
+            <div className="sp-card-body">
+              <div className="sp-info-grid">
+                <div className="sp-info-item">
+                  <span className="sp-info-label">Ngày sinh:</span>
+                  <span className="sp-info-value">{formatDate(extendedStudent.dateOfBirth) || "Chưa cập nhật"}</span>
+                </div>
+                <div className="sp-info-item">
+                  <span className="sp-info-label">Tuổi:</span>
+                  <span className="sp-info-value">
+                    {calculateAge(extendedStudent.dateOfBirth)} tuổi
+                  </span>
+                </div>
+                <div className="sp-info-item">
+                  <span className="sp-info-label">Giới tính:</span>
+                  <span className="sp-info-value">{extendedStudent.gender || "Chưa cập nhật"}</span>
+                </div>
+                <div className="sp-info-item">
+                  <span className="sp-info-label">Niên khóa:</span>
+                  <span className="sp-info-value">{extendedStudent.schoolYear || "2023-2024"}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Family information */}
+          <div className="sp-card">
+            <div className="sp-card-header">
+              <div className="sp-card-icon">
+                <i className="fas fa-users sp-icon-purple"></i>
+              </div>
+              <div className="sp-card-title">Thông tin gia đình</div>
+            </div>
+            <div className="sp-card-body">
+              {isLoadingParent ? (
+                <div style={{textAlign: "center", padding: "10px"}}>
+                  <i className="fas fa-spinner fa-spin"></i> Đang tải thông tin gia đình...
+                </div>
+              ) : parentError ? (
+                <div className="sp-error" style={{margin: "0"}}>
+                  <i className="fas fa-exclamation-triangle"></i> {parentError}
+                </div>
+              ) : parentInfo ? (
+                <div className="sp-info-grid">
+                  <div className="sp-info-item">
+                    <span className="sp-info-label">Họ tên phụ huynh:</span>
+                    <span className="sp-info-value">{parentInfo.fullName}</span>
                   </div>
-                  <div className="info-item">
-                    <span className="label">Tuổi:</span>
-                    <span>
-                      {calculateAge(extendedStudent.dateOfBirth)} tuổi
+                  <div className="sp-info-item">
+                    <span className="sp-info-label">Mối quan hệ:</span>
+                    <span className="sp-info-value">
+                      {parentInfo.relationshipType || "Bố/Mẹ"}
                     </span>
                   </div>
-                  <div className="info-item">
-                    <span className="label">Giới tính:</span>
-                    <span>{extendedStudent.gender}</span>
+                  <div className="sp-info-item sp-full-width">
+                    <span className="sp-info-label">Email:</span>
+                    <span className="sp-info-value">{parentInfo.email}</span>
                   </div>
-                  <div className="info-item">
-                    <span className="label">Niên khóa:</span>
-                    <span>{extendedStudent.schoolYear}</span>
+                  <div className="sp-info-item">
+                    <span className="sp-info-label">Số điện thoại:</span>
+                    <span className="sp-info-value">{parentInfo.phoneNumber}</span>
                   </div>
-                </div>
-              </section>
-
-              {/* Family Information Section */}
-              <section className="info-section">
-                <h3>Thông tin gia đình</h3>
-                {isLoadingParent ? (
-                  <div className="loading-indicator">
-                    <i className="fas fa-spinner fa-spin"></i> Đang tải thông
-                    tin gia đình...
+                  <div className="sp-info-item">
+                    <span className="sp-info-label">Địa chỉ:</span>
+                    <span className="sp-info-value">{parentInfo.address || "Chưa cập nhật"}</span>
                   </div>
-                ) : parentError ? (
-                  <div className="error-message">
-                    <i className="fas fa-exclamation-circle"></i> {parentError}
-                  </div>
-                ) : parentInfo ? (
-                  <div className="info-grid">
-                    <div className="info-item">
-                      <span className="label">Họ tên phụ huynh:</span>
-                      <span>{parentInfo.fullName}</span>
-                    </div>
-                    <div className="info-item">
-                      <span className="label">Mối quan hệ:</span>
-                      <span>
-                        {parentInfo.relationshipType || "Chưa cập nhật"}
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="label">Email:</span>
-                      <span>{parentInfo.email}</span>
-                    </div>
-                    <div className="info-item">
-                      <span className="label">Số điện thoại:</span>
-                      <span>{parentInfo.phoneNumber}</span>
-                    </div>
-                    <div className="info-item">
-                      <span className="label">Địa chỉ:</span>
-                      <span>{parentInfo.address || "Chưa cập nhật"}</span>
-                    </div>
-                    {parentInfo.occupation && (
-                      <div className="info-item">
-                        <span className="label">Nghề nghiệp:</span>
-                        <span>{parentInfo.occupation}</span>
-                      </div>
-                    )}
-                    <div className="info-item">
-                      <span className="label">Mã tài khoản:</span>
-                      <span>{parentInfo.accountId}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <p>Không có thông tin gia đình</p>
-                )}
-              </section>
-
-              <section className="info-section">
-                <h3>Hồ sơ y tế</h3>
-                <div className="info-grid">
-                  <div className="info-item">
-                    <span className="label">Mã hồ sơ y tế:</span>
-                    <span>{extendedStudent.healthProfileId || "Chưa có"}</span>
+                  <div className="sp-info-item">
+                    <span className="sp-info-label">Mã tài khoản:</span>
+                    <span className="sp-info-value">{parentInfo.accountId}</span>
                   </div>
                 </div>
-                <div className="health-profile-actions">
-                  <button
-                    className="primary-button"
-                    onClick={() =>
-                      navigate(
-                        `/parent/health-profile/${extendedStudent.healthProfileId}`
-                      )
-                    }
-                  >
-                    <i className="fas fa-file-medical"></i>
-                    Xem hồ sơ y tế
-                  </button>
-                </div>
-              </section>
+              ) : (
+                <p>Không có thông tin gia đình</p>
+              )}
             </div>
+          </div>
 
-            <div className="action-buttons">
+          {/* Health profile */}
+          <div className="sp-card">
+            <div className="sp-card-header">
+              <div className="sp-card-icon">
+                <i className="fas fa-heartbeat sp-icon-green"></i>
+              </div>
+              <div className="sp-card-title">Hồ sơ y tế</div>
+            </div>
+            <div className="sp-card-body">
+              <div className="sp-info-grid">
+                <div className="sp-info-item">
+                  <span className="sp-info-label">Mã hồ sơ y tế:</span>
+                  <span className="sp-info-value">{extendedStudent.healthProfileId || "1"}</span>
+                </div>
+              </div>
+            </div>
+            <div className="sp-card-footer">
               <button
-                className="secondary-button"
+                className="sp-btn sp-btn-primary"
                 onClick={() =>
-                  navigate(`/parent/medical-history/${extendedStudent.id}`)
+                  navigate(
+                    `/parent/health-profile/${extendedStudent.healthProfileId}`
+                  )
                 }
               >
-                <i className="fas fa-history"></i>
-                Lịch sử khám bệnh
-              </button>
-              <button
-                className="secondary-button"
-                onClick={() =>
-                  navigate(`/parent/student-edit/${extendedStudent.id}`)
-                }
-              >
-                <i className="fas fa-edit"></i>
-                Chỉnh sửa thông tin
+                <i className="fas fa-file-medical"></i> Xem hồ sơ y tế
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

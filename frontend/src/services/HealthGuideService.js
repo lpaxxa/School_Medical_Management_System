@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "http://localhost:8080/api";
 
 /**
  * Service quản lý các API liên quan đến Health Guide (Cẩm nang y tế)
@@ -12,10 +12,41 @@ const HealthGuideService = {
    */
   getAllArticles: async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/api/health-articles`);
-      return response.data;
+      console.log("🏥 Fetching health articles from API:", `${BASE_URL}/health-articles`);
+      
+      const response = await axios.get(`${BASE_URL}/health-articles`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log("✅ Health articles response:", response);
+      console.log("✅ Health articles data:", response.data);
+      console.log("🔍 Response structure analysis:");
+      console.log("- response.data type:", typeof response.data);
+      console.log("- response.data is array:", Array.isArray(response.data));
+      console.log("- response.data length:", response.data?.length);
+      
+      // API trả về array trực tiếp
+      if (Array.isArray(response.data)) {
+        console.log("📄 Using direct array structure, length:", response.data.length);
+        return response.data;
+      }
+      
+      console.warn("⚠️ Unexpected API response structure, returning empty array");
+      console.warn("⚠️ Full response for debugging:", JSON.stringify(response.data, null, 2));
+      return [];
+      
     } catch (error) {
-      console.error("Error fetching health articles:", error);
+      console.error("❌ Error fetching health articles:", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url
+      });
+      
       throw error;
     }
   },
@@ -27,10 +58,46 @@ const HealthGuideService = {
    */
   getArticleById: async (articleId) => {
     try {
-      const response = await axios.get(`${BASE_URL}/api/health-articles/${articleId}`);
-      return response.data;
+      console.log("🏥 Fetching article by ID:", articleId);
+      
+      const response = await axios.get(`${BASE_URL}/health-articles/${articleId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log("✅ Article detail response:", response.data);
+      console.log("🔍 Article response analysis:");
+      console.log("- response.data type:", typeof response.data);
+      console.log("- response.data.id:", response.data?.id);
+      console.log("- response.data.title:", response.data?.title);
+      
+      // API trả về object trực tiếp
+      if (response.data && response.data.id) {
+        console.log("📄 Using direct object structure");
+        return { article: response.data };
+      }
+      
+      throw new Error("Invalid article data received");
+      
     } catch (error) {
-      console.error(`Error fetching article with ID ${articleId}:`, error);
+      console.error(`❌ Error fetching article with ID ${articleId}:`, error);
+      
+      // Thử tìm trong danh sách tất cả articles
+      try {
+        console.log("🔄 Fallback: searching in all articles");
+        const allArticles = await HealthGuideService.getAllArticles();
+        const article = allArticles.find(a => a.id == articleId);
+        
+        if (article) {
+          console.log("✅ Found article in list:", article.title);
+          return { article };
+        }
+      } catch (fallbackError) {
+        console.error("❌ Fallback also failed:", fallbackError);
+      }
+      
       throw error;
     }
   },
@@ -61,7 +128,7 @@ const HealthGuideService = {
     try {
       const allArticles = await HealthGuideService.getAllArticles();
       return allArticles
-        .filter(article => article.id !== parseInt(currentArticleId) && article.category === category)
+        .filter(article => article.id != currentArticleId && article.category === category)
         .slice(0, limit);
     } catch (error) {
       console.error("Error fetching related articles:", error);
@@ -80,10 +147,10 @@ const HealthGuideService = {
       const term = searchTerm.toLowerCase();
       
       return allArticles.filter(article => 
-        article.title.toLowerCase().includes(term) ||
-        article.summary.toLowerCase().includes(term) ||
-        article.content.toLowerCase().includes(term) ||
-        article.tags.some(tag => tag.toLowerCase().includes(term))
+        article.title?.toLowerCase().includes(term) ||
+        article.summary?.toLowerCase().includes(term) ||
+        article.content?.toLowerCase().includes(term) ||
+        (article.tags && article.tags.some(tag => tag.toLowerCase().includes(term)))
       );
     } catch (error) {
       console.error(`Error searching articles with term "${searchTerm}":`, error);

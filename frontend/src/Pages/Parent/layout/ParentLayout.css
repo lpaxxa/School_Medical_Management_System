@@ -5,7 +5,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f2f5fa;
+  background-color: #ffffff;
   color: #37474f;
   font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   position: relative;
@@ -33,9 +33,9 @@
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 75% 10%, rgba(30, 60, 114, 0.05) 0%, rgba(30, 60, 114, 0) 20%),
-    radial-gradient(circle at 15% 80%, rgba(42, 82, 152, 0.05) 0%, rgba(42, 82, 152, 0) 30%),
-    linear-gradient(135deg, rgba(242, 245, 250, 0.5) 0%, rgba(242, 245, 250, 0) 100%);
+    radial-gradient(circle at 75% 10%, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0) 20%),
+    radial-gradient(circle at 15% 80%, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0) 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
   pointer-events: none;
   z-index: 0;
 }

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 /* Reports styling with school medical theme */
 .reports-page {
   padding: 30px;
@@ -17,8 +18,46 @@
   margin: 0 0 10px 0;
   font-size: 2rem;
   color: #1a7bb5; /* Medical blue */
+=======
+/* Reports Generator - Modern Professional Design */
+.reports-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+  font-family: var(--font-body);
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.reports-main-header {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: white;
+  padding: 40px;
+  border-radius: 20px;
+  margin-bottom: 32px;
+  box-shadow: 0 10px 25px rgba(30, 41, 59, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.reports-main-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  transform: rotate(45deg);
+}
+
+.reports-header-content {
+>>>>>>> Stashed changes
   display: flex;
+  justify-content: space-between;
   align-items: center;
+<<<<<<< Updated upstream
   gap: 10px;
 }
 
@@ -189,5 +228,264 @@
   .custom-date-range {
     flex-direction: column;
     align-items: stretch;
+=======
+  position: relative;
+  z-index: 1;
+}
+
+.reports-header-text h1 {
+  margin: 0 0 4px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #ffffff, #e2e8f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.reports-header-text p {
+  margin: 0;
+  font-size: 1.1rem;
+  opacity: 0.7;
+  color: #94a3b8;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.reports-header-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.reports-stat-item {
+  text-align: center;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reports-stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: #ffffff;
+  line-height: 1;
+}
+
+.reports-stat-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-heading);
+  color: #cbd5e1;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Generator Section */
+.reports-generator {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: 1px solid #f1f5f9;
+}
+
+.reports-generator-title {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: #1e293b;
+  margin: 0 0 32px 0;
+  text-align: center;
+  letter-spacing: -0.025em;
+}
+
+/* Action Buttons */
+.reports-action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.reports-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-decoration: none;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.reports-btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.reports-btn-primary:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.reports-btn-secondary {
+  background: #64748b;
+  color: white;
+}
+
+.reports-btn-secondary:hover {
+  background: #475569;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
+}
+
+.reports-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Loading Spinner */
+.reports-loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Error Messages */
+.reports-error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.reports-success-message {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+/* Content Animation */
+.reports-generator > *,
+.reports-main-header > * {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .reports-container {
+    padding: 16px;
+  }
+
+  .reports-main-header {
+    padding: 32px 24px;
+    margin-bottom: 24px;
+  }
+
+  .reports-header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .reports-header-text h1 {
+    font-size: 2rem;
+  }
+
+  .reports-header-stats {
+    justify-content: center;
+  }
+
+  .reports-generator {
+    padding: 24px;
+  }
+
+  .reports-generator-title {
+    font-size: 1.75rem;
+  }
+
+  .reports-action-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .reports-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .reports-container {
+    padding: 12px;
+  }
+
+  .reports-main-header {
+    padding: 24px 20px;
+    border-radius: 12px;
+  }
+
+  .reports-header-text h1 {
+    font-size: 1.75rem;
+  }
+
+  .reports-stat-item {
+    padding: 12px 16px;
+  }
+
+  .reports-stat-number {
+    font-size: 1.5rem;
+  }
+
+  .reports-generator {
+    padding: 20px;
+    border-radius: 12px;
+>>>>>>> Stashed changes
+  }
+
+  .reports-generator-title {
+    font-size: 1.5rem;
+  }
+} 

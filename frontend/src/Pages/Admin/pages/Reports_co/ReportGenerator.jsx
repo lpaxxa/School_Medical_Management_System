@@ -1,13 +1,28 @@
 import React, { useState } from "react";
 import "./ReportGenerator.css";
+<<<<<<< Updated upstream
 
 const ReportGenerator = () => {
   const [reportType, setReportType] = useState('health');
   const [dateRange, setDateRange] = useState('month');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+=======
+import ReportTypeSelector from "./components/ReportTypeSelector";
+import ReportDisplay from "./components/ReportDisplay";
+import DetailView from "./components/DetailView";
+import NotificationDetail from "./components/NotificationDetail";
+import StudentListView from "./components/StudentListView";
+import StudentDetailView from "./components/StudentDetailView";
+import MedicationListView from "./components/MedicationListView";
+import { reportService } from "./services/reportService";
+
+const ReportGenerator = () => {
+  const [reportType, setReportType] = useState("health");
+>>>>>>> Stashed changes
   const [generatedReport, setGeneratedReport] = useState(null);
 
+<<<<<<< Updated upstream
   const reportTypes = [
     {
       id: 'health',
@@ -32,6 +47,56 @@ const ReportGenerator = () => {
       title: 'Báo cáo người dùng',
       icon: 'fas fa-users',
       description: 'Thống kê tài khoản'
+=======
+  // States cho detail view
+  const [detailData, setDetailData] = useState(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
+
+  // State cho notification và student detail
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  // State để theo dõi loại data đang xem (notification hoặc student)
+  const [detailViewType, setDetailViewType] = useState(null); // 'notification' hoặc 'student'
+
+  const generateReport = async () => {
+    console.log("Generating report:", { reportType });
+
+    setIsLoading(true);
+    setError(null);
+    setShowDetailView(false);
+    setSelectedNotification(null);
+    setSelectedStudent(null);
+    setDetailViewType(null);
+
+    try {
+      let reportData;
+
+      switch (reportType) {
+        case "vaccination":
+          reportData = await reportService.getVaccinationReport();
+          break;
+        case "checkup":
+          reportData = await reportService.getCheckupReport();
+          break;
+        case "health":
+          reportData = reportService.getHealthReport();
+          break;
+        case "medication":
+          reportData = await reportService.getMedicationReport();
+          break;
+        default:
+          throw new Error("Loại báo cáo không hỗ trợ");
+      }
+
+      setGeneratedReport(reportData);
+    } catch (err) {
+      console.error("Error generating report:", err);
+      setError(err.message || "Không thể tạo báo cáo. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
+>>>>>>> Stashed changes
     }
   ];
 
@@ -79,9 +144,26 @@ const ReportGenerator = () => {
             { label: 'Lớp 12', normal: 315, overweight: 24, underweight: 18 }
           ]
         }
+<<<<<<< Updated upstream
       ]
     };
   };
+=======
+        rawData = await response.json();
+      } else if (reportType === "medication") {
+        setDetailViewType("medication");
+        // Lấy dữ liệu thuốc từ API
+        rawData = await reportService.getMedicationDetailData();
+      } else {
+        setDetailViewType("notification");
+        // Lấy dữ liệu thông báo cho các báo cáo khác
+        if (reportType === "vaccination") {
+          rawData = await reportService.getVaccinationDetailData();
+        } else if (reportType === "checkup") {
+          rawData = await reportService.getCheckupDetailData();
+        }
+      }
+>>>>>>> Stashed changes
 
   // Helper function to get date range label
   const getPeriodLabel = () => {
@@ -107,6 +189,7 @@ const ReportGenerator = () => {
   const getMockUsersReport = () => ({ title: 'Báo cáo người dùng', period: getPeriodLabel() });
 
   return (
+<<<<<<< Updated upstream
     <div className="reports-page">
       <div className="reports-header">
         <h1 className="reports-title">
@@ -132,6 +215,73 @@ const ReportGenerator = () => {
               </div>
               <h3 className="report-type-title">{type.title}</h3>
               <p className="report-type-desc">{type.description}</p>
+=======
+    <div className="reports-container">
+      <div className="reports-main-header">
+        <div className="reports-header-content">
+          <div className="reports-header-text">
+            <h1>
+              <i className="fas fa-chart-bar"></i> Báo cáo & Thống kê
+            </h1>
+            <p>
+              Tạo và xem các báo cáo thống kê về sức khỏe học sinh và hoạt động
+              của hệ thống
+            </p>
+          </div>
+          <div className="reports-header-stats">
+            <div className="reports-stat-item">
+              <span className="reports-stat-number">4</span>
+              <span className="reports-stat-label">Loại báo cáo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {!showDetailView && !selectedNotification && !selectedStudent && (
+        <div className="reports-generator">
+          <h2 className="reports-generator-title">Tạo báo cáo mới</h2>
+          <ReportTypeSelector
+            reportType={reportType}
+            setReportType={setReportType}
+          />
+          <div className="reports-action-buttons">
+            <button
+              className="reports-btn reports-btn-primary"
+              onClick={generateReport}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <i className="fas fa-spinner reports-loading-spinner"></i>{" "}
+                  Đang tạo...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-chart-line"></i> Tạo báo cáo
+                </>
+              )}
+            </button>
+            <button
+              className="reports-btn reports-btn-secondary"
+              onClick={viewDetailData}
+              disabled={isLoadingDetail}
+            >
+              {isLoadingDetail ? (
+                <>
+                  <i className="fas fa-spinner reports-loading-spinner"></i>{" "}
+                  Đang tải...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-search"></i> Xem chi tiết
+                </>
+              )}
+            </button>
+          </div>
+          {error && (
+            <div className="reports-error-message">
+              <i className="fas fa-exclamation-circle"></i> {error}
+>>>>>>> Stashed changes
             </div>
           ))}
         </div>
@@ -202,6 +352,54 @@ const ReportGenerator = () => {
           <p>Báo cáo đã được tạo thành công. Chi tiết báo cáo sẽ hiển thị tại đây.</p>
         </div>
       )}
+<<<<<<< Updated upstream
+=======
+
+      {/* Hiển thị báo cáo */}
+      {generatedReport &&
+        !showDetailView &&
+        !selectedNotification &&
+        !selectedStudent && <ReportDisplay report={generatedReport} />}
+
+      {/* Hiển thị view chi tiết theo loại */}
+      {showDetailView &&
+        detailData &&
+        !selectedNotification &&
+        !selectedStudent &&
+        (detailViewType === "student" ? (
+          <StudentListView
+            students={detailData}
+            isLoading={isLoadingDetail}
+            onViewDetail={handleViewDetail}
+            onBack={handleBackFromDetail}
+          />
+        ) : detailViewType === "medication" ? (
+          <MedicationListView onBack={handleBackFromDetail} />
+        ) : (
+          <DetailView
+            data={detailData}
+            reportType={reportType}
+            isLoading={isLoadingDetail}
+            onViewDetail={handleViewDetail}
+            onBack={handleBackFromDetail}
+          />
+        ))}
+
+      {/* Hiển thị chi tiết thông báo hoặc học sinh */}
+      {selectedNotification && (
+        <NotificationDetail
+          notification={selectedNotification}
+          onBack={handleBackToList}
+        />
+      )}
+
+      {selectedStudent && (
+        <StudentDetailView
+          student={selectedStudent}
+          onBack={handleBackToList}
+        />
+      )}
+>>>>>>> Stashed changes
     </div>
   );
 };

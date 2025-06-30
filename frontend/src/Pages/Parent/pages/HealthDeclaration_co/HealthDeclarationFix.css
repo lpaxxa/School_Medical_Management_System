@@ -1,631 +1,578 @@
-/* Reset và thiết lập cơ bản */
-.student-selection {
-  width: 100%;
-  margin-bottom: 15px;
+/* ============= HEALTH DECLARATION ENHANCEMENTS & FIXES ============= */
+
+/* ============= HISTORY SECTION STYLES ============= */
+.declaration-history-section {
+  background-color: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--neutral-200);
+  overflow: hidden;
+  margin-top: var(--space-8);
 }
 
-/* Chọn học sinh và tab */
-.selection-label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #64748b;
-  margin-bottom: 12px;
-  display: block;
+.history-filter {
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--neutral-200);
+  background-color: var(--neutral-50);
 }
 
-/* Container cho tabs học sinh */
-.student-tabs-container {
-  margin-bottom: 20px;
-  width: 100%;
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.student-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-bottom: 10px;
-  width: 100%;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  margin-top: 10px;
-}
-
-/* Thanh cuộn cho student tabs */
-.student-tabs::-webkit-scrollbar {
-  height: 5px;
-}
-
-.student-tabs::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.student-tabs::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 10px;
-}
-
-/* Tab học sinh */
-.student-tab {
-  cursor: pointer;
+.history-filter h3 {
+  color: var(--neutral-800);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin-bottom: var(--space-4);
   display: flex;
   align-items: center;
-  width: 200px;
-  height: 64px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #ffffff;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
+  gap: var(--space-3);
 }
 
-.student-tab:hover {
-  border-color: #007bff;
-  background-color: #f0f7ff;
+.history-filter h3::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+  border-radius: var(--radius-sm);
 }
 
-.student-tab.active {
-  border-color: #007bff;
-  background-color: #e6f2ff;
+.student-filter-tabs {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding: var(--space-2) 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--neutral-300) transparent;
+}
+
+.student-filter-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.student-filter-tabs::-webkit-scrollbar-track {
+  background: var(--neutral-100);
+  border-radius: var(--radius);
+}
+
+.student-filter-tabs::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: var(--radius);
+}
+
+.student-filter-tabs button {
+  padding: var(--space-2) var(--space-4);
+  border: 2px solid var(--neutral-200);
+  border-radius: var(--radius);
+  background-color: white;
+  color: var(--neutral-600);
+  font-size: var(--font-size-sm);
   font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* Avatar học sinh */
-.student-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 10px;
+.student-filter-tabs button:hover {
+  border-color: var(--primary-300);
+  background-color: var(--primary-50);
+  color: var(--primary-600);
 }
 
-/* Thông tin trong tab */
-.student-tab-info {
+.student-filter-tabs button.active {
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+  border-color: var(--primary-500);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============= DECLARATION CARDS ============= */
+.declarations-list {
+  padding: var(--space-6);
   display: flex;
   flex-direction: column;
+  gap: var(--space-4);
 }
 
-.student-name {
-  font-size: 0.9rem;
+.declaration-card {
+  background-color: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--neutral-200);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.declaration-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-300);
+}
+
+.declaration-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--neutral-200);
+  background-color: var(--neutral-50);
+}
+
+.declaration-info h3 {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--neutral-800);
+}
+
+.declaration-date {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--neutral-500);
+  font-size: var(--font-size-sm);
+}
+
+.declaration-time {
+  font-size: var(--font-size-xs);
+  color: var(--neutral-400);
+  margin-left: var(--space-2);
+}
+
+.status-badge {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+}
+
+.declaration-body {
+  padding: var(--space-5);
+}
+
+.declaration-item {
+  display: flex;
+  margin-bottom: var(--space-3);
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.declaration-item:last-child {
+  margin-bottom: 0;
+}
+
+.declaration-item .label {
+  font-weight: 600;
+  color: var(--neutral-600);
+  min-width: 120px;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.declaration-item .value {
+  flex: 1;
+  color: var(--neutral-800);
+  font-size: var(--font-size-sm);
+}
+
+.symptoms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.symptom-tag {
+  padding: var(--space-1) var(--space-2);
+  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-200) 100%);
+  color: var(--primary-700);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
   font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid var(--primary-300);
 }
 
-.student-class {
-  font-size: 0.75rem;
-  color: #6c757d;
+.no-symptoms {
+  color: var(--neutral-500);
+  font-style: italic;
+  font-size: var(--font-size-sm);
 }
 
-/* Nếu chỉ có một học sinh */
+.temperature-value {
+  font-weight: 600;
+  color: var(--neutral-800);
+}
+
+.high-temp {
+  color: var(--error-600);
+  font-weight: 700;
+}
+
+.notes-value {
+  color: var(--neutral-700);
+  line-height: 1.5;
+}
+
+.decision-value {
+  font-weight: 600;
+  color: var(--primary-600);
+}
+
+.declaration-footer {
+  background-color: var(--neutral-50);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--neutral-200);
+  font-size: var(--font-size-xs);
+  color: var(--neutral-500);
+}
+
+.declaration-footer p {
+  margin: var(--space-1) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ============= EMPTY AND LOADING STATES ============= */
+.no-declarations {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16) var(--space-8);
+  color: var(--neutral-500);
+  text-align: center;
+}
+
+.no-declarations::before {
+  content: '📋';
+  font-size: 4rem;
+  margin-bottom: var(--space-4);
+  opacity: 0.5;
+}
+
+.no-declarations h4 {
+  color: var(--neutral-600);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.no-declarations p {
+  font-size: var(--font-size-base);
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* ============= SUCCESS MESSAGE ENHANCEMENTS ============= */
+.success-message {
+  background: linear-gradient(135deg, var(--success-50) 0%, var(--success-100) 100%);
+  border: 1px solid var(--success-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  margin: var(--space-6) 0;
+  text-align: center;
+  animation: slideIn 0.5s ease-out;
+}
+
+.success-message h3 {
+  color: var(--success-600);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.success-message h3::before {
+  content: '🎉';
+  font-size: var(--font-size-2xl);
+}
+
+.success-message p {
+  color: var(--success-600);
+  margin-bottom: var(--space-6);
+  font-size: var(--font-size-base);
+}
+
+.success-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.success-actions button {
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  border: 2px solid;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+  color: white;
+  border-color: var(--primary-500);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--neutral-600);
+  border-color: var(--neutral-300);
+}
+
+.btn-secondary:hover {
+  background-color: var(--neutral-50);
+  color: var(--neutral-800);
+  border-color: var(--neutral-400);
+}
+
+/* ============= SINGLE STUDENT DISPLAY ============= */
 .single-student-info {
   display: flex;
   align-items: center;
-  background-color: #f0f9ff;
-  padding: 15px;
-  border-radius: 8px;
-  border-left: 4px solid #2563eb;
-  margin-bottom: 20px;
+  gap: var(--space-4);
+  background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+  border: 1px solid var(--primary-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow);
+}
+
+.single-student-info .student-avatar {
+  width: 56px;
+  height: 56px;
+  border: 3px solid white;
+  box-shadow: var(--shadow);
 }
 
 .student-details {
-  margin-left: 15px;
+  flex: 1;
 }
 
 .student-details h4 {
-  margin: 0 0 5px 0;
-  font-size: 1rem;
-  color: #1e293b;
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--neutral-800);
 }
 
 .student-details p {
   margin: 0;
-  font-size: 0.9rem;
-  color: #64748b;
+  font-size: var(--font-size-sm);
+  color: var(--neutral-600);
+  line-height: 1.4;
 }
 
-/* Chi tiết học sinh đã chọn */
-.selected-student-details {
-  margin-top: 20px;
-  padding: 15px;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  background-color: #fdfdfd;
-}
-
-.student-profile-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
-}
-
-.profile-avatar {
-  width: 60px;
-  height: 60px;
+/* ============= SPINNER ENHANCEMENTS ============= */
+.spinner-border-sm {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(14, 165, 233, 0.3);
   border-radius: 50%;
-  object-fit: cover;
-}
-
-.profile-basic-info {
-  margin-left: 15px;
-}
-
-.profile-basic-info h4 {
-  margin: 0 0 5px 0;
-  font-size: 1.2rem;
-}
-
-.profile-basic-info p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #6c757d;
-}
-
-.school-name {
-  font-style: italic;
-  margin-top: 5px;
-  font-size: 0.85rem !important;
-}
-
-/* Bảng thông tin chi tiết */
-.student-profile-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-}
-
-.detail-item {
-  margin-bottom: 8px;
-}
-
-.detail-item .label {
-  display: block;
-  font-size: 0.8rem;
-  color: #666;
-  margin-bottom: 2px;
-}
-
-.detail-item .value {
-  font-weight: 500;
-}
-
-.health-status-item {
-  grid-column: 1 / -1;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed #eee;
-}
-
-.parent-info {
-  grid-column: 1 / -1;
-  margin-top: 5px;
-}
-
-.health-status {
-  color: #28a745;
-}
-
-/* Khai báo gần đây */
-.recent-declaration {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
-}
-
-.recent-declaration h5 {
-  font-size: 0.9rem;
-  margin-bottom: 10px;
-  color: #495057;
-}
-
-.recent-status {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 5px;
-  background-color: #f8f9fa;
-}
-
-/* Status colors */
-.status-approved {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.status-rejected {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.status-pending {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-/* Styling cho phần loading thông tin học sinh */
-#student-info-section {
-  position: relative;
-}
-
-#student-info-section .loading-container {
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-  background-color: rgba(242, 242, 242, 0.5);
-  border-radius: 8px;
+  border-top-color: var(--primary-500);
+  animation: spin 0.75s linear infinite;
 }
 
 .profile-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-  color: #6c757d;
-  background-color: #f9f9f9;
-  border-radius: 4px;
-  margin: 10px 0;
-}
-
-.spinner-border-sm {
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid rgba(0, 123, 255, 0.25);
-  border-right-color: #007bff;
-  border-radius: 50%;
-  animation: spinner-border .75s linear infinite;
-  margin-right: 10px;
-}
-
-@keyframes spinner-border {
-  to { transform: rotate(360deg); }
-}
-
-/* CSS riêng cho phần chọn học sinh trong HealthDeclaration */
-
-/* Student tabs container - đảm bảo scope cụ thể */
-.health-declaration-container .student-selection {
-  margin-bottom: 24px;
-}
-
-.health-declaration-container .student-tabs-container {
-  background-color: #f8fafc;
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid #e2e8f0;
-}
-
-.health-declaration-container .selection-label {
-  font-weight: 600;
-  color: #475569;
-  margin-bottom: 12px;
-}
-
-.health-declaration-container .student-tabs {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.health-declaration-container .student-tab {
-  flex: 1;
-  min-width: 180px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background-color: white;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.health-declaration-container .student-tab:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border-color: #cbd5e1;
-}
-
-.health-declaration-container .student-tab.active {
-  background-color: #ebf5ff;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.health-declaration-container .student-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-  border: 2px solid white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.health-declaration-container .student-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.health-declaration-container .student-tab-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.health-declaration-container .student-name {
-  font-weight: 600;
-  color: #1e293b;
-  font-size: 15px;
-}
-
-.health-declaration-container .student-class {
-  color: #64748b;
-  font-size: 13px;
-}
-
-/* Single student display */
-.health-declaration-container .single-student-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background-color: #f8fafc;
-  border-radius: 12px;
-  padding: 16px 20px;
-  border: 1px solid #e2e8f0;
-}
-
-.health-declaration-container .student-details {
-  flex: 1;
-}
-
-.health-declaration-container .student-details h4 {
-  margin: 0;
-  font-size: 18px;
-  color: #1e293b;
-}
-
-.health-declaration-container .student-details p {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: #64748b;
-}
-
-/* Selected student profile details styling */
-.health-declaration-container .selected-student-details {
-  margin-top: 24px;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-}
-
-.health-declaration-container .profile-loading {
-  padding: 40px;
+  padding: var(--space-8);
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  color: #64748b;
+  gap: var(--space-3);
+  color: var(--neutral-600);
+  background-color: var(--neutral-50);
+  border-radius: var(--radius);
+  margin: var(--space-4) 0;
 }
 
-.health-declaration-container .spinner-border-sm {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  border-radius: 50%;
-  border-top-color: #3b82f6;
-  animation: spinner-border 0.75s linear infinite;
-}
-
-@keyframes spinner-border {
-  to { transform: rotate(360deg); }
-}
-
-/* Cải thiện header của trang Khai báo sức khỏe */
-.health-declaration-header {
-  background-color: white;
-  border-radius: 16px;
-  padding: 40px 30px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden;
-  position: relative;
-}
-
-.health-declaration-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
-}
-
-.school-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.school-logo {
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
-  margin-bottom: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 5px;
-  background-color: #ffffff;
-}
-
-.health-declaration-header h1 {
-  color: #1e293b;
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 0 0 12px 0;
-  font-family: var(--font-heading, 'Be Vietnam Pro', sans-serif);
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.health-declaration-header p {
-  color: #3b82f6;
-  margin: 0 0 16px;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.header-description {
-  color: #64748b;
-  font-size: 1rem;
-  max-width: 700px;
-  margin: 0 auto;
-  line-height: 1.6;
-  padding: 0 16px;
-}
-
-/* Đảm bảo responsive */
+/* ============= MOBILE RESPONSIVE ENHANCEMENTS ============= */
 @media (max-width: 768px) {
-  .health-declaration-header {
-    padding: 30px 20px;
-  }
-
-  .health-declaration-header h1 {
-    font-size: 2rem;
-  }
-
-  .school-logo {
-    width: 60px;
-    height: 60px;
-  }
-}
-
-@media (max-width: 576px) {
-  .health-declaration-header {
-    padding: 25px 15px;
-  }
-
-  .health-declaration-header h1 {
-    font-size: 1.75rem;
-  }
-
-  .health-declaration-header p {
-    font-size: 1rem;
-  }
-}
-
-/* Media Queries */
-@media (max-width: 768px) {
-  .health-declaration-container .student-tabs {
+  .declaration-header {
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-3);
+    align-items: flex-start;
   }
-  
-  .health-declaration-container .student-tab {
+
+  .student-filter-tabs {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .student-filter-tabs button {
+    text-align: left;
+  }
+
+  .declaration-item {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .declaration-item .label {
     min-width: auto;
+    font-weight: 700;
+  }
+
+  .success-actions {
+    flex-direction: column;
+  }
+
+  .success-actions button {
     width: 100%;
   }
-  
-  .health-declaration-container .single-student-info {
+
+  .single-student-info {
     flex-direction: column;
     text-align: center;
-    padding: 16px;
+    gap: var(--space-4);
+  }
+
+  .single-student-info .student-avatar {
+    margin: 0;
   }
 }
 
-/* Khắc phục xung đột CSS */
-.health-declaration-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f1f5f9;
-  /* Vô hiệu hóa xung đột từ ParentLayout.css */
-  position: relative;
-  z-index: 1;
+@media (max-width: 480px) {
+  .declarations-list {
+    padding: var(--space-4);
+  }
+
+  .declaration-header,
+  .declaration-body,
+  .declaration-footer {
+    padding: var(--space-4);
+  }
+
+  .history-filter {
+    padding: var(--space-4);
+  }
+
+  .symptom-tag {
+    font-size: 10px;
+    padding: 2px var(--space-1);
+  }
+
+  .success-message {
+    padding: var(--space-6);
+  }
+
+  .single-student-info {
+    padding: var(--space-4);
+  }
 }
 
-/* Đảm bảo các font chữ áp dụng chính xác */
-.health-declaration-container h1,
-.health-declaration-container h2,
-.health-declaration-container h3,
-.health-declaration-container h4 {
-  font-family: var(--font-heading, 'Be Vietnam Pro', sans-serif);
+/* ============= ADDITIONAL UTILITY CLASSES ============= */
+.text-center {
+  text-align: center;
 }
 
-.health-declaration-container p,
-.health-declaration-container span,
-.health-declaration-container div,
-.health-declaration-container label {
-  font-family: var(--font-body, 'Nunito', sans-serif);
+.text-left {
+  text-align: left;
 }
 
-/* Đảm bảo phần content chính làm việc đúng với ParentLayout */
-.parent-content .health-declaration-container {
-  width: 100%;
-  max-width: 1200px;
+.text-right {
+  text-align: right;
 }
 
-/* Tab navigation cải thiện */
-.tab-navigation {
-  display: flex;
-  margin-bottom: 24px;
-  gap: 16px;
-  border-radius: 12px;
-  background-color: rgba(255, 255, 255, 0.5);
-  padding: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+.font-bold {
+  font-weight: 700;
 }
 
-.tab-button {
-  padding: 16px 24px;
-  background-color: transparent;
-  border: none;
-  border-radius: 8px;
-  color: #64748b;
+.font-semibold {
   font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
 }
 
-.tab-button i {
-  font-size: 1rem;
+.font-medium {
+  font-weight: 500;
 }
 
-.tab-button.active {
-  background-color: #ffffff;
-  color: #2563eb;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.text-primary {
+  color: var(--primary-600);
 }
 
-.tab-button:hover:not(.active) {
-  background-color: rgba(255, 255, 255, 0.8);
-  color: #334155;
+.text-success {
+  color: var(--success-600);
 }
+
+.text-warning {
+  color: var(--warning-600);
+}
+
+.text-error {
+  color: var(--error-600);
+}
+
+.bg-primary {
+  background-color: var(--primary-50);
+}
+
+.bg-success {
+  background-color: var(--success-50);
+}
+
+.bg-warning {
+  background-color: var(--warning-50);
+}
+
+.bg-error {
+  background-color: var(--error-50);
+}
+
+/* ============= ENHANCED HOVER EFFECTS ============= */
+.declaration-card:hover .declaration-header {
+  background-color: var(--primary-50);
+}
+
+.declaration-card:hover .status-badge {
+  transform: scale(1.05);
+}
+
+.symptom-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============= IMPROVED FOCUS STATES ============= */
+.student-filter-tabs button:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+/* ============= PRINT ENHANCEMENTS ============= */
+@media print {
+  .declaration-history-section {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  .declaration-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  .declaration-header {
+    background-color: #f5f5f5 !important;
+  }
+
+  .status-badge {
+    border: 1px solid #000 !important;
+  }
+} 

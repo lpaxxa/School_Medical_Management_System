@@ -129,6 +129,219 @@ const HealthGuide = () => {
 
   return (
     <div className="health-guide-container">
+      {/* Debug Info - Hiển thị API data */}
+      <div
+        style={{
+          background: "#e8f4fd",
+          padding: "15px",
+          margin: "10px 0",
+          borderRadius: "8px",
+          fontSize: "14px",
+          border: "1px solid #3b82f6",
+        }}
+      >
+        <strong>🏥 Health Guide API Info:</strong>
+        <div>
+          • Articles loaded: <strong>{articles.length}</strong> articles
+        </div>
+        <div>
+          • Filtered articles: <strong>{filteredArticles.length}</strong>{" "}
+          articles
+        </div>
+        <div>
+          • Current page: <strong>{currentPage}</strong> /{" "}
+          <strong>{totalPages}</strong>
+        </div>
+        <div>
+          • Selected category: <strong>{selectedCategory}</strong>
+        </div>
+        <div>
+          • Search term: <strong>{searchTerm || "none"}</strong>
+        </div>
+        <div>
+          • Loading status:{" "}
+          <strong>{isLoading ? "Loading..." : "Completed"}</strong>
+        </div>
+        {error && (
+          <div style={{ color: "red" }}>
+            • Error: <strong>{error}</strong>
+          </div>
+        )}
+        {articles.length > 0 && (
+          <div>
+            • Sample article: <strong>#{articles[0]?.id}</strong> - "
+            {articles[0]?.title?.substring(0, 40)}..."
+          </div>
+        )}
+
+        <div
+          style={{
+            marginTop: "10px",
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            onClick={async () => {
+              console.clear();
+              console.log("🧪 Testing Health Guide API...");
+              try {
+                const testResponse = await fetch(
+                  "http://localhost:8080/api/health-articles",
+                  {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem(
+                        "authToken"
+                      )}`,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+                console.log("📡 API Response status:", testResponse.status);
+                console.log(
+                  "📡 API Response headers:",
+                  Object.fromEntries(testResponse.headers.entries())
+                );
+
+                if (testResponse.ok) {
+                  const data = await testResponse.json();
+                  console.log("✅ API Response data:", data);
+                  console.log("✅ Data type:", typeof data);
+                  console.log("✅ Is array:", Array.isArray(data));
+                  console.log("✅ Array length:", data?.length);
+
+                  // Hiển thị JSON structure chi tiết
+                  alert(
+                    `✅ API Success!\n\nStatus: ${
+                      testResponse.status
+                    }\nData Type: ${
+                      Array.isArray(data) ? "Array" : typeof data
+                    }\nCount: ${
+                      data?.length || "N/A"
+                    }\n\nFirst Article:\n${JSON.stringify(
+                      data[0],
+                      null,
+                      2
+                    ).substring(0, 400)}...`
+                  );
+                } else {
+                  const errorText = await testResponse.text();
+                  console.error("❌ API Error:", errorText);
+                  alert(
+                    `❌ API Error!\n\nStatus: ${testResponse.status}\n\nError: ${errorText}`
+                  );
+                }
+              } catch (error) {
+                console.error("❌ API Test failed:", error);
+                alert(`❌ Network Error!\n\n${error.message}`);
+              }
+            }}
+            style={{
+              background: "#10b981",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            🧪 Test API
+          </button>
+
+          <button
+            onClick={async () => {
+              console.clear();
+              console.log("🔄 Force refresh Health Guide...");
+              setIsLoading(true);
+              setError(null);
+              setArticles([]);
+
+              // Trigger re-fetch
+              try {
+                const data = await HealthGuideService.getAllArticles();
+                console.log("🔄 Refreshed data:", data);
+                setArticles(data);
+                setFilteredArticles(data);
+
+                if (data.length > 0) {
+                  alert(
+                    `✅ Refresh Success!\n\nLoaded ${data.length} articles from API`
+                  );
+                } else {
+                  alert("⚠️ Refresh completed but no articles found");
+                }
+              } catch (err) {
+                setError(
+                  "Không thể tải dữ liệu bài viết. Vui lòng thử lại sau."
+                );
+                console.error("Error fetching health articles:", err);
+                alert(`❌ Refresh Failed!\n\n${err.message}`);
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            style={{
+              background: "#f59e0b",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            🔄 Force Refresh
+          </button>
+
+          <button
+            onClick={() => {
+              console.clear();
+              console.log("📋 Current Articles JSON:");
+              console.log(JSON.stringify(articles, null, 2));
+
+              if (articles.length > 0) {
+                // Tạo một popup window để hiển thị JSON
+                const jsonWindow = window.open(
+                  "",
+                  "_blank",
+                  "width=800,height=600"
+                );
+                jsonWindow.document.write(`
+                  <html>
+                    <head><title>Health Guide Articles JSON</title></head>
+                    <body style="font-family: monospace; padding: 20px;">
+                      <h2>🏥 Health Guide Articles JSON Data (${
+                        articles.length
+                      } articles)</h2>
+                      <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; overflow: auto;">${JSON.stringify(
+                        articles,
+                        null,
+                        2
+                      )}</pre>
+                    </body>
+                  </html>
+                `);
+              } else {
+                alert("⚠️ No articles data to display");
+              }
+            }}
+            style={{
+              background: "#6366f1",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            📋 Show JSON
+          </button>
+        </div>
+      </div>
+
       <div className="health-guide-header">
         <div className="health-guide-header-content">
           <h1>Cẩm nang y tế học đường</h1>

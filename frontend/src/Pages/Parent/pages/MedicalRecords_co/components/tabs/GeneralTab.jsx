@@ -1,7 +1,7 @@
-import React from 'react';
-import { 
-  FaExclamationCircle, 
-  FaInfoCircle, 
+import React from "react";
+import {
+  FaExclamationCircle,
+  FaInfoCircle,
   FaSyncAlt,
   FaRulerVertical,
   FaWeight,
@@ -14,16 +14,49 @@ import {
   FaUtensils,
   FaShieldVirus,
   FaWheelchair,
-  FaPhoneVolume
-} from 'react-icons/fa';
-import { formatDate, formatDateTime } from '../../utils/formatters';
-import { getBMIStatus } from '../../utils/helpers';
+  FaPhoneVolume,
+} from "react-icons/fa";
+import { formatDate, formatDateTime } from "../../utils/formatters";
+import { getBMIStatus } from "../../utils/helpers";
 
-const GeneralTab = ({ healthProfileData, isLoading, error, studentId, onRefresh }) => {
+// Function để lấy status và màu cho tình trạng tiêm chủng
+const getImmunizationStatus = (status) => {
+  if (!status)
+    return { text: "Chưa có thông tin", className: "status-unknown" };
+
+  const statusLower = status.toLowerCase();
+
+  if (
+    statusLower.includes("đầy đủ") ||
+    statusLower.includes("hoàn thành") ||
+    statusLower.includes("bình thường")
+  ) {
+    return { text: status, className: "status-complete" };
+  } else if (
+    statusLower.includes("đang cập nhật") ||
+    statusLower.includes("cập nhật")
+  ) {
+    return { text: status, className: "status-updating" };
+  } else if (
+    statusLower.includes("chưa đầy đủ") ||
+    statusLower.includes("thiếu") ||
+    statusLower.includes("chưa hoàn thành")
+  ) {
+    return { text: status, className: "status-incomplete" };
+  } else {
+    return { text: status, className: "status-unknown" };
+  }
+};
+
+const GeneralTab = ({
+  healthProfileData,
+  isLoading,
+  error,
+  studentId,
+  onRefresh,
+}) => {
   return (
-    <div className="general-info-panel">
-      <h3>Thông tin sức khỏe tổng quát</h3>
-
+    <div>
       {error ? (
         <div className="error-message">
           <FaExclamationCircle /> {error}
@@ -66,125 +99,163 @@ const GeneralTab = ({ healthProfileData, isLoading, error, studentId, onRefresh 
           {/* Phần hiển thị thông tin sức khỏe cơ bản */}
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-icon">
+              <div className="stat-icon height">
                 <FaRulerVertical />
               </div>
               <div className="stat-content">
-                <h4>Chiều cao</h4>
-                <p>{healthProfileData?.height || 0} cm</p>
+                <h3>Chiều cao</h3>
+                <div className="value">{healthProfileData?.height || 0}</div>
+                <div className="unit">cm</div>
               </div>
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">
+              <div className="stat-icon weight">
                 <FaWeight />
               </div>
               <div className="stat-content">
-                <h4>Cân nặng</h4>
-                <p>{healthProfileData?.weight || 0} kg</p>
+                <h3>Cân nặng</h3>
+                <div className="value">{healthProfileData?.weight || 0}</div>
+                <div className="unit">kg</div>
               </div>
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">
+              <div className="stat-icon bmi">
                 <FaChartLine />
               </div>
               <div className="stat-content">
-                <h4>Chỉ số BMI</h4>
-                <p>
+                <h3>Chỉ số BMI</h3>
+                <div className="value">
                   {healthProfileData?.bmi
                     ? Number(healthProfileData.bmi).toFixed(1)
                     : "N/A"}
-                </p>
-                <small>{getBMIStatus(healthProfileData?.bmi)}</small>
+                </div>
+                <div className="unit">
+                  {getBMIStatus(healthProfileData?.bmi)}
+                </div>
               </div>
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">
+              <div className="stat-icon blood">
                 <FaHeartbeat />
               </div>
               <div className="stat-content">
-                <h4>Nhóm máu</h4>
-                <p>{healthProfileData?.bloodType || "Chưa cập nhật"}</p>
+                <h3>Nhóm máu</h3>
+                <div className="value">
+                  {healthProfileData?.bloodType || "Chưa có"}
+                </div>
+                <div className="unit">-</div>
               </div>
             </div>
           </div>
 
           {/* Phần hiển thị chi tiết thông tin sức khỏe */}
-          <div className="medical-details-section">
-            <div className="medical-detail">
-              <h4>
-                <FaEye /> Thị lực
-              </h4>
-              <div className="detail-content">
-                <p>
-                  Mắt trái:{" "}
-                  {healthProfileData?.visionLeft || "Chưa kiểm tra"}
-                </p>
-                <p>
-                  Mắt phải:{" "}
-                  {healthProfileData?.visionRight || "Chưa kiểm tra"}
-                </p>
+          <div className="info-grid">
+            <div className="info-card">
+              <div className="info-card-header">
+                <FaEye className="info-card-icon" />
+                <h4 className="info-card-title">Thị lực</h4>
+              </div>
+              <div className="info-card-content">
+                <div className="vision-content">
+                  <div className="vision-item">
+                    <span className="vision-label">Mắt trái:</span>
+                    <span className="vision-value">
+                      {healthProfileData?.visionLeft || "20/20"}
+                    </span>
+                  </div>
+                  <div className="vision-item">
+                    <span className="vision-label">Mắt phải:</span>
+                    <span className="vision-value">
+                      {healthProfileData?.visionRight || "20/20"}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="medical-detail">
-              <h4>
-                <FaStethoscope /> Thính lực
-              </h4>
-              <p>{healthProfileData?.hearingStatus || "Chưa kiểm tra"}</p>
+            <div className="info-card">
+              <div className="info-card-header">
+                <FaStethoscope className="info-card-icon" />
+                <h4 className="info-card-title">Thính lực</h4>
+              </div>
+              <div className="info-card-content">
+                {healthProfileData?.hearingStatus || "Bình thường"}
+              </div>
             </div>
 
-            <div className="medical-detail">
-              <h4>
-                <FaAllergies /> Dị ứng
-              </h4>
-              <p>{healthProfileData?.allergies || "Không có"}</p>
+            <div className="info-card">
+              <div className="info-card-header">
+                <FaAllergies className="info-card-icon" />
+                <h4 className="info-card-title">Dị ứng</h4>
+              </div>
+              <div className="info-card-content">
+                {healthProfileData?.allergies || "Không có"}
+              </div>
             </div>
 
-            <div className="medical-detail">
-              <h4>
-                <FaNotesMedical /> Bệnh mãn tính
-              </h4>
-              <p>{healthProfileData?.chronicDiseases || "Không có"}</p>
+            <div className="info-card">
+              <div className="info-card-header">
+                <FaNotesMedical className="info-card-icon" />
+                <h4 className="info-card-title">Bệnh mãn tính</h4>
+              </div>
+              <div className="info-card-content">
+                {healthProfileData?.chronicDiseases || "Không có"}
+              </div>
             </div>
 
-            <div className="medical-detail">
-              <h4>
-                <FaUtensils /> Chế độ ăn uống đặc biệt
-              </h4>
-              <p>
+            <div className="info-card">
+              <div className="info-card-header">
+                <FaUtensils className="info-card-icon" />
+                <h4 className="info-card-title">Chế độ ăn uống đặc biệt</h4>
+              </div>
+              <div className="info-card-content">
                 {healthProfileData?.dietaryRestrictions ||
                   "Không có hạn chế đặc biệt"}
-              </p>
+              </div>
             </div>
 
-            <div className="medical-detail">
-              <h4>
-                <FaShieldVirus /> Tình trạng tiêm chủng
-              </h4>
-              <p>
-                {healthProfileData?.immunizationStatus ||
-                  "Chưa có thông tin"}
-              </p>
+            <div className="info-card">
+              <div className="info-card-header">
+                <FaShieldVirus className="info-card-icon" />
+                <h4 className="info-card-title">Tình trạng tiêm chủng</h4>
+              </div>
+              <div className="info-card-content">
+                <div className="immunization-status">
+                  {(() => {
+                    const statusInfo = getImmunizationStatus(
+                      healthProfileData?.immunizationStatus
+                    );
+                    return (
+                      <span className={`status-badge ${statusInfo.className}`}>
+                        {statusInfo.text}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
             </div>
 
-            <div className="medical-detail">
-              <h4>
-                <FaWheelchair /> Nhu cầu đặc biệt
-              </h4>
-              <p>{healthProfileData?.specialNeeds || "Không có"}</p>
+            <div className="info-card">
+              <div className="info-card-header">
+                <FaWheelchair className="info-card-icon" />
+                <h4 className="info-card-title">Nhu cầu đặc biệt</h4>
+              </div>
+              <div className="info-card-content">
+                {healthProfileData?.specialNeeds || "Không có"}
+              </div>
             </div>
 
-            <div className="medical-detail emergency-info">
-              <h4>
-                <FaPhoneVolume /> Thông tin liên hệ khẩn cấp
-              </h4>
-              <p>
-                {healthProfileData?.emergencyContactInfo ||
-                  "Chưa cập nhật"}
-              </p>
+            <div className="info-card emergency-info">
+              <div className="info-card-header">
+                <FaPhoneVolume className="info-card-icon" />
+                <h4 className="info-card-title">Thông tin liên hệ khẩn cấp</h4>
+              </div>
+              <div className="info-card-content">
+                {healthProfileData?.emergencyContactInfo || "Chưa cập nhật"}
+              </div>
             </div>
           </div>
         </>

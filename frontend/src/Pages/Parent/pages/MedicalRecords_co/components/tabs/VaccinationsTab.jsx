@@ -1,16 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { FaSyringe, FaExclamationCircle, FaCalendarAlt, FaChevronRight } from 'react-icons/fa';
-import medicalService from '../../../../../../services/medicalService';
-import { formatDate } from '../../utils/formatters';
-import { cacheData, getCachedData } from '../../utils/helpers';
-import VaccinationModal from '../modals/VaccinationModal';
+import React, { useState, useEffect } from "react";
+import {
+  FaSyringe,
+  FaExclamationCircle,
+  FaCalendarAlt,
+  FaChevronRight,
+  FaShieldAlt,
+  FaSpinner,
+  FaInfoCircle,
+  FaCheckCircle,
+  FaClock,
+  FaMapMarkerAlt,
+  FaUserMd,
+  FaClipboardList,
+} from "react-icons/fa";
+import medicalService from "../../../../../../services/medicalService";
+import { formatDate } from "../../utils/formatters";
+import { cacheData, getCachedData } from "../../utils/helpers";
+import VaccinationModal from "../modals/VaccinationModal";
 
 const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
   const [vaccinationNotifications, setVaccinationNotifications] = useState([]);
   const [isLoadingVaccinations, setIsLoadingVaccinations] = useState(true);
   const [vaccinationsError, setVaccinationsError] = useState(null);
-  
-  // Chỉ giữ lại 1 set state cho modal
+
+  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [vaccinationDetail, setVaccinationDetail] = useState(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
@@ -20,7 +33,10 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
   useEffect(() => {
     const fetchVaccinationData = async () => {
       if (!parentInfo?.id || !studentCode) {
-        console.log('Missing parentId or studentCode:', { parentId: parentInfo?.id, studentCode });
+        console.log("Missing parentId or studentCode:", {
+          parentId: parentInfo?.id,
+          studentCode,
+        });
         return;
       }
 
@@ -32,8 +48,8 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
         );
         setVaccinationNotifications(data);
       } catch (error) {
-        console.error('Error fetching vaccination data:', error);
-        setVaccinationsError('Không thể tải dữ liệu tiêm chủng');
+        console.error("Error fetching vaccination data:", error);
+        setVaccinationsError("Không thể tải dữ liệu tiêm chủng");
       } finally {
         setIsLoadingVaccinations(false);
       }
@@ -42,27 +58,26 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
     fetchVaccinationData();
   }, [parentInfo?.id, studentCode]);
 
-  // Chỉ giữ lại 1 function xử lý click
   const handleViewDetails = async (notification) => {
     const notificationId = notification.id;
-    
-    console.log('🎯 handleViewDetails called with notification:', notification);
-    console.log('🆔 Using notificationId:', notificationId);
-    
+
+    console.log("🎯 handleViewDetails called with notification:", notification);
+    console.log("🆔 Using notificationId:", notificationId);
+
     setSelectedNotificationId(notificationId);
     setIsModalOpen(true);
     setIsLoadingDetail(true);
     setDetailError(null);
     setVaccinationDetail(null);
-    
+
     try {
-      console.log('📡 Calling medicalService.getVaccinationDetail...');
+      console.log("📡 Calling medicalService.getVaccinationDetail...");
       const detail = await medicalService.getVaccinationDetail(notificationId);
-      console.log('✅ Received vaccination detail:', detail);
+      console.log("✅ Received vaccination detail:", detail);
       setVaccinationDetail(detail);
     } catch (error) {
-      console.error('❌ Error in handleViewDetails:', error);
-      setDetailError('Không thể tải thông tin chi tiết tiêm chủng');
+      console.error("❌ Error in handleViewDetails:", error);
+      setDetailError("Không thể tải thông tin chi tiết tiêm chủng");
     } finally {
       setIsLoadingDetail(false);
     }
@@ -75,10 +90,35 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
     setDetailError(null);
   };
 
+  const getVaccineTypeColor = (title) => {
+    if (title?.toLowerCase().includes("covid")) return "#ef4444";
+    if (title?.toLowerCase().includes("cúm")) return "#3b82f6";
+    if (title?.toLowerCase().includes("viêm gan")) return "#f59e0b";
+    if (title?.toLowerCase().includes("bạch hầu")) return "#8b5cf6";
+    return "#10b981";
+  };
+
+  const getVaccineIcon = (title) => {
+    if (title?.toLowerCase().includes("covid")) return FaShieldAlt;
+    if (title?.toLowerCase().includes("cúm")) return FaSyringe;
+    return FaShieldAlt;
+  };
+
+  const getNotificationStatus = (notification) => {
+    // Có thể dựa vào ngày hoặc status trong data
+    const now = new Date();
+    const receivedDate = new Date(notification.receivedAt);
+    const daysDiff = Math.floor((now - receivedDate) / (1000 * 60 * 60 * 24));
+
+    if (daysDiff < 7) return { status: "Mới", color: "#10b981" };
+    if (daysDiff < 30) return { status: "Gần đây", color: "#3b82f6" };
+    return { status: "Cũ", color: "#6b7280" };
+  };
+
   return (
     <div className="vaccinations-panel">
       <h3>Lịch sử tiêm chủng</h3>
-      
+
       {vaccinationsError ? (
         <div className="error-message">
           <FaExclamationCircle /> {vaccinationsError}
@@ -97,10 +137,10 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
       ) : (
         <div className="vaccinations-list">
           {vaccinationNotifications.map((notification) => (
-            <div 
-              className="vaccination-card" 
+            <div
+              className="vaccination-card"
               key={notification.id}
-              onClick={() => handleViewDetails(notification)} // Chỉ dùng 1 function
+              onClick={() => handleViewDetails(notification)}
             >
               <div className="vaccination-header">
                 <div className="vaccination-title">
@@ -119,13 +159,15 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
                 </div>
               </div>
               <div className="vaccination-footer">
-                <span className="view-details">Xem chi tiết <FaChevronRight /></span>
+                <span className="view-details">
+                  Xem chi tiết <FaChevronRight />
+                </span>
               </div>
             </div>
           ))}
         </div>
       )}
-      
+
       {/* Chỉ dùng 1 modal */}
       <VaccinationModal
         isOpen={isModalOpen}

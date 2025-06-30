@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  FaCalendarCheck, 
-  FaExclamationCircle, 
-  FaInfoCircle, 
-  FaCalendarAlt 
-} from 'react-icons/fa';
-import medicalService from '../../../../../../services/medicalService';
-import { formatDate } from '../../utils/formatters';
-import { cacheData, getCachedData } from '../../utils/helpers';
-import CheckupModal from '../modals/CheckupModal';
+import React, { useState, useEffect } from "react";
+import {
+  FaCalendarCheck,
+  FaExclamationCircle,
+  FaInfoCircle,
+  FaCalendarAlt,
+  FaChevronRight,
+} from "react-icons/fa";
+import medicalService from "../../../../../../services/medicalService";
+import { formatDate } from "../../utils/formatters";
+import { cacheData, getCachedData } from "../../utils/helpers";
+import CheckupModal from "../modals/CheckupModal";
 
 const CheckupsTab = ({ studentId }) => {
   const [checkups, setCheckups] = useState([]);
@@ -19,40 +20,37 @@ const CheckupsTab = ({ studentId }) => {
 
   useEffect(() => {
     if (!studentId) return;
-    
+
     const fetchCheckups = async () => {
       setIsLoadingCheckups(true);
       setCheckupsError(null);
-      
+
       try {
-        // Check cache first
-        const cacheKey = `checkups_${studentId}`;
-        const cachedData = getCachedData(cacheKey);
-        
-        if (cachedData) {
-          setCheckups(cachedData);
-          setIsLoadingCheckups(false);
-          return;
-        }
-        
+        console.log("Fetching checkups for student:", studentId);
         const response = await medicalService.getMedicalCheckups(studentId);
-        const checkupsData = response.data || [];
+        console.log("Checkups response:", response);
+
+        // API trả về array trực tiếp
+        const checkupsData = Array.isArray(response)
+          ? response
+          : response.data || [];
         setCheckups(checkupsData);
-        
-        // Cache data
-        cacheData(cacheKey, checkupsData);
+        console.log("Checkups data:", checkupsData);
       } catch (err) {
-        console.error('Error fetching checkups:', err);
-        setCheckupsError('Không thể tải dữ liệu kiểm tra sức khỏe. Vui lòng thử lại sau.');
+        console.error("Error fetching checkups:", err);
+        setCheckupsError(
+          "Không thể tải dữ liệu kiểm tra sức khỏe. Vui lòng thử lại sau."
+        );
       } finally {
         setIsLoadingCheckups(false);
       }
     };
-    
+
     fetchCheckups();
   }, [studentId]);
 
   const openCheckupModal = (checkup) => {
+    console.log("Opening modal for checkup:", checkup);
     setSelectedCheckup(checkup);
     setIsCheckupModalOpen(true);
   };
@@ -65,7 +63,7 @@ const CheckupsTab = ({ studentId }) => {
   return (
     <div className="checkups-panel">
       <h3>Lịch sử kiểm tra sức khỏe định kỳ</h3>
-      
+
       {checkupsError ? (
         <div className="error-message">
           <FaExclamationCircle /> {checkupsError}
@@ -79,37 +77,36 @@ const CheckupsTab = ({ studentId }) => {
         <div className="no-data-message">
           <FaInfoCircle />
           <h4>Chưa có thông tin kiểm tra sức khỏe định kỳ</h4>
-          <p>Học sinh chưa có thông tin kiểm tra sức khỏe định kỳ trong hệ thống.</p>
-          <p>Các dữ liệu sẽ được cập nhật sau mỗi đợt khám sức khỏe tại trường.</p>
+          <p>
+            Học sinh chưa có thông tin kiểm tra sức khỏe định kỳ trong hệ thống.
+          </p>
+          <p>
+            Các dữ liệu sẽ được cập nhật sau mỗi đợt khám sức khỏe tại trường.
+          </p>
         </div>
       ) : (
-        <div className="checkups-list">
+        <div className="checkups-list-simple">
           {checkups.map((checkup) => (
             <div
-              className="checkup-card"
+              className="checkup-row"
               key={checkup.id}
               onClick={() => openCheckupModal(checkup)}
             >
-              <div className="checkup-header">
-                <div className="checkup-title">
-                  <FaCalendarCheck />
-                  <h4>{checkup.examType || "Kiểm tra sức khỏe định kỳ"}</h4>
-                </div>
+              <div className="checkup-row-content">
                 <div className="checkup-date">
-                  <FaCalendarAlt />
-                  {formatDate(checkup.examDate)}
+                  <FaCalendarAlt className="date-icon" />
+                  <span>{formatDate(checkup.checkupDate)}</span>
+                </div>
+                <div className="checkup-type">
+                  <span>{checkup.checkupType || "Kiểm tra định kỳ"}</span>
                 </div>
               </div>
-              <div className="checkup-content">
-                <p>
-                  <strong>Kết quả:</strong> {checkup.examResult || "Không có kết quả"}
-                </p>
-              </div>
+              <FaChevronRight className="arrow-icon" />
             </div>
           ))}
         </div>
       )}
-      
+
       {/* Modal for checkup details */}
       {isCheckupModalOpen && selectedCheckup && (
         <CheckupModal
