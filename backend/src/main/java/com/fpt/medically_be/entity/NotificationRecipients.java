@@ -32,4 +32,7 @@ public class NotificationRecipients {
     @OneToMany(mappedBy = "notificationRecipient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vaccination> vaccinations;
 
+    @OneToMany(mappedBy = "notificationRecipient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SpecialCheckupConsent> specialCheckupConsents;
+
 }
