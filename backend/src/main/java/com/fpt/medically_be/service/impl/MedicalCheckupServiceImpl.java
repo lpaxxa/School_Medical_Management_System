@@ -8,6 +8,7 @@ import com.fpt.medically_be.repos.MedicalCheckupRepository;
 import com.fpt.medically_be.repos.NurseRepository;
 import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.MedicalCheckupService;
+import com.fpt.medically_be.service.EmailService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,14 +23,17 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
     private final MedicalCheckupRepository medicalCheckupRepository;
     private final StudentRepository studentRepository;
     private final NurseRepository medicalStaffRepository;
+    private final EmailService emailService;
 
     @Autowired
     public MedicalCheckupServiceImpl(MedicalCheckupRepository medicalCheckupRepository,
                                     StudentRepository studentRepository,
-                                    NurseRepository medicalStaffRepository) {
+                                    NurseRepository medicalStaffRepository,
+                                    EmailService emailService) {
         this.medicalCheckupRepository = medicalCheckupRepository;
         this.studentRepository = studentRepository;
         this.medicalStaffRepository = medicalStaffRepository;
+        this.emailService = emailService;
     }
 
     @Override
@@ -96,6 +100,24 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
     }
 
     @Override
+    public MedicalCheckupDTO createMedicalCheckupWithNotification(MedicalCheckupDTO medicalCheckupDTO, boolean autoNotifyParent) {
+        MedicalCheckup medicalCheckup = convertToEntity(medicalCheckupDTO);
+        MedicalCheckup savedMedicalCheckup = medicalCheckupRepository.save(medicalCheckup);
+        
+        // Send notification if health implications detected and auto-notify is enabled
+        if (autoNotifyParent && hasHealthImplications(savedMedicalCheckup)) {
+            try {
+                emailService.sendHealthCheckupNotificationByCheckupId(savedMedicalCheckup.getId());
+            } catch (Exception e) {
+                // Log error but don't fail the main operation
+                System.err.println("Failed to send health notification for checkup ID " + savedMedicalCheckup.getId() + ": " + e.getMessage());
+            }
+        }
+        
+        return convertToDTO(savedMedicalCheckup);
+    }
+
+    @Override
     public MedicalCheckupDTO updateMedicalCheckup(Long id, MedicalCheckupDTO medicalCheckupDTO) {
         MedicalCheckup existingMedicalCheckup = medicalCheckupRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy lịch sử khám bệnh với ID: " + id));
@@ -136,11 +158,108 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
     }
 
     @Override
+    public MedicalCheckupDTO updateMedicalCheckupWithNotification(Long id, MedicalCheckupDTO medicalCheckupDTO, boolean autoNotifyParent) {
+        // Store previous notification status
+        MedicalCheckup existing = medicalCheckupRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy lịch sử khám bệnh với ID: " + id));
+        boolean wasNotified = existing.getParentNotified() != null && existing.getParentNotified();
+        
+        // Update the checkup
+        MedicalCheckupDTO updated = updateMedicalCheckup(id, medicalCheckupDTO);
+        
+        // Send notification if health implications detected, auto-notify is enabled, and parent wasn't already notified
+        if (autoNotifyParent && !wasNotified) {
+            MedicalCheckup updatedEntity = medicalCheckupRepository.findById(id).get();
+            if (hasHealthImplications(updatedEntity)) {
+                try {
+                    emailService.sendHealthCheckupNotificationByCheckupId(updatedEntity.getId());
+                } catch (Exception e) {
+                    // Log error but don't fail the main operation
+                    System.err.println("Failed to send health notification for updated checkup ID " + updatedEntity.getId() + ": " + e.getMessage());
+                }
+            }
+        }
+        
+        return updated;
+    }
+
+    @Override
+    public void sendHealthNotificationToParent(Long checkupId) {
+        emailService.sendHealthCheckupNotificationByCheckupId(checkupId);
+    }
+
+    @Override
+    public void sendBatchHealthNotificationsToParents(List<Long> checkupIds) {
+        emailService.sendBatchHealthCheckupNotifications(checkupIds);
+    }
+
+    @Override
+    public List<MedicalCheckupDTO> getCheckupsNeedingParentNotification() {
+        return medicalCheckupRepository.findAll().stream()
+                .filter(checkup -> hasHealthImplications(checkup) && 
+                                 (checkup.getParentNotified() == null || !checkup.getParentNotified()))
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicalCheckupDTO> getCheckupsWithHealthImplications(LocalDate startDate, LocalDate endDate) {
+        return medicalCheckupRepository.findByCheckupDateBetween(startDate, endDate).stream()
+                .filter(this::hasHealthImplications)
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void deleteMedicalCheckup(Long id) {
         if (!medicalCheckupRepository.existsById(id)) {
             throw new EntityNotFoundException("Không tìm thấy lịch sử khám bệnh với ID: " + id);
         }
         medicalCheckupRepository.deleteById(id);
+    }
+
+    /**
+     * Check if a medical checkup has health implications that require parent notification
+     */
+    private boolean hasHealthImplications(MedicalCheckup checkup) {
+        // Check for urgent conditions
+        if (checkup.getBodyTemperature() != null && (checkup.getBodyTemperature() > 38.5 || checkup.getBodyTemperature() < 35.0)) {
+            return true;
+        }
+        
+        if (checkup.getBloodPressure() != null && (
+            checkup.getBloodPressure().contains("140") || 
+            checkup.getBloodPressure().contains("90") ||
+            checkup.getBloodPressure().toLowerCase().contains("high") ||
+            checkup.getBloodPressure().toLowerCase().contains("low"))) {
+            return true;
+        }
+
+        if (checkup.getHeartRate() != null && (checkup.getHeartRate() > 120 || checkup.getHeartRate() < 60)) {
+            return true;
+        }
+
+        // Check for attention needed conditions
+        if (checkup.getFollowUpNeeded() != null && checkup.getFollowUpNeeded()) {
+            return true;
+        }
+
+        if (checkup.getDiagnosis() != null && !checkup.getDiagnosis().trim().isEmpty() && 
+            !checkup.getDiagnosis().toLowerCase().contains("bình thường") &&
+            !checkup.getDiagnosis().toLowerCase().contains("khỏe mạnh")) {
+            return true;
+        }
+
+        if (checkup.getBmi() != null && (checkup.getBmi() > 25 || checkup.getBmi() < 18.5)) {
+            return true;
+        }
+
+        if ((checkup.getVisionLeft() != null && !checkup.getVisionLeft().equals("20/20")) ||
+            (checkup.getVisionRight() != null && !checkup.getVisionRight().equals("20/20"))) {
+            return true;
+        }
+
+        return false;
     }
 
     // Phương thức chuyển đổi từ Entity sang DTO

@@ -83,12 +83,12 @@ public class ParentMedicationRequestController {
     @DeleteMapping("/cancel-request/{requestId}")
     @PreAuthorize("hasRole('PARENT')")
     @Operation(summary = "Hủy yêu cầu gửi thuốc, nếu status vẫn là PENDING_APPROVAL")
-    public ResponseEntity<MedicationInstructionDTO> cancelMedicationRequest(
+    public ResponseEntity<?> cancelMedicationRequest(
             @PathVariable Long requestId,
             Authentication auth) {
         medicationInstructionService.cancelMedicationRequest(requestId,auth);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Yêu cầu gửi thuốc đã được hủy thành công");
     }
 
     //update medication request
