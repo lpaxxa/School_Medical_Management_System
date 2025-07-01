@@ -197,94 +197,69 @@ const mockStudents = [
 const mockVaccinationRecords = [
   {
     id: 1,
-    studentId: 1,
-    studentName: 'Nguyễn Văn An',
-    studentCode: 'HS001',
-    className: '6A1',
-    vaccineId: 1,
-    vaccineName: 'Vaccine BCG',
-    vaccineCode: 'BCG',
-    dose: 1,
-    dateAdministered: '2012-05-20',
-    administrator: 'Bs. Nguyễn Thị Hoa',
-    status: 'Hoàn thành',
-    nextDoseDate: null,
-    sideEffects: 'Không',
-    notes: 'Tiêm sau sinh 5 ngày',
-    consented: true
+    healthProfileId: null,
+    studentName: null,
+    vaccineName: "Vắc xin COVID-19 Pfizer",
+    vaccinationDate: "2024-04-15",
+    nextDoseDate: "2025-04-15",
+    doseNumber: 1,
+    administeredBy: null,
+    administeredAt: "Phòng y tế trường",
+    notes: "Không có phản ứng phụ",
+    parentConsent: null
   },
   {
     id: 2,
-    studentId: 1,
-    studentName: 'Nguyễn Văn An',
-    studentCode: 'HS001',
-    className: '6A1',
-    vaccineId: 2,
-    vaccineName: 'Vaccine viêm gan B',
-    vaccineCode: 'HepB',
-    dose: 1,
-    dateAdministered: '2012-05-20',
-    administrator: 'Bs. Nguyễn Thị Hoa',
-    status: 'Hoàn thành',
-    nextDoseDate: '2012-07-20',
-    sideEffects: 'Không',
-    notes: 'Tiêm cùng ngày với BCG',
-    consented: true
+    healthProfileId: null,
+    studentName: null,
+    vaccineName: "Vắc xin COVID-19 Pfizer",
+    vaccinationDate: "2024-04-15",
+    nextDoseDate: "2025-04-15",
+    doseNumber: 1,
+    administeredBy: null,
+    administeredAt: "Phòng y tế trường",
+    notes: "Không có phản ứng phụ",
+    parentConsent: null
   },
   {
     id: 3,
-    studentId: 1,
-    studentName: 'Nguyễn Văn An',
-    studentCode: 'HS001',
-    className: '6A1',
-    vaccineId: 2,
-    vaccineName: 'Vaccine viêm gan B',
-    vaccineCode: 'HepB',
-    dose: 2,
-    dateAdministered: '2012-07-22',
-    administrator: 'Bs. Trần Văn Bình',
-    status: 'Hoàn thành',
-    nextDoseDate: '2012-09-22',
-    sideEffects: 'Sốt nhẹ',
-    notes: '',
-    consented: true
+    healthProfileId: null,
+    studentName: null,
+    vaccineName: "Vắc xin viêm gan B",
+    vaccinationDate: "2024-05-20",
+    nextDoseDate: "2024-08-20",
+    doseNumber: 2,
+    administeredBy: null,
+    administeredAt: "Phòng y tế trường",
+    notes: "Sốt nhẹ sau tiêm",
+    parentConsent: null
   },
   {
     id: 4,
-    studentId: 1,
-    studentName: 'Nguyễn Văn An',
-    studentCode: 'HS001',
-    className: '6A1',
-    vaccineId: 2,
-    vaccineName: 'Vaccine viêm gan B',
-    vaccineCode: 'HepB',
-    dose: 3,
-    dateAdministered: null,
-    administrator: null,
-    status: 'Dự kiến',
+    healthProfileId: null,
+    studentName: null,
+    vaccineName: "Vắc xin bại liệt",
+    vaccinationDate: "2024-06-10",
     nextDoseDate: null,
-    sideEffects: null,
-    notes: 'Dự kiến tiêm trong đợt tiêm chủng sắp tới',
-    consented: false
+    doseNumber: 1,
+    administeredBy: null,
+    administeredAt: "Phòng y tế trường",
+    notes: "Phản ứng nghiêm trọng",
+    parentConsent: null
   },
   {
     id: 5,
-    studentId: 2,
-    studentName: 'Trần Thị Bình',
-    studentCode: 'HS002',
-    className: '6A2',
-    vaccineId: 1,
-    vaccineName: 'Vaccine BCG',
-    vaccineCode: 'BCG',
-    dose: 1,
-    dateAdministered: '2012-08-25',
-    administrator: 'Bs. Nguyễn Thị Hoa',
-    status: 'Hoàn thành',
+    healthProfileId: null,
+    studentName: null,
+    vaccineName: "Vắc xin MMR",
+    vaccinationDate: "2024-03-25",
     nextDoseDate: null,
-    sideEffects: 'Không',
-    notes: 'Tiêm sau sinh 5 ngày',
-    consented: true
-  },
+    doseNumber: 1,
+    administeredBy: null,
+    administeredAt: "Phòng y tế trường",
+    notes: "Không có phản ứng phụ",
+    parentConsent: null
+  }
 ];
 
 // Mock dữ liệu cho các lô vaccine
@@ -600,7 +575,23 @@ const vaccinationService = {  // Lấy tất cả vaccine
     
     return mockVaccinationRecords[index];
   },
-  
+
+  // Xóa bản ghi tiêm chủng
+  deleteVaccinationRecord: async (id) => {
+    await delay(500);
+    const initialLength = mockVaccinationRecords.length;
+    const index = mockVaccinationRecords.findIndex(r => r.id === id);
+    
+    if (index === -1) {
+      throw new Error('Không tìm thấy bản ghi tiêm chủng');
+    }
+    
+    // Xóa bản ghi khỏi mảng
+    mockVaccinationRecords.splice(index, 1);
+    
+    return { success: true, message: 'Xóa bản ghi tiêm chủng thành công' };
+  },
+
   // Lấy tất cả kế hoạch tiêm chủng
   getAllVaccinationPlans: async () => {
     await delay(500);
@@ -906,7 +897,7 @@ const vaccinationService = {  // Lấy tất cả vaccine
       
       try {
         const response = await fetch(`${config.apiUrl}/classes`);
-          if (!response.ok) {
+        if (!response.ok) {
           throw new Error('Failed to fetch class list');
         }
       
@@ -924,10 +915,10 @@ const vaccinationService = {  // Lấy tất cả vaccine
       }
     } catch (error) {
       console.error("Error in getClassList:", error);
-      // Return empty array instead of throwing so UI doesn't break
       return [];
     }
   }
 };
 
+// Export the vaccinationService as default
 export default vaccinationService;

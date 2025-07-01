@@ -1,4 +1,5 @@
-import React, { useState, useContext } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { 
   Container, Row, Col, Card, Table, Form, Button, 
   Spinner, Alert, Modal, InputGroup, Badge, Pagination
@@ -13,18 +14,52 @@ import './MedicationHistory.css';
 import { useMedicationAdministration } from '../../../../../context/NurseContext/MedicineApprovalContext';
 
 const MedicationHistory = () => {
-  // Use the medication administration context
-  const { 
-    administrations, 
-    totalPages, 
-    currentPage, 
-    loading, 
+  // Use context instead of local state
+  const {
+    administrations,
+    totalItems,
+    totalPages,
+    currentPage,
+    pageSize,
+    loading,
+
     error,
     fetchMedicationAdministrations,
     addMedicationAdministration,
     updateMedicationAdministration,
-    deleteMedicationAdministration
+    deleteMedicationAdministration,
+    clearError
   } = useMedicationAdministration();
+
+  console.log('🎯 MedicationHistory - Context data:', {
+    administrations: administrations?.length || 0,
+    totalItems,
+    totalPages,
+    currentPage,
+    loading,
+    error
+  });
+
+  // Add useEffect to fetch data on mount
+  useEffect(() => {
+    console.log('🚀 MedicationHistory - useEffect triggered, calling fetchMedicationAdministrations');
+    fetchMedicationAdministrations(1, 10);
+    
+    // Cleanup function to clear errors when component unmounts
+    return () => {
+      if (clearError) {
+        clearError();
+      }
+    };
+  }, []);
+
+  // Clear error when user interacts
+  const handleClearError = () => {
+    console.log('🧹 Clearing error');
+    if (clearError) {
+      clearError();
+    }
+  };
   
   // State for search and filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,19 +101,28 @@ const MedicationHistory = () => {
       text: 'Vấn đề' 
     }
   };
-
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return 'Không có thông tin';
     
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('vi-VN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric'
-    }).format(date);
+    try {
+      const date = new Date(dateString);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'Ngày không hợp lệ';
+      }
+      
+      return new Intl.DateTimeFormat('vi-VN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric'
+      }).format(date);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Lỗi định dạng ngày';
+    }
   };
 
   // Handle adding new medication administration
@@ -154,7 +198,9 @@ const MedicationHistory = () => {
 
   // Handle pagination change
   const handlePageChange = (page) => {
-    fetchMedicationAdministrations(page);
+    if (page >= 1 && page <= totalPages) {
+      fetchMedicationAdministrations(page, pageSize);
+    }
   };
 
   // Generate pagination items
@@ -225,14 +271,22 @@ const MedicationHistory = () => {
     
     return items;
   };
+  // Filter by search term with null check
+  const filteredAdministrations = administrations && administrations.length > 0 ? 
+    administrations.filter(medication => 
+      searchTerm === '' || 
+      (medication.studentName && medication.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (medication.medicationName && medication.medicationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (medication.administeredBy && medication.administeredBy.toLowerCase().includes(searchTerm.toLowerCase()))
+    ) : [];
 
-  // Filter by search term
-  const filteredAdministrations = administrations.filter(medication => 
-    searchTerm === '' || 
-    medication.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    medication.medicationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    medication.administeredBy.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  console.log('🔍 MedicationHistory - Filtered data:', {
+    originalCount: administrations?.length || 0,
+    filteredCount: filteredAdministrations.length,
+    searchTerm,
+    hasData: !!administrations
+  });
+
 
   return (
     <Container fluid className="py-4">
@@ -274,8 +328,17 @@ const MedicationHistory = () => {
 
           {/* Error message display */}
           {error && (
-            <Alert variant="danger" className="mb-4">
-              {error}
+            <Alert variant="danger" className="mb-4" dismissible onClose={handleClearError}>
+              <Alert.Heading>Lỗi tải dữ liệu</Alert.Heading>
+              <p className="mb-2">{error}</p>
+              <Button 
+                variant="outline-danger" 
+                size="sm" 
+                onClick={() => fetchMedicationAdministrations(currentPage, pageSize)}
+              >
+                Thử lại
+              </Button>
+
             </Alert>
           )}
 
@@ -287,8 +350,15 @@ const MedicationHistory = () => {
             </div>
           ) : (
             <div className="table-responsive">
-              {filteredAdministrations.length === 0 ? (
-                <Alert variant="info">Không có dữ liệu lịch sử dùng thuốc</Alert>
+              {!filteredAdministrations || filteredAdministrations.length === 0 ? (
+                <Alert variant="info" className="text-center">
+                  <h6>Không có dữ liệu lịch sử dùng thuốc</h6>
+                  <p className="mb-0">
+                    {searchTerm ? 
+                      `Không có kết quả cho từ khóa "${searchTerm}"` : 
+                      "Chưa có dữ liệu lịch sử dùng thuốc nào được ghi nhận"}
+                  </p>
+                </Alert>
               ) : (
                 <Table hover className="align-middle mb-0">
                   <thead className="bg-light">
@@ -302,22 +372,26 @@ const MedicationHistory = () => {
                       <th className="text-center">Thao tác</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {filteredAdministrations.map((medication) => (
-                      <tr key={medication.id}>
-                        <td className="ps-4 fw-bold">{medication.id}</td>
-                        <td>{medication.studentName}</td>
-                        <td>{medication.medicationName}</td>
-                        <td>{formatDate(medication.administeredAt)}</td>
-                        <td>{medication.administeredBy}</td>
+
+                  <tbody>                    {filteredAdministrations.map((medication) => (
+                      <tr key={medication.id || Math.random()}>
+                        <td className="ps-4 fw-bold">{medication.id || 'N/A'}</td>
+                        <td>{medication.studentName || 'N/A'}</td>
+                        <td>{medication.medicationName || 'N/A'}</td>
+                        <td>{formatDate(medication.administeredAt || null)}</td>
+                        <td>{medication.administeredBy || 'N/A'}</td>
                         <td>
-                          <Badge 
-                            bg={statusConfig[medication.administrationStatus].color} 
-                            className="d-inline-flex align-items-center py-2 px-3"
-                          >
-                            {statusConfig[medication.administrationStatus].icon}
-                            {statusConfig[medication.administrationStatus].text}
-                          </Badge>
+                          {medication.administrationStatus && statusConfig[medication.administrationStatus] ? (
+                            <Badge 
+                              bg={statusConfig[medication.administrationStatus].color} 
+                              className="d-inline-flex align-items-center py-2 px-3"
+                            >
+                              {statusConfig[medication.administrationStatus].icon}
+                              {statusConfig[medication.administrationStatus].text}
+                            </Badge>
+                          ) : (
+                            <Badge bg="secondary">Không xác định</Badge>
+                          )}
                         </td>
                         <td>
                           <div className="d-flex justify-content-center gap-2">
@@ -351,6 +425,7 @@ const MedicationHistory = () => {
                   <Pagination>{renderPaginationItems()}</Pagination>
                 </div>
               )}
+
             </div>
           )}
         </Card.Body>
@@ -436,6 +511,7 @@ const MedicationHistory = () => {
           Bạn có chắc chắn muốn xóa thông tin dùng thuốc này không?
         </Modal.Body>
         <Modal.Footer>
+
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
             Hủy
           </Button>

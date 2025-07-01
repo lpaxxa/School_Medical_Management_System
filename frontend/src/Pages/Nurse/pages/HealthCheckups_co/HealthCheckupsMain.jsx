@@ -3,7 +3,6 @@ import { HealthCheckupProvider } from '../../../../context/NurseContext/HealthCh
 import Dashboard from './Dashboard/Dashboard';
 import CheckupList from './CheckupList/CheckupList';
 import Reports from './Reports/Reports';
-import StudentDetailView from './StudentDetail/StudentDetail';
 import './HealthCheckupsMain.css';
 
 // Thêm import cho các component mới
@@ -21,30 +20,14 @@ export const HealthCheckupsPage = () => {
 
 const HealthCheckups = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const refreshData = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  const handleCampaignSelect = (campaign) => {
-    setSelectedCampaign(campaign);
-    setActiveTab('results');
-  };
-
-  const handleStudentSelect = (student) => {
-    setSelectedStudent(student);
-    setActiveTab('student-detail');
-  };
-
   const handleBack = () => {
-    if (activeTab === 'student-detail') {
-      setActiveTab('results');
-    } else if (activeTab === 'results') {
-      setActiveTab('campaign-list');
-    } else if (activeTab === 'create-checkup') {
+    if (activeTab === 'create-checkup') {
       setActiveTab('dashboard');
     } else if (activeTab === 'create-checkup-list') {
       setActiveTab('dashboard');
@@ -92,11 +75,11 @@ const HealthCheckups = () => {
         >
           <i className="fas fa-file-medical-alt"></i> Báo cáo
         </button>
-        {(activeTab === 'results' || activeTab === 'student-detail') && (
+        {activeTab === 'create-checkup' || activeTab === 'create-checkup-list' || activeTab === 'schedule-consultation' ? (
           <button className="tab-button back-button" onClick={handleBack}>
             <i className="fas fa-arrow-left"></i> Quay lại
           </button>
-        )}
+        ) : null}
       </div>
       
       {/* Hiển thị nội dung theo tab đang active */}
@@ -106,7 +89,6 @@ const HealthCheckups = () => {
           <Dashboard 
             stats={{}} 
             campaignsData={[]} 
-            onCampaignSelect={handleCampaignSelect}
             refreshData={refreshData}
           />
         )}
@@ -133,24 +115,6 @@ const HealthCheckups = () => {
         {/* Reports */}
         {activeTab === 'reports' && (
           <Reports />
-        )}
-        
-        {/* Checkup Results */}
-        {activeTab === 'results' && selectedCampaign && (
-          <ResultList 
-            campaignId={selectedCampaign.id}
-            onStudentSelect={handleStudentSelect}
-            refreshTrigger={refreshTrigger}
-          />
-        )}
-        
-        {/* Student Detail */}
-        {activeTab === 'student-detail' && selectedStudent && (
-          <StudentDetailView 
-            studentId={selectedStudent.id}
-            campaignId={selectedCampaign?.id}
-            refreshTrigger={refreshTrigger}
-          />
         )}
       </div>
     </div>

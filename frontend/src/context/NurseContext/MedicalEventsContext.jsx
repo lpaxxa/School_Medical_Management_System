@@ -49,13 +49,25 @@ export const MedicalEventsProvider = ({ children }) => {  // States
   const fetchEventById = async (id) => {
     setLoading(true);
     try {
+      console.log(`Fetching event details for ID: ${id}`);
       const data = await medicalEventsService.getEventById(id);
-      setSelectedEvent(data);
-      setError(null);
-      return data;
+      console.log('Event details from API:', data);
+      
+      // Validate returned data
+      if (data && (data.incidentId || data.id)) {
+        setSelectedEvent(data);
+        setError(null);
+        return data;
+      } else {
+        console.warn('Invalid data format from API, but continuing with available data:', data);
+        setSelectedEvent(data);
+        setError(null);
+        return data;
+      }
     } catch (err) {
       console.error('Error fetching event details:', err);
       setError('Không thể tải chi tiết sự kiện y tế');
+      // Không return null, thay vào đó return một object rỗng để tránh crash
       return null;
     } finally {
       setLoading(false);
@@ -66,7 +78,8 @@ export const MedicalEventsProvider = ({ children }) => {  // States
   const addEvent = async (event) => {
     setLoading(true);
     try {
-      const newEvent = await medicalEventsService.addEvent(event);
+      const response = await medicalEventsService.addEvent(event);
+      const newEvent = response.event || response; // Handle both response formats
       setEvents(prevEvents => [...prevEvents, newEvent]);
       setError(null);
       return newEvent;
@@ -196,11 +209,15 @@ export const MedicalEventsProvider = ({ children }) => {  // States
 
   // Thêm phương thức tìm kiếm theo tên học sinh
   const searchByStudentName = async (name) => {
+    console.log("=== CONTEXT: searchByStudentName ===");
+    console.log("Input name:", name);
     setLoading(true);
     try {
       const results = await medicalEventsService.searchByStudentName(name);
+      console.log("Results from service:", results);
       setEvents(results);
       setError(null);
+      console.log("Updated events state with results");
       return results;
     } catch (err) {
       console.error('Error searching events by student name:', err);
@@ -208,6 +225,29 @@ export const MedicalEventsProvider = ({ children }) => {  // States
       return [];
     } finally {
       setLoading(false);
+      console.log("=== END CONTEXT: searchByStudentName ===");
+    }
+  };
+
+  // Thêm phương thức tìm kiếm theo trạng thái follow-up
+  const searchByFollowUpStatus = async (requiresFollowUp) => {
+    console.log("=== CONTEXT: searchByFollowUpStatus ===");
+    console.log("Input requiresFollowUp:", requiresFollowUp);
+    setLoading(true);
+    try {
+      const results = await medicalEventsService.searchByFollowUpStatus(requiresFollowUp);
+      console.log("Results from service:", results);
+      setEvents(results);
+      setError(null);
+      console.log("Updated events state with results");
+      return results;
+    } catch (err) {
+      console.error('Error searching events by follow-up status:', err);
+      setError('Không thể tìm kiếm sự kiện y tế theo trạng thái theo dõi');
+      return [];
+    } finally {
+      setLoading(false);
+      console.log("=== END CONTEXT: searchByFollowUpStatus ===");
     }
   };
 
@@ -237,7 +277,8 @@ export const MedicalEventsProvider = ({ children }) => {  // States
     deleteEvent,
     searchEvents,
     searchByType,
-    searchByStudentName, // Thêm phương thức mới vào context
+    searchByStudentName, // Thêm phương thức tìm kiếm theo tên học sinh
+    searchByFollowUpStatus, // Thêm phương thức tìm kiếm theo follow-up
     resetError,
     setSelectedEvent
   };

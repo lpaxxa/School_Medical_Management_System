@@ -1,79 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Table, Alert, Row, Col, Card, Tabs, Tab, Modal } from 'react-bootstrap';
+import { Form, Button, Table, Row, Col, Card, Tabs, Tab, Modal, Badge } from 'react-bootstrap';
 import './VaccinationListCreation.css';
 import { useVaccination } from '../../../../../context/NurseContext/VaccinationContext';
 import { useAuth } from '../../../../../context/AuthContext';
+import { FaEye, FaPaperPlane, FaUsers } from 'react-icons/fa';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const VaccinationListCreation = ({ refreshData, onDataChange }) => {
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const [activeTab, setActiveTab] = useState('list');
+  // Thay đổi tab mặc định thành 'plans' thay vì 'list'
+  const [activeTab, setActiveTab] = useState('plans');
   const { currentUser } = useAuth();
   
-  // Thêm state cho tìm kiếm danh sách tiêm chủng và phụ huynh
-  const [vaccineSearchTerm, setVaccineSearchTerm] = useState('');
-  const [vaccineFilter, setVaccineFilter] = useState('');
+  // Xóa state không cần thiết cho danh sách tiêm chủng
   const [parentSearchTerm, setParentSearchTerm] = useState('');
+  const [planSearchTerm, setPlanSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  
+  // State cho modal xem chi tiết kế hoạch
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailPlan, setDetailPlan] = useState(null);
+  
+  // Ensure we have a valid senderId (must be a number, not null)
+  const nurseId = currentUser?.id ? parseInt(currentUser.id) : 1;
   
   // State cho modal gửi thông báo
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
+  const [isSendingToAll, setIsSendingToAll] = useState(false);
+  const [sendingNotification, setSendingNotification] = useState(false);
   const [notificationData, setNotificationData] = useState({
     title: '',
     message: '',
     isRequest: true,
-    senderId: currentUser?.id || 1, // Sử dụng ID người dùng hiện tại hoặc mặc định là 1
+    senderId: nurseId,
     type: 'VACCINATION',
     receiverIds: []
   });
 
-  // Sử dụng context thay vì local state
+  // Sử dụng context thay vì local state - loại bỏ các state không cần thiết
   const {
     loading,
     error,
     success,
     clearError,
     clearSuccess,
-    vaccinations,
     parents,
-    fetchVaccinations,
+    vaccinationPlans,
+    selectedPlan,
     fetchParents,
-    deleteVaccinationRecord,
+    fetchVaccinationPlans,
+    getVaccinationPlanById,
     sendNotification
   } = useVaccination();
 
-  // Fetch dữ liệu khi component mount
-  useEffect(() => {
-    fetchVaccinations();
-    fetchParents();
-  }, [fetchVaccinations, fetchParents, refreshData]);
+  // Track sent notifications
+  const [sentNotifications, setSentNotifications] = useState(new Set());
 
-  // Hiển thị thông báo từ context
+  // Fetch dữ liệu khi component mount - loại bỏ fetchVaccinations
+  useEffect(() => {
+    fetchParents();
+    fetchVaccinationPlans(); // Thêm lệnh fetch kế hoạch tiêm chủng
+  }, [fetchParents, fetchVaccinationPlans, refreshData]);
+
+  // Hiển thị thông báo từ context sử dụng toast
   useEffect(() => {
     if (error) {
-      setMessage({ type: 'danger', text: error });
-      setTimeout(() => {
-        clearError();
-        setMessage({ type: '', text: '' });
-      }, 5000);
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      clearError();
     }
     
     if (success) {
-      setMessage({ type: 'success', text: success });
-      setTimeout(() => {
-        clearSuccess();
-        setMessage({ type: '', text: '' });
-      }, 5000);
+      toast.success(success, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      clearSuccess();
     }
   }, [error, success, clearError, clearSuccess]);
 
-  // Lọc danh sách tiêm chủng
-  const filteredVaccinations = vaccinations.filter(vaccination => {
+  // Lọc danh sách kế hoạch tiêm chủng
+  const filteredVaccinationPlans = vaccinationPlans.filter(plan => {
     const matchesSearch = 
-      (vaccination.vaccineName?.toLowerCase().includes(vaccineSearchTerm.toLowerCase()) || 
-      vaccination.studentName?.toLowerCase().includes(vaccineSearchTerm.toLowerCase()));
-    const matchesVaccine = vaccineFilter === '' || vaccination.vaccineName === vaccineFilter;
+      plan.vaccineName?.toLowerCase().includes(planSearchTerm.toLowerCase()) ||
+      plan.description?.toLowerCase().includes(planSearchTerm.toLowerCase());
+    const matchesStatus = statusFilter === '' || plan.status === statusFilter;
     
-    return matchesSearch && matchesVaccine;
+    return matchesSearch && matchesStatus;
   });
 
   // Lọc danh sách phụ huynh
@@ -83,52 +107,79 @@ const VaccinationListCreation = ({ refreshData, onDataChange }) => {
     parent.phoneNumber?.includes(parentSearchTerm)
   );
 
-  // Danh sách loại vaccine duy nhất
-  const uniqueVaccines = [...new Set(vaccinations.map(v => v.vaccineName).filter(Boolean))];
-
-  // Xử lý xóa bản ghi tiêm chủng
-  const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bản ghi tiêm chủng này?')) {
-      try {
-        await deleteVaccinationRecord(id);
-        setMessage({ 
-          type: 'success', 
-          text: 'Xóa bản ghi tiêm chủng thành công!' 
-        });
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-      } catch (error) {
-        setMessage({ 
-          type: 'danger', 
-          text: 'Không thể xóa bản ghi tiêm chủng. Vui lòng thử lại sau.' 
-        });
-      }
+  // Xem chi tiết kế hoạch tiêm chủng
+  const handleViewPlanDetail = async (id) => {
+    try {
+      const planDetail = await getVaccinationPlanById(id);
+      setDetailPlan(planDetail);
+      setShowDetailModal(true);
+    } catch (error) {
+      console.error('Error fetching vaccination plan details:', error);
+      toast.error('Không thể lấy thông tin chi tiết kế hoạch tiêm chủng. Vui lòng thử lại sau.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
+  };
+
+  // Lấy màu và biểu tượng cho trạng thái
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'ONGOING':
+        return { variant: 'primary', text: 'Đang diễn ra' };
+      case 'COMPLETED':
+        return { variant: 'success', text: 'Kết thúc' };
+      case 'CANCELLED':
+        return { variant: 'danger', text: 'Đã hủy' };
+      default:
+        return { variant: 'secondary', text: 'Không xác định' };
+    }
+  };
+
+  // Định dạng ngày tháng
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
   // Mở modal gửi thông báo cho phụ huynh đã chọn
   const handleOpenNotificationModal = (parent) => {
     setSelectedParent(parent);
+    setIsSendingToAll(false);
     setNotificationData({
       title: '',
       message: '',
       isRequest: true,
-      senderId: currentUser?.id || 1,
+      senderId: nurseId,
       type: 'VACCINATION',
-      receiverIds: [parseInt(parent.id)] // Đảm bảo ID là số nguyên
+      receiverIds: [parseInt(parent.id)]
     });
     setShowNotificationModal(true);
   };
 
-  // Mở modal gửi thông báo cho tất cả phụ huynh
+  // Mở modal gửi thông báo cho tất cả phụ huynh đã lọc
   const handleOpenBulkNotificationModal = () => {
+    if (filteredParents.length === 0) {
+      toast.warning('Không có phụ huynh nào trong danh sách để gửi thông báo!', {
+        position: "top-right",
+        autoClose: 5000,
+      });
+      return;
+    }
+    
     setSelectedParent(null);
+    setIsSendingToAll(true);
     setNotificationData({
       title: '',
       message: '',
       isRequest: true,
-      senderId: currentUser?.id || 1,
+      senderId: nurseId,
       type: 'VACCINATION',
-      receiverIds: filteredParents.map(p => parseInt(p.id)) // Đảm bảo ID là số nguyên
+      receiverIds: filteredParents.map(p => parseInt(p.id))
     });
     setShowNotificationModal(true);
   };
@@ -137,14 +188,21 @@ const VaccinationListCreation = ({ refreshData, onDataChange }) => {
   const handleCloseNotificationModal = () => {
     setShowNotificationModal(false);
     setSelectedParent(null);
+    setIsSendingToAll(false);
     setNotificationData({
       title: '',
       message: '',
       isRequest: true,
-      senderId: currentUser?.id || 1,
+      senderId: nurseId,
       type: 'VACCINATION',
       receiverIds: []
     });
+  };
+
+  // Xử lý đóng modal chi tiết
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setDetailPlan(null);
   };
 
   // Xử lý thay đổi form thông báo
@@ -159,27 +217,38 @@ const VaccinationListCreation = ({ refreshData, onDataChange }) => {
   // Gửi thông báo
   const handleSendNotification = async (e) => {
     e.preventDefault();
+    setSendingNotification(true);
     
     if (!notificationData.title || !notificationData.message) {
-      setMessage({
-        type: 'danger',
-        text: 'Vui lòng nhập tiêu đề và nội dung thông báo!'
+      toast.error('Vui lòng nhập tiêu đề và nội dung thông báo!', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
+      setSendingNotification(false);
       return;
     }
     
     // Kiểm tra receiverIds có được thiết lập chưa
     if (notificationData.receiverIds.length === 0) {
-      setMessage({
-        type: 'danger',
-        text: 'Không có người nhận nào được chọn!'
+      toast.error('Không có người nhận nào được chọn!', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
+      setSendingNotification(false);
       return;
     }
     
     try {
       // Đảm bảo senderId là số nguyên
-      const senderId = parseInt(notificationData.senderId) || 1;
+      const senderId = nurseId;
       
       // Tạo đối tượng thông báo với đúng định dạng
       const notificationPayload = {
@@ -191,80 +260,76 @@ const VaccinationListCreation = ({ refreshData, onDataChange }) => {
         receiverIds: notificationData.receiverIds
       };
       
-      console.log('Sending notification:', notificationPayload);
+      console.log('Sending notification:', JSON.stringify(notificationPayload, null, 2));
       
       await sendNotification(notificationPayload);
     
-      setMessage({
-        type: 'success',
-        text: `Đã gửi thông báo tiêm chủng thành công tới ${selectedParent ? selectedParent.fullName : 'tất cả phụ huynh đã chọn'}!`
+      // Thêm parent IDs vào danh sách đã gửi
+      const newSentNotifications = new Set(sentNotifications);
+      notificationData.receiverIds.forEach(id => newSentNotifications.add(id));
+      setSentNotifications(newSentNotifications);
+    
+      toast.success(`Đã gửi thông báo tiêm chủng thành công tới ${isSendingToAll ? `${notificationData.receiverIds.length} phụ huynh` : selectedParent.fullName}!`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
       
       handleCloseNotificationModal();
     } catch (error) {
       console.error('Lỗi khi gửi thông báo:', error);
-      setMessage({
-        type: 'danger',
-        text: `Không thể gửi thông báo. Lỗi: ${error.message}`
+      toast.error(`Không thể gửi thông báo. Lỗi: ${error.message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
+    } finally {
+      setSendingNotification(false);
     }
-  };
-
-  // Định dạng ngày tháng
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
   return (
     <div className="vaccination-list-creation">
+      <ToastContainer />
       <div className="section-header">
         <h2>Quản lý tiêm chủng</h2>
       </div>
-      
-      {message.text && (
-        <Alert 
-          variant={message.type} 
-          onClose={() => setMessage({ type: '', text: '' })} 
-          dismissible
-        >
-          {message.text}
-        </Alert>
-      )}
       
       <Tabs
         activeKey={activeTab}
         onSelect={(k) => setActiveTab(k)}
         className="mb-4"
       >
-        <Tab eventKey="list" title="Danh sách tiêm chủng">
-          <Card className="mb-4">
-            <Card.Header as="h5">Danh sách tiêm chủng</Card.Header>
+        {/* Tab Danh mục kế hoạch tiêm chủng */}
+        <Tab eventKey="plans" title="Danh mục tiêm chủng">
+          <Card>
+            <Card.Header as="h5">Danh mục kế hoạch tiêm chủng</Card.Header>
             <Card.Body>
               <Row className="mb-3">
-                <Col md={4}>
+                <Col md={6}>
                   <Form.Control
                     type="text"
-                    placeholder="Tìm kiếm theo tên vaccine hoặc tên học sinh..."
-                    value={vaccineSearchTerm}
-                    onChange={(e) => setVaccineSearchTerm(e.target.value)}
+                    placeholder="Tìm kiếm theo tên vaccine hoặc mô tả..."
+                    value={planSearchTerm}
+                    onChange={(e) => setPlanSearchTerm(e.target.value)}
                   />
                 </Col>
-                <Col md={4}>
+                <Col md={6}>
                   <Form.Select
-                    value={vaccineFilter}
-                    onChange={(e) => setVaccineFilter(e.target.value)}
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
                   >
-                    <option value="">Tất cả loại vaccine</option>
-                    {uniqueVaccines.map((vaccine, index) => (
-                      <option key={index} value={vaccine}>{vaccine}</option>
-                    ))}
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="ONGOING">Đang diễn ra</option>
+                    <option value="COMPLETED">Kết thúc</option>
+                    <option value="CANCELLED">Đã hủy</option>
                   </Form.Select>
-                </Col>
-                <Col md={4} className="text-end">
-                  <Button variant="success" href="/nurse/vaccinations/new">
-                    <i className="fas fa-plus"></i> Thêm mới
-                  </Button>
                 </Col>
               </Row>
 
@@ -275,55 +340,48 @@ const VaccinationListCreation = ({ refreshData, onDataChange }) => {
                       <th>ID</th>
                       <th>Tên vaccine</th>
                       <th>Ngày tiêm</th>
-                      <th>Ngày tiêm tiếp theo</th>
-                      <th>Mũi số</th>
-                      <th>Địa điểm tiêm</th>
-                      <th>Ghi chú</th>
+                      <th>Trạng thái</th>
                       <th>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
                     {loading ? (
                       <tr>
-                        <td colSpan="8" className="text-center">
+                        <td colSpan="5" className="text-center">
                           <div className="spinner-border text-primary" role="status">
                             <span className="visually-hidden">Đang tải...</span>
                           </div>
                         </td>
                       </tr>
-                    ) : filteredVaccinations.length > 0 ? (
-                      filteredVaccinations.map(vaccination => (
-                        <tr key={vaccination.id}>
-                          <td>{vaccination.id}</td>
-                          <td>{vaccination.vaccineName || 'N/A'}</td>
-                          <td>{formatDate(vaccination.vaccinationDate)}</td>
-                          <td>{formatDate(vaccination.nextDoseDate)}</td>
-                          <td>{vaccination.doseNumber || 'N/A'}</td>
-                          <td>{vaccination.administeredAt || 'N/A'}</td>
-                          <td>{vaccination.notes || 'N/A'}</td>
-                          <td>
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              className="me-1"
-                              href={`/nurse/vaccinations/${vaccination.id}/edit`}
-                            >
-                              <i className="fas fa-edit"></i>
-                            </Button>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleDelete(vaccination.id)}
-                            >
-                              <i className="fas fa-trash"></i>
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
+                    ) : filteredVaccinationPlans.length > 0 ? (
+                      filteredVaccinationPlans.map(plan => {
+                        const statusBadge = getStatusBadge(plan.status);
+                        return (
+                          <tr key={plan.id}>
+                            <td>{plan.id}</td>
+                            <td>{plan.vaccineName || 'N/A'}</td>
+                            <td>{formatDate(plan.vaccinationDate)}</td>
+                            <td>
+                              <Badge bg={statusBadge.variant} pill>
+                                {plan.statusVietnamese || statusBadge.text}
+                              </Badge>
+                            </td>
+                            <td className="text-center">
+                              <Button
+                                variant="info"
+                                size="sm"
+                                onClick={() => handleViewPlanDetail(plan.id)}
+                              >
+                                <FaEye className="me-1" /> Chi tiết
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
-                        <td colSpan="8" className="text-center">
-                          Không tìm thấy bản ghi tiêm chủng nào
+                        <td colSpan="5" className="text-center">
+                          Không tìm thấy kế hoạch tiêm chủng nào
                         </td>
                       </tr>
                     )}
@@ -336,25 +394,27 @@ const VaccinationListCreation = ({ refreshData, onDataChange }) => {
         
         <Tab eventKey="parents" title="Danh sách phụ huynh">
           <Card>
-            <Card.Header as="h5">Danh sách phụ huynh</Card.Header>
+            <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
+              <span>Danh sách phụ huynh</span>
+              <Button 
+                variant="primary" 
+                size="sm"
+                onClick={handleOpenBulkNotificationModal}
+                disabled={filteredParents.length === 0}
+                className="send-all-btn"
+              >
+                <FaUsers className="me-2" /> Gửi thông báo cho tất cả
+              </Button>
+            </Card.Header>
             <Card.Body>
               <Row className="mb-3">
-                <Col md={6}>
+                <Col md={12}>
                   <Form.Control
                     type="text"
                     placeholder="Tìm kiếm theo tên, email hoặc số điện thoại phụ huynh..."
                     value={parentSearchTerm}
                     onChange={(e) => setParentSearchTerm(e.target.value)}
                   />
-                </Col>
-                <Col md={6} className="text-end">
-                  <Button 
-                    variant="primary"
-                    onClick={handleOpenBulkNotificationModal}
-                    disabled={filteredParents.length === 0}
-                  >
-                    <i className="fas fa-envelope"></i> Gửi thông báo tiêm chủng
-                  </Button>
                 </Col>
               </Row>
 
@@ -390,21 +450,17 @@ const VaccinationListCreation = ({ refreshData, onDataChange }) => {
                           <td>{parent.address || 'N/A'}</td>
                           <td>{parent.relationshipType || 'N/A'}</td>
                           <td>
-                            <Button
-                              variant="info"
-                              size="sm"
-                              className="me-1"
-                              href={`/nurse/parents/${parent.id}`}
-                            >
-                              <i className="fas fa-eye"></i>
-                            </Button>
-                            <Button
-                              variant="success"
-                              size="sm"
-                              onClick={() => handleOpenNotificationModal(parent)}
-                            >
-                              <i className="fas fa-paper-plane"></i>
-                            </Button>
+                            {sentNotifications.has(parseInt(parent.id)) ? (
+                              <span className="text-success fw-bold">Đã gửi</span>
+                            ) : (
+                              <Button
+                                variant="success"
+                                size="sm"
+                                onClick={() => handleOpenNotificationModal(parent)}
+                              >
+                                <FaPaperPlane /> Gửi
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       ))
@@ -427,9 +483,9 @@ const VaccinationListCreation = ({ refreshData, onDataChange }) => {
       <Modal show={showNotificationModal} onHide={handleCloseNotificationModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>
-            {selectedParent 
-              ? `Gửi thông báo cho phụ huynh: ${selectedParent.fullName}`
-              : 'Gửi thông báo cho tất cả phụ huynh đã chọn'
+            {isSendingToAll 
+              ? `Gửi thông báo cho ${notificationData.receiverIds.length} phụ huynh`
+              : `Gửi thông báo cho phụ huynh: ${selectedParent?.fullName}`
             }
           </Modal.Title>
         </Modal.Header>
@@ -468,12 +524,89 @@ const VaccinationListCreation = ({ refreshData, onDataChange }) => {
                 value="VACCINATION (Tiêm chủng)"
               />
             </Form.Group>
+
+            {/* Add a hidden field to ensure senderId is included */}
+            <input 
+              type="hidden" 
+              name="senderId" 
+              value={nurseId} 
+            />
             
-            <Button variant="primary" type="submit" className="w-100">
-              <i className="fas fa-paper-plane"></i> Gửi thông báo
-            </Button>
+            <div className="d-flex justify-content-between">
+              <Button variant="secondary" onClick={handleCloseNotificationModal}>
+                Hủy
+              </Button>
+              <Button 
+                variant="primary" 
+                type="submit"
+                disabled={sendingNotification}
+              >
+                {sendingNotification ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Đang gửi...
+                  </>
+                ) : (
+                  <>
+                    <FaPaperPlane className="me-2" /> Gửi thông báo
+                  </>
+                )}
+              </Button>
+            </div>
           </Form>
         </Modal.Body>
+      </Modal>
+
+      {/* Modal xem chi tiết kế hoạch tiêm chủng */}
+      <Modal show={showDetailModal} onHide={handleCloseDetailModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            Chi tiết kế hoạch tiêm chủng
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {detailPlan ? (
+            <div>
+              <div className="mb-3">
+                <h6>ID kế hoạch:</h6>
+                <p>{detailPlan.id}</p>
+              </div>
+              <div className="mb-3">
+                <h6>Tên vaccine:</h6>
+                <p>{detailPlan.vaccineName || 'N/A'}</p>
+              </div>
+              <div className="mb-3">
+                <h6>Ngày tiêm:</h6>
+                <p>{formatDate(detailPlan.vaccinationDate)}</p>
+              </div>
+              <div className="mb-3">
+                <h6>Trạng thái:</h6>
+                <Badge bg={getStatusBadge(detailPlan.status).variant} pill>
+                  {detailPlan.statusVietnamese || getStatusBadge(detailPlan.status).text}
+                </Badge>
+              </div>
+              <div className="mb-3">
+                <h6>Mô tả kế hoạch:</h6>
+                <p>{detailPlan.description || 'Không có mô tả'}</p>
+              </div>
+              <div className="mb-3">
+                <h6>Ngày tạo:</h6>
+                <p>{formatDate(detailPlan.createdAt)}</p>
+              </div>
+              <div className="mb-3">
+                <h6>Cập nhật cuối:</h6>
+                <p>{formatDate(detailPlan.updatedAt)}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center">Đang tải dữ liệu...</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDetailModal}>
+            Đóng
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

@@ -51,13 +51,386 @@ const MedicineReceipts = () => {
     decision: "APPROVED",
     reason: "",
   });
-  // Thêm state dropdownId ở đây
-  const [dropdownId, setDropdownId] = useState(null);
+
+  // Medication Administration states
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [pendingAdministrationId, setPendingAdministrationId] = useState(null);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminError, setAdminError] = useState(null);
+  
+  // State for form data
+  const [formData, setFormData] = useState({
+    medicationInstructionId: '',
+    administeredAt: '',
+    administrationStatus: 'SUCCESSFUL',
+    notes: '',
+    imgUrl: ''
+  });
+
+  // State for image upload
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadLoading, setUploadLoading] = useState(false);
+
+  // State for dropdown z-index fix
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10); // Default to 10 records per page
+
+  // Date filter state
+  const [dateRange, setDateRange] = useState({
+    startDate: "",
+    endDate: "",
+  });
+
+  // Helper function to get current time in datetime-local format
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    // Subtract 1 minute to ensure we're not in the future
+    now.setMinutes(now.getMinutes() - 1);
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Helper function to get minimum allowed date (start date)
+  const getMinDateTime = () => {
+    if (!selectedRequest || !selectedRequest.startDate) {
+      return '';
+    }
+    
+    const startDate = new Date(selectedRequest.startDate);
+    const year = startDate.getFullYear();
+    const month = String(startDate.getMonth() + 1).padStart(2, '0');
+    const day = String(startDate.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T00:00`;
+  };
+
+  // Helper function to get maximum allowed date (end date or current time)
+  const getMaxDateTime = () => {
+    const currentDate = new Date();
+    
+    if (selectedRequest && selectedRequest.endDate) {
+      const endDate = new Date(selectedRequest.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      
+      // Allow selection up to the end date, even if it's in the future
+      // But don't allow times beyond current time if end date is today or future
+      const maxDate = endDate;
+      
+      const year = maxDate.getFullYear();
+      const month = String(maxDate.getMonth() + 1).padStart(2, '0');
+      const day = String(maxDate.getDate()).padStart(2, '0');
+      
+      // If end date is today, limit to current time, otherwise allow full end date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const endDateDay = new Date(endDate);
+      endDateDay.setHours(0, 0, 0, 0);
+      
+      if (endDateDay.getTime() === today.getTime()) {
+        // End date is today, limit to current time
+        const hours = String(currentDate.getHours()).padStart(2, '0');
+        const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      } else {
+        // End date is not today, allow full end date
+        return `${year}-${month}-${day}T23:59`;
+      }
+    }
+    
+    // If no end date, use current time
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const hours = String(currentDate.getHours()).padStart(2, '0');
+    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
 
   // Fetch data when component mounts
   useEffect(() => {
     fetchMedicineRequests();
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openDropdownId && !event.target.closest('.dropdown')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    if (openDropdownId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdownId]);
+
+  // Medication Administration functions
+  const handleRecordAdministration = (request) => {
+    setSelectedRequest(request);
+    setFormData({
+      medicationInstructionId: request.id,
+      administeredAt: getCurrentDateTime(),
+      administrationStatus: 'SUCCESSFUL',
+      notes: '',
+      imgUrl: ''
+    });
+    setShowAdminModal(true);
+  };
+
+  // Reset form to initial state
+  const resetAdminForm = () => {
+    setFormData({
+      medicationInstructionId: '',
+      administeredAt: getCurrentDateTime(),
+      administrationStatus: 'SUCCESSFUL',
+      notes: '',
+      imgUrl: ''
+    });
+    setSelectedImage(null);
+    setImagePreview(null);
+    setAdminError(null);
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle image selection
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setAdminError('Vui lòng chọn file ảnh hợp lệ');
+        return;
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        setAdminError('Kích thước file không được vượt quá 5MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+      
+      setAdminError(null);
+    }
+  };
+
+  // Handle administration form submission
+  const handleAdminSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setAdminLoading(true);
+      setAdminError(null);
+      
+      // Validate required fields
+      if (!formData.medicationInstructionId) {
+        setAdminError('Vui lòng chọn yêu cầu thuốc');
+        return;
+      }
+      
+      if (!formData.administeredAt) {
+        setAdminError('Vui lòng chọn thời gian thực hiện');
+        return;
+      }
+
+      // Prepare data for API
+      const selectedDateTime = new Date(formData.administeredAt);
+      const currentTime = new Date();
+      
+      // Validate against start date
+      if (selectedRequest && selectedRequest.startDate) {
+        const startDate = new Date(selectedRequest.startDate);
+        startDate.setHours(0, 0, 0, 0); // Set to beginning of start date
+        
+        if (selectedDateTime < startDate) {
+          const formattedStartDate = startDate.toLocaleDateString('vi-VN');
+          setAdminError(`Thời gian ghi nhận không được trước ngày bắt đầu: ${formattedStartDate}`);
+          return;
+        }
+      }
+      
+      // Validate against end date if exists
+      if (selectedRequest && selectedRequest.endDate) {
+        const endDate = new Date(selectedRequest.endDate);
+        endDate.setHours(23, 59, 59, 999); // Set to end of end date
+        
+        if (selectedDateTime > endDate) {
+          const formattedEndDate = endDate.toLocaleDateString('vi-VN');
+          setAdminError(`Thời gian ghi nhận không được sau ngày kết thúc: ${formattedEndDate}`);
+          return;
+        }
+      }
+      
+      // Validate against future time (but allow future dates within medication period)
+      if (selectedDateTime > currentTime) {
+        setAdminError('Thời gian ghi nhận không được là thời gian tương lai');
+        return;
+      }
+      
+      const submitData = {
+        medicationInstructionId: Number(formData.medicationInstructionId),
+        administeredAt: selectedDateTime.toISOString(),
+        administrationStatus: formData.administrationStatus,
+        notes: formData.notes || '',
+        imgUrl: formData.imgUrl || ''
+      };
+
+      console.log('Submitting medication administration:', submitData);
+
+      // Create medication administration record
+      const result = await receiveMedicineService.createMedicationAdministration(submitData);
+      
+      if (result.success) {
+        console.log('✅ Medication administration created successfully:', result.data);
+        
+        // If image is selected, upload it
+        if (selectedImage && result.data?.id) {
+          setPendingAdministrationId(result.data.id);
+          setShowImageModal(true);
+        } else {
+          // Success without image
+          alert(`✅ Đã ghi nhận việc cung cấp thuốc thành công!\n\n📋 Mã bản ghi: #${result.data?.id}`);
+          setShowAdminModal(false);
+          resetAdminForm();
+          
+          // Trigger a custom event to refresh history data
+          window.dispatchEvent(new CustomEvent('medicationAdministrationCreated'));
+        }
+      } else {
+        // Display server error message on screen
+        const errorMessage = result.message || 'Không thể ghi nhận việc cung cấp thuốc';
+        setAdminError(errorMessage);
+      }
+    } catch (err) {
+      console.error('Error submitting medication administration:', err);
+      
+      // Enhanced error handling to display server response
+      let errorMessage = 'Có lỗi xảy ra khi ghi nhận việc cung cấp thuốc';
+      
+      if (err.response) {
+        // Server responded with error status
+        const status = err.response.status;
+        const serverMessage = err.response.data;
+        
+        if (status === 400) {
+          // Handle 400 Bad Request specifically
+          if (typeof serverMessage === 'string') {
+            // Direct error message from server
+            if (serverMessage.includes('Administration date cannot be before medication start date')) {
+              errorMessage = 'Thời gian ghi nhận không được trước ngày bắt đầu của đơn thuốc';
+            } else if (serverMessage.includes('Administration date cannot be after medication end date')) {
+              errorMessage = 'Thời gian ghi nhận không được sau ngày kết thúc của đơn thuốc';
+            } else if (serverMessage.includes('Administration date cannot be in the future')) {
+              errorMessage = 'Thời gian ghi nhận không được là thời gian tương lai';
+            } else {
+              errorMessage = `Lỗi xác thực: ${serverMessage}`;
+            }
+          } else if (serverMessage && serverMessage.message) {
+            // Structured error response
+            errorMessage = `Lỗi xác thực: ${serverMessage.message}`;
+          } else if (serverMessage && serverMessage.error) {
+            errorMessage = `Lỗi xác thực: ${serverMessage.error}`;
+          } else {
+            errorMessage = 'Dữ liệu gửi lên không hợp lệ. Vui lòng kiểm tra lại thông tin.';
+          }
+        } else if (status === 401) {
+          errorMessage = 'Bạn không có quyền thực hiện thao tác này';
+        } else if (status === 403) {
+          errorMessage = 'Truy cập bị từ chối';
+        } else if (status === 404) {
+          errorMessage = 'Không tìm thấy đơn thuốc này';
+        } else if (status === 422) {
+          errorMessage = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+        } else if (status >= 500) {
+          errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
+        } else {
+          errorMessage = `Lỗi ${status}: ${serverMessage || 'Không thể thực hiện thao tác'}`;
+        }
+      } else if (err.request) {
+        // Network error
+        errorMessage = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
+      } else {
+        // Other error
+        errorMessage = err.message || 'Có lỗi không xác định xảy ra';
+      }
+      
+      // Display the error message on screen
+      setAdminError(errorMessage);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // Handle image upload
+  const handleImageUpload = async () => {
+    if (!selectedImage || !pendingAdministrationId) {
+      setAdminError('Thiếu thông tin để tải lên ảnh');
+      return;
+    }
+
+    try {
+      setUploadLoading(true);
+      setAdminError(null);
+
+      const result = await receiveMedicineService.uploadConfirmationImage(
+        pendingAdministrationId,
+        selectedImage
+      );
+
+      if (result.success) {
+        alert(`✅ Đã tải lên ảnh xác nhận thành công!\n\n📋 Mã bản ghi: #${pendingAdministrationId}`);
+        setShowImageModal(false);
+        setShowAdminModal(false);
+        resetAdminForm();
+        setPendingAdministrationId(null);
+        
+        // Trigger a custom event to refresh history data
+        window.dispatchEvent(new CustomEvent('medicationAdministrationCreated'));
+      } else {
+        setAdminError(result.message || 'Không thể tải lên ảnh xác nhận');
+      }
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      setAdminError('Có lỗi xảy ra khi tải lên ảnh');
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
+  // Handle skip image upload
+  const handleSkipImage = () => {
+    alert('Đã ghi nhận việc cung cấp thuốc thành công!');
+    setShowImageModal(false);
+    setShowAdminModal(false);
+    resetAdminForm();
+    setPendingAdministrationId(null);
+  };
 
   // Xử lý khi nhân viên muốn xử lý yêu cầu thuốc (phê duyệt hoặc từ chối)
   const handleProcessClick = (id, initialDecision = "APPROVED") => {
@@ -159,22 +532,36 @@ const MedicineReceipts = () => {
     setSelectedReceipt(null);
   };
 
-  // Toggle dropdown menu
-  const handleApproveClick = (id, e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    setDropdownId(dropdownId === id ? null : id);
+
+  // Handle selection from dropdown
+  const handleActionSelect = (id, action) => {
+    setOpenDropdownId(null); // Close dropdown
+    handleProcessClick(id, action);
   };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setDropdownId(null);
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, []);
+  // Handle dropdown show/hide for z-index fix
+  const handleDropdownToggle = (id, isOpen) => {
+    setOpenDropdownId(isOpen ? id : null);
+  };
+
+  // Handle date range changes
+  const handleDateRangeChange = (field, value) => {
+    setDateRange(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
+  // Clear date filters
+  const clearDateFilters = () => {
+    setDateRange({
+      startDate: "",
+      endDate: "",
+    });
+    setCurrentPage(1);
+  };
+
 
   // Handle selection from dropdown
   const handleActionSelect = (id, action) => {
@@ -254,10 +641,12 @@ const MedicineReceipts = () => {
                   <tbody>
                     {filteredMedicineRequests.map((medicine) => {
                       const statusInfo = getStatusInfo(medicine.status);
+                      const isDropdownOpen = openDropdownId === medicine.id;
                       return (
-                        <tr
+                        <tr 
                           key={medicine.id}
-                          className={statusInfo.class + "-row"}
+                          className={isDropdownOpen ? 'dropdown-active' : ''}
+
                         >
                           <td className="fw-bold">{medicine.id}</td>
                           <td>{medicine.studentName}</td>
@@ -313,12 +702,30 @@ const MedicineReceipts = () => {
                                 <FaEye />
                               </Button>
 
-                              {medicine.status === "PENDING_APPROVAL" && (
-                                <Dropdown>
+                              {/* Show Record Administration button for approved requests */}
+                              {isApproved(medicine.status) && (
+                                <Button
+                                  variant="outline-success"
+                                  size="sm"
+                                  onClick={() => handleRecordAdministration(medicine)}
+                                  title="Ghi nhận cung cấp thuốc"
+                                >
+                                  <FaPlus />
+                                </Button>
+                              )}
+
+                              {/* Show Approve/Reject actions for pending requests */}
+                              {(medicine.status === "PENDING_APPROVAL" || medicine.status === 0) && (
+                                <Dropdown
+                                  onToggle={(isOpen) => handleDropdownToggle(medicine.id, isOpen)}
+                                  show={openDropdownId === medicine.id}
+                                >
+
                                   <Dropdown.Toggle
                                     variant="outline-success"
                                     size="sm"
                                     id={`dropdown-${medicine.id}`}
+                                    onClick={() => handleDropdownToggle(medicine.id, openDropdownId !== medicine.id)}
                                   >
                                     <FaCheck />
                                   </Dropdown.Toggle>

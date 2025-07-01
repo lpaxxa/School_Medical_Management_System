@@ -142,19 +142,27 @@ export const MedicineApprovalProvider = ({ children }) => {
   // Fetch all medication administrations
   const fetchMedicationAdministrations = async (page = 1, size = 10) => {
     setAdminLoading(true);
+    console.log('🚀 Context: fetchMedicationAdministrations called with:', { page, size });
     try {
       const response = await receiveMedicineService.getAllMedicationAdministrations(page, size);
+      console.log('✅ Context: API response received:', response);
       
-      if (response.status === 'success') {
+
+      if (response && response.status === 'success') {
+        console.log('✅ Context: Setting administrations data:', response.data.posts);
+
         setAdministrations(response.data.posts);
         setTotalItems(response.data.totalItems);
         setTotalPages(response.data.totalPages);
         setCurrentPage(page);
         setPageSize(size);
       } else {
-        throw new Error('Không thể tải dữ liệu. Vui lòng thử lại sau.');
+        console.warn('⚠️ Context: Invalid response format:', response);
+        setAdminError('Định dạng phản hồi không hợp lệ');
       }
     } catch (err) {
+      console.error('❌ Context: Error in fetchMedicationAdministrations:', err);
+
       setAdminError(`Lỗi: ${err.message || 'Đã xảy ra lỗi khi tải dữ liệu'}`);
     } finally {
       setAdminLoading(false);

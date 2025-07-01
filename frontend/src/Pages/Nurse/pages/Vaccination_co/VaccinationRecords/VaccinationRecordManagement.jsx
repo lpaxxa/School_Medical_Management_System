@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Form, Button, Card, Badge, Modal, Row, Col, Alert } from 'react-bootstrap';
+import { Table, Form, Button, Card, Badge, Modal, Row, Col, Accordion } from 'react-bootstrap';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import './VaccinationRecordManagement.css';
 import { useVaccination } from '../../../../../context/NurseContext/VaccinationContext';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const VaccinationRecordManagement = ({ refreshData }) => {
   // Sử dụng context thay vì state local
@@ -36,7 +38,9 @@ const VaccinationRecordManagement = ({ refreshData }) => {
     nextDoseDate: '',
     notes: ''
   });
-  const [localMessage, setLocalMessage] = useState({ type: '', text: '' });
+  
+  // Thêm state để theo dõi học sinh đã tiêm
+  const [vaccinatedStudents, setVaccinatedStudents] = useState({});
   
   // Fetch thông báo từ API khi component mount
   useEffect(() => {
@@ -44,38 +48,77 @@ const VaccinationRecordManagement = ({ refreshData }) => {
     fetchVaccines();
   }, [fetchNotificationsByType, fetchVaccines]);
 
-  // Hiển thị thông báo từ context
+  // Hiển thị thông báo từ context sử dụng toast
   useEffect(() => {
     if (error) {
-      setLocalMessage({ type: 'danger', text: error });
-      setTimeout(() => {
-        clearError();
-        setLocalMessage({ type: '', text: '' });
-      }, 5000);
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      clearError();
     }
     
     if (success) {
-      setLocalMessage({ type: 'success', text: success });
-      setTimeout(() => {
-        clearSuccess();
-        setLocalMessage({ type: '', text: '' });
-      }, 5000);
+      toast.success(success, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      clearSuccess();
     }
   }, [error, success, clearError, clearSuccess]);
   
+  // Gộp thông báo có cùng tiêu đề
+  const groupNotificationsByTitle = () => {
+    const groupedNotifications = {};
+    
+    notifications.forEach(notification => {
+      const title = notification.title || 'Không có tiêu đề';
+      if (!groupedNotifications[title]) {
+        groupedNotifications[title] = {
+          ...notification,
+          allRecipients: [...(notification.recipients || [])],
+          instances: [notification]
+        };
+      } else {
+        // Nếu tiêu đề đã tồn tại, thêm recipients vào mảng allRecipients
+        groupedNotifications[title].allRecipients = [
+          ...groupedNotifications[title].allRecipients,
+          ...(notification.recipients || [])
+        ];
+        // Thêm thông báo vào danh sách instances
+        groupedNotifications[title].instances.push(notification);
+      }
+    });
+    
+    return Object.values(groupedNotifications);
+  };
+
   // Lọc thông báo theo từ khóa tìm kiếm và trạng thái
-  const filteredNotifications = notifications.filter(notification => {
+  const filteredGroupedNotifications = groupNotificationsByTitle().filter(notification => {
     const matchesSearch = 
       notification.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
       notification.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      notification.recipients?.some(r => 
+      notification.allRecipients?.some(r => 
         r.receiverName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         r.studentName?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     
+    // Chỉ hiển thị thông báo có ít nhất một người nhận
+    if (!notification.allRecipients || notification.allRecipients.length === 0) {
+      return false;
+    }
+    
     if (!statusFilter) return matchesSearch;
     
-    return matchesSearch && notification.recipients?.some(r => r.response === statusFilter);
+    return matchesSearch && notification.allRecipients?.some(r => r.response === statusFilter);
   });
 
   // Hàm định dạng ngày giờ
@@ -113,7 +156,9 @@ const VaccinationRecordManagement = ({ refreshData }) => {
     setVaccinationForm({
       studentId: recipient.studentId,
       studentName: recipient.studentName,
+      recipientId: recipient.id, // Thêm ID của người nhận thông báo
       receiverName: recipient.receiverName,
+      administeredAt: "Phòng y tế trường", // Mặc định là phòng y tế trường
       vaccineName: '',
       dose: 1,
       vaccinationDate: new Date().toISOString().split('T')[0],
@@ -147,40 +192,80 @@ const VaccinationRecordManagement = ({ refreshData }) => {
     e.preventDefault();
     
     try {
+      // Chuẩn bị dữ liệu để gửi đến API
+      const vaccinationPayload = {
+        administeredAt: vaccinationForm.administeredAt || "Phòng y tế trường",
+        doseNumber: parseInt(vaccinationForm.dose),
+        nextDoseDate: vaccinationForm.nextDoseDate || null,
+        notes: vaccinationForm.notes || "",
+        vaccineName: vaccinationForm.vaccineName,
+        healthProfileId: parseInt(vaccinationForm.studentId),
+        notificationRecipientID: vaccinationForm.recipientId,
+        administeredBy: 1 // ID của nhân viên y tế đang đăng nhập
+      };
+      
       // Gọi phương thức từ context thay vì gọi API trực tiếp
-      await addVaccinationRecord(vaccinationForm);
+      await addVaccinationRecord(vaccinationPayload);
+      
+      // Đánh dấu học sinh đã được tiêm
+      setVaccinatedStudents(prev => ({
+        ...prev,
+        [vaccinationForm.studentId]: {
+          vaccineName: vaccinationForm.vaccineName,
+          date: vaccinationForm.vaccinationDate
+        }
+      }));
       
       // Đóng modal
       setShowAddVaccinationModal(false);
       
-      // Làm mới dữ liệu nếu cần
-      if (refreshData) refreshData();
+      // Làm mới dữ liệu
+      fetchNotificationsByType('VACCINATION');
+      
+      // Thông báo thành công
+      toast.success(`Đã thêm mũi tiêm ${vaccinationForm.vaccineName} cho học sinh ${vaccinationForm.studentName} thành công!`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       
     } catch (err) {
       console.error('Error adding vaccination record:', err);
+      toast.error(`Lỗi khi thêm mũi tiêm: ${err.message || 'Không xác định'}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
   // Tính tổng số học sinh theo từng trạng thái
-  const totalRecipients = notifications.flatMap(n => n.recipients || []).length;
-  const acceptedCount = notifications.flatMap(n => n.recipients || []).filter(r => r.response === 'ACCEPTED').length;
-  const rejectedCount = notifications.flatMap(n => n.recipients || []).filter(r => r.response === 'REJECTED').length;
-  const pendingCount = notifications.flatMap(n => n.recipients || []).filter(r => r.response === 'PENDING').length;
+  const allRecipients = notifications.flatMap(n => n.recipients || []);
+  const totalRecipients = allRecipients.length;
+  const acceptedCount = allRecipients.filter(r => r.response === 'ACCEPTED').length;
+  const rejectedCount = allRecipients.filter(r => r.response === 'REJECTED').length;
+  const pendingCount = allRecipients.filter(r => r.response === 'PENDING').length;
+
+  // Kiểm tra học sinh đã tiêm chưa
+  const isVaccinated = (studentId) => {
+    return !!vaccinatedStudents[studentId];
+  };
 
   return (
     <div className="vaccination-record-management">
+      <ToastContainer />
       <div className="section-header">
         <div className="header-title">
           <h2>Quản lý Tiêm chủng</h2>
           <p className="subtitle">Theo dõi phản hồi tiêm chủng từ phụ huynh</p>
         </div>
       </div>
-      
-      {localMessage.text && (
-        <Alert variant={localMessage.type} dismissible onClose={() => setLocalMessage({ type: '', text: '' })}>
-          {localMessage.text}
-        </Alert>
-      )}
 
       {/* Thống kê tổng quan */}
       <div className="records-summary">
@@ -189,7 +274,7 @@ const VaccinationRecordManagement = ({ refreshData }) => {
             <i className="fas fa-user-graduate"></i>
           </div>
           <div className="summary-info">
-            <p>Tổng số học sinh</p>
+            <p>Tổng số đơn</p>
             <h3>{totalRecipients}</h3>
           </div>
         </div>
@@ -259,7 +344,7 @@ const VaccinationRecordManagement = ({ refreshData }) => {
         </Row>
       </div>
 
-      {/* Danh sách thông báo */}
+      {/* Danh sách thông báo theo nhóm */}
       {loading ? (
         <div className="loading-container">
           <i className="fas fa-spinner fa-spin"></i>
@@ -267,14 +352,25 @@ const VaccinationRecordManagement = ({ refreshData }) => {
         </div>
       ) : (
         <div className="notifications-list">
-          {filteredNotifications.length > 0 ? (
-            filteredNotifications.map(notification => (
-              <Card key={notification.id} className="notification-card mb-3">
+          {filteredGroupedNotifications.length > 0 ? (
+            filteredGroupedNotifications.map((notification, index) => (
+              <Card key={index} className="notification-card mb-3">
                 <Card.Header>
                   <div className="notification-header">
-                    <h5>{notification.title}</h5>
+                    <h5>
+                      {notification.title}
+                      <Badge bg="info" className="ms-2" pill>
+                        {notification.allRecipients?.length || 0} người nhận
+                      </Badge>
+                    </h5>
                     <div className="notification-meta">
-                      <span><i className="fas fa-calendar-alt"></i> {formatDateTime(notification.createdAt)}</span>
+                      <span>
+                        <i className="fas fa-calendar-alt"></i> 
+                        {notification.instances.length > 1 
+                          ? `${notification.instances.length} thông báo, mới nhất: ${formatDateTime(notification.createdAt)}` 
+                          : formatDateTime(notification.createdAt)
+                        }
+                      </span>
                       <span><i className="fas fa-user-nurse"></i> {notification.senderName}</span>
                     </div>
                   </div>
@@ -296,8 +392,8 @@ const VaccinationRecordManagement = ({ refreshData }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {notification.recipients?.map(recipient => (
-                          <tr key={recipient.id}>
+                        {notification.allRecipients?.map((recipient, idx) => (
+                          <tr key={`${recipient.id || idx}-${recipient.studentId}`}>
                             <td>{recipient.receiverName}</td>
                             <td>{recipient.studentName}</td>
                             <td>{recipient.studentId}</td>
@@ -307,21 +403,30 @@ const VaccinationRecordManagement = ({ refreshData }) => {
                                 variant="info" 
                                 size="sm" 
                                 className="me-1"
-                                onClick={() => handleViewNotification(notification)}
+                                onClick={() => handleViewNotification({
+                                  ...notification,
+                                  recipients: [recipient]
+                                })}
                                 title="Xem chi tiết"
                               >
                                 <i className="fas fa-eye"></i>
                               </Button>
                               
                               {recipient.response === 'ACCEPTED' && (
-                                <Button 
-                                  variant="success" 
-                                  size="sm"
-                                  onClick={() => handleAddVaccination(notification, recipient)}
-                                  title="Thêm mũi tiêm"
-                                >
-                                  <i className="fas fa-syringe"></i>
-                                </Button>
+                                isVaccinated(recipient.studentId) ? (
+                                  <Badge bg="success" className="vaccination-badge">
+                                    <i className="fas fa-check-circle me-1"></i> Đã tiêm
+                                  </Badge>
+                                ) : (
+                                  <Button 
+                                    variant="success" 
+                                    size="sm"
+                                    onClick={() => handleAddVaccination(notification, recipient)}
+                                    title="Thêm mũi tiêm"
+                                  >
+                                    <i className="fas fa-syringe"></i>
+                                  </Button>
+                                )
                               )}
                             </td>
                           </tr>
@@ -373,8 +478,8 @@ const VaccinationRecordManagement = ({ refreshData }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedNotification.recipients?.map(recipient => (
-                    <tr key={recipient.id}>
+                  {selectedNotification.recipients?.map((recipient, idx) => (
+                    <tr key={`detail-${recipient.id || idx}-${recipient.studentId}`}>
                       <td>{recipient.receiverName}</td>
                       <td>{recipient.studentName}</td>
                       <td>{recipient.studentId}</td>
@@ -416,6 +521,17 @@ const VaccinationRecordManagement = ({ refreshData }) => {
                   type="text" 
                   value={vaccinationForm.receiverName} 
                   readOnly 
+                />
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Địa điểm tiêm</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  name="administeredAt"
+                  value={vaccinationForm.administeredAt}
+                  onChange={handleVaccinationFormChange}
+                  placeholder="Ví dụ: Phòng y tế trường"
                 />
               </Form.Group>
               

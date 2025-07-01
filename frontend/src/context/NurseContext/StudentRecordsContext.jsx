@@ -46,19 +46,6 @@ export const StudentRecordsProvider = ({ children }) => {
         const processedStudents = Array.isArray(studentsData) 
           ? studentsData.map(student => {
               // Đảm bảo ID và healthProfileID là số nếu có thể
-              let healthProfileId;
-              if (student.healthProfileId) {
-                healthProfileId = isNaN(parseInt(student.healthProfileId)) 
-                  ? student.healthProfileId 
-                  : parseInt(student.healthProfileId);
-              } else if (student.healthProfile?.id) {
-                healthProfileId = student.healthProfile.id;
-              } else {
-                // Nếu không có healthProfileId, sử dụng ID học sinh như fallback
-                // Trong thực tế, healthProfileId và student.id nên khác nhau
-                healthProfileId = student.id;
-              }
-              
               return {
                 ...student,
                 // Đảm bảo các trường cần thiết có giá trị mặc định
@@ -66,8 +53,8 @@ export const StudentRecordsProvider = ({ children }) => {
                 className: student.className || student.class || 'Chưa phân lớp',
                 dateOfBirth: student.dateOfBirth || new Date().toISOString().split('T')[0],
                 gender: student.gender || 'Không xác định',
-                // Lưu healthProfileId vừa xử lý
-                healthProfileId: healthProfileId,
+                // Đảm bảo healthProfileId là số nguyên
+                healthProfileId: student.healthProfileId ? parseInt(student.healthProfileId) : null,
                 // Giữ student.id cho việc cập nhật và xử lý dữ liệu
                 id: student.id || student.studentId || `temp-${Math.random()}`
               };

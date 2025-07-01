@@ -1,0 +1,88 @@
+/* HealthArticles.css */
+
+.health-articles-wrapper {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.health-articles-wrapper .card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: none;
+  border-radius: 12px;
+}
+
+.health-articles-wrapper .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.health-articles-wrapper .card-img-top {
+  border-radius: 12px 12px 0 0;
+}
+
+.health-articles-wrapper .btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.health-articles-wrapper .badge {
+  font-size: 0.7rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+}
+
+.health-articles-wrapper .input-group-text {
+  background-color: #fff;
+  border-color: #dee2e6;
+}
+
+.health-articles-wrapper .form-control,
+.health-articles-wrapper .form-select {
+  border-color: #dee2e6;
+}
+
+.health-articles-wrapper .form-control:focus,
+.health-articles-wrapper .form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Custom styles for search box */
+.health-articles-wrapper .input-group {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Category badge styling */
+.health-articles-wrapper .badge.bg-info {
+  background-color: #0dcaf0 !important;
+}
+
+/* Author and date info styling */
+.health-articles-wrapper .text-muted {
+  color: #6c757d !important;
+}
+
+/* Reading time indicator */
+.health-articles-wrapper .fa-clock {
+  color: #ffc107;
+}
+
+/* Empty state styling */
+.health-articles-wrapper .fa-search {
+  opacity: 0.3;
+}
+
+/* Difficulty badges custom colors */
+.health-articles-wrapper .badge.bg-success {
+  background-color: #198754 !important;
+}
+
+.health-articles-wrapper .badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #000 !important;
+}
+
+.health-articles-wrapper .badge.bg-danger {
+  background-color: #dc3545 !important;
+}

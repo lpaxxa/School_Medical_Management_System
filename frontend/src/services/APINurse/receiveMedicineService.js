@@ -129,8 +129,152 @@ const mockMedicineRequests = [
     reason: 'Đang điều trị rối loạn tiêu hóa'
   }
 ];
+// Mock data cho lịch sử dùng thuốc - Updated to match API format
+const mockMedicationAdministrations = [
+  {
+    id: 1,
+    medicationInstructionId: 1,
+    medicationName: "Paracetamol 500mg",
+    studentName: "Nguyễn Minh An",
+    administeredAt: "2024-03-09T08:00:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
+    administrationStatus: "SUCCESSFUL",
+    notes: "Đã cho uống 1 viên khi sốt 38.7°C",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-001.jpg"
+  },
+  {
+    id: 2,
+    medicationInstructionId: 2,
+    medicationName: "Ventolin Inhaler",
+    studentName: "Nguyễn Minh Tuấn",
+    administeredAt: "2024-12-30T10:00:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
+    administrationStatus: "SUCCESSFUL",
+    notes: "Đã xịt 2 nhát khi học sinh khó thở.",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-002.jpg"
+  },
+  {
+    id: 3,
+    medicationInstructionId: 3,
+    medicationName: "Amoxicillin 500mg",
+    studentName: "Lê Bảo Ngọc",
+    administeredAt: "2024-03-10T07:30:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
+    administrationStatus: "SUCCESSFUL",
+    notes: "Cho uống 1 viên sáng và 1 viên tối.",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-003.jpg"
+  },
+  {
+    id: 4,
+    medicationInstructionId: 4,
+    medicationName: "Vitamin C 500mg",
+    studentName: "Lê Bảo Minh",
+    administeredAt: "2024-04-02T08:00:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
+    administrationStatus: "SUCCESSFUL",
+    notes: "Uống 1 viên vào buổi sáng như chỉ định.",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-004.jpg"
+  },
+  {
+    id: 5,
+    medicationInstructionId: 5,
+    medicationName: "ORS (Oresol)",
+    studentName: "Phạm Minh Thư",
+    administeredAt: "2024-03-18T11:45:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
+    administrationStatus: "SUCCESSFUL",
+    notes: "Học sinh uống 1 gói Oresol pha loãng với 200ml nước.",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-005.jpg"
+  },
+  {
+    id: 6,
+    medicationInstructionId: 106,
+    medicationName: "Cetirizine",
+    studentName: "Đặng Văn F",
+    administeredAt: "2025-06-24T08:45:00",
+    administeredBy: "Y tá Ngọc",
+    administrationStatus: "REFUSED",
+    notes: "Học sinh từ chối uống thuốc"
+  },
+  {
+    id: 7,
+    medicationInstructionId: 107,
+    medicationName: "Ibuprofen",
+    studentName: "Phạm Thị Mai",
+    administeredAt: "2025-06-24T09:30:00",
+    administeredBy: "Y tá Lan",
+    administrationStatus: "PARTIAL",
+    notes: "Học sinh chỉ uống một phần thuốc"
+  }
+];
 
-const receiveMedicineService = {  // API thật để lấy tất cả yêu cầu thuốc
+// Thay thế hàm checkAuthToken hiện tại
+const checkAuthToken = () => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    console.log(`Token exists: ${token.substring(0, 15)}...`);
+    
+    // Kiểm tra định dạng JWT
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.warn('Token không có định dạng JWT hợp lệ!');
+      return false;
+    }
+    
+    // Kiểm tra thời hạn token
+    try {
+      const payload = JSON.parse(atob(parts[1]));
+      const expiration = payload.exp * 1000; // Chuyển đổi từ giây sang mili giây
+      const now = Date.now();
+      
+      if (expiration < now) {
+        console.warn('Token đã hết hạn!');
+        return false;
+      }
+      
+      console.log('Token hợp lệ và chưa hết hạn.');
+      return true;
+    } catch (err) {
+      console.warn('Không thể giải mã JWT payload:', err);
+      return false;
+    }
+  } else {
+    console.warn('No authentication token found in localStorage');
+    return false;
+  }
+};
+
+// Gọi hàm để kiểm tra
+const tokenValid = checkAuthToken();
+console.log('Token valid:', tokenValid);
+
+const receiveMedicineService = {
+  // Test server connectivity - Function để kiểm tra kết nối server
+  testServerConnection: async () => {
+    try {
+      console.log('🔍 Testing server connection...');
+      console.log('🔍 API Service 1 Base URL:', apiService1.defaults.baseURL);
+      
+      // Test with a simple GET request to a known endpoint
+      const response = await apiService1.get('/recent?page=1&size=1');
+      console.log('✅ Server connection successful:', response.status);
+      return {
+        success: true,
+        message: "Server connection successful",
+        status: response.status
+      };
+    } catch (error) {
+      console.error('❌ Server connection failed:', error);
+      return {
+        success: false,
+        message: "Server connection failed",
+        error: error.message,
+        status: error.response?.status
+      };
+    }
+  },
+
+  // API thật để lấy tất cả yêu cầu thuốc
   getAllMedicineRequests: async () => {
     try {
       try {
@@ -448,7 +592,343 @@ const receiveMedicineService = {  // API thật để lấy tất cả yêu cầ
       // Trả về dữ liệu mẫu trong trường hợp xảy ra lỗi
       return [...mockMedicineRequests]; 
     }
-  }
+  },
+
+  // Lấy lịch sử dùng thuốc gần đây - Function được gọi bởi MedicationHistory.jsx
+  getRecentMedicationAdministrations: async (page = 1, size = 10) => {
+    try {
+      console.log(`Getting recent medication administrations with images (page ${page}, size ${size})`);
+      
+      // Gọi API thật với pagination (1-based) và include images
+      const response = await apiService1.get('/recent', {
+        params: { 
+          page: page, // API sử dụng 1-based index
+          size: size,
+          includeImages: true // Request to include image URLs in response
+        }
+      });
+      
+      console.log('API Response for recent administrations:', response.data);
+      console.log('🔍 DEBUG - Full response structure:', JSON.stringify(response.data, null, 2));
+      console.log('🔍 DEBUG - Response.data type:', typeof response.data);
+      console.log('🔍 DEBUG - Response.data keys:', Object.keys(response.data));
+      
+      // Check different possible response structures
+      let actualData = [];
+      let totalItems = 0;
+      let totalPages = 0;
+      
+      if (response.data.data && response.data.data.content) {
+        // Backend structure: { status: "success", data: { content: [...], totalElements: X } }
+        actualData = response.data.data.content;
+        totalItems = response.data.data.totalElements || 0;
+        totalPages = response.data.data.totalPages || 0;
+        console.log('🔍 Using backend nested structure (data.data.content)');
+      } else if (response.data.content) {
+        // Spring Boot pageable response structure
+        actualData = response.data.content;
+        totalItems = response.data.totalElements || 0;
+        totalPages = response.data.totalPages || 0;
+        console.log('🔍 Using Spring Boot pageable structure');
+      } else if (response.data.data) {
+        // Nested data structure
+        actualData = response.data.data;
+        totalItems = response.data.totalItems || actualData.length;
+        totalPages = response.data.totalPages || Math.ceil(totalItems / size);
+        console.log('🔍 Using nested data structure');
+      } else if (Array.isArray(response.data)) {
+        // Direct array response
+        actualData = response.data;
+        totalItems = actualData.length;
+        totalPages = Math.ceil(totalItems / size);
+        console.log('🔍 Using direct array structure');
+      } else {
+        console.log('🔍 Unknown response structure, checking all properties...');
+        for (const [key, value] of Object.entries(response.data)) {
+          console.log(`🔍 Property ${key}:`, value);
+          if (Array.isArray(value)) {
+            console.log(`🔍 Found array in property ${key} with ${value.length} items`);
+            actualData = value;
+            totalItems = value.length;
+            totalPages = Math.ceil(totalItems / size);
+            break;
+          }
+        }
+      }
+      
+      // Process and enhance data to include image URLs if not present
+      if (Array.isArray(actualData)) {
+        actualData = actualData.map(item => {
+          // Log each item to see its structure
+          console.log('🔍 Processing administration item:', item);
+          
+          // Ensure imageUrl field exists - check various possible field names
+          const imageUrl = item.imageUrl || 
+                          item.confirmationImageUrl || 
+                          item.image_url || 
+                          item.confirmation_image_url ||
+                          item.attachmentUrl ||
+                          null;
+          
+          return {
+            ...item,
+            imageUrl: imageUrl
+          };
+        });
+        
+        console.log(`🔍 DEBUG - Enhanced data with images: ${actualData.length} items`);
+        // Log first item to see structure
+        if (actualData.length > 0) {
+          console.log('🔍 DEBUG - First item structure:', actualData[0]);
+        }
+      }
+      
+      console.log(`🔍 DEBUG - Extracted data: ${actualData.length} items`);
+      console.log(`🔍 DEBUG - Total items: ${totalItems}, Total pages: ${totalPages}`);
+      
+      // Ensure we always return an array
+      if (!Array.isArray(actualData)) {
+        console.log('🔍 WARNING - actualData is not an array, forcing to empty array');
+        actualData = [];
+      }
+      
+      return {
+        success: true,
+        data: actualData,
+        totalItems: totalItems,
+        totalPages: totalPages,
+        currentPage: page
+      };
+    } catch (error) {
+      console.error("Error in getRecentMedicationAdministrations:", error);
+      console.error("API call failed, attempting fallback to mock data with images");
+      
+      // Fallback to enhanced mock data with sample images
+      const enhancedMockData = mockMedicationAdministrations.map(item => ({
+        ...item,
+        imageUrl: item.id % 3 === 0 ? `https://via.placeholder.com/400x300?text=Medication+${item.id}` : null
+      }));
+      
+      // Apply pagination to mock data
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      const paginatedData = enhancedMockData.slice(startIndex, endIndex);
+      
+      return {
+        success: false,
+        data: paginatedData,
+        totalItems: enhancedMockData.length,
+        totalPages: Math.ceil(enhancedMockData.length / size),
+        currentPage: page,
+        message: error.response?.data?.message || error.message || "Sử dụng dữ liệu mẫu - không thể kết nối API"
+      };
+    }
+  },
+
+  // Tạo bản ghi cung cấp thuốc mới - Function được gọi bởi MedicationAdministration.jsx
+  createMedicationAdministration: async (data) => {
+    try {
+      console.log('Creating new medication administration:', data);
+      console.log('Using API endpoint:', apiService1.defaults.baseURL);
+      console.log('Request config:', {
+        method: 'POST',
+        url: apiService1.defaults.baseURL,
+        data: data,
+        headers: apiService1.defaults.headers
+      });
+      
+      // Gọi API thật với endpoint chính xác
+      const response = await apiService1.post('', data);
+      
+      console.log('✅ API Response for create:', response.data);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: "Đã tạo bản ghi cung cấp thuốc thành công"
+      };
+    } catch (error) {
+      console.error("❌ Error in createMedicationAdministration:", error);
+      console.error("❌ Error response:", error.response);
+      console.error("❌ Error config:", error.config);
+      console.error("❌ Request URL:", error.config?.url);
+      console.error("❌ Error status:", error.response?.status);
+      console.error("❌ Error data:", error.response?.data);
+      
+      // Check if it's a network error (server not running)
+      if (!error.response) {
+        console.log("🔍 Network error detected - server might not be running");
+        return {
+          success: false,
+          message: "Không thể kết nối tới server. Vui lòng kiểm tra xem backend có đang chạy không?"
+        };
+      }
+      
+      // Check if it's a 404 error (endpoint not found)
+      if (error.response?.status === 404) {
+        console.log("🔍 404 error - endpoint not found");
+        return {
+          success: false,
+          message: "Endpoint API không tồn tại. Vui lòng kiểm tra server backend."
+        };
+      }
+      
+      // Check if it's an auth error
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log("🔍 Authentication error detected");
+        return {
+          success: false,
+          message: "Lỗi xác thực. Vui lòng đăng nhập lại."
+        };
+      }
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Không thể tạo bản ghi cung cấp thuốc"
+      };
+    }
+  },
+
+  // Upload ảnh xác nhận - Function được gọi bởi MedicationAdministration.jsx
+  uploadConfirmationImage: async (administrationId, imageFile) => {
+    try {
+      console.log(`Uploading confirmation image for administration ${administrationId}`);
+      
+      // Tạo FormData để upload file
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      
+      // Gọi API thật với endpoint chính xác
+      const response = await apiService1.post(`/${administrationId}/upload-confirmation-image`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      console.log('API Response for image upload:', response.data);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: "Đã tải lên ảnh xác nhận thành công"
+      };
+    } catch (error) {
+      console.error("Error in uploadConfirmationImage:", error);
+      console.error("Error response:", error.response);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Không thể tải lên ảnh xác nhận"
+      };
+    }
+  },
+
+  // API để lấy tất cả lịch sử dùng thuốc
+  getAllMedicationAdministrations: async (page = 1, size = 10) => {
+    try {
+      console.log('🔍 Calling getAllMedicationAdministrations API...');
+      console.log('API URL:', `${BASE_URL1}/all`);
+      
+      // Gọi API thật với endpoint /all
+      const response = await apiService1.get('/all');
+      
+      console.log('✅ API Response:', response.data);
+      
+      // Kiểm tra format response
+      if (response.data && response.data.status === 'success') {
+        const allData = response.data.data || [];
+        const totalItems = response.data.count || allData.length;
+        
+        // Thực hiện phân trang trên client side
+        const startIndex = (page - 1) * size;
+        const endIndex = startIndex + size;
+        const paginatedData = allData.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(totalItems / size);
+        
+        return {
+          status: 'success',
+          data: {
+            posts: paginatedData,
+            totalItems: totalItems,
+            totalPages: totalPages,
+            currentPage: page
+          }
+        };
+      } else {
+        throw new Error('Invalid response format from API');
+      }
+    } catch (error) {
+      console.error("❌ Error in getAllMedicationAdministrations:", error);
+      console.error("❌ Error response:", error.response);
+      
+      // Fallback to mock data if API fails
+      console.log("🔄 API failed, using mock data as fallback");
+      console.log("📊 Mock data count:", mockMedicationAdministrations.length);
+      
+      const allData = mockMedicationAdministrations;
+      const totalItems = allData.length;
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      const paginatedData = allData.slice(startIndex, endIndex);
+      const totalPages = Math.ceil(totalItems / size);
+      
+      console.log('📄 Paginated mock data:', {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        startIndex,
+        endIndex,
+        paginatedDataLength: paginatedData.length
+      });
+      
+      return {
+        status: 'success',
+        data: {
+          posts: paginatedData,
+          totalItems: totalItems,
+          totalPages: totalPages,
+          currentPage: page
+        }
+      };
+    }
+  },
+  
+  // Thêm mới lịch sử dùng thuốc
+  addMedicationAdministration: async (data) => {
+    try {
+      // Gọi API thật bằng instance đúng baseURL1
+      const response = await apiService1.post('', data);
+      return response.data;
+    } catch (error) {
+      console.error("Error in addMedicationAdministration:", error);
+      throw new Error(error.response?.data?.message || error.message || "Không thể thêm mới lịch sử dùng thuốc");
+    }
+  },
+  
+  // Cập nhật lịch sử dùng thuốc
+  updateMedicationAdministration: async (id, data) => {
+    try {
+      // Gọi API thật bằng instance đúng baseURL1
+      const response = await apiService1.put(`/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error in updateMedicationAdministration:", error);
+      throw new Error(error.response?.data?.message || error.message || "Không thể cập nhật lịch sử dùng thuốc");
+    }
+  },
+  
+  // Xóa lịch sử dùng thuốc
+  deleteMedicationAdministration: async (id) => {
+    try {
+      // Gọi API thật bằng instance đúng baseURL1
+      await apiService1.delete(`/${id}`);
+      return { success: true };
+    } catch (error) {
+      console.error("Error in deleteMedicationAdministration:", error);
+      throw new Error(error.response?.data?.message || error.message || "Không thể xóa lịch sử dùng thuốc");
+    }
+  },
+
 };
 
 export default receiveMedicineService;

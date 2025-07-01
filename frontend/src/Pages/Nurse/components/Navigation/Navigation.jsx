@@ -32,12 +32,12 @@ const Navigation = () => {
             <Link to="/nurse/vaccination" className={isActive('/nurse/vaccination')}>
               <i className="fas fa-syringe"></i> Quản lý tiêm chủng
             </Link>
-          </li>
-          <li>
+          </li>          <li>
             <Link to="/nurse/health-checkups" className={isActive('/nurse/health-checkups')}>
               <i className="fas fa-stethoscope"></i> Khám sức khỏe định kỳ
             </Link>
-          </li>          <li>
+          </li>
+          <li>
             <Link to="/nurse/student-records" className={isActive('/nurse/student-records')}>
               <i className="fas fa-file-medical"></i> Hồ sơ y tế học sinh
             </Link>
