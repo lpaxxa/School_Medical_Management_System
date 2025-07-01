@@ -44,12 +44,6 @@ public class VaccinationServiceImpl implements VaccinationService {
 //        this.studentRepository = studentRepository;
 //    }
 
-//    @Override
-//    public List<VaccinationDTO> getAllVaccinations() {
-//        return vaccinationRepository.findAll().stream()
-//                .map(this::convertToDTO)
-//                .collect(Collectors.toList());
-//    }
 //
 //    @Override
 //    public VaccinationDTO getVaccinationById(Long id) {
@@ -106,26 +100,25 @@ public class VaccinationServiceImpl implements VaccinationService {
         Vaccination savedVaccination = vaccinationRepository.save(vaccination);
         return vaccinationMapper.toVaccinationDetailResponse(savedVaccination);
     }
-//
-//    @Override
-//    public VaccinationDTO updateVaccination(Long id, VaccinationDTO vaccinationDTO) {
-//        Vaccination existingVaccination = vaccinationRepository.findById(id)
-//                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id));
-//
-//
-//        // Cập nhật health profile nếu có thay đổi
-//        if (vaccinationDTO.getHealthProfileId() != null &&
-//            !vaccinationDTO.getHealthProfileId().equals(existingVaccination.getHealthProfile().getId())) {
-//            HealthProfile healthProfile = healthProfileRepository.findById(vaccinationDTO.getHealthProfileId())
-//                    .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe với ID: " + vaccinationDTO.getHealthProfileId()));
-//            existingVaccination.setHealthProfile(healthProfile);
-//        }
-//
-//        Vaccination updatedVaccination = vaccinationRepository.save(existingVaccination);
-//        return convertToDTO(updatedVaccination);
-//    }
-//
-@Override
+
+    @Override
+    public VaccinationDetailResponse updateVaccination(Long id, VaccinationRequestDTO dto) {
+        Vaccination vaccination = vaccinationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id));
+
+        if (dto.getAdministeredBy() != null) {
+            Nurse nurse = nurseRepository.findById(dto.getAdministeredBy())
+                    .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy y tá với ID: " + dto.getAdministeredBy()));
+            vaccination.setNurse(nurse);
+        }
+
+        vaccinationMapper.updateVaccination(vaccination, dto);
+        vaccinationRepository.save(vaccination);
+        return vaccinationMapper.toVaccinationDetailResponse(vaccination);
+    }
+
+
+    @Override
 public void deleteVaccination(Long id) {
     if (!vaccinationRepository.existsById(id)) {
         throw new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id);

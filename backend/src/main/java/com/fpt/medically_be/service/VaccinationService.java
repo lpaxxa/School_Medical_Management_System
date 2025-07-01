@@ -16,7 +16,7 @@ public interface VaccinationService {
     List<VaccinationDTO> getUpcomingVaccinationsDue(LocalDate beforeDate);
     VaccinationDetailResponse createVaccination(VaccinationRequestDTO vaccinationRequestDTO);
     void deleteVaccination(Long id);
-
+    VaccinationDetailResponse updateVaccination(Long id, VaccinationRequestDTO vaccinationDTO);
     //dt
     List<VaccinationDTO> getVaccinationsByParent(Long parentId);
     VaccinationDetailResponse getVaccinationDetailByNotificationRecipientId(Long notificationRecipientId);
