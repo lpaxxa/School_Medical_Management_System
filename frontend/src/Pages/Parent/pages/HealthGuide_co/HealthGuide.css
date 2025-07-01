@@ -1,21 +1,21 @@
-/* Health Guide Styling - Phiên bản 2.0 với màu sắc đồng bộ từ Community */
+/* Health Guide Styling - Professional Blue Theme */
 :root {
-  --primary: var(--primary-color);
-  --primary-dark: var(--accent-color);
-  --primary-light: #e8f0fe;
-  --text-dark: var(--text-dark);
-  --text-medium: var(--text-medium);
-  --text-light: var(--text-light);
-  --background-light: var(--background-light);
-  --border-light: var(--border-light);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: var(--shadow);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 15px 25px rgba(0, 0, 0, 0.15);
+  --primary: #015C92;
+  --primary-dark: #2D82B5;
+  --primary-light: #BCE6FF;
+  --text-dark: #1e293b;
+  --text-medium: #64748b;
+  --text-light: #94a3b8;
+  --background-light: #BCE6FF;
+  --border-light: #88CDF6;
+  --shadow-sm: 0 2px 4px rgba(1, 92, 146, 0.1);
+  --shadow-md: 0 4px 8px rgba(1, 92, 146, 0.15);
+  --shadow-lg: 0 8px 16px rgba(1, 92, 146, 0.2);
+  --shadow-xl: 0 15px 25px rgba(1, 92, 146, 0.25);
   --radius-sm: 6px;
   --radius-md: 8px;
-  --radius-lg: var(--border-radius);
-  --radius-xl: var(--border-radius-large);
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --transition-normal: all 0.3s ease;
   --transition-fast: all 0.2s ease;
 }
@@ -23,22 +23,25 @@
 .health-guide-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 20px 15px;
   font-family: 'Be Vietnam Pro', sans-serif;
+  background-color: #ffffff;
+  min-height: 100vh;
 }
 
-/* Header styling - Gradient giống với community-header */
+/* Header styling - Professional Blue gradient theme */
 .health-guide-header {
-  background: var(--primary-gradient, linear-gradient(135deg, #2563eb, #1d4ed8));
-  color: white;
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%);
+  color: #ffffff;
   padding: 50px 30px;
   text-align: center;
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-lg);
   margin-bottom: 30px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lg);
   position: relative;
   overflow: hidden;
-  z-index: 1; /* Thêm z-index */
+  z-index: 1;
+  border: none;
 }
 
 /* Thêm hiệu ứng background tương tự như community-header */

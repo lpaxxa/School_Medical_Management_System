@@ -1,5 +1,15 @@
-/* School Medical Vision Component - Completely Isolated CSS */
+/* School Medical Vision Component - Professional Blue Theme */
 /* Prefix ALL selectors with "sm-" to prevent conflicts */
+
+:root {
+  --primary-blue: #015C92;
+  --secondary-blue: #2D82B5;
+  --accent-blue: #428CD4;
+  --light-blue: #88CDF6;
+  --lightest-blue: #BCE6FF;
+  --blue-gradient: linear-gradient(135deg, #015C92 0%, #2D82B5 25%, #428CD4 50%, #88CDF6 75%, #BCE6FF 100%);
+  --blue-gradient-secondary: linear-gradient(135deg, #428CD4 0%, #88CDF6 50%, #BCE6FF 100%);
+}
 
 /* Reset wrapper để vô hiệu hóa mọi style từ các file parent */
 .sm-vision-reset-wrapper {
@@ -38,7 +48,7 @@
   width: 100% !important;
   padding: 100px 0 80px !important;
   margin: 0 !important;
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%) !important;
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%) !important;
   overflow: hidden !important;
   left: 0 !important;
   right: 0 !important;
@@ -89,41 +99,6 @@
   box-sizing: border-box !important;
 }
 
-/* Giữ lại phần CSS còn lại từ file Vision.css của bạn... */
-
-/* Main container - full width with proper spacing */
-.sm-vision-system {
-  box-sizing: border-box;
-  width: 100%;
-  height: auto;
-  display: block;
-  margin: 0;
-  padding: 0;
-  position: relative;
-}
-
-/* Outer container for background and positioning */
-.sm-vision-outer {
-  box-sizing: border-box;
-  position: relative;
-  width: 100%;
-  padding: 100px 0 80px;
-  margin: 0;
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-  overflow: hidden;
-}
-
-/* Inner container for content */
-.sm-vision-container {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 0 20px;
-  position: relative;
-  z-index: 5;
-}
-
 /* Reset all basic elements */
 .sm-vision-system *,
 .sm-vision-system *::before,
@@ -161,8 +136,8 @@
 .sm-vision-badge {
   display: inline-block;
   padding: 8px 20px;
-  background-color: rgba(79, 70, 229, 0.1);
-  color: #4f46e5;
+  background-color: rgba(1, 92, 146, 0.1);
+  color: var(--primary-blue);
   border-radius: 30px;
   font-size: 0.95rem;
   font-weight: 600;
@@ -177,7 +152,7 @@
 }
 
 .sm-title-gradient {
-  background: linear-gradient(90deg, #4f46e5, #3b82f6);
+  background: var(--blue-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -195,7 +170,7 @@
   left: 0;
   width: 100%;
   height: 8px;
-  background-color: rgba(79, 70, 229, 0.2);
+  background-color: rgba(1, 92, 146, 0.2);
   z-index: -1;
   transform: skewX(-5deg);
 }
@@ -203,7 +178,7 @@
 .sm-title-divider {
   height: 4px;
   width: 80px;
-  background: linear-gradient(90deg, #4f46e5, #3b82f6);
+  background: var(--blue-gradient-secondary);
   margin: 0 auto 30px;
   border-radius: 2px;
 }
@@ -229,7 +204,7 @@
 }
 
 .sm-vision-highlight {
-  color: #4f46e5;
+  color: var(--primary-blue);
   position: relative;
 }
 
@@ -240,7 +215,7 @@
   left: 0;
   width: 100%;
   height: 5px;
-  background-color: rgba(79, 70, 229, 0.15);
+  background-color: rgba(1, 92, 146, 0.15);
   z-index: -1;
 }
 
@@ -254,11 +229,11 @@
 /* Quote box */
 .sm-vision-quote {
   background-color: #ffffff;
-  border-left: 4px solid #4f46e5;
+  border-left: 4px solid var(--primary-blue);
   border-radius: 0 10px 10px 0;
   padding: 20px 25px;
   margin: 30px 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px rgba(1, 92, 146, 0.08);
   position: relative;
   font-style: italic;
   color: #334155;
@@ -273,12 +248,12 @@
 }
 
 .sm-vision-quote i {
-  color: #4f46e5;
+  color: var(--primary-blue);
   opacity: 0.5;
   font-size: 1.2rem;
 }
 
-/* Vision points grid */
+/* Vision points grid - Professional Blue variations */
 .sm-vision-points {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -293,6 +268,26 @@
   margin: 0;
 }
 
+.sm-vision-point:nth-child(1) .sm-point-icon {
+  background-color: var(--primary-blue);
+}
+
+.sm-vision-point:nth-child(2) .sm-point-icon {
+  background-color: var(--secondary-blue);
+}
+
+.sm-vision-point:nth-child(3) .sm-point-icon {
+  background-color: var(--accent-blue);
+}
+
+.sm-vision-point:nth-child(4) .sm-point-icon {
+  background-color: var(--light-blue);
+}
+
+.sm-vision-point:nth-child(4) .sm-point-icon i {
+  color: var(--primary-blue) !important;
+}
+
 .sm-point-icon {
   width: 50px;
   height: 50px;
@@ -303,7 +298,7 @@
   justify-content: center;
   margin-right: 15px;
   position: relative;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(1, 92, 146, 0.15);
   overflow: hidden;
   transition: transform 0.3s ease;
 }
@@ -359,7 +354,7 @@
   position: relative;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(1, 92, 146, 0.15);
   margin-bottom: 30px;
 }
 
@@ -379,7 +374,7 @@
   position: absolute;
   top: 20px;
   right: 20px;
-  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  background: var(--blue-gradient);
   color: white;
   padding: 12px 20px;
   border-radius: 50px;
@@ -388,7 +383,7 @@
   gap: 8px;
   font-weight: 600;
   font-size: 0.95rem;
-  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 10px 20px rgba(1, 92, 146, 0.25);
   z-index: 3;
 }
 
@@ -407,22 +402,24 @@
   background-color: #ffffff;
   padding: 20px;
   border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px rgba(1, 92, 146, 0.08);
   text-align: center;
   position: relative;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(1, 92, 146, 0.1);
 }
 
 .sm-stat-item:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 15px 35px rgba(1, 92, 146, 0.15);
+  border-color: var(--accent-blue);
 }
 
 .sm-stat-number {
   font-size: 2rem;
   font-weight: 800;
-  color: #4f46e5;
+  color: var(--primary-blue);
   margin-bottom: 5px;
   display: block;
 }
@@ -440,7 +437,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: rgba(79, 70, 229, 0.1);
+  background: rgba(1, 92, 146, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -449,7 +446,7 @@
 
 .sm-stat-icon i {
   font-size: 1.5rem;
-  color: #4f46e5;
+  color: var(--primary-blue);
 }
 
 /* Conclusion area */
@@ -478,19 +475,19 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  background: var(--blue-gradient);
   color: white;
   font-weight: 600;
   padding: 14px 30px;
   border-radius: 10px;
   text-decoration: none;
-  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 10px 20px rgba(1, 92, 146, 0.25);
   transition: all 0.3s ease;
 }
 
 .sm-vision-button:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 15px 30px rgba(1, 92, 146, 0.35);
 }
 
 .sm-vision-button i {
@@ -504,45 +501,50 @@
 /* Background decorative elements */
 .sm-bg-circle {
   position: absolute;
-  width: 600px;
-  height: 600px;
+  width: 500px;
+  height: 500px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(79, 70, 229, 0.03) 0%, rgba(59, 130, 246, 0) 70%);
-  top: -300px;
+  background: radial-gradient(circle, rgba(1, 92, 146, 0.05) 0%, rgba(1, 92, 146, 0) 70%);
+  top: -250px;
   right: -200px;
   z-index: 1;
+  pointer-events: none;
 }
 
 .sm-bg-dots {
   position: absolute;
-  bottom: 10%;
+  bottom: 20%;
   left: 5%;
   width: 200px;
   height: 200px;
-  background-image: radial-gradient(circle, rgba(16, 185, 129, 0.15) 2px, transparent 2.5px);
+  background-image: radial-gradient(circle, rgba(45, 130, 181, 0.15) 2px, transparent 2px);
   background-size: 20px 20px;
   border-radius: 50%;
   z-index: 1;
+  pointer-events: none;
 }
 
 .sm-bg-wave {
   position: absolute;
-  width: 100%;
-  height: 120px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z' fill='rgba(255, 255, 255, 0.8)'%3E%3C/path%3E%3C/svg%3E");
-  background-size: cover;
-  position: absolute;
   bottom: 0;
   left: 0;
-  opacity: 0.6;
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(45deg, rgba(66, 140, 212, 0.1) 25%, transparent 25%),
+              linear-gradient(-45deg, rgba(66, 140, 212, 0.1) 25%, transparent 25%),
+              linear-gradient(45deg, transparent 75%, rgba(66, 140, 212, 0.1) 75%),
+              linear-gradient(-45deg, transparent 75%, rgba(66, 140, 212, 0.1) 75%);
+  background-size: 30px 30px;
   z-index: 1;
+  pointer-events: none;
+  opacity: 0.3;
 }
 
 /* Animation classes */
 .sm-vision-animate {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 .sm-vision-animate.sm-animated {
@@ -550,21 +552,20 @@
   transform: translateY(0);
 }
 
-/* Chain animation timing */
 .sm-vision-animate:nth-child(1) { transition-delay: 0.1s; }
 .sm-vision-animate:nth-child(2) { transition-delay: 0.2s; }
 .sm-vision-animate:nth-child(3) { transition-delay: 0.3s; }
 .sm-vision-animate:nth-child(4) { transition-delay: 0.4s; }
 .sm-vision-animate:nth-child(5) { transition-delay: 0.5s; }
 
-/* Responsive layouts */
+/* Responsive design */
 @media (max-width: 1200px) {
   .sm-vision-container {
-    max-width: 960px;
+    max-width: 1140px;
   }
   
   .sm-vision-title {
-    font-size: 2.25rem;
+    font-size: 2.2rem;
   }
   
   .sm-vision-heading {
@@ -579,11 +580,11 @@
   
   .sm-vision-content {
     grid-template-columns: 1fr;
-    gap: 50px;
+    gap: 40px;
   }
   
   .sm-vision-media {
-    order: -1;
+    order: 1;
   }
   
   .sm-vision-title {
@@ -593,7 +594,7 @@
 
 @media (max-width: 767px) {
   .sm-vision-outer {
-    padding: 60px 0 40px;
+    padding: 60px 0 50px;
   }
   
   .sm-vision-points {
@@ -602,11 +603,11 @@
   }
   
   .sm-vision-header {
-    margin-bottom: 40px;
+    margin-bottom: 50px;
   }
   
   .sm-vision-title {
-    font-size: 1.75rem;
+    font-size: 1.8rem;
   }
   
   .sm-vision-heading {
@@ -614,12 +615,12 @@
   }
   
   .sm-vision-stats {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 15px;
   }
   
   .sm-stat-number {
-    font-size: 1.75rem;
+    font-size: 1.8rem;
   }
   
   .sm-vision-quote p {
@@ -629,7 +630,7 @@
 
 @media (max-width: 575px) {
   .sm-vision-outer {
-    padding: 50px 0 30px;
+    padding: 50px 0 40px;
   }
   
   .sm-vision-container {
@@ -637,36 +638,37 @@
   }
   
   .sm-vision-badge {
+    padding: 6px 16px;
     font-size: 0.85rem;
-    padding: 6px 15px;
   }
   
   .sm-vision-title {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
   
   .sm-vision-quote {
-    padding: 15px 20px;
+    flex-direction: column;
+    gap: 10px;
   }
   
   .sm-vision-quote p {
-    font-size: 0.95rem;
+    margin: 0;
   }
   
   .sm-vision-stats {
-    grid-template-columns: 1fr;
+    gap: 12px;
   }
   
   .sm-mission-badge {
-    padding: 8px 15px;
+    padding: 10px 16px;
     font-size: 0.85rem;
   }
   
   .sm-vision-conclusion p {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
   
   .sm-vision-button {
-    padding: 12px 20px;
+    padding: 12px 24px;
   }
 }

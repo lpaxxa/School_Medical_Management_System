@@ -91,12 +91,33 @@ public class MedicalCheckupController {
         return ResponseEntity.ok(medicalCheckupService.createMedicalCheckup(medicalCheckupDTO));
     }
 
+//    @PostMapping("/with-notification")
+////    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @Operation(summary = "Tạo mới đợt khám sức khỏe với thông báo tự động cho phụ huynh",
+//               description = "Tạo mới một đợt khám sức khỏe và tự động gửi email thông báo cho phụ huynh nếu phát hiện vấn đề sức khỏe.")
+//    public ResponseEntity<MedicalCheckupDTO> createMedicalCheckupWithNotification(
+//            @RequestBody MedicalCheckupDTO medicalCheckupDTO,
+//            @RequestParam(defaultValue = "true") boolean autoNotifyParent) {
+//        return ResponseEntity.ok(medicalCheckupService.createMedicalCheckupWithNotification(medicalCheckupDTO, autoNotifyParent));
+//    }
+
     @PutMapping("/{id}")
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
     @Operation(summary = "Cập nhật thông tin đợt khám sức khỏe", description = "Cập nhật thông tin một đợt khám sức khỏe dựa trên ID.")
     public ResponseEntity<MedicalCheckupDTO> updateMedicalCheckup(@PathVariable Long id, @RequestBody MedicalCheckupDTO medicalCheckupDTO) {
         return ResponseEntity.ok(medicalCheckupService.updateMedicalCheckup(id, medicalCheckupDTO));
     }
+//
+//    @PutMapping("/{id}/with-notification")
+////    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+//    @Operation(summary = "Cập nhật đợt khám sức khỏe với thông báo tự động cho phụ huynh",
+//               description = "Cập nhật một đợt khám sức khỏe và tự động gửi email thông báo cho phụ huynh nếu phát hiện vấn đề sức khỏe mới.")
+//    public ResponseEntity<MedicalCheckupDTO> updateMedicalCheckupWithNotification(
+//            @PathVariable Long id,
+//            @RequestBody MedicalCheckupDTO medicalCheckupDTO,
+//            @RequestParam(defaultValue = "true") boolean autoNotifyParent) {
+//        return ResponseEntity.ok(medicalCheckupService.updateMedicalCheckupWithNotification(id, medicalCheckupDTO, autoNotifyParent));
+//    }
 
     @DeleteMapping("/{id}")
 //    @PreAuthorize("hasRole('ADMIN')")
@@ -104,6 +125,34 @@ public class MedicalCheckupController {
     public ResponseEntity<Void> deleteMedicalCheckup(@PathVariable Long id) {
         medicalCheckupService.deleteMedicalCheckup(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // === HEALTH NOTIFICATION ENDPOINTS ===
+
+    @PostMapping("/{checkupId}/notify-parent")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Gửi thông báo kết quả khám sức khỏe cho phụ huynh", 
+               description = "Gửi email thông báo kết quả khám sức khỏe của học sinh cho phụ huynh.")
+    public ResponseEntity<String> sendHealthNotificationToParent(@PathVariable Long checkupId) {
+        try {
+            medicalCheckupService.sendHealthNotificationToParent(checkupId);
+            return ResponseEntity.ok("Email thông báo kết quả khám sức khỏe đã được gửi thành công cho phụ huynh.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Gửi email thất bại: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/batch-notify-parents")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Gửi thông báo kết quả khám sức khỏe cho nhiều phụ huynh", 
+               description = "Gửi email thông báo kết quả khám sức khỏe cho nhiều phụ huynh dựa trên danh sách ID các đợt khám.")
+    public ResponseEntity<String> sendBatchHealthNotificationsToParents(@RequestBody List<Long> checkupIds) {
+        try {
+            medicalCheckupService.sendBatchHealthNotificationsToParents(checkupIds);
+            return ResponseEntity.ok(String.format("Đã gửi thành công thông báo cho %d đợt khám sức khỏe.", checkupIds.size()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Gửi email thất bại: " + e.getMessage());
+        }
     }
 }
 

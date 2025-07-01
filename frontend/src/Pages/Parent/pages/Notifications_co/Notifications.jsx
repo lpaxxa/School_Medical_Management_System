@@ -3,12 +3,14 @@ import "./Notifications.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
+import { useNotification } from "../../../../context/NotificationContext"; // Import context
 import notificationService from "../../../../services/notificationService";
 import ReactMarkdown from "react-markdown";
 import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
 
 const Notifications = () => {
+  // State và refs
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -19,118 +21,132 @@ const Notifications = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [parentId, setParentId] = useState(null);
+  // Thêm state theo dõi thời điểm làm mới cuối cùng
+  const [lastRefreshed, setLastRefreshed] = useState(null);
 
+  // Context hooks
+  const { currentUser } = useAuth();
+  const { students, parentInfo } = useStudentData();
+  // Lấy thông tin từ NotificationContext
+  const { updateUnreadCount, markAsRead: markContextAsRead, markAllAsRead: markAllContextAsRead, refreshNotifications } = useNotification();
+
+  // Refs và location
   const notificationContentRef = useRef(null);
   const location = useLocation();
 
-  const { currentUser } = useAuth();
-  const { students, parentInfo } = useStudentData();
-
-  // Tách getParentId ra khỏi fetchNotifications để theo dõi thay đổi
+  // Helper function để lấy parentId
   const getParentId = () => {
-    if (parentInfo?.id) {
-      return parentInfo.id;
-    }
-
-    if (students && students.length > 0 && students[0].parentId) {
-      return students[0].parentId;
-    }
-
-    return null; // Thay đổi từ 1 -> null
+    if (parentId) return parentId;
+    if (parentInfo?.id) return parentInfo.id;
+    if (students?.length > 0 && students[0].parentId) return students[0].parentId;
+    return null;
   };
 
-  // Cập nhật parentId khi students hoặc parentInfo thay đổi
+  // Thiết lập parentId và TỰ ĐỘNG LÀM MỚI khi vào trang
   useEffect(() => {
-    const id = getParentId();
-    if (id) {
-      setParentId(id);
+    const newParentId = getParentId();
+    if (newParentId) {
+      console.log("Initial load - Parent ID found:", newParentId);
+      setParentId(newParentId);
+      
+      // Sử dụng Promise để đảm bảo tính tuần tự
+      const loadData = async () => {
+        try {
+          setLoading(true);
+          await fetchNotifications(newParentId);
+          refreshNotifications();
+          setLastRefreshed(new Date());
+          console.log("Initial data fetch completed successfully");
+        } catch (error) {
+          console.error("Error in initial data fetch:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      loadData();
+    } else {
+      console.log("No parent ID available on initial load");
     }
-  }, [students, parentInfo]);
-
-  // Cuộn lên đầu khi chọn thông báo mới
+  }, [parentInfo, students]); // Chỉ chạy khi parentInfo hoặc students thay đổi
+  
+  // Thêm một useEffect mới để phát hiện khi người dùng quay lại tab này sau khi đi nơi khác
   useEffect(() => {
-    if (notificationContentRef.current) {
-      notificationContentRef.current.scrollTop = 0;
-    }
-  }, [currentNotification]);
-
-  // Fetch notifications khi có parentId
+    // Hàm này sẽ được gọi khi tab trở thành active
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const now = new Date();
+        // Nếu đã quá 30 giây kể từ lần làm mới cuối cùng, tự động làm mới
+        if (!lastRefreshed || (now - lastRefreshed) > 30000) {
+          console.log("Tab became visible, refreshing notifications");
+          fetchNotifications();
+          refreshNotifications();
+          setLastRefreshed(now);
+        }
+      }
+    };
+    
+    // Đăng ký sự kiện visibilitychange
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [lastRefreshed]);
+  
+  // Thêm làm mới tự động theo interval
   useEffect(() => {
-    // Chỉ fetch khi có parentId
-    if (parentId) {
-      console.log("Fetching notifications for parent ID:", parentId);
-      fetchNotifications();
-
-      // Set interval để tự động làm mới mỗi 2 phút
-      const refreshInterval = setInterval(() => {
+    // Làm mới thông báo mỗi 2 phút
+    const intervalId = setInterval(() => {
+      if (getParentId()) {
+        console.log("Auto-refreshing notifications (interval)");
         fetchNotifications();
-      }, 120000); // 120000ms = 2 phút
+        refreshNotifications();
+        setLastRefreshed(new Date());
+      }
+    }, 120000); // 2 phút
+    
+    return () => clearInterval(intervalId);
+  }, []);
 
-      // Clear interval khi unmount hoặc parentId thay đổi
-      return () => clearInterval(refreshInterval);
-    }
-  }, [parentId, location.pathname]);
-
-  // 1. Thêm hiển thị debug để xác định điểm lỗi
+  // Thêm useEffect để làm mới khi location.pathname thay đổi thành đường dẫn của trang thông báo
   useEffect(() => {
-    console.log("Current notifications state:", notifications);
-    console.log("Selected notification ID:", selectedNotificationId);
-  }, [notifications, selectedNotificationId]);
-
-  // 2. Đảm bảo luôn chọn thông báo đầu tiên nếu có thông báo và không có thông báo nào được chọn
-  useEffect(() => {
-    if (notifications.length > 0 && !currentNotification) {
-      console.log("Auto-selecting first notification");
-      setSelectedNotificationId(notifications[0].id);
-      fetchNotificationDetail(notifications[0].id, parentId);
+    if (location.pathname.includes('/notifications')) {
+      const now = new Date();
+      // Chỉ làm mới nếu đã quá 10 giây kể từ lần làm mới cuối
+      if (!lastRefreshed || (now - lastRefreshed) > 10000) {
+        console.log("Location changed to notifications page, refreshing");
+        fetchNotifications();
+        refreshNotifications();
+        setLastRefreshed(now);
+      }
     }
-  }, [notifications, currentNotification, parentId]);
+  }, [location.pathname]);
 
-  // Fetch notifications từ API - cập nhật để sử dụng notificationService
-  const fetchNotifications = async () => {
-    if (!parentId) {
+  // Fetch notifications
+  const fetchNotifications = async (pid = getParentId()) => {
+    if (!pid) {
       console.log("No parent ID available, skipping fetch");
-      return;
+      return Promise.reject("No parent ID available");
     }
 
     setLoading(true);
     setError(null);
 
     try {
-      console.log("Fetching notifications for parent ID:", parentId);
-
-      const response = await notificationService.getNotifications(parentId);
+      console.log("Fetching notifications for parent ID:", pid);
+      const response = await notificationService.getNotifications(pid);
       console.log("API response:", response.data);
 
       if (Array.isArray(response.data)) {
         // Thêm trường isRead và category vào mỗi thông báo
         const notificationsWithReadStatus = response.data.map(
           (notification) => {
-            // Xác định category dựa vào tiêu đề hoặc nội dung
-            let category = "general";
-
-            if (
-              notification.title?.toLowerCase().includes("sức khỏe") ||
-              notification.title?.toLowerCase().includes("khám")
-            ) {
-              category = "health";
-            } else if (notification.title?.toLowerCase().includes("thuốc")) {
-              category = "medicine";
-            } else if (
-              notification.title?.toLowerCase().includes("tiêm") ||
-              notification.title?.toLowerCase().includes("vắc-xin")
-            ) {
-              category = "vaccine";
-            } else if (
-              notification.title?.toLowerCase().includes("cảnh báo") ||
-              notification.title?.toLowerCase().includes("dịch bệnh")
-            ) {
-              category = "warning";
-            }
-
+            let category = getNotificationCategory(notification);
             return {
               ...notification,
-              isRead: false,
+              isRead: notification.isRead || false,
               category,
             };
           }
@@ -138,22 +154,107 @@ const Notifications = () => {
 
         console.log("Processed notifications:", notificationsWithReadStatus);
         setNotifications(notificationsWithReadStatus);
+        
+        // Đếm số thông báo chưa đọc và cập nhật vào context
+        const unreadCount = notificationsWithReadStatus.filter(n => !n.isRead).length;
+        updateUnreadCount(unreadCount);
 
         // Nếu có thông báo và chưa chọn thông báo nào, chọn thông báo đầu tiên
-        if (response.data.length > 0 && !selectedNotificationId) {
-          setSelectedNotificationId(response.data[0].id);
-          fetchNotificationDetail(response.data[0].id, parentId);
+        if (notificationsWithReadStatus.length > 0) {
+          // Nếu không có thông báo được chọn hoặc thông báo được chọn không còn trong danh sách
+          if (!selectedNotificationId || 
+              !notificationsWithReadStatus.find(n => n.id === selectedNotificationId)) {
+            const firstNotification = notificationsWithReadStatus[0];
+            setSelectedNotificationId(firstNotification.id);
+            fetchNotificationDetail(firstNotification.id, pid);
+          }
         }
+        
+        return Promise.resolve(notificationsWithReadStatus);
       } else {
         console.error("API không trả về mảng:", response.data);
         setNotifications([]);
+        updateUnreadCount(0);
+        return Promise.resolve([]);
       }
     } catch (error) {
       console.error("Error fetching notifications:", error);
       setError("Không thể tải danh sách thông báo. Vui lòng thử lại sau.");
+      return Promise.reject(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Refresh notifications
+  const handleRefresh = async () => {
+    try {
+      // Đặt loading state trước khi fetch
+      setLoading(true);
+      
+      // Gọi API
+      await fetchNotifications();
+      refreshNotifications();
+      
+      // Cập nhật thời gian làm mới
+      const now = new Date();
+      setLastRefreshed(now);
+      
+      // Thông báo thành công
+      toast.info("Đã làm mới danh sách thông báo");
+      
+    } catch (error) {
+      console.error("Error refreshing notifications:", error);
+      toast.error("Không thể làm mới thông báo. Vui lòng thử lại sau.");
+    } finally {
+      // Đảm bảo loading state được tắt
+      setLoading(false);
+    }
+  };
+
+  // Đánh dấu thông báo là đã đọc
+  const markAsRead = (id) => {
+    setNotifications(
+      notifications.map((notification) =>
+        notification.id === id
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    );
+    
+    // Đánh dấu đã đọc trong context
+    markContextAsRead(id);
+    
+    // Đếm lại số thông báo chưa đọc và cập nhật context
+    const updatedUnreadCount = notifications.filter(
+      n => !n.isRead && n.id !== id
+    ).length;
+    updateUnreadCount(updatedUnreadCount);
+  };
+
+  // Đánh dấu tất cả là đã đọc
+  const handleMarkAllAsRead = () => {
+    setNotifications(
+      notifications.map((notification) => ({ ...notification, isRead: true }))
+    );
+    
+    // Đánh dấu tất cả đã đọc trong context
+    markAllContextAsRead();
+    updateUnreadCount(0);
+    
+    toast.success("Đã đánh dấu tất cả thông báo là đã đọc");
+  };
+
+  // Xử lý khi chọn một thông báo
+  const selectNotification = (notification) => {
+    setSelectedNotificationId(notification.id);
+    
+    // Nếu thông báo chưa đọc, đánh dấu đã đọc
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
+    
+    fetchNotificationDetail(notification.id);
   };
 
   // Fetch chi tiết thông báo - cập nhật để sử dụng notificationService
@@ -189,6 +290,8 @@ const Notifications = () => {
       };
 
       setCurrentNotification(standardizedData);
+      // markNotificationAsRead(notificationId); // Xóa hoặc thay thế bằng dòng dưới
+      markContextAsRead(notificationId); // Sử dụng đúng tên hàm từ context
       markAsRead(notificationId);
     } catch (error) {
       console.error("Error fetching notification detail:", error);
@@ -197,31 +300,6 @@ const Notifications = () => {
     } finally {
       setDetailLoading(false);
     }
-  };
-
-  // Đánh dấu thông báo đã đọc
-  const markAsRead = (id) => {
-    setNotifications(
-      notifications.map((notification) =>
-        notification.id === id
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-  };
-
-  // Chọn thông báo để xem chi tiết
-  const selectNotification = (notification) => {
-    setSelectedNotificationId(notification.id);
-    fetchNotificationDetail(notification.id);
-  };
-
-  // Đánh dấu tất cả là đã đọc
-  const markAllAsRead = () => {
-    setNotifications(
-      notifications.map((notification) => ({ ...notification, isRead: true }))
-    );
-    toast.success("Đã đánh dấu tất cả thông báo là đã đọc");
   };
 
   // Xóa thông báo
@@ -438,6 +516,73 @@ const Notifications = () => {
     }
   };
 
+  // Helper function để xác định category dựa vào nội dung thông báo
+  const getNotificationCategory = (notification) => {
+    const title = notification.title?.toLowerCase() || '';
+    const message = notification.message?.toLowerCase() || '';
+    
+    if (title.includes('vắc-xin') || title.includes('tiêm chủng') || 
+        message.includes('vắc-xin') || message.includes('tiêm chủng')) {
+      return 'vaccine';
+    }
+    
+    if (title.includes('thuốc') || title.includes('uống thuốc') || 
+        message.includes('thuốc') || message.includes('uống thuốc')) {
+      return 'medicine';
+    }
+    
+    if (title.includes('cảnh báo') || title.includes('khẩn cấp') || 
+        message.includes('cảnh báo') || message.includes('khẩn cấp')) {
+      return 'warning';
+    }
+    
+    if (title.includes('sức khỏe') || title.includes('bệnh') || 
+        message.includes('sức khỏe') || message.includes('bệnh')) {
+      return 'health';
+    }
+    
+    return 'general';
+  };
+
+  // Thêm useEffect này để đảm bảo dữ liệu được tải nếu component đã mount nhưng parentId thay đổi sau đó
+  useEffect(() => {
+    const pid = getParentId();
+    if (pid && notifications.length === 0 && !loading) {
+      console.log("Component mounted but no notifications loaded yet. Loading now...");
+      fetchNotifications(pid);
+    }
+  }, [notifications.length, loading]);
+
+  // Thêm useEffect để đảm bảo selectedNotificationId luôn có giá trị
+  useEffect(() => {
+    if (notifications.length > 0 && (!selectedNotificationId || 
+        !notifications.some(n => n.id === selectedNotificationId))) {
+      console.log("Setting initial selected notification");
+      setSelectedNotificationId(notifications[0].id);
+      fetchNotificationDetail(notifications[0].id);
+    }
+  }, [notifications]);
+
+  // Thêm useEffect này để theo dõi khi người dùng rời khỏi trang thông báo
+  useEffect(() => {
+    return () => {
+      // Hàm cleanup - chạy khi component unmount (rời khỏi trang)
+      if (notifications.some(n => !n.isRead)) {
+        console.log("Leaving notifications page - marking all as read");
+        
+        // Đánh dấu tất cả là đã đọc trong local state
+        const updatedNotifications = notifications.map(n => ({...n, isRead: true}));
+        setNotifications(updatedNotifications);
+        
+        // Đánh dấu tất cả đã đọc trong context
+        markAllContextAsRead();
+        updateUnreadCount(0);
+        
+        // Không cần hiển thị toast khi tự động đánh dấu đã đọc
+      }
+    };
+  }, [notifications, markAllContextAsRead, updateUnreadCount]);
+
   return (
     <div className="notif-container">
       <div className="notif-header">
@@ -610,7 +755,7 @@ const Notifications = () => {
           <div className="notif-actions">
             <button
               className="notif-action-btn"
-              onClick={markAllAsRead}
+              onClick={handleMarkAllAsRead}
               title="Đánh dấu tất cả là đã đọc"
               disabled={notifications.every((n) => n.isRead)}
             >
@@ -618,7 +763,7 @@ const Notifications = () => {
             </button>
             <button
               className="notif-action-btn"
-              onClick={fetchNotifications}
+              onClick={handleRefresh}
               title="Làm mới thông báo"
             >
               <i className="fas fa-sync-alt"></i>

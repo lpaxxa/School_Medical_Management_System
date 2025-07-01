@@ -1,97 +1,150 @@
-/* Container chính */
+/* Base styles đã được tích hợp vào index.css */
+
+/* Container and Layout - White Background */
 .send-medicine-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 30px 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  min-height: 100vh;
+  position: relative;
 }
 
-/* Header */
+/* Ensure body and html have white background */
+body {
+  background-color: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: #ffffff;
+}
+
+/* Removed overlay since background is now white */
+
+.send-medicine-container > * {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header - Professional Blue Gradient Design */
 .send-medicine-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin: 0 var(--spacing-lg) var(--spacing-2xl) var(--spacing-lg);
+  padding: var(--spacing-xl);
+  background: var(--blue-gradient-main);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-blue);
+  box-shadow: var(--shadow-colored);
 }
 
 .send-medicine-header h1 {
-  color: var(--primary-dark);
-  font-size: 1.8rem;
-  margin-bottom: 10px;
+  font-size: var(--font-size-4xl);
+  font-weight: 800;
+  color: white;
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
 }
 
 .send-medicine-header p {
-  color: var(--text-medium);
-  font-size: 1rem;
-  max-width: 600px;
+  font-size: var(--font-size-lg);
+  color: white;
+  max-width: 700px;
   margin: 0 auto;
+  line-height: 1.7;
+  font-weight: 500;
 }
 
-/* Tab Navigation */
+/* Tab Navigation - Blue Theme */
 .tab-navigation {
   display: flex;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  justify-content: center;
+  margin-bottom: var(--spacing-2xl);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-blue);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xs);
+  box-shadow: var(--shadow-colored);
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .tab-button {
-  padding: 12px 20px;
-  background: transparent;
+  flex: 1;
+  padding: var(--spacing) var(--spacing-lg);
   border: none;
-  border-bottom: 2px solid transparent;
-  font-size: 16px;
-  font-weight: 500;
-  color: #555;
+  background: var(--blue-gradient-main);
+  color: white;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  position: relative;
+  overflow: hidden;
+  opacity: 0.7;
+}
+
+.tab-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left var(--transition-slow);
+}
+
+.tab-button:hover::before {
+  left: 100%;
 }
 
 .tab-button:hover {
-  color: #2980b9;
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 .tab-button.active {
-  color: #2980b9;
-  border-bottom-color: #2980b9;
-  background-color: rgba(41, 128, 185, 0.05);
+  background: var(--blue-gradient-main);
+  color: white;
+  box-shadow: var(--shadow);
+  opacity: 1;
+  transform: scale(1.02);
 }
 
-/* Error Message */
-.error-message {
-  background-color: #fff8f8;
-  color: #d32f2f;
-  padding: 12px 15px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-left: 3px solid #d32f2f;
+/* Form Container - Enhanced */
+.form-container {
+  max-width: 100%;
+  margin: 0 var(--spacing-lg);
+  padding: 0;
 }
 
-/* Loading Container */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
-  color: #555;
+.send-medicine-form {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  width: 65%;
+  margin: 0 auto 60px auto;
+  padding-top: 50px;
+  padding-left: 50px;
+  padding-right: 50px;
+  transition: all var(--transition-base);
 }
 
-/* Loading spinner */
-.spinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 1s ease-in-out infinite;
-  margin-right: 8px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.send-medicine-form:hover {
+  box-shadow: var(--shadow-xl);
 }

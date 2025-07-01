@@ -11,9 +11,10 @@
 .incident-description-section,
 .incident-treatment-section {
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #BCE6FF;
   border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(1, 92, 146, 0.05);
 }
 
 /* Thông tin sự cố */
@@ -25,8 +26,8 @@
 }
 
 .stat-box {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.03) 0%, rgba(188, 230, 255, 0.15) 100%);
+  border: 1px solid #88CDF6;
   border-radius: 10px;
   padding: 16px;
   display: flex;
@@ -37,12 +38,13 @@
 
 .stat-box:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.1);
+  border-color: #015C92;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #64748b;
+  color: #015C92;
   font-weight: 500;
 }
 
@@ -55,20 +57,26 @@
 /* Các phần chi tiết */
 .detail-section {
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #BCE6FF;
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
+  transition: all 0.2s ease;
+}
+
+.detail-section:hover {
+  border-color: #015C92;
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.1);
 }
 
 .detail-section h4 {
-  color: #0f172a;
+  color: #015C92;
   margin-top: 0;
   margin-bottom: 16px;
   font-size: 16px;
   font-weight: 600;
   padding-bottom: 10px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #88CDF6;
 }
 
 .detail-section p {
@@ -78,44 +86,55 @@
 }
 
 .description-row {
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, rgba(188, 230, 255, 0.1) 0%, rgba(255, 255, 255, 1) 100%);
   padding: 16px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #88CDF6;
+  transition: all 0.2s ease;
+}
+
+.description-row:hover {
+  border-color: #015C92;
+  box-shadow: 0 2px 8px rgba(1, 92, 146, 0.1);
 }
 
 /* Màu trạng thái mức độ nghiêm trọng */
 .severity-minor,
 .severity-nhẹ {
-  background-color: #dcfce7;
-  color: #166534;
+  background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .severity-moderate,
 .severity-vừa {
-  background-color: #fef3c7;
-  color: #b45309;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
 }
 
 .severity-severe,
 .severity-nặng {
-  background-color: #fee2e2;
-  color: #b91c1c;
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
 }
 
 .severity-unknown {
-  background-color: #e2e8f0;
-  color: #475569;
+  background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(71, 85, 105, 0.3);
 }
 
 /* Highlight cho follow-up */
 .highlight-followup {
-  background-color: #fff7ed;
-  border-left: 3px solid #f97316;
+  background: linear-gradient(135deg, rgba(66, 140, 212, 0.05) 0%, rgba(188, 230, 255, 0.2) 100%);
+  border-left: 3px solid #428CD4;
   padding: 8px 12px;
   border-radius: 4px;
   font-weight: 500;
-  color: #c2410c;
+  color: #015C92;
+  box-shadow: 0 2px 8px rgba(66, 140, 212, 0.1);
 }
 
 /* Hình ảnh sự cố */
@@ -123,11 +142,14 @@
   max-width: 100%;
   border-radius: 8px;
   margin-top: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.15);
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease;
+  border: 2px solid #BCE6FF;
 }
 
 .incident-image:hover {
   transform: scale(1.02);
+  border-color: #015C92;
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.25);
 }

@@ -22,206 +22,120 @@ const Community = () => {
   });
   // Thêm state để theo dõi bài viết đã được like
   const [likedPosts, setLikedPosts] = useState([]);
+  // Thêm state để quản lý bài viết đã được ghim
+  const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
   const [page, setPage] = useState(1); // Thêm state để quản lý phân trang
   const [totalPages, setTotalPages] = useState(1);
 
   // API URL
   const API_URL = "http://localhost:8080/api/v1";
 
-  useEffect(() => {
-    // Gọi API để lấy danh sách bài đăng
-    const fetchPosts = async () => {
-      setLoading(true);
-      try {
-        const result = await communityService.getPosts(
-          page,
-          10,
-          activeTab !== "all" ? activeTab : null,
-          searchQuery || null
-        );
-        if (result.status === "success") {
-          setPosts(result.data.posts);
-          setTotalPages(result.data.totalPages);
-        }
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-        // Fallback to mock data
-        setPosts(MOCK_POSTS);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Function to check authentication
+  const checkAuthentication = () => {
+    const token = localStorage.getItem("authToken");
+    const userData = localStorage.getItem("userData");
 
-    fetchPosts();
-  }, [page, activeTab, searchQuery]); // Dependency array: khi page, activeTab hoặc searchQuery thay đổi, sẽ gọi lại API
+    console.log("🔐 Authentication check:", {
+      token: token ? `${token.substring(0, 20)}...` : null,
+      userData: userData ? JSON.parse(userData) : null,
+      currentUser,
+    });
 
-  // Lọc bài viết theo tab và tìm kiếm
-  const filteredPosts = posts.filter((post) => {
-    const matchesTab =
-      activeTab === "all" ||
-      (activeTab === "nurse" && post.author.role === "NURSE") ||
-      (activeTab === "parent" && post.author.role === "PARENT") ||
-      activeTab === post.category;
-
-    const matchesSearch =
-      searchQuery === "" ||
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesTab && matchesSearch;
-  });
-
-  // Sắp xếp bài viết: ghim lên đầu, sau đó sắp xếp theo thời gian
-  const sortedPosts = [...filteredPosts].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1;
-    if (!a.pinned && b.pinned) return 1;
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
-
-  const handleNewPostChange = (e) => {
-    const { name, value } = e.target;
-    setNewPost((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileUpload = (e) => {
-    // Xử lý upload file (giả lập)
-    const files = Array.from(e.target.files);
-    console.log(
-      "Files selected:",
-      files.map((file) => file.name)
-    );
-    // Trong thực tế, sẽ có logic upload file lên server
-  };
-
-  // Sửa lại hàm handleCreatePost để sử dụng communityService
-  const handleCreatePost = async (e) => {
-    e.preventDefault();
-
-    if (!currentUser) {
-      alert("Vui lòng đăng nhập để tạo bài viết");
-      return;
+    if (!token || !currentUser) {
+      console.warn("⚠️ No authentication found");
+      return false;
     }
 
+    return true;
+  };
+
+  // Test API connection
+  const testAPIConnection = async () => {
+    console.log("🧪 Testing API connection...");
+    try {
+      const token = localStorage.getItem("authToken");
+      console.log(
+        "🔑 Using token:",
+        token ? `${token.substring(0, 20)}...` : "none"
+      );
+
+      // Test với endpoint chính xác
+      const response = await fetch(`${API_URL}/community/posts?page=1&size=5`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("📡 API Response status:", response.status);
+      console.log(
+        "📡 API Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+
+      if (!response.ok) {
+        console.error(
+          "❌ API Response not OK:",
+          response.status,
+          response.statusText
+        );
+        const errorText = await response.text();
+        console.error("❌ Error body:", errorText);
+        return;
+      }
+
+      const data = await response.json();
+      console.log("✅ API Response data:", data);
+
+      // Test cấu trúc mới
+      if (
+        data.status === "success" &&
+        data.data &&
+        Array.isArray(data.data.content)
+      ) {
+        console.log("✅ API Structure Valid:");
+        console.log("- Posts count:", data.data.content.length);
+        console.log("- Total pages:", data.data.totalPages);
+        console.log("- Total elements:", data.data.totalElements);
+        console.log("- Current page:", data.data.page);
+        console.log("- First sample post:", data.data.content[0]?.title);
+      } else {
+        console.warn("⚠️ Unexpected API structure:", data);
+      }
+    } catch (error) {
+      console.error("❌ API Test failed:", error);
+    }
+  };
+
+  // Force refresh data from API
+  const forceRefreshFromAPI = async () => {
+    console.clear();
+    console.log("🔄 Force refreshing from API...");
+
+    // Reset states
+    setPosts([]);
+    setLikedPosts([]);
+    setBookmarkedPosts([]);
     setLoading(true);
 
-    try {
-      // Chuẩn bị dữ liệu theo định dạng API mong muốn
-      const postData = {
-        title: newPost.title,
-        excerpt: newPost.excerpt || newPost.content.substring(0, 100) + "...", // Sử dụng excerpt nếu có
-        content: newPost.content,
-        category: newPost.category,
-        tags: newPost.tags || [],
-      };
-
-      console.log("Sending post data:", postData); // Log dữ liệu gửi đi
-
-      // Sử dụng communityService thay vì axios trực tiếp
-      const result = await communityService.createPost(postData);
-
-      if (result && result.status === "success") {
-        // Thêm bài viết mới vào danh sách hiện có
-        setPosts((prev) => [result.data, ...prev]);
-
-        // Reset form và đóng modal
-        setShowCreatePostForm(false);
-        setNewPost({
-          title: "",
-          content: "",
-          excerpt: "",
-          category: "Hỏi đáp",
-          tags: [],
-        });
-
-        alert("Đăng bài thành công!");
-      }
-    } catch (error) {
-      console.error("Error creating post:", error);
-
-      // Hiển thị chi tiết lỗi để debug
-      if (error.response) {
-        console.error("API response error:", error.response.data);
-        alert(
-          `Lỗi: ${
-            error.response?.data?.message ||
-            error.response?.statusText ||
-            "Không thể tạo bài viết"
-          }`
-        );
-      } else {
-        alert("Không thể tạo bài viết. Vui lòng thử lại sau.");
-      }
-    } finally {
-      setLoading(false);
-    }
+    // Trigger useEffect by changing page
+    setPage(1);
+    setActiveTab("all");
+    setSearchQuery("");
   };
 
-  const handlePostLike = async (postId, e) => {
-    e.preventDefault(); // Ngăn chặn việc chuyển trang khi click vào nút like
+  // Helper function to normalize role matching
+  const matchRole = (postAuthorRole, targetRole) => {
+    if (!postAuthorRole) return false;
 
-    if (!currentUser) {
-      alert("Vui lòng đăng nhập để thích bài viết");
-      return;
-    }
+    const normalizedPostRole = postAuthorRole.toString().toLowerCase();
+    const normalizedTargetRole = targetRole.toLowerCase();
 
-    try {
-      const result = await communityService.toggleLike(postId);
-      if (result.status === "success") {
-        const { liked, likesCount } = result.data;
-
-        // Cập nhật state cho likedPosts
-        if (liked) {
-          setLikedPosts((prev) => [...prev, postId.toString()]);
-        } else {
-          setLikedPosts((prev) =>
-            prev.filter((id) => id !== postId.toString())
-          );
-        }
-
-        // Cập nhật số lượt like trong danh sách bài viết
-        setPosts((prev) =>
-          prev.map((post) =>
-            post.id === postId ? { ...post, likes: likesCount } : post
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Error liking post:", error);
-      alert("Không thể thực hiện thao tác. Vui lòng thử lại sau.");
-    }
-  };
-
-  const formatDate = (dateString) => {
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-    return new Date(dateString).toLocaleDateString("vi-VN", options);
-  };
-
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case "Hỏi đáp":
-        return "fa-question-circle";
-      case "Thông báo":
-        return "fa-bullhorn";
-      case "Hướng dẫn sức khỏe":
-        return "fa-book-medical";
-      case "Chia sẻ":
-        return "fa-share-alt";
-      case "Sức khỏe tâm thần":
-        return "fa-brain";
-      default:
-        return "fa-clipboard";
-    }
-  };
-
-  const getCategoryName = (category) => {
-    // Đã có tên category từ API, trả về trực tiếp
-    return category || "Khác";
+    return (
+      normalizedPostRole === normalizedTargetRole ||
+      normalizedPostRole === normalizedTargetRole + "s" || // Handle plurals
+      normalizedTargetRole === normalizedPostRole + "s"
+    );
   };
 
   // Giữ lại MOCK_POSTS để sử dụng khi API lỗi
@@ -314,6 +228,383 @@ const Community = () => {
     },
   ];
 
+  useEffect(() => {
+    // Gọi API để lấy danh sách bài đăng
+    const fetchPosts = async () => {
+      setLoading(true);
+      console.log("🔄 Fetching posts with params:", {
+        page,
+        activeTab,
+        searchQuery,
+      });
+
+      // Check authentication first
+      if (!checkAuthentication()) {
+        console.log("🔄 Using mock data due to authentication issues");
+        setPosts(MOCK_POSTS);
+        setTotalPages(1);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const result = await communityService.getPosts(
+          page,
+          10,
+          activeTab !== "all" ? activeTab : null,
+          searchQuery || null
+        );
+
+        console.log("📝 API response:", result);
+
+        if (
+          result &&
+          result.status === "success" &&
+          result.data &&
+          Array.isArray(result.data.content)
+        ) {
+          console.log(
+            "✅ Posts data valid:",
+            result.data.content.length,
+            "posts"
+          );
+
+          // Cập nhật liked và bookmarked posts từ API response
+          const likedPostIds = [];
+          const bookmarkedPostIds = [];
+
+          result.data.content.forEach((post) => {
+            if (post.liked) {
+              likedPostIds.push(parseInt(post.id));
+            }
+            if (post.bookmarked) {
+              bookmarkedPostIds.push(parseInt(post.id));
+            }
+          });
+
+          setLikedPosts(likedPostIds);
+          setBookmarkedPosts(bookmarkedPostIds);
+          setPosts(result.data.content);
+          setTotalPages(result.data.totalPages || 1);
+
+          // Log pagination info
+          console.log("📄 Pagination info:", {
+            page: result.data.page,
+            totalPages: result.data.totalPages,
+            totalElements: result.data.totalElements,
+            first: result.data.first,
+            last: result.data.last,
+          });
+        } else {
+          console.warn("⚠️ API response invalid, using mock data:", result);
+          setPosts(MOCK_POSTS);
+          setTotalPages(1);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching posts:", error);
+        console.error("❌ Error details:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+
+        // Fallback to mock data
+        console.log("🔄 Falling back to mock data");
+        setPosts(MOCK_POSTS);
+        setTotalPages(1);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [page, activeTab, searchQuery]); // Dependency array: khi page, activeTab hoặc searchQuery thay đổi, sẽ gọi lại API
+
+  // Lọc bài viết theo tab và tìm kiếm - thêm protection để đảm bảo posts là array
+  const filteredPosts = Array.isArray(posts)
+    ? posts.filter((post) => {
+        // Đảm bảo post và các thuộc tính cần thiết tồn tại
+        if (!post || !post.author) return false;
+
+        // Debug log để kiểm tra data
+        if (activeTab === "nurse" || activeTab === "parent") {
+          console.log("Post author role:", post.author.role);
+          console.log("ActiveTab:", activeTab);
+        }
+
+        const matchesTab =
+          activeTab === "all" ||
+          (activeTab === "nurse" && matchRole(post.author.role, "nurse")) ||
+          (activeTab === "parent" && matchRole(post.author.role, "parent")) ||
+          (activeTab === "bookmarked" &&
+            bookmarkedPosts.includes(parseInt(post.id))) ||
+          activeTab === post.category;
+
+        const matchesSearch =
+          searchQuery === "" ||
+          (post.title &&
+            post.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (post.content &&
+            post.content.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        return matchesTab && matchesSearch;
+      })
+    : []; // Trả về array rỗng nếu posts không phải array
+
+  // Sắp xếp bài viết: ghim lên đầu, sau đó sắp xếp theo thời gian
+  const sortedPosts = [...filteredPosts].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  const handleNewPostChange = (e) => {
+    const { name, value } = e.target;
+    setNewPost((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileUpload = (e) => {
+    // Xử lý upload file (giả lập)
+    const files = Array.from(e.target.files);
+    console.log(
+      "Files selected:",
+      files.map((file) => file.name)
+    );
+    // Trong thực tế, sẽ có logic upload file lên server
+  };
+
+  // Sửa lại hàm handleCreatePost để sử dụng communityService
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để tạo bài viết");
+      return;
+    }
+
+    if (!checkAuthentication()) {
+      alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Chuẩn bị dữ liệu theo định dạng API mong muốn
+      const postData = {
+        title: newPost.title,
+        excerpt: newPost.excerpt || newPost.content.substring(0, 100) + "...", // Sử dụng excerpt nếu có
+        content: newPost.content,
+        category: newPost.category,
+        tags: newPost.tags || [],
+      };
+
+      console.log("📝 Sending post data:", postData); // Log dữ liệu gửi đi
+
+      // Sử dụng communityService thay vì axios trực tiếp
+      const result = await communityService.createPost(postData);
+      console.log("📝 Create post result:", result);
+
+      if (result && result.status === "success") {
+        // Thêm bài viết mới vào danh sách hiện có
+        setPosts((prev) => [result.data, ...prev]);
+
+        // Reset form và đóng modal
+        setShowCreatePostForm(false);
+        setNewPost({
+          title: "",
+          content: "",
+          excerpt: "",
+          category: "Hỏi đáp",
+          tags: [],
+        });
+
+        alert("Đăng bài thành công!");
+      }
+    } catch (error) {
+      console.error("❌ Error creating post:", error);
+
+      // Hiển thị chi tiết lỗi để debug
+      if (error.response) {
+        console.error("❌ API response error:", error.response.data);
+        if (error.response.status === 401) {
+          alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+        } else {
+          alert(
+            `Lỗi: ${
+              error.response?.data?.message ||
+              error.response?.statusText ||
+              "Không thể tạo bài viết"
+            }`
+          );
+        }
+      } else {
+        alert("Không thể tạo bài viết. Vui lòng thử lại sau.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePostLike = async (postId, e) => {
+    e.preventDefault(); // Ngăn chặn việc chuyển trang khi click vào nút like
+
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để thích bài viết");
+      return;
+    }
+
+    if (!checkAuthentication()) {
+      alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+      return;
+    }
+
+    // Đảm bảo postId là number
+    const numericPostId = parseInt(postId);
+
+    if (isNaN(numericPostId)) {
+      console.error("❌ Invalid postId for like:", postId);
+      alert("Lỗi: ID bài viết không hợp lệ");
+      return;
+    }
+
+    try {
+      console.log("👍 Attempting to like post:", numericPostId);
+      const result = await communityService.toggleLike(numericPostId);
+      console.log("👍 Like result:", result);
+
+      if (result.status === "success") {
+        const { liked, likesCount } = result.data;
+
+        // Cập nhật state cho likedPosts
+        if (liked) {
+          setLikedPosts((prev) => [...prev, numericPostId]);
+        } else {
+          setLikedPosts((prev) => prev.filter((id) => id !== numericPostId));
+        }
+
+        // Cập nhật số lượt like trong danh sách bài viết
+        setPosts((prev) =>
+          prev.map((post) =>
+            parseInt(post.id) === numericPostId
+              ? { ...post, likes: likesCount }
+              : post
+          )
+        );
+      }
+    } catch (error) {
+      console.error("❌ Error liking post:", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      if (error.response?.status === 401) {
+        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+      } else if (error.response?.status === 400) {
+        alert("Lỗi yêu cầu không hợp lệ. Vui lòng thử lại");
+      } else {
+        alert("Không thể thực hiện thao tác. Vui lòng thử lại sau.");
+      }
+    }
+  };
+
+  // Xử lý việc ghim bài viết
+  const handleBookmark = async (postId, e) => {
+    e.preventDefault(); // Ngăn chuyển trang khi click
+
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để ghim bài viết");
+      return;
+    }
+
+    // Đảm bảo postId là number
+    const numericPostId = parseInt(postId);
+
+    if (isNaN(numericPostId)) {
+      console.error("❌ Invalid postId for bookmark:", postId);
+      alert("Lỗi: ID bài viết không hợp lệ");
+      return;
+    }
+
+    try {
+      console.log("📌 Attempting to bookmark post:", numericPostId);
+
+      // Sử dụng communityService thay vì fetch trực tiếp
+      const result = await communityService.toggleBookmark(numericPostId);
+      console.log("📌 Bookmark result:", result);
+
+      if (result.status === "success") {
+        const { bookmarked } = result.data;
+
+        // Cập nhật state cho bookmarkedPosts
+        if (bookmarked) {
+          setBookmarkedPosts((prev) => [...prev, numericPostId]);
+        } else {
+          setBookmarkedPosts((prev) =>
+            prev.filter((id) => id !== numericPostId)
+          );
+        }
+
+        // Cập nhật trong posts list
+        setPosts((prev) =>
+          prev.map((post) =>
+            parseInt(post.id) === numericPostId ? { ...post, bookmarked } : post
+          )
+        );
+      }
+    } catch (error) {
+      console.error("❌ Lỗi khi ghim bài viết:", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      if (error.response?.status === 401) {
+        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+      } else if (error.response?.status === 400) {
+        alert("Lỗi yêu cầu không hợp lệ. Vui lòng thử lại");
+      } else {
+        alert("Không thể ghim bài viết. Vui lòng thử lại sau.");
+      }
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    return new Date(dateString).toLocaleDateString("vi-VN", options);
+  };
+
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case "Hỏi đáp":
+        return "fa-question-circle";
+      case "Thông báo":
+        return "fa-bullhorn";
+      case "Hướng dẫn sức khỏe":
+        return "fa-book-medical";
+      case "Chia sẻ":
+        return "fa-share-alt";
+      case "Sức khỏe tâm thần":
+        return "fa-brain";
+      default:
+        return "fa-clipboard";
+    }
+  };
+
+  const getCategoryName = (category) => {
+    // Đã có tên category từ API, trả về trực tiếp
+    return category || "Khác";
+  };
+
   const handleTopicFilter = (topicCategory) => {
     // Cập nhật activeTab để lọc theo category đã chọn
     setActiveTab(topicCategory);
@@ -328,6 +619,78 @@ const Community = () => {
 
   return (
     <div className="community-container">
+      {/* Debug Info - Hiển thị API data */}
+      <div
+        style={{
+          background: "#e8f4fd",
+          padding: "15px",
+          margin: "10px 0",
+          borderRadius: "8px",
+          fontSize: "14px",
+          border: "1px solid #3b82f6",
+        }}
+      >
+        <strong>📡 API Data Info:</strong>
+        <div>
+          • Posts loaded: <strong>{posts.length}</strong> posts
+        </div>
+        <div>
+          • Data source:{" "}
+          <strong>{posts === MOCK_POSTS ? "Mock Data" : "Live API"}</strong>
+        </div>
+        <div>
+          • Current page: <strong>{page}</strong> /{" "}
+          <strong>{totalPages}</strong>
+        </div>
+        <div>
+          • Liked posts: <strong>{likedPosts.length}</strong>
+        </div>
+        <div>
+          • Bookmarked posts: <strong>{bookmarkedPosts.length}</strong>
+        </div>
+        <div>
+          • Active filter: <strong>{activeTab}</strong>
+        </div>
+        {posts.length > 0 && posts !== MOCK_POSTS && (
+          <div>
+            • Sample post ID: <strong>{posts[0]?.id}</strong> - "
+            {posts[0]?.title?.substring(0, 50)}..."
+          </div>
+        )}
+
+        <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
+          <button
+            onClick={testAPIConnection}
+            style={{
+              background: "#10b981",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            🧪 Test API
+          </button>
+
+          <button
+            onClick={forceRefreshFromAPI}
+            style={{
+              background: "#f59e0b",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            🔄 Force Refresh API
+          </button>
+        </div>
+      </div>
+
       <div className="community-header">
         <div className="community-title">
           <h1>Cộng đồng sức khỏe học đường</h1>
@@ -352,6 +715,18 @@ const Community = () => {
           >
             <i className="fas fa-th-large"></i> Tất cả
           </button>
+
+          {/* Thêm tab bài viết đã ghim */}
+          <button
+            className={`filter-tab ${
+              activeTab === "bookmarked" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("bookmarked")}
+          >
+            <i className="fas fa-bookmark"></i> Đã ghim
+          </button>
+
+          {/* Các tab khác */}
           <button
             className={`filter-tab ${activeTab === "nurse" ? "active" : ""}`}
             onClick={() => setActiveTab("nurse")}
@@ -531,20 +906,33 @@ const Community = () => {
 
                 <div className="post-header">
                   <div className="post-author">
-                    <img
-                      src={
-                        post.author.avatar ||
-                        "https://randomuser.me/api/portraits/lego/1.jpg"
-                      }
-                      alt={post.author.name}
-                      className="author-avatar"
-                    />
+                    {post.author.role === "PARENT" ? (
+                      // Icon cho phụ huynh
+                      <div className="author-icon parent-icon">
+                        <i className="fas fa-user-friends"></i>
+                      </div>
+                    ) : post.author.role === "NURSE" ? (
+                      // Icon cho y tá
+                      <div className="author-icon nurse-icon">
+                        <i className="fas fa-user-nurse"></i>
+                      </div>
+                    ) : (
+                      // Icon mặc định cho các vai trò khác
+                      <div className="author-icon default-icon">
+                        <i className="fas fa-user"></i>
+                      </div>
+                    )}
                     <div className="author-info">
                       <div className="author-name">
                         {post.author.name}
                         {post.author.role === "NURSE" && (
                           <span className="author-badge nurse">
                             <i className="fas fa-user-nurse"></i> Y tá
+                          </span>
+                        )}
+                        {post.author.role === "PARENT" && (
+                          <span className="author-badge parent">
+                            <i className="fas fa-users"></i> Phụ huynh
                           </span>
                         )}
                       </div>
@@ -575,15 +963,13 @@ const Community = () => {
                   <div className="post-stats">
                     <button
                       className={`like-btn ${
-                        likedPosts.includes(post.id.toString()) ? "liked" : ""
+                        likedPosts.includes(parseInt(post.id)) ? "liked" : ""
                       }`}
                       onClick={(e) => handlePostLike(post.id, e)}
                     >
                       <i
                         className={`${
-                          likedPosts.includes(post.id.toString())
-                            ? "fas"
-                            : "far"
+                          likedPosts.includes(parseInt(post.id)) ? "fas" : "far"
                         } fa-heart`}
                       ></i>{" "}
                       {post.likes}
@@ -594,6 +980,29 @@ const Community = () => {
                     >
                       <i className="fas fa-comment"></i> {post.commentsCount}
                     </Link>
+
+                    {/* Thêm nút bookmark */}
+                    <button
+                      className={`bookmark-btn ${
+                        bookmarkedPosts.includes(parseInt(post.id))
+                          ? "bookmarked"
+                          : ""
+                      }`}
+                      onClick={(e) => handleBookmark(post.id, e)}
+                      title={
+                        bookmarkedPosts.includes(parseInt(post.id))
+                          ? "Bỏ ghim"
+                          : "Ghim bài viết"
+                      }
+                    >
+                      <i
+                        className={`${
+                          bookmarkedPosts.includes(parseInt(post.id))
+                            ? "fas"
+                            : "far"
+                        } fa-bookmark`}
+                      ></i>
+                    </button>
                   </div>
 
                   <Link
@@ -609,25 +1018,27 @@ const Community = () => {
         )}
       </div>
 
-      {/* Thêm phân trang */}
+      {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="pagination">
+        <div className="pagination-controls">
           <button
-            disabled={page === 1}
-            onClick={() => setPage((prev) => prev - 1)}
-            className="pagination-btn"
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            disabled={page <= 1}
+            className="pagination-btn prev-btn"
           >
             <i className="fas fa-chevron-left"></i> Trang trước
           </button>
-          <span className="page-info">
-            Trang {page}/{totalPages}
+
+          <span className="pagination-info">
+            Trang {page} / {totalPages}
           </span>
+
           <button
-            disabled={page === totalPages}
-            onClick={() => setPage((prev) => prev + 1)}
-            className="pagination-btn"
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={page >= totalPages}
+            className="pagination-btn next-btn"
           >
-            Trang tiếp <i className="fas fa-chevron-right"></i>
+            Trang sau <i className="fas fa-chevron-right"></i>
           </button>
         </div>
       )}
@@ -704,11 +1115,9 @@ const Community = () => {
           <h3>Liên hệ y tá trường học</h3>
           <div className="nurse-contact">
             <div className="nurse-info">
-              <img
-                src="https://randomuser.me/api/portraits/women/45.jpg"
-                alt="Y tá Nguyễn Thị Hương"
-                className="nurse-avatar"
-              />
+              <div className="nurse-avatar-container">
+                <i className="fas fa-user-nurse"></i>
+              </div>
               <div className="nurse-details">
                 <div className="nurse-name">Y tá Nguyễn Thị Hương</div>
                 <div className="nurse-title">Y tá trưởng</div>

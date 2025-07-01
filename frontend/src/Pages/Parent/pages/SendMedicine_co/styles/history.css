@@ -1,386 +1,361 @@
-/* Styles cho phần history - Thiết kế hiện đại và responsive */
+/* History styles đã được tích hợp vào index.css */
 
-/* Container chính */
+/* Enhanced History Section */
 .medication-history-container {
-  max-width: 1100px;
+  max-width: 65%;
   margin: 0 auto;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  transition: all 0.3s ease;
+  padding: 0 var(--spacing-lg);
 }
 
-/* Header của phần history */
 .history-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 30px;
-  background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-  border-bottom: 1px solid #eef2f7;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-xl);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .history-header h2 {
-  color: #2d3748;
-  font-size: 24px;
+  font-size: var(--font-size-3xl);
   font-weight: 700;
+  color: var(--text-primary);
   margin: 0;
-  position: relative;
+  letter-spacing: -0.025em;
 }
 
-.history-header h2:after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 0;
-  width: 40px;
-  height: 3px;
-  background-color: #3b82f6;
-  border-radius: 2px;
-}
-
-/* Filter options */
 .history-filter {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--spacing);
+  background: var(--background);
+  padding: var(--spacing-sm) var(--spacing);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .history-filter label {
   font-weight: 600;
-  color: #4a5568;
-  font-size: 15px;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
 }
 
 .history-filter select {
   min-width: 200px;
-  padding: 12px 18px;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  background-color: white;
-  font-size: 15px;
-  color: #2d3748;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px top 50%;
-  transition: all 0.25s ease;
+  border: 1px solid var(--border);
+  background: var(--background);
+  font-weight: 500;
 }
 
-.history-filter select:focus,
-.history-filter select:hover {
-  outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-}
-
-/* Danh sách yêu cầu thuốc */
+/* Enhanced Medication Request Cards */
 .medication-request-list {
-  padding: 22px 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  display: grid;
+  gap: var(--spacing-lg);
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
-/* Card cho mỗi yêu cầu thuốc */
 .medication-request-card {
-  background: white;
-  border-radius: 14px;
-  border: 1px solid #edf2f7;
+  background: var(--background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all var(--transition-base);
+  position: relative;
+  width: 100%;
+}
+
+.medication-request-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--border);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.medication-request-card:hover::before {
+  opacity: 1;
 }
 
 .medication-request-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--border);
 }
 
-/* Header của card */
 .med-request-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 22px 25px;
-  border-bottom: 1px solid #f1f5f9;
-  background: linear-gradient(to right, #f8fafc, #f1f5f9);
+  padding: var(--spacing-lg);
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
 }
 
-/* Phần tiêu đề thuốc */
 .med-request-title h3 {
-  font-size: 20px;
+  font-size: var(--font-size-xl);
   font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 10px 0;
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+  letter-spacing: -0.025em;
 }
 
 .med-request-student {
-  font-size: 16px;
+  color: var(--text-primary);
   font-weight: 600;
-  color: #3b82f6;
-  margin: 0 0 8px 0;
-  display: flex;
-  align-items: center;
-}
-
-.med-request-student::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background-color: #3b82f6;
-  border-radius: 50%;
-  margin-right: 8px;
+  margin: 0 0 var(--spacing-xs) 0;
+  background: var(--background);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 
 .med-request-date {
-  font-size: 14px;
-  color: #64748b;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
   margin: 0;
-  display: flex;
-  align-items: center;
+  background: var(--background);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 
-.med-request-date i {
-  margin-right: 6px;
-  color: #94a3b8;
-}
-
-/* Phần action buttons và status */
 .med-request-actions {
   display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
 }
 
-/* Status badges */
-.med-status {
-  padding: 8px 14px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  min-width: 140px;
-  justify-content: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-/* Các trạng thái khác nhau */
-.med-status-pending-approval {
-  background-color: #fff8e6;
-  color: #b45309;
-  border: 1px solid rgba(237, 137, 7, 0.2);
-}
-
-.med-status-pending-approval::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background-color: #f59e0b;
-  border-radius: 50%;
-  margin-right: 6px;
-  display: inline-block;
-}
-
-.med-status-approved {
-  background-color: #ecfdf5;
-  color: #065f46;
-  border: 1px solid rgba(6, 95, 70, 0.2);
-}
-
-.med-status-approved::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background-color: #10b981;
-  border-radius: 50%;
-  margin-right: 6px;
-  display: inline-block;
-}
-
-.med-status-rejected {
-  background-color: #fef2f2;
-  color: #991b1b;
-  border: 1px solid rgba(220, 38, 38, 0.2);
-}
-
-.med-status-rejected::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background-color: #ef4444;
-  border-radius: 50%;
-  margin-right: 6px;
-  display: inline-block;
-}
-
-.med-status-completed {
-  background-color: #eff6ff;
-  color: #1e40af;
-  border: 1px solid rgba(30, 64, 175, 0.2);
-}
-
-.med-status-completed::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background-color: #3b82f6;
-  border-radius: 50%;
-  margin-right: 6px;
-  display: inline-block;
-}
-
-.med-status-cancelled {
-  background-color: #f1f5f9;
-  color: #475569;
-  border: 1px solid rgba(71, 85, 105, 0.2);
-}
-
-.med-status-cancelled::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background-color: #94a3b8;
-  border-radius: 50%;
-  margin-right: 6px;
-  display: inline-block;
-}
-
-/* Nội dung chi tiết yêu cầu */
+/* Enhanced Request Details */
 .request-details {
-  padding: 18px 24px;
-  background-color: #ffffff;
+  padding: var(--spacing-lg);
+  background: var(--background);
 }
 
 .med-info-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  gap: var(--spacing);
 }
 
 .med-info-row {
-  display: flex;
-  gap: 30px;
-}
-
-.med-info-item {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
 }
 
 .med-info-full {
-  flex: 1;
-  width: 100%;
+  grid-column: 1 / -1;
+}
+
+.med-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  position: relative;
 }
 
 .med-info-label {
-  font-size: 14px;
-  color: #64748b;
   font-weight: 600;
-  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--background);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 
 .med-info-value {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 15px;
-  color: #0f172a;
+  background: var(--background);
+  padding: var(--spacing-sm) var(--spacing);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
   font-weight: 500;
+  color: var(--text-primary);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.med-info-value::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.02), transparent);
+  transition: left var(--transition-slow);
+}
+
+.med-info-value:hover::before {
+  left: 100%;
+}
+
+.med-info-value:hover {
+  border-color: var(--border);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .med-info-note {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 12px 16px;
-  color: #475569;
-  line-height: 1.5;
+  background: var(--background);
+  padding: var(--spacing) var(--spacing-lg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  line-height: 1.6;
+  font-style: italic;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .med-date-range {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  color: #64748b;
-  font-size: 14px;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  background: var(--background);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-weight: 500;
 }
 
-.med-date-range i {
-  color: #3b82f6;
-}
+/* Date range styling without icons */
 
-/* Time tags - thời điểm uống */
 .time-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
 }
 
 .time-tag {
-  background-color: #ecf3ff;
-  color: #3b82f6;
-  font-size: 13px;
-  padding: 8px 16px;
-  border-radius: 50px;
-  font-weight: 500;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: var(--blue-gradient-main);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .med-info-row {
-    flex-direction: column;
-    gap: 16px;
-  }
+.time-tag::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left var(--transition-slow);
 }
 
-/* Thay đổi lại style của detail-row và detail-item */
-.detail-row {
-  display: none; /* Ẩn style cũ */
+.time-tag:hover::before {
+  left: 100%;
 }
 
-.detail-item {
-  display: none; /* Ẩn style cũ */
+.rejection-reason {
+  grid-column: 1 / -1;
+  background: var(--danger-light);
+  border: 1px solid var(--danger-color);
+  border-radius: var(--radius);
+  padding: var(--spacing);
+  margin-top: var(--spacing);
 }
 
-.dosage-display {
-  display: none; /* Ẩn style cũ */
+.request-footer {
+  padding: var(--spacing) var(--spacing-lg);
+  background: var(--background);
+  border-top: 1px solid var(--border);
 }
 
-.frequency-display {
-  display: none; /* Ẩn style cũ */
+.approval-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
 }
 
-/* Hiệu ứng khi tải trang */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.approval-info span {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
-.medication-request-card {
-  animation: fadeIn 0.5s ease forwards;
+/* Approval info styling without icons */
+
+/* Enhanced Loading and Error States */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-2xl);
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+  border-radius: var(--radius-lg);
+  margin: var(--spacing-xl) 0;
 }
 
-.medication-request-card:nth-child(1) { animation-delay: 0.1s; }
-.medication-request-card:nth-child(2) { animation-delay: 0.2s; }
-.medication-request-card:nth-child(3) { animation-delay: 0.3s; }
-.medication-request-card:nth-child(4) { animation-delay: 0.4s; }
-.medication-request-card:nth-child(5) { animation-delay: 0.5s; }
-.medication-request-card:nth-child(n+6) { animation-delay: 0.6s; }
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border);
+  border-top: 4px solid transparent;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--primary-color), transparent);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-history {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--border);
+  margin: var(--spacing-xl) 0;
+}
+
+/* Empty state styling without icons */
+
+.error-message {
+  background: var(--danger-light);
+  color: var(--danger-color);
+  padding: var(--spacing) var(--spacing-lg);
+  border-radius: var(--radius);
+  border: 1px solid var(--danger-color);
+  margin-bottom: var(--spacing);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1);
+}
+
+/* Error message styling without icons */

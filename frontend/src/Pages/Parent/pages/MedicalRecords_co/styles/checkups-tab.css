@@ -1,4 +1,4 @@
-/* ===== CHECKUPS PANEL STYLES ===== */
+/* ===== CHECKUPS PANEL STYLES - Professional Blue Theme ===== */
 .checkups-panel {
   padding: 0;
   position: relative;
@@ -8,16 +8,16 @@
   margin: 0;
   padding: 24px 30px;
   font-size: 20px;
-  color: #1e3c72;
+  color: #015C92;
   font-weight: 600;
-  border-bottom: 1px solid #e8edf5;
+  border-bottom: 1px solid #88CDF6;
   display: flex;
   align-items: center;
 }
 
 .checkups-panel h3 svg {
   margin-right: 12px;
-  color: #2a5298;
+  color: #015C92;
 }
 
 /* Layout cho danh sách kiểm tra định kỳ */
@@ -26,7 +26,7 @@
   flex-direction: column;
   gap: 24px;
   padding: 30px;
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.01) 0%, rgba(248, 250, 252, 1) 100%);
 }
 
 /* Card kiểm tra định kỳ */
@@ -34,29 +34,31 @@
   background-color: #fff;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.1);
   transition: all 0.3s ease;
-  border-top: 4px solid #1e3c72;
+  border-top: 4px solid #015C92;
   cursor: pointer;
+  border: 1px solid #BCE6FF;
 }
 
 .checkup-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 35px rgba(1, 92, 146, 0.2);
+  border-color: #015C92;
 }
 
 /* Header của card */
 .checkup-header {
   padding: 20px;
-  background-color: #fff;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.02) 0%, rgba(255, 255, 255, 1) 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f0f4f9;
+  border-bottom: 1px solid #88CDF6;
 }
 
 .checkup-date {
-  color: #1e3c72;
+  color: #015C92;
   font-size: 15px;
   font-weight: 600;
   display: flex;
@@ -65,7 +67,7 @@
 }
 
 .checkup-date svg {
-  color: #3a5ca9;
+  color: #2D82B5;
 }
 
 .checkup-title {
@@ -82,15 +84,15 @@
 }
 
 .checkup-title svg {
-  color: #3b82f6;
+  color: #015C92;
   font-size: 18px;
 }
 
 /* Summary của kiểm tra */
 .checkup-summary {
   padding: 15px 20px;
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, rgba(188, 230, 255, 0.05) 0%, rgba(248, 250, 252, 1) 100%);
+  border-bottom: 1px solid #88CDF6;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
@@ -104,7 +106,7 @@
 
 .summary-label {
   font-size: 12px;
-  color: #64748b;
+  color: #015C92;
   font-weight: 500;
 }
 
@@ -128,21 +130,21 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #64748b;
+  color: #2D82B5;
 }
 
 .view-details {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #3b82f6;
+  color: #015C92;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s;
 }
 
 .checkup-card:hover .view-details {
-  color: #1d4ed8;
+  color: #2D82B5;
 }
 
 /* Compact checkup list */
@@ -155,17 +157,17 @@
 
 .checkup-compact-card {
   background: #ffffff;
-  border: 1px solid #e1e8ed;
+  border: 1px solid #BCE6FF;
   border-radius: 12px;
   padding: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.08);
 }
 
 .checkup-compact-card:hover {
-  border-color: #1da1f2;
-  box-shadow: 0 4px 16px rgba(29, 161, 242, 0.15);
+  border-color: #015C92;
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.2);
   transform: translateY(-2px);
 }
 
@@ -179,7 +181,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #1da1f2;
+  color: #015C92;
   font-weight: 600;
 }
 
@@ -194,13 +196,13 @@
 
 .compact-date {
   font-size: 14px;
-  color: #657786;
+  color: #2D82B5;
 }
 
 .view-details-btn {
-  background: #e8f4fd;
-  color: #1da1f2;
-  border: 1px solid #1da1f2;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.1) 0%, rgba(188, 230, 255, 0.3) 100%);
+  color: #015C92;
+  border: 1px solid #015C92;
   border-radius: 20px;
   padding: 8px 16px;
   font-size: 14px;
@@ -210,6 +212,8 @@
 }
 
 .view-details-btn:hover {
-  background: #1da1f2;
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%);
   color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.3);
 }

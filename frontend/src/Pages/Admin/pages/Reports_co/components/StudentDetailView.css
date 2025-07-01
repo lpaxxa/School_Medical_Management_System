@@ -1,0 +1,231 @@
+/* Student Detail View - Simple Modern Design */
+.student-detail-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Back Button Outside Header */
+.student-detail-page > .back-btn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+
+.student-detail-page > .back-btn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* Header */
+.page-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.page-header h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+/* Body Content */
+.student-content {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 40px;
+}
+
+/* Left Column */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Student Photo */
+.student-photo {
+  width: 200px;
+  height: 200px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+}
+
+.student-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  max-width: none;
+  max-height: none;
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.photo-placeholder p {
+  margin: 8px 0 0 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Basic Info */
+.basic-info {
+  width: 100%;
+  text-align: center;
+}
+
+.basic-info h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.basic-info .info-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.basic-info .info-item svg {
+  width: 14px;
+  height: 14px;
+  color: #6b7280;
+}
+
+/* Right Column */
+.right-column {
+  padding: 20px 0;
+}
+
+.right-column h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 20px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Detail Info */
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-info .info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detail-info .info-row:last-child {
+  border-bottom: none;
+}
+
+.detail-info .label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.detail-info .label svg {
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+}
+
+.detail-info .value {
+  font-size: 0.875rem;
+  color: #111827;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .student-detail-page {
+    padding: 16px;
+  }
+
+  .student-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .left-column {
+    align-items: center;
+  }
+
+  .student-photo {
+    width: 160px;
+    height: 160px;
+  }
+
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-detail-page {
+    padding: 12px;
+  }
+
+  .student-photo {
+    width: 140px;
+    height: 140px;
+  }
+
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .basic-info h2 {
+    font-size: 1.125rem;
+  }
+} 

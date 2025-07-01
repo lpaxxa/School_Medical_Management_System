@@ -1,0 +1,366 @@
+/* Report Display - Minimal Modern Design */
+.generated-report {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+}
+
+/* Report Header */
+.report-header {
+  margin-bottom: 24px;
+  text-align: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.report-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: #1e293b;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.025em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.report-header h2 i {
+  color: #64748b;
+  font-size: 1.25rem;
+}
+
+.report-period {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+  background: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 16px;
+  display: inline-block;
+  border: 1px solid #e2e8f0;
+}
+
+/* Report Content */
+.report-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Summary Section - Compact Design */
+.report-summary {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.report-summary h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: #475569;
+  margin: 0 0 12px 0;
+  text-align: left;
+  letter-spacing: -0.025em;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.summary-item {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
+}
+
+.summary-item:hover {
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.summary-icon {
+  width: 24px;
+  height: 24px;
+  margin: 0 auto 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: white;
+  background: #64748b;
+}
+
+/* Simple Icon Colors */
+.summary-item[data-type="total"] .summary-icon {
+  background: #3b82f6;
+}
+
+.summary-item[data-type="completed"] .summary-icon {
+  background: #10b981;
+}
+
+.summary-item[data-type="pending"] .summary-icon {
+  background: #f59e0b;
+}
+
+.summary-item[data-type="cancelled"] .summary-icon {
+  background: #ef4444;
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0 0 4px 0;
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Charts Section - Minimal */
+.report-charts {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.report-charts h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: #475569;
+  margin: 0 0 12px 0;
+  text-align: left;
+  letter-spacing: -0.025em;
+}
+
+.chart-container {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+  transition: none;
+}
+
+.chart-container:hover {
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chart-container:last-child {
+  margin-bottom: 0;
+}
+
+.chart-container h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: #374151;
+  margin: 0 0 8px 0;
+  text-align: left;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.chart-data {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chart-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #f8fafc;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.chart-item:hover {
+  background: #f1f5f9;
+  transform: none;
+}
+
+.chart-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--chart-color, #64748b);
+}
+
+.chart-label {
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.chart-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: white;
+  padding: 2px 8px;
+  border-radius: 8px;
+  box-shadow: none;
+  color: #1e293b;
+  font-family: var(--font-heading);
+  border: 1px solid #e2e8f0;
+}
+
+/* Simple Report */
+.simple-report {
+  text-align: center;
+  padding: 40px 24px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e1;
+}
+
+.simple-report-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border-radius: 8px;
+  background: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.simple-report h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: #64748b;
+  margin: 0 0 8px 0;
+}
+
+.simple-report p {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0;
+  max-width: 300px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .generated-report {
+    padding: 20px;
+  }
+  
+  .report-header h2 {
+    font-size: 1.25rem;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .summary-item {
+    padding: 10px;
+  }
+  
+  .summary-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+  }
+  
+  .summary-value {
+    font-size: 1.25rem;
+  }
+  
+  .chart-container {
+    padding: 10px;
+  }
+  
+  .chart-item {
+    padding: 4px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .generated-report {
+    padding: 16px;
+    border-radius: 8px;
+  }
+  
+  .report-header {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+  }
+  
+  .report-header h2 {
+    font-size: 1.125rem;
+  }
+  
+  .report-period {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+  
+  .report-summary,
+  .report-charts {
+    padding: 12px;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .summary-value {
+    font-size: 1.125rem;
+  }
+  
+  .simple-report {
+    padding: 32px 16px;
+  }
+  
+  .simple-report-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+  
+  .simple-report h3 {
+    font-size: 1rem;
+  }
+  
+  .simple-report p {
+    font-size: 0.8rem;
+  }
+} 

@@ -24,29 +24,12 @@ export const MedicineApprovalProvider = ({ children }) => {
   const fetchMedicineRequests = async () => {
     try {
       setLoading(true);
-      
-      // Kiểm tra token trước khi gọi API
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        console.warn('Không có token xác thực!');
-        setError('Vui lòng đăng nhập lại để tiếp tục.');
-        return;
-      }
-      
-      console.log('Đang gọi API lấy danh sách yêu cầu thuốc...');
       const data = await receiveMedicineService.getAllMedicineRequests();
-      
-      if (Array.isArray(data)) {
-        console.log(`Nhận được ${data.length} yêu cầu thuốc`);
-        setMedicineRequests(data);
-        setError(null);
-      } else {
-        console.error('Dữ liệu trả về không phải là mảng:', data);
-        setError('Định dạng dữ liệu không hợp lệ');
-      }
+      setMedicineRequests(data);
+      setError(null);
     } catch (err) {
       console.error('Error fetching medicine requests:', err);
-      setError('Không thể tải danh sách yêu cầu thuốc: ' + (err.message || ''));
+      setError('Không thể tải danh sách yêu cầu thuốc');
     } finally {
       setLoading(false);
     }
@@ -155,6 +138,7 @@ export const MedicineApprovalProvider = ({ children }) => {
   const [pageSize, setPageSize] = useState(10);
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminError, setAdminError] = useState(null);
+
   // Fetch all medication administrations
   const fetchMedicationAdministrations = async (page = 1, size = 10) => {
     setAdminLoading(true);
@@ -163,20 +147,22 @@ export const MedicineApprovalProvider = ({ children }) => {
       const response = await receiveMedicineService.getAllMedicationAdministrations(page, size);
       console.log('✅ Context: API response received:', response);
       
+
       if (response && response.status === 'success') {
         console.log('✅ Context: Setting administrations data:', response.data.posts);
+
         setAdministrations(response.data.posts);
         setTotalItems(response.data.totalItems);
         setTotalPages(response.data.totalPages);
         setCurrentPage(page);
         setPageSize(size);
-        setAdminError(null); // Clear any previous errors
       } else {
         console.warn('⚠️ Context: Invalid response format:', response);
         setAdminError('Định dạng phản hồi không hợp lệ');
       }
     } catch (err) {
       console.error('❌ Context: Error in fetchMedicationAdministrations:', err);
+
       setAdminError(`Lỗi: ${err.message || 'Đã xảy ra lỗi khi tải dữ liệu'}`);
     } finally {
       setAdminLoading(false);
@@ -251,59 +237,7 @@ export const MedicineApprovalProvider = ({ children }) => {
     addMedicationAdministration,
     updateMedicationAdministration,
     deleteMedicationAdministration,
-    clearError: clearAdminError,
-    // Add new functions for medication administration
-    createMedicationAdministration: async (data) => {
-      try {
-        console.log('Creating medication administration via context:', data);
-        const result = await receiveMedicineService.createMedicationAdministration(data);
-        
-        if (result.success) {
-          // Refresh the administration list
-          await fetchMedicationAdministrations(currentPage, pageSize);
-        }
-        
-        return result;
-      } catch (error) {
-        console.error('Error in createMedicationAdministration context:', error);
-        return {
-          success: false,
-          message: error.message || 'Không thể tạo bản ghi cung cấp thuốc'
-        };
-      }
-    },
-    uploadConfirmationImage: async (administrationId, imageFile) => {
-      try {
-        console.log('Uploading confirmation image via context:', administrationId);
-        const result = await receiveMedicineService.uploadConfirmationImage(administrationId, imageFile);
-        
-        if (result.success) {
-          // Refresh the administration list
-          await fetchMedicationAdministrations(currentPage, pageSize);
-        }
-        
-        return result;
-      } catch (error) {
-        console.error('Error in uploadConfirmationImage context:', error);
-        return {
-          success: false,
-          message: error.message || 'Không thể tải lên ảnh xác nhận'
-        };
-      }
-    },
-    getRecentMedicationAdministrations: async (page = 1, size = 10) => {
-      try {
-        console.log(`Getting recent medication administrations via context (page ${page}, size ${size})`);
-        const result = await receiveMedicineService.getRecentMedicationAdministrations(page, size);
-        return result;
-      } catch (error) {
-        console.error('Error in getRecentMedicationAdministrations context:', error);
-        return {
-          success: false,
-          message: error.message || 'Không thể lấy lịch sử dùng thuốc gần đây'
-        };
-      }
-    }
+    clearError: clearAdminError
   };
 
   return (

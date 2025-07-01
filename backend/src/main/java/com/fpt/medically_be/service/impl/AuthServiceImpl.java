@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.auth.AuthResponseDTO;
 import com.fpt.medically_be.dto.auth.LoginRequestDTO;
 import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
 import com.fpt.medically_be.dto.request.ParentRegistrationRequestDTO;
+import com.fpt.medically_be.dto.request.RegistrationDTO;
 import com.fpt.medically_be.entity.AccountMember;
 import com.fpt.medically_be.entity.HealthProfile;
 import com.fpt.medically_be.entity.Nurse;
@@ -184,6 +185,32 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public AuthResponseDTO registerAdmin(RegistrationDTO registrationDTO) {
+        if(accountMemberRepos.findByEmail(registrationDTO.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        } else if (accountMemberRepos.findByPhoneNumber(registrationDTO.getPhoneNumber()).isPresent()) {
+            throw new RuntimeException("Phone number already exists");
+        }
+        AccountMember member = new AccountMember();
+        member.setId(generateCustomId(MemberRole.ADMIN));
+        member.setEmail(registrationDTO.getEmail());
+        member.setPhoneNumber(registrationDTO.getPhoneNumber());
+        member.setUsername(generateUsername(registrationDTO.getFullName()));
+        // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
+        member.setPassword(registrationDTO.getPassword());
+        member.setRole(MemberRole.ADMIN);
+        member.setIsActive(true);
+        member.setEmailSent(false);
+        member = accountMemberRepos.save(member);
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+        authResponseDTO.setMemberId(member.getId());
+        authResponseDTO.setEmail(member.getEmail());
+        authResponseDTO.setPhoneNumber(member.getPhoneNumber());
+        authResponseDTO.setRole(member.getRole().name());
+        return authResponseDTO;
+    }
+
+    @Override
     public AccountMember processOAuth2Callback(String code, String state) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         
@@ -226,13 +253,13 @@ public class AuthServiceImpl implements AuthService {
         String prefix;
         switch (role) {
             case NURSE:
-                prefix = "NU";
+                prefix = "NURSE";
                 break;
             case PARENT:
-                prefix = "PA";
+                prefix = "PARENT";
                 break;
             case ADMIN:
-                prefix = "AD";
+                prefix = "ADMIN";
                 break;
             default:
                 prefix = "US";

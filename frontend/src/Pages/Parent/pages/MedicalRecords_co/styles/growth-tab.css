@@ -1,4 +1,4 @@
-/* Growth Charts Panel */
+/* Growth Charts Panel - Professional Blue Theme */
 .growth-panel {
   padding: 0;
   position: relative;
@@ -8,41 +8,42 @@
   margin: 0;
   padding: 24px 30px;
   font-size: 20px;
-  color: #1e3c72;
+  color: #015C92;
   font-weight: 600;
-  border-bottom: 1px solid #e8edf5;
+  border-bottom: 1px solid #88CDF6;
   display: flex;
   align-items: center;
 }
 
 .growth-panel h3 svg {
   margin-right: 12px;
-  color: #2a5298;
+  color: #015C92;
 }
 
 .coming-soon-message {
   text-align: center;
   padding: 40px 20px;
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.02) 0%, rgba(188, 230, 255, 0.1) 100%);
   border-radius: 12px;
   margin: 20px;
+  border: 1px solid #BCE6FF;
 }
 
 .coming-soon-message svg {
   font-size: 64px;
-  color: #94a3b8;
+  color: #2D82B5;
   margin-bottom: 20px;
 }
 
 .coming-soon-message h4 {
-  color: #334155;
+  color: #015C92;
   margin: 0 0 12px;
   font-weight: 600;
   font-size: 20px;
 }
 
 .coming-soon-message p {
-  color: #64748b;
+  color: #2D82B5;
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
@@ -56,18 +57,26 @@
 }
 
 .chart-container {
-  background-color: #f8f9fa;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.02) 0%, rgba(248, 250, 252, 1) 100%);
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.08);
+  border: 1px solid #BCE6FF;
+  transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.15);
+  border-color: #015C92;
 }
 
 .chart-container h4 {
   margin-top: 0;
   margin-bottom: 15px;
-  color: #34495e;
+  color: #015C92;
   font-size: 16px;
   text-align: center;
+  font-weight: 600;
 }
 
 .chart-placeholder {
@@ -75,13 +84,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f1f5f9;
+  background: linear-gradient(135deg, rgba(188, 230, 255, 0.05) 0%, rgba(241, 245, 249, 1) 100%);
   border-radius: 8px;
+  border: 1px solid #88CDF6;
 }
 
 .chart-icon {
   font-size: 48px;
-  color: #94a3b8;
+  color: #2D82B5;
 }
 
 .growth-chart-placeholder {
@@ -90,18 +100,20 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background-color: #f1f5f9;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.02) 0%, rgba(188, 230, 255, 0.1) 100%);
   border-radius: 12px;
   margin: 30px;
+  border: 1px solid #BCE6FF;
 }
 
 .growth-chart-placeholder .chart-icon {
   font-size: 80px;
-  color: #94a3b8;
+  color: #2D82B5;
   margin-bottom: 20px;
 }
 
 .growth-chart-placeholder p {
-  color: #64748b;
+  color: #2D82B5;
   font-size: 16px;
+  font-weight: 500;
 }

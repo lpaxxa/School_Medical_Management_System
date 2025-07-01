@@ -8,17 +8,34 @@
   --bg-white: #ffffff;
 } */
 
+/* Modern Navigation - Dark Blue Theme for Parent Pages */
+
 .main-navigation {
-  background: var(--bg-white); /* Sửa thành biến đúng */
-  padding: 15px 0;
-  border-bottom: 2px solid #f0f0f0;
+  display: none; /* Ẩn navigation riêng biệt vì đã tích hợp vào header */
+  background: linear-gradient(135deg, #5BA8A0 0%, #94B447 25%, #3B5284 50%, #5D6E1E 100%);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0;
+  position: sticky;
+  top: 70px; /* Mặc định dưới header */
+  z-index: 900;
+  box-shadow: 0 2px 10px rgba(91, 168, 160, 0.15);
+  transition: top 0.35s cubic-bezier(0.21, 0.6, 0.35, 1);
+}
+
+/* Khi header scroll và shrink xuống 60px */
+.header.scrolled ~ .main-navigation,
+.main-navigation.header-scrolled {
+  top: 60px; /* Điều chỉnh để stick sát với header đã scroll */
 }
 
 .nav-wrapper {
   display: flex;
   align-items: center;
-  gap: 40px;
-  
+  justify-content: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
 .logo {
@@ -33,47 +50,113 @@
 .main-nav-list {
   display: flex;
   list-style: none;
-  gap: 30px;
-  flex-wrap: wrap;
+  gap: 0;
   align-items: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  justify-content: center;
+}
+
+.main-nav-item {
+  flex: 1;
+  max-width: 300px;
 }
 
 .main-nav-link {
-  color: var(--primary); /* Sửa thành biến đúng */
+  display: block;
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  font-weight: 600;
-  font-size: 16px;
-  padding: 8px 12px;
-  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 1rem 1.5rem;
+  text-align: center;
   transition: all 0.3s ease;
+  border-radius: 0;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .main-nav-link:hover {
-  background: var(--primary); /* Sửa thành biến đúng */
+  background: rgba(255, 255, 255, 0.15);
   color: white;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  border-radius: 12px;
 }
 
-/* Sửa màu active */
 .main-nav-link.active {
-  font-weight: 700;
-  color: var(--secondary); /* Sửa thành biến đúng */
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
   position: relative;
+  border-radius: 12px;
 }
 
 .main-nav-link.active::after {
   content: '';
   position: absolute;
-  bottom: -5px;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 3px;
-  background-color: var(--secondary); /* Sửa thành biến đúng */
-  border-radius: 2px;
+  background: linear-gradient(90deg, #FBBF24, #F59E0B);
 }
 
-.main-nav-link:hover:not(.active) {
-  color: var(--primary-light); /* Sửa thành biến đúng */
+/* Alternative: Hide navigation entirely for cleaner design */
+.main-navigation.hidden {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .main-navigation {
+    display: none; /* Hide on mobile since header has main navigation */
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-wrapper {
+    padding: 0 1rem;
+  }
+  
+  .main-nav-link {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Modern floating navigation - alternative style */
+.modern-navigation {
+  background: linear-gradient(135deg, #5BA8A0 0%, #94B447 25%, #3B5284 50%, #5D6E1E 100%);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  margin: 1rem auto;
+  max-width: 800px;
+  padding: 0.5rem;
+  box-shadow: 0 10px 30px rgba(91, 168, 160, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modern-navigation .main-nav-list {
+  gap: 0.5rem;
+}
+
+.modern-navigation .main-nav-link {
+  border-radius: 15px;
+  padding: 0.75rem 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.modern-navigation .main-nav-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 15px rgba(91, 168, 160, 0.3);
+}
+
+.modern-navigation .main-nav-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(91, 168, 160, 0.3);
 }
 
 /* Container để đảm bảo navigation cố định có vị trí đúng */
@@ -81,29 +164,6 @@
   position: relative;
   height: 60px; /* Chiều cao của navigation */
   width: 100%;
-}
-
-/* Modern Navigation - Styling hoàn toàn mới */
-.modern-navigation {
-  background-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  position: fixed !important; /* Sử dụng fixed thay vì sticky */
-  top: 70px; /* Vị trí cố định dưới header */
-  left: 0;
-  right: 0;
-  width: 100%;
-  z-index: 9999; /* Z-index cao để hiển thị trên các phần tử khác */
-  height: 60px;
-  border-bottom: 1px solid #eaeaea;
-  
-  /* Loại bỏ các thuộc tính có thể gây xung đột */
-  transform: none !important;
-  -webkit-transform: none !important;
-  -ms-transform: none !important;
-  
-  /* Đảm bảo không có margin và padding bị ảnh hưởng */
-  padding: 0 !important;
-  margin: 0 !important;
 }
 
 /* Ẩn thanh cuộn cho navigation */
@@ -215,49 +275,8 @@
   border-radius: 1.5px;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .nav-container {
-    padding: 0 1rem;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .nav-menu {
-    grid-template-columns: repeat(4, 1fr); /* Cố định 4 cột trên mobile */
-    width: max-content;
-    justify-content: flex-start;
-  }
-  
-  .nav-link {
-    padding: 1rem;
-    white-space: nowrap;
-    flex-direction: row;
-    gap: 8px;
-  }
-  
-  .nav-link i {
-    margin-bottom: 0;
-    font-size: 1rem;
-  }
-  
-  .active-indicator {
-    width: 4px;
-    height: 20px;
-    left: 0;
-    bottom: 50%;
-    transform: translateY(50%);
-  }
-  
-  .modern-link {
-    padding: 0.75rem 0.25rem;
-  }
-  
-  .modern-link i {
-    font-size: 1rem;
-  }
-  
-  .nav-title {
-    font-size: 0.75rem;
-  }
+/* JavaScript will handle the scrolled state */
+/* Add this class via JS when header is scrolled */
+.navigation-adjust-for-scroll {
+  top: 60px !important;
 }

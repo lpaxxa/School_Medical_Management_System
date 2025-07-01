@@ -1,5 +1,337 @@
 /* CSS CHỈ CHO NỘI DUNG TRONG MODAL KIỂM TRA SỨC KHỎE */
 
+/* Styles cho danh sách kiểm tra đơn giản */
+.checkups-list-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.checkup-row {
+  background-color: #ffffff;
+  border: 1px solid #BCE6FF;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.checkup-row:hover {
+  border-color: #015C92;
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.15);
+  transform: translateY(-1px);
+}
+
+.checkup-row-content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+}
+
+.checkup-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #0f172a;
+  min-width: 140px;
+}
+
+.date-icon {
+  color: #015C92;
+  font-size: 14px;
+}
+
+.checkup-type {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.arrow-icon {
+  color: #94a3b8;
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.checkup-row:hover .arrow-icon {
+  transform: translateX(2px);
+  color: #015C92;
+}
+
+/* Modal content styles */
+.checkup-details-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Chỉ số cơ thể */
+.body-measurements {
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.03) 0%, rgba(188, 230, 255, 0.2) 100%);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #BCE6FF;
+}
+
+.measurement-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.measurement-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #88CDF6;
+  transition: all 0.2s ease;
+}
+
+.measurement-item:hover {
+  border-color: #015C92;
+  box-shadow: 0 2px 8px rgba(1, 92, 146, 0.1);
+}
+
+.measurement-label {
+  font-weight: 500;
+  color: #015C92;
+  font-size: 14px;
+}
+
+.measurement-value {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Dấu hiệu sinh tồn */
+.vital-signs {
+  background: linear-gradient(135deg, rgba(45, 130, 181, 0.03) 0%, rgba(188, 230, 255, 0.2) 100%);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #BCE6FF;
+}
+
+.vital-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.vital-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #88CDF6;
+  transition: all 0.2s ease;
+}
+
+.vital-item:hover {
+  border-color: #2D82B5;
+  box-shadow: 0 2px 8px rgba(45, 130, 181, 0.1);
+}
+
+.vital-label {
+  font-weight: 500;
+  color: #2D82B5;
+  font-size: 14px;
+}
+
+.vital-value {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Khám chuyên khoa */
+.specialist-exams {
+  background: linear-gradient(135deg, rgba(66, 140, 212, 0.03) 0%, rgba(188, 230, 255, 0.2) 100%);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #BCE6FF;
+}
+
+.exam-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.exam-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #88CDF6;
+  transition: all 0.2s ease;
+}
+
+.exam-item:hover {
+  border-color: #428CD4;
+  box-shadow: 0 2px 8px rgba(66, 140, 212, 0.1);
+}
+
+.exam-label {
+  font-weight: 500;
+  color: #428CD4;
+  font-size: 14px;
+}
+
+.exam-value {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Chẩn đoán và khuyến nghị */
+.diagnosis-text,
+.recommendations-text {
+  background: linear-gradient(135deg, rgba(188, 230, 255, 0.1) 0%, rgba(255, 255, 255, 1) 100%);
+  border: 1px solid #88CDF6;
+  border-radius: 6px;
+  padding: 16px;
+  line-height: 1.6;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Thông tin theo dõi */
+.follow-up-info {
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.02) 0%, rgba(188, 230, 255, 0.1) 100%);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #BCE6FF;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #88CDF6;
+  transition: all 0.2s ease;
+}
+
+.info-item:hover {
+  border-color: #015C92;
+  box-shadow: 0 2px 8px rgba(1, 92, 146, 0.1);
+}
+
+.info-label {
+  font-weight: 500;
+  color: #015C92;
+  font-size: 14px;
+}
+
+.info-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-badge.success {
+  background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.info-badge.warning {
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* Thông tin y tế */
+.medical-staff-info {
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.02) 0%, rgba(188, 230, 255, 0.1) 100%);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #BCE6FF;
+}
+
+.medical-staff-info p {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.staff-label {
+  font-weight: 500;
+  color: #015C92;
+  font-size: 14px;
+}
+
+.staff-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Section headers with icons */
+.detail-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.detail-section h4 svg {
+  color: #015C92;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .checkup-row-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .checkup-date {
+    min-width: auto;
+  }
+
+  .measurement-row,
+  .vital-row,
+  .exam-row,
+  .info-row {
+    grid-template-columns: 1fr;
+  }
+
+  .measurement-item,
+  .vital-item,
+  .exam-item,
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
 /* Phần loại kiểm tra */
 .checkup-type {
   text-align: center;
@@ -7,20 +339,20 @@
 }
 
 .type-badge {
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%);
+  color: white;
   font-weight: 600;
   padding: 6px 16px;
   border-radius: 20px;
   font-size: 0.95rem;
   display: inline-block;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.3);
   transition: all 0.2s ease;
 }
 
 .type-badge:hover {
   transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 20px rgba(1, 92, 146, 0.4);
 }
 
 /* Chi tiết số liệu */
@@ -34,15 +366,15 @@
 .checkup-measurements-section,
 .checkup-result-section {
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #BCE6FF;
   border-radius: 10px;
   overflow: hidden;
 }
 
 .info-header {
-  background-color: #f1f5f9;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.05) 0%, rgba(188, 230, 255, 0.3) 100%);
   padding: 12px 20px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #88CDF6;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -51,38 +383,16 @@
 .info-header h4 {
   margin: 0;
   font-size: 16px;
-  color: #0f172a;
+  color: #015C92;
   font-weight: 600;
 }
 
 .info-header svg {
-  color: #0ea5e9;
+  color: #015C92;
 }
 
 .info-content {
   padding: 16px 20px;
-}
-
-.info-row {
-  display: flex;
-  margin-bottom: 12px;
-  align-items: baseline;
-}
-
-.info-row:last-child {
-  margin-bottom: 0;
-}
-
-.info-label {
-  flex: 0 0 140px;
-  font-weight: 500;
-  color: #64748b;
-  font-size: 14px;
-}
-
-.info-value {
-  flex: 1;
-  color: #0f172a;
 }
 
 .notes-row {
@@ -94,10 +404,10 @@
 }
 
 .notes-row .info-value {
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, rgba(188, 230, 255, 0.1) 0%, rgba(255, 255, 255, 1) 100%);
   padding: 12px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #88CDF6;
   line-height: 1.6;
 }
 
@@ -128,4 +438,41 @@
 .bmi-status.béo-phì {
   background-color: #fee2e2;
   color: #b91c1c;
+}
+
+/* Stats row styling */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-box {
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.03) 0%, rgba(188, 230, 255, 0.15) 100%);
+  border: 1px solid #88CDF6;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.stat-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.1);
+  border-color: #015C92;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #015C92;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 16px;
+  color: #0f172a;
+  font-weight: 600;
 }

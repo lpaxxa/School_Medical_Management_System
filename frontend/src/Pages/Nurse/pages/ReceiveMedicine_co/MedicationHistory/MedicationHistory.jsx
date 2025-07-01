@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Container, Row, Col, Card, Table, Form, Button, 
@@ -12,7 +13,6 @@ import {
 import './MedicationHistory.css';
 import { useMedicationAdministration } from '../../../../../context/NurseContext/MedicineApprovalContext';
 
-
 const MedicationHistory = () => {
   // Use context instead of local state
   const {
@@ -22,6 +22,7 @@ const MedicationHistory = () => {
     currentPage,
     pageSize,
     loading,
+
     error,
     fetchMedicationAdministrations,
     addMedicationAdministration,
@@ -286,6 +287,7 @@ const MedicationHistory = () => {
     hasData: !!administrations
   });
 
+
   return (
     <Container fluid className="py-4">
       <Card className="shadow-sm">
@@ -336,6 +338,7 @@ const MedicationHistory = () => {
               >
                 Thử lại
               </Button>
+
             </Alert>
           )}
 
@@ -369,6 +372,7 @@ const MedicationHistory = () => {
                       <th className="text-center">Thao tác</th>
                     </tr>
                   </thead>
+
                   <tbody>                    {filteredAdministrations.map((medication) => (
                       <tr key={medication.id || Math.random()}>
                         <td className="ps-4 fw-bold">{medication.id || 'N/A'}</td>
@@ -421,6 +425,7 @@ const MedicationHistory = () => {
                   <Pagination>{renderPaginationItems()}</Pagination>
                 </div>
               )}
+
             </div>
           )}
         </Card.Body>
@@ -506,6 +511,7 @@ const MedicationHistory = () => {
           Bạn có chắc chắn muốn xóa thông tin dùng thuốc này không?
         </Modal.Body>
         <Modal.Footer>
+
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
             Hủy
           </Button>

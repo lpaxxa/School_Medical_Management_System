@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Nav, Tab, Alert, Spinner } from 'react-bootstrap';
+
 import './ReceiveMedicine.css';
 import MedicineReceipts from './MedicineReceipts/MedicineReceipts';
 import MedicationHistory from './MedicationHistory/MedicationHistory';

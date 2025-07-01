@@ -2,24 +2,24 @@
 
 :root {
   /* Colors */
-  --primary-blue: #2563eb;
-  --primary-light: #3b82f6;
-  --primary-lighter: #60a5fa;
-  --primary-lightest: #dbeafe;
-  --primary-dark: #1e40af;
+  --primary-blue: #015C92;
+  --primary-light: #2D82B5;
+  --primary-lighter: #428CD4;
+  --primary-lightest: #88CDF6;
+  --primary-dark: #015C92;
   
   /* Status Colors */
   --status-pending: #f59e0b;
   --status-pending-light: #fef3c7;
-  --status-accepted: #10b981;
-  --status-accepted-light: #d1fae5;
+  --status-accepted: #428CD4;
+  --status-accepted-light: #e1f2ff;
   --status-rejected: #ef4444;
   --status-rejected-light: #fee2e2;
   
   /* Category Colors */
-  --category-health: #10b981;
-  --category-medicine: #6366f1;
-  --category-vaccine: #0ea5e9;
+  --category-health: #428CD4;
+  --category-medicine: #2D82B5;
+  --category-vaccine: #88CDF6;
   --category-warning: #f43f5e;
   
   /* Neutrals */
@@ -57,6 +57,9 @@
   width: 100%;
   position: relative;
   z-index: 5;
+  background-color: #ffffff;
+  min-height: 100vh;
+  padding: 2rem;
 }
 
 /* Header */

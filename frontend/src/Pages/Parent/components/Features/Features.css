@@ -1,18 +1,14 @@
-/* Modern Features Section - Tránh xung đột với global.css */
+/* Modern Features Section - Professional Blue Theme */
 
-/* Bảng màu chính - Hệ màu hài hòa y tế */
+/* Professional Blue Color Palette */
 :root {
-  --primary-soft: #5c95ce;
-  --primary-main: #3a7abb;
-  --primary-deep: #2c5c8f;
-  --secondary-soft: #63c6c6;
-  --secondary-main: #46a5a5;
-  --secondary-deep: #348080;
-  --accent: #f9a826;
-  --success: #52b788;
-  --info: #64b5f6;
-  --warning: #ffb74d;
-  --danger: #ef6767;
+  --primary-blue: #015C92;
+  --secondary-blue: #2D82B5;
+  --accent-blue: #428CD4;
+  --light-blue: #88CDF6;
+  --lightest-blue: #BCE6FF;
+  --blue-gradient: linear-gradient(135deg, #015C92 0%, #2D82B5 25%, #428CD4 50%, #88CDF6 75%, #BCE6FF 100%);
+  --blue-gradient-secondary: linear-gradient(135deg, #428CD4 0%, #88CDF6 50%, #BCE6FF 100%);
   --neutral-50: #f8fafc;
   --neutral-100: #f1f5f9;
   --neutral-200: #e2e8f0;
@@ -27,7 +23,6 @@
 
 .features-section {
   padding: 100px 0;
-  /* Gradient nhẹ nhàng hơn */
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   position: relative;
   overflow: hidden;
@@ -48,14 +43,14 @@
   position: absolute;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.5; /* Giảm độ đậm để nhẹ nhàng hơn */
+  opacity: 0.3;
 }
 
 .features-bg-circle {
   width: 400px;
   height: 400px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(92, 149, 206, 0.06) 0%, rgba(92, 149, 206, 0) 70%);
+  background: radial-gradient(circle, rgba(1, 92, 146, 0.06) 0%, rgba(1, 92, 146, 0) 70%);
   top: -150px;
   left: -100px;
   animation: pulse 15s infinite alternate;
@@ -66,10 +61,10 @@
   right: 5%;
   width: 200px;
   height: 200px;
-  background-image: linear-gradient(45deg, rgba(92, 149, 206, 0.03) 25%, transparent 25%),
-                    linear-gradient(-45deg, rgba(92, 149, 206, 0.03) 25%, transparent 25%),
-                    linear-gradient(45deg, transparent 75%, rgba(92, 149, 206, 0.03) 75%),
-                    linear-gradient(-45deg, transparent 75%, rgba(92, 149, 206, 0.03) 75%);
+  background-image: linear-gradient(45deg, rgba(1, 92, 146, 0.03) 25%, transparent 25%),
+                    linear-gradient(-45deg, rgba(1, 92, 146, 0.03) 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, rgba(1, 92, 146, 0.03) 75%),
+                    linear-gradient(-45deg, transparent 75%, rgba(1, 92, 146, 0.03) 75%);
   background-size: 20px 20px;
   border-radius: 30px;
   transform: rotate(15deg);
@@ -81,7 +76,7 @@
   left: 5%;
   width: 180px;
   height: 180px;
-  background-image: radial-gradient(circle, rgba(82, 183, 136, 0.15) 2px, transparent 2px);
+  background-image: radial-gradient(circle, rgba(45, 130, 181, 0.15) 2px, transparent 2px);
   background-size: 18px 18px;
   border-radius: 50%;
   animation: float 15s infinite ease-in-out alternate-reverse;
@@ -97,8 +92,8 @@
 .features-pre-title {
   display: inline-block;
   padding: 6px 16px;
-  background-color: rgba(92, 149, 206, 0.1);
-  color: var(--primary-main);
+  background-color: rgba(1, 92, 146, 0.1);
+  color: var(--primary-blue);
   border-radius: 30px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -112,8 +107,7 @@
 .features-title {
   font-size: 2.5rem;
   margin-bottom: 20px;
-  /* Gradient nhẹ nhàng hơn */
-  background: linear-gradient(90deg, #2c5c8f, #3a7abb);
+  background: var(--blue-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -125,8 +119,7 @@
 .features-title-underline {
   height: 4px;
   width: 80px;
-  /* Gradient nhẹ nhàng hơn */
-  background: linear-gradient(90deg, #3a7abb, #46a5a5);
+  background: var(--blue-gradient-secondary);
   margin: 0 auto 30px;
   border-radius: 2px;
   transform: scaleX(0);
@@ -157,7 +150,7 @@
   background: #ffffff;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(44, 92, 143, 0.06);
+  box-shadow: 0 10px 30px rgba(1, 92, 146, 0.06);
   transition: all 0.4s ease;
   opacity: 0;
   transform: translateY(40px);
@@ -174,7 +167,7 @@
 
 .feature-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(44, 92, 143, 0.09);
+  box-shadow: 0 20px 40px rgba(1, 92, 146, 0.12);
 }
 
 .feature-card.feature-visible {
@@ -183,29 +176,30 @@
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-/* Bảng màu cho các biểu tượng tính năng */
+/* Professional Blue theme for all feature icons */
 .feature-card:nth-child(1) .feature-icon-wrapper {
-  background: var(--primary-main); /* Y tế thông minh - Màu xanh chính */
+  background: var(--primary-blue);
 }
 
 .feature-card:nth-child(2) .feature-icon-wrapper {
-  background: var(--success); /* Khám sức khỏe - Màu xanh lá tươi mới */
+  background: var(--secondary-blue);
 }
 
 .feature-card:nth-child(3) .feature-icon-wrapper {
-  background: var(--secondary-main); /* Hỗ trợ tâm lý - Màu xanh ngọc bình yên */
+  background: var(--accent-blue);
 }
 
 .feature-card:nth-child(4) .feature-icon-wrapper {
-  background: var(--danger); /* Quản lý bệnh - Màu cam nhẹ cảnh báo */
+  background: var(--light-blue);
+  color: var(--primary-blue) !important;
 }
 
 .feature-card:nth-child(5) .feature-icon-wrapper {
-  background: var(--accent); /* Kết nối - Màu vàng năng động */
+  background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
 }
 
 .feature-card:nth-child(6) .feature-icon-wrapper {
-  background: var(--info); /* Theo dõi chỉ số - Màu xanh da trời thông tin */
+  background: linear-gradient(135deg, var(--accent-blue), var(--light-blue));
 }
 
 /* Icon styling */
@@ -220,6 +214,7 @@
   position: relative;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   overflow: hidden;
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.2);
 }
 
 .feature-card:hover .feature-icon-wrapper {
@@ -231,6 +226,10 @@
   color: #fff;
   position: relative;
   z-index: 2;
+}
+
+.feature-card:nth-child(4) .feature-icon-wrapper i {
+  color: var(--primary-blue) !important;
 }
 
 .feature-icon-glow {
@@ -267,13 +266,13 @@
   font-family: var(--font-heading);
 }
 
-/* Màu của dòng gạch chân dưới tiêu đề sẽ khớp với màu icon */
-.feature-card:nth-child(1) .feature-title::after { background: var(--primary-main); }
-.feature-card:nth-child(2) .feature-title::after { background: var(--success); }
-.feature-card:nth-child(3) .feature-title::after { background: var(--secondary-main); }
-.feature-card:nth-child(4) .feature-title::after { background: var(--danger); }
-.feature-card:nth-child(5) .feature-title::after { background: var(--accent); }
-.feature-card:nth-child(6) .feature-title::after { background: var(--info); }
+/* Professional Blue underlines for titles */
+.feature-card:nth-child(1) .feature-title::after { background: var(--primary-blue); }
+.feature-card:nth-child(2) .feature-title::after { background: var(--secondary-blue); }
+.feature-card:nth-child(3) .feature-title::after { background: var(--accent-blue); }
+.feature-card:nth-child(4) .feature-title::after { background: var(--light-blue); }
+.feature-card:nth-child(5) .feature-title::after { background: var(--primary-blue); }
+.feature-card:nth-child(6) .feature-title::after { background: var(--accent-blue); }
 
 .feature-title::after {
   content: '';
@@ -298,24 +297,24 @@
   font-size: 1rem;
 }
 
-/* Màu link khớp với màu icon */
-.feature-card:nth-child(1) .feature-learn-more { color: var(--primary-main); }
-.feature-card:nth-child(1) .feature-learn-more::after { background: var(--primary-main); }
+/* Professional Blue links */
+.feature-card:nth-child(1) .feature-learn-more { color: var(--primary-blue); }
+.feature-card:nth-child(1) .feature-learn-more::after { background: var(--primary-blue); }
 
-.feature-card:nth-child(2) .feature-learn-more { color: var(--success); }
-.feature-card:nth-child(2) .feature-learn-more::after { background: var(--success); }
+.feature-card:nth-child(2) .feature-learn-more { color: var(--secondary-blue); }
+.feature-card:nth-child(2) .feature-learn-more::after { background: var(--secondary-blue); }
 
-.feature-card:nth-child(3) .feature-learn-more { color: var(--secondary-main); }
-.feature-card:nth-child(3) .feature-learn-more::after { background: var(--secondary-main); }
+.feature-card:nth-child(3) .feature-learn-more { color: var(--accent-blue); }
+.feature-card:nth-child(3) .feature-learn-more::after { background: var(--accent-blue); }
 
-.feature-card:nth-child(4) .feature-learn-more { color: var(--danger); }
-.feature-card:nth-child(4) .feature-learn-more::after { background: var(--danger); }
+.feature-card:nth-child(4) .feature-learn-more { color: var(--light-blue); }
+.feature-card:nth-child(4) .feature-learn-more::after { background: var(--light-blue); }
 
-.feature-card:nth-child(5) .feature-learn-more { color: var(--accent); }
-.feature-card:nth-child(5) .feature-learn-more::after { background: var(--accent); }
+.feature-card:nth-child(5) .feature-learn-more { color: var(--primary-blue); }
+.feature-card:nth-child(5) .feature-learn-more::after { background: var(--primary-blue); }
 
-.feature-card:nth-child(6) .feature-learn-more { color: var(--info); }
-.feature-card:nth-child(6) .feature-learn-more::after { background: var(--info); }
+.feature-card:nth-child(6) .feature-learn-more { color: var(--accent-blue); }
+.feature-card:nth-child(6) .feature-learn-more::after { background: var(--accent-blue); }
 
 .feature-learn-more {
   display: inline-flex;
@@ -354,7 +353,7 @@
   transform: translateX(5px);
 }
 
-/* Card decorations */
+/* Card decorations with Professional Blue */
 .feature-card-decoration {
   position: absolute;
   top: 0;
@@ -364,38 +363,37 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.4; /* Giảm độ đậm để nhẹ nhàng hơn */
+  opacity: 0.2;
 }
 
-/* Màu decoration phù hợp với màu icon */
 .feature-card:nth-child(1) .feature-decoration-circle,
 .feature-card:nth-child(1) .feature-decoration-square {
-  background: rgba(58, 122, 187, 0.1);
+  background: rgba(1, 92, 146, 0.1);
 }
 
 .feature-card:nth-child(2) .feature-decoration-circle,
 .feature-card:nth-child(2) .feature-decoration-square {
-  background: rgba(82, 183, 136, 0.1);
+  background: rgba(45, 130, 181, 0.1);
 }
 
 .feature-card:nth-child(3) .feature-decoration-circle,
 .feature-card:nth-child(3) .feature-decoration-square {
-  background: rgba(70, 165, 165, 0.1);
+  background: rgba(66, 140, 212, 0.1);
 }
 
 .feature-card:nth-child(4) .feature-decoration-circle,
 .feature-card:nth-child(4) .feature-decoration-square {
-  background: rgba(239, 103, 103, 0.1);
+  background: rgba(136, 205, 246, 0.1);
 }
 
 .feature-card:nth-child(5) .feature-decoration-circle,
 .feature-card:nth-child(5) .feature-decoration-square {
-  background: rgba(249, 168, 38, 0.1);
+  background: rgba(1, 92, 146, 0.1);
 }
 
 .feature-card:nth-child(6) .feature-decoration-circle,
 .feature-card:nth-child(6) .feature-decoration-square {
-  background: rgba(100, 181, 246, 0.1);
+  background: rgba(66, 140, 212, 0.1);
 }
 
 .feature-decoration-circle,
@@ -507,8 +505,7 @@
   
   .features-grid {
     grid-template-columns: 1fr;
-    max-width: 500px;
-    margin: 0 auto;
+    gap: 20px;
   }
   
   .features-header {
@@ -539,12 +536,12 @@
   }
   
   .features-pre-title {
+    padding: 4px 12px;
     font-size: 0.8rem;
-    padding: 5px 12px;
   }
   
   .features-title {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
   
   .features-subtitle {
@@ -556,19 +553,18 @@
   }
   
   .feature-title {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
 }
 
-/* Dark theme support - optional */
 @media (prefers-color-scheme: dark) {
   .features-section {
-    background: linear-gradient(135deg, #EBF4FF 0%, #C0D8FA 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   }
   
   .feature-card {
     background: #1e293b;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   }
   
   .feature-title {
@@ -576,14 +572,15 @@
   }
   
   .feature-description {
-    color: #cbd5e1;
+    color: #94a3b8;
   }
   
   .features-subtitle {
-    color: #193f6d;
+    color: #cbd5e1;
   }
   
   .features-pre-title {
-    background-color: rgba(92, 149, 206, 0.15);
+    background-color: rgba(66, 140, 212, 0.2);
+    color: var(--accent-blue);
   }
 }

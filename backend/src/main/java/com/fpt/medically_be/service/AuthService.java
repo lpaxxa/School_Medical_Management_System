@@ -4,8 +4,9 @@ import com.fpt.medically_be.dto.auth.AuthResponseDTO;
 import com.fpt.medically_be.dto.auth.LoginRequestDTO;
 import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
 import com.fpt.medically_be.dto.request.ParentRegistrationRequestDTO;
+import com.fpt.medically_be.dto.request.RegistrationDTO;
 import com.fpt.medically_be.entity.AccountMember;
-import com.fpt.medically_be.entity.Nurse;
+
 
 public interface AuthService {
 
@@ -15,6 +16,7 @@ public interface AuthService {
 
     AuthResponseDTO registerParent(ParentRegistrationRequestDTO parentRegistrationRequestDTO);
     AuthResponseDTO registerNurse(NurseRegistrationRequestDTO nurseRegistrationRequestDTO);
+    AuthResponseDTO registerAdmin(RegistrationDTO registrationDTO);
 
 
     AccountMember processOAuth2Callback(String code, String state);

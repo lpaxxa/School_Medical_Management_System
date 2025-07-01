@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fpt.medically_be.dto.request.AccountUpdateRequestDTO;
 import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
 import com.fpt.medically_be.dto.request.ParentRegistrationRequestDTO;
+import com.fpt.medically_be.dto.request.RegistrationDTO;
 import com.fpt.medically_be.dto.response.AccountAdminResponseDTO;
 import com.fpt.medically_be.service.AccountMemberService;
 import com.fpt.medically_be.service.AuthService;
@@ -17,8 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-import static com.fpt.medically_be.entity.MemberRole.NURSE;
-import static com.fpt.medically_be.entity.MemberRole.PARENT;
+import static com.fpt.medically_be.entity.MemberRole.*;
 
 @RestController
 @RequestMapping("/api/v1/account-members")
@@ -46,7 +46,11 @@ public class AccountMemberController {
             } else if (NURSE.name().equals(role)) {
                 NurseRegistrationRequestDTO nurseDTO = objectMapper.convertValue(requestData, NurseRegistrationRequestDTO.class);
                 return ResponseEntity.ok(authService.registerNurse(nurseDTO));
-            } else {
+            } else if (ADMIN.name().equals(role)) {
+                RegistrationDTO adminDTO = objectMapper.convertValue(requestData, RegistrationDTO.class);
+                return ResponseEntity.ok(authService.registerAdmin(adminDTO));
+            }
+            else {
                 return ResponseEntity.badRequest().body("Invalid role specified in registration request");
             }
         }catch (Exception e) {

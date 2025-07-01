@@ -1,24 +1,25 @@
-/* Vaccinations Panel */
+/* Vaccinations Panel - Professional Blue Theme */
 .vaccinations-panel {
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.1);
+  border: 1px solid #BCE6FF;
 }
 
 .vaccinations-panel h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: #015C92;
   padding: 16px 20px;
   margin: 0;
-  border-bottom: 1px solid #eaedf0;
+  border-bottom: 1px solid #88CDF6;
   display: flex;
   align-items: center;
 }
 
 .vaccinations-panel h3 svg {
   margin-right: 10px;
-  color: #3498db;
+  color: #015C92;
 }
 
 /* Danh sách tiêm chủng */
@@ -30,10 +31,10 @@
 
 /* Thẻ tiêm chủng */
 .vaccination-card {
-  border: 1px solid #e2e8f0;
+  border: 1px solid #BCE6FF;
   border-radius: 8px;
   background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.08);
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -41,14 +42,15 @@
 
 .vaccination-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.2);
+  border-color: #015C92;
 }
 
 /* Header của thẻ tiêm chủng */
 .vaccination-header {
   padding: 16px 20px;
-  background-color: #f0f9ff;
-  border-bottom: 1px solid #bae6fd;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.03) 0%, rgba(188, 230, 255, 0.2) 100%);
+  border-bottom: 1px solid #88CDF6;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -64,24 +66,24 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #0c4a6e;
+  color: #015C92;
 }
 
 .vaccination-title svg {
-  color: #0ea5e9;
+  color: #015C92;
   font-size: 18px;
 }
 
 .vaccination-date {
   font-size: 14px;
-  color: #0c4a6e;
+  color: #015C92;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .vaccination-date svg {
-  color: #0ea5e9;
+  color: #2D82B5;
 }
 
 /* Footer của thẻ tiêm chủng */
@@ -90,7 +92,7 @@
   background-color: white;
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #88CDF6;
 }
 
 /* Vaccinations Table */
@@ -104,42 +106,43 @@
 .vaccination-table td {
   padding: 12px 15px;
   text-align: left;
-  border-bottom: 1px solid #e0e6ed;
+  border-bottom: 1px solid #88CDF6;
 }
 
 .vaccination-table th {
-  background-color: #f5f7fa;
-  color: #34495e;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.05) 0%, rgba(188, 230, 255, 0.3) 100%);
+  color: #015C92;
   font-weight: 500;
 }
 
 .vaccination-table tr:hover {
-  background-color: #f8f9fa;
+  background: linear-gradient(135deg, rgba(188, 230, 255, 0.05) 0%, rgba(248, 250, 252, 1) 100%);
 }
 
 /* No vaccinations message */
 .no-data-message {
   text-align: center;
   padding: 40px 20px;
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.02) 0%, rgba(188, 230, 255, 0.1) 100%);
   border-radius: 12px;
   margin: 20px;
+  border: 1px solid #BCE6FF;
 }
 
 .no-data-message svg {
   font-size: 40px;
-  color: #94a3b8;
+  color: #2D82B5;
   margin-bottom: 16px;
 }
 
 .no-data-message h4 {
-  color: #334155;
+  color: #015C92;
   margin: 0 0 8px;
   font-weight: 600;
 }
 
 .no-data-message p {
-  color: #64748b;
+  color: #2D82B5;
   max-width: 500px;
   margin: 0 auto;
 }

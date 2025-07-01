@@ -1,0 +1,524 @@
+/* Student List View - Clean Modern Design */
+.student-list-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+/* Header Section */
+.student-list-header-section {
+  background: #f8fafc;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header-content-enhanced {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.student-list-title-enhanced {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: #0ea5e9;
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.student-list-subtitle-enhanced {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Stats Section */
+.student-stats-section {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-left: 4px solid #3b82f6;
+  padding-left: 20px;
+  background: white;
+  position: relative;
+}
+
+.stat-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #f1f5f9;
+}
+
+.stat-item:last-child::after {
+  display: none;
+}
+
+.stat-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  margin-right: 16px;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: #1e293b;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Controls Section */
+.student-list-controls-section {
+  padding: 16px 24px;
+  background: white;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.student-list-controls-enhanced {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.search-section-enhanced {
+  flex: 1;
+  max-width: 300px;
+}
+
+.student-search-enhanced {
+  position: relative;
+}
+
+.student-search-enhanced input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  transition: border-color 0.2s ease;
+  font-weight: 400;
+}
+
+.student-search-enhanced input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.student-search-enhanced input::placeholder {
+  color: #9ca3af;
+}
+
+.student-search-enhanced i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+.stats-section-enhanced {
+  display: flex;
+  align-items: center;
+}
+
+.student-count-enhanced {
+  background: #f8fafc;
+  color: #374151;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Student List Section */
+.student-list-section {
+  padding: 0 24px 24px 24px;
+}
+
+.student-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-list-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.student-list-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.student-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.student-name {
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: #1e293b;
+}
+
+.student-id-badge {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.student-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.student-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.student-detail-row i {
+  width: 14px;
+  color: #6b7280;
+  font-size: 0.75rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.student-detail-text {
+  font-size: 0.875rem;
+  color: #475569;
+  font-weight: 400;
+}
+
+.student-item-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.view-btn {
+  background: #f0f9ff;
+  color: #0ea5e9;
+  border: 1px solid #e0f2fe;
+}
+
+.view-btn:hover {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.edit-btn {
+  background: #fefce8;
+  color: #ca8a04;
+  border: 1px solid #fef3c7;
+}
+
+.edit-btn:hover {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.delete-btn {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+.delete-btn:hover {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+/* Loading and Empty States */
+.student-list-loading-enhanced {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+  padding: 32px;
+  background: white;
+}
+
+.student-loading-spinner-enhanced {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #f3f4f6;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+.loading-text-enhanced {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.loading-subtext {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.student-list-empty-enhanced {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  text-align: center;
+  padding: 32px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  margin: 20px 24px;
+}
+
+.student-list-empty-enhanced i {
+  font-size: 2rem;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+}
+
+.student-list-empty-enhanced h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: #64748b;
+  margin: 0 0 6px 0;
+}
+
+.student-list-empty-enhanced p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .student-list-header-section {
+    padding: 12px 16px;
+  }
+
+  .header-content-enhanced {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .student-list-title-enhanced {
+    font-size: 1.25rem;
+  }
+
+  .student-stats-section {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .stat-item {
+    padding: 12px 0 12px 16px;
+  }
+
+  .stat-number {
+    font-size: 1.75rem;
+  }
+  
+  .student-list-controls-section {
+    padding: 12px 16px;
+  }
+  
+  .student-list-controls-enhanced {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .search-section-enhanced {
+    max-width: none;
+  }
+  
+  .stats-section-enhanced {
+    justify-content: center;
+  }
+
+  .student-list-section {
+    padding: 0 16px 16px 16px;
+  }
+  
+  .student-list-items {
+    gap: 8px;
+  }
+  
+  .student-list-item {
+    padding: 12px;
+  }
+
+  .student-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .student-item-details {
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .student-item-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-list-header-section {
+    padding: 12px;
+  }
+  
+  .student-list-title-enhanced {
+    font-size: 1.125rem;
+  }
+  
+  .student-list-subtitle-enhanced {
+    font-size: 0.75rem;
+  }
+
+  .student-stats-section {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .stat-item {
+    padding: 8px 0 8px 12px;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+  
+  .student-list-controls-section {
+    padding: 12px;
+  }
+  
+  .student-search-enhanced input {
+    padding: 6px 10px 6px 28px;
+    font-size: 0.8rem;
+  }
+  
+  .student-search-enhanced i {
+    left: 8px;
+    font-size: 0.75rem;
+  }
+
+  .student-list-section {
+    padding: 0 12px 12px 12px;
+  }
+  
+  .student-list-item {
+    padding: 10px;
+  }
+
+  .student-name {
+    font-size: 0.875rem;
+  }
+
+  .student-id-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+
+  .student-detail-text {
+    font-size: 0.75rem;
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+} 
