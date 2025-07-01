@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import VaccinationDashboard from './Dashboard/VaccinationDashboard';
-import VaccinationRecords from './VaccinationRecords/VaccinationRecordManagement';
+import VaccinationRecordManagement from './VaccinationRecords/VaccinationRecordManagement';
 import VaccinationStatistics from './StatisticsAndReports/VaccinationStatistics';
 import VaccinationListCreation from './ListCreation/VaccinationListCreation';
 import PostVaccinationMonitoring from './PostMonitoring/PostVaccinationMonitoring';
 import './VaccinationMain.css';
-
 // Component VaccinationManagement từ file VaccinationManagement.jsx
 const VaccinationManagement = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -83,7 +82,7 @@ const VaccinationManagement = () => {
           )}
           
           {activeTab === 2 && (
-            <VaccinationRecords 
+            <VaccinationRecordManagement 
               refreshData={needsRefresh}
               onDataChange={triggerRefresh}
             />

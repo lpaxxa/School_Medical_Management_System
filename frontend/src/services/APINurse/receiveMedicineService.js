@@ -217,91 +217,82 @@ const mockMedicineRequests = [
   }
 ];
 
-// Mock data cho lịch sử dùng thuốc
+// Mock data cho lịch sử dùng thuốc - Updated to match API format
 const mockMedicationAdministrations = [
   {
     id: 1,
-    medicationInstructionId: 101,
-    studentName: "Nguyễn Văn A",
-    studentId: "HS001",
-    medicationName: "Paracetamol",
-    dosage: "500mg",
-    administeredAt: "2025-06-23T09:00:00",
-    administeredBy: "Y tá Ngọc",
+    medicationInstructionId: 1,
+    medicationName: "Paracetamol 500mg",
+    studentName: "Nguyễn Minh An",
+    administeredAt: "2024-03-09T08:00:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
     administrationStatus: "SUCCESSFUL",
-    notes: "Học sinh uống thuốc đầy đủ"
+    notes: "Đã cho uống 1 viên khi sốt 38.7°C",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-001.jpg"
   },
   {
     id: 2,
-    medicationInstructionId: 102,
-    studentName: "Trần Thị B",
-    studentId: "HS002",
-    medicationName: "Amoxicillin",
-    dosage: "250mg",
-    administeredAt: "2025-06-23T12:30:00",
-    administeredBy: "Y tá Hương",
+    medicationInstructionId: 2,
+    medicationName: "Ventolin Inhaler",
+    studentName: "Nguyễn Minh Tuấn",
+    administeredAt: "2024-12-30T10:00:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
     administrationStatus: "SUCCESSFUL",
-    notes: "Uống cùng bữa trưa"
+    notes: "Đã xịt 2 nhát khi học sinh khó thở.",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-002.jpg"
   },
   {
     id: 3,
-    medicationInstructionId: 103,
-    studentName: "Lê Văn C",
-    studentId: "HS003",
-    medicationName: "Vitamin C",
-    dosage: "500mg",
-    administeredAt: "2025-06-23T13:15:00",
-    administeredBy: "Y tá Ngọc",
-    administrationStatus: "REFUSED",
-    notes: "Học sinh từ chối uống"
+    medicationInstructionId: 3,
+    medicationName: "Amoxicillin 500mg",
+    studentName: "Lê Bảo Ngọc",
+    administeredAt: "2024-03-10T07:30:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
+    administrationStatus: "SUCCESSFUL",
+    notes: "Cho uống 1 viên sáng và 1 viên tối.",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-003.jpg"
   },
   {
     id: 4,
-    medicationInstructionId: 104,
-    studentName: "Phạm Thị D",
-    studentId: "HS004",
-    medicationName: "Cetirizine",
-    dosage: "10mg",
-    administeredAt: "2025-06-23T14:00:00",
-    administeredBy: "Y tá Lan",
-    administrationStatus: "PARTIAL",
-    notes: "Học sinh chỉ uống một phần thuốc"
+    medicationInstructionId: 4,
+    medicationName: "Vitamin C 500mg",
+    studentName: "Lê Bảo Minh",
+    administeredAt: "2024-04-02T08:00:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
+    administrationStatus: "SUCCESSFUL",
+    notes: "Uống 1 viên vào buổi sáng như chỉ định.",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-004.jpg"
   },
   {
     id: 5,
-    medicationInstructionId: 105,
-    studentName: "Hoàng Văn E",
-    studentId: "HS005",
-    medicationName: "Ventolin",
-    dosage: "2 nhát",
-    administeredAt: "2025-06-23T15:30:00",
-    administeredBy: "Y tá Hương",
+    medicationInstructionId: 5,
+    medicationName: "ORS (Oresol)",
+    studentName: "Phạm Minh Thư",
+    administeredAt: "2024-03-18T11:45:00",
+    administeredBy: "Nguyễn Thị Lan Anh",
     administrationStatus: "SUCCESSFUL",
-    notes: "Sử dụng khi có triệu chứng khó thở"
+    notes: "Học sinh uống 1 gói Oresol pha loãng với 200ml nước.",
+    confirmationImageUrl: "https://schoolmed.com/images/admin-005.jpg"
   },
   {
     id: 6,
     medicationInstructionId: 106,
-    studentName: "Đặng Văn F",
-    studentId: "HS006",
     medicationName: "Cetirizine",
-    dosage: "10mg",
+    studentName: "Đặng Văn F",
     administeredAt: "2025-06-24T08:45:00",
     administeredBy: "Y tá Ngọc",
-    administrationStatus: "SUCCESSFUL",
-    notes: ""
+    administrationStatus: "REFUSED",
+    notes: "Học sinh từ chối uống thuốc"
   },
   {
     id: 7,
     medicationInstructionId: 107,
-    studentName: "Nguyễn Văn A",
-    studentId: "HS001",
-    medicationName: "Paracetamol",
-    dosage: "500mg",
+    medicationName: "Ibuprofen",
+    studentName: "Phạm Thị Mai",
     administeredAt: "2025-06-24T09:30:00",
     administeredBy: "Y tá Lan",
-    administrationStatus: "SUCCESSFUL",
-    notes: ""
+    administrationStatus: "PARTIAL",
+    notes: "Học sinh chỉ uống một phần thuốc"
   }
 ];
 
@@ -894,22 +885,70 @@ const receiveMedicineService = {
   // API để lấy tất cả lịch sử dùng thuốc
   getAllMedicationAdministrations: async (page = 1, size = 10) => {
     try {
-      // Gọi API thật bằng instance đúng baseURL1 (1-based pagination)
-      const response = await apiService1.get('/recent', {
-        params: { page: page, size }
+      console.log('🔍 Calling getAllMedicationAdministrations API...');
+      console.log('API URL:', `${BASE_URL1}/all`);
+      
+      // Gọi API thật với endpoint /all
+      const response = await apiService1.get('/all');
+      
+      console.log('✅ API Response:', response.data);
+      
+      // Kiểm tra format response
+      if (response.data && response.data.status === 'success') {
+        const allData = response.data.data || [];
+        const totalItems = response.data.count || allData.length;
+        
+        // Thực hiện phân trang trên client side
+        const startIndex = (page - 1) * size;
+        const endIndex = startIndex + size;
+        const paginatedData = allData.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(totalItems / size);
+        
+        return {
+          status: 'success',
+          data: {
+            posts: paginatedData,
+            totalItems: totalItems,
+            totalPages: totalPages,
+            currentPage: page
+          }
+        };
+      } else {
+        throw new Error('Invalid response format from API');
+      }
+    } catch (error) {
+      console.error("❌ Error in getAllMedicationAdministrations:", error);
+      console.error("❌ Error response:", error.response);
+      
+      // Fallback to mock data if API fails
+      console.log("🔄 API failed, using mock data as fallback");
+      console.log("📊 Mock data count:", mockMedicationAdministrations.length);
+      
+      const allData = mockMedicationAdministrations;
+      const totalItems = allData.length;
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      const paginatedData = allData.slice(startIndex, endIndex);
+      const totalPages = Math.ceil(totalItems / size);
+      
+      console.log('📄 Paginated mock data:', {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        startIndex,
+        endIndex,
+        paginatedDataLength: paginatedData.length
       });
+      
       return {
         status: 'success',
         data: {
-          posts: response.data.content,
-          totalItems: response.data.totalElements,
-          totalPages: response.data.totalPages,
+          posts: paginatedData,
+          totalItems: totalItems,
+          totalPages: totalPages,
           currentPage: page
         }
       };
-    } catch (error) {
-      console.error("Error in getAllMedicationAdministrations:", error);
-      throw new Error(error.response?.data?.message || error.message || "Không thể tải lịch sử dùng thuốc");
     }
   },
   

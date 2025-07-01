@@ -1,337 +1,504 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Table, Alert, Row, Col } from 'react-bootstrap';
+import { Form, Button, Table, Alert, Row, Col, Card, Tabs, Tab, Modal, Badge } from 'react-bootstrap';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
-import { useStudentRecords } from '../../../../../context/NurseContext/StudentRecordsContext';
+import { useAuth } from '../../../../../context/AuthContext';
 import './CreateCheckupList.css';
+import { FaEye, FaPaperPlane, FaUsers } from 'react-icons/fa';
 
 const CreateCheckupList = ({ refreshData }) => {
-  // State cho thông tin đợt khám
-  const [campaignInfo, setCampaignInfo] = useState({
-    name: '',
-    description: '',
-    startDate: '',
-    endDate: '',
-    type: 'REGULAR', // Mặc định là khám định kỳ
-  });
-  
-  // State cho danh sách học sinh đã chọn
-  const [selectedStudents, setSelectedStudents] = useState([]);
-  
-  // State cho tìm kiếm và lọc học sinh
-  const [searchTerm, setSearchTerm] = useState('');
-  const [classFilter, setClassFilter] = useState('');
-  const [gradeFilter, setGradeFilter] = useState('');
-  
-  // State cho thông báo
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [activeTab, setActiveTab] = useState('plans');
+  const { currentUser } = useAuth();
   
-  // Lấy danh sách học sinh từ context
-  const { students, classes } = useStudentRecords();
+  // Sử dụng HealthCheckupContext
+  const { 
+    loading, 
+    error, 
+    getHealthCampaigns, 
+    getParents, 
+    sendNotification 
+  } = useHealthCheckup();
   
-  // Lấy hàm tạo đợt khám từ context
-  const { createCampaign } = useHealthCheckup();
+  // State for search and filters
+  const [parentSearchTerm, setParentSearchTerm] = useState('');
+  const [planSearchTerm, setPlanSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   
-  // Danh sách lớp học và khối lớp duy nhất
-  const [uniqueClasses, setUniqueClasses] = useState([]);
-  const [uniqueGrades, setUniqueGrades] = useState([]);
+  // State for modals
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailPlan, setDetailPlan] = useState(null);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [selectedParent, setSelectedParent] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isSendingToAll, setIsSendingToAll] = useState(false);
+  const [sendingNotification, setSendingNotification] = useState(false);
   
-  // Tạo danh sách lớp và khối từ dữ liệu học sinh
-  useEffect(() => {
-    if (students && students.length > 0) {
-      const classNames = [...new Set(students.map(student => student.className))].filter(Boolean);
-      const grades = [...new Set(students.map(student => student.gradeLevel))].filter(Boolean);
-      
-      setUniqueClasses(classNames.sort());
-      setUniqueGrades(grades.sort());
-    }
-  }, [students]);
+  // Ensure we have a valid senderId (must be a number, not null)
+  const nurseId = currentUser?.id ? parseInt(currentUser.id) : 1;
   
-  // Lọc học sinh theo điều kiện tìm kiếm
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         student.studentId?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = classFilter === '' || student.className === classFilter;
-    const matchesGrade = gradeFilter === '' || student.gradeLevel === gradeFilter;
-    
-    return matchesSearch && matchesClass && matchesGrade;
+  // State for notification data - Đảm bảo senderId là số nguyên ngay từ đầu
+  const [notificationData, setNotificationData] = useState({
+    title: 'Thông báo khám sức khỏe định kỳ',
+    message: 'Trường tổ chức khám sức khỏe cho học sinh. Các phụ huynh vui lòng xác nhận đồng ý cho các phần khám đặc biệt.',
+    type: 'HEALTH_CHECKUP',
+    senderId: nurseId, // Ensure senderId is always a number
+    receiverIds: []
   });
-  
-  // Xử lý thay đổi thông tin đợt khám
-  const handleCampaignInfoChange = (e) => {
-    const { name, value } = e.target;
-    setCampaignInfo(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
-  // Xử lý chọn tất cả học sinh theo bộ lọc hiện tại
-  const handleSelectAllFiltered = () => {
-    // Kết hợp danh sách đã chọn với danh sách lọc mới
-    const newSelectedStudents = [...selectedStudents];
-    
-    filteredStudents.forEach(student => {
-      if (!newSelectedStudents.find(s => s.id === student.id)) {
-        newSelectedStudents.push(student);
+
+  // States for data
+  const [campaigns, setCampaigns] = useState([]);
+  const [parents, setParents] = useState([]);
+  const [localLoading, setLocalLoading] = useState(true);
+  const [sentNotifications, setSentNotifications] = useState(new Set()); // Track sent notifications
+
+  // Fetch campaigns and parents data sử dụng HealthCheckupContext
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLocalLoading(true);
+        
+        // Sử dụng functions từ HealthCheckupContext
+        const [campaignsData, parentsData] = await Promise.all([
+          getHealthCampaigns(),
+          getParents()
+        ]);
+        
+        setCampaigns(campaignsData);
+        setParents(parentsData);
+        
+        setLocalLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setMessage({
+          type: 'danger',
+          text: 'Không thể tải dữ liệu. Vui lòng thử lại sau.'
+        });
+        setLocalLoading(false);
       }
+    };
+
+    fetchData();
+  }, [refreshData, getHealthCampaigns, getParents]);
+
+  // Filter campaigns
+  const filteredCampaigns = campaigns.filter(campaign => {
+    const matchesSearch = 
+      campaign.title?.toLowerCase().includes(planSearchTerm.toLowerCase()) ||
+      campaign.notes?.toLowerCase().includes(planSearchTerm.toLowerCase());
+    const matchesStatus = statusFilter === '' || campaign.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Filter parents
+  const filteredParents = parents.filter(parent => 
+    parent.fullName?.toLowerCase().includes(parentSearchTerm.toLowerCase()) ||
+    parent.email?.toLowerCase().includes(parentSearchTerm.toLowerCase()) ||
+    parent.phoneNumber?.includes(parentSearchTerm)
+  );
+
+  // Handle notification modal for single parent
+  const handleOpenNotificationModal = (parent) => {
+    console.log('Selected parent:', parent); // Debug log
+    setSelectedParent(parent);
+    setIsSendingToAll(false);
+    setNotificationData({
+      ...notificationData,
+      senderId: nurseId, // Ensure senderId is set again
+      receiverIds: [parseInt(parent.id)]
     });
-    
-    setSelectedStudents(newSelectedStudents);
+    setShowNotificationModal(true);
   };
-  
-  // Xử lý bỏ chọn tất cả học sinh
-  const handleUnselectAll = () => {
-    setSelectedStudents([]);
-  };
-  
-  // Xử lý toggle chọn một học sinh
-  const toggleStudentSelection = (student) => {
-    const isSelected = selectedStudents.some(s => s.id === student.id);
-    
-    if (isSelected) {
-      setSelectedStudents(selectedStudents.filter(s => s.id !== student.id));
-    } else {
-      setSelectedStudents([...selectedStudents, student]);
+
+  // Handle notification modal for all filtered parents
+  const handleOpenSendToAllModal = () => {
+    if (filteredParents.length === 0) {
+      setMessage({
+        type: 'warning',
+        text: 'Không có phụ huynh nào trong danh sách để gửi thông báo!'
+      });
+      return;
     }
+    
+    setIsSendingToAll(true);
+    setNotificationData({
+      ...notificationData,
+      senderId: nurseId, // Ensure senderId is set again
+      receiverIds: filteredParents.map(parent => parseInt(parent.id))
+    });
+    setShowNotificationModal(true);
   };
-  
-  // Xử lý tạo đợt khám mới
-  const handleSubmit = async (e) => {
+
+  const handleCloseNotificationModal = () => {
+    setShowNotificationModal(false);
+    setSelectedParent(null);
+    setIsSendingToAll(false);
+  };
+
+  // Handle notification input changes
+  const handleNotificationInputChange = (e) => {
+    const { name, value } = e.target;
+    setNotificationData({
+      ...notificationData,
+      [name]: value
+    });
+  };
+
+  // Handle notification sending sử dụng HealthCheckupContext
+  const handleSendNotification = async (e) => {
     e.preventDefault();
-    
-    // Validate form
-    if (!campaignInfo.name || !campaignInfo.startDate || !campaignInfo.endDate) {
-      setMessage({
-        type: 'danger',
-        text: 'Vui lòng điền đầy đủ thông tin đợt khám'
-      });
-      return;
-    }
-    
-    if (selectedStudents.length === 0) {
-      setMessage({
-        type: 'danger',
-        text: 'Vui lòng chọn ít nhất một học sinh cho đợt khám'
-      });
-      return;
-    }
-    
+    setSendingNotification(true);
+
     try {
-      const newCampaign = {
-        ...campaignInfo,
-        students: selectedStudents.map(s => s.id),
-        status: 'SCHEDULED'
+      if (!notificationData.title.trim() || !notificationData.message.trim()) {
+        setMessage({
+          type: 'danger',
+          text: 'Vui lòng nhập đầy đủ tiêu đề và nội dung thông báo!'
+        });
+        setSendingNotification(false);
+        return;
+      }
+
+      // Đảm bảo receiverIds là mảng các số nguyên
+      const receiverIds = isSendingToAll 
+        ? filteredParents.map(parent => parseInt(parent.id)) 
+        : [parseInt(selectedParent.id)];
+      
+      // Đảm bảo senderId là số nguyên và không phải null
+      const senderId = nurseId;
+      
+      const notificationPayload = {
+        title: notificationData.title.trim(),
+        message: notificationData.message.trim(),
+        type: 'HEALTH_CHECKUP', // Luôn cố định là HEALTH_CHECKUP
+        senderId: senderId,
+        receiverIds: receiverIds
       };
       
-      await createCampaign(newCampaign);
+      // Log để debug
+      console.log('Sending notification with data:', JSON.stringify(notificationPayload, null, 2));
       
-      // Reset form sau khi tạo thành công
-      setCampaignInfo({
-        name: '',
-        description: '',
-        startDate: '',
-        endDate: '',
-        type: 'REGULAR'
-      });
-      setSelectedStudents([]);
+      // Kiểm tra token trước khi gửi
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
+      }
       
+      // Sử dụng sendNotification từ HealthCheckupContext
+      const result = await sendNotification(notificationPayload);
+      console.log('Notification result:', result);
+
+      // Thêm parent IDs vào danh sách đã gửi
+      const newSentNotifications = new Set(sentNotifications);
+      receiverIds.forEach(id => newSentNotifications.add(id));
+      setSentNotifications(newSentNotifications);
+
       setMessage({
         type: 'success',
-        text: 'Tạo đợt khám mới thành công!'
+        text: isSendingToAll 
+          ? `Đã gửi thông báo khám sức khỏe thành công tới ${receiverIds.length} phụ huynh!`
+          : `Đã gửi thông báo khám sức khỏe thành công tới ${selectedParent.fullName}!`
       });
       
-      // Refresh dữ liệu ở component cha
-      if (refreshData) refreshData();
-      
+      handleCloseNotificationModal();
     } catch (error) {
+      console.error('Error sending notification:', error);
+      let errorMessage = 'Không thể gửi thông báo. Vui lòng thử lại sau.';
+      
+      if (error.message) {
+        if (error.message.includes('400')) {
+          errorMessage = 'Lỗi dữ liệu: Định dạng thông báo không hợp lệ. Vui lòng kiểm tra lại thông tin.';
+        } else if (error.message.includes('401') || error.message.includes('403')) {
+          errorMessage = 'Lỗi xác thực: Bạn không có quyền thực hiện thao tác này hoặc phiên đăng nhập đã hết hạn.';
+        } else if (error.message.includes('null')) {
+          errorMessage = 'Lỗi dữ liệu: ID không được để trống. Vui lòng đăng nhập lại.';
+        } else {
+          errorMessage = `Lỗi: ${error.message}`;
+        }
+      }
+      
       setMessage({
         type: 'danger',
-        text: `Lỗi khi tạo đợt khám: ${error.message}`
+        text: errorMessage
       });
-      console.error('Error creating campaign:', error);
+    } finally {
+      setSendingNotification(false);
     }
   };
-  
+
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  };
+
   return (
-    <div className="create-checkup-list-container">
-      <h2>Lập danh sách khám sức khỏe mới</h2>
+    <div className="create-checkup-list">
+      <div className="section-header">
+        <h2>Quản lý khám sức khỏe</h2>
+      </div>
       
       {message.text && (
-        <Alert variant={message.type} onClose={() => setMessage({ type: '', text: '' })} dismissible>
+        <Alert 
+          variant={message.type} 
+          onClose={() => setMessage({ type: '', text: '' })} 
+          dismissible
+        >
           {message.text}
         </Alert>
       )}
       
-      <Form onSubmit={handleSubmit}>
-        <Row>
-          <Col md={6}>
-            <h3>Thông tin đợt khám</h3>
+      <Tabs
+        activeKey={activeTab}
+        onSelect={(k) => setActiveTab(k)}
+        className="mb-4"
+      >
+        {/* Tab Danh mục định kì */}
+        <Tab eventKey="plans" title="Danh mục định kì">
+          <Card>
+            <Card.Header as="h5">Danh mục khám sức khỏe định kì</Card.Header>
+            <Card.Body>
+              <Row className="mb-3">
+                <Col md={6}>
+                  <Form.Control
+                    type="text"
+                    placeholder="Tìm kiếm theo tên hoặc ghi chú..."
+                    value={planSearchTerm}
+                    onChange={(e) => setPlanSearchTerm(e.target.value)}
+                  />
+                </Col>
+                <Col md={6}>
+                  <Form.Select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="PREPARING">Đang chuẩn bị</option>
+                    <option value="IN_PROGRESS">Đang diễn ra</option>
+                    <option value="COMPLETED">Hoàn thành</option>
+                  </Form.Select>
+                </Col>
+              </Row>
+
+              <div className="table-responsive">
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tên chiến dịch</th>
+                      <th>Ngày bắt đầu</th>
+                      <th>Ghi chú</th>
+                      <th>Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {localLoading ? (
+                      <tr>
+                        <td colSpan="5" className="text-center">
+                          <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Đang tải...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredCampaigns.length > 0 ? (
+                      filteredCampaigns.map(campaign => (
+                        <tr key={campaign.id}>
+                          <td>{campaign.id}</td>
+                          <td>{campaign.title}</td>
+                          <td>{formatDate(campaign.startDate)}</td>
+                          <td>{campaign.notes}</td>
+                          <td>
+                            <Badge bg={
+                              campaign.status === 'PREPARING' ? 'warning' :
+                              campaign.status === 'IN_PROGRESS' ? 'primary' :
+                              'success'
+                            }>
+                              {campaign.status === 'PREPARING' ? 'Đang chuẩn bị' :
+                               campaign.status === 'IN_PROGRESS' ? 'Đang diễn ra' :
+                               'Hoàn thành'}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="text-center">
+                          Không tìm thấy chiến dịch khám sức khỏe nào
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            </Card.Body>
+          </Card>
+        </Tab>
+        
+        {/* Tab Danh sách phụ huynh */}
+        <Tab eventKey="parents" title="Danh sách phụ huynh">
+          <Card>
+            <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
+              <span>Danh sách phụ huynh</span>
+              <Button 
+                variant="primary" 
+                size="sm"
+                onClick={handleOpenSendToAllModal}
+                disabled={filteredParents.length === 0}
+                className="send-all-btn"
+              >
+                <FaUsers className="me-2" /> Gửi thông báo cho tất cả
+              </Button>
+            </Card.Header>
+            <Card.Body>
+              <Row className="mb-3">
+                <Col md={12}>
+                  <Form.Control
+                    type="text"
+                    placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
+                    value={parentSearchTerm}
+                    onChange={(e) => setParentSearchTerm(e.target.value)}
+                  />
+                </Col>
+              </Row>
+
+              <div className="table-responsive">
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Họ và tên</th>
+                      <th>Số điện thoại</th>
+                      <th>Email</th>
+                      <th>Địa chỉ</th>
+                      <th>Quan hệ</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {localLoading ? (
+                      <tr>
+                        <td colSpan="7" className="text-center">
+                          <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Đang tải...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredParents.length > 0 ? (
+                      filteredParents.map(parent => (
+                        <tr key={parent.id}>
+                          <td>{parent.id}</td>
+                          <td>{parent.fullName}</td>
+                          <td>{parent.phoneNumber}</td>
+                          <td>{parent.email}</td>
+                          <td>{parent.address}</td>
+                          <td>{parent.relationshipType}</td>
+                          <td>
+                            {sentNotifications.has(parent.id) ? (
+                              <span className="text-success fw-bold">Đã gửi</span>
+                            ) : (
+                              <Button
+                                variant="success"
+                                size="sm"
+                                onClick={() => handleOpenNotificationModal(parent)}
+                              >
+                                <FaPaperPlane /> Gửi
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="text-center">
+                          Không tìm thấy phụ huynh nào
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            </Card.Body>
+          </Card>
+        </Tab>
+      </Tabs>
+
+      {/* Modal gửi thông báo */}
+      <Modal show={showNotificationModal} onHide={handleCloseNotificationModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {isSendingToAll 
+              ? `Gửi thông báo cho ${filteredParents.length} phụ huynh`
+              : `Gửi thông báo cho phụ huynh: ${selectedParent?.fullName}`
+            }
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSendNotification}>
             <Form.Group className="mb-3">
-              <Form.Label>Tên đợt khám <span className="required">*</span></Form.Label>
+              <Form.Label>Tiêu đề thông báo <span className="text-danger">*</span></Form.Label>
               <Form.Control
                 type="text"
-                name="name"
-                value={campaignInfo.name}
-                onChange={handleCampaignInfoChange}
-                placeholder="Nhập tên đợt khám (VD: Khám sức khỏe đầu năm 2025-2026)"
+                placeholder="Nhập tiêu đề thông báo"
+                name="title"
+                value={notificationData.title}
+                onChange={handleNotificationInputChange}
                 required
               />
             </Form.Group>
             
             <Form.Group className="mb-3">
-              <Form.Label>Mô tả</Form.Label>
+              <Form.Label>Nội dung <span className="text-danger">*</span></Form.Label>
               <Form.Control
                 as="textarea"
-                name="description"
-                value={campaignInfo.description}
-                onChange={handleCampaignInfoChange}
-                placeholder="Mô tả chi tiết về đợt khám"
-                rows={3}
+                rows={4}
+                placeholder="Nhập nội dung thông báo khám sức khỏe"
+                name="message"
+                value={notificationData.message}
+                onChange={handleNotificationInputChange}
+                required
               />
             </Form.Group>
             
-            <Row>
-              <Col>
-                <Form.Group className="mb-3">
-                  <Form.Label>Ngày bắt đầu <span className="required">*</span></Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="startDate"
-                    value={campaignInfo.startDate}
-                    onChange={handleCampaignInfoChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col>
-                <Form.Group className="mb-3">
-                  <Form.Label>Ngày kết thúc <span className="required">*</span></Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="endDate"
-                    value={campaignInfo.endDate}
-                    onChange={handleCampaignInfoChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-            
             <Form.Group className="mb-3">
-              <Form.Label>Loại đợt khám</Form.Label>
-              <Form.Select
-                name="type"
-                value={campaignInfo.type}
-                onChange={handleCampaignInfoChange}
-              >
-                <option value="REGULAR">Khám định kỳ</option>
-                <option value="SPECIAL">Khám chuyên đề</option>
-                <option value="EMERGENCY">Khám khẩn cấp</option>
-              </Form.Select>
+              <Form.Label>Loại thông báo</Form.Label>
+              <Form.Control
+                plaintext
+                readOnly
+                value="HEALTH_CHECKUP (Khám sức khỏe)"
+              />
             </Form.Group>
-          </Col>
-          
-          <Col md={6}>
-            <h3>Danh sách học sinh ({selectedStudents.length} đã chọn)</h3>
+
+            {/* Add a hidden field to ensure senderId is included */}
+            <input 
+              type="hidden" 
+              name="senderId" 
+              value={nurseId} 
+            />
             
-            <div className="filter-section mb-3">
-              <Row>
-                <Col>
-                  <Form.Control
-                    type="text"
-                    placeholder="Tìm kiếm học sinh..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                  />
-                </Col>
-                <Col>
-                  <Form.Select
-                    value={classFilter}
-                    onChange={e => setClassFilter(e.target.value)}
-                  >
-                    <option value="">Tất cả lớp</option>
-                    {uniqueClasses.map(className => (
-                      <option key={className} value={className}>{className}</option>
-                    ))}
-                  </Form.Select>
-                </Col>
-                <Col>
-                  <Form.Select
-                    value={gradeFilter}
-                    onChange={e => setGradeFilter(e.target.value)}
-                  >
-                    <option value="">Tất cả khối</option>
-                    {uniqueGrades.map(grade => (
-                      <option key={grade} value={grade}>Khối {grade}</option>
-                    ))}
-                  </Form.Select>
-                </Col>
-              </Row>
-            </div>
-            
-            <div className="selection-actions mb-3">
-              <Button variant="outline-primary" onClick={handleSelectAllFiltered} className="me-2">
-                <i className="fas fa-check-square"></i> Chọn tất cả
+            <div className="d-flex justify-content-between">
+              <Button variant="secondary" onClick={handleCloseNotificationModal}>
+                Hủy
               </Button>
-              <Button variant="outline-secondary" onClick={handleUnselectAll}>
-                <i className="fas fa-square"></i> Bỏ chọn tất cả
+              <Button 
+                variant="primary" 
+                type="submit"
+                disabled={sendingNotification}
+              >
+                {sendingNotification ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Đang gửi...
+                  </>
+                ) : (
+                  <>
+                    <FaPaperPlane className="me-2" /> Gửi thông báo
+                  </>
+                )}
               </Button>
-              
-              {selectedStudents.length > 0 && (
-                <div className="selected-count mt-2">
-                  Đã chọn: <strong>{selectedStudents.length}</strong> học sinh
-                </div>
-              )}
             </div>
-            
-            <div className="student-list">
-              <Table striped bordered hover responsive>
-                <thead>
-                  <tr>
-                    <th style={{width: '50px'}}></th>
-                    <th>Mã HS</th>
-                    <th>Họ và tên</th>
-                    <th>Lớp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStudents.length > 0 ? (
-                    filteredStudents.map(student => (
-                      <tr 
-                        key={student.id}
-                        onClick={() => toggleStudentSelection(student)}
-                        className={selectedStudents.some(s => s.id === student.id) ? 'selected-row' : ''}
-                      >
-                        <td>
-                          <Form.Check
-                            type="checkbox"
-                            checked={selectedStudents.some(s => s.id === student.id)}
-                            onChange={() => {}} // Xử lý bởi onClick trên tr
-                            onClick={e => e.stopPropagation()}
-                          />
-                        </td>
-                        <td>{student.studentId}</td>
-                        <td>{student.fullName}</td>
-                        <td>{student.className}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="4" className="text-center">Không tìm thấy học sinh phù hợp</td>
-                    </tr>
-                  )}
-                </tbody>
-              </Table>
-            </div>
-          </Col>
-        </Row>
-        
-        <div className="form-actions mt-4">
-          <Button type="submit" variant="primary" size="lg">
-            <i className="fas fa-save"></i> Lưu danh sách khám
-          </Button>
-        </div>
-      </Form>
+          </Form>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

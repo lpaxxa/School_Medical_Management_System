@@ -128,6 +128,9 @@ const MedicineReceipts = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [uploadLoading, setUploadLoading] = useState(false);
 
+  // State for dropdown z-index fix
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10); // Default to 10 records per page
@@ -212,6 +215,20 @@ const MedicineReceipts = () => {
   useEffect(() => {
     fetchMedicineRequests();
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openDropdownId && !event.target.closest('.dropdown')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    if (openDropdownId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdownId]);
 
   // Medication Administration functions
   const handleRecordAdministration = (request) => {
@@ -607,7 +624,13 @@ const MedicineReceipts = () => {
 
   // Handle selection from dropdown
   const handleActionSelect = (id, action) => {
+    setOpenDropdownId(null); // Close dropdown
     handleProcessClick(id, action);
+  };
+
+  // Handle dropdown show/hide for z-index fix
+  const handleDropdownToggle = (id, isOpen) => {
+    setOpenDropdownId(isOpen ? id : null);
   };
 
   // Handle date range changes
@@ -736,8 +759,12 @@ const MedicineReceipts = () => {
                     <tbody>
                       {paginatedRequests.map((medicine) => {
                       const statusInfo = getStatusInfo(medicine.status);
+                      const isDropdownOpen = openDropdownId === medicine.id;
                       return (
-                        <tr key={medicine.id}>
+                        <tr 
+                          key={medicine.id}
+                          className={isDropdownOpen ? 'dropdown-active' : ''}
+                        >
                           <td className="fw-bold">{medicine.id}</td>
                           <td>{medicine.studentName}</td>
                           <td>{medicine.requestedBy}</td>
@@ -804,11 +831,15 @@ const MedicineReceipts = () => {
 
                               {/* Show Approve/Reject actions for pending requests */}
                               {(medicine.status === "PENDING_APPROVAL" || medicine.status === 0) && (
-                                <Dropdown>
+                                <Dropdown
+                                  onToggle={(isOpen) => handleDropdownToggle(medicine.id, isOpen)}
+                                  show={openDropdownId === medicine.id}
+                                >
                                   <Dropdown.Toggle
                                     variant="outline-warning"
                                     size="sm"
                                     id={`dropdown-${medicine.id}`}
+                                    onClick={() => handleDropdownToggle(medicine.id, openDropdownId !== medicine.id)}
                                   >
                                     <FaCheck />
                                   </Dropdown.Toggle>

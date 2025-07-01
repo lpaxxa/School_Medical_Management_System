@@ -270,27 +270,33 @@ const getStudentHealthProfile = async (healthProfileId) => {
     return {};
   }
 
+  // Thêm vào đầu hàm getStudentHealthProfile
+  console.log('Checking if health profile ID is valid:', healthProfileId);
+  if (isNaN(parseInt(healthProfileId))) {
+    console.warn('Invalid health profile ID format:', healthProfileId);
+    return getMockHealthProfile(0); // Return mặc định
+  }
+
+  // Thêm vào đầu hàm getStudentHealthProfile
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    console.warn('No authentication token available - using mock data');
+    return getMockHealthProfile(healthProfileId);
+  }
+
   try {
     console.log('===== HEALTH PROFILE API CALL =====');
     console.log('Calling API endpoint with health profile ID:', healthProfileId);
     
-    try {
-      // Sử dụng fetch API thay vì axiosInstance để đơn giản hơn
-      const response = await fetch(`${API_URL}/health-profiles/${healthProfileId}`);
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('API response successful. Response data:', data);
-      return data;
-    } catch (apiError) {
-      console.error('API call failed:', apiError.message);
-      // Nếu API lỗi, sử dụng mock data
-      console.log('Using mock data instead');
-      return getMockHealthProfile(healthProfileId);
-    }
+    // Sử dụng axiosInstance thay vì fetch để đảm bảo token được gửi đi
+    const response = await axiosInstance.get(`/health-profiles/${healthProfileId}`);
+    
+    console.log('API response successful. Response data:', response.data);
+    return response.data;
   } catch (error) {
-    console.error('Unexpected error in getStudentHealthProfile:', error);
+    console.error('Error fetching health profile:', error);
+    console.log('Error details:', error.response?.data || error.message);
+    // Sử dụng mock data khi API lỗi
     return getMockHealthProfile(healthProfileId);
   }
 };
@@ -351,6 +357,21 @@ const testBackendConnection = async () => {
     return false;
   }
 };
+
+// Thêm vào file studentRecordsService.js
+const debugAuthToken = () => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    console.log('Auth token exists:', token.substring(0, 15) + '...');
+    return true;
+  } else {
+    console.warn('No authentication token found');
+    return false;
+  }
+};
+
+// Gọi hàm này khi khởi tạo service
+debugAuthToken();
 
 testBackendConnection();
 
