@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.PageResponse;
 import com.fpt.medically_be.dto.request.MedicationAdministrationRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationAdministrationResponseDTO;
 import com.fpt.medically_be.entity.AdministrationStatus;
+import com.fpt.medically_be.entity.Status;
 import com.fpt.medically_be.service.MedicationAdministrationService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -123,7 +124,7 @@ public class MedicationAdministrationController {
      */
     @GetMapping("/status/{status}")
     public ResponseEntity<Map<String, Object>> getAdministrationsByStatus(
-            @PathVariable AdministrationStatus status,
+            @PathVariable Status status,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         PageResponse<MedicationAdministrationResponseDTO> pageResponse = administrationService.getAdministrationsByStatus(status, page, size);
@@ -276,7 +277,7 @@ public class MedicationAdministrationController {
      */
     @GetMapping("/all/status/{status}")
     public ResponseEntity<Map<String, Object>> getAllAdministrationsByStatus(
-            @PathVariable AdministrationStatus status) {
+            @PathVariable Status status) {
         List<MedicationAdministrationResponseDTO> administrations = administrationService.getAllAdministrationsByStatus(status);
         
         Map<String, Object> response = new HashMap<>();

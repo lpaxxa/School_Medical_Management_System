@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
-import './MedicalIncidentUpdateModal.css';
 
 const MedicalIncidentUpdateModal = ({ 
   show, 
@@ -47,51 +47,28 @@ const MedicalIncidentUpdateModal = ({
           const medicationParts = selectedEvent.medicationsUsed.split(',').map(med => med.trim());
           
           // Lookup real itemID for each medication
-          const medicationPromises = medicationParts.map(async (medStr) => {
-            const match = medStr.match(/^(.+)\s*\((\d+)\)$/);
-            const medName = match ? match[1].trim() : medStr;
-            const quantity = match ? parseInt(match[2]) : 1;
-            
-            try {
-              // Search for medication to get real itemID
-              const medicationData = await inventoryService.searchItemsByName(medName);
+          for (const medicationPart of medicationParts) {
+            const match = medicationPart.match(/^(.+?)\s*\((\d+)\)$/);
+            if (match) {
+              const [, medicationName, quantity] = match;
               
-              if (medicationData && medicationData.itemID) {
-                return {
-                  itemID: medicationData.itemID,
-                  name: medicationData.itemName || medName,
-                  quantityUsed: quantity,
-                  stockQuantity: medicationData.stockQuantity || 100
-                };
-              } else {
-                console.warn(`Could not find itemID for medication: ${medName}`);
-                return {
-                  itemID: 1, // Fallback
-                  name: medName,
-                  quantityUsed: quantity,
-                  stockQuantity: 100
-                };
+              try {
+                const searchResults = await inventoryService.searchItemsByName(medicationName.trim());
+                if (searchResults && searchResults.length > 0) {
+                  const foundMedication = searchResults[0];
+                  parsedMedications.push({
+                    itemID: foundMedication.itemID,
+                    itemName: foundMedication.itemName,
+                    quantityUsed: parseInt(quantity),
+                    currentStock: foundMedication.currentStock,
+                    unit: foundMedication.unit
+                  });
+                }
+              } catch (error) {
+                console.error(`Error searching for medication: ${medicationName}`, error);
               }
-            } catch (error) {
-              console.error(`Error looking up medication ${medName}:`, error);
-              return {
-                itemID: 1, // Fallback
-                name: medName,
-                quantityUsed: quantity,
-                stockQuantity: 100
-              };
             }
-          });
-          
-          parsedMedications = await Promise.all(medicationPromises);
-        } else if (selectedEvent.medicationsUsed && Array.isArray(selectedEvent.medicationsUsed)) {
-          // If already array format (new data), use directly
-          parsedMedications = selectedEvent.medicationsUsed.map(med => ({
-            itemID: med.itemID || 1,
-            name: med.name || 'Unknown',
-            quantityUsed: med.quantityUsed || 1,
-            stockQuantity: 100
-          }));
+          }
         }
         
         setSelectedMedications(parsedMedications);
@@ -148,117 +125,92 @@ const MedicalIncidentUpdateModal = ({
       if (results && Array.isArray(results)) {
         setMedicationResults(results);
         setShowMedicationDropdown(true);
-      } else if (results) {
-        setMedicationResults([results]);
-        setShowMedicationDropdown(true);
-      } else {
-        setMedicationResults([]);
-        setShowMedicationDropdown(false);
       }
     } catch (error) {
       console.error('Error searching medications:', error);
       setMedicationResults([]);
-      setShowMedicationDropdown(false);
     } finally {
       setSearchingMedications(false);
     }
   };
 
-  // Handle selecting a medication from search results
-  const handleSelectMedication = (medication) => {
-    const newMedication = {
-      itemID: medication.itemId || medication.id || medication.itemID,
-      name: medication.itemName || medication.name,
-      quantityUsed: 1,
-      stockQuantity: medication.stockQuantity || 0
-    };
-
-    // Check if medication already exists in the list
-    const existingIndex = selectedMedications.findIndex(
-      med => med.itemID === newMedication.itemID
-    );
-
-    if (existingIndex >= 0) {
-      // If exists, increment quantity
-      const updatedMedications = [...selectedMedications];
-      updatedMedications[existingIndex].quantityUsed += 1;
-      setSelectedMedications(updatedMedications);
-    } else {
-      // If new, add to list
-      setSelectedMedications(prev => [...prev, newMedication]);
+  // Handle medication selection
+  const handleMedicationSelect = (medication) => {
+    // Check if medication is already selected
+    const isAlreadySelected = selectedMedications.some(med => med.itemID === medication.itemID);
+    
+    if (!isAlreadySelected) {
+      setSelectedMedications(prev => [...prev, {
+        itemID: medication.itemID,
+        itemName: medication.itemName,
+        quantityUsed: 1,
+        currentStock: medication.currentStock,
+        unit: medication.unit || 'viên'
+      }]);
     }
-
-    // Clear search
+    
     setMedicationSearch('');
-    setMedicationResults([]);
     setShowMedicationDropdown(false);
+    setMedicationResults([]);
   };
 
-  // Handle updating medication quantity
-  const handleMedicationQuantityChange = (index, newQuantity) => {
-    const quantity = parseInt(newQuantity) || 0;
-    if (quantity <= 0) {
-      // Remove medication if quantity is 0 or less
-      handleRemoveMedication(index);
-      return;
-    }
-
-    const updatedMedications = [...selectedMedications];
-    updatedMedications[index].quantityUsed = quantity;
-    setSelectedMedications(updatedMedications);
+  // Handle medication quantity change
+  const handleMedicationQuantityChange = (itemID, newQuantity) => {
+    setSelectedMedications(prev => 
+      prev.map(med => 
+        med.itemID === itemID 
+          ? { ...med, quantityUsed: Math.max(0, parseInt(newQuantity) || 0) }
+          : med
+      )
+    );
   };
 
-  // Handle removing medication from list
-  const handleRemoveMedication = (index) => {
-    const updatedMedications = selectedMedications.filter((_, i) => i !== index);
-    setSelectedMedications(updatedMedications);
-  };
-
-  // Check if quantity exceeds stock
-  const isQuantityExceedsStock = (medication) => {
-    return medication.quantityUsed > medication.stockQuantity;
+  // Handle medication removal
+  const handleMedicationRemove = (itemID) => {
+    setSelectedMedications(prev => prev.filter(med => med.itemID !== itemID));
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate medication quantities
-    const hasStockErrors = selectedMedications.some(med => isQuantityExceedsStock(med));
-    if (hasStockErrors) {
-      alert('Có thuốc có số lượng vượt quá tồn kho. Vui lòng kiểm tra lại.');
-      return;
-    }
-
-    // Convert medications to array format exactly as backend expects
-    const medicationsArray = selectedMedications.map(med => ({
-      itemID: med.itemID,
-      quantityUsed: med.quantityUsed
-    }));
-
-    console.log("Update Modal - Medications array for API:", medicationsArray);
-
-    // Format data for API submission
-    const apiData = {
-      incidentType: formData.incidentType,
-      description: formData.description,
-      symptoms: formData.symptoms,
-      severityLevel: formData.severityLevel,
-      treatment: formData.treatment,
-      parentNotified: formData.parentNotified,
-      requiresFollowUp: formData.requiresFollowUp,
-      followUpNotes: formData.followUpNotes,
-      handledById: parseInt(formData.staffId) || 1,
-      studentId: formData.studentId,
-      medicationsUsed: medicationsArray  // Send as array exactly as backend expects: [{itemID, quantityUsed}]
-    };
-
-    console.log("Update Modal - Final API data being sent:", apiData);
-
     try {
-      await onSubmit(apiData);
+      console.log("Update Modal - Starting form submission");
+      console.log("Update Modal - Selected medications:", selectedMedications);
+
+      // Format medications for API
+      const medicationsArray = selectedMedications.map(med => ({
+        itemID: parseInt(med.itemID),
+        quantityUsed: parseInt(med.quantityUsed)
+      }));
+
+      console.log("Update Modal - Medications array for API:", medicationsArray);
+
+      // Format data for API submission
+      const apiData = {
+        incidentType: formData.incidentType,
+        description: formData.description,
+        symptoms: formData.symptoms,
+        severityLevel: formData.severityLevel,
+        treatment: formData.treatment,
+        parentNotified: formData.parentNotified,
+        requiresFollowUp: formData.requiresFollowUp,
+        followUpNotes: formData.followUpNotes,
+        handledById: parseInt(formData.staffId) || 1,
+        studentId: formData.studentId,
+        medicationsUsed: medicationsArray  // Send as array exactly as backend expects: [{itemID, quantityUsed}]
+      };
+
+      console.log("Update Modal - Final API data being sent:", apiData);
+
+      const result = await onSubmit(apiData);
+      if (result) {
+        toast.success('Cập nhật sự kiện y tế thành công!');
+        handleClose();
+      }
     } catch (error) {
       console.error("Update Modal - Error in handleSubmit:", error);
+      toast.error('Lỗi khi cập nhật sự kiện y tế');
     }
   };
 
@@ -274,295 +226,361 @@ const MedicalIncidentUpdateModal = ({
   if (!show) return null;
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-container update-modal-container" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Cập nhật sự kiện y tế</h3>
-          <button className="close-btn" onClick={handleClose}>
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            <div className="form-row">
-              <div className="form-group">
-                <label>ID sự kiện</label>
-                <input
-                  type="text"
-                  name="incidentId"
-                  value={formData.incidentId}
-                  onChange={handleInputChange}
-                  disabled
-                  className="disabled-input"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Loại sự kiện <span className="required">*</span></label>
-                <input
-                  type="text"
-                  name="incidentType"
-                  value={formData.incidentType}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Nhập loại sự kiện"
-                />
-              </div>
+    <>
+      <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div className="modal-dialog modal-xl">
+          <div className="modal-content">
+            <div className="modal-header bg-warning text-dark">
+              <h5 className="modal-title fw-bold">
+                <i className="fas fa-edit me-2"></i>
+                Cập nhật sự kiện y tế
+              </h5>
+              <button 
+                type="button" 
+                className="btn-close" 
+                onClick={handleClose}
+                aria-label="Close"
+              ></button>
             </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Ngày giờ <span className="required">*</span></label>
-                <input
-                  type="datetime-local"
-                  name="dateTime"
-                  value={formData.dateTime}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Mức độ nghiêm trọng <span className="required">*</span></label>
-                <select
-                  name="severityLevel"
-                  value={formData.severityLevel}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Chọn mức độ</option>
-                  <option value="Mild">Nhẹ</option>
-                  <option value="Moderate">Trung bình</option>
-                  <option value="Severe">Nghiêm trọng</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Mã học sinh</label>
-                <input
-                  type="text"
-                  name="studentId"
-                  value={formData.studentId}
-                  onChange={handleInputChange}
-                  disabled
-                  className="disabled-input"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Tên học sinh</label>
-                <input
-                  type="text"
-                  name="studentName"
-                  value={formData.studentName}
-                  onChange={handleInputChange}
-                  disabled
-                  className="disabled-input"
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Mô tả</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows="3"
-                placeholder="Mô tả chi tiết sự kiện"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Triệu chứng</label>
-              <textarea
-                name="symptoms"
-                value={formData.symptoms}
-                onChange={handleInputChange}
-                rows="3"
-                placeholder="Ghi lại các triệu chứng quan sát được"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Điều trị</label>
-              <textarea
-                name="treatment"
-                value={formData.treatment}
-                onChange={handleInputChange}
-                rows="3"
-                placeholder="Biện pháp điều trị đã thực hiện"
-              />
-            </div>
-
-            {/* Medication Search Section */}
-            <div className="form-group medication-section">
-              <label>Thuốc sử dụng</label>
-              <div className="medication-search-container">
-                <div className="search-input-wrapper">
-                  <input
-                    type="text"
-                    className="medication-search-input"
-                    value={medicationSearch}
-                    onChange={(e) => handleMedicationSearch(e.target.value)}
-                    placeholder="Tìm kiếm thuốc theo tên..."
-                  />
-                  {searchingMedications && (
-                    <div className="search-loading">
-                      <i className="fas fa-spinner fa-spin"></i>
-                    </div>
-                  )}
+            
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold text-muted">
+                      <i className="fas fa-id-badge me-2"></i>ID sự kiện
+                    </label>
+                    <input
+                      type="text"
+                      name="incidentId"
+                      value={formData.incidentId}
+                      onChange={handleInputChange}
+                      disabled
+                      className="form-control bg-light text-muted"
+                    />
+                  </div>
+                  
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold text-primary">
+                      <i className="fas fa-tag me-2"></i>Loại sự kiện <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="incidentType"
+                      value={formData.incidentType}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Nhập loại sự kiện"
+                      className="form-control"
+                    />
+                  </div>
                 </div>
-                
-                {/* Medication Search Results Dropdown */}
-                {showMedicationDropdown && medicationResults.length > 0 && (
-                  <div className="medication-dropdown">
-                    {medicationResults.map((medication, index) => (
-                      <div
-                        key={medication.itemId || index}
-                        className="medication-option"
-                        onClick={() => handleSelectMedication(medication)}
-                      >
-                        <div className="medication-name">
-                          {medication.itemName || medication.name}
-                        </div>
-                        <div className="medication-info">
-                          Tồn kho: {medication.stockQuantity || 0} {medication.unit || 'đơn vị'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {showMedicationDropdown && medicationResults.length === 0 && !searchingMedications && (
-                  <div className="medication-dropdown">
-                    <div className="no-results">Không tìm thấy thuốc phù hợp</div>
-                  </div>
-                )}
-              </div>
 
-              {/* Selected Medications List */}
-              {selectedMedications.length > 0 && (
-                <div className="selected-medications">
-                  <h4>Thuốc đã chọn:</h4>
-                  {selectedMedications.map((medication, index) => (
-                    <div 
-                      key={index} 
-                      className={`selected-medication-item ${isQuantityExceedsStock(medication) ? 'has-error' : ''}`}
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold text-primary">
+                      <i className="fas fa-calendar-alt me-2"></i>Ngày giờ <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      name="dateTime"
+                      value={formData.dateTime}
+                      onChange={handleInputChange}
+                      required
+                      className="form-control"
+                    />
+                  </div>
+                  
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold text-danger">
+                      <i className="fas fa-exclamation-triangle me-2"></i>Mức độ nghiêm trọng <span className="text-danger">*</span>
+                    </label>
+                    <select
+                      name="severityLevel"
+                      value={formData.severityLevel}
+                      onChange={handleInputChange}
+                      required
+                      className="form-select"
                     >
-                      <div className="medication-details">
-                        <div className="medication-header">
-                          <span className="medication-name">{medication.name}</span>
-                        </div>
-                        <div className="quantity-row">
-                          <div className="quantity-controls">
-                            <label>Số lượng:</label>
-                            <input
-                              type="number"
-                              min="1"
-                              value={medication.quantityUsed}
-                              onChange={(e) => handleMedicationQuantityChange(index, e.target.value)}
-                              className={`quantity-input ${isQuantityExceedsStock(medication) ? 'error' : ''}`}
-                            />
-                            <span className="stock-info">
-                              / {medication.stockQuantity} có sẵn
+                      <option value="">Chọn mức độ</option>
+                      <option value="Nhẹ">Nhẹ</option>
+                      <option value="Trung bình">Trung bình</option>
+                      <option value="Nghiêm trọng">Nghiêm trọng</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold text-muted">
+                      <i className="fas fa-id-card me-2"></i>Mã học sinh
+                    </label>
+                    <input
+                      type="text"
+                      name="studentId"
+                      value={formData.studentId}
+                      onChange={handleInputChange}
+                      disabled
+                      className="form-control bg-light text-muted"
+                    />
+                  </div>
+                  
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold text-muted">
+                      <i className="fas fa-user-graduate me-2"></i>Tên học sinh
+                    </label>
+                    <input
+                      type="text"
+                      name="studentName"
+                      value={formData.studentName}
+                      onChange={handleInputChange}
+                      disabled
+                      className="form-control bg-light text-muted"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-bold text-info">
+                    <i className="fas fa-file-alt me-2"></i>Mô tả
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows="3"
+                    placeholder="Mô tả chi tiết sự kiện"
+                    className="form-control"
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-bold text-warning">
+                    <i className="fas fa-heartbeat me-2"></i>Triệu chứng
+                  </label>
+                  <textarea
+                    name="symptoms"
+                    value={formData.symptoms}
+                    onChange={handleInputChange}
+                    rows="3"
+                    placeholder="Ghi lại các triệu chứng quan sát được"
+                    className="form-control"
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-bold text-success">
+                    <i className="fas fa-stethoscope me-2"></i>Điều trị
+                  </label>
+                  <textarea
+                    name="treatment"
+                    value={formData.treatment}
+                    onChange={handleInputChange}
+                    rows="3"
+                    placeholder="Biện pháp điều trị đã thực hiện"
+                    className="form-control"
+                  />
+                </div>
+
+                {/* Medication Search Section */}
+                <div className="mb-4">
+                  <div className="card border-primary">
+                    <div className="card-header bg-primary text-white">
+                      <h6 className="mb-0 fw-bold">
+                        <i className="fas fa-pills me-2"></i>Thuốc sử dụng
+                      </h6>
+                    </div>
+                    <div className="card-body">
+                      <div className="position-relative">
+                        <div className="input-group">
+                          <span className="input-group-text">
+                            <i className="fas fa-search"></i>
+                          </span>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={medicationSearch}
+                            onChange={(e) => handleMedicationSearch(e.target.value)}
+                            placeholder="Tìm kiếm thuốc theo tên..."
+                          />
+                          {searchingMedications && (
+                            <span className="input-group-text">
+                              <i className="fas fa-spinner fa-spin text-primary"></i>
                             </span>
-                          </div>
+                          )}
                         </div>
-                        {isQuantityExceedsStock(medication) && (
-                          <div className="error-message">
-                            <i className="fas fa-exclamation-triangle"></i>
-                            Số lượng vượt quá tồn kho
+                        
+                        {/* Medication Search Results Dropdown */}
+                        {showMedicationDropdown && medicationResults.length > 0 && (
+                          <div className="list-group position-absolute w-100" style={{top: '100%', zIndex: 1000, maxHeight: '200px', overflowY: 'auto'}}>
+                            {medicationResults.map((medication, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                className="list-group-item list-group-item-action"
+                                onClick={() => handleMedicationSelect(medication)}
+                              >
+                                <div className="fw-bold">{medication.itemName}</div>
+                                <small className="text-muted">
+                                  Tồn kho: {medication.currentStock} {medication.unit || 'viên'}
+                                  {medication.currentStock === 0 && (
+                                    <span className="badge bg-danger ms-2">Hết hàng</span>
+                                  )}
+                                  {medication.currentStock > 0 && medication.currentStock <= 5 && (
+                                    <span className="badge bg-warning ms-2">Sắp hết</span>
+                                  )}
+                                  {medication.currentStock > 5 && (
+                                    <span className="badge bg-success ms-2">Còn hàng</span>
+                                  )}
+                                </small>
+                              </button>
+                            ))}
                           </div>
                         )}
                       </div>
-                      <button
-                        type="button"
-                        className="remove-medication-btn"
-                        onClick={() => handleRemoveMedication(index)}
-                        title="Xóa thuốc"
-                      >
-                        <i className="fas fa-times"></i>
-                      </button>
+
+                      {/* Selected Medications */}
+                      {selectedMedications.length > 0 && (
+                        <div className="mt-3">
+                          <h6 className="fw-bold text-secondary mb-3">Thuốc đã chọn:</h6>
+                          {selectedMedications.map((medication) => (
+                            <div key={medication.itemID} className="card mb-2">
+                              <div className="card-body py-2">
+                                <div className="row align-items-center">
+                                  <div className="col-md-4">
+                                    <strong>{medication.itemName}</strong>
+                                  </div>
+                                  <div className="col-md-3">
+                                    <div className="input-group input-group-sm">
+                                      <span className="input-group-text">Số lượng:</span>
+                                      <input
+                                        type="number"
+                                        className="form-control"
+                                        value={medication.quantityUsed}
+                                        onChange={(e) => handleMedicationQuantityChange(medication.itemID, e.target.value)}
+                                        min="0"
+                                        max={medication.currentStock}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-md-3">
+                                    <small className="text-muted">
+                                      Tồn: {medication.currentStock} {medication.unit}
+                                      {medication.currentStock === 0 && (
+                                        <span className="badge bg-danger ms-1">Hết hàng</span>
+                                      )}
+                                      {medication.currentStock > 0 && medication.currentStock <= 5 && (
+                                        <span className="badge bg-warning ms-1">Sắp hết</span>
+                                      )}
+                                      {medication.currentStock > 5 && (
+                                        <span className="badge bg-success ms-1">Còn hàng</span>
+                                      )}
+                                    </small>
+                                  </div>
+                                  <div className="col-md-2">
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-danger btn-sm"
+                                      onClick={() => handleMedicationRemove(medication.itemID)}
+                                    >
+                                      <i className="fas fa-trash"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    name="parentNotified"
-                    checked={formData.parentNotified}
-                    onChange={handleInputChange}
-                  />
-                  Đã thông báo phụ huynh
-                </label>
-              </div>
-              
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    name="requiresFollowUp"
-                    checked={formData.requiresFollowUp}
-                    onChange={handleInputChange}
-                  />
-                  Cần theo dõi tiếp
-                </label>
-              </div>
-            </div>
+                <hr />
 
-            {formData.requiresFollowUp && (
-              <div className="form-group">
-                <label>Ghi chú theo dõi</label>
-                <textarea
-                  name="followUpNotes"
-                  value={formData.followUpNotes}
-                  onChange={handleInputChange}
-                  rows="3"
-                  placeholder="Ghi chú cho việc theo dõi tiếp"
-                />
-              </div>
-            )}
+                {/* Checkboxes */}
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="parentNotified"
+                        name="parentNotified"
+                        checked={formData.parentNotified}
+                        onChange={handleInputChange}
+                      />
+                      <label className="form-check-label fw-bold text-warning" htmlFor="parentNotified">
+                        <i className="fas fa-bell me-2"></i>Đã thông báo phụ huynh
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div className="col-md-6">
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="requiresFollowUp"
+                        name="requiresFollowUp"
+                        checked={formData.requiresFollowUp}
+                        onChange={handleInputChange}
+                      />
+                      <label className="form-check-label fw-bold text-info" htmlFor="requiresFollowUp">
+                        <i className="fas fa-eye me-2"></i>Cần theo dõi
+                      </label>
+                    </div>
+                  </div>
+                </div>
 
-            <div className="form-group">
-              <label>Tên nhân viên xử lý</label>
-              <input
-                type="text"
-                name="staffName"
-                value={formData.staffName}
-                onChange={handleInputChange}
-                placeholder="Tên nhân viên xử lý sự kiện"
-              />
-            </div>
+                {/* Follow-up Notes */}
+                {formData.requiresFollowUp && (
+                  <div className="mb-3">
+                    <label className="form-label fw-bold" style={{color: '#6f42c1'}}>
+                      <i className="fas fa-sticky-note me-2"></i>Ghi chú theo dõi
+                    </label>
+                    <textarea
+                      name="followUpNotes"
+                      value={formData.followUpNotes}
+                      onChange={handleInputChange}
+                      rows="2"
+                      placeholder="Ghi chú chi tiết về việc theo dõi"
+                      className="form-control"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer bg-light">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary btn-lg" 
+                  onClick={handleClose}
+                >
+                  <i className="fas fa-times me-2"></i>
+                  Hủy
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-warning btn-lg"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin me-2"></i> Đang cập nhật...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-save me-2"></i> Cập nhật
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
-          
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={handleClose}>
-              <i className="fas fa-times"></i> Hủy
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? (
-                <>
-                  <i className="fas fa-spinner fa-spin"></i> Đang cập nhật...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-save"></i> Cập nhật
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
