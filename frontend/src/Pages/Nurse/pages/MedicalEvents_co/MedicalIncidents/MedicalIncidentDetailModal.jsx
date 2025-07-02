@@ -1,286 +1,277 @@
+
 import React from 'react';
-import './MedicalIncidentDetailModal.css';
 
 const MedicalIncidentDetailModal = ({ 
   show, 
-  selectedEvent, 
   onClose, 
-  onEdit,
+  selectedEvent,
   showImageModal,
-  setShowImageModal,
   selectedImageUrl,
-  setSelectedImageUrl 
+  setSelectedImageUrl,
+  setShowImageModal
 }) => {
-  
-  // Format date time
-  const formatDateTime = (dateTimeString) => {
-    if (!dateTimeString) return "Không có thông tin";
-    
-    try {
-      const dateObj = new Date(dateTimeString);
-      return dateObj.toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit', 
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      console.error("Lỗi khi định dạng ngày tháng:", error);
-      return dateTimeString;
-    }
+  if (!selectedEvent) return null;
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
-  // Hàm lấy class cho Badge dựa trên mức độ nghiêm trọng
-  const getSeverityBadgeClass = (severity) => {
-    if (!severity) return "bg-secondary";
-    
-    const severityLower = severity.toLowerCase();
-    if (severityLower.includes('nhẹ') || severityLower === 'mild') {
-      return "bg-success";
-    } else if (severityLower.includes('trung bình') || severityLower === 'moderate') {
-      return "bg-warning text-dark";
-    } else if (severityLower.includes('nghiêm trọng') || severityLower === 'severe') {
-      return "bg-danger";
-    }
-    
-    return "bg-secondary";
+  const getSeverityBadge = (severity) => {
+    const severityMap = {
+      'Nhẹ': 'success',
+      'Light': 'success',
+      'Low': 'success',
+      'Mild': 'success',
+      'Trung bình': 'warning',
+      'Medium': 'warning',
+      'Moderate': 'warning', 
+      'Nặng': 'danger',
+      'Nghiêm trọng': 'danger',
+      'High': 'danger',
+      'Heavy': 'danger',
+      'Severe': 'danger'
+    };
+    return `badge bg-${severityMap[severity] || 'secondary'}`;
   };
 
-  if (!show || !selectedEvent) return null;
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      'Pending': 'warning',
+      'In Progress': 'info',
+      'Resolved': 'success',
+      'Closed': 'secondary'
+    };
+    return `badge bg-${statusMap[status] || 'secondary'}`;
+  };
+
+  if (!show) return null;
 
   return (
     <>
-      {/* Modal xem chi tiết */}
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-container view-details-modal" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3>Chi tiết sự kiện y tế</h3>
-            <button 
-              className="close-btn" 
-              onClick={onClose}
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-          
-          <div className="modal-body">
-            <div className="detail-sections">
-              {/* Thông tin cơ bản */}
-              <div className="detail-section">
-                <h4 className="detail-section-title">Thông tin cơ bản</h4>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">ID sự kiện:</span>
-                    <span className="detail-value">{selectedEvent.incidentId}</span>
+      <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content">
+            <div className="modal-header bg-primary text-white">
+              <h5 className="modal-title fw-bold">
+                <i className="fas fa-notes-medical me-2"></i>
+                Chi tiết Sự kiện Y tế
+              </h5>
+              <button 
+                type="button" 
+                className="btn-close btn-close-white" 
+                onClick={onClose}
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <div className="card">
+                <div className="card-body">
+                  {/* Thông tin cơ bản */}
+                  <div className="row mb-3">
+                    <div className="col-md-6">
+                      <h6 className="text-primary fw-bold mb-2">
+                        <i className="fas fa-tag me-2"></i>Loại sự kiện
+                      </h6>
+                      <p className="fw-bold text-dark">{selectedEvent.incidentType}</p>
+                    </div>
+                    <div className="col-md-6">
+                      <h6 className="text-primary fw-bold mb-2">
+                        <i className="fas fa-user-graduate me-2"></i>Tên học sinh
+                      </h6>
+                      <p className="fw-bold text-dark">{selectedEvent.studentName}</p>
+                    </div>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Loại sự kiện:</span>
-                    <span className="detail-value">{selectedEvent.incidentType}</span>
+
+                  <div className="row mb-3">
+                    <div className="col-md-6">
+                      <h6 className="text-primary fw-bold mb-2">
+                        <i className="fas fa-calendar-alt me-2"></i>Ngày giờ xảy ra
+                      </h6>
+                      <p className="text-dark">{formatDate(selectedEvent.dateTime)}</p>
+                    </div>
+                    <div className="col-md-6">
+                      <h6 className="text-primary fw-bold mb-2">
+                        <i className="fas fa-id-card me-2"></i>Mã học sinh
+                      </h6>
+                      <p className="text-dark"><code className="bg-light p-1 rounded">{selectedEvent.studentId}</code></p>
+                    </div>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Ngày giờ:</span>
-                    <span className="detail-value">{formatDateTime(selectedEvent.dateTime)}</span>
+
+                  <div className="row mb-3">
+                    <div className="col-md-6">
+                      <h6 className="text-danger fw-bold mb-2">
+                        <i className="fas fa-exclamation-triangle me-2"></i>Mức độ nghiêm trọng
+                      </h6>
+                      <span className={getSeverityBadge(selectedEvent.severityLevel)}>
+                        {selectedEvent.severityLevel}
+                      </span>
+                    </div>
+                    <div className="col-md-6">
+                      <h6 className="text-primary fw-bold mb-2">
+                        <i className="fas fa-user-md me-2"></i>Nhân viên phụ trách
+                      </h6>
+                      <p className="text-dark">{selectedEvent.staffName}</p>
+                    </div>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Mức độ:</span>
-                    <span className={`detail-value badge ${getSeverityBadgeClass(selectedEvent.severityLevel)}`}>
-                      {selectedEvent.severityLevel}
-                    </span>
+
+                  <hr className="my-4" />
+
+                  {/* Mô tả */}
+                  <div className="row mb-3">
+                    <div className="col-12">
+                      <h6 className="text-info fw-bold mb-2">
+                        <i className="fas fa-file-alt me-2"></i>Mô tả chi tiết
+                      </h6>
+                      <p className="border p-3 rounded bg-light text-dark">
+                        {selectedEvent.description || 'Không có mô tả'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
-                
-              {/* Thông tin học sinh */}
-              <div className="detail-section">
-                <h4 className="detail-section-title">Thông tin học sinh</h4>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">Mã học sinh:</span>
-                    <span className="detail-value">{selectedEvent.studentId}</span>
+
+                  {/* Triệu chứng */}
+                  <div className="row mb-3">
+                    <div className="col-12">
+                      <h6 className="text-warning fw-bold mb-2">
+                        <i className="fas fa-heartbeat me-2"></i>Triệu chứng
+                      </h6>
+                      <p className="border p-3 rounded bg-light text-dark">
+                        {selectedEvent.symptoms || 'Không có triệu chứng'}
+                      </p>
+                    </div>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Tên học sinh:</span>
-                    <span className="detail-value">{selectedEvent.studentName}</span>
+
+                  {/* Điều trị */}
+                  <div className="row mb-3">
+                    <div className="col-12">
+                      <h6 className="text-success fw-bold mb-2">
+                        <i className="fas fa-stethoscope me-2"></i>Điều trị
+                      </h6>
+                      <p className="border p-3 rounded bg-light text-dark">
+                        {selectedEvent.treatment || 'Chưa có điều trị'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
-              
-              {/* Triệu chứng và điều trị */}
-              <div className="detail-section">
-                <h4 className="detail-section-title">Triệu chứng và điều trị</h4>
-                <div className="detail-row">
-                  <span className="detail-label">Mô tả:</span>
-                  <span className="detail-value">{selectedEvent.description || "Không có mô tả"}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Triệu chứng:</span>
-                  <span className="detail-value">{selectedEvent.symptoms || "Không ghi nhận triệu chứng"}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Điều trị:</span>
-                  <span className="detail-value">{selectedEvent.treatment || "Không có thông tin điều trị"}</span>
-                </div>
-              </div>
-              
-              {/* Thuốc đã sử dụng */}
-              <div className="detail-section">
-                <h4 className="detail-section-title">Thuốc đã sử dụng</h4>
-                <div className="medications-list">
-                  {selectedEvent.medicationsUsed ? (
-                    <div className="medication-item">
-                      <div className="medication-detail">
-                        <i className="fas fa-pills me-2"></i>
-                        {typeof selectedEvent.medicationsUsed === 'string' 
-                          ? selectedEvent.medicationsUsed 
-                          : Array.isArray(selectedEvent.medicationsUsed)
-                            ? selectedEvent.medicationsUsed.map((med, index) => (
-                                <div key={index} className="medication-entry">
-                                  {typeof med === 'object' ? `${med.name || 'Thuốc'} (${med.quantity || 'N/A'})` : med}
-                                </div>
-                              ))
-                            : JSON.stringify(selectedEvent.medicationsUsed)
-                        }
+
+                  {/* Thuốc sử dụng */}
+                  <div className="row mb-3">
+                    <div className="col-12">
+                      <h6 className="text-secondary fw-bold mb-2">
+                        <i className="fas fa-pills me-2"></i>Thuốc đã sử dụng
+                      </h6>
+                      <p className="border p-3 rounded bg-light text-dark">
+                        {selectedEvent.medicationsUsed || 'Không có thông tin thuốc'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <hr className="my-4" />
+
+                  {/* Thông báo phụ huynh */}
+                  <div className="row mb-3">
+                    <div className="col-md-6">
+                      <h6 className="text-warning fw-bold mb-2">
+                        <i className="fas fa-bell me-2"></i>Đã thông báo phụ huynh
+                      </h6>
+                      <span className={`badge ${selectedEvent.parentNotified ? 'bg-success' : 'bg-danger'}`}>
+                        <i className={`fas ${selectedEvent.parentNotified ? 'fa-check' : 'fa-times'} me-1`}></i>
+                        {selectedEvent.parentNotified ? 'Đã thông báo' : 'Chưa thông báo'}
+                      </span>
+                    </div>
+                    <div className="col-md-6">
+                      <h6 className="text-info fw-bold mb-2">
+                        <i className="fas fa-eye me-2"></i>Cần theo dõi
+                      </h6>
+                      <span className={`badge ${selectedEvent.requiresFollowUp ? 'bg-warning' : 'bg-success'}`}>
+                        <i className={`fas ${selectedEvent.requiresFollowUp ? 'fa-eye' : 'fa-check-circle'} me-1`}></i>
+                        {selectedEvent.requiresFollowUp ? 'Cần theo dõi' : 'Không cần'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Ghi chú theo dõi */}
+                  {selectedEvent.followUpNotes && (
+                    <div className="row mb-3">
+                      <div className="col-12">
+                        <h6 className="text-purple fw-bold mb-2" style={{color: '#6f42c1'}}>
+                          <i className="fas fa-sticky-note me-2"></i>Ghi chú theo dõi
+                        </h6>
+                        <p className="border p-3 rounded bg-light text-dark">
+                          {selectedEvent.followUpNotes}
+                        </p>
                       </div>
                     </div>
-                  ) : (
-                    <div className="medication-item">
-                      <div className="no-medications">
-                        <i className="fas fa-info-circle me-2"></i>
-                        Không có thông tin về thuốc đã sử dụng
+                  )}
+
+                  {/* Hình ảnh */}
+                  {selectedEvent.imgUrl && (
+                    <div className="row mb-3">
+                      <div className="col-12">
+                        <h6 className="text-dark fw-bold mb-2">
+                          <i className="fas fa-images me-2"></i>Hình ảnh
+                        </h6>
+                        <div className="d-flex flex-wrap gap-2">
+                          <img
+                            src={selectedEvent.imgUrl}
+                            alt="Medical incident"
+                            className="img-thumbnail"
+                            style={{ width: '150px', height: '150px', objectFit: 'cover', cursor: 'pointer' }}
+                            onClick={() => {
+                              if (setSelectedImageUrl && setShowImageModal) {
+                                setSelectedImageUrl(selectedEvent.imgUrl);
+                                setShowImageModal(true);
+                              }
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-              
-              {/* Theo dõi và thông báo */}
-              <div className="detail-section">
-                <h4 className="detail-section-title">Theo dõi và thông báo</h4>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">Thông báo phụ huynh:</span>
-                    <span className="detail-value status-indicator">
-                      {selectedEvent.parentNotified ? (
-                        <><i className="fas fa-check-circle status-icon notified"></i> Đã thông báo</>
-                      ) : (
-                        <><i className="fas fa-question-circle status-icon not-notified"></i> Chưa thông báo</>
-                      )}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Cần theo dõi tiếp:</span>
-                    <span className="detail-value status-indicator">
-                      {selectedEvent.requiresFollowUp ? (
-                        <><i className="fas fa-eye status-icon follow-up"></i> Cần theo dõi</>
-                      ) : (
-                        <><i className="fas fa-check-circle status-icon no-follow-up"></i> Không cần theo dõi</>
-                      )}
-                    </span>
-                  </div>
-                </div>
-                {selectedEvent.followUpNotes && (
-                  <div className="detail-row">
-                    <span className="detail-label">Ghi chú theo dõi:</span>
-                    <span className="detail-value">{selectedEvent.followUpNotes}</span>
-                  </div>
-                )}
-              </div>
-              
-              {/* Thông tin nhân viên */}
-              <div className="detail-section">
-                <h4 className="detail-section-title">Thông tin nhân viên</h4>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">ID nhân viên:</span>
-                    <span className="detail-value">{selectedEvent.staffId || "Không có thông tin"}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Tên nhân viên:</span>
-                    <span className="detail-value">{selectedEvent.staffName || "Không có thông tin"}</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Hình ảnh */}
-              {selectedEvent.imgUrl && (
-                <div className="detail-section">
-                  <h4 className="detail-section-title">Hình ảnh</h4>
-                  <div className="image-container">
-                    <img 
-                      src={selectedEvent.imgUrl}
-                      alt="Hình ảnh sự cố y tế" 
-                      className="incident-image clickable"
-                      onClick={() => {
-                        setSelectedImageUrl(selectedEvent.imgUrl);
-                        setShowImageModal(true);
-                      }}
-                      title="Nhấn để xem ảnh đầy đủ"
-                    />
-                    <div className="image-caption">
-                      <i className="fas fa-search-plus"></i> Nhấn vào hình để xem kích thước đầy đủ
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Thông tin bổ sung */}
-              <div className="detail-section">
-                <h4 className="detail-section-title">Thông tin bổ sung</h4>
-                <div className="detail-row">
-                  <span className="detail-label">ID Phụ huynh:</span>
-                  <span className="detail-value">{selectedEvent.parentID || "Không có thông tin"}</span>
-                </div>
-              </div>
             </div>
-          </div>
-          
-          <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={onClose}>
-              <i className="fas fa-times"></i> Đóng
-            </button>
-            <button className="btn btn-primary" onClick={() => {
-              onClose();
-              setTimeout(() => onEdit(selectedEvent.incidentId), 300);
-            }}>
-              <i className="fas fa-edit"></i> Chỉnh sửa
-            </button>
+            <div className="modal-footer bg-light">
+              <button 
+                type="button" 
+                className="btn btn-secondary btn-lg" 
+                onClick={onClose}
+              >
+                <i className="fas fa-times me-2"></i>
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Modal xem hình ảnh đầy đủ */}
+      {/* Image Modal */}
       {showImageModal && selectedImageUrl && (
-        <div className="modal-overlay" onClick={() => setShowImageModal(false)}>
-          <div className="image-modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Hình ảnh chi tiết</h3>
-              <button 
-                className="close-btn" 
-                onClick={() => setShowImageModal(false)}
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="image-modal-body">
-              <img 
-                src={selectedImageUrl} 
-                alt="Hình ảnh chi tiết sự cố y tế" 
-                className="full-size-image"
-              />
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowImageModal(false)}>
-                <i className="fas fa-times"></i> Đóng
-              </button>
-              <a 
-                href={selectedImageUrl} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="btn btn-primary"
-              >
-                <i className="fas fa-external-link-alt"></i> Mở trong tab mới
-              </a>
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Xem ảnh</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setShowImageModal && setShowImageModal(false)}
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="modal-body text-center">
+                <img 
+                  src={selectedImageUrl} 
+                  alt="Medical incident" 
+                  className="img-fluid"
+                  style={{ maxWidth: '100%', maxHeight: '70vh' }}
+                />
+              </div>
             </div>
           </div>
         </div>
