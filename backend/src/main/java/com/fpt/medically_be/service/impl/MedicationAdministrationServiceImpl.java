@@ -76,6 +76,7 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
         if (medicationInstruction.getStatus() != Status.APPROVED) {
             throw new IllegalStateException("Cannot administer medication: instruction status is " + medicationInstruction.getStatus() + ". Only APPROVED instructions can be administered.");
         }
+
         
         // 3. Validate administration date is within medication period
         LocalDate adminDate = request.getAdministeredAt().toLocalDate();
@@ -100,6 +101,8 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
         MedicationAdministration administration = administrationMapper.toEntity(request);
         administration.setMedicationInstruction(medicationInstruction);
         administration.setAdministeredBy(nurse);
+        medicationInstruction.setStatus(request.getAdministrationStatus());
+
         // createdAt will be set automatically by @PrePersist
         
         // 7. Save and return
@@ -190,7 +193,7 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
     }
 
     @Override
-    public PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByStatus(AdministrationStatus status, int page, int size) {
+    public PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByStatus(Status status, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<MedicationAdministration> administrations = administrationRepository.findByAdministrationStatusOrderByAdministeredAtDesc(status, pageable);
         
@@ -351,7 +354,7 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
     }
 
     @Override
-    public List<MedicationAdministrationResponseDTO> getAllAdministrationsByStatus(AdministrationStatus status) {
+    public List<MedicationAdministrationResponseDTO> getAllAdministrationsByStatus(Status status) {
         List<MedicationAdministration> administrations = administrationRepository.findByAdministrationStatusOrderByAdministeredAtDesc(status);
         return administrations.stream()
                 .map(administrationMapper::toResponseDTO)

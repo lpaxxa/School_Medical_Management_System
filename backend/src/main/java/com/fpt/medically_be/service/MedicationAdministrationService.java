@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.PageResponse;
 import com.fpt.medically_be.dto.request.MedicationAdministrationRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationAdministrationResponseDTO;
 import com.fpt.medically_be.entity.AdministrationStatus;
+import com.fpt.medically_be.entity.Status;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,7 +32,7 @@ public interface MedicationAdministrationService {
     PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByDateRange(LocalDateTime start, LocalDateTime end, int page, int size);
     
     // Get administrations by status with pagination
-    PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByStatus(AdministrationStatus status, int page, int size);
+    PageResponse<MedicationAdministrationResponseDTO> getAdministrationsByStatus(Status status, int page, int size);
     
     // Get recent administrations with pagination
     PageResponse<MedicationAdministrationResponseDTO> getRecentAdministrations(int page, int size);
@@ -54,7 +55,7 @@ public interface MedicationAdministrationService {
     List<MedicationAdministrationResponseDTO> getAllAdministrationsByDateRange(LocalDateTime start, LocalDateTime end);
     
     // Get all administrations by status (no pagination)
-    List<MedicationAdministrationResponseDTO> getAllAdministrationsByStatus(AdministrationStatus status);
+    List<MedicationAdministrationResponseDTO> getAllAdministrationsByStatus(Status status);
     
     // Get all recent administrations (no pagination)
     List<MedicationAdministrationResponseDTO> getAllRecentAdministrations();
