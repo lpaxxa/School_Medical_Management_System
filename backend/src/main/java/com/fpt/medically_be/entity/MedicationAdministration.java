@@ -31,7 +31,8 @@ public class MedicationAdministration {
     // Status of administration
     @Enumerated(EnumType.STRING)
     @Column(name = "administration_status", nullable = false)
-    private AdministrationStatus administrationStatus;
+//    private AdministrationStatus administrationStatus;
+    private Status administrationStatus;
     
     // Combined notes: dosage given, student response, side effects, etc.
     @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")

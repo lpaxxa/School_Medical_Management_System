@@ -1,6 +1,7 @@
 package com.fpt.medically_be.dto.request;
 
 import com.fpt.medically_be.entity.AdministrationStatus;
+import com.fpt.medically_be.entity.Status;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -16,7 +17,8 @@ public class MedicationAdministrationRequestDTO {
     private LocalDateTime administeredAt;
     
     @NotNull(message = "Administration status is required")
-    private AdministrationStatus administrationStatus;
+//    private AdministrationStatus administrationStatus;
+    private Status administrationStatus;
     
     @Size(max = 1000, message = "Notes too long")
     private String notes; // Combined: dosage given, student response, side effects, etc.

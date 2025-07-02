@@ -2,6 +2,7 @@ package com.fpt.medically_be.repos;
 
 import com.fpt.medically_be.entity.MedicationAdministration;
 import com.fpt.medically_be.entity.AdministrationStatus;
+import com.fpt.medically_be.entity.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,7 +34,7 @@ public interface MedicationAdministrationRepository extends JpaRepository<Medica
     Page<MedicationAdministration> findByAdministeredAtBetweenOrderByAdministeredAtDesc(LocalDateTime start, LocalDateTime end, Pageable pageable);
     
     // Find administrations by status with pagination
-    Page<MedicationAdministration> findByAdministrationStatusOrderByAdministeredAtDesc(AdministrationStatus status, Pageable pageable);
+    Page<MedicationAdministration> findByAdministrationStatusOrderByAdministeredAtDesc(Status status, Pageable pageable);
     
     // Find recent administrations (for dashboards) with pagination
     @Query("SELECT ma FROM MedicationAdministration ma ORDER BY ma.administeredAt DESC")
@@ -64,7 +65,7 @@ public interface MedicationAdministrationRepository extends JpaRepository<Medica
     List<MedicationAdministration> findByAdministeredAtBetweenOrderByAdministeredAtDesc(LocalDateTime start, LocalDateTime end);
     
     // Find all administrations by status (no pagination)
-    List<MedicationAdministration> findByAdministrationStatusOrderByAdministeredAtDesc(AdministrationStatus status);
+    List<MedicationAdministration> findByAdministrationStatusOrderByAdministeredAtDesc(Status status);
     
     // Find all recent administrations (no pagination)
     @Query("SELECT ma FROM MedicationAdministration ma ORDER BY ma.administeredAt DESC")
