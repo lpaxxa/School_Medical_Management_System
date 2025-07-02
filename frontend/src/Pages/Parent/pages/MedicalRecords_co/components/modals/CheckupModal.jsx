@@ -15,7 +15,7 @@ import {
   FaBell,
   FaUser,
   FaNotesMedical,
-  FaHeartCircle,
+  FaHeart,
   FaEyeDropper,
   FaStar,
   FaTrophy,
@@ -285,7 +285,7 @@ const CheckupModal = ({ isOpen, onClose, checkup }) => {
           <div className="modern-section">
             <div className="section-header-modern">
               <div className="section-icon-wrapper">
-                <FaHeartCircle />
+                <FaHeart />
               </div>
               <h3>Dấu hiệu sinh tồn</h3>
             </div>
@@ -311,7 +311,7 @@ const CheckupModal = ({ isOpen, onClose, checkup }) => {
                     color: getVitalStatus(checkup.heartRate, "heartRate").color,
                   }}
                 >
-                  <FaHeartCircle />
+                  <FaHeart />
                 </div>
                 <div className="vital-content">
                   <span className="vital-label">Nhịp tim</span>
