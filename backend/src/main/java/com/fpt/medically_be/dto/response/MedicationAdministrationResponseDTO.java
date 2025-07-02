@@ -1,6 +1,6 @@
 package com.fpt.medically_be.dto.response;
 
-import com.fpt.medically_be.entity.AdministrationStatus;
+
 import com.fpt.medically_be.entity.Status;
 import lombok.Data;
 
@@ -13,6 +13,7 @@ public class MedicationAdministrationResponseDTO {
     private String medicationName;
     private String studentName;
     private LocalDateTime administeredAt;
+    private Integer frequencyPerDay;
     private String administeredBy; // Nurse name
     private Status administrationStatus;
     private String notes; // Combined: dosage, response, side effects, refusal reason, etc.

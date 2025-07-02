@@ -22,7 +22,7 @@ public class MedicationRequestDTO {
     private String dosage;
 
     @NotBlank(message = "Frequency is required")
-    private String frequency;
+    private Integer frequency;
 
     @NotNull(message = "Start date is required")
     @FutureOrPresent(message = "Start date must be today or in the future")

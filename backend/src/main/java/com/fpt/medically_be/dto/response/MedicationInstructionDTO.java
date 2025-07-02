@@ -34,7 +34,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         private String dosageInstructions;
         private LocalDate startDate;
         private LocalDate endDate;
-        private String frequencyPerDay;
+        private Integer frequencyPerDay;
         private String timeOfDay; // morning afternoon before lunch....
         private String specialInstructions;
 
@@ -142,7 +142,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
                         this.dosageInstructions = entity.getDosageInstructions() != null ? entity.getDosageInstructions() : "No instructions";
                         this.startDate = entity.getStartDate();
                         this.endDate = entity.getEndDate();
-                        this.frequencyPerDay = entity.getFrequencyPerDay() != null ? entity.getFrequencyPerDay() : "As needed";
+                        this.frequencyPerDay = entity.getFrequencyPerDay();
                         this.timeOfDay = entity.getTimeOfDay() != null ? entity.getTimeOfDay() : "Not specified";
                         this.specialInstructions = entity.getSpecialInstructions();
                         this.parentProvided = entity.getParentProvided() != null ? entity.getParentProvided() : false;

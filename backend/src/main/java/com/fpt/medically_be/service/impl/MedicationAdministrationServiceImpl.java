@@ -12,7 +12,6 @@ import com.fpt.medically_be.service.CloudinaryService;
 import com.fpt.medically_be.service.MedicationAdministrationService;
 import com.fpt.medically_be.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-import java.util.Map;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -73,11 +71,11 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
                 .orElseThrow(() -> new EntityNotFoundException("Medication instruction not found with ID: " + request.getMedicationInstructionId()));
         
         // 2. CRITICAL: Validate medication instruction is approved
-        if (medicationInstruction.getStatus() != Status.APPROVED) {
-            throw new IllegalStateException("Cannot administer medication: instruction status is " + medicationInstruction.getStatus() + ". Only APPROVED instructions can be administered.");
+        if (medicationInstruction.getStatus() != Status.APPROVED && medicationInstruction.getStatus() != Status.PARTIALLY_TAKEN) {
+            throw new IllegalStateException("Cannot administer medication: instruction status is " + medicationInstruction.getStatus() + ". Only APPROVED or PARTIALLY instructions can be administered.");
         }
 
-        
+
         // 3. Validate administration date is within medication period
         LocalDate adminDate = request.getAdministeredAt().toLocalDate();
         if (medicationInstruction.getStartDate() != null && adminDate.isBefore(medicationInstruction.getStartDate())) {
@@ -86,38 +84,68 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
         if (medicationInstruction.getEndDate() != null && adminDate.isAfter(medicationInstruction.getEndDate())) {
             throw new IllegalArgumentException("Administration date cannot be after medication end date");
         }
-        
+
         // 4. Validate administration time is not in the future
         if (request.getAdministeredAt().isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("Administration time cannot be in the future");
         }
-        
+
         // 5. Get current nurse from authentication
         String accountId = auth.getName();
         Nurse nurse = nurseRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new EntityNotFoundException("Nurse not found with account ID: " + accountId));
-        
+
         // 6. Create administration record using mapper
         MedicationAdministration administration = administrationMapper.toEntity(request);
         administration.setMedicationInstruction(medicationInstruction);
         administration.setAdministeredBy(nurse);
-        medicationInstruction.setStatus(request.getAdministrationStatus());
+        try {
+            int requestedFrequency = request.getFrequencyPerDay();
+            int maxFrequency = medicationInstruction.getFrequencyPerDay();
+
+            // Validate frequency is within allowed range
+            if (requestedFrequency < 0) {
+                throw new IllegalArgumentException("Frequency cannot be negative");
+            }
+
+            if (requestedFrequency > maxFrequency) {
+                throw new IllegalArgumentException("Requested frequency (" + requestedFrequency +
+                        ") exceeds maximum allowed frequency (" + maxFrequency + ")");
+            }
+            //SET STATUS
+            if (request.getFrequencyPerDay() < medicationInstruction.getFrequencyPerDay() && request.getFrequencyPerDay() > 0) {
+                administration.setAdministrationStatus(Status.PARTIALLY_TAKEN);
+                medicationInstruction.setStatus(Status.PARTIALLY_TAKEN);
+            } else if (request.getFrequencyPerDay() == medicationInstruction.getFrequencyPerDay()) {
+                administration.setAdministrationStatus(Status.FULLY_TAKEN);
+                medicationInstruction.setStatus(Status.FULLY_TAKEN);
+            } else if (medicationInstruction.getEndDate().isBefore(LocalDate.now())) {
+                administration.setAdministrationStatus(Status.NOT_TAKEN);
+                medicationInstruction.setStatus(Status.NOT_TAKEN);
+            }
+        }catch (NumberFormatException e) {
+            logger.severe("Invalid frequency format: " + e.getMessage());
+            throw new IllegalArgumentException("Frequency must be a valid number");
+        } catch (Exception e) {
+            logger.severe("Error processing frequency: " + e.getMessage());
+            throw new IllegalStateException("Error setting administration status: " + e.getMessage());
+        }
 
         // createdAt will be set automatically by @PrePersist
-        
+
         // 7. Save and return
         MedicationAdministration saved = administrationRepository.save(administration);
         MedicationAdministrationResponseDTO responseDTO = administrationMapper.toResponseDTO(saved);
-        
+
         // 8. Send notification to parent (only the parent who owns this child)
         try {
             // Get parent account ID from the medication instruction
             String parentAccountId = null;
-            if (medicationInstruction.getRequestedBy() != null && 
+            if (medicationInstruction.getRequestedBy() != null &&
                 medicationInstruction.getRequestedBy().getAccount() != null) {
                 parentAccountId = medicationInstruction.getRequestedBy().getAccount().getId();
             }
-            
+
             if (parentAccountId != null) {
                 notificationService.sendMedicationAdministrationNotificationToParent(responseDTO, parentAccountId);
             }
@@ -126,7 +154,7 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
             // The medication administration was successful, notification is secondary
             logger.warning("Failed to send notification to parent for administration ID " + saved.getId() + ": " + e.getMessage());
         }
-        
+
         return responseDTO;
     }
 
@@ -253,7 +281,7 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
         
         // Update fields
         administration.setAdministeredAt(request.getAdministeredAt());
-        administration.setAdministrationStatus(request.getAdministrationStatus());
+       // administration.setAdministrationStatus(request.getAdministrationStatus());
         administration.setNotes(request.getNotes());
         administration.setConfirmationImageUrl(request.getImgUrl());
         
