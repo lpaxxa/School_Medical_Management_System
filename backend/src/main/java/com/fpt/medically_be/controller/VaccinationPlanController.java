@@ -27,79 +27,79 @@ public class VaccinationPlanController {
      * Lấy tất cả kế hoạch tiêm chủng
      * GET /api/v1/vaccination-plans
      */
-    @GetMapping
+//    @GetMapping
 //    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<VaccinationPlanResponseDTO>> getAllVaccinationPlans() {
-        List<VaccinationPlanResponseDTO> plans = vaccinationPlanService.getAllVaccinationPlans();
-        return ResponseEntity.ok(plans);
-    }
+//    public ResponseEntity<List<VaccinationPlanResponseDTO>> getAllVaccinationPlans() {
+//        List<VaccinationPlanResponseDTO> plans = vaccinationPlanService.getAllVaccinationPlans();
+//        return ResponseEntity.ok(plans);
+//    }
 
     /**
      * Lấy kế hoạch tiêm chủng theo ID
      * GET /api/v1/vaccination-plans/{id}
      */
-    @GetMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<VaccinationPlanResponseDTO> getVaccinationPlanById(@PathVariable Long id) {
-        VaccinationPlanResponseDTO plan = vaccinationPlanService.getVaccinationPlanById(id);
-        return ResponseEntity.ok(plan);
-    }
+//    @GetMapping("/{id}")
+////    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<VaccinationPlanResponseDTO> getVaccinationPlanById(@PathVariable Long id) {
+//        VaccinationPlanResponseDTO plan = vaccinationPlanService.getVaccinationPlanById(id);
+//        return ResponseEntity.ok(plan);
+//    }
 
     /**
      * Tìm kiếm kế hoạch tiêm chủng theo tên vaccine
      * GET /api/v1/vaccination-plans/search/vaccine?name=<tên vaccine>
      */
-    @GetMapping("/search/vaccine")
-//    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<VaccinationPlanResponseDTO>> findByVaccineName(@RequestParam("name") String vaccineName) {
-        List<VaccinationPlanResponseDTO> plans = vaccinationPlanService.findByVaccineName(vaccineName);
-        return ResponseEntity.ok(plans);
-    }
+//    @GetMapping("/search/vaccine")
+////    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<List<VaccinationPlanResponseDTO>> findByVaccineName(@RequestParam("name") String vaccineName) {
+//        List<VaccinationPlanResponseDTO> plans = vaccinationPlanService.findByVaccineName(vaccineName);
+//        return ResponseEntity.ok(plans);
+//    }
 
     /**
      * Tìm kiếm kế hoạch tiêm chủng theo trạng thái
      * GET /api/v1/vaccination-plans/search/status?status=<ONGOING|COMPLETED|CANCELLED>
      */
-    @GetMapping("/search/status")
-//    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<VaccinationPlanResponseDTO>> findByStatus(@RequestParam("status") VaccinationPlanStatus status) {
-        List<VaccinationPlanResponseDTO> plans = vaccinationPlanService.findByStatus(status);
-        return ResponseEntity.ok(plans);
-    }
+//    @GetMapping("/search/status")
+////    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<List<VaccinationPlanResponseDTO>> findByStatus(@RequestParam("status") VaccinationPlanStatus status) {
+//        List<VaccinationPlanResponseDTO> plans = vaccinationPlanService.findByStatus(status);
+//        return ResponseEntity.ok(plans);
+//    }
 
     /**
      * Tạo mới kế hoạch tiêm chủng
      * POST /api/v1/vaccination-plans
      */
-    @PostMapping
-//    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<VaccinationPlanResponseDTO> createVaccinationPlan(@Valid @RequestBody VaccinationPlanRequestDTO requestDTO) {
-        VaccinationPlanResponseDTO createdPlan = vaccinationPlanService.createVaccinationPlan(requestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPlan);
-    }
+//    @PostMapping
+////    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<VaccinationPlanResponseDTO> createVaccinationPlan(@Valid @RequestBody VaccinationPlanRequestDTO requestDTO) {
+//        VaccinationPlanResponseDTO createdPlan = vaccinationPlanService.createVaccinationPlan(requestDTO);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdPlan);
+//    }
 
     /**
      * Cập nhật kế hoạch tiêm chủng
      * PUT /api/v1/vaccination-plans/{id}
      */
-    @PutMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<VaccinationPlanResponseDTO> updateVaccinationPlan(
-            @PathVariable Long id,
-            @Valid @RequestBody VaccinationPlanRequestDTO requestDTO) {
-        VaccinationPlanResponseDTO updatedPlan = vaccinationPlanService.updateVaccinationPlan(id, requestDTO);
-        return ResponseEntity.ok(updatedPlan);
-    }
+//    @PutMapping("/{id}")
+////    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<VaccinationPlanResponseDTO> updateVaccinationPlan(
+//            @PathVariable Long id,
+//            @Valid @RequestBody VaccinationPlanRequestDTO requestDTO) {
+//        VaccinationPlanResponseDTO updatedPlan = vaccinationPlanService.updateVaccinationPlan(id, requestDTO);
+//        return ResponseEntity.ok(updatedPlan);
+//    }
 
     /**
      * Xóa kế hoạch tiêm chủng
      * DELETE /api/v1/vaccination-plans/{id}
      */
-    @DeleteMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteVaccinationPlan(@PathVariable Long id) {
-        vaccinationPlanService.deleteVaccinationPlan(id);
-        return ResponseEntity.noContent().build();
-    }
+//    @DeleteMapping("/{id}")
+////    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<Void> deleteVaccinationPlan(@PathVariable Long id) {
+//        vaccinationPlanService.deleteVaccinationPlan(id);
+//        return ResponseEntity.noContent().build();
+//    }
 }
 
