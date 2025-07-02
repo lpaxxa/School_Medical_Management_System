@@ -1,16 +1,25 @@
 package com.fpt.medically_be.controller;
 
+import com.fpt.medically_be.dto.response.MedicationAdministrationResponseDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
 import com.fpt.medically_be.entity.Status;
 import com.fpt.medically_be.service.MedicationInstructionService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for basic Medication Instruction CRUD operations
@@ -133,4 +142,7 @@ public class MedicationInstructionController {
         medicationInstructionService.deleteMedicationInstruction(id);
         return ResponseEntity.noContent().build();
     }
+
+
+
 }

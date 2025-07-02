@@ -68,9 +68,7 @@ public class MedicationInstruction {
     private Parent requestedBy;
 
     // Prescription image fields
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "instruction_image", columnDefinition ="NVARCHAR(MAX)")
     private String prescriptionImageBase64;
 
-    @Column(length = 50)
-    private String prescriptionImageType;
 }

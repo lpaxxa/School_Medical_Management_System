@@ -3,6 +3,7 @@ package com.fpt.medically_be.service.impl;
 import com.fpt.medically_be.dto.request.MedicationRequestDTO;
 import com.fpt.medically_be.dto.request.NurseMedicationApprovalRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
+import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
 import com.fpt.medically_be.dto.response.ParentDTO;
 import com.fpt.medically_be.entity.*;
 import com.fpt.medically_be.repos.HealthProfileRepository;
@@ -10,6 +11,7 @@ import com.fpt.medically_be.repos.MedicationInstructionRepository;
 import com.fpt.medically_be.repos.NurseRepository;
 import com.fpt.medically_be.repos.ParentRepository;
 import com.fpt.medically_be.repos.StudentRepository;
+import com.fpt.medically_be.service.CloudinaryService;
 import com.fpt.medically_be.service.MedicationInstructionService;
 import com.fpt.medically_be.service.ParentService;
 import jakarta.persistence.EntityNotFoundException;
@@ -18,7 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +32,7 @@ import java.util.stream.Collectors;
 @Service
 public class MedicationInstructionServiceImpl implements MedicationInstructionService {
 
+    private final CloudinaryService cloudinaryService;
     private final MedicationInstructionRepository medicationInstructionRepository;
     private final HealthProfileRepository healthProfileRepository;
     private final StudentRepository studentRepository;
@@ -36,11 +41,12 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
     private final NurseRepository nurseRepository;
 
 @Autowired
-    public MedicationInstructionServiceImpl(MedicationInstructionRepository medicationInstructionRepository,
+    public MedicationInstructionServiceImpl(CloudinaryService cloudinaryService, MedicationInstructionRepository medicationInstructionRepository,
                                             HealthProfileRepository healthProfileRepository,
-                                            StudentRepository studentRepository, ParentService parentService, 
+                                            StudentRepository studentRepository, ParentService parentService,
                                             ParentRepository parentRepository, NurseRepository nurseRepository) {
-        this.medicationInstructionRepository = medicationInstructionRepository;
+    this.cloudinaryService = cloudinaryService;
+    this.medicationInstructionRepository = medicationInstructionRepository;
         this.healthProfileRepository = healthProfileRepository;
         this.studentRepository = studentRepository;
         this.parentService = parentService;
@@ -190,9 +196,9 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         medicationInstruction.setRequestedBy(parentEntity);
 
         // Handle prescription image if present
-        if (request.getPrescriptionImageBase64() != null && request.getPrescriptionImageType() != null) {
+        if (request.getPrescriptionImageBase64() != null ) {
             medicationInstruction.setPrescriptionImageBase64(request.getPrescriptionImageBase64());
-            medicationInstruction.setPrescriptionImageType(request.getPrescriptionImageType());
+
         }
 
         MedicationInstruction savedMedicationInstruction = medicationInstructionRepository.save(medicationInstruction);
@@ -258,9 +264,9 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         medicationInstruction.setSpecialInstructions(request.getNotes());
 
         // Handle prescription image if present
-        if (request.getPrescriptionImageBase64() != null && request.getPrescriptionImageType() != null) {
+        if (request.getPrescriptionImageBase64() != null ) {
             medicationInstruction.setPrescriptionImageBase64(request.getPrescriptionImageBase64());
-            medicationInstruction.setPrescriptionImageType(request.getPrescriptionImageType());
+
         }
 
         // 8. Save updated entity
@@ -354,6 +360,53 @@ public class MedicationInstructionServiceImpl implements MedicationInstructionSe
         // 7. Update medication details from request
       medicationInstructionRepository.deleteById(requestId);
 
+    }
+
+    @Override
+    public MedicationInstructionDTO uploadConfirmationImage(Long instructionId, MultipartFile imageFile, Authentication auth) throws IOException {
+        // 1. Tìm record Medicationinstruction theo ID
+        MedicationInstruction instruction = medicationInstructionRepository.findById(instructionId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy bản ghi cho uống thuốc với ID: " + instructionId));
+
+        // 2. Xác thực y tá có quyền cập nhật bản ghi này
+        String accountId = auth.getName();
+        Parent parent = parentRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy phụ huynh với tài khoản ID: " + accountId));
+
+        // 3. Kiểm tra xem y tá này có phải là người đã thực hiện cho uống thuốc không
+        if (!instruction.getRequestedBy().getId().equals(parent.getId())) {
+            throw new IllegalStateException("Bạn không có quyền cập nhật ảnh xác nhận cho bản ghi này");
+        }
+
+        // 4. Upload ảnh lên Cloudinary
+        String imageUrl = cloudinaryService.uploadMedicationConfirmImage(imageFile, instructionId);
+
+        // Kiểm tra imageUrl có null hoặc rỗng không
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            throw new IOException("Không thể tải lên ảnh xác nhận, URL trả về là null hoặc rỗng");
+        }
+
+        // 5. Cập nhật URL ảnh vào record
+        instruction.setPrescriptionImageBase64(imageUrl);
+
+        // 6. Lưu thay đổi và đảm bảo có kết quả trả về
+        MedicationInstruction updatedinstruction = medicationInstructionRepository.saveAndFlush(instruction);
+
+        // Kiểm tra xem URL đã được lưu chưa
+        if (updatedinstruction.getPrescriptionImageBase64() == null ||
+                updatedinstruction.getPrescriptionImageBase64().isEmpty()) {
+            throw new IOException("URL ảnh xác nhận không được lưu vào database");
+        }
+
+        // 7. Chuyển đổi thành DTO với URL ảnh
+        MedicationInstructionDTO responseDTO = new MedicationInstructionDTO().toObject(updatedinstruction);
+
+        // Đảm bảo URL ảnh được chuyển sang DTO đúng cách
+        if (responseDTO.getPrescriptionImageUrl() == null || responseDTO.getPrescriptionImageUrl().isEmpty()) {
+            responseDTO.setPrescriptionImageUrl(imageUrl); // Gán trực tiếp nếu mapper không hoạt động đúng
+        }
+
+        return responseDTO;
     }
 
 

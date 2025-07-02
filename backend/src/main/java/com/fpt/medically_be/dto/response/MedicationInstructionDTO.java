@@ -28,6 +28,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
 
         private String requestedBy; // Parent's name who made the request
         private String requestedByAccountId; // Parent's account ID for notifications
+        private String PrescriptionImageUrl; // URL of the prescription image if available
 
         // Medication details
         private String medicationName;
@@ -68,6 +69,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         entity.setStatus(dto.getStatus());
         entity.setRejectionReason(dto.getRejectionReason());
         entity.setResponseDate(dto.getResponseDate());
+        entity.setPrescriptionImageBase64(dto.getPrescriptionImageUrl());
 
 
         // Note: Relationships (healthProfile, requestedBy, approvedBy) need to be set separately
@@ -81,6 +83,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
                 if (entity == null) {
                         return null;
                 }
+                this.PrescriptionImageUrl = entity.getPrescriptionImageBase64();
                 
                 try {
                         this.id = entity.getId();
@@ -146,6 +149,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
                         this.timeOfDay = entity.getTimeOfDay() != null ? entity.getTimeOfDay() : "Not specified";
                         this.specialInstructions = entity.getSpecialInstructions();
                         this.parentProvided = entity.getParentProvided() != null ? entity.getParentProvided() : false;
+
 
                         // Approval workflow with null safety
                         this.status = entity.getStatus() != null ? entity.getStatus() : Status.PENDING_APPROVAL;

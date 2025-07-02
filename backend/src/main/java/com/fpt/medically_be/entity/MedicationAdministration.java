@@ -35,7 +35,7 @@ public class MedicationAdministration {
     @Column(name = "administration_status", nullable = false)
 //    private AdministrationStatus administrationStatus;
     private Status administrationStatus;
-    
+
     // Combined notes: dosage given, student response, side effects, etc.
     @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
     private String notes;

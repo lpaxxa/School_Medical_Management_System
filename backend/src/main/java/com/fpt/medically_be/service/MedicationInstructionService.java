@@ -10,7 +10,9 @@ import jakarta.validation.Valid;
 
 
 import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -39,6 +41,8 @@ public interface MedicationInstructionService {
     List<MedicationInstructionDTO> getAllMedicationRequests();
     MedicationInstructionDTO processApprovalRequest(Long requestId, @Valid NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication);
    void cancelMedicationRequest(Long requestId, Authentication auth);
+
+    public MedicationInstructionDTO uploadConfirmationImage(Long instructionId, MultipartFile imageFile, Authentication auth) throws IOException;
 
 
 }
