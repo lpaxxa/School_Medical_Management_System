@@ -196,27 +196,38 @@ const medicalEventsService = {
     try {
       console.log('Gọi API thêm sự kiện y tế mới với data:', eventData);
       
-      // Format medications data correctly for ADD - Backend expects STRING format
-      let medicationsUsed = '';
+      // Format medications data correctly for ADD - Backend expects ARRAY format (like UPDATE)
+      let medicationsUsed = [];
       if (eventData.medicationsUsed) {
         if (Array.isArray(eventData.medicationsUsed)) {
-          // Convert array to string format "Medication Name (quantity)"
-          medicationsUsed = eventData.medicationsUsed
-            .map(med => `${med.name || 'Unknown'} (${med.quantity || med.quantityUsed || 1})`)
-            .join(', ');
+          // Keep as array - backend expects: [{itemID, quantityUsed}]
+          medicationsUsed = eventData.medicationsUsed.map(med => ({
+            itemID: med.itemID,
+            quantityUsed: med.quantityUsed || med.quantity || 1
+          }));
         } else if (typeof eventData.medicationsUsed === 'string') {
-          // If already string, use as is
-          medicationsUsed = eventData.medicationsUsed;
+          // If string, convert to empty array (should not happen for add)
+          console.warn('Add received string medicationsUsed, expected array');
+          medicationsUsed = [];
         }
       }
 
-      // Format data for backend
+      // Make sure we're sending data in the correct format for backend
       const formattedData = {
-        ...eventData,
-        medicationsUsed: medicationsUsed  // Send as string like "Betadine 10% (10)"
+        incidentType: eventData.incidentType || '',
+        description: eventData.description || '',
+        symptoms: eventData.symptoms || '',
+        severityLevel: eventData.severityLevel || '',
+        treatment: eventData.treatment || '',
+        parentNotified: Boolean(eventData.parentNotified),
+        requiresFollowUp: Boolean(eventData.requiresFollowUp),
+        followUpNotes: eventData.followUpNotes || '',
+        handledById: parseInt(eventData.handledById) || 1,
+        studentId: eventData.studentId || '',
+        medicationsUsed: medicationsUsed  // Send as array: [{itemID, quantityUsed}]
       };
       
-      console.log('Formatted ADD data for API (medicationsUsed as string):', formattedData);
+      console.log('Formatted ADD data for API (medicationsUsed as array):', formattedData);
       
       // Bỏ /api/v1 vì đã có trong baseURL
       const response = await api.post('/medical-incidents/create', formattedData);
@@ -251,7 +262,10 @@ const medicalEventsService = {
       if (eventData.medicationsUsed) {
         if (Array.isArray(eventData.medicationsUsed)) {
           // Keep as array - backend expects: [{itemID, quantityUsed}]
-          medicationsUsed = eventData.medicationsUsed;
+          medicationsUsed = eventData.medicationsUsed.map(med => ({
+            itemID: med.itemID,
+            quantityUsed: med.quantityUsed || med.quantity || 1
+          }));
         } else if (typeof eventData.medicationsUsed === 'string') {
           // If string, convert to empty array (should not happen for update)
           console.warn('Update received string medicationsUsed, expected array');

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { useMedicalEvents } from '../../../../../context/NurseContext/MedicalEventsContext';
 import MedicalIncidentDetailModal from './MedicalIncidentDetailModal';
 import MedicalIncidentAddModal from './MedicalIncidentAddModal';
@@ -141,15 +142,18 @@ const MedicalIncidentsList = () => {
       
       const result = await addEvent(formData);
       
-      // Refresh data - context đã tự động cập nhật state
-      fetchEvents();
-      
-      // Đóng modal
-      setShowAddModal(false);
+      if (result) {
+        // Refresh data - context đã tự động cập nhật state
+        fetchEvents();
+        
+        // Đóng modal
+        setShowAddModal(false);
+        
+        return result; // Return success result
+      }
       
     } catch (error) {
       console.error("Lỗi khi thêm sự kiện y tế:", error);
-      alert("Có lỗi xảy ra khi thêm dữ liệu! " + (error.message || ''));
       throw error; // Re-throw to let the modal handle the error state
     }
   };
@@ -161,15 +165,18 @@ const MedicalIncidentsList = () => {
       
       const result = await updateEvent(selectedEvent.incidentId || selectedEvent.id, formData);
       
-      // Refresh data - context đã tự động cập nhật state
-      fetchEvents();
-      
-      // Đóng modal
-      setShowUpdateModal(false);
+      if (result) {
+        // Refresh data - context đã tự động cập nhật state
+        fetchEvents();
+        
+        // Đóng modal
+        setShowUpdateModal(false);
+        
+        return result; // Return success result
+      }
       
     } catch (error) {
       console.error("Lỗi khi cập nhật sự kiện y tế:", error);
-      alert("Có lỗi xảy ra khi cập nhật dữ liệu! " + (error.message || ''));
       throw error; // Re-throw to let the modal handle the error state
     }
   };
@@ -178,11 +185,13 @@ const MedicalIncidentsList = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa sự kiện này không?")) {
       try {
-        await deleteEvent(id);
-        alert("Xóa sự kiện thành công!");
+        const result = await deleteEvent(id);
+        if (result) {
+          toast.success("Xóa sự kiện y tế thành công!");
+        }
       } catch (error) {
         console.error("Lỗi khi xóa sự kiện:", error);
-        alert("Không thể xóa sự kiện. Vui lòng thử lại sau.");
+        toast.error("Không thể xóa sự kiện. Vui lòng thử lại sau.");
       }
     }
   };

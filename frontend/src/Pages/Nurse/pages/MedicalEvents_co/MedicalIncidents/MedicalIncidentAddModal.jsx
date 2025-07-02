@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
 import './MedicalIncidentAddModal.css';
 
@@ -150,12 +151,7 @@ const MedicalIncidentAddModal = ({
 
   // Handle updating medication quantity
   const handleMedicationQuantityChange = (index, newQuantity) => {
-    const quantity = parseInt(newQuantity) || 0;
-    if (quantity <= 0) {
-      // Remove medication if quantity is 0 or less
-      handleRemoveMedication(index);
-      return;
-    }
+    const quantity = Math.max(0, parseInt(newQuantity) || 0);
 
     const updatedMedications = [...formData.medicationsUsed];
     updatedMedications[index].quantityUsed = quantity;
@@ -178,27 +174,54 @@ const MedicalIncidentAddModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Format data for API submission
-    const apiData = {
-      studentId: formData.studentId,
-      incidentType: formData.incidentType,
-      dateTime: formData.dateTime,
-      description: formData.description,
-      symptoms: formData.symptoms,
-      severityLevel: formData.severityLevel,
-      treatment: formData.treatment,
-      parentNotified: formData.parentNotified,
-      requiresFollowUp: formData.requiresFollowUp,
-      followUpNotes: formData.followUpNotes,
-      medicationsUsed: formData.medicationsUsed.map(med => ({
-        quantityUsed: med.quantityUsed,
-        itemID: med.itemID,
-        name: med.name  // Include name for string conversion in service
-      })),
-      handledById: 1 // Default handler ID
-    };
+    // Validation
+    if (!formData.studentId.trim()) {
+      toast.error('Vui lòng nhập mã học sinh');
+      return;
+    }
+    
+    if (!formData.incidentType.trim()) {
+      toast.error('Vui lòng nhập loại sự kiện');
+      return;
+    }
+    
+    if (!formData.description.trim()) {
+      toast.error('Vui lòng nhập mô tả sự kiện');
+      return;
+    }
+    
+    try {
+      // Format data for API submission
+      const apiData = {
+        studentId: formData.studentId,
+        incidentType: formData.incidentType,
+        dateTime: formData.dateTime,
+        description: formData.description,
+        symptoms: formData.symptoms,
+        severityLevel: formData.severityLevel,
+        treatment: formData.treatment,
+        parentNotified: formData.parentNotified,
+        requiresFollowUp: formData.requiresFollowUp,
+        followUpNotes: formData.followUpNotes,
+        medicationsUsed: formData.medicationsUsed.map(med => ({
+          quantityUsed: med.quantityUsed,
+          itemID: med.itemID,
+          name: med.name  // Include name for string conversion in service
+        })),
+        handledById: 1 // Default handler ID
+      };
 
-    await onSubmit(apiData);
+      console.log('Submitting event data:', apiData);
+      const result = await onSubmit(apiData);
+      
+      if (result) {
+        toast.success(selectedEvent ? 'Cập nhật sự kiện y tế thành công!' : 'Thêm sự kiện y tế mới thành công!');
+        handleClose();
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error(selectedEvent ? 'Lỗi khi cập nhật sự kiện y tế' : 'Lỗi khi thêm sự kiện y tế mới');
+    }
   };
 
   // Close modal and reset form
@@ -373,7 +396,7 @@ const MedicalIncidentAddModal = ({
                               <label>Số lượng:</label>
                               <input
                                 type="number"
-                                min="1"
+                                min="0"
                                 value={medication.quantityUsed}
                                 onChange={(e) => handleMedicationQuantityChange(index, e.target.value)}
                                 className={`quantity-input ${isOverStock ? 'error' : ''}`}
@@ -381,6 +404,15 @@ const MedicalIncidentAddModal = ({
                             </div>
                             <span className="stock-info">
                               Tồn kho: {medication.stockQuantity || 0}
+                              {medication.stockQuantity === 0 && (
+                                <span className="badge bg-danger ms-1">Hết hàng</span>
+                              )}
+                              {medication.stockQuantity > 0 && medication.stockQuantity <= 5 && (
+                                <span className="badge bg-warning ms-1">Sắp hết</span>
+                              )}
+                              {medication.stockQuantity > 5 && (
+                                <span className="badge bg-success ms-1">Còn hàng</span>
+                              )}
                             </span>
                           </div>
                           {isOverStock && (
