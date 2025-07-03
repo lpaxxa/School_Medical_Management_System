@@ -1,62 +1,111 @@
 package com.fpt.medically_be.service;
 
-import com.fpt.medically_be.dto.MedicalCheckupDTO;
+import com.fpt.medically_be.dto.request.MedicalCheckupRequestDTO;
+import com.fpt.medically_be.dto.response.MedicalCheckupResponseDTO;
+import com.fpt.medically_be.entity.CheckupStatus;
+
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface MedicalCheckupService {
-    List<MedicalCheckupDTO> getAllMedicalCheckups();
-    MedicalCheckupDTO getMedicalCheckupById(Long id);
-    List<MedicalCheckupDTO> getMedicalCheckupsByStudentId(Long studentId);
-    List<MedicalCheckupDTO> getMedicalCheckupsByStaffId(Long staffId);
-    List<MedicalCheckupDTO> getMedicalCheckupsByDateRange(LocalDate startDate, LocalDate endDate);
-    List<MedicalCheckupDTO> getMedicalCheckupsByStudentAndDateRange(Long studentId, LocalDate startDate, LocalDate endDate);
-    List<MedicalCheckupDTO> getMedicalCheckupsByType(String checkupType);
-    List<MedicalCheckupDTO> getMedicalCheckupsNeedingFollowUp();
-    MedicalCheckupDTO createMedicalCheckup(MedicalCheckupDTO medicalCheckupDTO);
-    MedicalCheckupDTO updateMedicalCheckup(Long id, MedicalCheckupDTO medicalCheckupDTO);
-    void deleteMedicalCheckup(Long id);
+    /**
+     * Lấy danh sách tất cả các kiểm tra y tế
+     */
+    List<MedicalCheckupResponseDTO> getAllMedicalCheckups();
 
     /**
-     * Create medical checkup with automatic parent notification if health implications detected
-     * @param medicalCheckupDTO The medical checkup data
-     * @param autoNotifyParent Whether to automatically notify parent if health implications are found
-     * @return The created medical checkup
+     * Lấy thông tin chi tiết một kiểm tra y tế theo ID
      */
-    MedicalCheckupDTO createMedicalCheckupWithNotification(MedicalCheckupDTO medicalCheckupDTO, boolean autoNotifyParent);
-    
+    MedicalCheckupResponseDTO getMedicalCheckupById(Long id);
+
     /**
-     * Update medical checkup with automatic parent notification if health implications detected
-     * @param id The checkup ID
-     * @param medicalCheckupDTO The updated medical checkup data
-     * @param autoNotifyParent Whether to automatically notify parent if health implications are found
-     * @return The updated medical checkup
+     * Tạo mới kiểm tra y tế
      */
-    MedicalCheckupDTO updateMedicalCheckupWithNotification(Long id, MedicalCheckupDTO medicalCheckupDTO, boolean autoNotifyParent);
-    
+    MedicalCheckupResponseDTO createMedicalCheckup(MedicalCheckupRequestDTO dto);
+
     /**
-     * Send health notification email to parent for specific checkup
-     * @param checkupId The medical checkup ID
+     * Cập nhật thông tin kiểm tra y tế
      */
-    void sendHealthNotificationToParent(Long checkupId);
-    
+    MedicalCheckupResponseDTO updateMedicalCheckup(Long id, MedicalCheckupRequestDTO dto);
+
     /**
-     * Send health notification emails to parents for multiple checkups
-     * @param checkupIds List of medical checkup IDs
+     * Cập nhật kết quả kiểm tra y tế
      */
-    void sendBatchHealthNotificationsToParents(List<Long> checkupIds);
-    
+    MedicalCheckupResponseDTO updateMedicalCheckupResults(Long id, MedicalCheckupRequestDTO dto);
+
     /**
-     * Get all checkups that need parent notification (health implications detected but parent not notified)
-     * @return List of medical checkups needing parent notification
+     * Cập nhật trạng thái kiểm tra y tế
      */
-    List<MedicalCheckupDTO> getCheckupsNeedingParentNotification();
-    
+    MedicalCheckupResponseDTO updateMedicalCheckupStatus(Long id, CheckupStatus status);
+
     /**
-     * Get all checkups with health implications within date range
-     * @param startDate Start date
-     * @param endDate End date
-     * @return List of medical checkups with health implications
+     * Lấy danh sách kiểm tra y tế theo chiến dịch
      */
-    List<MedicalCheckupDTO> getCheckupsWithHealthImplications(LocalDate startDate, LocalDate endDate);
+    List<MedicalCheckupResponseDTO> getMedicalCheckupsByHealthCampaign(Long campaignId);
+
+    /**
+     * Lấy danh sách kiểm tra y tế theo trạng thái và chiến dịch
+     */
+    List<MedicalCheckupResponseDTO> getMedicalCheckupsByHealthCampaignAndStatus(Long campaignId, CheckupStatus status);
+
+    /**
+     * Lấy danh sách kiểm tra y tế theo học sinh
+     */
+    List<MedicalCheckupResponseDTO> getMedicalCheckupsByStudent(Long studentId);
+
+    /**
+     * Lấy danh sách kiểm tra y tế theo nhân viên y tế
+     */
+    List<MedicalCheckupResponseDTO> getMedicalCheckupsByMedicalStaff(Long staffId);
+
+    /**
+     * Lấy danh sách kiểm tra y tế theo khoảng thời gian
+     */
+    List<MedicalCheckupResponseDTO> getMedicalCheckupsByDateRange(LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Gửi kết quả kiểm tra y tế cho phụ huynh
+     */
+    boolean sendCheckupResultsToParent(Long checkupId);
+
+    // Thêm alias method để tương thích với controller
+    default boolean sendResultsToParent(Long checkupId) {
+        return sendCheckupResultsToParent(checkupId);
+    }
+
+    /**
+     * Lấy danh sách học sinh cần theo dõi thêm (có kết quả bất thường)
+     */
+    List<MedicalCheckupResponseDTO> getStudentsNeedingFollowUp(Long campaignId);
+
+    /**
+     * Lên lịch tư vấn sức khỏe cho học sinh cần theo dõi
+     */
+    boolean scheduleHealthConsultation(Long checkupId, Map<String, Object> consultationDetails);
+
+    /**
+     * Lấy danh sách kiểm tra theo trạng thái (thiếu trong service)
+     */
+    default List<MedicalCheckupResponseDTO> getCheckupsByStatus(CheckupStatus status) {
+        return getAllMedicalCheckups().stream()
+                .filter(checkup -> checkup.getCheckupStatus() == status)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Lấy danh sách kiểm tra theo ngày (thiếu trong service)
+     */
+    default List<MedicalCheckupResponseDTO> getCheckupsByDate(LocalDate date) {
+        return getAllMedicalCheckups().stream()
+                .filter(checkup -> checkup.getCheckupDate() != null && checkup.getCheckupDate().equals(date))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Alias method để tương thích với controller
+     */
+    default List<MedicalCheckupResponseDTO> getCheckupHistoryByStudent(Long studentId) {
+        return getMedicalCheckupsByStudent(studentId);
+    }
 }
