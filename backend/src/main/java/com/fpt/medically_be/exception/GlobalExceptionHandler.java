@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<String> handleInvalidFormat(HttpMessageNotReadableException ex) {
         if (ex.getCause() instanceof InvalidFormatException) {
-            return ResponseEntity.badRequest().body("Invalid date format. Please use yyyy-MM-dd");
+            return ResponseEntity.badRequest().body("Invalid format. Please Try Again");
         }
         return ResponseEntity.badRequest().body("Malformed JSON request");
     }

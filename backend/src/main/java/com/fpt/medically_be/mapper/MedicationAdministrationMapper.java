@@ -12,6 +12,7 @@ public interface MedicationAdministrationMapper {
     // Map entity to response DTO
     @Mapping(source = "medicationInstruction.id", target = "medicationInstructionId")
     @Mapping(source = "medicationInstruction.medicationName", target = "medicationName")
+    @Mapping(source = "medicationInstruction.frequencyPerDay", target = "frequencyPerDay")
     @Mapping(source = "medicationInstruction.healthProfile.student.fullName", target = "studentName")
     @Mapping(source = "administeredBy.fullName", target = "administeredBy")
     @Mapping(source = "confirmationImageUrl", target = "confirmationImageUrl")

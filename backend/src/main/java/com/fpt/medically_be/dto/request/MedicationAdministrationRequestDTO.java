@@ -1,7 +1,6 @@
 package com.fpt.medically_be.dto.request;
 
-import com.fpt.medically_be.entity.AdministrationStatus;
-import com.fpt.medically_be.entity.Status;
+
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -15,10 +14,14 @@ public class MedicationAdministrationRequestDTO {
     
     @NotNull(message = "Administration time is required")
     private LocalDateTime administeredAt;
+
+    @NotNull(message = "Frequency per day is required")
+    @Min(value = 0, message = "Frequency cannot be negative")
+    private Integer frequencyPerDay;
     
-    @NotNull(message = "Administration status is required")
-//    private AdministrationStatus administrationStatus;
-    private Status administrationStatus;
+//    @NotNull(message = "Administration status is required")
+////    private AdministrationStatus administrationStatus;
+//    private Status administrationStatus;
     
     @Size(max = 1000, message = "Notes too long")
     private String notes; // Combined: dosage given, student response, side effects, etc.

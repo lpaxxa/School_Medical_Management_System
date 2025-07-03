@@ -23,6 +23,8 @@ public class MedicationAdministration {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "administered_by", nullable = false)
     private Nurse administeredBy;
+
+
     
     // When was it administered
     @Column(name = "administered_at", nullable = false)
