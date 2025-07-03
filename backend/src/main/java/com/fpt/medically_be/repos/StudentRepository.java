@@ -20,6 +20,9 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query("SELECT s FROM Student s JOIN s.healthProfile hp WHERE hp.id = :healthProfileId")
     Optional<Student> findByHealthProfileId(Long healthProfileId);
 
+    @Query("SELECT DISTINCT s.className FROM Student s WHERE s.className IS NOT NULL ORDER BY s.className")
+    List<String> findDistinctClassNames();
+
     //dt
     List<Student> findByParentIdIn(List<Long> parentIds);
     List<Student> findByStudentIdIn(List<String> ids);

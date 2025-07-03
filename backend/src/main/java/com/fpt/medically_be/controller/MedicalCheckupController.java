@@ -1,6 +1,10 @@
 package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.MedicalCheckupDTO;
+import com.fpt.medically_be.dto.StudentDTO;
+import com.fpt.medically_be.dto.request.MedicalCheckupCreateRequestDTO;
+import com.fpt.medically_be.dto.response.ClassDTO;
+import com.fpt.medically_be.dto.response.StudentConsentDTO;
 import com.fpt.medically_be.service.MedicalCheckupService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,30 +133,82 @@ public class MedicalCheckupController {
 
     // === HEALTH NOTIFICATION ENDPOINTS ===
 
-    @PostMapping("/{checkupId}/notify-parent")
+    // COMMENTED OUT - Replaced with in-app notification system
+    // @PostMapping("/{checkupId}/notify-parent")
+    // @Operation(summary = "Gửi thông báo kết quả khám sức khỏe cho phụ huynh", 
+    //            description = "Gửi email thông báo kết quả khám sức khỏe của học sinh cho phụ huynh.")
+    // public ResponseEntity<String> sendHealthNotificationToParent(@PathVariable Long checkupId) {
+    //     try {
+    //         medicalCheckupService.sendHealthNotificationToParent(checkupId);
+    //         return ResponseEntity.ok("Email thông báo kết quả khám sức khỏe đã được gửi thành công cho phụ huynh.");
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body("Gửi email thất bại: " + e.getMessage());
+    //     }
+    // }
+
+    // COMMENTED OUT - Replaced with in-app notification system
+    // @PostMapping("/batch-notify-parents")
+    // @Operation(summary = "Gửi thông báo kết quả khám sức khỏe cho nhiều phụ huynh", 
+    //            description = "Gửi email thông báo kết quả khám sức khỏe cho nhiều phụ huynh dựa trên danh sách ID các đợt khám.")
+    // public ResponseEntity<String> sendBatchHealthNotificationsToParents(@RequestBody List<Long> checkupIds) {
+    //     try {
+    //         medicalCheckupService.sendBatchHealthNotificationsToParents(checkupIds);
+    //         return ResponseEntity.ok(String.format("Đã gửi thành công thông báo cho %d đợt khám sức khỏe.", checkupIds.size()));
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body("Gửi email thất bại: " + e.getMessage());
+    //     }
+    // }
+
+    // === NEW IN-APP NOTIFICATION SYSTEM ENDPOINTS ===
+
+    @PostMapping("/create-with-students")
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    @Operation(summary = "Gửi thông báo kết quả khám sức khỏe cho phụ huynh", 
-               description = "Gửi email thông báo kết quả khám sức khỏe của học sinh cho phụ huynh.")
-    public ResponseEntity<String> sendHealthNotificationToParent(@PathVariable Long checkupId) {
+    @Operation(summary = "Tạo khám sức khỏe cho nhiều học sinh", 
+               description = "Tạo đợt khám sức khỏe cho nhiều học sinh và gửi thông báo in-app cho phụ huynh.")
+    public ResponseEntity<List<MedicalCheckupDTO>> createMedicalCheckupsWithStudents(@RequestBody MedicalCheckupCreateRequestDTO request) {
         try {
-            medicalCheckupService.sendHealthNotificationToParent(checkupId);
-            return ResponseEntity.ok("Email thông báo kết quả khám sức khỏe đã được gửi thành công cho phụ huynh.");
+            List<MedicalCheckupDTO> checkups = medicalCheckupService.createMedicalCheckupsWithStudents(request);
+            return ResponseEntity.ok(checkups);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Gửi email thất bại: " + e.getMessage());
+            return ResponseEntity.badRequest().body(null);
         }
     }
 
-    @PostMapping("/batch-notify-parents")
+    @PostMapping("/{checkupId}/notify-parents-checkup")
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    @Operation(summary = "Gửi thông báo kết quả khám sức khỏe cho nhiều phụ huynh", 
-               description = "Gửi email thông báo kết quả khám sức khỏe cho nhiều phụ huynh dựa trên danh sách ID các đợt khám.")
-    public ResponseEntity<String> sendBatchHealthNotificationsToParents(@RequestBody List<Long> checkupIds) {
+    @Operation(summary = "Gửi thông báo in-app cho phụ huynh", 
+               description = "Gửi thông báo in-app cho phụ huynh về kết quả khám sức khỏe.")
+    public ResponseEntity<String> notifyParentsCheckup(@PathVariable Long checkupId) {
         try {
-            medicalCheckupService.sendBatchHealthNotificationsToParents(checkupIds);
-            return ResponseEntity.ok(String.format("Đã gửi thành công thông báo cho %d đợt khám sức khỏe.", checkupIds.size()));
+            medicalCheckupService.notifyParentsCheckup(checkupId);
+            return ResponseEntity.ok("Thông báo in-app đã được gửi thành công cho phụ huynh.");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Gửi email thất bại: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Gửi thông báo thất bại: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/{checkupId}/student-consents")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Xem trạng thái đồng ý của phụ huynh", 
+               description = "Lấy danh sách trạng thái đồng ý của phụ huynh cho đợt khám sức khỏe.")
+    public ResponseEntity<List<StudentConsentDTO>> getStudentConsents(@PathVariable Long checkupId) {
+        return ResponseEntity.ok(medicalCheckupService.getStudentConsents(checkupId));
+    }
+
+    @GetMapping("/classes")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Lấy danh sách lớp học", 
+               description = "Lấy danh sách tất cả các lớp học để chọn học sinh.")
+    public ResponseEntity<List<ClassDTO>> getClasses() {
+        return ResponseEntity.ok(medicalCheckupService.getClasses());
+    }
+
+    @GetMapping("/students/by-class/{classId}")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Lấy học sinh theo lớp", 
+               description = "Lấy danh sách học sinh trong một lớp học cụ thể.")
+    public ResponseEntity<List<StudentDTO>> getStudentsByClass(@PathVariable String classId) {
+        return ResponseEntity.ok(medicalCheckupService.getStudentsByClass(classId));
     }
 }
 

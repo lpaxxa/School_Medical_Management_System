@@ -19,6 +19,9 @@ public class HealthCampaign {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
     @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
     private String notes;
 

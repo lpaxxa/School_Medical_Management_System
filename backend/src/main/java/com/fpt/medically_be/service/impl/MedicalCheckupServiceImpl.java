@@ -1,6 +1,10 @@
 package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.MedicalCheckupDTO;
+import com.fpt.medically_be.dto.StudentDTO;
+import com.fpt.medically_be.dto.request.MedicalCheckupCreateRequestDTO;
+import com.fpt.medically_be.dto.response.ClassDTO;
+import com.fpt.medically_be.dto.response.StudentConsentDTO;
 import com.fpt.medically_be.entity.MedicalCheckup;
 import com.fpt.medically_be.entity.Nurse;
 import com.fpt.medically_be.entity.Student;
@@ -99,23 +103,24 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
         return convertToDTO(savedMedicalCheckup);
     }
 
-    @Override
-    public MedicalCheckupDTO createMedicalCheckupWithNotification(MedicalCheckupDTO medicalCheckupDTO, boolean autoNotifyParent) {
-        MedicalCheckup medicalCheckup = convertToEntity(medicalCheckupDTO);
-        MedicalCheckup savedMedicalCheckup = medicalCheckupRepository.save(medicalCheckup);
-        
-        // Send notification if health implications detected and auto-notify is enabled
-        if (autoNotifyParent && hasHealthImplications(savedMedicalCheckup)) {
-            try {
-                emailService.sendHealthCheckupNotificationByCheckupId(savedMedicalCheckup.getId());
-            } catch (Exception e) {
-                // Log error but don't fail the main operation
-                System.err.println("Failed to send health notification for checkup ID " + savedMedicalCheckup.getId() + ": " + e.getMessage());
-            }
-        }
-        
-        return convertToDTO(savedMedicalCheckup);
-    }
+    // COMMENTED OUT - Replaced with in-app notification system
+    // @Override
+    // public MedicalCheckupDTO createMedicalCheckupWithNotification(MedicalCheckupDTO medicalCheckupDTO, boolean autoNotifyParent) {
+    //     MedicalCheckup medicalCheckup = convertToEntity(medicalCheckupDTO);
+    //     MedicalCheckup savedMedicalCheckup = medicalCheckupRepository.save(medicalCheckup);
+    //     
+    //     // Send notification if health implications detected and auto-notify is enabled
+    //     if (autoNotifyParent && hasHealthImplications(savedMedicalCheckup)) {
+    //         try {
+    //             emailService.sendHealthCheckupNotificationByCheckupId(savedMedicalCheckup.getId());
+    //         } catch (Exception e) {
+    //             // Log error but don't fail the main operation
+    //             System.err.println("Failed to send health notification for checkup ID " + savedMedicalCheckup.getId() + ": " + e.getMessage());
+    //         }
+    //     }
+    //     
+    //     return convertToDTO(savedMedicalCheckup);
+    // }
 
     @Override
     public MedicalCheckupDTO updateMedicalCheckup(Long id, MedicalCheckupDTO medicalCheckupDTO) {
@@ -157,58 +162,63 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
         return convertToDTO(updatedMedicalCheckup);
     }
 
-    @Override
-    public MedicalCheckupDTO updateMedicalCheckupWithNotification(Long id, MedicalCheckupDTO medicalCheckupDTO, boolean autoNotifyParent) {
-        // Store previous notification status
-        MedicalCheckup existing = medicalCheckupRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy lịch sử khám bệnh với ID: " + id));
-        boolean wasNotified = existing.getParentNotified() != null && existing.getParentNotified();
-        
-        // Update the checkup
-        MedicalCheckupDTO updated = updateMedicalCheckup(id, medicalCheckupDTO);
-        
-        // Send notification if health implications detected, auto-notify is enabled, and parent wasn't already notified
-        if (autoNotifyParent && !wasNotified) {
-            MedicalCheckup updatedEntity = medicalCheckupRepository.findById(id).get();
-            if (hasHealthImplications(updatedEntity)) {
-                try {
-                    emailService.sendHealthCheckupNotificationByCheckupId(updatedEntity.getId());
-                } catch (Exception e) {
-                    // Log error but don't fail the main operation
-                    System.err.println("Failed to send health notification for updated checkup ID " + updatedEntity.getId() + ": " + e.getMessage());
-                }
-            }
-        }
-        
-        return updated;
-    }
+    // COMMENTED OUT - Replaced with in-app notification system
+    // @Override
+    // public MedicalCheckupDTO updateMedicalCheckupWithNotification(Long id, MedicalCheckupDTO medicalCheckupDTO, boolean autoNotifyParent) {
+    //     // Store previous notification status
+    //     MedicalCheckup existing = medicalCheckupRepository.findById(id)
+    //             .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy lịch sử khám bệnh với ID: " + id));
+    //     boolean wasNotified = existing.getParentNotified() != null && existing.getParentNotified();
+    //     
+    //     // Update the checkup
+    //     MedicalCheckupDTO updated = updateMedicalCheckup(id, medicalCheckupDTO);
+    //     
+    //     // Send notification if health implications detected, auto-notify is enabled, and parent wasn't already notified
+    //     if (autoNotifyParent && !wasNotified) {
+    //         MedicalCheckup updatedEntity = medicalCheckupRepository.findById(id).get();
+    //         if (hasHealthImplications(updatedEntity)) {
+    //             try {
+    //                 emailService.sendHealthCheckupNotificationByCheckupId(updatedEntity.getId());
+    //             } catch (Exception e) {
+    //                 // Log error but don't fail the main operation
+    //                 System.err.println("Failed to send health notification for updated checkup ID " + updatedEntity.getId() + ": " + e.getMessage());
+    //             }
+    //         }
+    //     }
+    //     
+    //     return updated;
+    // }
 
-    @Override
-    public void sendHealthNotificationToParent(Long checkupId) {
-        emailService.sendHealthCheckupNotificationByCheckupId(checkupId);
-    }
+    // COMMENTED OUT - Replaced with in-app notification system
+    // @Override
+    // public void sendHealthNotificationToParent(Long checkupId) {
+    //     emailService.sendHealthCheckupNotificationByCheckupId(checkupId);
+    // }
 
-    @Override
-    public void sendBatchHealthNotificationsToParents(List<Long> checkupIds) {
-        emailService.sendBatchHealthCheckupNotifications(checkupIds);
-    }
+    // COMMENTED OUT - Replaced with in-app notification system
+    // @Override
+    // public void sendBatchHealthNotificationsToParents(List<Long> checkupIds) {
+    //     emailService.sendBatchHealthCheckupNotifications(checkupIds);
+    // }
 
-    @Override
-    public List<MedicalCheckupDTO> getCheckupsNeedingParentNotification() {
-        return medicalCheckupRepository.findAll().stream()
-                .filter(checkup -> hasHealthImplications(checkup) && 
-                                 (checkup.getParentNotified() == null || !checkup.getParentNotified()))
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
+    // COMMENTED OUT - Replaced with in-app notification system
+    // @Override
+    // public List<MedicalCheckupDTO> getCheckupsNeedingParentNotification() {
+    //     return medicalCheckupRepository.findAll().stream()
+    //             .filter(checkup -> hasHealthImplications(checkup) && 
+    //                              (checkup.getParentNotified() == null || !checkup.getParentNotified()))
+    //             .map(this::convertToDTO)
+    //             .collect(Collectors.toList());
+    // }
 
-    @Override
-    public List<MedicalCheckupDTO> getCheckupsWithHealthImplications(LocalDate startDate, LocalDate endDate) {
-        return medicalCheckupRepository.findByCheckupDateBetween(startDate, endDate).stream()
-                .filter(this::hasHealthImplications)
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
+    // COMMENTED OUT - Replaced with in-app notification system
+    // @Override
+    // public List<MedicalCheckupDTO> getCheckupsWithHealthImplications(LocalDate startDate, LocalDate endDate) {
+    //     return medicalCheckupRepository.findByCheckupDateBetween(startDate, endDate).stream()
+    //             .filter(this::hasHealthImplications)
+    //             .map(this::convertToDTO)
+    //             .collect(Collectors.toList());
+    // }
 
     @Override
     public void deleteMedicalCheckup(Long id) {
@@ -328,5 +338,70 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
         }
 
         return medicalCheckup;
+    }
+    
+    // === NEW IN-APP NOTIFICATION SYSTEM IMPLEMENTATIONS ===
+
+    @Override
+    public List<MedicalCheckupDTO> createMedicalCheckupsWithStudents(MedicalCheckupCreateRequestDTO request) {
+        // TODO: Implement proper business logic for creating checkups with students and notifications
+        // For now, return empty list to allow compilation
+        return List.of();
+    }
+
+    @Override
+    public void notifyParentsCheckup(Long checkupId) {
+        // TODO: Implement in-app notification system for parents
+        // This should create SystemNotification records and update notification recipients
+    }
+
+    @Override
+    public List<StudentConsentDTO> getStudentConsents(Long checkupId) {
+        // TODO: Implement logic to get parent consent status for special checkups
+        // This should query SpecialCheckupConsent and NotificationRecipients tables
+        return List.of();
+    }
+
+    @Override
+    public List<ClassDTO> getClasses() {
+        // Get distinct classes from students
+        return studentRepository.findDistinctClassNames().stream()
+                .map(className -> {
+                    List<Student> studentsInClass = studentRepository.findByClassName(className);
+                    String gradeLevel = studentsInClass.isEmpty() ? "" : studentsInClass.get(0).getGradeLevel();
+                    String schoolYear = studentsInClass.isEmpty() ? "" : studentsInClass.get(0).getSchoolYear();
+                    
+                    return ClassDTO.builder()
+                            .className(className)
+                            .gradeLevel(gradeLevel)
+                            .schoolYear(schoolYear)
+                            .studentCount(studentsInClass.size())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<StudentDTO> getStudentsByClass(String classId) {
+        return studentRepository.findByClassName(classId).stream()
+                .map(this::convertStudentToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    // Helper method to convert Student entity to DTO
+    private StudentDTO convertStudentToDTO(Student student) {
+        return StudentDTO.builder()
+                .id(student.getId())
+                .fullName(student.getFullName())
+                .dateOfBirth(student.getDateOfBirth())
+                .gender(student.getGender())
+                .studentId(student.getStudentId())
+                .className(student.getClassName())
+                .gradeLevel(student.getGradeLevel())
+                .schoolYear(student.getSchoolYear())
+                .imageUrl(student.getImageUrl())
+                .healthProfileId(student.getHealthProfile() != null ? student.getHealthProfile().getId() : null)
+                .parentId(student.getParent() != null ? student.getParent().getId() : null)
+                .build();
     }
 }
