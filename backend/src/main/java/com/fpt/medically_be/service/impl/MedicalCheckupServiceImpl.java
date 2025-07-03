@@ -5,39 +5,53 @@ import com.fpt.medically_be.dto.StudentDTO;
 import com.fpt.medically_be.dto.request.MedicalCheckupCreateRequestDTO;
 import com.fpt.medically_be.dto.response.ClassDTO;
 import com.fpt.medically_be.dto.response.StudentConsentDTO;
-import com.fpt.medically_be.entity.MedicalCheckup;
-import com.fpt.medically_be.entity.Nurse;
-import com.fpt.medically_be.entity.Student;
-import com.fpt.medically_be.repos.MedicalCheckupRepository;
-import com.fpt.medically_be.repos.NurseRepository;
-import com.fpt.medically_be.repos.StudentRepository;
+import com.fpt.medically_be.entity.*;
+import com.fpt.medically_be.repos.*;
 import com.fpt.medically_be.service.MedicalCheckupService;
 import com.fpt.medically_be.service.EmailService;
+import com.fpt.medically_be.service.SystemNotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class MedicalCheckupServiceImpl implements MedicalCheckupService {
 
     private final MedicalCheckupRepository medicalCheckupRepository;
     private final StudentRepository studentRepository;
     private final NurseRepository medicalStaffRepository;
     private final EmailService emailService;
+    private final HealthCampaignRepository healthCampaignRepository;
+    private final ParentRepository parentRepository;
+    private final NotificationRecipientsRepo notificationRecipientsRepo;
+    private final SpecialCheckupConsentRepository specialCheckupConsentRepository;
+    private final SystemNotificationService systemNotificationService;
 
     @Autowired
     public MedicalCheckupServiceImpl(MedicalCheckupRepository medicalCheckupRepository,
                                     StudentRepository studentRepository,
                                     NurseRepository medicalStaffRepository,
-                                    EmailService emailService) {
+                                    EmailService emailService,
+                                    HealthCampaignRepository healthCampaignRepository,
+                                    ParentRepository parentRepository,
+                                    NotificationRecipientsRepo notificationRecipientsRepo,
+                                    SpecialCheckupConsentRepository specialCheckupConsentRepository,
+                                    SystemNotificationService systemNotificationService) {
         this.medicalCheckupRepository = medicalCheckupRepository;
         this.studentRepository = studentRepository;
         this.medicalStaffRepository = medicalStaffRepository;
         this.emailService = emailService;
+        this.healthCampaignRepository = healthCampaignRepository;
+        this.parentRepository = parentRepository;
+        this.notificationRecipientsRepo = notificationRecipientsRepo;
+        this.specialCheckupConsentRepository = specialCheckupConsentRepository;
+        this.systemNotificationService = systemNotificationService;
     }
 
     @Override
@@ -344,22 +358,100 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
 
     @Override
     public List<MedicalCheckupDTO> createMedicalCheckupsWithStudents(MedicalCheckupCreateRequestDTO request) {
-        // TODO: Implement proper business logic for creating checkups with students and notifications
-        // For now, return empty list to allow compilation
-        return List.of();
+        // Get the health campaign
+        HealthCampaign healthCampaign = healthCampaignRepository.findById(request.getHealthCampaignId())
+                .orElseThrow(() -> new EntityNotFoundException("Health campaign not found with ID: " + request.getHealthCampaignId()));
+        
+        // Get the nurse creating the checkups
+        Nurse nurse = medicalStaffRepository.findById(request.getCreatedByNurseId())
+                .orElseThrow(() -> new EntityNotFoundException("Nurse not found with ID: " + request.getCreatedByNurseId()));
+        
+        List<MedicalCheckupDTO> createdCheckups = List.of();
+        
+        if (request.getStudentIds() != null && !request.getStudentIds().isEmpty()) {
+            // Create checkups for specified students
+            List<Student> students = studentRepository.findAllById(request.getStudentIds());
+            
+            createdCheckups = students.stream().map(student -> {
+                // Create medical checkup record
+                MedicalCheckup checkup = new MedicalCheckup();
+                checkup.setStudent(student);
+                checkup.setMedicalStaff(nurse);
+                checkup.setCheckupDate(request.getCheckupDate());
+                checkup.setCheckupType(request.getCheckupType());
+                checkup.setParentNotified(false);
+                
+                MedicalCheckup savedCheckup = medicalCheckupRepository.save(checkup);
+                
+                // Create in-app notification for parent if auto-notify is enabled
+                if (request.getAutoNotifyParents() && student.getParent() != null) {
+                    String message = String.format("Thông báo khám sức khỏe định kỳ cho học sinh %s vào ngày %s. " +
+                            "Vui lòng xác nhận các hạng mục khám đặc biệt.", 
+                            student.getFullName(), request.getCheckupDate());
+                    
+                    systemNotificationService.createHealthCheckupNotification(
+                            student.getParent(), student, healthCampaign, message);
+                }
+                
+                return convertToDTO(savedCheckup);
+            }).collect(Collectors.toList());
+        }
+        
+        return createdCheckups;
     }
 
     @Override
     public void notifyParentsCheckup(Long checkupId) {
-        // TODO: Implement in-app notification system for parents
-        // This should create SystemNotification records and update notification recipients
+        MedicalCheckup checkup = medicalCheckupRepository.findById(checkupId)
+                .orElseThrow(() -> new EntityNotFoundException("Medical checkup not found with ID: " + checkupId));
+        
+        if (checkup.getStudent() != null && checkup.getStudent().getParent() != null) {
+            String message = String.format("Kết quả khám sức khỏe của học sinh %s đã có. " +
+                    "Chẩn đoán: %s. Khuyến nghị: %s", 
+                    checkup.getStudent().getFullName(),
+                    checkup.getDiagnosis() != null ? checkup.getDiagnosis() : "Bình thường",
+                    checkup.getRecommendations() != null ? checkup.getRecommendations() : "Không có khuyến nghị đặc biệt");
+            
+            systemNotificationService.createMedicalCheckupResultNotification(
+                    checkup.getStudent().getParent(), checkup.getStudent(), checkup, message);
+            
+            // Mark as parent notified
+            checkup.setParentNotified(true);
+            medicalCheckupRepository.save(checkup);
+        }
     }
 
     @Override
     public List<StudentConsentDTO> getStudentConsents(Long checkupId) {
-        // TODO: Implement logic to get parent consent status for special checkups
-        // This should query SpecialCheckupConsent and NotificationRecipients tables
-        return List.of();
+        MedicalCheckup checkup = medicalCheckupRepository.findById(checkupId)
+                .orElseThrow(() -> new EntityNotFoundException("Medical checkup not found with ID: " + checkupId));
+        
+        // For now, return basic consent information
+        // This would typically involve querying NotificationRecipients and SpecialCheckupConsent
+        List<StudentConsentDTO> consents = List.of();
+        
+        if (checkup.getStudent() != null) {
+            Student student = checkup.getStudent();
+            Parent parent = student.getParent();
+            
+            if (parent != null) {
+                StudentConsentDTO consent = StudentConsentDTO.builder()
+                        .studentId(student.getId())
+                        .studentName(student.getFullName())
+                        .className(student.getClassName())
+                        .parentId(parent.getId())
+                        .parentName(parent.getFullName())
+                        .parentEmail(parent.getEmail())
+                        .overallResponse("PENDING")
+                        .hasResponded(false)
+                        .specialCheckupConsents(List.of()) // TODO: Implement special checkup consent lookup
+                        .build();
+                
+                consents = List.of(consent);
+            }
+        }
+        
+        return consents;
     }
 
     @Override
