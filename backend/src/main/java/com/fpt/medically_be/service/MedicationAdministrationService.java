@@ -3,7 +3,6 @@ package com.fpt.medically_be.service;
 import com.fpt.medically_be.dto.PageResponse;
 import com.fpt.medically_be.dto.request.MedicationAdministrationRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationAdministrationResponseDTO;
-import com.fpt.medically_be.entity.AdministrationStatus;
 import com.fpt.medically_be.entity.Status;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
