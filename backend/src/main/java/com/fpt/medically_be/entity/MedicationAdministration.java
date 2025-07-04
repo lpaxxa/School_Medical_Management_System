@@ -44,6 +44,9 @@ public class MedicationAdministration {
     @Column(name = "confirmation_image_url", columnDefinition = "NVARCHAR(255)")
     private String confirmationImageUrl;
 
+    @Column(name = "dose_sequence")
+    private Integer doseSequence;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -53,4 +56,3 @@ public class MedicationAdministration {
     }
 
 }
-

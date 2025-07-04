@@ -1,5 +1,6 @@
 package com.fpt.medically_be.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fpt.medically_be.dto.auth.AuthResponseDTO;
 import com.fpt.medically_be.dto.auth.LoginRequestDTO;
 import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
@@ -29,9 +30,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.fpt.medically_be.entity.MemberRole.*;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
     private final ParentRepository parentRepository;
     private final StudentRepository studentRepository;
     private final HealthProfileRepository healthProfileRepository;
+    private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Value("${frontend.url}")
@@ -97,13 +102,13 @@ public class AuthServiceImpl implements AuthService {
         
         // Create AccountMember
         AccountMember member = new AccountMember();
-        member.setId(generateCustomId(MemberRole.PARENT));
+        member.setId(generateCustomId(PARENT));
         member.setEmail(parentRegistrationRequestDTO.getEmail());
         member.setPhoneNumber(parentRegistrationRequestDTO.getEmergencyPhoneNumber());
         member.setUsername(generateUsername(parentRegistrationRequestDTO.getFullName()));
        // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
         member.setPassword(parentRegistrationRequestDTO.getPassword());
-        member.setRole(MemberRole.PARENT);
+        member.setRole(PARENT);
         member.setIsActive(true);
         member.setEmailSent(false);
         member = accountMemberRepos.save(member);
@@ -149,13 +154,13 @@ public class AuthServiceImpl implements AuthService {
         
         // Create AccountMember
         AccountMember member = new AccountMember();
-        member.setId(generateCustomId(MemberRole.NURSE));
+        member.setId(generateCustomId(NURSE));
         member.setEmail(nurseRegistrationRequestDTO.getEmail());
         member.setPhoneNumber(nurseRegistrationRequestDTO.getPhoneNumber());
         member.setUsername(generateUsername(nurseRegistrationRequestDTO.getFullName()));
         // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
         member.setPassword(nurseRegistrationRequestDTO.getPassword());
-        member.setRole(MemberRole.NURSE);
+        member.setRole(NURSE);
         member.setIsActive(true);
         member.setEmailSent(false);
         member = accountMemberRepos.save(member);
@@ -192,13 +197,13 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Phone number already exists");
         }
         AccountMember member = new AccountMember();
-        member.setId(generateCustomId(MemberRole.ADMIN));
+        member.setId(generateCustomId(ADMIN));
         member.setEmail(registrationDTO.getEmail());
         member.setPhoneNumber(registrationDTO.getPhoneNumber());
         member.setUsername(generateUsername(registrationDTO.getFullName()));
         // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
         member.setPassword(registrationDTO.getPassword());
-        member.setRole(MemberRole.ADMIN);
+        member.setRole(ADMIN);
         member.setIsActive(true);
         member.setEmailSent(false);
         member = accountMemberRepos.save(member);
@@ -294,6 +299,30 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-
+    @Override
+    public AuthResponseDTO registerMember(Map<String, Object> requestData) {
+        String role = (String) requestData.get("role");
+        
+        if (role == null || role.trim().isEmpty()) {
+            throw new RuntimeException("Role is required");
+        }
+        
+        try {
+            if (PARENT.name().equals(role)) {
+                ParentRegistrationRequestDTO parentDTO = objectMapper.convertValue(requestData, ParentRegistrationRequestDTO.class);
+                return registerParent(parentDTO);
+            } else if (NURSE.name().equals(role)) {
+                NurseRegistrationRequestDTO nurseDTO = objectMapper.convertValue(requestData, NurseRegistrationRequestDTO.class);
+                return registerNurse(nurseDTO);
+            } else if (ADMIN.name().equals(role)) {
+                RegistrationDTO adminDTO = objectMapper.convertValue(requestData, RegistrationDTO.class);
+                return registerAdmin(adminDTO);
+            } else {
+                throw new RuntimeException("Invalid role specified: " + role);
+            }
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid data format for role " + role + ": " + e.getMessage());
+        }
+    }
 
 }

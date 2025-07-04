@@ -71,6 +71,4 @@ public class MedicationInstruction {
     @Column(columnDefinition = "TEXT")
     private String prescriptionImageBase64;
 
-    @Column(length = 50)
-    private String prescriptionImageType;
 }

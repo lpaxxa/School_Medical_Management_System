@@ -5,16 +5,23 @@ import com.fpt.medically_be.dto.response.MedicationInstructionDTO;
 import com.fpt.medically_be.service.MedicationInstructionService;
 import com.fpt.medically_be.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for Parent Medication Request operations
@@ -112,4 +119,54 @@ public class ParentMedicationRequestController {
         MedicationInstructionDTO request = medicationInstructionService.getMedicationInstructionById(requestId);
         return ResponseEntity.ok(request);
     }
+
+    @PostMapping(value = "/{id}/upload-confirmation-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('PARENT')")
+    public ResponseEntity<Map<String, Object>> uploadConfirmationImage(
+            @PathVariable Long id,
+            @RequestParam("image") MultipartFile image,
+            Authentication authentication) {
+        try {
+            // Upload ảnh xác nhận và cập nhật thông tin bản ghi
+            MedicationInstructionDTO updatedRecord =
+                 medicationInstructionService.uploadConfirmationImage(id, image, authentication);
+
+            // Kiểm tra xem imageUrl có null không
+            String imageUrl = updatedRecord.getPrescriptionImageUrl();
+            if (imageUrl == null || imageUrl.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of(
+                                "status", "error",
+                                "message", "Không thể lưu ảnh xác nhận, URL trả về là null"
+                        ));
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "Đã tải lên ảnh xác nhận thành công");
+            response.put("imageUrl", imageUrl);
+            response.put("administrationRecord", updatedRecord);
+
+            return ResponseEntity.ok(response);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", e.getMessage()
+                    ));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", e.getMessage()
+                    ));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", "Lỗi khi tải lên ảnh: " + e.getMessage()
+                    ));
+        }
+    }
+
 } 

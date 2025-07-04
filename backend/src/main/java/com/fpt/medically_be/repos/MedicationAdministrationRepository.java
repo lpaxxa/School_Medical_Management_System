@@ -1,7 +1,6 @@
 package com.fpt.medically_be.repos;
 
 import com.fpt.medically_be.entity.MedicationAdministration;
-import com.fpt.medically_be.entity.AdministrationStatus;
 import com.fpt.medically_be.entity.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -74,4 +73,5 @@ public interface MedicationAdministrationRepository extends JpaRepository<Medica
     // Find all administrations (no pagination)
     @Query("SELECT ma FROM MedicationAdministration ma ORDER BY ma.administeredAt DESC")
     List<MedicationAdministration> findAllOrderByAdministeredAtDesc();
+    int countByMedicationInstructionId(Long medicationInstructionId);
 } 

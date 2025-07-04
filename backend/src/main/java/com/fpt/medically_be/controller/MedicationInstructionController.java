@@ -133,4 +133,16 @@ public class MedicationInstructionController {
         medicationInstructionService.deleteMedicationInstruction(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Manually trigger update of expired medication instructions
+     * POST /api/v1/medication-instructions/update-expired
+     * @return The number of medication instructions that were updated to EXPIRED
+     */
+    @PostMapping("/update-expired")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    public ResponseEntity<Integer> updateExpiredMedicationInstructions() {
+        int updatedCount = medicationInstructionService.updateExpiredMedicationInstructions();
+        return ResponseEntity.ok(updatedCount);
+    }
 }

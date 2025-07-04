@@ -6,7 +6,5 @@ public enum Status {
     REJECTED,
     FULLY_TAKEN,
     PARTIALLY_TAKEN,
-    NOT_TAKEN,
-    ISSUE,
-
+    EXPIRED
 }
