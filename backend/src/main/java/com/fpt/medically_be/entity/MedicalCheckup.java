@@ -3,6 +3,7 @@ package com.fpt.medically_be.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "medical_checkups")
@@ -22,6 +23,21 @@ public class MedicalCheckup {
 
     @Column(name = "checkup_type", columnDefinition = "NVARCHAR(50)")
     private String checkupType; // Regular, Vaccination, Emergency, etc.
+
+    // Thêm mối quan hệ với HealthCampaign
+    @ManyToOne
+    @JoinColumn(name = "health_campaign_id")
+    private HealthCampaign healthCampaign;
+
+    // Thêm mối quan hệ với ParentConsent
+    @ManyToOne
+    @JoinColumn(name = "parent_consent_id")
+    private ParentConsent parentConsent;
+
+    // Thêm trạng thái khám
+    @Enumerated(EnumType.STRING)
+    @Column(name = "checkup_status")
+    private CheckupStatus checkupStatus = CheckupStatus.WAITING;
 
     private Double height;
 
@@ -62,4 +78,22 @@ public class MedicalCheckup {
     @ManyToOne
     @JoinColumn(name = "staff_id")
     private Nurse medicalStaff;
+
+    // Thêm thời gian tạo và cập nhật
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
