@@ -37,6 +37,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         private Integer frequencyPerDay;
         private String timeOfDay; // morning afternoon before lunch....
         private String specialInstructions;
+        private String prescriptionImageUrl; // URL of the prescription image if provided
 
         // System flags
         private Boolean parentProvided; // Always true for parent requests
@@ -68,6 +69,8 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
         entity.setStatus(dto.getStatus());
         entity.setRejectionReason(dto.getRejectionReason());
         entity.setResponseDate(dto.getResponseDate());
+        entity.setPrescriptionImageBase64(dto.getPrescriptionImageUrl());
+
 
 
         // Note: Relationships (healthProfile, requestedBy, approvedBy) need to be set separately
@@ -85,6 +88,7 @@ public class MedicationInstructionDTO extends BaseMapper<MedicationInstruction, 
                 try {
                         this.id = entity.getId();
                         this.submittedAt = entity.getSubmittedAt();
+                        prescriptionImageUrl = entity.getPrescriptionImageBase64();
 
                         // Health profile and related information with comprehensive null safety
                         try {

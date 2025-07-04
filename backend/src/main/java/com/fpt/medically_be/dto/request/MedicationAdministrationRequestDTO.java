@@ -15,9 +15,9 @@ public class MedicationAdministrationRequestDTO {
     @NotNull(message = "Administration time is required")
     private LocalDateTime administeredAt;
 
-    @NotNull(message = "Frequency per day is required")
-    @Min(value = 0, message = "Frequency cannot be negative")
-    private Integer frequencyPerDay;
+//    @NotNull(message = "Frequency per day is required")
+//    @Min(value = 0, message = "Frequency cannot be negative")
+//    private Integer frequencyPerDay;
     
 //    @NotNull(message = "Administration status is required")
 ////    private AdministrationStatus administrationStatus;

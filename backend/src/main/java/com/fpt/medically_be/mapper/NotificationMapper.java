@@ -89,12 +89,10 @@ public class NotificationMapper {
             case PARTIALLY_TAKEN:
                 return String.format("Your child %s refused to take %s. Please contact the school for more details.", 
                     record.getStudentName(), record.getMedicationName());
-            case NOT_TAKEN:
+            case EXPIRED:
                 return String.format("Your child %s received only a partial dose of %s. Please check the notes for details.", 
                     record.getStudentName(), record.getMedicationName());
-            case ISSUE:
-                return String.format("There was an issue administering %s to your child %s. Please contact the school.", 
-                    record.getMedicationName(), record.getStudentName());
+
             default:
                 return String.format("Medication administration update for your child %s regarding %s.", 
                     record.getStudentName(), record.getMedicationName());

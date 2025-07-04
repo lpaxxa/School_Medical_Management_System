@@ -70,7 +70,19 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
         MedicationInstruction medicationInstruction = medicationInstructionRepository.findById(request.getMedicationInstructionId())
                 .orElseThrow(() -> new EntityNotFoundException("Medication instruction not found with ID: " + request.getMedicationInstructionId()));
         
-        // 2. CRITICAL: Validate medication instruction is approved
+        // 2. Check if medication has expired and auto-update status
+        if (medicationInstruction.getEndDate() != null && medicationInstruction.getEndDate().isBefore(LocalDate.now())) {
+            // Check if any doses were given
+            int dosesGiven = administrationRepository.countByMedicationInstructionId(medicationInstruction.getId());
+            if (dosesGiven == 0) {
+                // No doses given and expired - mark as EXPIRED
+                medicationInstruction.setStatus(Status.EXPIRED);
+                medicationInstructionRepository.save(medicationInstruction);
+                throw new IllegalStateException("Cannot administer medication: instruction has expired on " + medicationInstruction.getEndDate());
+            }
+        }
+
+        // 3. CRITICAL: Validate medication instruction is approved
         if (medicationInstruction.getStatus() != Status.APPROVED && medicationInstruction.getStatus() != Status.PARTIALLY_TAKEN) {
             throw new IllegalStateException("Cannot administer medication: instruction status is " + medicationInstruction.getStatus() + ". Only APPROVED or PARTIALLY instructions can be administered.");
         }
@@ -99,29 +111,35 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
         MedicationAdministration administration = administrationMapper.toEntity(request);
         administration.setMedicationInstruction(medicationInstruction);
         administration.setAdministeredBy(nurse);
+
+        if (administration.getAdministeredAt() == null) {
+            administration.setAdministeredAt(LocalDateTime.now());
+        }
         try {
-            int requestedFrequency = request.getFrequencyPerDay();
+
             int maxFrequency = medicationInstruction.getFrequencyPerDay();
 
-            // Validate frequency is within allowed range
-            if (requestedFrequency < 0) {
-                throw new IllegalArgumentException("Frequency cannot be negative");
+            int dosesGivenSoFar = administrationRepository.countByMedicationInstructionId(medicationInstruction.getId());
+            int nextDose = dosesGivenSoFar + 1;
+            if (nextDose > maxFrequency ) {
+                throw new IllegalStateException("Cannot administer more doses. Already given " + dosesGivenSoFar + " out of " + maxFrequency );
             }
-
-            if (requestedFrequency > maxFrequency) {
-                throw new IllegalArgumentException("Requested frequency (" + requestedFrequency +
-                        ") exceeds maximum allowed frequency (" + maxFrequency + ")");
-            }
+            administration.setDoseSequence(dosesGivenSoFar + 1);
             //SET STATUS
-            if (request.getFrequencyPerDay() < medicationInstruction.getFrequencyPerDay() && request.getFrequencyPerDay() > 0) {
+            if (nextDose < maxFrequency) {
+
                 administration.setAdministrationStatus(Status.PARTIALLY_TAKEN);
                 medicationInstruction.setStatus(Status.PARTIALLY_TAKEN);
-            } else if (request.getFrequencyPerDay() == medicationInstruction.getFrequencyPerDay()) {
+
+            } else if (nextDose == maxFrequency) {
+
                 administration.setAdministrationStatus(Status.FULLY_TAKEN);
                 medicationInstruction.setStatus(Status.FULLY_TAKEN);
-            } else if (medicationInstruction.getEndDate().isBefore(LocalDate.now())) {
-                administration.setAdministrationStatus(Status.NOT_TAKEN);
-                medicationInstruction.setStatus(Status.NOT_TAKEN);
+            }
+
+            if ( dosesGivenSoFar == 0 && medicationInstruction.getEndDate().isBefore(LocalDate.now())) {
+                administration.setAdministrationStatus(Status.EXPIRED);
+                medicationInstruction.setStatus(Status.EXPIRED);
             }
         }catch (NumberFormatException e) {
             logger.severe("Invalid frequency format: " + e.getMessage());
@@ -403,6 +421,49 @@ public class MedicationAdministrationServiceImpl implements MedicationAdministra
         return administrations.stream()
                 .map(administrationMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Automatically update expired medications to EXPIRED status
+     * This method should be called periodically or before displaying medication lists
+     */
+    public void updateExpiredMedications() {
+        try {
+            LocalDate today = LocalDate.now();
+            
+            // Find all approved or partially taken medications that have passed their end date
+            List<MedicationInstruction> expiredInstructions = medicationInstructionRepository
+                .findByStatusInAndEndDateBefore(
+                    List.of(Status.APPROVED, Status.PARTIALLY_TAKEN), 
+                    today
+                );
+            
+            for (MedicationInstruction instruction : expiredInstructions) {
+                // Check if any doses were given
+                int dosesGiven = administrationRepository.countByMedicationInstructionId(instruction.getId());
+                
+                if (dosesGiven == 0) {
+                    // No doses given and expired - mark as EXPIRED
+                    instruction.setStatus(Status.EXPIRED);
+                    logger.info("Medication instruction ID " + instruction.getId() + 
+                               " expired on " + instruction.getEndDate() + " with no doses given. Status updated to EXPIRED.");
+                } else {
+                    // Some doses were given but not completed - keep as PARTIALLY_TAKEN
+                    // The medication period has ended but some treatment was provided
+                    logger.info("Medication instruction ID " + instruction.getId() + 
+                               " expired on " + instruction.getEndDate() + " with " + dosesGiven + " doses given. Keeping PARTIALLY_TAKEN status.");
+                }
+            }
+            
+            // Save all updated instructions
+            if (!expiredInstructions.isEmpty()) {
+                medicationInstructionRepository.saveAll(expiredInstructions);
+                logger.info("Updated " + expiredInstructions.size() + " expired medication instructions.");
+            }
+            
+        } catch (Exception e) {
+            logger.severe("Error updating expired medications: " + e.getMessage());
+        }
     }
 
 }

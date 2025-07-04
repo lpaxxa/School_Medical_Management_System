@@ -37,265 +37,6 @@ const apiService1 = axios.create({
   );
 });
 
-// Lưu trữ mock data cho các chức năng chưa có API - Cập nhật theo format API mới
-const mockMedicineRequests = [
-  {
-    id: 1,
-    submittedAt: "2024-02-25",
-    healthProfileId: 2,
-    studentName: "Trần Thị Bảo Ngọc",
-    studentClass: "2B2",
-    studentId: "HS002",
-    requestedBy: "Trần Thị Mai",
-    requestedByAccountId: "PARENT002",
-    medicationName: "Ventolin Inhaler",
-    dosageInstructions: "Xịt 2 nhát khi khó thở hoặc trước khi vận động",
-    startDate: "2024-03-01",
-    endDate: "2024-12-31",
-    frequencyPerDay: "Khi cần thiết",
-    timeOfDay: "[\"Khi cần thiết\"]",
-    specialInstructions: "Luôn mang theo người, sử dụng khi có triệu chứng hen suyễn",
-    parentProvided: true,
-    status: "APPROVED",
-    rejectionReason: null,
-    approvedBy: "Trần Văn Minh",
-    responseDate: "2024-02-26T10:00:00"
-  },
-  {
-    id: 2,
-    submittedAt: "2024-02-20",
-    healthProfileId: 3,
-    studentName: "Nguyễn Văn An",
-    studentClass: "3A1",
-    studentId: "HS003",
-    requestedBy: "Nguyễn Thị Lan",
-    requestedByAccountId: "PARENT003",
-    medicationName: "Paracetamol",
-    dosageInstructions: "1 viên 500mg khi sốt trên 38.5°C",
-    startDate: "2024-02-21",
-    endDate: "2024-02-28",
-    frequencyPerDay: "Tối đa 3 lần/ngày",
-    timeOfDay: "[\"Sáng\", \"Trưa\", \"Tối\"]",
-    specialInstructions: "Uống sau bữa ăn, cách nhau ít nhất 6 tiếng",
-    parentProvided: true,
-    status: "PENDING_APPROVAL",
-    rejectionReason: null,
-    approvedBy: null,
-    responseDate: null
-  },
-  {
-    id: 3,
-    submittedAt: "2024-02-18",
-    healthProfileId: 4,
-    studentName: "Lê Thị Hương",
-    studentClass: "1C2",
-    studentId: "HS004",
-    requestedBy: "Lê Văn Đức",
-    requestedByAccountId: "PARENT004",
-    medicationName: "Cetirizine",
-    dosageInstructions: "1/2 viên 10mg mỗi tối",
-    startDate: "2024-02-19",
-    endDate: "2024-03-19",
-    frequencyPerDay: "1 lần/ngày",
-    timeOfDay: "[\"Tối\"]",
-    specialInstructions: "Uống trước khi đi ngủ để tránh buồn ngủ ban ngày",
-    parentProvided: true,
-    status: "APPROVED",
-    rejectionReason: null,
-    approvedBy: "Phạm Thị Hoa",
-    responseDate: "2024-02-19T14:30:00"
-  },
-  {
-    id: 4,
-    submittedAt: "2024-02-15",
-    healthProfileId: 5,
-    studentName: "Hoàng Minh Tuấn",
-    studentClass: "4B1",
-    studentId: "HS005",
-    requestedBy: "Hoàng Thị Nga",
-    requestedByAccountId: "PARENT005",
-    medicationName: "Vitamin D3",
-    dosageInstructions: "1 viên 1000 IU mỗi ngày",
-    startDate: "2024-02-16",
-    endDate: "2024-05-16",
-    frequencyPerDay: "1 lần/ngày",
-    timeOfDay: "[\"Sáng\"]",
-    specialInstructions: "Uống cùng bữa sáng để tăng hấp thụ",
-    parentProvided: true,
-    status: "REJECTED",
-    rejectionReason: "Cần có đơn thuốc từ bác sĩ cho việc bổ sung vitamin dài hạn",
-    approvedBy: "Trần Văn Minh",
-    responseDate: "2024-02-16T09:15:00"
-  },
-  {
-    id: 5,
-    submittedAt: "2024-02-12",
-    healthProfileId: 6,
-    studentName: "Phạm Thị Mai",
-    studentClass: "5A3",
-    studentId: "HS006",
-    requestedBy: "Phạm Văn Hùng",
-    requestedByAccountId: "PARENT006",
-    medicationName: "Loratadine",
-    dosageInstructions: "1 viên 10mg khi có triệu chứng dị ứng",
-    startDate: "2024-02-13",
-    endDate: "2024-06-13",
-    frequencyPerDay: "Khi cần thiết",
-    timeOfDay: "[\"Khi cần thiết\"]",
-    specialInstructions: "Chỉ sử dụng khi có triệu chứng ngứa, chảy nước mũi",
-    parentProvided: true,
-    status: "APPROVED",
-    rejectionReason: null,
-    approvedBy: "Phạm Thị Hoa",
-    responseDate: "2024-02-13T11:20:00"
-  },
-  {
-    id: 6,
-    submittedAt: "2024-02-10",
-    healthProfileId: 7,
-    studentName: "Đặng Văn Long",
-    studentClass: "2A1",
-    studentId: "HS007",
-    requestedBy: "Đặng Thị Linh",
-    requestedByAccountId: "PARENT007",
-    medicationName: "Amoxicillin",
-    dosageInstructions: "1 gói bột 250mg pha với nước",
-    startDate: "2024-02-11",
-    endDate: "2024-02-18",
-    frequencyPerDay: "2 lần/ngày",
-    timeOfDay: "[\"Sáng\", \"Tối\"]",
-    specialInstructions: "Uống đủ 7 ngày theo chỉ định của bác sĩ, không được ngừng giữa chừng",
-    parentProvided: true,
-    status: "PENDING_APPROVAL",
-    rejectionReason: null,
-    approvedBy: null,
-    responseDate: null
-  },
-  {
-    id: 7,
-    submittedAt: "2024-02-08",
-    healthProfileId: 8,
-    studentName: "Vũ Thị Ngọc",
-    studentClass: "3B2",
-    studentId: "HS008",
-    requestedBy: "Vũ Văn Phong",
-    requestedByAccountId: "PARENT008",
-    medicationName: "Ibuprofen",
-    dosageInstructions: "1/2 viên 200mg khi đau",
-    startDate: "2024-02-09",
-    endDate: "2024-02-16",
-    frequencyPerDay: "Tối đa 3 lần/ngày",
-    timeOfDay: "[\"Khi cần thiết\"]",
-    specialInstructions: "Chỉ sử dụng khi đau đầu hoặc đau răng, uống sau ăn",
-    parentProvided: true,
-    status: "CANCELLED",
-    rejectionReason: null,
-    approvedBy: null,
-    responseDate: null
-  },
-  {
-    id: 8,
-    submittedAt: "2024-02-05",
-    healthProfileId: 9,
-    studentName: "Ngô Minh Khôi",
-    studentClass: "4A2",
-    studentId: "HS009",
-    requestedBy: "Ngô Thị Hạnh",
-    requestedByAccountId: "PARENT009",
-    medicationName: "Probiotics",
-    dosageInstructions: "1 gói bột hòa với sữa hoặc nước",
-    startDate: "2024-02-06",
-    endDate: "2024-03-06",
-    frequencyPerDay: "1 lần/ngày",
-    timeOfDay: "[\"Sáng\"]",
-    specialInstructions: "Uống cùng bữa sáng để cải thiện hệ tiêu hóa",
-    parentProvided: true,
-    status: "APPROVED",
-    rejectionReason: null,
-    approvedBy: "Trần Văn Minh",
-    responseDate: "2024-02-06T16:45:00"
-  }
-];
-
-// Mock data cho lịch sử dùng thuốc - Updated to match API format
-const mockMedicationAdministrations = [
-  {
-    id: 1,
-    medicationInstructionId: 1,
-    medicationName: "Paracetamol 500mg",
-    studentName: "Nguyễn Minh An",
-    administeredAt: "2024-03-09T08:00:00",
-    administeredBy: "Nguyễn Thị Lan Anh",
-    administrationStatus: "SUCCESSFUL",
-    notes: "Đã cho uống 1 viên khi sốt 38.7°C",
-    confirmationImageUrl: "https://schoolmed.com/images/admin-001.jpg"
-  },
-  {
-    id: 2,
-    medicationInstructionId: 2,
-    medicationName: "Ventolin Inhaler",
-    studentName: "Nguyễn Minh Tuấn",
-    administeredAt: "2024-12-30T10:00:00",
-    administeredBy: "Nguyễn Thị Lan Anh",
-    administrationStatus: "SUCCESSFUL",
-    notes: "Đã xịt 2 nhát khi học sinh khó thở.",
-    confirmationImageUrl: "https://schoolmed.com/images/admin-002.jpg"
-  },
-  {
-    id: 3,
-    medicationInstructionId: 3,
-    medicationName: "Amoxicillin 500mg",
-    studentName: "Lê Bảo Ngọc",
-    administeredAt: "2024-03-10T07:30:00",
-    administeredBy: "Nguyễn Thị Lan Anh",
-    administrationStatus: "SUCCESSFUL",
-    notes: "Cho uống 1 viên sáng và 1 viên tối.",
-    confirmationImageUrl: "https://schoolmed.com/images/admin-003.jpg"
-  },
-  {
-    id: 4,
-    medicationInstructionId: 4,
-    medicationName: "Vitamin C 500mg",
-    studentName: "Lê Bảo Minh",
-    administeredAt: "2024-04-02T08:00:00",
-    administeredBy: "Nguyễn Thị Lan Anh",
-    administrationStatus: "SUCCESSFUL",
-    notes: "Uống 1 viên vào buổi sáng như chỉ định.",
-    confirmationImageUrl: "https://schoolmed.com/images/admin-004.jpg"
-  },
-  {
-    id: 5,
-    medicationInstructionId: 5,
-    medicationName: "ORS (Oresol)",
-    studentName: "Phạm Minh Thư",
-    administeredAt: "2024-03-18T11:45:00",
-    administeredBy: "Nguyễn Thị Lan Anh",
-    administrationStatus: "SUCCESSFUL",
-    notes: "Học sinh uống 1 gói Oresol pha loãng với 200ml nước.",
-    confirmationImageUrl: "https://schoolmed.com/images/admin-005.jpg"
-  },
-  {
-    id: 6,
-    medicationInstructionId: 106,
-    medicationName: "Cetirizine",
-    studentName: "Đặng Văn F",
-    administeredAt: "2025-06-24T08:45:00",
-    administeredBy: "Y tá Ngọc",
-    administrationStatus: "REFUSED",
-    notes: "Học sinh từ chối uống thuốc"
-  },
-  {
-    id: 7,
-    medicationInstructionId: 107,
-    medicationName: "Ibuprofen",
-    studentName: "Phạm Thị Mai",
-    administeredAt: "2025-06-24T09:30:00",
-    administeredBy: "Y tá Lan",
-    administrationStatus: "PARTIAL",
-    notes: "Học sinh chỉ uống một phần thuốc"
-  }
-];
-
 // Thay thế hàm checkAuthToken hiện tại
 const checkAuthToken = () => {
   const token = localStorage.getItem('authToken');
@@ -365,24 +106,21 @@ const receiveMedicineService = {
   // API thật để lấy tất cả yêu cầu thuốc
   getAllMedicineRequests: async () => {
     try {
-      // Loại bỏ setLoading ở đây - việc này sẽ được xử lý ở Context
       console.log('Gọi API lấy danh sách yêu cầu thuốc...');
       console.log('Auth token status:', localStorage.getItem('authToken') ? 'Token exists' : 'No token');
       
-      try {
-        // Đảm bảo đường dẫn API chính xác
-        const response = await api.get('/nurse-medication-approvals/all-requests');
-        console.log('API getAllMedicineRequests response:', response.data);
-        
-        return response.data;
-      } catch (apiError) {
-        console.error("API call failed, chi tiết lỗi:", apiError.response || apiError);
-        // Sử dụng dữ liệu mẫu khi API lỗi
-        return [...mockMedicineRequests];
-      }
+      const response = await api.get('/nurse-medication-approvals/all-requests');
+      console.log('API getAllMedicineRequests response:', response.data);
+      
+      return response.data;
     } catch (error) {
-      console.error("Error in getAllMedicineRequests:", error);
-      return [...mockMedicineRequests];
+      console.error("API call failed for getAllMedicineRequests:", error.response || error);
+      
+      // Ném lỗi thay vì dùng mock data
+      throw {
+        message: error.response?.data?.message || 'Không thể tải danh sách yêu cầu thuốc',
+        status: error.response?.status
+      };
     }
   },
 
@@ -390,38 +128,44 @@ const receiveMedicineService = {
   searchMedicationByName: async (searchTerm) => {
     console.log("TODO: Implement real API - Searching medication by name:", searchTerm);
     
-    // Dữ liệu mẫu cho các mục thuốc
-    const mockMedicationItems = [
-      { id: 1, name: "Paracetamol", dosage: "500mg", quantity: 120, expiryDate: "2026-05-20" },
-      { id: 2, name: "Amoxicillin", dosage: "250mg", quantity: 60, expiryDate: "2026-03-15" },
-      { id: 3, name: "Cetirizine", dosage: "10mg", quantity: 90, expiryDate: "2026-10-10" },
-      { id: 4, name: "Vitamin C", dosage: "500mg", quantity: 200, expiryDate: "2027-01-30" },
-      { id: 5, name: "Loratadine", dosage: "10mg", quantity: 50, expiryDate: "2026-08-12" }
-    ];
-    
-    // Lọc theo từ khóa tìm kiếm nếu có
-    if (searchTerm && searchTerm.trim() !== '') {
-      return mockMedicationItems.filter(item => 
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    return mockMedicationItems;
+    // Tạm thời throw error để tránh dùng mock data trong production
+    throw {
+      success: false,
+      message: 'API chưa được implement cho chức năng tìm kiếm thuốc theo tên. Vui lòng liên hệ team phát triển.'
+    };
   },
   // TODO: Chờ API - Lấy chi tiết yêu cầu thuốc theo ID
   getMedicineRequestById: async (id) => {
-    console.log("TODO: Implement real API - Getting medicine request by ID:", id);
-    const mockRequest = mockMedicineRequests.find(req => req.id === Number(id));
-    
-    if (mockRequest) {
-      return {...mockRequest};
-    } else {
-      throw new Error(`Không tìm thấy yêu cầu thuốc với ID ${id}`);
+    try {
+      console.log("Calling API - Getting medicine request by ID:", id);
+      
+      // Gọi API thực tế để lấy chi tiết yêu cầu thuốc
+      const response = await api.get(`/nurse-medication-approvals/${id}`);
+      console.log('API Response for getMedicineRequestById:', response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error("API call failed for getMedicineRequestById:", error.response || error);
+      
+      // Ném lỗi thay vì dùng mock data
+      throw {
+        message: error.response?.data?.message || 'Không thể tải thông tin chi tiết yêu cầu thuốc',
+        status: error.response?.status
+      };
     }
   },
   // TODO: Chờ API - Thêm yêu cầu thuốc mới
+  // CẢNH BÁO: Function này đang sử dụng mock data. Cần implement API thực tế trước khi dùng trong production
   addMedicineRequest: async (medicineData) => {
     console.log("TODO: Implement real API - Adding new medicine request");
+    
+    // Tạm thời throw error để tránh dùng mock data trong production
+    throw {
+      success: false,
+      message: 'API chưa được implement cho chức năng thêm yêu cầu thuốc mới. Vui lòng liên hệ team phát triển.'
+    };
+    
+    /* MOCK CODE - CHỈ DÙNG CHO DEVELOPMENT
     try {
       // Thử gọi API thật
       try {
@@ -452,11 +196,21 @@ const receiveMedicineService = {
       console.error("Lỗi khi thêm yêu cầu thuốc mới:", error);
       return { success: false, message: error.message };
     }
+    */
   },
   
   // TODO: Chờ API - Cập nhật yêu cầu thuốc
+  // CẢNH BÁO: Function này đang sử dụng mock data. Cần implement API thực tế trước khi dùng trong production
   updateMedicineRequest: async (id, medicineData) => {
     console.log("TODO: Implement real API - Updating medicine request");
+    
+    // Tạm thời throw error để tránh dùng mock data trong production
+    throw {
+      success: false,
+      message: 'API chưa được implement cho chức năng cập nhật yêu cầu thuốc. Vui lòng liên hệ team phát triển.'
+    };
+    
+    /* MOCK CODE - CHỈ DÙNG CHO DEVELOPMENT
     try {
       // Thử gọi API thật
       try {
@@ -498,7 +252,10 @@ const receiveMedicineService = {
       console.error(`Lỗi khi cập nhật thông tin thuốc với ID ${id}:`, error);
       return { success: false, message: error.message };
     }
-  },  // Xử lý yêu cầu thuốc (phê duyệt/từ chối)
+    */
+  },
+  
+  // Xử lý yêu cầu thuốc (phê duyệt/từ chối)
   processMedicineRequest: async (id, requestData) => {
     try {
       console.log(`Processing medicine request ${id} with data:`, requestData);
@@ -511,74 +268,40 @@ const receiveMedicineService = {
       
       console.log('Preparing payload for API:', payload);
       
-      try {
-        // Sử dụng axios qua instance api thay vì fetch để tận dụng interceptor
-        const response = await api.put(`/nurse-medication-approvals/${id}/process`, payload);
-        
-        console.log('Response status:', response.status);
-        console.log('API Response data:', response.data);
-        
-        return {
-          success: true,
-          message: `Đã ${requestData.decision === 'APPROVED' ? 'phê duyệt' : 'từ chối'} yêu cầu thuốc thành công`,
-          data: response.data
-        };      } catch (apiError) {
-        console.log('API call failed, fallback to mock data', apiError);
-        
-        // Log chi tiết hơn về lỗi API để debug
-        if (apiError.response) {
-          // Server trả về lỗi
-          console.error('Error response:', {
-            status: apiError.response.status,
-            headers: apiError.response.headers,
-            data: apiError.response.data
-          });
-        } else if (apiError.request) {
-          // Request được gửi nhưng không nhận được response
-          console.error('Error request:', apiError.request);
-        } else {
-          // Lỗi khác khi cài đặt request
-          console.error('Error message:', apiError.message);
-        }
-        
-        // FALLBACK: Sử dụng mock data khi API thất bại
-        // Tìm request trong mock data
-        const index = mockMedicineRequests.findIndex(req => req.id === Number(id));
-        if (index !== -1) {
-          // Cập nhật trạng thái theo quyết định
-          const newStatus = requestData.decision === 'APPROVED' ? 1 : 2;
-          
-          // Cập nhật mock data
-          mockMedicineRequests[index] = {
-            ...mockMedicineRequests[index],
-            status: newStatus,
-            ...(requestData.decision === 'REJECTED' && { 
-              rejectionReason: requestData.reason || 'Không đáp ứng yêu cầu' 
-            })
-          };
-          
-          console.log(`Mock: Updated request ${id} status to ${newStatus}`);
-          
-          return {
-            success: true,
-            message: `Đã ${requestData.decision === 'APPROVED' ? 'phê duyệt' : 'từ chối'} yêu cầu thuốc thành công (dữ liệu mẫu)`,
-            data: mockMedicineRequests[index]
-          };
-        } else {
-          throw new Error(`Không tìm thấy yêu cầu thuốc với ID ${id}`);
-        }
-      }
+      // Sử dụng axios qua instance api thay vì fetch để tận dụng interceptor
+      const response = await api.put(`/nurse-medication-approvals/${id}/process`, payload);
+      
+      console.log('Response status:', response.status);
+      console.log('API Response data:', response.data);
+      
+      return {
+        success: true,
+        message: `Đã ${requestData.decision === 'APPROVED' ? 'phê duyệt' : 'từ chối'} yêu cầu thuốc thành công`,
+        data: response.data
+      };
     } catch (error) {
       console.error(`Lỗi khi xử lý yêu cầu thuốc với ID ${id}:`, error);
-      return { 
-        success: false, 
-        message: error.message || 'Không thể xử lý yêu cầu thuốc'
+      
+      // Ném lỗi thay vì dùng mock data
+      throw {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Không thể xử lý yêu cầu thuốc',
+        status: error.response?.status
       };
     }
   },
   // TODO: Chờ API - Xóa yêu cầu thuốc
+  // CẢNH BÁO: Function này đang sử dụng mock data. Cần implement API thực tế trước khi dùng trong production
   deleteMedicineRequest: async (id) => {
     console.log("TODO: Implement real API - Deleting medicine request");
+    
+    // Tạm thời throw error để tránh dùng mock data trong production
+    throw {
+      success: false,
+      message: 'API chưa được implement cho chức năng xóa yêu cầu thuốc. Vui lòng liên hệ team phát triển.'
+    };
+    
+    /* MOCK CODE - CHỈ DÙNG CHO DEVELOPMENT
     try {
       // Xử lý trực tiếp trên dữ liệu mẫu
       const index = mockMedicineRequests.findIndex(req => req.id === Number(id));
@@ -592,11 +315,21 @@ const receiveMedicineService = {
       console.error(`Lỗi khi xóa yêu cầu thuốc với ID ${id}:`, error);
       return { success: false, message: error.message };
     }
+    */
   },
   
   // TODO: Chờ API - Tìm kiếm thuốc từ phụ huynh theo các tiêu chí
+  // CẢNH BÁO: Function này đang sử dụng mock data. Cần implement API thực tế trước khi dùng trong production
   searchMedicineRequests: async (filters) => {
     console.log("TODO: Implement real API - Searching medicine requests with filters");
+    
+    // Tạm thời throw error để tránh dùng mock data trong production
+    throw {
+      success: false,
+      message: 'API chưa được implement cho chức năng tìm kiếm yêu cầu thuốc. Vui lòng liên hệ team phát triển.'
+    };
+    
+    /* MOCK CODE - CHỈ DÙNG CHO DEVELOPMENT
     try {
       console.log("Tìm kiếm trên dữ liệu mẫu với các bộ lọc:", filters);
         
@@ -651,12 +384,13 @@ const receiveMedicineService = {
       // Trả về dữ liệu mẫu trong trường hợp xảy ra lỗi
       return [...mockMedicineRequests]; 
     }
+    */
   },
 
   // Lấy lịch sử dùng thuốc gần đây - Function được gọi bởi MedicationHistory.jsx
   getRecentMedicationAdministrations: async (page = 1, size = 10) => {
     try {
-      console.log(`Getting recent medication administrations with images (page ${page}, size ${size})`);
+      console.log(`🔄 Calling REAL API for medication administrations (page ${page}, size ${size})`);
       
       // Gọi API thật với pagination (1-based) và include images
       const response = await apiService1.get('/recent', {
@@ -667,10 +401,8 @@ const receiveMedicineService = {
         }
       });
       
-      console.log('API Response for recent administrations:', response.data);
+      console.log('✅ Real API Response for recent administrations:', response.data);
       console.log('🔍 DEBUG - Full response structure:', JSON.stringify(response.data, null, 2));
-      console.log('🔍 DEBUG - Response.data type:', typeof response.data);
-      console.log('🔍 DEBUG - Response.data keys:', Object.keys(response.data));
       
       // Check different possible response structures
       let actualData = [];
@@ -735,19 +467,19 @@ const receiveMedicineService = {
           };
         });
         
-        console.log(`🔍 DEBUG - Enhanced data with images: ${actualData.length} items`);
+        console.log(`✅ Enhanced data with images: ${actualData.length} items`);
         // Log first item to see structure
         if (actualData.length > 0) {
-          console.log('🔍 DEBUG - First item structure:', actualData[0]);
+          console.log('🔍 First item structure:', actualData[0]);
         }
       }
       
-      console.log(`🔍 DEBUG - Extracted data: ${actualData.length} items`);
-      console.log(`🔍 DEBUG - Total items: ${totalItems}, Total pages: ${totalPages}`);
+      console.log(`✅ Final extracted data: ${actualData.length} items`);
+      console.log(`✅ Total items: ${totalItems}, Total pages: ${totalPages}`);
       
       // Ensure we always return an array
       if (!Array.isArray(actualData)) {
-        console.log('🔍 WARNING - actualData is not an array, forcing to empty array');
+        console.log('⚠️ WARNING - actualData is not an array, forcing to empty array');
         actualData = [];
       }
       
@@ -759,27 +491,19 @@ const receiveMedicineService = {
         currentPage: page
       };
     } catch (error) {
-      console.error("Error in getRecentMedicationAdministrations:", error);
-      console.error("API call failed, attempting fallback to mock data with images");
+      console.error("❌ Error in getRecentMedicationAdministrations:", error);
+      console.error("❌ Error response:", error.response);
+      console.error("❌ Error status:", error.response?.status);
+      console.error("❌ Error data:", error.response?.data);
       
-      // Fallback to enhanced mock data with sample images
-      const enhancedMockData = mockMedicationAdministrations.map(item => ({
-        ...item,
-        imageUrl: item.id % 3 === 0 ? `https://via.placeholder.com/400x300?text=Medication+${item.id}` : null
-      }));
-      
-      // Apply pagination to mock data
-      const startIndex = (page - 1) * size;
-      const endIndex = startIndex + size;
-      const paginatedData = enhancedMockData.slice(startIndex, endIndex);
-      
+      // Return error without fallback to mock data
       return {
         success: false,
-        data: paginatedData,
-        totalItems: enhancedMockData.length,
-        totalPages: Math.ceil(enhancedMockData.length / size),
+        data: [],
+        totalItems: 0,
+        totalPages: 0,
         currentPage: page,
-        message: error.response?.data?.message || error.message || "Sử dụng dữ liệu mẫu - không thể kết nối API"
+        message: error.response?.data?.message || error.message || "Không thể tải lịch sử dùng thuốc - vui lòng kiểm tra backend server"
       };
     }
   },
@@ -787,19 +511,13 @@ const receiveMedicineService = {
   // Tạo bản ghi cung cấp thuốc mới - Function được gọi bởi MedicationAdministration.jsx
   createMedicationAdministration: async (data) => {
     try {
-      console.log('Creating new medication administration:', data);
-      console.log('Using API endpoint:', apiService1.defaults.baseURL);
-      console.log('Request config:', {
-        method: 'POST',
-        url: apiService1.defaults.baseURL,
-        data: data,
-        headers: apiService1.defaults.headers
-      });
+      console.log('🔄 Creating new medication administration via REAL API:', data);
+      console.log('🔄 Using API endpoint:', apiService1.defaults.baseURL);
       
       // Gọi API thật với endpoint chính xác
       const response = await apiService1.post('', data);
       
-      console.log('✅ API Response for create:', response.data);
+      console.log('✅ Real API Response for create:', response.data);
       
       return {
         success: true,
@@ -809,41 +527,41 @@ const receiveMedicineService = {
     } catch (error) {
       console.error("❌ Error in createMedicationAdministration:", error);
       console.error("❌ Error response:", error.response);
-      console.error("❌ Error config:", error.config);
-      console.error("❌ Request URL:", error.config?.url);
       console.error("❌ Error status:", error.response?.status);
       console.error("❌ Error data:", error.response?.data);
       
-      // Check if it's a network error (server not running)
+      // Enhanced error handling for different HTTP status codes
+      let errorMessage = "Không thể tạo bản ghi cung cấp thuốc";
+      
       if (!error.response) {
-        console.log("🔍 Network error detected - server might not be running");
-        return {
-          success: false,
-          message: "Không thể kết nối tới server. Vui lòng kiểm tra xem backend có đang chạy không?"
-        };
-      }
-      
-      // Check if it's a 404 error (endpoint not found)
-      if (error.response?.status === 404) {
-        console.log("🔍 404 error - endpoint not found");
-        return {
-          success: false,
-          message: "Endpoint API không tồn tại. Vui lòng kiểm tra server backend."
-        };
-      }
-      
-      // Check if it's an auth error
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("🔍 Authentication error detected");
-        return {
-          success: false,
-          message: "Lỗi xác thực. Vui lòng đăng nhập lại."
-        };
+        errorMessage = "Không thể kết nối tới server. Vui lòng kiểm tra xem backend có đang chạy không?";
+      } else {
+        switch (error.response.status) {
+          case 400:
+            errorMessage = error.response.data?.message || "Dữ liệu không hợp lệ";
+            break;
+          case 401:
+            errorMessage = "Không có quyền truy cập. Vui lòng đăng nhập lại.";
+            break;
+          case 403:
+            errorMessage = "Không có quyền thực hiện thao tác này";
+            break;
+          case 404:
+            errorMessage = "Endpoint API không tồn tại";
+            break;
+          case 422:
+            errorMessage = error.response.data?.message || "Dữ liệu không thể xử lý";
+            break;
+          case 500:
+          default:
+            errorMessage = error.response.data?.message || "Lỗi server nội bộ";
+            break;
+        }
       }
       
       return {
         success: false,
-        message: error.response?.data?.message || error.message || "Không thể tạo bản ghi cung cấp thuốc"
+        message: errorMessage
       };
     }
   },
@@ -920,73 +638,16 @@ const receiveMedicineService = {
       console.error("❌ Error in getAllMedicationAdministrations:", error);
       console.error("❌ Error response:", error.response);
       
-      // Fallback to mock data if API fails
-      console.log("🔄 API failed, using mock data as fallback");
-      console.log("📊 Mock data count:", mockMedicationAdministrations.length);
-      
-      const allData = mockMedicationAdministrations;
-      const totalItems = allData.length;
-      const startIndex = (page - 1) * size;
-      const endIndex = startIndex + size;
-      const paginatedData = allData.slice(startIndex, endIndex);
-      const totalPages = Math.ceil(totalItems / size);
-      
-      console.log('📄 Paginated mock data:', {
-        totalItems,
-        totalPages,
-        currentPage: page,
-        startIndex,
-        endIndex,
-        paginatedDataLength: paginatedData.length
-      });
-      
-      return {
-        status: 'success',
-        data: {
-          posts: paginatedData,
-          totalItems: totalItems,
-          totalPages: totalPages,
-          currentPage: page
-        }
+      // Return error without fallback to mock data
+      throw {
+        success: false,
+        message: error.response?.data?.message || error.message || "Không thể tải lịch sử dùng thuốc - vui lòng kiểm tra backend server"
       };
     }
   },
   
-  // Thêm mới lịch sử dùng thuốc
-  addMedicationAdministration: async (data) => {
-    try {
-      // Gọi API thật bằng instance đúng baseURL1
-      const response = await apiService1.post('', data);
-      return response.data;
-    } catch (error) {
-      console.error("Error in addMedicationAdministration:", error);
-      throw new Error(error.response?.data?.message || error.message || "Không thể thêm mới lịch sử dùng thuốc");
-    }
-  },
-  
-  // Cập nhật lịch sử dùng thuốc
-  updateMedicationAdministration: async (id, data) => {
-    try {
-      // Gọi API thật bằng instance đúng baseURL1
-      const response = await apiService1.put(`/${id}`, data);
-      return response.data;
-    } catch (error) {
-      console.error("Error in updateMedicationAdministration:", error);
-      throw new Error(error.response?.data?.message || error.message || "Không thể cập nhật lịch sử dùng thuốc");
-    }
-  },
-  
-  // Xóa lịch sử dùng thuốc
-  deleteMedicationAdministration: async (id) => {
-    try {
-      // Gọi API thật bằng instance đúng baseURL1
-      await apiService1.delete(`/${id}`);
-      return { success: true };
-    } catch (error) {
-      console.error("Error in deleteMedicationAdministration:", error);
-      throw new Error(error.response?.data?.message || error.message || "Không thể xóa lịch sử dùng thuốc");
-    }
-  },
+  // Note: Add, Edit, Delete functions removed - Medication History is now read-only
+  // Only view and search functionality is available for Lịch Sử Dùng Thuốc
 };
 
 export default receiveMedicineService;
