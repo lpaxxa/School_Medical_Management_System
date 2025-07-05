@@ -2,6 +2,7 @@ package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.request.ParentConsentRequestDTO;
 import com.fpt.medically_be.dto.response.ParentConsentResponseDTO;
+import com.fpt.medically_be.dto.response.ParentAllChildrenNotificationsDTO;
 import com.fpt.medically_be.service.ParentConsentService;
 import com.fpt.medically_be.service.HealthCampaignService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,6 +72,22 @@ public class ParentConsentController {
     public ResponseEntity<List<ParentConsentResponseDTO>> getConsentsByParent(@PathVariable Long parentId) {
         List<ParentConsentResponseDTO> consents = parentConsentService.getConsentsByParent(parentId);
         return ResponseEntity.ok(consents);
+    }
+
+    /**
+     * Lấy tất cả thông báo kiểm tra định kỳ của tất cả các con của một phụ huynh
+     * GET /api/v1/parent-consents/parent/{parentId}/all-children
+     */
+    @GetMapping("/parent/{parentId}/all-children")
+    @Operation(summary = "Lấy tất cả thông báo kiểm tra định kỳ của tất cả các con của một phụ huynh")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thông báo thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy phụ huynh hoặc học sinh")
+    })
+    public ResponseEntity<ParentAllChildrenNotificationsDTO> getAllChildrenNotificationsByParent(
+            @PathVariable Long parentId) {
+        ParentAllChildrenNotificationsDTO notifications = parentConsentService.getAllChildrenNotificationsByParent(parentId);
+        return ResponseEntity.ok(notifications);
     }
 
     /**
@@ -189,7 +206,7 @@ public class ParentConsentController {
         response.put("studentName", consent.getStudentName());
         response.put("availableSpecialCheckupItems", availableSpecialItems);
         response.put("selectedSpecialCheckupItems", consent.getSpecialCheckupItems());
-        response.put("isConsentGiven", consent.getConsentGiven());
+        response.put("consentStatus", consent.getConsentStatus());
 
         return ResponseEntity.ok(response);
     }

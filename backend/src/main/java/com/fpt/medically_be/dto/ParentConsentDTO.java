@@ -1,5 +1,6 @@
 package com.fpt.medically_be.dto;
 
+import com.fpt.medically_be.entity.ConsentStatus;
 import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,7 +14,7 @@ public class ParentConsentDTO {
     private String studentName;
     private Long parentId;
     private String parentName;
-    private Boolean consentGiven;
+    private ConsentStatus consentStatus;
     private LocalDateTime consentDate;
     private List<String> specialCheckupItems; // Các mục kiểm tra đặc biệt mà phụ huynh đồng ý
     private String parentNotes;

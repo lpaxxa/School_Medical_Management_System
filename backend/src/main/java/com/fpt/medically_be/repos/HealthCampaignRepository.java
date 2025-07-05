@@ -1,5 +1,6 @@
 package com.fpt.medically_be.repos;
 
+import com.fpt.medically_be.entity.ConsentStatus;
 import com.fpt.medically_be.entity.HealthCampaign;
 import com.fpt.medically_be.entity.HealthCampaignStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,7 +26,7 @@ public interface HealthCampaignRepository extends JpaRepository<HealthCampaign, 
     List<HealthCampaign> findByStatusAndEndDateLessThan(HealthCampaignStatus status, LocalDate currentDate);
 
     // Thống kê số lượng học sinh đã đồng ý tham gia chiến dịch
-    @Query("SELECT COUNT(pc) FROM ParentConsent pc WHERE pc.healthCampaign.id = ?1 AND pc.consentGiven = true")
+    @Query("SELECT COUNT(pc) FROM ParentConsent pc WHERE pc.healthCampaign.id = ?1 AND pc.consentStatus = 'APPROVED'")
     Long countConsentedStudentsByHealthCampaignId(Long healthCampaignId);
 
     // Thống kê số lượng học sinh đã hoàn thành khám

@@ -2,6 +2,7 @@ package com.fpt.medically_be.service;
 
 import com.fpt.medically_be.dto.request.ParentConsentRequestDTO;
 import com.fpt.medically_be.dto.response.ParentConsentResponseDTO;
+import com.fpt.medically_be.dto.response.ParentAllChildrenNotificationsDTO;
 
 import java.util.List;
 
@@ -20,6 +21,11 @@ public interface ParentConsentService {
      * Lấy danh sách xác nhận của phụ huynh cụ thể
      */
     List<ParentConsentResponseDTO> getConsentsByParent(Long parentId);
+
+    /**
+     * Lấy tất cả thông báo kiểm tra định kỳ của tất cả các con của một phụ huynh
+     */
+    ParentAllChildrenNotificationsDTO getAllChildrenNotificationsByParent(Long parentId);
 
     /**
      * Lấy xác nhận của phụ huynh cho một học sinh trong một chiến dịch cụ thể

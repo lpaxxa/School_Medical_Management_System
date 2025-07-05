@@ -1,5 +1,6 @@
 package com.fpt.medically_be.dto.request;
 
+import com.fpt.medically_be.entity.ConsentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,10 +24,11 @@ public class ParentConsentRequestDTO {
 //    private String parentNotes;
 
     @Schema(
-            description = "Phụ huynh có đồng ý cho con đi khám không",
-            example = "true"
+            description = "Trạng thái đồng ý của phụ huynh",
+            example = "APPROVED",
+            allowableValues = {"PENDING", "APPROVED", "REJECTED"}
     )
-    private Boolean consentGiven;
+    private ConsentStatus consentStatus;
 
     @Schema(
             description = "Danh sách các mục kiểm tra đặc biệt phụ huynh đồng ý",

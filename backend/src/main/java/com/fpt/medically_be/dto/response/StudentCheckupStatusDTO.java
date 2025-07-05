@@ -1,6 +1,7 @@
 package com.fpt.medically_be.dto.response;
 
 import com.fpt.medically_be.entity.CheckupStatus;
+import com.fpt.medically_be.entity.ConsentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class StudentCheckupStatusDTO {
 
     // Thông tin xác nhận của phụ huynh
     private Long parentConsentId;
-    private Boolean consentGiven;
+    private ConsentStatus consentStatus;
     private LocalDateTime consentDate;
 
     // Thông tin kiểm tra
