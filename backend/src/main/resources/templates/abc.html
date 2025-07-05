@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Xác nhận tiêm chủng cho học sinh</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <style>
+    .vaccine-card {
+      background: #fff;
+      border: 1px solid #e3e3e3;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .vaccine-card.disabled {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+  <h2 class="mb-4">Xác nhận tiêm chủng cho học sinh</h2>
+  <!-- Thông tin học sinh -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">👦 Học sinh: Nguyễn Văn An</h5>
+      <p class="card-text mb-1">
+        Lớp: 2A<br>
+        Ngày sinh: 12/03/2018
+      </p>
+      <span class="badge bg-info">Kế hoạch: Tiêm chủng Tháng 8/2025</span>
+    </div>
+  </div>
+
+  <!-- Danh sách các vaccine trong plan -->
+  <form id="vaccine-confirm-form" action="/api/parent/confirm-vaccines" method="POST">
+    <input type="hidden" name="studentId" value="12345">
+    <input type="hidden" name="planId" value="2025">
+
+    <div class="mb-4">
+      <h5 class="mb-3">📋 Danh sách các mũi tiêm cần xác nhận:</h5>
+
+      <!-- Lặp qua từng vaccine/mũi trong plan -->
+      <div class="vaccine-card" id="vaccine1">
+        <strong>DPT (Bạch hầu, ho gà, uốn ván)</strong> – Liều 1<br>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="radio" name="assignment_1" id="appr1" value="APPROVED" required>
+          <label class="form-check-label" for="appr1">Tôi đồng ý tiêm mũi này</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input reject-radio" type="radio" name="assignment_1" id="rej1" value="REJECTED">
+          <label class="form-check-label" for="rej1">Tôi từ chối tiêm mũi này</label>
+        </div>
+        <input type="text" class="form-control mt-2 d-none" name="reason_1" placeholder="Lý do từ chối (nếu có)" id="reason_1">
+      </div>
+
+      <div class="vaccine-card" id="vaccine2">
+        <strong>Sởi – Rubella</strong> – Liều 1<br>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="radio" name="assignment_2" id="appr2" value="APPROVED" required>
+          <label class="form-check-label" for="appr2">Tôi đồng ý tiêm mũi này</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input reject-radio" type="radio" name="assignment_2" id="rej2" value="REJECTED">
+          <label class="form-check-label" for="rej2">Tôi từ chối tiêm mũi này</label>
+        </div>
+        <input type="text" class="form-control mt-2 d-none" name="reason_2" placeholder="Lý do từ chối (nếu có)" id="reason_2">
+      </div>
+
+      <!-- Có thể lặp động các vaccine ở đây tùy dữ liệu backend trả về -->
+
+    </div>
+
+    <div class="text-end">
+      <button type="submit" class="btn btn-primary">Gửi xác nhận</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Hiện ô nhập lý do nếu từ chối
+  document.querySelectorAll('.reject-radio').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      let idx = this.name.split('_')[1];
+      document.getElementById('reason_' + idx).classList.remove('d-none');
+    });
+  });
+  document.querySelectorAll('input[type=radio][value="APPROVED"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      let idx = this.name.split('_')[1];
+      document.getElementById('reason_' + idx).classList.add('d-none');
+    });
+  });
+</script>
+</body>
+</html>

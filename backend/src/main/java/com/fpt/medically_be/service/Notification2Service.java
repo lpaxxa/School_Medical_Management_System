@@ -34,10 +34,8 @@ public interface Notification2Service {
     List<Notification2ResponseDTO> getNotificationsByType(NotificationType type);
 
 //   lấy ra những thông báo mà phụ huynh đã accept
-    List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long parentId, String studentId);
 
     //dành cho khi bấm vào ghi nhận tiêm, thì sẽ hiển thị được nhiều thông tin
-    VaccineInforRequest getVacineByStudentIdAndNotiID(String studendId, Long id);
 
     // xem danh sach de tiem
     List<NotificationAccepted> getNotificationAcceptedByIdAndResponse(Long id, ResponseStatus studentId);

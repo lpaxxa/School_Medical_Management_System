@@ -1,5 +1,7 @@
 package com.fpt.medically_be.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
@@ -40,6 +42,7 @@ public class Student {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "health_profile_id")
+    @JsonManagedReference("student-health")
     private HealthProfile healthProfile;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
@@ -47,7 +50,7 @@ public class Student {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-        private Parent parent;
+     private Parent parent;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private List<MedicalIncident> medicalIncidents;

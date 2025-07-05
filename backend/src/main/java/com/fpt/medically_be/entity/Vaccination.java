@@ -46,12 +46,12 @@ public class Vaccination {
     private String administeredAt;
 
     // === THÔNG TIN PHẢN HỒI PHỤ HUYNH ===
-    @Enumerated(EnumType.STRING)
-    @Column(name = "parent_response_status")
-    private ResponseStatus parentResponseStatus; // APPROVED, REJECTED, PENDING, NOT_REQUIRED
-
-    @Column(name = "parent_responded_at")
-    private LocalDateTime parentRespondedAt; // Phòng y tế, BV, …
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "parent_response_status")
+//    private ResponseStatus parentResponseStatus; // APPROVED, REJECTED, PENDING, NOT_REQUIRED
+//
+//    @Column(name = "parent_responded_at")
+//    private LocalDateTime parentRespondedAt;
 
     @Column(name = "parent_notes", columnDefinition = "NVARCHAR(MAX)")
     private String parentNotes;
@@ -59,7 +59,7 @@ public class Vaccination {
     // === THÔNG TIN BỔ SUNG ===
     @Enumerated(EnumType.STRING)
     @Column(name = "vaccination_type")
-    private VaccinationType vaccinationType; // SCHOOL_PLAN, PARENT_DECLARED, CATCH_UP
+    private VaccinationType vaccinationType;
 
     @Column(name = "next_dose_date")
     private LocalDate nextDoseDate;
@@ -74,7 +74,5 @@ public class Vaccination {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "notification_recipient_id")
-    private NotificationRecipients notificationRecipient;
+
 }
