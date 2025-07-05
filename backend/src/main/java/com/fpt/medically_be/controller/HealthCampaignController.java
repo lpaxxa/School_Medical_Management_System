@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.request.HealthCampaignCreateDTO;
 import com.fpt.medically_be.dto.response.CampaignStatisticsDTO;
 import com.fpt.medically_be.dto.response.HealthCampaignResponseDTO;
 import com.fpt.medically_be.dto.response.StudentCheckupStatusDTO;
+import com.fpt.medically_be.entity.ConsentStatus;
 import com.fpt.medically_be.entity.HealthCampaignStatus;
 import com.fpt.medically_be.entity.Student;
 import com.fpt.medically_be.service.HealthCampaignService;
@@ -189,8 +190,8 @@ public class HealthCampaignController {
     })
     public ResponseEntity<List<StudentCheckupStatusDTO>> getStudentsForCampaign(
             @PathVariable Long id,
-            @RequestParam(required = false) Boolean consentGiven) {
-        List<StudentCheckupStatusDTO> students = healthCampaignService.getStudentsForCampaign(id, consentGiven);
+            @RequestParam(required = false) ConsentStatus consentStatus) {
+        List<StudentCheckupStatusDTO> students = healthCampaignService.getStudentsForCampaign(id, consentStatus);
         return ResponseEntity.ok(students);
     }
 

@@ -26,8 +26,9 @@ public class ParentConsent {
     @JoinColumn(name = "parent_id", nullable = false)
     private AccountMember parent;
 
-    @Column(name = "consent_given", nullable = false)
-    private Boolean consentGiven = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "consent_status", nullable = false)
+    private ConsentStatus consentStatus = ConsentStatus.PENDING;
 
     @Column(name = "consent_date")
     private LocalDateTime consentDate;

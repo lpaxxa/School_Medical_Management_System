@@ -7,6 +7,7 @@ import com.fpt.medically_be.dto.request.HealthCampaignCreateDTO;
 import com.fpt.medically_be.dto.response.CampaignStatisticsDTO;
 import com.fpt.medically_be.dto.response.HealthCampaignResponseDTO;
 import com.fpt.medically_be.dto.response.StudentCheckupStatusDTO;
+import com.fpt.medically_be.entity.ConsentStatus;
 import com.fpt.medically_be.entity.CheckupStatus;
 import com.fpt.medically_be.entity.HealthCampaign;
 import com.fpt.medically_be.entity.HealthCampaignStatus;
@@ -177,7 +178,7 @@ public class HealthCampaignServiceImpl implements HealthCampaignService {
             consent.setHealthCampaign(campaign);
             consent.setStudent(student);
             consent.setParent(parentAccount);
-            consent.setConsentGiven(false);
+            consent.setConsentStatus(ConsentStatus.PENDING);
 
             ParentConsent savedConsent = parentConsentRepository.save(consent);
 
@@ -223,21 +224,14 @@ public class HealthCampaignServiceImpl implements HealthCampaignService {
     }
 
     @Override
-    public List<StudentCheckupStatusDTO> getStudentsForCampaign(Long campaignId, Boolean consentGiven) {
+    public List<StudentCheckupStatusDTO> getStudentsForCampaign(Long campaignId, ConsentStatus consentStatus) {
         HealthCampaign campaign = healthCampaignRepository.findById(campaignId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chiến dịch sức khỏe với ID: " + campaignId));
 
         List<ParentConsent> consents;
 
-        if (consentGiven != null) {
-            if (consentGiven) {
-                consents = parentConsentRepository.findByHealthCampaignIdAndConsentGivenTrue(campaignId);
-            } else {
-                List<ParentConsent> allConsents = parentConsentRepository.findByHealthCampaignId(campaignId);
-                consents = allConsents.stream()
-                        .filter(consent -> !consent.getConsentGiven())
-                        .collect(Collectors.toList());
-            }
+        if (consentStatus != null) {
+            consents = parentConsentRepository.findByHealthCampaignIdAndConsentStatus(campaignId, consentStatus);
         } else {
             consents = parentConsentRepository.findByHealthCampaignId(campaignId);
         }
@@ -258,7 +252,7 @@ public class HealthCampaignServiceImpl implements HealthCampaignService {
             dto.setParentName(parentName);
 
             dto.setParentConsentId(consent.getId());
-            dto.setConsentGiven(consent.getConsentGiven());
+            dto.setConsentStatus(consent.getConsentStatus());
             dto.setConsentDate(consent.getConsentDate());
 
             dto.setParentNotes(consent.getParentNotes());
@@ -298,13 +292,13 @@ public class HealthCampaignServiceImpl implements HealthCampaignService {
         long notificationsSent = totalStudents;
 
         long consentReceived = allConsents.stream()
-                .filter(consent -> consent.getConsentGiven() != null)
+                .filter(consent -> consent.getConsentStatus() != ConsentStatus.PENDING)
                 .count();
 
-        long consentApproved = parentConsentRepository.countByHealthCampaignIdAndConsentGivenTrue(campaignId);
+        long consentApproved = parentConsentRepository.countByHealthCampaignIdAndConsentStatus(campaignId, ConsentStatus.APPROVED);
 
         long consentRejected = allConsents.stream()
-                .filter(consent -> consent.getConsentGiven() != null && !consent.getConsentGiven())
+                .filter(consent -> consent.getConsentStatus() == ConsentStatus.REJECTED)
                 .count();
 
         long checkupsWaiting = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaignId, CheckupStatus.WAITING);
@@ -363,7 +357,7 @@ public class HealthCampaignServiceImpl implements HealthCampaignService {
     private HealthCampaignResponseDTO mapToDTO(HealthCampaign campaign) {
         // Lấy thông tin thống kê
         Long totalStudents = (long) parentConsentRepository.findByHealthCampaignId(campaign.getId()).size();
-        Long consentedStudents = parentConsentRepository.countByHealthCampaignIdAndConsentGivenTrue(campaign.getId());
+        Long consentedStudents = parentConsentRepository.countByHealthCampaignIdAndConsentStatus(campaign.getId(), ConsentStatus.APPROVED);
         Long completedCheckups = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaign.getId(), CheckupStatus.COMPLETED);
         Long pendingCheckups = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaign.getId(), CheckupStatus.WAITING);
 

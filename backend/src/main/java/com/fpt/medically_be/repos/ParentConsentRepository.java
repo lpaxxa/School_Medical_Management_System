@@ -1,5 +1,6 @@
 package com.fpt.medically_be.repos;
 
+import com.fpt.medically_be.entity.ConsentStatus;
 import com.fpt.medically_be.entity.HealthCampaign;
 import com.fpt.medically_be.entity.ParentConsent;
 import com.fpt.medically_be.entity.Student;
@@ -25,16 +26,16 @@ public interface ParentConsentRepository extends JpaRepository<ParentConsent, Lo
     List<ParentConsent> findByParentId(@Param("parentId") Long parentId);
 
     // Tìm tất cả đồng ý của phụ huynh đã đồng ý cho khám cho một chiến dịch
-    List<ParentConsent> findByHealthCampaignIdAndConsentGivenTrue(Long healthCampaignId);
+    List<ParentConsent> findByHealthCampaignIdAndConsentStatus(Long healthCampaignId, ConsentStatus consentStatus);
 
     // Tìm đồng ý của phụ huynh cho một học sinh trong một chiến dịch cụ thể
     Optional<ParentConsent> findByHealthCampaignIdAndStudentId(Long healthCampaignId, Long studentId);
 
     // Đếm số lượng đồng ý đã nhận được cho một chiến dịch
-    Long countByHealthCampaignIdAndConsentGivenTrue(Long healthCampaignId);
+    Long countByHealthCampaignIdAndConsentStatus(Long healthCampaignId, ConsentStatus consentStatus);
 
     // Kiểm tra một học sinh đã có đồng ý của phụ huynh trong một chiến dịch hay chưa
-    boolean existsByHealthCampaignIdAndStudentIdAndConsentGivenTrue(Long healthCampaignId, Long studentId);
+    boolean existsByHealthCampaignIdAndStudentIdAndConsentStatus(Long healthCampaignId, Long studentId, ConsentStatus consentStatus);
 
     List<ParentConsent> findByParent_Id(String parentId);
 }
