@@ -51,24 +51,8 @@ public interface Notification2Mapper {
     @Mapping(source = "responseAt", target = "responseAt")
     Notification2ReceiveResponse toNotificationReceiveResponse(NotificationRecipients notification2);
 
-    //Notification2ResponseDTO toNotificationResponseDTO(NotificationRecipients notificationRecipients);
-    @Mapping(source = "notification.title", target = "title")
-    @Mapping(source = "notification.message", target = "message")
-    @Mapping(source = "notification.createdAt", target = "receivedAt")
-    @Mapping(source = "student.id", target = "studentId")
-    @Mapping(source = "student.fullName", target = "studentName")
-    VaccineApproveNotiResponse toNotificationResponseDTO(NotificationRecipients notificationRecipients);
 
 
-    // dành cho việc lấy ra những thông báo mà phụ huynh đã accept
-    @Mapping(source = "id", target = "notificationRecipientID")
-    @Mapping(source = "notification.createdBy.id", target = "nurseID")
-    @Mapping(source = "student.healthProfile.id", target = "healthProfileID")
-    @Mapping(source = "student.studentId", target = "studentID")
-    @Mapping(source = "student.imageUrl", target = "imageUrl")
-    @Mapping(source = "student.gender", target = "gender")
-    @Mapping(source = "student.className", target = "className")
-    @Mapping(source = "student.fullName", target = "studentName")
-    VaccineInforRequest toVaccineInforRequest(NotificationRecipients notificationRecipients);
+
 
 }

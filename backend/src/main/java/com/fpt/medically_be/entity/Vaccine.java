@@ -40,7 +40,7 @@ public class Vaccine {
     @OneToMany(mappedBy = "vaccine", cascade = CascadeType.ALL)
     private List<Vaccination> vaccinations;
 
-    @OneToMany(mappedBy = "vaccine", cascade = CascadeType.ALL)
+    @ManyToMany(mappedBy = "vaccines")
     private List<VaccinationPlan> vaccinationPlans;
 
 }

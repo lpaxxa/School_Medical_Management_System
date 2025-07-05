@@ -24,25 +24,32 @@ public class VaccinationPlan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vaccine_id", nullable = false)
-    private Vaccine vaccine;
+    // Trong VaccinationPlan.java
+    @ManyToMany
+    @JoinTable(
+            name = "vaccination_plan_vaccines",
+            joinColumns = @JoinColumn(name = "vaccination_plan_id"),
+            inverseJoinColumns = @JoinColumn(name = "vaccine_id")
+    )
+    private List<Vaccine> vaccines;
 
     @Column(name = "vaccination_date", nullable = false)
     private LocalDate vaccinationDate;
 
-    @Column(name = "dose_number") // Mũi thứ mấy
-    private Integer doseNumber;
+//    @Column(name = "dose_number") // Mũi thứ mấy
+//    private Integer doseNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 40)
     private VaccinationPlanStatus status = VaccinationPlanStatus.WAITING_PARENT;
 
+    @Column(name = "plan_name", columnDefinition = "NVARCHAR(255)")
+    private String name;
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
     @Column(name = "deadline_date")
-    private LocalDate deadlineDate; // Hạn phản hồi phụ huynh
+    private LocalDateTime deadlineDate; // Hạn phản hồi phụ huynh
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

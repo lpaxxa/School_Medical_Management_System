@@ -1,8 +1,13 @@
 package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.VaccinationDTO;
+import com.fpt.medically_be.dto.request.VaccinationCreateDTO;
 import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
-import com.fpt.medically_be.dto.response.VaccinationDetailResponse;
+import com.fpt.medically_be.dto.request.VaccinationUpdateNoteRequest;
+import com.fpt.medically_be.dto.response.StudentVaccinationHistoryResponse;
+import com.fpt.medically_be.dto.response.VaccinationCreateWithHeathResponse;
+
+import com.fpt.medically_be.dto.response.VaccinationInfoResponse;
 import com.fpt.medically_be.entity.*;
 import com.fpt.medically_be.mapper.VaccinationMapper;
 import com.fpt.medically_be.repos.*;
@@ -10,9 +15,11 @@ import com.fpt.medically_be.service.VaccinationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,6 +30,8 @@ public class VaccinationServiceImpl implements VaccinationService {
     @Autowired
     private VaccinationRepository vaccinationRepository;
     @Autowired
+    private VaccinationPlanRepository planRepo;
+    @Autowired
     private HealthProfileRepository healthProfileRepository;
     @Autowired
     private StudentRepository studentRepository;
@@ -32,183 +41,170 @@ public class VaccinationServiceImpl implements VaccinationService {
     private NotificationRecipientsRepo notificationRecipientsRepo;
     @Autowired
     private NurseRepository nurseRepository;
+    @Autowired
+    private VaccineRepository vaccineRepository;
 
-
-
-    //    @Autowired
-//    public VaccinationServiceImpl(VaccinationRepository vaccinationRepository,
-//                                 HealthProfileRepository healthProfileRepository,
-//                                 StudentRepository studentRepository) {
-//        this.vaccinationRepository = vaccinationRepository;
-//        this.healthProfileRepository = healthProfileRepository;
-//        this.studentRepository = studentRepository;
-//    }
-
-//
-//    @Override
-//    public VaccinationDTO getVaccinationById(Long id) {
-//        return vaccinationRepository.findById(id)
-//                .map(this::convertToDTO)
-//                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id));
-//    }
-//
-//    @Override
-//    public List<VaccinationDTO> getVaccinationsByHealthProfileId(Long healthProfileId) {
-//        return vaccinationRepository.findByHealthProfileId(healthProfileId).stream()
-//                .map(this::convertToDTO)
-//                .collect(Collectors.toList());
-//    }
-//
-//    @Override
-//    public List<VaccinationDTO> getVaccinationsByName(String vaccineName) {
-//        return vaccinationRepository.findByVaccineName(vaccineName).stream()
-//                .map(this::convertToDTO)
-//                .collect(Collectors.toList());
-//    }
-//
-//    @Override
-//    public List<VaccinationDTO> getVaccinationsByDateRange(LocalDate startDate, LocalDate endDate) {
-//        return vaccinationRepository.findByVaccinationDateBetween(startDate, endDate).stream()
-//                .map(this::convertToDTO)
-//                .collect(Collectors.toList());
-//    }
-//
-//    @Override
-//    public List<VaccinationDTO> getUpcomingVaccinationsDue(LocalDate beforeDate) {
-//        return vaccinationRepository.findByNextDoseDateBefore(beforeDate).stream()
-//                .map(this::convertToDTO)
-//                .collect(Collectors.toList());
-//    }
-//
     @Override
-    public VaccinationDetailResponse createVaccination(VaccinationRequestDTO vaccinationRequestDTO) {
+    @Transactional
+    public void updateVaccinationNote(VaccinationUpdateNoteRequest dto) {
+        Vaccination vaccination = vaccinationRepository.findById(dto.getVaccinationId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi tiêm"));
 
-        HealthProfile heathProfile = healthProfileRepository
-                .findById(vaccinationRequestDTO.getHealthProfileId()).orElseThrow(() -> new EntityNotFoundException("Health Profile Not Found"));
-
-        NotificationRecipients nr = notificationRecipientsRepo.findById(vaccinationRequestDTO.getNotificationRecipientID())
-                .orElseThrow(() -> new EntityNotFoundException("Notification Recipient Not Found"));
-
-        Nurse staff = nurseRepository.findById(vaccinationRequestDTO.getAdministeredBy())
-                .orElseThrow(() -> new EntityNotFoundException("Medical Staff Not Found"));
-
-        Vaccination vaccination = vaccinationMapper.toVaccinationDetailRequest(vaccinationRequestDTO);
-        vaccination.setHealthProfile(heathProfile);
-        vaccination.setNotificationRecipient(nr);
-        vaccination.setNurse(staff);
-        vaccination.setVaccinationDate(LocalDateTime.now());
-        Vaccination savedVaccination = vaccinationRepository.save(vaccination);
-        return vaccinationMapper.toVaccinationDetailResponse(savedVaccination);
+        vaccination.setNotes(dto.getNotes());
+        vaccinationRepository.save(vaccination);
     }
 
     @Override
-    public VaccinationDetailResponse updateVaccination(Long id, VaccinationRequestDTO dto) {
-        Vaccination vaccination = vaccinationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id));
+    public StudentVaccinationHistoryResponse getVaccinationHistoryForStudent(Long parentId, Long studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
 
-        if (dto.getAdministeredBy() != null) {
-            Nurse nurse = nurseRepository.findById(dto.getAdministeredBy())
-                    .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy y tá với ID: " + dto.getAdministeredBy()));
-            vaccination.setNurse(nurse);
+        if (!student.getParent().getId().equals(parentId)) {
+            throw new RuntimeException("Không có quyền xem thông tin học sinh này");
         }
 
-        vaccinationMapper.updateVaccination(vaccination, dto);
-        vaccinationRepository.save(vaccination);
-        return vaccinationMapper.toVaccinationDetailResponse(vaccination);
+        HealthProfile profile = student.getHealthProfile();
+        if (profile == null) {
+            throw new RuntimeException("Học sinh chưa có hồ sơ sức khỏe");
+        }
+
+        List<Vaccination> vaccinations = vaccinationRepository
+                .findByHealthProfile_Student_IdOrderByVaccinationDateDesc(studentId);
+
+        List<VaccinationInfoResponse> vaccinationDtos = vaccinations.stream()
+                .map(v -> {
+                    return new VaccinationInfoResponse(
+                            v.getVaccine().getName(),
+                            v.getDoseNumber(),
+                            v.getVaccinationDate(),
+                            v.getAdministeredAt(),
+                            v.getNurse() != null ? v.getNurse().getFullName() : null,
+                            v.getVaccinationType().name(),
+                            v.getVaccinationPlan() != null ? v.getVaccinationPlan().getName() : null,
+                            v.getNotes(),
+                            v.getNextDoseDate()
+                    );
+                }).toList();
+
+        return new StudentVaccinationHistoryResponse(
+                student.getId(),
+                student.getFullName(),
+                student.getClassName(),
+                vaccinationDtos
+        );
     }
 
 
     @Override
-public void deleteVaccination(Long id) {
-    if (!vaccinationRepository.existsById(id)) {
-        throw new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id);
+    @Transactional
+    public void recordVaccination(VaccinationCreateDTO req) {
+
+        // 1. Tìm entity liên quan
+        HealthProfile profile = healthProfileRepository.findById(req.getHealthProfileId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy health profile"));
+        Vaccine vaccine = vaccineRepository.findById(req.getVaccineId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy vaccine"));
+        Nurse nurse   = nurseRepository.findById(req.getNurseId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse"));
+
+        VaccinationPlan plan = null;
+        if (req.getVaccinationPlanId() != null) {
+            plan = planRepo.findById(req.getVaccinationPlanId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kế hoạch tiêm"));
+        }
+
+        // 2. Kiểm tra đã tiêm bao nhiêu mũi
+        int taken = vaccinationRepository.countByHealthProfile_IdAndVaccine_Id(
+                profile.getId(), vaccine.getId());
+
+        if (taken >= vaccine.getTotalDoses()) {
+            throw new RuntimeException("Học sinh đã tiêm đủ số mũi của vaccine này");
+        }
+
+        int newDoseNumber = taken + 1;              // 3. doseNumber tự động tăng
+
+        // 4. Tính nextDoseDate (nếu còn mũi kế tiếp)
+        LocalDate nextDoseDate = null;
+        if (newDoseNumber < vaccine.getTotalDoses()
+                && vaccine.getIntervalDays() != null) {
+            nextDoseDate = req.getVaccinationDate()      // LocalDateTime, lấy phần ngày
+                    .toLocalDate()
+                    .plusDays(vaccine.getIntervalDays());
+        }
+
+        // 5. Lưu bản ghi mới
+        Vaccination v = new Vaccination();
+        v.setHealthProfile(profile);
+        v.setVaccine(vaccine);
+        v.setNurse(nurse);
+        v.setVaccinationDate(req.getVaccinationDate());
+        v.setDoseNumber(newDoseNumber);
+        v.setAdministeredAt(req.getAdministeredAt());
+        v.setNotes(req.getNotes());
+        v.setVaccinationType(plan != null ? VaccinationType.SCHOOL_PLAN
+                : VaccinationType.CATCH_UP);
+        v.setNextDoseDate(nextDoseDate);
+        if (plan != null) {
+            if (plan.getStatus() == VaccinationPlanStatus.WAITING_PARENT) {
+                plan.setStatus(VaccinationPlanStatus.IN_PROGRESS);
+                planRepo.save(plan);
+            }
+            v.setVaccinationPlan(plan);
+        }
+
+        vaccinationRepository.save(v);
     }
-    vaccinationRepository.deleteById(id);
+
+    @Transactional
+    @Override
+    public List<VaccinationCreateWithHeathResponse> addParentDeclaredVaccination(Long healthProfileId, List<VaccinationRequestDTO> vaccinationRequests) {
+
+        HealthProfile profile = healthProfileRepository.findById(healthProfileId)
+                .orElseThrow(() -> new RuntimeException("Health profile not found"));
+
+        List<VaccinationCreateWithHeathResponse> results = new ArrayList<>();
+
+        for (VaccinationRequestDTO dto : vaccinationRequests) {
+            Vaccine vaccine = vaccineRepository.findById(dto.getVaccineId())
+                    .orElseThrow(() -> new RuntimeException("Vaccine not found: " + dto.getVaccineId()));
+
+            Integer nextDoseNumber = getNextDoseNumber(profile.getId(), vaccine.getId());
+
+            // Check if vaccination is complete
+            if (nextDoseNumber > vaccine.getTotalDoses()) {
+                throw new IllegalArgumentException(
+                        String.format("Vaccine %s đã tiêm đủ %d mũi rồi",
+                                vaccine.getName(), vaccine.getTotalDoses())
+                );
+            }
+
+            // Create vaccination entity
+            Vaccination vaccination = vaccinationMapper.toEntity(dto);
+            vaccination.setHealthProfile(profile);
+            vaccination.setVaccine(vaccine);
+            vaccination.setDoseNumber(nextDoseNumber);
+            vaccination.setVaccinationType(VaccinationType.PARENT_DECLARED);
+
+            Vaccination savedVaccination = vaccinationRepository.save(vaccination);
+
+            VaccinationCreateWithHeathResponse resultDto = vaccinationMapper.toCreateWithHealthResponse(savedVaccination);
+            results.add(resultDto);
+        }
+
+        return results;
+    }
+
+
+
+
+    private Integer getNextDoseNumber(Long profileId, Long vaccineId) {
+        // Lấy mũi cuối cùng đã tiêm cho vaccine này
+        Integer lastDose = vaccinationRepository.findMaxDoseNumberByHealthProfileIdAndVaccineId(profileId, vaccineId);
+        return lastDose == null ? 1 : lastDose + 1;
+    }
+
+
+
 }
 
-    @Override
-    public List<VaccinationDTO> getAllVaccinations() {
-        List<Vaccination> vaccinations = vaccinationRepository.findAll();
-        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
-    }
-
-    @Override
-    public VaccinationDTO getVaccinationById(Long id) {
-        Vaccination vaccination = vaccinationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thông tin tiêm chủng với ID: " + id));
-        return vaccinationMapper.toDTO(vaccination);
-    }
-
-    @Override
-    public List<VaccinationDTO> getVaccinationsByHealthProfileId(Long healthProfileId) {
-        List<Vaccination> vaccinations = vaccinationRepository.findByHealthProfileId(healthProfileId);
-        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<VaccinationDTO> getVaccinationsByName(String vaccineName) {
-        List<Vaccination> vaccinations = vaccinationRepository.findByVaccineName(vaccineName);
-        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<VaccinationDTO> getVaccinationsByDateRange(LocalDate startDate, LocalDate endDate) {
-        List<Vaccination> vaccinations = vaccinationRepository.findByVaccinationDateBetween(startDate, endDate);
-        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<VaccinationDTO> getUpcomingVaccinationsDue(LocalDate beforeDate) {
-        List<Vaccination> vaccinations = vaccinationRepository.findByNextDoseDateBefore(beforeDate);
-        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<VaccinationDTO> getVaccinationsByParent(Long parentId) {
-        List<Vaccination> vaccinations = vaccinationRepository.findByHealthProfile_Student_Parent_Id(parentId);
-        return vaccinations.stream().map(vaccinationMapper::toDTO).collect(Collectors.toList());
-    }
-
-    @Override
-    public VaccinationDetailResponse getVaccinationDetailByNotificationRecipientId(Long id) {
-        NotificationRecipients noti = notificationRecipientsRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Id not fount !!!" + id));
-        Vaccination vaccination = noti.getVaccinations().isEmpty() ? null : noti.getVaccinations().get(0);
-        if (vaccination == null) throw new RuntimeException("Chưa có dữ liệu tiêm cho học sinh này!");
-
-
-        return vaccinationMapper.toVaccinationDetailResponse(vaccination);
-    }
-
-
-//    // Phương thức chuyển đổi từ Entity sang DTO
-//    private VaccinationDTO convertToDTO(Vaccination vaccination) {
-//        VaccinationDTO dto = new VaccinationDTO();
-//
-//
-//        if (vaccination.getHealthProfile() != null) {
-//            dto.setHealthProfileId(vaccination.getHealthProfile().getId());
-//
-//            // Tìm tên học sinh từ health profile
-//            Optional<Student> student = studentRepository.findByHealthProfileId(vaccination.getHealthProfile().getId());
-//            student.ifPresent(value -> dto.setStudentName(value.getFullName()));
-//        }
-//
-//        return dto;
-//    }
-
-    // Phương thức chuyển đổi từ DTO sang Entity
-//    private Vaccination convertToEntity(VaccinationDTO dto) {
-//        Vaccination vaccination = new Vaccination();
-//
-//
-//        // Thiết lập health profile
-//        if (dto.getHealthProfileId() != null) {
-//            healthProfileRepository.findById(dto.getHealthProfileId())
-//                    .ifPresent(vaccination::setHealthProfile);
-//        }
-//
-//        return vaccination;
-//    }
-}
 
