@@ -1,7 +1,7 @@
 package com.fpt.medically_be.repos;
 
 import com.fpt.medically_be.entity.AccountMember;
-import jakarta.validation.constraints.NotBlank;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -25,6 +25,7 @@ public interface AccountMemberRepos extends JpaRepository<AccountMember, String>
     Optional<AccountMember> findAccountMemberByIdAndIsActiveTrue(String id);
 
     List<AccountMember> findAllByIsActiveTrueAndEmailSent(Boolean emailSent);
+
 
 
 }

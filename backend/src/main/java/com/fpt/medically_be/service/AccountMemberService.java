@@ -18,6 +18,6 @@ public interface AccountMemberService {
           AccountAdminResponseDTO updateMember(String id, AccountUpdateRequestDTO obj);
           void deactivateMember(String id);
           List<AccountAdminResponseDTO> getAllMemberToSendEmail();
-
+    void updateAccountActiveStatus(String id, boolean isActive);
     // Removed duplicate registration methods - use AuthService.registerMember() instead
 }
