@@ -6,7 +6,7 @@ import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
 import com.fpt.medically_be.dto.request.VaccinationUpdateNoteRequest;
 import com.fpt.medically_be.dto.response.StudentVaccinationHistoryResponse;
 import com.fpt.medically_be.dto.response.VaccinationCreateWithHeathResponse;
-import com.fpt.medically_be.entity.Vaccination;
+import com.fpt.medically_be.dto.response.VaccineResponse;
 
 import java.util.List;
 

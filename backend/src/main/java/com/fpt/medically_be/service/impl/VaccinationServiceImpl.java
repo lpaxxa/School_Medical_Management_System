@@ -1,6 +1,5 @@
 package com.fpt.medically_be.service.impl;
 
-import com.fpt.medically_be.dto.VaccinationDTO;
 import com.fpt.medically_be.dto.request.VaccinationCreateDTO;
 import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
 import com.fpt.medically_be.dto.request.VaccinationUpdateNoteRequest;
@@ -8,20 +7,18 @@ import com.fpt.medically_be.dto.response.StudentVaccinationHistoryResponse;
 import com.fpt.medically_be.dto.response.VaccinationCreateWithHeathResponse;
 
 import com.fpt.medically_be.dto.response.VaccinationInfoResponse;
+import com.fpt.medically_be.dto.response.VaccineResponse;
 import com.fpt.medically_be.entity.*;
 import com.fpt.medically_be.mapper.VaccinationMapper;
 import com.fpt.medically_be.repos.*;
 import com.fpt.medically_be.service.VaccinationService;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

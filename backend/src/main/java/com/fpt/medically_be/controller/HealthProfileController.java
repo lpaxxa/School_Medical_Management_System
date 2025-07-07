@@ -1,8 +1,10 @@
 package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.HealthProfileDTO;
+import com.fpt.medically_be.dto.request.FullHealthProfileRequestDTO;
 import com.fpt.medically_be.dto.request.HealthProfileRequestDTO;
 import com.fpt.medically_be.service.HealthProfileService;
+import com.fpt.medically_be.service.VaccinationService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -27,6 +29,9 @@ import java.util.Map;
 public class HealthProfileController {
 
     private final HealthProfileService healthProfileService;
+
+    @Autowired
+    private VaccinationService vaccinationService;
 
     @Autowired
     public HealthProfileController(HealthProfileService healthProfileService) {
@@ -55,7 +60,7 @@ public class HealthProfileController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+   // @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
     public ResponseEntity<HealthProfileDTO> createHealthProfile(@Valid @RequestBody HealthProfileRequestDTO healthProfileRequestDTO) {
         // Log the incoming request for debugging
         System.out.println("Received health profile request: " + healthProfileRequestDTO);
@@ -63,7 +68,7 @@ public class HealthProfileController {
     }
 
     @PostMapping("/create-or-update")
-    @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+   // @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
     public ResponseEntity<HealthProfileDTO> createOrUpdateHealthProfile(@Valid @RequestBody HealthProfileRequestDTO healthProfileRequestDTO) {
         // Log the incoming request for debugging
         System.out.println("Received create/update health profile request: " + healthProfileRequestDTO);
@@ -124,5 +129,24 @@ public class HealthProfileController {
             errors.put(fieldName, errorMessage);
         });
         return errors;
+    }
+
+    @PostMapping("/full")
+   // @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+    @Operation(summary = "Tạo hồ sơ sức khỏe kèm khai báo vaccine", description = "Tạo mới hồ sơ và lưu các mũi vaccine do phụ huynh khai báo")
+    public ResponseEntity<HealthProfileDTO> createFullHealthProfile(
+            @Valid @RequestBody FullHealthProfileRequestDTO request) {
+
+        // 1. Tạo hồ sơ sức khỏe
+        HealthProfileDTO createdProfile = healthProfileService.createHealthProfile(request.getHealthProfile());
+
+        // 2. Nếu có danh sách vaccine được khai báo
+        if (request.getVaccinations() != null && !request.getVaccinations().isEmpty()) {
+            vaccinationService.addParentDeclaredVaccination(
+                    createdProfile.getId(), request.getVaccinations()
+            );
+        }
+
+        return ResponseEntity.ok(createdProfile);
     }
 }
