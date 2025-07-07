@@ -37,7 +37,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     public PageResponse<CommentDTO> getPostComments(Long postId, int page, int size, String currentUserId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         Pageable pageable = PageRequest.of(page - 1, size);
@@ -60,7 +60,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDTO createComment(Long postId, CommentRequest commentRequest, String authorId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         AccountMember author = accountMemberRepository.findById(authorId)
@@ -83,7 +83,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDTO updateComment(Long commentId, CommentRequest commentRequest, String userId) {
-        PostComment comment = commentRepository.findById(commentId)
+        PostComment comment = commentRepository.findByIdAndIsDeletedFalse(commentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận"));
 
         if (!comment.getAuthor().getId().equals(userId)) {
@@ -97,7 +97,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public void deleteComment(Long commentId, String userId) {
-        PostComment comment = commentRepository.findById(commentId)
+        PostComment comment = commentRepository.findByIdAndIsDeletedFalse(commentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận"));
 
         if (!comment.getAuthor().getId().equals(userId)) {

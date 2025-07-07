@@ -31,6 +31,9 @@ public class PostBookmark {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

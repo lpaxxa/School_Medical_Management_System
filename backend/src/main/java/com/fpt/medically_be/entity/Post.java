@@ -14,6 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+
 public class Post {
 
     @Id
@@ -55,6 +56,8 @@ public class Post {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 
     @PrePersist
     protected void onCreate() {
