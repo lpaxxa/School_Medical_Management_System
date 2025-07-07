@@ -2,6 +2,7 @@ package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.PageResponse;
 import com.fpt.medically_be.dto.PostDTO;
+import com.fpt.medically_be.dto.PostUpdateDTO;
 import com.fpt.medically_be.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,7 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/community")
 @RequiredArgsConstructor
-@Tag(name = "Cẩm nang y tế", description = "API quản lý cẩm nang/tin tức y tế do y tá đăng và phụ huynh đọc")
+@Tag(name = "Cẩm nang y tế", description ="API quản lý cẩm nang/tin tức y tế do y tá đăng và phụ huynh đọc")
 public class PostControllerComplete {
 
     private final PostService postService;
@@ -86,6 +87,52 @@ public class PostControllerComplete {
         response.put("data", createdPost);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Cập nhật cẩm nang y tế", description = "Cho phép y tá cập nhật cẩm nang y tế theo ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Cập nhật cẩm nang thành công",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = PostDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ", content = @Content),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Không có quyền thực hiện hoặc không phải tác giả", content = @Content),
+        @ApiResponse(responseCode = "404", description = "Không tìm thấy cẩm nang", content = @Content)
+    })
+    @PutMapping("/posts/{postId}")
+    public ResponseEntity<Map<String, Object>> updatePost(
+            @PathVariable Long postId, 
+            @RequestBody PostUpdateDTO postUpdateDTO) {
+        // Lấy thông tin người dùng hiện tại từ context bảo mật
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = authentication.getName(); // Giả sử getName() trả về ID của user
+
+        PostDTO updatedPost = postService.updatePost(postId, postUpdateDTO, currentUserId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("data", updatedPost);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Xóa cẩm nang y tế", description = "Cho phép y tá xóa cẩm nang y tế theo ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Xóa cẩm nang thành công"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Không có quyền thực hiện", content = @Content),
+        @ApiResponse(responseCode = "404", description = "Không tìm thấy cẩm nang", content = @Content)
+    })
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<Map<String, String>> deletePost(@PathVariable Long postId) {
+        // Lấy thông tin người dùng hiện tại từ context bảo mật
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = authentication.getName(); // Giả sử getName() trả về ID của user
+
+        postService.deletePost(postId);
+
+
+
+        return ResponseEntity.noContent().build();
     }
 }
 

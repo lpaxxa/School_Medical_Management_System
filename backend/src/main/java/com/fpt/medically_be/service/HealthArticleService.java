@@ -2,6 +2,7 @@ package com.fpt.medically_be.service;
 
 import com.fpt.medically_be.dto.HealthArticleDTO;
 import com.fpt.medically_be.dto.HealthArticleCreateDTO;
+import com.fpt.medically_be.dto.request.HealthArticleUpdateDTO;
 
 import java.util.List;
 
@@ -11,6 +12,10 @@ public interface HealthArticleService {
     List<HealthArticleDTO> getArticlesByCategory(String category);
     List<HealthArticleDTO> getRelatedArticles(Long articleId, String category);
     HealthArticleDTO createArticle(HealthArticleCreateDTO createDTO);
+    HealthArticleDTO updateArticle(Long id, HealthArticleUpdateDTO updateDTO);
+
+
+
     void deleteArticle(Long id);
 
     /**

@@ -19,6 +19,8 @@ public class PostLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)

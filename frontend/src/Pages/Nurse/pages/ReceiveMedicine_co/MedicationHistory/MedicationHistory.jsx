@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Container, Row, Col, Card, Table, Form, Button, 
+  Container, Row, Col, Card, Table, Form, Button,
   Spinner, Alert, Modal, InputGroup, Badge, Pagination
 } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { 
-  FaSearch, FaPlus, FaPen, FaTrash, 
+  FaSearch, FaEye, FaImage,
   FaCheckCircle, FaTimesCircle, FaExclamationTriangle, 
   FaExclamationCircle 
 } from 'react-icons/fa';
@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 
 
 const MedicationHistory = () => {
-  // Use context instead of local state
+  // Use context for read-only access
   const {
     administrations,
     totalItems,
@@ -25,9 +25,6 @@ const MedicationHistory = () => {
     loading,
     error,
     fetchMedicationAdministrations,
-    addMedicationAdministration,
-    updateMedicationAdministration,
-    deleteMedicationAdministration,
     clearError
   } = useMedicationAdministration();
 
@@ -61,25 +58,47 @@ const MedicationHistory = () => {
     }
   };
   
-  // State for search and filters
+  // State for search and filters only (read-only view)
   const [searchTerm, setSearchTerm] = useState('');
   
-  // State for add/edit modal
-  const [showModal, setShowModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [modalData, setModalData] = useState({
-    medicationInstructionId: '',
-    administeredAt: new Date().toISOString().slice(0, 16),
-    administrationStatus: 'SUCCESSFUL',
-    notes: ''
-  });
-  
-  // State for delete confirmation
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
+  // State for viewing image modal
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState('');
 
-  // Status mapping for display
+  // Status mapping for display - Updated to include both backend and mock data statuses
   const statusConfig = {
+    // Backend enum statuses
+    'PENDING_APPROVAL': { 
+      color: 'warning', 
+      icon: <FaExclamationTriangle className="me-1" />, 
+      text: 'Chờ phê duyệt' 
+    },
+    'APPROVED': { 
+      color: 'info', 
+      icon: <FaCheckCircle className="me-1" />, 
+      text: 'Đã duyệt' 
+    },
+    'REJECTED': { 
+      color: 'danger', 
+      icon: <FaTimesCircle className="me-1" />, 
+      text: 'Từ chối' 
+    },
+    'FULLY_TAKEN': { 
+      color: 'success', 
+      icon: <FaCheckCircle className="me-1" />, 
+      text: 'Đã uống đầy đủ' 
+    },
+    'PARTIALLY_TAKEN': { 
+      color: 'warning', 
+      icon: <FaExclamationTriangle className="me-1" />, 
+      text: 'Uống một phần' 
+    },
+    'EXPIRED': { 
+      color: 'danger', 
+      icon: <FaTimesCircle className="me-1" />, 
+      text: 'Đã hết hạn' 
+    },
+    // Mock data statuses (for fallback when API is not available)
     'SUCCESSFUL': { 
       color: 'success', 
       icon: <FaCheckCircle className="me-1" />, 
@@ -94,11 +113,6 @@ const MedicationHistory = () => {
       color: 'warning', 
       icon: <FaExclamationTriangle className="me-1" />, 
       text: 'Một phần' 
-    },
-    'ISSUE': { 
-      color: 'dark', 
-      icon: <FaExclamationCircle className="me-1" />, 
-      text: 'Vấn đề' 
     }
   };
   // Format date for display
@@ -205,6 +219,13 @@ const MedicationHistory = () => {
     }));
   };
 
+  // Handle viewing image
+  const handleViewImage = (imageUrl) => {
+    if (imageUrl) {
+      setSelectedImage(imageUrl);
+      setShowImageModal(true);
+    }
+  };
   // Handle pagination change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -302,16 +323,8 @@ const MedicationHistory = () => {
         <Card.Header className="bg-white py-3">
           <Row className="align-items-center">
             <Col>
-              <h5 className="mb-0 fw-bold text-primary">Lịch sử dùng thuốc</h5>
-            </Col>
-            <Col xs="auto">
-              <Button 
-                variant="primary" 
-                className="d-flex align-items-center" 
-                onClick={openAddModal}
-              >
-                <FaPlus className="me-2" /> Thêm mới
-              </Button>
+              <h5 className="mb-0 fw-bold text-primary">Lịch sử dùng thuốc (Chỉ xem)</h5>
+              <small className="text-muted">Chế độ chỉ xem - không thể thêm, sửa hoặc xóa</small>
             </Col>
           </Row>
         </Card.Header>
@@ -376,7 +389,7 @@ const MedicationHistory = () => {
                       <th>Thời gian dùng</th>
                       <th>Người thực hiện</th>
                       <th>Trạng thái</th>
-                      <th className="text-center">Thao tác</th>
+                      <th className="text-center image-column">Ảnh xác nhận</th>
                     </tr>
                   </thead>
                   <tbody>                    {filteredAdministrations.map((medication) => (
@@ -396,28 +409,29 @@ const MedicationHistory = () => {
                               {statusConfig[medication.administrationStatus].text}
                             </Badge>
                           ) : (
-                            <Badge bg="secondary">Không xác định</Badge>
+                            <Badge bg="secondary" title={`Trạng thái không xác định: ${medication.administrationStatus || 'null'}`}>
+                              Không xác định ({medication.administrationStatus || 'null'})
+                            </Badge>
                           )}
                         </td>
-                        <td>
-                          <div className="d-flex justify-content-center gap-2">
+                        <td className="text-center image-column">
+                          {(medication.imageUrl || medication.confirmationImageUrl) ? (
                             <Button 
-                              variant="outline-primary" 
+                              variant="outline-info" 
                               size="sm" 
-                              title="Chỉnh sửa"
-                              onClick={() => openEditModal(medication)}
+                              className="image-btn"
+                              title="Xem ảnh xác nhận"
+                              onClick={() => handleViewImage(medication.imageUrl || medication.confirmationImageUrl)}
                             >
-                              <FaPen />
+                              <FaEye className="me-1" />
+                              Xem ảnh
                             </Button>
-                            <Button 
-                              variant="outline-danger" 
-                              size="sm" 
-                              title="Xóa"
-                              onClick={() => openDeleteModal(medication.id)}
-                            >
-                              <FaTrash />
-                            </Button>
-                          </div>
+                          ) : (
+                            <Badge bg="secondary" className="no-image-badge">
+                              <FaImage className="me-1" />
+                              Không có ảnh
+                            </Badge>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -436,92 +450,55 @@ const MedicationHistory = () => {
         </Card.Body>
       </Card>
 
-      {/* Add/Edit Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered backdrop="static">
+      {/* Image Viewing Modal */}
+      <Modal 
+        show={showImageModal} 
+        onHide={() => setShowImageModal(false)} 
+        centered 
+        size="lg"
+        className="image-modal"
+      >
         <Modal.Header closeButton>
-          <Modal.Title>
-            {isEditing ? 'Chỉnh sửa thông tin dùng thuốc' : 'Thêm mới thông tin dùng thuốc'}
-          </Modal.Title>
+          <Modal.Title>Ảnh xác nhận dùng thuốc</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Mã đơn thuốc</Form.Label>
-              <Form.Control
-                type="number"
-                name="medicationInstructionId"
-                value={modalData.medicationInstructionId}
-                onChange={handleInputChange}
-                required
+        <Modal.Body className="text-center">
+          {selectedImage ? (
+            <div>
+              <img 
+                src={selectedImage} 
+                alt="Ảnh xác nhận dùng thuốc" 
+                className="img-fluid rounded"
+                style={{ maxHeight: '500px', maxWidth: '100%' }}
+                onError={(e) => {
+                  e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2Yjc0ODMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5LaG9uZyB0aGUgdGFpIGFuaDwvdGV4dD4KPC9zdmc+';
+                  e.target.alt = 'Không thể tải ảnh';
+                }}
               />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Thời gian dùng thuốc</Form.Label>
-              <Form.Control
-                type="datetime-local"
-                name="administeredAt"
-                value={modalData.administeredAt}
-                onChange={handleInputChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Trạng thái</Form.Label>
-              <Form.Select
-                name="administrationStatus"
-                value={modalData.administrationStatus}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="SUCCESSFUL">Thành công</option>
-                <option value="REFUSED">Từ chối</option>
-                <option value="PARTIAL">Một phần</option>
-                <option value="ISSUE">Vấn đề</option>
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Ghi chú</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="notes"
-                value={modalData.notes}
-                onChange={handleInputChange}
-              />
-            </Form.Group>
-          </Form>
+              <div className="mt-3">
+                <small className="text-muted">
+                  Click vào ảnh để phóng to hoặc nhấn ESC để đóng
+                </small>
+              </div>
+            </div>
+          ) : (
+            <div className="text-muted py-4">
+              <FaImage size={48} className="mb-3" />
+              <p>Không có ảnh để hiển thị</p>
+            </div>
+          )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Hủy
+          <Button variant="secondary" onClick={() => setShowImageModal(false)}>
+            Đóng
           </Button>
-          <Button 
-            variant="primary" 
-            onClick={isEditing ? handleEditMedication : handleAddMedication}
-          >
-            {isEditing ? 'Cập nhật' : 'Thêm mới'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Xác nhận xóa</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Bạn có chắc chắn muốn xóa thông tin dùng thuốc này không?
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Hủy
-          </Button>
-          <Button variant="danger" onClick={handleDeleteMedication}>
-            Xóa
-          </Button>
+          {selectedImage && (
+            <Button 
+              variant="primary" 
+              onClick={() => window.open(selectedImage, '_blank')}
+            >
+              Mở ảnh gốc
+            </Button>
+          )}
         </Modal.Footer>
       </Modal>
     </Container>

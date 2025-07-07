@@ -2,8 +2,6 @@ package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.SpecialCheckupConsentDTO;
 import com.fpt.medically_be.dto.request.Notification2RequestDTO;
-import com.fpt.medically_be.dto.request.Notification2UpdateDTO;
-import com.fpt.medically_be.dto.request.StudentReceiverRequest;
 import com.fpt.medically_be.dto.response.*;
 
 import com.fpt.medically_be.entity.*;
@@ -345,38 +343,9 @@ public class Notification2ServiceImp implements Notification2Service {
                 .collect(Collectors.toList());
     }
 
-//    @Override
-//    public List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long parentId) {
-//        List<NotificationRecipients> recipients = notificationRecipientsRepo
-//                .findByResponseAndReceiverIdAndNotification_Type(ResponseStatus.ACCEPTED, parentId, NotificationType.VACCINATION);
-//
-//
-//        return recipients.stream()
-//                .map(notification2Mapper::toNotificationResponseDTO)
-//                .collect(Collectors.toList());
-//    }
-@Override
-public List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long parentId, String studentId) {
-    List<NotificationRecipients> recipients = notificationRecipientsRepo
-            .findByReceiverIdAndStudent_StudentIdAndResponseAndNotification_Type(parentId,studentId, ResponseStatus.ACCEPTED, NotificationType.VACCINATION);
 
 
-    return recipients.stream()
-            .map(notification2Mapper::toNotificationResponseDTO)
-            .collect(Collectors.toList());
-}
 
-    @Override
-    public VaccineInforRequest getVacineByStudentIdAndNotiID(String studendId, Long id) {
-
-        NotificationRecipients recipient = notificationRecipientsRepo.findByIdAndStudent_StudentId(id, studendId);
-
-        if (recipient == null) {
-            throw new RuntimeException("Notification recipient not found for the given ID and student ID");
-        }
-
-        return notification2Mapper.toVaccineInforRequest(recipient);
-    }
 
     @Override
     public List<NotificationAccepted> getNotificationAcceptedByIdAndResponse(Long id, ResponseStatus studentId) {
@@ -392,32 +361,4 @@ public List<VaccineApproveNotiResponse> getAcceptedNotificationsByParent(Long pa
     }
 
 
-//        @Override
-//        public List<Notification2ResponseDTO> getNotificationsByParentId(Long parentId) {
-//            List<NotificationRecipients> recipients = notificationRecipientsRepo.findByNotificationId(parentId);
-//
-//            if (recipients.isEmpty()) {
-//                throw new RuntimeException("No notifications found for the given parent ID");
-//            }
-//
-//            return recipients.stream().map(item -> {
-//                Notification n = item.getNotification();
-//                Notification2ResponseDTO dto = notificationMapper.toNotificationResponseDTO(n);
-//
-//
-//                // Gửi từ nurse nào
-//                if (n.getCreatedBy() != null) {
-//                    dto.setSenderName(n.getCreatedBy().getFullName());
-//                } else {
-//                    dto.setSenderName("Unknown");
-//                }
-//
-//                // Phản hồi của parent
-//                dto.setResponse(item.getReceiver()!= null ? item.getReceiver().getFullName() : null);
-//                dto.setResponseAt(item.getResponseAt());
-//
-//                return dto;
-//            }).collect(Collectors.toList());
-//
-//        }
 }

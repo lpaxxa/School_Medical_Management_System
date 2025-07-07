@@ -3,12 +3,14 @@ package com.fpt.medically_be.service.impl;
 import com.fpt.medically_be.dto.request.AccountUpdateRequestDTO;
 import com.fpt.medically_be.dto.response.AccountAdminResponseDTO;
 import com.fpt.medically_be.entity.AccountMember;
-import com.fpt.medically_be.entity.MemberRole;
+import com.fpt.medically_be.entity.Nurse;
+import com.fpt.medically_be.entity.Parent;
 import com.fpt.medically_be.mapper.AccountMemberMapper;
 import com.fpt.medically_be.repos.AccountMemberRepos;
 import com.fpt.medically_be.repos.NurseRepository;
 import com.fpt.medically_be.repos.ParentRepository;
 import com.fpt.medically_be.service.AccountMemberService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,7 +37,12 @@ public class AccountMemberServiceImp implements AccountMemberService {
 
         AccountMember member = memberRepos.findAccountMemberByIdAndIsActiveTrue(id).orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
 
-        return accountMemberMapper.memberToMemberDTO(member);
+        AccountAdminResponseDTO dto = accountMemberMapper.memberToMemberDTO(member);
+        
+        // Populate role-specific fields
+        populateRoleSpecificFields(dto, member);
+        
+        return dto;
     }
 
     @Override
@@ -43,7 +50,11 @@ public class AccountMemberServiceImp implements AccountMemberService {
 
         return memberRepos.findAllByIsActiveTrue()
                 .stream()
-                .map(accountMemberMapper::memberToMemberDTO)
+                .map(member -> {
+                    AccountAdminResponseDTO dto = accountMemberMapper.memberToMemberDTO(member);
+                    populateRoleSpecificFields(dto, member);
+                    return dto;
+                })
                 .toList();
     }
 
@@ -64,6 +75,7 @@ public class AccountMemberServiceImp implements AccountMemberService {
             throw new RuntimeException("This member is deactivated.");
         }
 
+        // Update basic AccountMember fields (available for all roles)
         if (obj.getPassword() != null && !obj.getPassword().isEmpty()) {
             member.setPassword(passwordEncoder.encode(obj.getPassword()));
         }
@@ -76,48 +88,73 @@ public class AccountMemberServiceImp implements AccountMemberService {
             member.setPhoneNumber(obj.getPhoneNumber());
         }
 
-        //nếu muốn update role, thì qua AccountUpdateRequestDTO thêm role
-//        if (obj.getRole() != null) {
-//            try {
-//                MemberRole newRole = MemberRole.valueOf(obj.getRole().toUpperCase());
-//                member.setRole(newRole);
-//            } catch (IllegalArgumentException e) {
-//                throw new RuntimeException("Invalid role value: " + obj.getRole());
-//            }
-//        }
-
-
+        // Update role-specific profile fields
         switch (member.getRole()) {
             case PARENT:
-                parentRepository.findByAccountId(id).ifPresent(parent -> {
-                    if (obj.getEmail() != null) {
-                        parent.setEmail(obj.getEmail());
-                    }
-                    if (obj.getPhoneNumber() != null) {
-                        parent.setPhoneNumber(obj.getPhoneNumber());
-                    }
-                    parentRepository.save(parent);
-                });
+                // PARENT can update: email, phoneNumber, fullName, address, relationshipType, occupation
+                Parent parent = parentRepository.findByAccount_Id(id)
+                        .orElseThrow(() -> new RuntimeException("Parent profile not found for account id: " + id));
+                
+                if (obj.getEmail() != null) {
+                    parent.setEmail(obj.getEmail());
+                }
+                if (obj.getPhoneNumber() != null) {
+                    parent.setPhoneNumber(obj.getPhoneNumber());
+                }
+                if (obj.getFullName() != null) {
+                    parent.setFullName(obj.getFullName());
+                }
+                if (obj.getAddress() != null) {
+                    parent.setAddress(obj.getAddress());
+                }
+                if (obj.getRelationshipType() != null) {
+                    parent.setRelationshipType(obj.getRelationshipType());
+                }
+                if (obj.getOccupation() != null) {
+                    parent.setOccupation(obj.getOccupation());
+                }
+                parentRepository.save(parent);
                 break;
 
             case NURSE:
-                nurseRepository.findByAccountId(id).ifPresent(nurse -> {
-                    if (obj.getEmail() != null) {
-                        nurse.setEmail(obj.getEmail());
-                    }
-                    if (obj.getPhoneNumber() != null) {
-                        nurse.setPhoneNumber(obj.getPhoneNumber());
-                    }
-                    nurseRepository.save(nurse);
-                });
+                // NURSE can update: email, phoneNumber, fullName, qualification
+                Nurse nurse = nurseRepository.findByAccount_Id(id)
+                        .orElseThrow(() -> new RuntimeException("Nurse profile not found for account id: " + id));
+                
+                if (obj.getEmail() != null) {
+                    nurse.setEmail(obj.getEmail());
+                }
+                if (obj.getPhoneNumber() != null) {
+                    nurse.setPhoneNumber(obj.getPhoneNumber());
+                }
+                if (obj.getFullName() != null) {
+                    nurse.setFullName(obj.getFullName());
+                }
+                if (obj.getQualification() != null) {
+                    nurse.setQualification(obj.getQualification());
+                }
+                nurseRepository.save(nurse);
+                break;
+
+            case ADMIN:
+                // ADMIN can only update basic AccountMember fields: email, password, phoneNumber
+                // Admin doesn't have a separate profile table, only uses AccountMember entity
+                // If fullName is needed for Admin, consider adding it to AccountMember entity
+                // or creating a separate Admin profile entity
                 break;
 
             default:
+                // Handle any other roles that might be added in the future
                 break;
         }
 
         AccountMember saved = memberRepos.save(member);
-        return accountMemberMapper.memberToMemberDTO(saved);
+        AccountAdminResponseDTO dto = accountMemberMapper.memberToMemberDTO(saved);
+        
+        // Populate role-specific fields in response
+        populateRoleSpecificFields(dto, saved);
+        
+        return dto;
     }
 
 
@@ -143,45 +180,63 @@ public class AccountMemberServiceImp implements AccountMemberService {
                 .toList();
     }
 
+    @Override
+    public void updateAccountActiveStatus(String id, boolean isActive) {
+        AccountMember member = memberRepos.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thành viên với ID: " + id));
 
-//    @Transactional
-//    public void deleteAccountMember(String accountId) {
-//        AccountMember member = memberRepos.findAccountMemberById(accountId)
-//                .orElseThrow(() -> new RuntimeException("Member not found with id: " + accountId));
-//
-//        switch (member.getRole()) {
-//            case NURSE:
-//                Nurse nurse = nurseRepository.findByAccountId(accountId)
-//                        .orElseThrow(() -> new RuntimeException("Nurse not found for account: " + accountId));
-//                // 1. Set null hoặc xóa tất cả MedicalCheckup liên quan
-//                List<MedicalCheckup> checkups = medicalCheckupRepository.findByMedicalStaff(nurse);
-//                for (MedicalCheckup checkup : checkups) {
-//                    checkup.setMedicalStaff(null); // hoặc medicalCheckupRepository.delete(checkup);
-//                }
-//                medicalCheckupRepository.saveAll(checkups);
-//                // 2. Xóa nurse
-//                nurseRepository.delete(nurse);
-//                break;
-//            case PARENT:
-//                Parent parent = parentRepository.findByAccountId(accountId)
-//                        .orElseThrow(() -> new RuntimeException("Parent not found for account: " + accountId));
-//                // 1. Xử lý các NotificationRecipients liên quan
-//                List<NotificationRecipients> notis = notificationRecipientsRepository.findByReceiver(parent);
-//                notificationRecipientsRepository.deleteAll(notis);
-//                // 2. Xử lý các Student liên quan (nếu muốn)
-//                List<Student> students = studentRepository.findByParent(parent);
-//                for (Student s : students) {
-//                    s.setParent(null); // hoặc studentRepository.delete(s);
-//                }
-//                studentRepository.saveAll(students);
-//                // 3. Xóa parent
-//                parentRepository.delete(parent);
-//                break;
-//            // ... các role khác tương tự
-//            default:
-//                // Xử lý role khác nếu có
-//        }
-//        // 4. Xóa AccountMember cuối cùng
-//        memberRepos.delete(member);
-//    }
+        // Update the active status of the member
+        if (isActive) {
+            // If activating, ensure the member was previously
+            if (Boolean.TRUE.equals(member.getIsActive())) {
+                throw new RuntimeException("Member is already active.");
+            }
+        } else {
+            // If deactivating, ensure the member was previously active
+            if (Boolean.FALSE.equals(member.getIsActive())) {
+                throw new RuntimeException("Member is already inactive.");
+            }
+        }
+        member.setIsActive(isActive);
+        memberRepos.save(member);
+
+
+    }
+
+    // Helper method to populate role-specific fields
+    private void populateRoleSpecificFields(AccountAdminResponseDTO dto, AccountMember member) {
+        if (member.getRole() == null) {
+            return;
+        }
+        
+        switch (member.getRole()) {
+            case PARENT:
+                parentRepository.findByAccount_Id(member.getId()).ifPresent(parent -> {
+                    dto.setFullName(parent.getFullName());
+                    dto.setAddress(parent.getAddress());
+                    dto.setRelationshipType(parent.getRelationshipType());
+                    dto.setOccupation(parent.getOccupation());
+                });
+                break;
+                
+            case NURSE:
+                nurseRepository.findByAccount_Id(member.getId()).ifPresent(nurse -> {
+                    dto.setFullName(nurse.getFullName());
+                    dto.setQualification(nurse.getQualification());
+                });
+                break;
+                
+            case ADMIN:
+                // Admin doesn't have additional profile fields
+                break;
+                
+            default:
+                // Handle other roles if needed
+                break;
+        }
+    }
+
+    // Removed duplicate registration methods - use AuthService.registerMember() instead
+    // The previous updateParent, updateNurse, and updateAdmin methods were incorrectly
+    // named and duplicated functionality that already exists in AuthService
 }

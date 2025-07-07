@@ -10,7 +10,9 @@ import jakarta.validation.Valid;
 
 
 import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -39,7 +41,11 @@ public interface MedicationInstructionService {
     List<MedicationInstructionDTO> getAllMedicationRequests();
     MedicationInstructionDTO processApprovalRequest(Long requestId, @Valid NurseMedicationApprovalRequestDTO approvalRequest, Authentication authentication);
    void cancelMedicationRequest(Long requestId, Authentication auth);
+   /**
+     * Updates the status of medication instructions to EXPIRED when their end date has passed
+     * @return the number of medication instructions updated
+     */
+    int updateExpiredMedicationInstructions();
 
-
+    MedicationInstructionDTO uploadConfirmationImage(Long instructionId, MultipartFile imageFile, Authentication auth) throws IOException;
 }
-

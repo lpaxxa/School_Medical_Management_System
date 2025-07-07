@@ -1,6 +1,8 @@
 package com.fpt.medically_be.service;
 
+
 import com.fpt.medically_be.dto.request.AccountUpdateRequestDTO;
+
 import com.fpt.medically_be.dto.response.AccountAdminResponseDTO;
 import com.fpt.medically_be.entity.AccountMember;
 
@@ -16,4 +18,6 @@ public interface AccountMemberService {
           AccountAdminResponseDTO updateMember(String id, AccountUpdateRequestDTO obj);
           void deactivateMember(String id);
           List<AccountAdminResponseDTO> getAllMemberToSendEmail();
+    void updateAccountActiveStatus(String id, boolean isActive);
+    // Removed duplicate registration methods - use AuthService.registerMember() instead
 }

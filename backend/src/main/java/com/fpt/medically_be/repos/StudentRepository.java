@@ -21,10 +21,14 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByHealthProfileId(Long healthProfileId);
 
     //dt
-    List<Student> findByParentIdIn(List<Long> parentIds);
     List<Student> findByStudentIdIn(List<String> ids);
+
+    // Lấy tất cả học sinh trong một lớp cụ thể
+
     List<Student> findByClassNameIn(List<String> classNames);
+    // Lấy tất cả học sinh trong một lớp cụ thể
+    List<Student> findAllByClassName(String className);
 
-
+    List<Student> findAllByClassNameIn(List<String> className);
 
 }

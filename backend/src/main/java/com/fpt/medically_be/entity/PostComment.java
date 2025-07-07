@@ -40,12 +40,15 @@ public class PostComment {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
+
 
     @PreUpdate
     protected void onUpdate() {

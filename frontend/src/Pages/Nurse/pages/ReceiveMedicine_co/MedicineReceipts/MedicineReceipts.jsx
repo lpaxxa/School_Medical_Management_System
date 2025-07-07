@@ -27,15 +27,20 @@ import {
   FaCamera,
   FaUpload,
   FaTimes,
+  FaImage,
 } from "react-icons/fa";
 import "./MedicineReceipts.css";
 import { useMedicineApproval } from "../../../../../context/NurseContext/MedicineApprovalContext";
 import receiveMedicineService from "../../../../../services/APINurse/receiveMedicineService";
 import { toast } from "react-toastify";
 
-// Hàm chuyển đổi status thành text và style
+// Hàm chuyển đổi status thành text và style - Updated to match backend Status enum
 const getStatusInfo = (status) => {
+
   // Normalize numeric status to string status
+
+  // Xử lý trường hợp status là số (legacy support)
+
   if (typeof status === 'number') {
     switch (status) {
       case 0:
@@ -51,8 +56,24 @@ const getStatusInfo = (status) => {
         status = "UNKNOWN";
     }
   }
-
-  // Return style based on string status
+        return {
+          text: "Đã duyệt",
+          class: "info",
+        };
+      case 2:
+        return {
+          text: "Từ chối",
+          class: "danger",
+        };
+      default:
+        return {
+          text: "Không xác định",
+          class: "secondary",
+        };
+    }
+  }
+  
+  // Xử lý trường hợp status là chuỗi - Complete Status enum support
   switch(status) {
     case "PENDING_APPROVAL":
       return { text: "Chờ phê duyệt", color: "#FFC107", textColor: "#212529" };
@@ -70,6 +91,35 @@ const getStatusInfo = (status) => {
       return { text: "Đã hủy", color: "#212529", textColor: "#FFFFFF" };
     default:
       return { text: "Không xác định", color: "#F8F9FA", textColor: "#212529", border: "1px solid #DEE2E6" };
+      return {
+        text: "Đã duyệt",
+        class: "info",
+      };
+    case "REJECTED":
+      return {
+        text: "Từ chối",
+        class: "danger",
+      };
+    case "FULLY_TAKEN":
+      return {
+        text: "Đã hoàn thành",
+        class: "success",
+      };
+    case "PARTIALLY_TAKEN":
+      return {
+        text: "Hoàn thành một phần",
+        class: "warning",
+      };
+    case "EXPIRED":
+      return {
+        text: "Đã hết hạn",
+        class: "danger",
+      };
+    default:
+      return {
+        text: "Không xác định",
+        class: "secondary",
+      };
   }
 };
 
@@ -95,6 +145,8 @@ const MedicineReceipts = () => {
   // Medication Administration states
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showMedicineImageModal, setShowMedicineImageModal] = useState(false);
+  const [selectedMedicineImage, setSelectedMedicineImage] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [pendingAdministrationId, setPendingAdministrationId] = useState(null);
   const [adminLoading, setAdminLoading] = useState(false);
@@ -103,7 +155,6 @@ const MedicineReceipts = () => {
   const [formData, setFormData] = useState({
     medicationInstructionId: '',
     administeredAt: '',
-    administrationStatus: 'SUCCESSFUL',
     notes: '',
     imgUrl: ''
   });
@@ -221,7 +272,6 @@ const MedicineReceipts = () => {
     setFormData({
       medicationInstructionId: request.id,
       administeredAt: getCurrentDateTime(),
-      administrationStatus: 'SUCCESSFUL',
       notes: '',
       imgUrl: ''
     });
@@ -233,7 +283,6 @@ const MedicineReceipts = () => {
     setFormData({
       medicationInstructionId: '',
       administeredAt: getCurrentDateTime(),
-      administrationStatus: 'SUCCESSFUL',
       notes: '',
       imgUrl: ''
     });
@@ -330,7 +379,6 @@ const MedicineReceipts = () => {
       const submitData = {
         medicationInstructionId: Number(formData.medicationInstructionId),
         administeredAt: selectedDateTime.toISOString(),
-        administrationStatus: formData.administrationStatus,
         notes: formData.notes || '',
         imgUrl: formData.imgUrl || ''
       };
@@ -465,6 +513,14 @@ const MedicineReceipts = () => {
     setPendingAdministrationId(null);
   };
 
+  // Handle viewing medicine image sent by parents
+  const handleViewMedicineImage = (imageUrl) => {
+    if (imageUrl) {
+      setSelectedMedicineImage(imageUrl);
+      setShowMedicineImageModal(true);
+    }
+  };
+
   // Xử lý khi nhân viên muốn xử lý yêu cầu thuốc (phê duyệt hoặc từ chối)
   const handleProcessClick = (id, initialDecision = "APPROVED") => {
     setPendingProcessId(id);
@@ -518,12 +574,13 @@ const MedicineReceipts = () => {
     }
   };
 
-  // Lọc đơn thuốc theo trạng thái và ngày
+  // Lọc và sắp xếp đơn thuốc theo trạng thái và ngày
   const filteredMedicineRequests = medicineRequests.filter((medicine) => {
     // Filter by status
     let statusMatch = true;
     if (filterStatus !== "all") {
       if (typeof medicine.status === "number") {
+        // Legacy numeric status support
         switch (filterStatus) {
           case "PENDING_APPROVAL":
             statusMatch = medicine.status === 0;
@@ -534,11 +591,12 @@ const MedicineReceipts = () => {
           case "REJECTED":
             statusMatch = medicine.status === 2;
             break;
+          // Add more numeric mappings if needed for new statuses
           default:
             statusMatch = false;
         }
       } else {
-        // String status comparison
+        // String status comparison - supports all Status enum values
         statusMatch = medicine.status === filterStatus;
       }
     }
@@ -562,6 +620,14 @@ const MedicineReceipts = () => {
     }
 
     return statusMatch && dateMatch;
+  }).sort((a, b) => {
+    // Sort by end date: current (newest) to older
+    // Handle cases where endDate might be null or undefined
+    const dateA = a.endDate ? new Date(a.endDate) : new Date(0); // Use epoch date for null endDate
+    const dateB = b.endDate ? new Date(b.endDate) : new Date(0); // Use epoch date for null endDate
+    
+    // Sort in descending order (newest first)
+    return dateB.getTime() - dateA.getTime();
   });
 
   // Pagination logic
@@ -631,7 +697,41 @@ const MedicineReceipts = () => {
     setCurrentPage(1);
   };
 
-  // Check if request is approved
+  // Check if medication administration can be recorded
+  const canRecordAdministration = (status, medicine = null) => {
+    // Basic status check first
+    const validStatuses = status === "APPROVED" || status === 1 || status === "PARTIALLY_TAKEN";
+    
+    if (!validStatuses) {
+      return false;
+    }
+    
+    // If medicine object is provided and has endDate, check if it's in the past
+    if (medicine && medicine.endDate) {
+      const endDate = new Date(medicine.endDate);
+      endDate.setHours(23, 59, 59, 999); // Set to end of the end date
+      const currentTime = new Date();
+      
+      // If end date has passed, don't allow recording (even for PARTIALLY_TAKEN)
+      if (currentTime > endDate) {
+        return false;
+      }
+    }
+    
+    // Allow recording for:
+    // - APPROVED: Medication approved and ready to start administering
+    // - PARTIALLY_TAKEN: Some doses given, but more doses still needed (and not past end date)
+    // 
+    // Do NOT allow recording for:
+    // - REJECTED: Medication request was rejected
+    // - EXPIRED: Medication period expired without any doses
+    // - FULLY_TAKEN: All required doses have been completed
+    // - PENDING_APPROVAL: Still waiting for approval
+    // - PARTIALLY_TAKEN with past end date: Can no longer administer medication
+    return true;
+  };
+
+  // Check if request is approved (legacy function, still used in detail modal)
   const isApproved = (status) => {
     return status === "APPROVED" || status === 1;
   };
@@ -660,6 +760,10 @@ const MedicineReceipts = () => {
                     <option value="PARTIALLY_TAKEN">Đang dùng</option>
                     <option value="EXPIRED">Đã hết hạn</option>
                     <option value="CANCELLED">Đã hủy</option>
+                    <option value="FULLY_TAKEN">Đã hoàn thành</option>
+                    <option value="PARTIALLY_TAKEN">Hoàn thành một phần</option>
+                    <option value="EXPIRED">Đã hết hạn</option>
+
                   </Form.Select>
                 </InputGroup>
               </Form.Group>
@@ -735,6 +839,8 @@ const MedicineReceipts = () => {
                         <th>Tên học sinh</th>
                         <th>Người yêu cầu</th>
                         <th>Ngày bắt đầu</th>
+                        <th>Ngày kết thúc</th>
+                        <th className="medicine-image-column">Ảnh thuốc</th>
                         <th >Trạng thái</th>
                         <th className="text-center">Ghi nhận</th>
                       </tr>
@@ -755,6 +861,37 @@ const MedicineReceipts = () => {
                             {new Date(medicine.startDate).toLocaleDateString("vi-VN")}
                           </td>
                           <td>
+                            {medicine.endDate ? new Date(medicine.endDate).toLocaleDateString("vi-VN") : "Không có"}
+                          </td>
+                          <td className="text-center medicine-image-column">
+                            {(() => {
+                              // Debug: Log the medicine object to console to see available fields
+                              console.log('Medicine object for ID', medicine.id, ':', medicine);
+                              console.log('prescriptionImageUrl:', medicine.prescriptionImageUrl);
+                              console.log('medicationImageUrl:', medicine.medicationImageUrl);
+                              console.log('imageUrl:', medicine.imageUrl);
+                              
+                              const hasImage = medicine.prescriptionImageUrl || medicine.medicationImageUrl || medicine.imageUrl;
+                              return hasImage ? (
+                                <Button
+                                  variant="outline-info"
+                                  size="sm"
+                                  className="medicine-image-btn"
+                                  title="Xem ảnh thuốc"
+                                  onClick={() => handleViewMedicineImage(medicine.prescriptionImageUrl || medicine.medicationImageUrl || medicine.imageUrl)}
+                                >
+                                  <FaEye className="me-1" />
+                                  Xem ảnh
+                                </Button>
+                              ) : (
+                                <span className="badge bg-secondary no-medicine-image-badge">
+                                  <FaImage className="me-1" />
+                                  Không có ảnh
+                                </span>
+                              );
+                            })()}
+                          </td>
+                          <td>
                             <span
                               style={{
                                 display: "inline-block",
@@ -767,6 +904,30 @@ const MedicineReceipts = () => {
                                 backgroundColor: statusInfo.color,
                                 color: statusInfo.textColor,
                                 border: statusInfo.border || "none",
+                                backgroundColor:
+                                  statusInfo.text === "Chờ phê duyệt"
+                                    ? "#FFC107"
+                                    : statusInfo.text === "Đã duyệt"
+                                    ? "#17A2B8"
+                                    : statusInfo.text === "Từ chối"
+                                    ? "#DC3545"
+                                    : statusInfo.text === "Đã hoàn thành"
+                                    ? "#28A745"
+                                    : statusInfo.text === "Hoàn thành một phần"
+                                    ? "#FFC107"
+                                    : statusInfo.text === "Đã hết hạn"
+                                    ? "#DC3545"
+                                    : "#6C757D",
+                                color:
+                                  statusInfo.text === "Chờ phê duyệt" ||
+                                  statusInfo.text === "Hoàn thành một phần" ||
+                                  statusInfo.text === "Không xác định"
+                                    ? "#212529"
+                                    : "#FFFFFF",
+                                border:
+                                  statusInfo.text === "Không xác định"
+                                    ? "1px solid #DEE2E6"
+                                    : "none",
                               }}
                             >
                               {statusInfo.text}
@@ -783,13 +944,13 @@ const MedicineReceipts = () => {
                                 <FaEye />
                               </Button>
 
-                              {/* Show Record Administration button for approved requests */}
-                              {isApproved(medicine.status) && (
+                              {/* Show Record Administration button for approved and partially taken requests */}
+                              {canRecordAdministration(medicine.status, medicine) && (
                                 <Button
                                   variant="outline-success"
                                   size="sm"
                                   onClick={() => handleRecordAdministration(medicine)}
-                                  title="Ghi nhận cung cấp thuốc"
+                                  title={medicine.status === "PARTIALLY_TAKEN" ? "Tiếp tục ghi nhận cung cấp thuốc" : "Ghi nhận cung cấp thuốc"}
                                 >
                                   <FaPlus />
                                 </Button>
@@ -912,8 +1073,8 @@ const MedicineReceipts = () => {
               </Alert>
             )}
 
-            <Row>
-              <Col md={6}>
+                        <Row>
+              <Col md={12}>
                 <Form.Group className="mb-3">
                   <Form.Label>Thời gian thực hiện *</Form.Label>
                   <Form.Control
@@ -926,7 +1087,7 @@ const MedicineReceipts = () => {
                     required
                   />
                   <Form.Text className="text-muted">
-                    Thời gian thực tế đã cung cấp thuốc
+                    Thời gian thực tế đã cung cấp thuốc. Trạng thái sẽ được tự động cập nhật dựa trên số lần đã cho thuốc.
                     {selectedRequest && selectedRequest.startDate && (
                       <><br />Không được trước ngày bắt đầu: {new Date(selectedRequest.startDate).toLocaleDateString('vi-VN')}</>
                     )}
@@ -934,21 +1095,6 @@ const MedicineReceipts = () => {
                       <><br />Không được sau ngày kết thúc: {new Date(selectedRequest.endDate).toLocaleDateString('vi-VN')}</>
                     )}
                   </Form.Text>
-                </Form.Group>
-              </Col>
-              
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Trạng thái thực hiện</Form.Label>
-                  <Form.Select
-                    name="administrationStatus"
-                    value={formData.administrationStatus}
-                    onChange={handleInputChange}
-                  >
-                    <option value="SUCCESSFUL">Thành công</option>
-                    <option value="REFUSED">Học sinh từ chối</option>
-                    <option value="PARTIAL">Thực hiện một phần</option>
-                  </Form.Select>
                 </Form.Group>
               </Col>
             </Row>
@@ -989,12 +1135,15 @@ const MedicineReceipts = () => {
               <Form.Label>Ghi chú</Form.Label>
               <Form.Control
                 as="textarea"
-                rows={3}
+                rows={4}
                 name="notes"
                 value={formData.notes}
                 onChange={handleInputChange}
-                placeholder="Nhập ghi chú về việc cung cấp thuốc..."
+                placeholder="Nhập ghi chú về việc cung cấp thuốc (ví dụ: phản ứng của học sinh, liều lượng thực tế đã cho, bất kỳ vấn đề gì xảy ra...)"
               />
+              <Form.Text className="text-muted">
+                Ghi chú chi tiết về quá trình cung cấp thuốc, bao gồm phản ứng của học sinh và mọi thông tin quan trọng khác.
+              </Form.Text>
             </Form.Group>
           </Modal.Body>
           
@@ -1139,7 +1288,7 @@ const MedicineReceipts = () => {
             <Button variant="secondary" onClick={handleCloseDetail}>
               Đóng
             </Button>
-            {isApproved(selectedReceipt?.status) && (
+            {canRecordAdministration(selectedReceipt?.status, selectedReceipt) && (
               <Button 
                 variant="success"
                 onClick={() => {
@@ -1147,7 +1296,8 @@ const MedicineReceipts = () => {
                   handleRecordAdministration(selectedReceipt);
                 }}
               >
-                <FaPlus className="me-2" /> Ghi nhận cung cấp
+                <FaPlus className="me-2" /> 
+                {selectedReceipt?.status === "PARTIALLY_TAKEN" ? "Tiếp tục ghi nhận" : "Ghi nhận cung cấp"}
               </Button>
             )}
             {(selectedReceipt?.status === "PENDING_APPROVAL" || selectedReceipt?.status === 0) && (
@@ -1222,8 +1372,61 @@ const MedicineReceipts = () => {
           </Modal.Footer>
         </Modal>
       )}
+
+      {/* Medicine Image Viewing Modal */}
+      <Modal 
+        show={showMedicineImageModal} 
+        onHide={() => setShowMedicineImageModal(false)} 
+        centered 
+        size="lg"
+        className="medicine-image-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Ảnh thuốc từ phụ huynh</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center">
+          {selectedMedicineImage ? (
+            <div>
+              <img 
+                src={selectedMedicineImage} 
+                alt="Ảnh thuốc từ phụ huynh" 
+                className="img-fluid rounded"
+                style={{ maxHeight: '500px', maxWidth: '100%' }}
+                onError={(e) => {
+                  e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2Yjc0ODMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5LaG9uZyB0aGUgdGFpIGFuaDwvdGV4dD4KPC9zdmc+';
+                  e.target.alt = 'Không thể tải ảnh';
+                }}
+              />
+              <div className="mt-3">
+                <small className="text-muted">
+                  Ảnh thuốc được gửi từ phụ huynh kèm theo yêu cầu
+                </small>
+              </div>
+            </div>
+          ) : (
+            <div className="text-muted py-4">
+              <FaImage size={48} className="mb-3" />
+              <p>Không có ảnh để hiển thị</p>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowMedicineImageModal(false)}>
+            Đóng
+          </Button>
+          {selectedMedicineImage && (
+            <Button 
+              variant="primary" 
+              onClick={() => window.open(selectedMedicineImage, '_blank')}
+            >
+              Mở ảnh gốc
+            </Button>
+          )}
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
 
 export default MedicineReceipts;
+

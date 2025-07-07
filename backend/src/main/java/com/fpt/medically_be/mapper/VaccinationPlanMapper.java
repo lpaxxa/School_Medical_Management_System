@@ -2,38 +2,36 @@ package com.fpt.medically_be.mapper;
 
 import com.fpt.medically_be.dto.VaccinationPlanRequestDTO;
 import com.fpt.medically_be.dto.VaccinationPlanResponseDTO;
+import com.fpt.medically_be.dto.request.VaccinePlanCreateRequestDTO;
+import com.fpt.medically_be.dto.response.*;
+import com.fpt.medically_be.entity.NotificationRecipients;
+import com.fpt.medically_be.entity.Vaccination;
 import com.fpt.medically_be.entity.VaccinationPlan;
+import com.fpt.medically_be.entity.VaccinationPlanStatus;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 
-@Component
-public class VaccinationPlanMapper {
+import java.util.List;
 
-    public VaccinationPlan toEntity(VaccinationPlanRequestDTO dto) {
-        return VaccinationPlan.builder()
-                .vaccineName(dto.getVaccineName())
-                .vaccinationDate(dto.getVaccinationDate())
-                .status(dto.getStatus())
-                .description(dto.getDescription())
-                .build();
-    }
+@Mapper(componentModel = "spring")
+public interface VaccinationPlanMapper {
 
-    public void updateEntityFromDTO(VaccinationPlan entity, VaccinationPlanRequestDTO dto) {
-        entity.setVaccineName(dto.getVaccineName());
-        entity.setVaccinationDate(dto.getVaccinationDate());
-        entity.setStatus(dto.getStatus());
-        entity.setDescription(dto.getDescription());
-    }
+    VaccinationPlan toEntity(VaccinePlanCreateRequestDTO dto);
 
-    public VaccinationPlanResponseDTO toDTO(VaccinationPlan entity) {
-        return VaccinationPlanResponseDTO.builder()
-                .id(entity.getId())
-                .vaccineName(entity.getVaccineName())
-                .vaccinationDate(entity.getVaccinationDate())
-                .status(entity.getStatus())
-                .statusVietnamese(entity.getStatus().getVietnameseName())
-                .description(entity.getDescription())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .build();
-    }
+    VaccinePlanCreateResponse toCreateResponse(VaccinationPlan vaccinationPlan);
+
+
+    VaccinationPlanListResponse toListResponse(VaccinationPlan vaccinationPlan);
+
+    List<VaccinationPlanListResponse> toListResponse(List<VaccinationPlan> plans);
+
+    VaccinationPlanDetailResponse toDetailResponse(VaccinationPlan vaccinationPlan);
+
+    VaccinationPlanForParentResponse toParentResponse(VaccinationPlan plan);
+
+
+
+
 }

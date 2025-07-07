@@ -35,7 +35,7 @@ public class MedicationInstruction {
     private LocalDate endDate;
 
     @Column(name = "frequency_per_day")
-    private String frequencyPerDay;
+    private Integer frequencyPerDay;
 
     @Column(name = "time_of_day", columnDefinition = "NVARCHAR(MAX)")
     private String timeOfDay;  // JSON array of times
@@ -71,6 +71,4 @@ public class MedicationInstruction {
     @Column(columnDefinition = "TEXT")
     private String prescriptionImageBase64;
 
-    @Column(length = 50)
-    private String prescriptionImageType;
 }

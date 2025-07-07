@@ -268,20 +268,20 @@
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
 }
 
-.confirmation-status.refused {
-  background: linear-gradient(135deg, #fee2e2 0%, #ef4444 100%);
-  color: #991b1b;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+.confirmation-status.info {
+  background: linear-gradient(135deg, #dbeafe 0%, #3b82f6 100%);
+  color: #1e40af;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
 }
 
-.confirmation-status.partial {
+.confirmation-status.warning {
   background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
   color: #92400e;
   box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
 }
 
-.confirmation-status.issue {
-  background: linear-gradient(135deg, #fecaca 0%, #ef4444 100%);
+.confirmation-status.danger {
+  background: linear-gradient(135deg, #fee2e2 0%, #ef4444 100%);
   color: #991b1b;
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
 }

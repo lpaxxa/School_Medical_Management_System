@@ -22,7 +22,7 @@ public class PostLikeServiceImpl implements PostLikeService {
 
     @Override
     public boolean toggleLike(Long postId, String userId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         AccountMember user = accountMemberRepository.findById(userId)
@@ -51,7 +51,7 @@ public class PostLikeServiceImpl implements PostLikeService {
 
     @Override
     public boolean isPostLikedByUser(Long postId, String userId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         AccountMember user = accountMemberRepository.findById(userId)
@@ -62,9 +62,32 @@ public class PostLikeServiceImpl implements PostLikeService {
 
     @Override
     public long getPostLikesCount(Long postId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         return postLikeRepository.countByPost(post);
+    }
+
+    @Override
+    public void deleteLikesByPostId(Long postId) {
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
+
+        postLikeRepository.deleteByPost(post);
+        post.setLikes(0); // Đặt số lượng thích về 0
+        postRepository.save(post);
+
+    }
+
+
+    @Override
+    public void deletePostLikesByUserId(String userId) {
+        AccountMember user = accountMemberRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        postLikeRepository.deleteByUser(user);
+
+
+
     }
 }

@@ -1,24 +1,20 @@
 package com.fpt.medically_be.service;
 
-import com.fpt.medically_be.dto.VaccinationDTO;
-import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
-import com.fpt.medically_be.dto.response.VaccinationDetailResponse;
 
-import java.time.LocalDate;
+import com.fpt.medically_be.dto.request.VaccinationCreateDTO;
+import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
+import com.fpt.medically_be.dto.request.VaccinationUpdateNoteRequest;
+import com.fpt.medically_be.dto.response.StudentVaccinationHistoryResponse;
+import com.fpt.medically_be.dto.response.VaccinationCreateWithHeathResponse;
+import com.fpt.medically_be.entity.Vaccination;
+
 import java.util.List;
 
 public interface VaccinationService {
-    List<VaccinationDTO> getAllVaccinations();
-    VaccinationDTO getVaccinationById(Long id);
-    List<VaccinationDTO> getVaccinationsByHealthProfileId(Long healthProfileId);
-    List<VaccinationDTO> getVaccinationsByName(String vaccineName);
-    List<VaccinationDTO> getVaccinationsByDateRange(LocalDate startDate, LocalDate endDate);
-    List<VaccinationDTO> getUpcomingVaccinationsDue(LocalDate beforeDate);
-    VaccinationDetailResponse createVaccination(VaccinationRequestDTO vaccinationRequestDTO);
-    void deleteVaccination(Long id);
-    VaccinationDetailResponse updateVaccination(Long id, VaccinationRequestDTO vaccinationDTO);
-    //dt
-    List<VaccinationDTO> getVaccinationsByParent(Long parentId);
-    VaccinationDetailResponse getVaccinationDetailByNotificationRecipientId(Long notificationRecipientId);
+
+    void recordVaccination(VaccinationCreateDTO request);
+    List<VaccinationCreateWithHeathResponse> addParentDeclaredVaccination(Long healthProfileId, List<VaccinationRequestDTO> dto);
+    StudentVaccinationHistoryResponse getVaccinationHistoryForStudent(Long parentId, Long studentId);
+    void updateVaccinationNote(VaccinationUpdateNoteRequest dto);
 
 }

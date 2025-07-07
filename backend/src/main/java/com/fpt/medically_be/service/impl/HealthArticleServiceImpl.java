@@ -2,6 +2,7 @@ package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.HealthArticleDTO;
 import com.fpt.medically_be.dto.HealthArticleCreateDTO;
+import com.fpt.medically_be.dto.request.HealthArticleUpdateDTO;
 import com.fpt.medically_be.entity.AccountMember;
 import com.fpt.medically_be.entity.HealthArticle;
 import com.fpt.medically_be.repos.AccountMemberRepository;
@@ -9,6 +10,8 @@ import com.fpt.medically_be.repos.HealthArticleRepository;
 import com.fpt.medically_be.service.HealthArticleService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -85,6 +88,52 @@ public class HealthArticleServiceImpl implements HealthArticleService {
 
         HealthArticle savedArticle = healthArticleRepository.save(article);
         return mapToDTO(savedArticle);
+    }
+
+    @Override
+    public HealthArticleDTO updateArticle(Long id, HealthArticleUpdateDTO updateDTO) {
+        HealthArticle article = healthArticleRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy bài viết với ID: " + id));
+        // Lấy thông tin người dùng hiện tại đang đăng nhập
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = authentication.getName();
+
+        AccountMember member = accountMemberRepository.findById(currentUserId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thành viên với ID: " + currentUserId));
+        article.setMember(member);
+        article.setPublishDate(LocalDateTime.now());
+
+
+
+        // Cập nhật các trường cần thiết
+
+        if (updateDTO.getTitle() != null && !updateDTO.getTitle().trim().isEmpty()) {
+            article.setTitle(updateDTO.getTitle());
+        }
+        if (updateDTO.getSummary() != null && !updateDTO.getSummary().trim().isEmpty()) {
+            article.setSummary(updateDTO.getSummary());
+        }
+        if (updateDTO.getContent() != null && !updateDTO.getContent().trim().isEmpty()) {
+            article.setContent(updateDTO.getContent());
+        }
+        if (updateDTO.getAuthor() != null && !updateDTO.getAuthor().trim().isEmpty()) {
+            article.setAuthor(updateDTO.getAuthor());
+        }
+        if (updateDTO.getCategory() != null && !updateDTO.getCategory().trim().isEmpty()) {
+            article.setCategory(updateDTO.getCategory());
+        }
+        if (updateDTO.getImageUrl() != null && !updateDTO.getImageUrl().trim().isEmpty()) {
+            article.setImageUrl(updateDTO.getImageUrl());
+        }
+        if (updateDTO.getTags() != null && !updateDTO.getTags().isEmpty()) {
+            article.setTags(updateDTO.getTags());
+        }
+
+
+        // Lưu thay đổi vào cơ sở dữ liệu
+        HealthArticle updatedArticle = healthArticleRepository.save(article);
+        return mapToDTO(updatedArticle);
+
     }
 
     @Override

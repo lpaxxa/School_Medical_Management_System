@@ -22,7 +22,7 @@ public class CommentLikeServiceImpl implements CommentLikeService {
 
     @Override
     public boolean toggleCommentLike(Long commentId, String userId) {
-        PostComment comment = postCommentRepository.findById(commentId)
+        PostComment comment = postCommentRepository.findByIdAndIsDeletedFalse(commentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận"));
 
         AccountMember user = accountMemberRepository.findById(userId)
@@ -51,7 +51,7 @@ public class CommentLikeServiceImpl implements CommentLikeService {
 
     @Override
     public boolean isCommentLikedByUser(Long commentId, String userId) {
-        PostComment comment = postCommentRepository.findById(commentId)
+        PostComment comment = postCommentRepository.findByIdAndIsDeletedFalse(commentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận"));
 
         AccountMember user = accountMemberRepository.findById(userId)
@@ -62,7 +62,7 @@ public class CommentLikeServiceImpl implements CommentLikeService {
 
     @Override
     public long getCommentLikesCount(Long commentId) {
-        PostComment comment = postCommentRepository.findById(commentId)
+        PostComment comment = postCommentRepository.findByIdAndIsDeletedFalse(commentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận"));
 
         return commentLikeRepository.countByComment(comment);
