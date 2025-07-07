@@ -71,7 +71,7 @@ public interface MedicationAdministrationRepository extends JpaRepository<Medica
     List<MedicationAdministration> findAllRecentAdministrations();
     
     // Find all administrations (no pagination)
-    @Query("SELECT ma FROM MedicationAdministration ma ORDER BY ma.administeredAt DESC")
+    @Query("SELECT ma FROM MedicationAdministration ma ORDER BY ma.id DESC")
     List<MedicationAdministration> findAllOrderByAdministeredAtDesc();
     int countByMedicationInstructionId(Long medicationInstructionId);
 } 

@@ -352,12 +352,24 @@ const UserManagement = () => {
         alert("Thêm người dùng thành công!");
       } else if (modalMode === "edit") {
         console.log("Edit mode - updating user with ID:", userData.id);
-        // Cho edit mode, chỉ gửi những fields cần thiết
+        // Cho edit mode, gửi tất cả các fields bao gồm cả role-specific fields
         const editData = {
           email: userData.email,
           password: userData.password,
           phoneNumber: userData.phoneNumber,
+          fullName: userData.fullName,
+          role: userData.role,
         };
+
+        // Thêm fields theo role
+        if (userData.role === 'PARENT') {
+          editData.address = userData.address;
+          editData.relationshipType = userData.relationshipType;
+          editData.occupation = userData.occupation;
+        } else if (userData.role === 'NURSE') {
+          editData.qualification = userData.qualification;
+        }
+
         console.log("Edit mode - sending data:", editData);
         await updateUser(userData.id, editData);
         alert("Cập nhật người dùng thành công!");

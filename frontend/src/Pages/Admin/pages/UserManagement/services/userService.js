@@ -109,12 +109,22 @@ export const updateUser = async (userId, userData) => {
     console.log('Update data:', userData);
     console.log('Using auth token:', getAuthToken() ? 'Yes' : 'No');
     
-    // Chuẩn bị data theo format API yêu cầu
+    // Chuẩn bị data theo format API yêu cầu - bao gồm cả role-specific fields
     const updatePayload = {
       email: userData.email,
       password: userData.password,
-      phoneNumber: userData.phoneNumber
+      phoneNumber: userData.phoneNumber,
+      fullName: userData.fullName
     };
+
+    // Thêm fields theo role
+    if (userData.role === 'PARENT') {
+      updatePayload.address = userData.address;
+      updatePayload.relationshipType = userData.relationshipType;
+      updatePayload.occupation = userData.occupation;
+    } else if (userData.role === 'NURSE') {
+      updatePayload.qualification = userData.qualification;
+    }
     
     console.log('Update payload:', updatePayload);
     console.log('API endpoint:', `${API_BASE_URL}/update/${userId}`);
