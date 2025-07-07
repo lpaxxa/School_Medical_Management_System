@@ -12,7 +12,8 @@ const API_ENDPOINTS = {
   auth: {
     login: `${BASE_URL}/auth/login`,
     logout: `${BASE_URL}/auth/logout`,
-    refresh: `${BASE_URL}/auth/refresh-token`,
+    refresh: `${BASE_URL}
+    /auth/refresh-token`,
   },
   // Parent/Medication related
   parent: {
@@ -22,6 +23,14 @@ const API_ENDPOINTS = {
       `${BASE_URL}/parent-medication-requests/${id}`,
     deleteMedicationRequest: (id) =>
       `${BASE_URL}/parent-medication-requests/${id}`,
+  },
+
+  // Medication administrations (confirmation data)
+  medicationAdministrations: {
+    getById: (id) => `${BASE_URL}/medication-administrations/${id}`,
+    getAll: `${BASE_URL}/medication-administrations`,
+    getByMedicationInstructionId: (instructionId) =>
+      `${BASE_URL}/medication-administrations/all/medication-instruction/${instructionId}`,
   },
 
   // Student related
@@ -133,12 +142,16 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       setAuthError(null);
+      console.log("🔑 Attempting login with username:", username);
 
       // Gọi API thực tế để đăng nhập với exact URL
       const response = await axios.post(API_URL, {
         username,
         password,
       });
+
+      // Log response để debug
+      console.log("✅ Login API response:", response.data);
 
       // Xử lý phản hồi từ API
       const userData = response.data;
@@ -150,7 +163,16 @@ export const AuthProvider = ({ children }) => {
           email: userData.email,
           role: userData.role.toLowerCase(), // Chuyển về lowercase để phù hợp với các role đã định nghĩa
           phoneNumber: userData.phoneNumber,
+          // Thêm các thông tin khác nếu cần
+          fullName: userData.fullName || userData.name,
+          originalRole: userData.role, // Lưu role gốc để debug
         };
+
+        console.log("👤 User object created:", user);
+        console.log(
+          "🎫 Token received:",
+          userData.token.substring(0, 20) + "..."
+        );
 
         // Lưu thông tin đăng nhập
         localStorage.setItem("authToken", userData.token);
@@ -160,9 +182,13 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(user);
         return user;
       } else {
+        console.error("❌ Login response missing token:", userData);
         throw new Error("Đăng nhập thất bại, không nhận được token");
       }
     } catch (error) {
+      console.error("❌ Login error:", error);
+      console.error("❌ Login error response:", error.response?.data);
+
       const errorMsg =
         error.response?.data?.message ||
         "Tên đăng nhập hoặc mật khẩu không đúng";

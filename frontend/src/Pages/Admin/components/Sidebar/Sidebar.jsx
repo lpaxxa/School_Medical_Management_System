@@ -2,7 +2,7 @@ import React from "react";
 import "./Sidebar.css";
 
 const Sidebar = ({ activeSection, onSectionChange, userRole }) => {
-  // Đảm bảo ID "users" cho quản lý người dùng
+  // Cập nhật ID cho khớp với case trong AdminLayout.jsx
   const menuItems = [
     {
       id: "dashboard",
@@ -11,20 +11,20 @@ const Sidebar = ({ activeSection, onSectionChange, userRole }) => {
       roles: ["admin", "nurse", "manager"],
     },
     {
-      id: "users", // ID này phải khớp với case trong AdminLayout
+      id: "users", // Đã khớp với AdminLayout
       label: "Quản lý người dùng",
       icon: "fas fa-users-cog",
       roles: ["admin"],
     },
     {
-      id: "permissions",
-      label: "Phân quyền hệ thống",
-      icon: "fas fa-shield-alt",
-      roles: ["admin"],
+      id: "medical-planning", // Cập nhật ID này để khớp với AdminLayout
+      label: "Kế hoạch y tế",
+      icon: "fas fa-calendar-alt",
+      roles: ["admin", "nurse"],
     },
     {
-      id: "reports",
-      label: "Báo cáo & Thống kê",
+      id: "reports", // Đã khớp với AdminLayout
+      label: "Quản lý hồ sơ Thống kê",
       icon: "fas fa-chart-bar",
       roles: ["admin", "manager"],
     },

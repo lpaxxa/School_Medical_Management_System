@@ -156,6 +156,11 @@ const inventoryService = {
     }
   },
 
+  // Alias for searchItemsByName - for backward compatibility
+  getMedicationByName: async (name) => {
+    return inventoryService.searchItemsByName(name);
+  },
+
   checkItemNameExists: async (name, excludeId) => {
     if (!name || name.trim() === '') return false;
 

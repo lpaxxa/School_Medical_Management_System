@@ -21,8 +21,8 @@ public class MedicationRequestDTO {
     @NotBlank(message = "Dosage is required")
     private String dosage;
 
-    @NotBlank(message = "Frequency is required")
-    private String frequency;
+    @NotNull(message = "Frequency is required")
+    private Integer frequency;
 
     @NotNull(message = "Start date is required")
     @FutureOrPresent(message = "Start date must be today or in the future")
@@ -39,5 +39,5 @@ public class MedicationRequestDTO {
 
     // Optional fields for image upload
     private String prescriptionImageBase64; // Base64 encoded image
-    private String prescriptionImageType; // Image MIME type
+
 }

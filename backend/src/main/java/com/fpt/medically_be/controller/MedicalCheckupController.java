@@ -1,109 +1,280 @@
 package com.fpt.medically_be.controller;
 
-import com.fpt.medically_be.dto.MedicalCheckupDTO;
+import com.fpt.medically_be.dto.request.MedicalCheckupRequestDTO;
+import com.fpt.medically_be.dto.response.MedicalCheckupResponseDTO;
+import com.fpt.medically_be.entity.CheckupStatus;
 import com.fpt.medically_be.service.MedicalCheckupService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/v1/medical-checkups")
+@CrossOrigin(origins = "*")
+@RequiredArgsConstructor
+@Tag(name = "Kiểm tra y tế", description = "API quản lý kiểm tra y tế định kỳ")
 public class MedicalCheckupController {
 
     private final MedicalCheckupService medicalCheckupService;
 
-    @Autowired
-    public MedicalCheckupController(MedicalCheckupService medicalCheckupService) {
-        this.medicalCheckupService = medicalCheckupService;
-    }
-
+    /**
+     * Lấy danh sách tất cả các kiểm tra y tế
+     * GET /api/v1/medical-checkups
+     */
     @GetMapping
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    @Operation(summary = "Lấy danh sách tất cả các đợt khám sức khỏe", description = "Trả về danh sách tất cả các đợt khám sức khỏe trong hệ thống.")
-    public ResponseEntity<List<MedicalCheckupDTO>> getAllMedicalCheckups() {
-        return ResponseEntity.ok(medicalCheckupService.getAllMedicalCheckups());
+    @Operation(summary = "Lấy danh sách tất cả các kiểm tra y tế")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công")
+    })
+    public ResponseEntity<List<MedicalCheckupResponseDTO>> getAllMedicalCheckups() {
+        List<MedicalCheckupResponseDTO> checkups = medicalCheckupService.getAllMedicalCheckups();
+        return ResponseEntity.ok(checkups);
     }
 
+    /**
+     * Lấy thông tin chi tiết một kiểm tra y tế theo ID
+     * GET /api/v1/medical-checkups/{id}
+     */
     @GetMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
-    @Operation(summary = "Lấy thông tin chi tiết đợt khám sức khỏe theo ID", description = "Trả về thông tin chi tiết của một đợt khám sức khỏe dựa trên ID.")
-    public ResponseEntity<MedicalCheckupDTO> getMedicalCheckupById(@PathVariable Long id) {
-        return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupById(id));
+    @Operation(summary = "Lấy chi tiết kiểm tra y tế theo ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy thông tin thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy kiểm tra y tế")
+    })
+    public ResponseEntity<MedicalCheckupResponseDTO> getMedicalCheckupById(@PathVariable Long id) {
+        MedicalCheckupResponseDTO checkup = medicalCheckupService.getMedicalCheckupById(id);
+        return ResponseEntity.ok(checkup);
     }
 
-    @GetMapping("/student/{studentId}")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
-    @Operation(summary = "Lấy lịch sử kiểm tra định kỳ theo studentId", description = "Trả về danh sách các đợt khám sức khỏe của một học sinh dựa trên studentId.")
-    public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByStudentId(@PathVariable Long studentId) {
-        return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByStudentId(studentId));
-    }
-
-    @GetMapping("/staff/{staffId}")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    @Operation(summary = "Lấy danh sách các đợt khám sức khỏe theo staffId", description = "Trả về danh sách các đợt khám sức khỏe do một nhân viên thực hiện dựa trên staffId.")
-    public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByStaffId(@PathVariable Long staffId) {
-        return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByStaffId(staffId));
-    }
-
-    @GetMapping("/date-range")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    @Operation(summary = "Lấy các đợt khám sức khỏe theo khoảng thời gian", description = "Trả về danh sách các đợt khám sức khỏe diễn ra trong khoảng thời gian chỉ định.")
-    public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByDateRange(startDate, endDate));
-    }
-
-    @GetMapping("/student/{studentId}/date-range")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
-    @Operation(summary = "Lấy các đợt khám sức khỏe của học sinh theo khoảng thời gian", description = "Trả về danh sách các đợt khám sức khỏe của một học sinh trong khoảng thời gian chỉ định.")
-    public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByStudentAndDateRange(
-            @PathVariable Long studentId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByStudentAndDateRange(studentId, startDate, endDate));
-    }
-
-    @GetMapping("/type/{checkupType}")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    @Operation(summary = "Lấy danh sách đợt khám sức khỏe theo loại", description = "Trả về danh sách các đợt khám sức khỏe theo loại kiểm tra (checkupType).")
-    public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsByType(@PathVariable String checkupType) {
-        return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsByType(checkupType));
-    }
-
-    @GetMapping("/follow-up-needed")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    @Operation(summary = "Lấy các đợt khám sức khỏe cần theo dõi lại", description = "Trả về danh sách các đợt khám sức khỏe cần được theo dõi lại.")
-    public ResponseEntity<List<MedicalCheckupDTO>> getMedicalCheckupsNeedingFollowUp() {
-        return ResponseEntity.ok(medicalCheckupService.getMedicalCheckupsNeedingFollowUp());
-    }
-
+    /**
+     * Tạo lịch kiểm tra mới cho học sinh (Bước 7)
+     * POST /api/v1/medical-checkups
+     */
     @PostMapping
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    @Operation(summary = "Tạo mới một đợt khám sức khỏe", description = "Tạo mới một đợt khám sức khỏe với thông tin được cung cấp.")
-    public ResponseEntity<MedicalCheckupDTO> createMedicalCheckup(@RequestBody MedicalCheckupDTO medicalCheckupDTO) {
-        return ResponseEntity.ok(medicalCheckupService.createMedicalCheckup(medicalCheckupDTO));
+    @Operation(summary = "Tạo lịch kiểm tra y tế mới")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Tạo lịch kiểm tra thành công"),
+            @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ")
+    })
+    public ResponseEntity<MedicalCheckupResponseDTO> createMedicalCheckup(@RequestBody MedicalCheckupRequestDTO dto) {
+        MedicalCheckupResponseDTO createdCheckup = medicalCheckupService.createMedicalCheckup(dto);
+        return new ResponseEntity<>(createdCheckup, HttpStatus.CREATED);
     }
 
+    /**
+     * Cập nhật kết quả kiểm tra y tế (Bước 8)
+     * PUT /api/v1/medical-checkups/{id}
+     */
     @PutMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
-    @Operation(summary = "Cập nhật thông tin đợt khám sức khỏe", description = "Cập nhật thông tin một đợt khám sức khỏe dựa trên ID.")
-    public ResponseEntity<MedicalCheckupDTO> updateMedicalCheckup(@PathVariable Long id, @RequestBody MedicalCheckupDTO medicalCheckupDTO) {
-        return ResponseEntity.ok(medicalCheckupService.updateMedicalCheckup(id, medicalCheckupDTO));
+    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Cập nhật kết quả kiểm tra y tế")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cập nhật thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy kiểm tra y tế")
+    })
+    public ResponseEntity<MedicalCheckupResponseDTO> updateMedicalCheckup(
+            @PathVariable Long id,
+            @RequestBody MedicalCheckupRequestDTO dto) {
+        MedicalCheckupResponseDTO updatedCheckup = medicalCheckupService.updateMedicalCheckup(id, dto);
+        return ResponseEntity.ok(updatedCheckup);
     }
 
-    @DeleteMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Xóa đợt khám sức khỏe", description = "Xóa một đợt khám sức khỏe dựa trên ID.")
-    public ResponseEntity<Void> deleteMedicalCheckup(@PathVariable Long id) {
-        medicalCheckupService.deleteMedicalCheckup(id);
-        return ResponseEntity.noContent().build();
+    /**
+     * Cập nhật trạng thái kiểm tra y tế
+     * PATCH /api/v1/medical-checkups/{id}/status
+     */
+    @PatchMapping("/{id}/status")
+//    @PreAuthorize("hasRole('NURSE')")
+    @Operation(summary = "Cập nhật trạng thái kiểm tra y tế")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cập nhật trạng thái thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy kiểm tra y tế")
+    })
+    public ResponseEntity<MedicalCheckupResponseDTO> updateMedicalCheckupStatus(
+            @PathVariable Long id,
+            @RequestParam CheckupStatus status) {
+        MedicalCheckupResponseDTO updatedCheckup = medicalCheckupService.updateMedicalCheckupStatus(id, status);
+        return ResponseEntity.ok(updatedCheckup);
+    }
+
+    /**
+     * Lấy danh sách kiểm tra y tế theo chiến dịch
+     * GET /api/v1/medical-checkups/campaign/{campaignId}
+     */
+    @GetMapping("/campaign/{campaignId}")
+    @Operation(summary = "Lấy danh sách kiểm tra y tế theo chiến dịch")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy chiến dịch")
+    })
+    public ResponseEntity<List<MedicalCheckupResponseDTO>> getMedicalCheckupsByCampaign(@PathVariable Long campaignId) {
+        List<MedicalCheckupResponseDTO> checkups = medicalCheckupService.getMedicalCheckupsByHealthCampaign(campaignId);
+        return ResponseEntity.ok(checkups);
+    }
+
+    /**
+     * Lấy danh sách kiểm tra y tế theo trạng thái và chiến dịch
+     * GET /api/v1/medical-checkups/campaign/{campaignId}/status/{status}
+     */
+    @GetMapping("/campaign/{campaignId}/status/{status}")
+    @Operation(summary = "Lấy danh sách kiểm tra y tế theo trạng thái và chiến dịch")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy chiến dịch")
+    })
+    public ResponseEntity<List<MedicalCheckupResponseDTO>> getMedicalCheckupsByCampaignAndStatus(
+            @PathVariable Long campaignId,
+            @PathVariable CheckupStatus status) {
+        List<MedicalCheckupResponseDTO> checkups = medicalCheckupService.getMedicalCheckupsByHealthCampaignAndStatus(campaignId, status);
+        return ResponseEntity.ok(checkups);
+    }
+
+    /**
+     * Lấy danh sách kiểm tra y tế theo học sinh
+     * GET /api/v1/medical-checkups/student/{studentId}
+     */
+    @GetMapping("/student/{studentId}")
+    @Operation(summary = "Lấy lịch sử kiểm tra của học sinh")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy lịch sử thành công")
+    })
+    public ResponseEntity<List<MedicalCheckupResponseDTO>> getCheckupHistoryByStudent(@PathVariable Long studentId) {
+        List<MedicalCheckupResponseDTO> history = medicalCheckupService.getCheckupHistoryByStudent(studentId);
+        return ResponseEntity.ok(history);
+    }
+
+    /**
+     * Lấy danh sách kiểm tra y tế theo nhân viên y tế
+     * GET /api/v1/medical-checkups/staff/{staffId}
+     */
+    @GetMapping("/staff/{staffId}")
+    @Operation(summary = "Lấy danh sách kiểm tra y tế theo nhân viên y tế")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy nhân viên y tế")
+    })
+    public ResponseEntity<List<MedicalCheckupResponseDTO>> getMedicalCheckupsByStaff(@PathVariable Long staffId) {
+        List<MedicalCheckupResponseDTO> checkups = medicalCheckupService.getMedicalCheckupsByMedicalStaff(staffId);
+        return ResponseEntity.ok(checkups);
+    }
+
+    /**
+     * Lấy danh sách kiểm tra y tế theo khoảng thời gian
+     * GET /api/v1/medical-checkups/date-range
+     */
+    @GetMapping("/date-range")
+    @Operation(summary = "Lấy danh sách kiểm tra y tế theo khoảng thời gian")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công")
+    })
+    public ResponseEntity<List<MedicalCheckupResponseDTO>> getMedicalCheckupsByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<MedicalCheckupResponseDTO> checkups = medicalCheckupService.getMedicalCheckupsByDateRange(startDate, endDate);
+        return ResponseEntity.ok(checkups);
+    }
+
+    /**
+     * Gửi kết quả kiểm tra cho phụ huynh (Bước 9)
+     * POST /api/v1/medical-checkups/{id}/send-results
+     */
+    @PostMapping("/{id}/send-results")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Gửi kết quả kiểm tra cho phụ huynh")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Gửi kết quả thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy kiểm tra y tế")
+    })
+    public ResponseEntity<Map<String, Object>> sendResultsToParent(@PathVariable Long id) {
+        boolean sent = medicalCheckupService.sendResultsToParent(id);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("checkupId", id);
+        response.put("resultSent", sent);
+        response.put("message", sent ? "Kết quả đã được gửi thành công" : "Gửi kết quả thất bại");
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Lấy danh sách học sinh cần theo dõi thêm theo chiến dịch (Bước 11)
+     * GET /api/v1/medical-checkups/campaign/{campaignId}/follow-up
+     */
+    @GetMapping("/campaign/{campaignId}/follow-up")
+    @Operation(summary = "Lấy danh sách học sinh cần theo dõi thêm")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy chiến dịch")
+    })
+    public ResponseEntity<List<MedicalCheckupResponseDTO>> getStudentsNeedingFollowUp(@PathVariable Long campaignId) {
+        List<MedicalCheckupResponseDTO> followUpStudents = medicalCheckupService.getStudentsNeedingFollowUp(campaignId);
+        return ResponseEntity.ok(followUpStudents);
+    }
+
+    /**
+     * Lấy danh sách kiểm tra theo trạng thái
+     * GET /api/v1/medical-checkups/status/{status}
+     */
+    @GetMapping("/status/{status}")
+    @Operation(summary = "Lấy danh sách kiểm tra theo trạng thái")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công")
+    })
+    public ResponseEntity<List<MedicalCheckupResponseDTO>> getCheckupsByStatus(@PathVariable CheckupStatus status) {
+        List<MedicalCheckupResponseDTO> checkups = medicalCheckupService.getCheckupsByStatus(status);
+        return ResponseEntity.ok(checkups);
+    }
+
+    /**
+     * Lấy danh sách kiểm tra theo ngày
+     * GET /api/v1/medical-checkups/date/{date}
+     */
+    @GetMapping("/date/{date}")
+    @Operation(summary = "Lấy danh sách kiểm tra theo ngày")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công")
+    })
+    public ResponseEntity<List<MedicalCheckupResponseDTO>> getCheckupsByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<MedicalCheckupResponseDTO> checkups = medicalCheckupService.getCheckupsByDate(date);
+        return ResponseEntity.ok(checkups);
+    }
+
+    /**
+     * Lên lịch tư vấn sức khỏe cho học sinh cần theo dõi
+     * POST /api/v1/medical-checkups/{id}/schedule-consultation
+     */
+    @PostMapping("/{id}/schedule-consultation")
+    @PreAuthorize("hasRole('NURSE') or hasRole('ADMIN')")
+    @Operation(summary = "Lên lịch tư vấn sức khỏe cho học sinh cần theo dõi")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lên lịch tư vấn thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy kiểm tra y tế")
+    })
+    public ResponseEntity<Map<String, Object>> scheduleHealthConsultation(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> consultationDetails) {
+        boolean scheduled = medicalCheckupService.scheduleHealthConsultation(id, consultationDetails);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("checkupId", id);
+        response.put("consultationScheduled", scheduled);
+        response.put("consultationDetails", consultationDetails);
+
+        return ResponseEntity.ok(response);
     }
 }
 

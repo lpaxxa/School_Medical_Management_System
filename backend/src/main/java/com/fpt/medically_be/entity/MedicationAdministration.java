@@ -23,6 +23,8 @@ public class MedicationAdministration {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "administered_by", nullable = false)
     private Nurse administeredBy;
+
+
     
     // When was it administered
     @Column(name = "administered_at", nullable = false)
@@ -31,7 +33,8 @@ public class MedicationAdministration {
     // Status of administration
     @Enumerated(EnumType.STRING)
     @Column(name = "administration_status", nullable = false)
-    private AdministrationStatus administrationStatus;
+//    private AdministrationStatus administrationStatus;
+    private Status administrationStatus;
     
     // Combined notes: dosage given, student response, side effects, etc.
     @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
@@ -40,6 +43,9 @@ public class MedicationAdministration {
     // URL of confirmation image
     @Column(name = "confirmation_image_url", columnDefinition = "NVARCHAR(255)")
     private String confirmationImageUrl;
+
+    @Column(name = "dose_sequence")
+    private Integer doseSequence;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -50,4 +56,3 @@ public class MedicationAdministration {
     }
 
 }
-

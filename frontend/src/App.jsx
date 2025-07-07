@@ -9,6 +9,7 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { StudentDataProvider } from "./context/StudentDataContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import "./styles/global.css";
 
 // Import routes from the route files
@@ -31,16 +32,18 @@ function AppRoutesContainer() {
 
 export default function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <StudentDataProvider>
-          <div className="app">
-            <ErrorBoundary>
-              <AppRoutesContainer />
-            </ErrorBoundary>
-          </div>
-        </StudentDataProvider>
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      <StudentDataProvider>
+        <NotificationProvider>
+          <Router>
+            <div className="app">
+              <ErrorBoundary>
+                <AppRoutesContainer />
+              </ErrorBoundary>
+            </div>
+          </Router>
+        </NotificationProvider>
+      </StudentDataProvider>
+    </AuthProvider>
   );
 }

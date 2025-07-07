@@ -1,919 +1,377 @@
-/* === StudentProfile Premium Design === */
+/**
+ * StudentProfile.css - Thiết kế mới
+ * Sử dụng tiền tố sp- để tránh xung đột
+ * Tối ưu cho hiển thị thông tin học sinh
+ */
 
-/* Container chính */
-.student-profile-container {
+/* ------- Basic Reset & Variables ------- */
+.sp-container * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --sp-primary: #015C92;
+  --sp-primary-light: #88CDF6;
+  --sp-primary-bg: #f0f8ff;
+  --sp-primary-border: #88CDF6;
+  --sp-text-primary: #1e293b;
+  --sp-text-dark: #1a202c;
+  --sp-text-medium: #4a5568;
+  --sp-text-light: #718096;
+  --sp-border: #e2e8f0;
+  --sp-bg-light: #f7fafc;
+  --sp-white: #ffffff;
+  --sp-shadow: 0 1px 3px rgba(1, 92, 146, 0.2);
+  --sp-radius: 12px;
+  --sp-icon-blue: #015C92;
+  --sp-icon-purple: #2D82B5;
+  --sp-icon-green: #428CD4;
+}
+
+/* ------- Main Container ------- */
+.sp-container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 20px;
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  border: 1px solid rgba(225, 235, 245, 0.6);
-  position: relative;
-  z-index: 1;
+  font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  color: var(--sp-text-dark);
+  background-color: #ffffff;
+  min-height: 100vh;
+  padding: 2rem 1rem;
 }
 
-/* Header Profile */
-.profile-header {
+/* ------- Header Styles ------- */
+.sp-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 2.5rem;
-  background: linear-gradient(120deg, #f8faff, #edf3ff);
-  border-bottom: 1px solid rgba(225, 235, 245, 0.5);
+  margin-bottom: 30px;
+  position: relative;
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }
 
-.profile-info {
+.sp-title {
+  margin: 0;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--sp-text-primary);
+  padding-bottom: 12px;
+  position: relative;
   flex: 1;
 }
 
-.profile-info h1 {
-  margin: 0 0 0.5rem;
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+.sp-title::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--sp-primary);
+  border-radius: 2px;
+  transform: translateX(-50%);
 }
 
-.parent-info {
-  font-size: 1.05rem;
-  color: var(--text-medium);
-  margin-bottom: 1rem;
+.sp-back-btn {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  padding: 8px 15px;
+  border-radius: 8px;
+  font-size: 13px;
 }
 
-.parent-info strong {
-  color: #2d5ba0;
-  font-weight: 600;
+/* Responsive fixes */
+@media (max-width: 768px) {
+  .sp-header {
+    flex-direction: column;
+    margin-bottom: 20px;
+  }
+  
+  .sp-title {
+    margin: 20px auto;
+    order: 2;
+  }
+  
+  .sp-back-btn {
+    position: static;
+    transform: none;
+    margin-bottom: 15px;
+    order: 1;
+    align-self: flex-start;
+  }
 }
 
-/* Avatar */
-.profile-avatar-container {
-  position: relative;
-  margin-left: 2rem;
-}
-
-.profile-avatar {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  border: 5px solid #ffffff;
+/* ------- Info Card Layout ------- */
+.sp-card {
+  background: var(--sp-white);
+  border-radius: var(--sp-radius);
+  box-shadow: var(--sp-shadow);
+  margin-bottom: 20px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--sp-border);
 }
 
-.profile-avatar img {
+.sp-card-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--sp-border);
+  background-color: #f8fafc;
+}
+
+.sp-card-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--sp-primary-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.sp-card-icon i {
+  font-size: 14px;
+}
+
+.sp-icon-blue {
+  color: var(--sp-icon-blue);
+}
+
+.sp-icon-purple {
+  color: var(--sp-icon-purple);
+}
+
+.sp-icon-green {
+  color: var(--sp-icon-green);
+}
+
+.sp-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sp-text-primary);
+}
+
+.sp-card-body {
+  padding: 20px;
+}
+
+.sp-card-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--sp-border);
+  background-color: var(--sp-bg-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ------- Student Profile Header ------- */
+.sp-student-card {
+  background-color: var(--sp-primary-bg);
+  border: 1px solid var(--sp-primary-border);
+  border-radius: var(--sp-radius);
+  padding: 0;
+  margin-bottom: 20px;
+  box-shadow: var(--sp-shadow);
+  overflow: hidden;
+}
+
+.sp-student-header {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+}
+
+.sp-student-avatar {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background-color: var(--sp-white);
+  overflow: hidden;
+  border: 2px solid var(--sp-white);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-right: 24px;
+  flex-shrink: 0;
+}
+
+.sp-student-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.avatar-edit-button {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  width: 38px;
-  height: 38px;
-  background: var(--primary-color);
-  color: white;
-  border-radius: 50%;
-  display: flex;
+.sp-student-info {
+  flex: 1;
+}
+
+.sp-student-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--sp-text-dark);
+  margin-bottom: 4px;
+}
+
+.sp-student-details {
+  font-size: 13px;
+  color: var(--sp-text-medium);
+  line-height: 1.5;
+}
+
+/* ------- Info Grid ------- */
+.sp-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.sp-info-item {
+  margin-bottom: 12px;
+}
+
+.sp-info-label {
+  display: block;
+  font-size: 12px;
+  color: var(--sp-text-light);
+  margin-bottom: 4px;
+}
+
+.sp-info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sp-text-dark);
+}
+
+/* ------- Button Styles ------- */
+.sp-btn {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.25s ease;
-}
-
-.avatar-edit-button:hover {
-  transform: scale(1.12);
-  background: #2d5ba0;
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
-}
-
-.avatar-edit-button i {
-  font-size: 1.1rem;
-}
-
-/* Student selector */
-.student-selector {
-  margin-bottom: 25px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background-color: #f5f7fa;
-  padding: 15px;
+  padding: 8px 16px;
   border-radius: 8px;
-}
-
-/* CSS cho phần chọn học sinh trong StudentProfile */
-
-/* Student selector container */
-.student-selector {
-  background-color: #f8fafc;
-  padding: 16px 20px;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.student-selector label {
-  font-weight: 600;
-  color: #475569;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  gap: 6px;
   white-space: nowrap;
 }
 
-.student-selector select {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 15px;
-  font-family: var(--font-body);
-  color: #1e293b;
-  background-color: #ffffff;
-  appearance: none; /* Remove default arrow */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-chevron-down'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  padding-right: 40px;
-  transition: all 0.2s ease;
-  cursor: pointer;
+.sp-btn i {
+  font-size: 14px;
 }
 
-.student-selector select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.sp-btn-primary {
+  background-color: var(--sp-primary);
+  color: white;
 }
 
-.student-selector select:hover {
-  border-color: #94a3b8;
+.sp-btn-primary:hover {
+  background-color: #2563eb;
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3);
 }
 
-/* Style for the student details section */
-.student-details {
-  margin-top: 16px;
-}
-
-.student-profile-card {
+.sp-btn-secondary {
   background-color: white;
-  border-radius: 16px;
-  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text-dark);
 }
 
-.student-header {
-  display: flex;
-  padding: 24px 30px;
-  background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%);
-  border-bottom: 1px solid #e2e8f0;
-  gap: 24px;
-  align-items: center;
+.sp-btn-secondary:hover {
+  background-color: var(--sp-bg-light);
+  border-color: #d1d5db;
 }
 
-.student-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border: 3px solid white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+/* ------- Loading States ------- */
+.sp-loading {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--sp-text-medium);
 }
 
-.student-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.sp-error {
+  padding: 20px;
+  text-align: center;
+  background-color: #fee2e2;
+  border-radius: var(--sp-radius);
+  color: #b91c1c;
+  margin: 20px 0;
 }
 
-.student-avatar i {
-  font-size: 32px;
-  color: #94a3b8;
-}
-
-.student-basic-info {
-  flex: 1;
-}
-
-.student-basic-info h2 {
-  margin: 0;
-  color: #1e293b;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.student-basic-info p {
-  margin: 4px 0 0;
-  color: #64748b;
-  font-size: 15px;
-}
-
-/* Content area */
-.profile-content {
-  padding: 2rem;
-}
-
-/* API Banner */
-.api-banner {
-  margin-bottom: 2rem;
-  padding: 1rem 1.5rem;
-  background: rgba(21, 64, 130, 0.04);
-  border-radius: 12px;
-  font-size: 0.9rem;
-  color: var(--text-medium);
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  border-left: 3px solid var(--primary-light);
-}
-
-.api-banner i {
-  color: var(--primary-light);
-  font-size: 1.2rem;
-}
-
-/* Profile Sections */
-.profile-section {
-  background: #ffffff;
-  border-radius: 16px;
-  margin-bottom: 2rem;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-/* Section headers */
-.profile-section h2 {
-  font-size: 1.3rem;
+/* ------- Special styling for info sections ------- */
+.sp-info-section-title {
+  font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
-  background: var(--primary-color);
-  padding: 1.2rem 1.8rem;
-  margin: 0;
-  position: relative;
-  overflow: hidden;
+  margin-bottom: 16px;
+  color: var(--sp-text-primary);
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
-.profile-section h2::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 30%;
-  height: 100%;
-  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.2));
-  transform: skewX(-15deg);
-}
-
-.section-header-with-action {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--secondary-color);
-  padding: 1.2rem 1.8rem;
-}
-
-.section-header-with-action h2 {
-  background: transparent;
-  padding: 0;
-  margin: 0;
-}
-
-.edit-medical-record {
-  width: 42px;
-  height: 42px;
-  background: rgb(71, 218, 71);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  transition: all 0.3s;
-}
-
-.edit-medical-record:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-.edit-medical-record i {
-  font-size: 1.2rem;
-}
-
-/* Section body */
-.info-grid {
-  padding: 1.8rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.5rem;
-}
-
-.info-grid.single-column {
-  grid-template-columns: 1fr;
-}
-
-/* Info items */
-.info-item {
-  position: relative;
-}
-
-.info-item.full-width {
-  grid-column: 1 / -1;
-}
-
-.info-label {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-medium);
-  margin-bottom: 0.5rem;
-  display: block;
-  font-weight: 600;
-}
-
-.info-value {
-  font-size: 1.05rem;
-  color: var(--text-dark);
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  background: #f8faff;
-  border-radius: 8px;
-  border-left: 3px solid var(--primary-light);
-  min-height: 45px;
-  display: flex;
-  align-items: center;
-}
-
-.info-value a {
-  color: var(--primary-light);
-  text-decoration: none;
-}
-
-.info-value a:hover {
-  text-decoration: underline;
-  color: var(--primary-color);
-}
-
-/* Cập nhật cho phần thông tin sức khỏe */
-
-/* Nhóm máu - màu đỏ */
-.info-item .info-value.blood-type {
-  background: rgba(255, 240, 240, 0.8);
-  border-left: 3px solid #d93025;
-  color: #b32c1b;
-}
-
-.info-item .info-value.blood-type::before {
-  content: '\f7a6'; /* Font Awesome icon mã biểu tượng giọt máu */
-  font-family: 'Font Awesome 5 Free';
-  margin-right: 8px;
-  color: #d93025;
-  font-weight: 900;
-}
-
-/* Dị ứng - màu vàng/cam */
-.info-item.allergies .info-value {
-  background: rgba(255, 248, 225, 0.9);
-  border-left: 3px solid #f9a825;
-  color: #996600;
-}
-
-.info-item.allergies .info-value::before {
-  content: '\f0fa'; /* Font Awesome icon mã biểu tượng cảnh báo y tế */
-  font-family: 'Font Awesome 5 Free';
-  margin-right: 8px;
-  color: #f9a825;
-  font-weight: 900;
-}
-
-/* Bệnh mãn tính - màu tím nhạt */
-.info-item.chronic .info-value {
-  background: rgba(245, 240, 255, 0.9);
-  border-left: 3px solid #8e44ad;
-  color: #673ab7;
-}
-
-.info-item.chronic .info-value::before {
-  content: '\f21e'; /* Font Awesome icon mã biểu tượng theo dõi sức khỏe */
-  font-family: 'Font Awesome 5 Free';
-  margin-right: 8px;
-  color: #8e44ad;
-  font-weight: 900;
-}
-
-/* Tình trạng sức khỏe - dựa theo giá trị */
-.health-status {
-  font-weight: 600;
-  padding: 0.5rem 1rem 0.5rem 2.8rem;
-  position: relative;
-}
-
-/* Mặc định cho health-status */
-.health-status {
-  background: #e0f7fa;
-  color: var(--secondary-color);
-  border-left-color: var(--secondary-color);
-}
-
-/* Health status - khỏe mạnh (xanh lá) */
-.health-status.healthy {
-  background: rgba(232, 245, 233, 0.8);
-  color: #2e7d32;
-  border-left-color: #4caf50;
-}
-
-.health-status.healthy::before {
-  content: '\f058'; /* Font Awesome icon mã biểu tượng check-circle */
-  font-family: 'Font Awesome 5 Free';
-  position: absolute;
-  left: 10px;
-  font-weight: 900;
-  color: #4caf50;
-  font-size: 1.1rem;
-}
-
-/* Health status - cần chú ý/theo dõi (cam) */
-.health-status.monitor {
-  background: rgba(255, 243, 224, 0.8);
-  color: #e65100;
-  border-left-color: #ff9800;
-}
-
-.health-status.monitor::before {
-  content: '\f071'; /* Font Awesome icon mã biểu tượng cảnh báo */
-  font-family: 'Font Awesome 5 Free';
-  position: absolute;
-  left: 10px;
-  font-weight: 900;
-  color: #ff9800;
-  font-size: 1.1rem;
-}
-
-/* Health status - cần điều trị (đỏ) */
-.health-status.needs-treatment {
-  background: rgba(253, 236, 234, 0.8);
-  color: #c62828;
-  border-left-color: #f44336;
-}
-
-.health-status.needs-treatment::before {
-  content: '\f0f1'; /* Font Awesome icon mã biểu tượng y tế */
-  font-family: 'Font Awesome 5 Free';
-  position: absolute;
-  left: 10px;
-  font-weight: 900;
-  color: #f44336;
-  font-size: 1.1rem;
-}
-
-/* Cập nhật animation cho section health-info */
-.health-info {
-  animation: fadeInUp 0.5s ease forwards;
-  animation-delay: 0.8s;
-  position: relative;
-}
-
-.health-info::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 100px;
-  height: 100px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' fill='none'%3E%3Cpath d='M80 30C80 46.5685 66.5685 60 50 60C33.4315 60 20 46.5685 20 30C20 13.4315 33.4315 0 50 0C66.5685 0 80 13.4315 80 30Z' fill='%23075A6410'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-size: contain;
-  opacity: 0.3;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* Animations */
-@keyframes fadeInUp {
-  from { 
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.basic-info {
-  animation: fadeInUp 0.5s ease forwards;
-  animation-delay: 0.2s;
-}
-
-.family-info {
-  animation: fadeInUp 0.5s ease forwards;
-  animation-delay: 0.4s;
-}
-
-.study-info {
-  animation: fadeInUp 0.5s ease forwards;
-  animation-delay: 0.6s;
-}
-
-.health-info {
-  animation: fadeInUp 0.5s ease forwards;
-  animation-delay: 0.8s;
-}
-
-/* Loading spinner */
-.loading-details {
-  padding: 3rem 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Cải thiện profile-actions */
-.profile-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
-  margin-top: 0;
-  padding: 2rem;
-  background: linear-gradient(120deg, #f8faff, #edf3ff);
-  border-top: 1px solid rgba(225, 235, 245, 0.6);
-  position: relative;
-}
-
-.profile-actions::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(90deg, rgba(21,64,130,0), rgba(21,64,130,0.3), rgba(21,64,130,0));
-  border-radius: 2px;
-}
-
-/* Button styles */
-.action-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  padding: 0.9rem 1.8rem;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  text-decoration: none;
-  min-width: 180px;
-  border: none;
-}
-
-/* Primary button */
-.action-button.primary {
-  background: linear-gradient(135deg, #154082, #3a75c4);
-  color: white;
-  box-shadow: 0 4px 15px rgba(21, 64, 130, 0.2);
-  display: flex;
-  font-size: 10px;
-}
-
-.action-button.primary:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(21, 64, 130, 0.3);
-}
-
-.action-button.primary:active {
-  transform: translateY(-2px);
-}
-
-/* Secondary button */
-.action-button.secondary {
-  background: white;
-  color: #444;
-  border: 1px solid rgba(30, 60, 114, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  display: flex;
-  font-size: 10px;
-}
-
-.action-button.secondary:hover {
-  background: #f9fafc;
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  color: #154082;
-}
-
-.action-button.secondary:active {
-  transform: translateY(-2px);
-}
-
-/* Health declaration button */
-.action-button.health-declaration {
-  background: linear-gradient(135deg, #075a64, #0d8395);
-  color: white;
-  box-shadow: 0 4px 15px rgba(7, 90, 100, 0.2);
-  display: flex;
-  font-size: 10px;
-}
-
-.action-button.health-declaration:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(7, 90, 100, 0.3);
-}
-
-.action-button.health-declaration:active {
-  transform: translateY(-2px);
-}
-
-/* Icons in buttons */
-.action-button i {
-  font-size: 1.1rem;
-}
-
-/* Responsive adjustments */
+/* ------- Responsive Layout ------- */
 @media (max-width: 768px) {
-  .profile-actions {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1.5rem;
+  .sp-info-grid {
+    grid-template-columns: 1fr;
   }
   
-  .action-button {
+  .sp-card-footer {
+    flex-direction: column;
+  }
+  
+  .sp-btn {
     width: 100%;
     justify-content: center;
   }
   
-  .profile-student-header {
+  .sp-student-header {
     flex-direction: column;
     text-align: center;
   }
   
-  .student-avatar {
-    margin-right: 0;
-    margin-bottom: 15px;
+  .sp-student-avatar {
+    margin: 0 auto 12px auto;
+    width: 150px;
+    height: 150px;
   }
   
-  .info-grid {
-    grid-template-columns: 1fr;
+  .sp-card-header {
+    padding: 14px;
   }
   
-  .action-buttons {
-    flex-direction: column;
+  .sp-card-body {
+    padding: 16px;
+  }
+}
+
+/* Responsive cho màn hình rất nhỏ */
+@media (max-width: 480px) {
+  .sp-student-avatar {
+    width: 120px !important;
+    height: 120px !important;
   }
   
-  .student-selector {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .student-selector select {
-    width: 100%;
-  }
-  
-  .student-header {
-    padding: 20px;
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .student-avatar {
-    margin: 0 auto;
+  .sp-container {
+    padding: 1rem 0.5rem;
   }
 }
 
-/* Animation for buttons */
-.profile-actions .action-button {
-  animation: fadeInUp 0.5s ease forwards;
-  opacity: 0;
+/* Thêm vào phần CSS hiện có */
+
+/* Hiển thị email trên toàn bộ chiều rộng grid */
+.sp-full-width {
+  grid-column: 1 / -1; /* Chiếm toàn bộ chiều rộng của grid */
 }
 
-.profile-actions .primary {
-  animation-delay: 1s;
-}
-
-.profile-actions .secondary {
-  animation-delay: 1.2s;
-}
-
-.profile-actions .health-declaration {
-  animation-delay: 1.4s;
-}
-
-/* Add these styles to your existing CSS file */
-
-.loading-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-  color: #7f8c8d;
-}
-
-.loading-indicator i {
-  margin-right: 10px;
-  color: #3498db;
-}
-
-.error-message {
-  color: #e74c3c;
-  padding: 10px 15px;
-  background-color: #fdecea;
-  border-radius: 4px;
-  margin: 10px 0;
-  display: flex;
-  align-items: center;
-}
-
-.error-message i {
-  margin-right: 8px;
-}
-
-.info-section {
-  margin-bottom: 25px;
-  padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  border-left: 4px solid #3498db;
-}
-
-.info-section h3 {
-  position: relative;
-  padding-bottom: 10px;
-  margin-bottom: 15px;
-  color: #2c3e50;
-  font-weight: 600;
-}
-
-.info-section h3:after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 50px;
-  height: 3px;
-  background-color: #3498db;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.info-item .label {
-  font-weight: 500;
-  color: #7f8c8d;
-  margin-bottom: 5px;
-  font-size: 14px;
-}
-
-.info-item span:not(.label) {
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 15px;
-  padding: 20px;
-  border-top: 1px solid #eaeaea;
-  background-color: #f9f9f9;
-  justify-content: flex-end;
-}
-
-.primary-button, .secondary-button {
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s ease;
-  font-size: 15px;
-}
-
-.primary-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-}
-
-.primary-button:hover {
-  background-color: #2980b9;
-}
-
-.secondary-button {
-  background-color: white;
-  color: #3498db;
-  border: 1px solid #3498db;
-}
-
-.secondary-button:hover {
-  background-color: #ebf5fb;
-}
-
-.primary-button i, .secondary-button i {
-  margin-right: 8px;
-}
-
-.health-profile-actions {
-  margin-top: 15px;
-}
-
-.loading-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-  color: #7f8c8d;
-}
-
-.loading-indicator i {
-  margin-right: 10px;
-  color: #3498db;
-}
-
-.error-message {
-  color: #e74c3c;
-  padding: 10px 15px;
-  background-color: #fdecea;
-  border-radius: 4px;
-  margin: 10px 0;
-  display: flex;
-  align-items: center;
-}
-
-.error-message i {
-  margin-right: 8px;
-}
-
-.no-students-container {
-  text-align: center;
-  padding: 40px;
-  color: #7f8c8d;
-}
-
-.no-students-container i {
-  font-size: 48px;
-  margin-bottom: 15px;
-  color: #bdc3c7;
-}
-
-/* Rename student-header to profile-student-header to avoid conflicts */
-.profile-student-header {
-  display: flex;
-  align-items: center;
-  padding: 25px;
-  background-color: #f5f7fa;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.student-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  overflow: hidden;
-  background-color: #e0e6ed;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 25px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.student-basic-info {
-  flex: 1;
-}
-
-/* Media query for responsive design */
-@media (max-width: 768px) {
-  .profile-student-header {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .student-avatar {
-    margin-right: 0;
-    margin-bottom: 15px;
-  }
+.sp-full-width .sp-info-value {
+  word-break: break-all; /* Ngắt từ nếu cần thiết */
+  max-width: 100%; /* Đảm bảo không vượt quá chiều rộng container */
 }

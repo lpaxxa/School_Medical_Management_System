@@ -155,13 +155,17 @@ export const MedicineApprovalProvider = ({ children }) => {
   const [pageSize, setPageSize] = useState(10);
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminError, setAdminError] = useState(null);
-  // Fetch all medication administrations
+  
+  // Fetch all medication administrations - READ ONLY
   const fetchMedicationAdministrations = async (page = 1, size = 10) => {
     setAdminLoading(true);
+    console.log('🚀 Context: fetchMedicationAdministrations called with:', { page, size });
     try {
       const response = await receiveMedicineService.getAllMedicationAdministrations(page, size);
+      console.log('✅ Context: API response received:', response);
       
       if (response && response.status === 'success') {
+        console.log('✅ Context: Setting administrations data:', response.data.posts);
         setAdministrations(response.data.posts);
         setTotalItems(response.data.totalItems);
         setTotalPages(response.data.totalPages);
@@ -169,62 +173,19 @@ export const MedicineApprovalProvider = ({ children }) => {
         setPageSize(size);
         setAdminError(null); // Clear any previous errors
       } else {
-        console.warn('Invalid response format:', response);
+        console.warn('⚠️ Context: Invalid response format:', response);
         setAdminError('Định dạng phản hồi không hợp lệ');
       }
     } catch (err) {
-      console.error('Error in fetchMedicationAdministrations:', err);
+      console.error('❌ Context: Error in fetchMedicationAdministrations:', err);
       setAdminError(`Lỗi: ${err.message || 'Đã xảy ra lỗi khi tải dữ liệu'}`);
     } finally {
       setAdminLoading(false);
     }
   };
 
-  // Add new medication administration
-  const addMedicationAdministration = async (data) => {
-    setAdminLoading(true);
-    try {
-      const response = await receiveMedicineService.addMedicationAdministration(data);
-      await fetchMedicationAdministrations(currentPage, pageSize);
-      return { success: true, data: response };
-    } catch (err) {
-      setAdminError(`Lỗi: ${err.message || 'Đã xảy ra lỗi khi thêm mới'}`);
-      return { success: false, error: err };
-    } finally {
-      setAdminLoading(false);
-    }
-  };
-
-  // Update medication administration
-  const updateMedicationAdministration = async (id, data) => {
-    setAdminLoading(true);
-    try {
-      const response = await receiveMedicineService.updateMedicationAdministration(id, data);
-      await fetchMedicationAdministrations(currentPage, pageSize);
-      return { success: true, data: response };
-    } catch (err) {
-      setAdminError(`Lỗi: ${err.message || 'Đã xảy ra lỗi khi cập nhật'}`);
-      return { success: false, error: err };
-    } finally {
-      setAdminLoading(false);
-    }
-  };
-
-  // Delete medication administration
-  const deleteMedicationAdministration = async (id) => {
-    setAdminLoading(true);
-    try {
-      await receiveMedicineService.deleteMedicationAdministration(id);
-      await fetchMedicationAdministrations(currentPage, pageSize);
-      return { success: true };
-    } catch (err) {
-      setAdminError(`Lỗi: ${err.message || 'Đã xảy ra lỗi khi xóa'}`);
-      return { success: false, error: err };
-    } finally {
-      setAdminLoading(false);
-    }
-  };
-
+  // Note: Add, Edit, Delete functions removed - Medication History is now read-only
+  
   // Clear errors
   const clearAdminError = () => {
     setAdminError(null);
@@ -235,7 +196,7 @@ export const MedicineApprovalProvider = ({ children }) => {
     fetchMedicationAdministrations(currentPage, pageSize);
   }, []);
 
-  // Context value for medication administrations
+  // Context value for medication administrations - READ ONLY
   const medicationAdminValue = {
     administrations,
     totalItems,
@@ -245,11 +206,8 @@ export const MedicineApprovalProvider = ({ children }) => {
     loading: adminLoading,
     error: adminError,
     fetchMedicationAdministrations,
-    addMedicationAdministration,
-    updateMedicationAdministration,
-    deleteMedicationAdministration,
     clearError: clearAdminError,
-    // Add new functions for medication administration
+    // Add new functions for medication administration (used by MedicineReceipts for recording administration)
     createMedicationAdministration: async (data) => {
       try {
         console.log('Creating medication administration via context:', data);

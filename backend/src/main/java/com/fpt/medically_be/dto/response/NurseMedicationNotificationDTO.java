@@ -15,7 +15,7 @@ public class NurseMedicationNotificationDTO extends BaseMapper<MedicationInstruc
     private Long Id;
     private String medicationName;
     private String dosage;
-    private String frequency;
+    private Integer frequency;
     private String specialInstructions;
     private String submittedDate;
     private String timeOfDay;

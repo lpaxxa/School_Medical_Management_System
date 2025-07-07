@@ -1,6 +1,6 @@
 package com.fpt.medically_be.dto.response;
 
-import com.fpt.medically_be.entity.AdministrationStatus;
+import com.fpt.medically_be.entity.Status;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,7 +14,7 @@ public class ParentMedicationAdministrationNotificationDTO {
     private String studentName;
     private LocalDateTime administeredAt;
     private String administeredBy;
-    private AdministrationStatus administrationStatus;
+    private Status administrationStatus;
     private String notes;
     private String message; // User-friendly message for parent
 } 

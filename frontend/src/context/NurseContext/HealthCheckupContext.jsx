@@ -67,19 +67,6 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   };
 
-  const addHealthCheckupData = async (checkupData) => {
-    try {
-      setLoading(true);
-      const result = await healthCheckupService.addHealthCheckup(checkupData);
-      setHealthCheckups([...healthCheckups, result]);
-      return result;
-    } catch (err) {
-      console.error('Error adding health checkup:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const updateHealthCheckupData = async (id, checkupData) => {
     try {
@@ -149,13 +136,17 @@ export const HealthCheckupProvider = ({ children }) => {
     selectedHealthCheckup,
     setSelectedHealthCheckup,
     fetchHealthCheckupById,
-    addHealthCheckupData,
     updateHealthCheckupData,
     removeHealthCheckup,
     refreshHealthCheckups,
     fetchHealthCheckupNotifications,
     createNotification,
-    refreshNotifications
+    refreshNotifications,
+    // Thêm các function mới
+    getHealthCampaigns: healthCheckupService.getHealthCampaigns,
+    getParents: healthCheckupService.getParents,
+    sendNotification: healthCheckupService.sendNotification,
+    getStudentById: healthCheckupService.getStudentById
   };
 
   return (

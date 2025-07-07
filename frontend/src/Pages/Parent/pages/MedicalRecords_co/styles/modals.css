@@ -20,13 +20,14 @@
   max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(1, 92, 146, 0.15);
   display: flex;
   flex-direction: column;
+  border: 1px solid #88CDF6;
 }
 
 .modal-header {
-  background: linear-gradient(to right, #b1b4f1, #98a6ff);
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%);
   padding: 16px 24px;
   display: flex;
   align-items: center;
@@ -40,6 +41,7 @@
   color: white;
   font-size: 18px;
   font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .modal-body {
@@ -58,19 +60,20 @@
   justify-content: center;
   color: white;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
 }
 
 .close-modal-btn:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
 }
 
 .modal-section {
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.02) 0%, rgba(45, 130, 181, 0.01) 100%);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
-  border: 1px solid #e1e8ed;
+  border: 1px solid #BCE6FF;
 }
 
 /* Modal hiển thị ảnh kích thước lớn */
@@ -80,7 +83,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(1, 92, 146, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -91,6 +94,9 @@
   position: relative;
   max-width: 90%;
   max-height: 90vh;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(1, 92, 146, 0.3);
 }
 
 .image-modal .modal-content img {
@@ -108,6 +114,12 @@
   color: white;
   font-size: 24px;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.image-modal .close-modal:hover {
+  color: #88CDF6;
+  transform: scale(1.2);
 }
 
 /* Responsive cho modal */

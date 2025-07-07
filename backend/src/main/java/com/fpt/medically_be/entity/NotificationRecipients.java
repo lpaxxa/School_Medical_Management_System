@@ -29,7 +29,12 @@ public class NotificationRecipients {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "studentID", nullable = false)
     private Student student;
+
+
     @OneToMany(mappedBy = "notificationRecipient", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Vaccination> vaccinations;
+    private List<SpecialCheckupConsent> specialCheckupConsents;
+
+    @OneToMany(mappedBy = "notificationRecipient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NotificationRecipientVaccine> notificationRecipientVaccines;
 
 }

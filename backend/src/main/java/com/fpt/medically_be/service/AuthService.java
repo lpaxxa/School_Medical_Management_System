@@ -4,8 +4,11 @@ import com.fpt.medically_be.dto.auth.AuthResponseDTO;
 import com.fpt.medically_be.dto.auth.LoginRequestDTO;
 import com.fpt.medically_be.dto.request.NurseRegistrationRequestDTO;
 import com.fpt.medically_be.dto.request.ParentRegistrationRequestDTO;
+import com.fpt.medically_be.dto.request.RegistrationDTO;
 import com.fpt.medically_be.entity.AccountMember;
-import com.fpt.medically_be.entity.Nurse;
+
+import java.util.Map;
+
 
 public interface AuthService {
 
@@ -15,7 +18,10 @@ public interface AuthService {
 
     AuthResponseDTO registerParent(ParentRegistrationRequestDTO parentRegistrationRequestDTO);
     AuthResponseDTO registerNurse(NurseRegistrationRequestDTO nurseRegistrationRequestDTO);
-
+    AuthResponseDTO registerAdmin(RegistrationDTO registrationDTO);
+    
+    // Generic registration method that handles role-based logic
+    AuthResponseDTO registerMember(Map<String, Object> requestData);
 
     AccountMember processOAuth2Callback(String code, String state);
 

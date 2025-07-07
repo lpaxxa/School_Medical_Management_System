@@ -1,11 +1,17 @@
 import Dashboard from './Dashboard_co/Dashboard';
-import PermissionsManagement from './Permissions_co/PermissionsManagement';
-import ReportGenerator from './Reports_co/ReportGenerator';
-import UserManagementPage from './UserManagement_co/UserManagement';
+import UserManagement from './UserManagement';
+import Reports from './Reports_co/index.jsx';
+import { 
+  PlanManager, 
+  VaccinationPlanHistory, 
+  CreateVaccinationPlan
+} from './MedicalEventPlanning';
 
 export {
   Dashboard,
-  PermissionsManagement,
-  ReportGenerator,
-  UserManagementPage as UserManagement
+  UserManagement,
+  Reports,
+  PlanManager,
+  VaccinationPlanHistory,
+  CreateVaccinationPlan
 };

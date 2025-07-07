@@ -224,23 +224,27 @@ body {
 
 .input-control i {
   position: absolute;
-  left: 1rem;
-  color: #6c757d;
+  left: 12px;
+  color: #6B7280;
+  font-size: 16px;
+  z-index: 10;
 }
 
 .input-control input {
+  padding-left: 40px !important;
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: all 0.2s;
+  height: 46px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s;
+  background-color: #F9FAFB;
 }
 
 .input-control input:focus {
+  border-color: var(--primary-color);
   outline: none;
-  border-color: #154082;
-  box-shadow: 0 0 0 3px rgba(21, 64, 130, 0.15);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* Form actions (remember me & forgot password) */
@@ -488,4 +492,10 @@ body {
 
 .input-control input:not(:placeholder-shown):invalid {
   border-color: #dc3545;
+}
+
+/* Đảm bảo font awesome hoạt động đúng */
+.fas {
+  font-family: "Font Awesome 5 Free" !important;
+  font-weight: 900 !important;
 }

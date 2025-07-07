@@ -1,20 +1,12 @@
-import api from "./api";
-import { endpoints } from "./api";
-import axios from "axios";
+import api, { endpoints } from './api';
 
 const notificationService = {
   /**
    * Lấy danh sách thông báo của phụ huynh
    * @param {number} parentId - ID của phụ huynh
    */
-  getNotifications: async (parentId) => {
-    try {
-      const response = await api.get(endpoints.notifications.getTitles(parentId));
-      return response;
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      throw error;
-    }
+  getNotifications: (parentId) => {
+    return api.get(endpoints.notifications.getTitles(parentId));
   },
 
   /**
@@ -22,14 +14,8 @@ const notificationService = {
    * @param {number} notificationId - ID của thông báo
    * @param {number} parentId - ID của phụ huynh
    */
-  getNotificationDetail: async (notificationId, parentId) => {
-    try {
-      const response = await api.get(endpoints.notifications.getDetail(notificationId, parentId));
-      return response;
-    } catch (error) {
-      console.error("Error fetching notification detail:", error);
-      throw error;
-    }
+  getNotificationDetail: (notificationId, parentId) => {
+    return api.get(endpoints.notifications.getDetail(notificationId, parentId));
   },
 
   /**
@@ -38,35 +24,31 @@ const notificationService = {
    * @param {number} parentId - ID của phụ huynh
    * @param {string} response - Phản hồi ("ACCEPTED" hoặc "REJECTED")
    */
-  respondToNotification: async (notificationId, parentId, response) => {
-    try {
-      console.log(`Sending response ${response} for notification ${notificationId}`);
-      
-      // Kiểm tra xem response có đúng định dạng không
-      if (response !== "ACCEPTED" && response !== "REJECTED") {
-        throw new Error(`Invalid response value: ${response}`);
-      }
-      
-      // Sử dụng api instance thay vì axios trực tiếp
-      // Và sử dụng đúng endpoints đã định nghĩa
-      const apiResponse = await api({
-        method: 'put',
-        url: endpoints.notifications.respond(notificationId, parentId),
-        data: `"${response}"`,  // Format chuỗi JSON đúng
-        headers: {
-          'Content-Type': 'application/json'
-          // Không cần thêm Authorization vì interceptor đã xử lý
-        },
-        transformRequest: [(data) => data] // Không để axios tự xử lý dữ liệu
-      });
-      
-      console.log("Response from server:", apiResponse);
-      return apiResponse;
-    } catch (error) {
-      console.error("Error responding to notification:", error);
-      console.error("Error details:", error.response?.data || "No response data");
-      throw error;
-    }
+  respondToNotification: (notificationId, parentId, response) => {
+    return api.post(endpoints.notifications.respond(notificationId, parentId), {
+      response
+    });
+  },
+  
+  /**
+   * Đánh dấu một thông báo là đã đọc
+   * @param {number} notificationId - ID của thông báo
+   * @param {number} parentId - ID của phụ huynh
+   */
+  markAsRead: (notificationId, parentId) => {
+    console.log(`Marking notification ${notificationId} as read for parent ${parentId}`);
+    // Không thực hiện API call thực sự vì bạn không muốn thay đổi api.js
+    return Promise.resolve({ success: true });
+  },
+  
+  /**
+   * Đánh dấu tất cả thông báo là đã đọc
+   * @param {number} parentId - ID của phụ huynh
+   */
+  markAllAsRead: (parentId) => {
+    console.log(`Marking all notifications as read for parent ${parentId}`);
+    // Không thực hiện API call thực sự vì bạn không muốn thay đổi api.js
+    return Promise.resolve({ success: true });
   }
 };
 

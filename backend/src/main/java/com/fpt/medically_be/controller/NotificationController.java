@@ -9,6 +9,7 @@ import com.fpt.medically_be.dto.response.Notification2ResponseStatusDTO;
 import com.fpt.medically_be.entity.NotificationType;
 import com.fpt.medically_be.entity.ResponseStatus;
 import com.fpt.medically_be.service.Notification2Service;
+import com.fpt.medically_be.service.impl.Notification2ServiceImp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -92,17 +93,6 @@ public class NotificationController {
     }
 
 
-    @Operation(summary = "First, phụ huynh xem lại những thông bao vaccine", description = "xem lại những thông báo vaccine đã được chấp nhận")
-    @GetMapping("/getAcceptedNotificationsByParent/{parentId}/{studentId}")
-    public ResponseEntity<?> getAcceptedNotificationsByParent(@PathVariable("parentId") Long parentId , @PathVariable("studentId") String studentId) {
-        return ResponseEntity.ok(notification2Service.getAcceptedNotificationsByParent(parentId, studentId));
-    }
-
-
-    @GetMapping("/getVacineByStudentIdAndNotiID/{studentId}/{id}")
-    public ResponseEntity<?> getVacineByStudentIdAndNotiID(@PathVariable("studentId") String studentId, @PathVariable("id") Long id) {
-        return ResponseEntity.ok(notification2Service.getVacineByStudentIdAndNotiID(studentId, id));
-    }
 
     @Operation(summary = "Lấy thông báo đã chấp nhận", description = "Lấy danh sách thông báo đã chấp nhận theo ID và trạng thái phản hồi")
     // id của Notification, còn response của NotificationRecipients
@@ -110,7 +100,10 @@ public class NotificationController {
     public ResponseEntity<?> getNotificationAcceptedByIdAndResponse(@PathVariable("id") Long id, @PathVariable("response") ResponseStatus response) {
         return ResponseEntity.ok(notification2Service.getNotificationAcceptedByIdAndResponse(id, response));
     }
+
+    @Operation(summary = "Lấy chi tiết thông báo khám sức khỏe", description = "Lấy chi tiết thông báo khám sức khỏe kèm theo các phần khám đặc biệt cần xác nhận")
+    @GetMapping("/health-checkup/{notiId}/{parentId}")
+    public ResponseEntity<?> getHealthCheckupNotificationDetail(@PathVariable Long notiId, @PathVariable Long parentId) {
+        return ResponseEntity.ok(((Notification2ServiceImp) notification2Service).getHealthCheckupNotificationDetail(notiId, parentId));
+    }
 }
-
-
-
