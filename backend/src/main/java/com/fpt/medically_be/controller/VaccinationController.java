@@ -1,13 +1,12 @@
 package com.fpt.medically_be.controller;
 
 
-import com.fpt.medically_be.dto.VaccinationDTO;
 import com.fpt.medically_be.dto.request.VaccinationCreateDTO;
 import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
 import com.fpt.medically_be.dto.request.VaccinationUpdateNoteRequest;
 import com.fpt.medically_be.dto.response.StudentVaccinationHistoryResponse;
 import com.fpt.medically_be.dto.response.VaccinationCreateWithHeathResponse;
-import com.fpt.medically_be.entity.Vaccination;
+import com.fpt.medically_be.dto.response.VaccineResponse;
 import com.fpt.medically_be.service.VaccinationService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;

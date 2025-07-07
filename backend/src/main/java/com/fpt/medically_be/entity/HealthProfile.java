@@ -24,7 +24,7 @@ public class HealthProfile {
     //@JsonIgnore
     private Student student;
 
-    @Column(name = "blood_type", columnDefinition = "NVARCHAR(10)")
+    @Column(name = "blood_type", columnDefinition = "NVARCHAR(20)")
     private String bloodType;
 
     private Double height;
