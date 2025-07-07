@@ -5,6 +5,8 @@ import MedicalIncidentDetailModal from './MedicalIncidentDetailModal';
 import MedicalIncidentAddModal from './MedicalIncidentAddModal';
 import MedicalIncidentUpdateModal from './MedicalIncidentUpdateModal';
 import './MedicalIncidents.css';
+import * as studentService from '../../../../../services/APINurse/studentService';
+import { getParentById } from '../../../../../services/APINurse/healthCheckupService';
 
 const MedicalIncidentsList = () => {
   // Sử dụng context để quản lý state và API  
@@ -18,13 +20,16 @@ const MedicalIncidentsList = () => {
     updateEvent,
     deleteEvent,
     searchByStudentName,
-    searchByFollowUpStatus
+    searchByFollowUpStatus,
+    searchByClassName
   } = useMedicalEvents();
   
   // State cục bộ
   const [showAddModal, setShowAddModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [displayedEvents, setDisplayedEvents] = useState([]);
   
   // State cho modal xem chi tiết
   const [showViewDetailsModal, setShowViewDetailsModal] = useState(false);
@@ -48,6 +53,29 @@ const MedicalIncidentsList = () => {
     }
   }, [fetchEvents, events]);
 
+  useEffect(() => {
+    setDisplayedEvents(events);
+  }, [events]);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+        try {
+            const studentData = await studentService.getAllStudents();
+            if (studentData) {
+              const studentList = studentData.content ? studentData.content : studentData;
+              setStudents(Array.isArray(studentList) ? studentList : []);
+            } else {
+              setStudents([]);
+            }
+        } catch (error) {
+            console.error("Lỗi khi tải danh sách học sinh:", error);
+            toast.error("Không thể tải danh sách học sinh.");
+            setStudents([]);
+        }
+    };
+    fetchStudents();
+  }, []);
+
   // Xử lý mở modal chi tiết
   const handleViewDetails = async (id) => {
     try {
@@ -69,6 +97,15 @@ const MedicalIncidentsList = () => {
         throw new Error("Không thể lấy chi tiết sự kiện - dữ liệu trống");
       }
       
+      let parentInfo = null;
+      if (eventData.parentID) {
+          try {
+              parentInfo = await getParentById(eventData.parentID);
+          } catch (parentError) {
+              console.error("Không thể tải thông tin phụ huynh:", parentError);
+          }
+      }
+
       // Kiểm tra cấu trúc dữ liệu từ API
       const processedEvent = {
         incidentId: eventData.incidentId || eventData.id || id,
@@ -84,6 +121,7 @@ const MedicalIncidentsList = () => {
         staffId: eventData.staffId || '',
         staffName: eventData.staffName || 'Chưa xác định',
         parentID: eventData.parentID || '',
+        parentInfo: parentInfo,
         imgUrl: eventData.imgUrl || '',
         studentId: eventData.studentId || '',
         studentName: eventData.studentName || 'Chưa xác định',
@@ -215,6 +253,12 @@ const MedicalIncidentsList = () => {
     }
   };
 
+  const getStudentClassName = (studentId) => {
+    if (!students || students.length === 0) return 'Đang tải...';
+    const student = students.find(s => s.id === studentId || s.studentId === studentId);
+    return student ? (student.class || student.className || 'Chưa có lớp') : 'Không rõ';
+  };
+
   // Hàm lấy class cho Badge dựa trên mức độ nghiêm trọng
   const getSeverityBadgeClass = (severity) => {
     if (!severity) return "bg-secondary";
@@ -247,7 +291,7 @@ const MedicalIncidentsList = () => {
   const handleReset = () => {
     setSearchValue('');
     setSearchStatus({ hasSearched: false, resultCount: 0 });
-    fetchEvents();
+    fetchEvents(); // Fetches all events, and useEffect syncs it to displayedEvents
   };
 
   // Xử lý tìm kiếm
@@ -256,9 +300,41 @@ const MedicalIncidentsList = () => {
     console.log("Search Type:", searchType);
     console.log("Search Value:", searchValue);
     
-    // Kiểm tra điều kiện tìm kiếm
+    // Client-side search for "class"
+    if (searchType === 'class') {
+      if (!searchValue.trim()) {
+        alert("Vui lòng nhập tên lớp để tìm kiếm");
+        return;
+      }
+      console.log("Thực hiện tìm kiếm theo lớp (Front-end):", searchValue);
+      const classNameLower = searchValue.trim().toLowerCase();
+      
+      const filteredEvents = events.filter(event => {
+        // Replicate the working logic from getStudentClassName to find the student
+        const student = students.find(s => s.id == event.studentId || s.studentId == event.studentId);
+        
+        if (student) {
+          // If student is found, check if their class name matches the search
+          const studentClassName = (student.class || student.className || '').toLowerCase();
+          return studentClassName.includes(classNameLower);
+        }
+        
+        return false; // If no student found for the event, don't include it
+      });
+
+      setDisplayedEvents(filteredEvents);
+      setSearchStatus({
+        hasSearched: true,
+        resultCount: filteredEvents.length
+      });
+      console.log("Kết quả tìm kiếm (Front-end):", filteredEvents);
+      console.log("=== KẾT THÚC TÌM KIẾM ===");
+      return;
+    }
+    
+    // Kiểm tra điều kiện tìm kiếm cho API calls
     if (searchType === 'name' && !searchValue.trim()) {
-      alert("Vui lòng nhập tên học sinh để tìm kiếm");
+      alert(`Vui lòng nhập tên học sinh để tìm kiếm`);
       return;
     }
     
@@ -277,6 +353,9 @@ const MedicalIncidentsList = () => {
         console.log("Tìm kiếm theo follow-up:", searchValue);
         const followUpValue = searchValue === 'true';
         results = await searchByFollowUpStatus(followUpValue);
+      } else if (searchType === 'class') {
+        console.log("Tìm kiếm theo lớp:", searchValue);
+        results = await searchByClassName(searchValue.trim());
       }
       
       setSearchStatus({
@@ -340,10 +419,13 @@ const MedicalIncidentsList = () => {
                       onChange={handleSearchTypeChange}
                     >
                       <option value="name">
-                        <i className="fas fa-user"></i> Theo tên học sinh
+                        Theo tên học sinh
+                      </option>
+                      <option value="class">
+                        Theo lớp
                       </option>
                       <option value="followUp">
-                        <i className="fas fa-eye"></i> Theo trạng thái theo dõi
+                        Theo trạng thái theo dõi
                       </option>
                     </select>
                   </div>
@@ -363,10 +445,10 @@ const MedicalIncidentsList = () => {
                       >
                         <option value="">-- Chọn trạng thái --</option>
                         <option value="true">
-                          <i className="fas fa-check-circle text-success"></i> Cần theo dõi
+                          Cần theo dõi
                         </option>
                         <option value="false">
-                          <i className="fas fa-times-circle text-secondary"></i> Không cần theo dõi
+                          Không cần theo dõi
                         </option>
                       </select>
                     ) : (
@@ -438,7 +520,7 @@ const MedicalIncidentsList = () => {
               <div className="card-header bg-success text-white">
                 <h5 className="mb-0">
                   <i className="fas fa-list me-2"></i>
-                  Danh sách sự kiện y tế ({events.length} sự kiện)
+                  Danh sách sự kiện y tế ({displayedEvents.length} sự kiện)
                 </h5>
               </div>
               <div className="card-body p-0">
@@ -446,6 +528,9 @@ const MedicalIncidentsList = () => {
                   <table className="table table-striped table-hover mb-0">
                     <thead className="table-dark">
                       <tr className="text-center">
+                        <th scope="col">
+                          STT
+                        </th>
                         <th scope="col">
                           <i className="fas fa-id-badge me-1"></i>
                           ID
@@ -457,6 +542,10 @@ const MedicalIncidentsList = () => {
                         <th scope="col">
                           <i className="fas fa-user me-1"></i>
                           Tên học sinh
+                        </th>
+                        <th scope="col">
+                          <i className="fas fa-school me-1"></i>
+                          Lớp
                         </th>
                         <th scope="col">
                           <i className="fas fa-clock me-1"></i>
@@ -481,8 +570,9 @@ const MedicalIncidentsList = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {events.length > 0 ? events.map((event) => (
+                      {displayedEvents.length > 0 ? displayedEvents.map((event, index) => (
                         <tr key={event.incidentId}>
+                          <td className="text-center fw-bold">{index + 1}</td>
                           <td className="text-center">
                             <span className="badge bg-primary">{event.incidentId}</span>
                           </td>
@@ -491,6 +581,9 @@ const MedicalIncidentsList = () => {
                           </td>
                           <td>
                             <strong>{event.studentName}</strong>
+                          </td>
+                          <td>
+                            {getStudentClassName(event.studentId)}
                           </td>
                           <td className="text-center">
                             <small>{formatDateTime(event.dateTime)}</small>
@@ -556,7 +649,7 @@ const MedicalIncidentsList = () => {
                         </tr>
                       )) : (
                         <tr>
-                          <td colSpan="8" className="text-center py-5">
+                          <td colSpan="10" className="text-center py-5">
                             <div className="text-muted">
                               <i className="fas fa-info-circle fa-2x mb-3"></i>
                               <h5>Không có dữ liệu</h5>

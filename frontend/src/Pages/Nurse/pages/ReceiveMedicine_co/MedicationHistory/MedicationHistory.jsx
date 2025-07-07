@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import './MedicationHistory.css';
 import { useMedicationAdministration } from '../../../../../context/NurseContext/MedicineApprovalContext';
+import { toast } from 'react-toastify';
 
 
 const MedicationHistory = () => {
@@ -139,7 +140,84 @@ const MedicationHistory = () => {
   };
 
   // Handle adding new medication administration
-  // REMOVED: This is now read-only component
+  const handleAddMedication = async () => {
+    const result = await addMedicationAdministration(modalData);
+    if (result.success) {
+      toast.success("Thêm mới lịch sử dùng thuốc thành công!");
+      setShowModal(false);
+      resetModalData();
+    } else {
+      toast.error(result.error?.message || "Không thể thêm mới lịch sử dùng thuốc.");
+    }
+  };
+
+  // Handle editing medication administration
+  const handleEditMedication = async () => {
+    const result = await updateMedicationAdministration(modalData.id, modalData);
+    if (result.success) {
+      toast.success("Cập nhật lịch sử dùng thuốc thành công!");
+      setShowModal(false);
+      resetModalData();
+    } else {
+      toast.error(result.error?.message || "Không thể cập nhật lịch sử dùng thuốc.");
+    }
+  };
+
+  // Handle deleting medication administration
+  const handleDeleteMedication = async () => {
+    const result = await deleteMedicationAdministration(deleteId);
+    if (result.success) {
+      toast.success("Xóa lịch sử dùng thuốc thành công!");
+      setShowDeleteModal(false);
+    } else {
+      toast.error(result.error?.message || "Không thể xóa lịch sử dùng thuốc.");
+    }
+  };
+
+  // Open add modal
+  const openAddModal = () => {
+    setIsEditing(false);
+    resetModalData();
+    setShowModal(true);
+  };
+
+  // Open edit modal with medication data
+  const openEditModal = (medication) => {
+    setIsEditing(true);
+    setModalData({
+      id: medication.id,
+      medicationInstructionId: medication.medicationInstructionId,
+      administeredAt: new Date(medication.administeredAt).toISOString().slice(0, 16),
+      administrationStatus: medication.administrationStatus,
+      notes: medication.notes || ''
+    });
+    setShowModal(true);
+  };
+
+  // Open delete confirmation modal
+  const openDeleteModal = (id) => {
+    setDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
+  // Reset modal data
+  const resetModalData = () => {
+    setModalData({
+      medicationInstructionId: '',
+      administeredAt: new Date().toISOString().slice(0, 16),
+      administrationStatus: 'SUCCESSFUL',
+      notes: ''
+    });
+  };
+
+  // Handle form input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setModalData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   // Handle viewing image
   const handleViewImage = (imageUrl) => {
@@ -148,7 +226,6 @@ const MedicationHistory = () => {
       setShowImageModal(true);
     }
   };
-
   // Handle pagination change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {

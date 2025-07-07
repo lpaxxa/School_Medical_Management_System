@@ -107,8 +107,8 @@ const searchStudents = async (criteria) => {
       params.keyword = criteria.keyword;
     }
     
-    if (criteria.class) {
-      params.className = criteria.class;
+    if (criteria.grade) {
+      params.grade = criteria.grade;
     }
     
     if (criteria.bloodType) {
@@ -125,20 +125,21 @@ const searchStudents = async (criteria) => {
     // Nếu API search chưa hoạt động, quay lại filter từ tất cả học sinh
     console.warn('Search API failed, falling back to client-side filtering:', error);
     
-    // Sử dụng dữ liệu mẫu thay vì gọi lại API
-    let results = [...mockStudents];
+    // Sử dụng getAllStudents để filter trên toàn bộ danh sách
+    let results = await getAllStudents();
     
     if (criteria.keyword) {
       const keyword = criteria.keyword.toLowerCase();
       results = results.filter(student => 
-        student.name.toLowerCase().includes(keyword) || 
-        student.studentId.toLowerCase().includes(keyword)
+        (student.fullName && student.fullName.toLowerCase().includes(keyword)) || 
+        (student.name && student.name.toLowerCase().includes(keyword)) ||
+        (student.studentId && student.studentId.toLowerCase().includes(keyword))
       );
     }
     
-    if (criteria.class) {
+    if (criteria.grade) {
       results = results.filter(student => 
-        student.className === criteria.class || student.class === criteria.class
+        student.gradeLevel == criteria.grade
       );
     }
     
@@ -219,6 +220,25 @@ const getClassList = async () => {
   } catch (error) {
     console.warn('Error generating class list:', error);
     return []; // Trả về mảng rỗng nếu có lỗi
+  }
+};
+
+// Thêm hàm mới: Lấy danh sách các khối
+const getGradeList = async () => {
+  try {
+    const studentsData = await getAllStudents();
+    if (!Array.isArray(studentsData)) return [];
+    
+    const gradeLevels = [...new Set(studentsData
+      .map(student => student?.gradeLevel)
+      .filter(Boolean)
+    )];
+    
+    // Sắp xếp các khối học
+    return gradeLevels.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+  } catch (error) {
+    console.warn('Error generating grade list:', error);
+    return [];
   }
 };
 
@@ -383,6 +403,7 @@ export {
   updateStudentRecord,
   addStudentNote,  // Đảm bảo hàm này được export
   getClassList,
+  getGradeList, // Export hàm mới
   getBloodTypes,
   calculateBMICategory,
   getBMIStandardByAgeGender,

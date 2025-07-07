@@ -1,259 +1,205 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Button, Table, Alert, Row, Col, Card, Tabs, Tab, Modal, Badge } from 'react-bootstrap';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Form, Button, Table, Alert, Row, Col, Card, Tabs, Tab, Modal, Badge, Dropdown } from 'react-bootstrap';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
 import { useAuth } from '../../../../../context/AuthContext';
 import './CreateCheckupList.css';
-import { FaEye, FaPaperPlane, FaUsers } from 'react-icons/fa';
+import { FaEye, FaPaperPlane, FaUsers, FaInfoCircle } from 'react-icons/fa';
+import LoadingSpinner from '../../../../../components/LoadingSpinner/LoadingSpinner';
 
 const CreateCheckupList = ({ refreshData }) => {
-  const [message, setMessage] = useState({ type: '', text: '' });
   const [activeTab, setActiveTab] = useState('plans');
   const { currentUser } = useAuth();
   
-  // Sử dụng HealthCheckupContext
   const { 
     loading, 
     error, 
     getHealthCampaigns, 
     getParents, 
-    sendNotification 
+    getStudents, 
+    getStudentById, 
+    getParentById, 
+    sendCampaignNotifications 
   } = useHealthCheckup();
   
-  // State for search and filters
-  const [parentSearchTerm, setParentSearchTerm] = useState('');
   const [planSearchTerm, setPlanSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [studentSearchTerm, setStudentSearchTerm] = useState('');
+  const [gradeLevelFilter, setGradeLevelFilter] = useState('');
   
-  // State for modals
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [detailPlan, setDetailPlan] = useState(null);
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
-  const [selectedParent, setSelectedParent] = useState(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [isSendingToAll, setIsSendingToAll] = useState(false);
   const [sendingNotification, setSendingNotification] = useState(false);
+  const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
+  const [selectedStudentForDetail, setSelectedStudentForDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   
-  // Ensure we have a valid senderId (must be a number, not null)
   const nurseId = currentUser?.id ? parseInt(currentUser.id) : 1;
   
-  // State for notification data - Đảm bảo senderId là số nguyên ngay từ đầu
-  const [notificationData, setNotificationData] = useState({
-    title: 'Thông báo khám sức khỏe định kỳ',
-    message: 'Trường tổ chức khám sức khỏe cho học sinh. Các phụ huynh vui lòng xác nhận đồng ý cho các phần khám đặc biệt.',
-    type: 'HEALTH_CHECKUP',
-    senderId: nurseId, // Ensure senderId is always a number
-    receiverIds: []
-  });
-
-  // States for data
   const [campaigns, setCampaigns] = useState([]);
   const [parents, setParents] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [combinedData, setCombinedData] = useState([]);
   const [localLoading, setLocalLoading] = useState(true);
-  const [sentNotifications, setSentNotifications] = useState(new Set()); // Track sent notifications
+  const [sentNotifications, setSentNotifications] = useState(new Set());
 
-  // Fetch campaigns and parents data sử dụng HealthCheckupContext
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLocalLoading(true);
-        
-        // Sử dụng functions từ HealthCheckupContext
-        const [campaignsData, parentsData] = await Promise.all([
+        const [campaignsData, parentsData, studentsData] = await Promise.all([
           getHealthCampaigns(),
-          getParents()
+          getParents(),
+          getStudents()
         ]);
-        
         setCampaigns(campaignsData);
         setParents(parentsData);
-        
+        setStudents(studentsData);
         setLocalLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
-        setMessage({
-          type: 'danger',
-          text: 'Không thể tải dữ liệu. Vui lòng thử lại sau.'
-        });
+        toast.error('Không thể tải dữ liệu. Vui lòng thử lại sau.');
         setLocalLoading(false);
       }
     };
-
     fetchData();
-  }, [refreshData, getHealthCampaigns, getParents]);
+  }, [refreshData, getHealthCampaigns, getParents, getStudents]);
 
-  // Filter campaigns
+  useEffect(() => {
+    if (students.length > 0 && parents.length > 0) {
+      const parentsMap = new Map(parents.map(p => [p.id, p]));
+      const joinedData = students.map(student => ({
+        ...student,
+        parentInfo: parentsMap.get(student.parentId) || null
+      }));
+      setCombinedData(joinedData);
+    }
+  }, [students, parents]);
+
+  const uniqueGradeLevels = useMemo(() => {
+    if (!students || students.length === 0) return [];
+    const gradeLevelSet = new Set(students.map(s => s.gradeLevel).filter(Boolean));
+    return Array.from(gradeLevelSet).sort();
+  }, [students]);
+
+  const activeCampaigns = useMemo(() => {
+    return campaigns.filter(c => c.status === 'ONGOING');
+  }, [campaigns]);
+
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = 
       campaign.title?.toLowerCase().includes(planSearchTerm.toLowerCase()) ||
       campaign.notes?.toLowerCase().includes(planSearchTerm.toLowerCase());
     const matchesStatus = statusFilter === '' || campaign.status === statusFilter;
-    
     return matchesSearch && matchesStatus;
   });
 
-  // Filter parents
-  const filteredParents = parents.filter(parent => 
-    parent.fullName?.toLowerCase().includes(parentSearchTerm.toLowerCase()) ||
-    parent.email?.toLowerCase().includes(parentSearchTerm.toLowerCase()) ||
-    parent.phoneNumber?.includes(parentSearchTerm)
-  );
+  const filteredStudents = combinedData.filter(student => {
+    const matchesSearch =
+      !studentSearchTerm ||
+      student.fullName?.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
+      student.studentId?.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
+      (student.parentInfo?.fullName?.toLowerCase().includes(studentSearchTerm.toLowerCase()));
+    const matchesGrade = !gradeLevelFilter || student.gradeLevel === gradeLevelFilter;
+    return matchesSearch && matchesGrade;
+  });
 
-  // Handle notification modal for single parent
-  const handleOpenNotificationModal = (parent) => {
-    console.log('Selected parent:', parent); // Debug log
-    setSelectedParent(parent);
-    setIsSendingToAll(false);
-    setNotificationData({
-      ...notificationData,
-      senderId: nurseId, // Ensure senderId is set again
-      receiverIds: [parseInt(parent.id)]
-    });
-    setShowNotificationModal(true);
-  };
-
-  // Handle notification modal for all filtered parents
-  const handleOpenSendToAllModal = () => {
-    if (filteredParents.length === 0) {
-      setMessage({
-        type: 'warning',
-        text: 'Không có phụ huynh nào trong danh sách để gửi thông báo!'
-      });
+  const handleSendNotifications = async (studentIds, campaignId) => {
+    if (!campaignId) {
+      toast.warn('Lỗi: Không có chiến dịch nào được chọn.');
+      return;
+    }
+    if (!studentIds || studentIds.length === 0) {
+      toast.warn('Không có học sinh nào được chọn để gửi thông báo.');
       return;
     }
     
-    setIsSendingToAll(true);
-    setNotificationData({
-      ...notificationData,
-      senderId: nurseId, // Ensure senderId is set again
-      receiverIds: filteredParents.map(parent => parseInt(parent.id))
-    });
-    setShowNotificationModal(true);
-  };
-
-  const handleCloseNotificationModal = () => {
-    setShowNotificationModal(false);
-    setSelectedParent(null);
-    setIsSendingToAll(false);
-  };
-
-  // Handle notification input changes
-  const handleNotificationInputChange = (e) => {
-    const { name, value } = e.target;
-    setNotificationData({
-      ...notificationData,
-      [name]: value
-    });
-  };
-
-  // Handle notification sending sử dụng HealthCheckupContext
-  const handleSendNotification = async (e) => {
-    e.preventDefault();
     setSendingNotification(true);
-
     try {
-      if (!notificationData.title.trim() || !notificationData.message.trim()) {
-        setMessage({
-          type: 'danger',
-          text: 'Vui lòng nhập đầy đủ tiêu đề và nội dung thông báo!'
-        });
-        setSendingNotification(false);
-        return;
-      }
-
-      // Đảm bảo receiverIds là mảng các số nguyên
-      const receiverIds = isSendingToAll 
-        ? filteredParents.map(parent => parseInt(parent.id)) 
-        : [parseInt(selectedParent.id)];
-      
-      // Đảm bảo senderId là số nguyên và không phải null
-      const senderId = nurseId;
-      
-      const notificationPayload = {
-        title: notificationData.title.trim(),
-        message: notificationData.message.trim(),
-        type: 'HEALTH_CHECKUP', // Luôn cố định là HEALTH_CHECKUP
-        senderId: senderId,
-        receiverIds: receiverIds
-      };
-      
-      // Log để debug
-      console.log('Sending notification with data:', JSON.stringify(notificationPayload, null, 2));
-      
-      // Kiểm tra token trước khi gửi
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
-      }
-      
-      // Sử dụng sendNotification từ HealthCheckupContext
-      const result = await sendNotification(notificationPayload);
-      console.log('Notification result:', result);
-
-      // Thêm parent IDs vào danh sách đã gửi
-      const newSentNotifications = new Set(sentNotifications);
-      receiverIds.forEach(id => newSentNotifications.add(id));
-      setSentNotifications(newSentNotifications);
-
-      setMessage({
-        type: 'success',
-        text: isSendingToAll 
-          ? `Đã gửi thông báo khám sức khỏe thành công tới ${receiverIds.length} phụ huynh!`
-          : `Đã gửi thông báo khám sức khỏe thành công tới ${selectedParent.fullName}!`
-      });
-      
-      handleCloseNotificationModal();
+      await sendCampaignNotifications(campaignId, studentIds);
+  
+      const newSent = new Set(sentNotifications);
+      studentIds.forEach(id => newSent.add(`${campaignId}-${id}`));
+      setSentNotifications(newSent);
+  
+      toast.success(`Đã gửi thông báo thành công cho ${studentIds.length} học sinh.`);
     } catch (error) {
-      console.error('Error sending notification:', error);
-      let errorMessage = 'Không thể gửi thông báo. Vui lòng thử lại sau.';
-      
-      if (error.message) {
-        if (error.message.includes('400')) {
-          errorMessage = 'Lỗi dữ liệu: Định dạng thông báo không hợp lệ. Vui lòng kiểm tra lại thông tin.';
-        } else if (error.message.includes('401') || error.message.includes('403')) {
-          errorMessage = 'Lỗi xác thực: Bạn không có quyền thực hiện thao tác này hoặc phiên đăng nhập đã hết hạn.';
-        } else if (error.message.includes('null')) {
-          errorMessage = 'Lỗi dữ liệu: ID không được để trống. Vui lòng đăng nhập lại.';
-        } else {
-          errorMessage = `Lỗi: ${error.message}`;
-        }
-      }
-      
-      setMessage({
-        type: 'danger',
-        text: errorMessage
-      });
+      console.error('Error sending notifications:', error);
+      toast.error(`Gửi thông báo thất bại: ${error.message}`);
     } finally {
       setSendingNotification(false);
     }
   };
 
-  // Format date
+  const handleShowStudentDetail = async (student) => {
+    setShowStudentDetailModal(true);
+    setDetailLoading(true);
+    try {
+      const [studentDetails, parentDetails] = await Promise.all([
+        getStudentById(student.id),
+        student.parentId ? getParentById(student.parentId) : Promise.resolve(null)
+      ]);
+      setSelectedStudentForDetail({ student: studentDetails, parent: parentDetails });
+    } catch (err) {
+      console.error("Error fetching details:", err);
+      toast.error('Không thể tải chi tiết thông tin.');
+      setSelectedStudentForDetail({ student: student, parent: student.parentInfo });
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+  
+  const handleCloseStudentDetailModal = () => {
+    setShowStudentDetailModal(false);
+    setSelectedStudentForDetail(null);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
+  const getStatusBadgeColor = (status) => {
+    switch (status) {
+      case 'PREPARING': return 'warning';
+      case 'ONGOING': return 'primary';
+      case 'COMPLETED': return 'success';
+      case 'CANCELLED': return 'danger';
+      default: return 'secondary';
+    }
+  };
+
+  const translateStatus = (status) => {
+    switch (status) {
+      case 'PREPARING': return 'Đang chuẩn bị';
+      case 'ONGOING': return 'Đang diễn ra';
+      case 'COMPLETED': return 'Hoàn thành';
+      case 'CANCELLED': return 'Đã hủy';
+      default: return status;
+    }
+  };
+
   return (
     <div className="create-checkup-list">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <div className="section-header">
         <h2>Quản lý khám sức khỏe</h2>
       </div>
-      
-      {message.text && (
-        <Alert 
-          variant={message.type} 
-          onClose={() => setMessage({ type: '', text: '' })} 
-          dismissible
-        >
-          {message.text}
-        </Alert>
-      )}
       
       <Tabs
         activeKey={activeTab}
         onSelect={(k) => setActiveTab(k)}
         className="mb-4"
       >
-        {/* Tab Danh mục định kì */}
         <Tab eventKey="plans" title="Danh mục định kì">
           <Card>
             <Card.Header as="h5">Danh mục khám sức khỏe định kì</Card.Header>
@@ -274,12 +220,12 @@ const CreateCheckupList = ({ refreshData }) => {
                   >
                     <option value="">Tất cả trạng thái</option>
                     <option value="PREPARING">Đang chuẩn bị</option>
-                    <option value="IN_PROGRESS">Đang diễn ra</option>
+                    <option value="ONGOING">Đang diễn ra</option>
                     <option value="COMPLETED">Hoàn thành</option>
+                    <option value="CANCELLED">Đã hủy</option>
                   </Form.Select>
                 </Col>
               </Row>
-
               <div className="table-responsive">
                 <Table striped bordered hover>
                   <thead>
@@ -287,45 +233,27 @@ const CreateCheckupList = ({ refreshData }) => {
                       <th>ID</th>
                       <th>Tên chiến dịch</th>
                       <th>Ngày bắt đầu</th>
+                      <th>Ngày kết thúc</th>
                       <th>Ghi chú</th>
                       <th>Trạng thái</th>
                     </tr>
                   </thead>
                   <tbody>
                     {localLoading ? (
-                      <tr>
-                        <td colSpan="5" className="text-center">
-                          <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Đang tải...</span>
-                          </div>
-                        </td>
-                      </tr>
+                      <tr><td colSpan="6" className="text-center"><LoadingSpinner /></td></tr>
                     ) : filteredCampaigns.length > 0 ? (
                       filteredCampaigns.map(campaign => (
                         <tr key={campaign.id}>
                           <td>{campaign.id}</td>
                           <td>{campaign.title}</td>
                           <td>{formatDate(campaign.startDate)}</td>
+                          <td>{formatDate(campaign.endDate)}</td>
                           <td>{campaign.notes}</td>
-                          <td>
-                            <Badge bg={
-                              campaign.status === 'PREPARING' ? 'warning' :
-                              campaign.status === 'IN_PROGRESS' ? 'primary' :
-                              'success'
-                            }>
-                              {campaign.status === 'PREPARING' ? 'Đang chuẩn bị' :
-                               campaign.status === 'IN_PROGRESS' ? 'Đang diễn ra' :
-                               'Hoàn thành'}
-                            </Badge>
-                          </td>
+                          <td><Badge bg={getStatusBadgeColor(campaign.status)}>{translateStatus(campaign.status)}</Badge></td>
                         </tr>
                       ))
                     ) : (
-                      <tr>
-                        <td colSpan="5" className="text-center">
-                          Không tìm thấy chiến dịch khám sức khỏe nào
-                        </td>
-                      </tr>
+                      <tr><td colSpan="6" className="text-center">Không tìm thấy chiến dịch.</td></tr>
                     )}
                   </tbody>
                 </Table>
@@ -334,85 +262,120 @@ const CreateCheckupList = ({ refreshData }) => {
           </Card>
         </Tab>
         
-        {/* Tab Danh sách phụ huynh */}
-        <Tab eventKey="parents" title="Danh sách phụ huynh">
+        <Tab eventKey="students" title="Danh sách học sinh">
           <Card>
             <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
-              <span>Danh sách phụ huynh</span>
-              <Button 
+              <span>Danh sách học sinh</span>
+              <Dropdown>
+                <Dropdown.Toggle 
                 variant="primary" 
                 size="sm"
-                onClick={handleOpenSendToAllModal}
-                disabled={filteredParents.length === 0}
-                className="send-all-btn"
-              >
-                <FaUsers className="me-2" /> Gửi thông báo cho tất cả
-              </Button>
+                  id="dropdown-send-all"
+                  disabled={filteredStudents.length === 0 || sendingNotification}
+                >
+                  <FaUsers className="me-2" />
+                  Gửi thông báo cho tất cả ({filteredStudents.length})
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Header>Chọn chiến dịch để gửi</Dropdown.Header>
+                  {activeCampaigns.length > 0 ? (
+                    activeCampaigns.map(campaign => (
+                      <Dropdown.Item 
+                        key={campaign.id}
+                        onClick={() => handleSendNotifications(filteredStudents.map(s => s.id), campaign.id)}
+                      >
+                        {campaign.title}
+                      </Dropdown.Item>
+                    ))
+                  ) : (
+                    <Dropdown.Item disabled>Không có chiến dịch nào đang diễn ra</Dropdown.Item>
+                  )}
+                </Dropdown.Menu>
+              </Dropdown>
             </Card.Header>
             <Card.Body>
               <Row className="mb-3">
-                <Col md={12}>
+                <Col md={8}>
                   <Form.Control
                     type="text"
-                    placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
-                    value={parentSearchTerm}
-                    onChange={(e) => setParentSearchTerm(e.target.value)}
+                    placeholder="Tìm kiếm theo mã, tên học sinh hoặc tên phụ huynh..."
+                    value={studentSearchTerm}
+                    onChange={(e) => setStudentSearchTerm(e.target.value)}
                   />
                 </Col>
+                <Col md={4}>
+                  <Form.Select
+                    value={gradeLevelFilter}
+                    onChange={(e) => setGradeLevelFilter(e.target.value)}
+                  >
+                    <option value="">Tất cả các khối</option>
+                    {uniqueGradeLevels.map(gradeLevel => (
+                      <option key={gradeLevel} value={gradeLevel}>{gradeLevel}</option>
+                    ))}
+                  </Form.Select>
+                </Col>
               </Row>
-
               <div className="table-responsive">
                 <Table striped bordered hover>
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Họ và tên</th>
-                      <th>Số điện thoại</th>
-                      <th>Email</th>
-                      <th>Địa chỉ</th>
+                      <th>Mã HS</th>
+                      <th>Họ tên học sinh</th>
+                      <th>Lớp</th>
+                      <th>Tên phụ huynh</th>
                       <th>Quan hệ</th>
                       <th>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
                     {localLoading ? (
-                      <tr>
-                        <td colSpan="7" className="text-center">
-                          <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Đang tải...</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : filteredParents.length > 0 ? (
-                      filteredParents.map(parent => (
-                        <tr key={parent.id}>
-                          <td>{parent.id}</td>
-                          <td>{parent.fullName}</td>
-                          <td>{parent.phoneNumber}</td>
-                          <td>{parent.email}</td>
-                          <td>{parent.address}</td>
-                          <td>{parent.relationshipType}</td>
-                          <td>
-                            {sentNotifications.has(parent.id) ? (
-                              <span className="text-success fw-bold">Đã gửi</span>
-                            ) : (
-                              <Button
+                      <tr><td colSpan="6" className="text-center"><LoadingSpinner /></td></tr>
+                    ) : filteredStudents.length > 0 ? (
+                      filteredStudents.map(student => (
+                        <tr key={student.id}>
+                          <td>{student.studentId}</td>
+                          <td>{student.fullName}</td>
+                          <td>{student.gradeLevel}</td>
+                          <td>{student.parentInfo?.fullName || 'N/A'}</td>
+                          <td>{student.parentInfo?.relationshipType || 'N/A'}</td>
+                          <td className="d-flex">
+                            <Button variant="info" size="sm" className="me-2" onClick={() => handleShowStudentDetail(student)}>
+                              <FaEye />
+                            </Button>
+                            <Dropdown>
+                              <Dropdown.Toggle 
                                 variant="success"
                                 size="sm"
-                                onClick={() => handleOpenNotificationModal(parent)}
+                                id={`dropdown-send-${student.id}`}
+                                disabled={sendingNotification}
                               >
-                                <FaPaperPlane /> Gửi
-                              </Button>
-                            )}
+                                <FaPaperPlane />
+                              </Dropdown.Toggle>
+                              <Dropdown.Menu>
+                                <Dropdown.Header>Chọn chiến dịch</Dropdown.Header>
+                                {activeCampaigns.length > 0 ? (
+                                  activeCampaigns.map(campaign => {
+                                    const isSent = sentNotifications.has(`${campaign.id}-${student.id}`);
+                                    return (
+                                      <Dropdown.Item
+                                        key={campaign.id}
+                                        onClick={() => !isSent && handleSendNotifications([student.id], campaign.id)}
+                                        disabled={isSent}
+                                      >
+                                        {campaign.title} {isSent && <Badge pill bg="success" className="ms-2">Đã gửi</Badge>}
+                                      </Dropdown.Item>
+                                    );
+                                  })
+                                ) : (
+                                  <Dropdown.Item disabled>Không có chiến dịch nào</Dropdown.Item>
+                                )}
+                              </Dropdown.Menu>
+                            </Dropdown>
                           </td>
                         </tr>
                       ))
                     ) : (
-                      <tr>
-                        <td colSpan="7" className="text-center">
-                          Không tìm thấy phụ huynh nào
-                        </td>
-                      </tr>
+                      <tr><td colSpan="6" className="text-center">Không tìm thấy học sinh.</td></tr>
                     )}
                   </tbody>
                 </Table>
@@ -422,82 +385,59 @@ const CreateCheckupList = ({ refreshData }) => {
         </Tab>
       </Tabs>
 
-      {/* Modal gửi thông báo */}
-      <Modal show={showNotificationModal} onHide={handleCloseNotificationModal} centered>
+      <Modal show={showStudentDetailModal} onHide={handleCloseStudentDetailModal} centered size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>
-            {isSendingToAll 
-              ? `Gửi thông báo cho ${filteredParents.length} phụ huynh`
-              : `Gửi thông báo cho phụ huynh: ${selectedParent?.fullName}`
-            }
-          </Modal.Title>
+          <Modal.Title><FaInfoCircle className="me-2" /> Chi tiết thông tin</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleSendNotification}>
-            <Form.Group className="mb-3">
-              <Form.Label>Tiêu đề thông báo <span className="text-danger">*</span></Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Nhập tiêu đề thông báo"
-                name="title"
-                value={notificationData.title}
-                onChange={handleNotificationInputChange}
-                required
-              />
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Nội dung <span className="text-danger">*</span></Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={4}
-                placeholder="Nhập nội dung thông báo khám sức khỏe"
-                name="message"
-                value={notificationData.message}
-                onChange={handleNotificationInputChange}
-                required
-              />
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Loại thông báo</Form.Label>
-              <Form.Control
-                plaintext
-                readOnly
-                value="HEALTH_CHECKUP (Khám sức khỏe)"
-              />
-            </Form.Group>
-
-            {/* Add a hidden field to ensure senderId is included */}
-            <input 
-              type="hidden" 
-              name="senderId" 
-              value={nurseId} 
-            />
-            
-            <div className="d-flex justify-content-between">
-              <Button variant="secondary" onClick={handleCloseNotificationModal}>
-                Hủy
-              </Button>
-              <Button 
-                variant="primary" 
-                type="submit"
-                disabled={sendingNotification}
-              >
-                {sendingNotification ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Đang gửi...
+          {detailLoading ? (
+            <LoadingSpinner />
+          ) : selectedStudentForDetail ? (
+            <>
+              <Card className="mb-4">
+                <Card.Header as="h5">Thông tin học sinh</Card.Header>
+                <Card.Body>
+                  <Row>
+                    <Col md={4} className="text-center">
+                      <img src={selectedStudentForDetail.student.imageUrl || '/src/assets/default-avatar.png'} alt={selectedStudentForDetail.student.fullName} className="img-fluid rounded-circle mb-3" style={{ width: '120px', height: '120px' }} />
+                    </Col>
+                    <Col md={8}>
+                      <p><strong>Họ và tên:</strong> {selectedStudentForDetail.student.fullName}</p>
+                      <p><strong>Mã học sinh:</strong> {selectedStudentForDetail.student.studentId}</p>
+                      <p><strong>Giới tính:</strong> {selectedStudentForDetail.student.gender}</p>
+                      <p><strong>Ngày sinh:</strong> {formatDate(selectedStudentForDetail.student.dateOfBirth)}</p>
+                      <p><strong>Lớp:</strong> {selectedStudentForDetail.student.className}</p>
+                      <p><strong>Khối:</strong> {selectedStudentForDetail.student.gradeLevel}</p>
+                      <p><strong>Năm học:</strong> {selectedStudentForDetail.student.schoolYear}</p>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+              <Card>
+                <Card.Header as="h5">Thông tin phụ huynh</Card.Header>
+                <Card.Body>
+                  {selectedStudentForDetail.parent ? (
+                    <>
+                      <p><strong>Họ và tên:</strong> {selectedStudentForDetail.parent.fullName}</p>
+                      <p><strong>Quan hệ:</strong> {selectedStudentForDetail.parent.relationshipType}</p>
+                      <p><strong>Số điện thoại:</strong> {selectedStudentForDetail.parent.phoneNumber}</p>
+                      <p><strong>Email:</strong> {selectedStudentForDetail.parent.email}</p>
+                      <p><strong>Địa chỉ:</strong> {selectedStudentForDetail.parent.address}</p>
+                      <p><strong>Nghề nghiệp:</strong> {selectedStudentForDetail.parent.occupation || 'Chưa cập nhật'}</p>
                   </>
                 ) : (
-                  <>
-                    <FaPaperPlane className="me-2" /> Gửi thông báo
-                  </>
-                )}
-              </Button>
-            </div>
-          </Form>
+                    <Alert variant="warning">Không tìm thấy thông tin phụ huynh cho học sinh này.</Alert>
+                  )}
+                </Card.Body>
+              </Card>
+            </>
+          ) : (
+            <Alert variant="info">Không có thông tin chi tiết để hiển thị.</Alert>  
+          )}
         </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseStudentDetailModal}>Đóng</Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

@@ -687,10 +687,12 @@ const mockHealthStandards = {
 // Lấy thông tin chi tiết học sinh theo ID
 export const getStudentById = async (id) => {
   try {
-    const response = await fetch(`http://localhost:8080/api/v1/students/student-id/${id}`, {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8080/api/v1/students/${id}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
       }
     });
     
@@ -701,6 +703,112 @@ export const getStudentById = async (id) => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching student details:', error);
+    throw error;
+  }
+};
+
+// Lấy thông tin chi tiết phụ huynh theo ID
+export const getParentById = async (id) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8080/api/v1/parents/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching parent details:', error);
+    throw error;
+  }
+};
+
+// Lấy danh sách học sinh
+export const getStudents = async () => {
+  try {
+    const response = await fetch(`http://localhost:8080/api/v1/students`);
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    // Fallback to mock data on error
+    return mockStudents;
+  }
+};
+
+// Send notifications for a specific campaign
+export const sendCampaignNotifications = async (campaignId, studentIds) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8080/api/v1/health-campaigns/${campaignId}/send-notifications`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      },
+      body: JSON.stringify(studentIds)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
+    }
+
+    // The response might not contain a JSON body
+    return { success: true, message: 'Notifications sent successfully.' };
+  } catch (error) {
+    console.error('Error sending campaign notifications:', error);
+    throw error;
+  }
+};
+
+// Get student list for a specific campaign
+export const getCampaignStudents = async (campaignId) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8080/api/v1/health-campaigns/${campaignId}/students`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching students for campaign ${campaignId}:`, error);
+    throw error;
+  }
+};
+
+// Get parent consent details
+export const getConsentDetails = async (consentId) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8080/api/v1/parent-consents/${consentId}/details`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching consent details for ID ${consentId}:`, error);
     throw error;
   }
 };
@@ -721,7 +829,12 @@ const healthCheckupService = {
   getParents,
   sendNotification,
   sendHealthCheckupNotification,
-  getStudentById
+  getStudentById,
+  getStudents,
+  getParentById,
+  sendCampaignNotifications,
+  getCampaignStudents,
+  getConsentDetails,
 };
 
 export default healthCheckupService;

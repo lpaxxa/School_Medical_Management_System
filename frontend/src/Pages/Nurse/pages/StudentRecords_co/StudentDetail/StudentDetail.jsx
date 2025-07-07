@@ -119,17 +119,6 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
       
       <div className="detail-content">
         <div className="student-info-section">
-          <div className="student-avatar">
-            <img 
-              src={student.imageUrl || defaultAvatar} 
-              alt={student.fullName || student.name}
-              className="student-image"
-              onError={(e) => {
-                e.target.onerror = null; 
-                e.target.src = defaultAvatar;
-              }}
-            />
-          </div>
           <div className="info-group basic-info">
             <h3>Thông tin cơ bản</h3>
             <p><strong>Họ và tên:</strong> {student.fullName || student.name}</p>
