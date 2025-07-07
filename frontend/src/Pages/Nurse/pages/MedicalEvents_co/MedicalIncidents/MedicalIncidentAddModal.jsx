@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
+import { getAllStudents } from '../../../../../services/APINurse/studentRecordsService';
 import './MedicalIncidentAddModal.css';
 
 const MedicalIncidentAddModal = ({ 
@@ -29,6 +30,13 @@ const MedicalIncidentAddModal = ({
   const [medicationResults, setMedicationResults] = useState([]);
   const [showMedicationDropdown, setShowMedicationDropdown] = useState(false);
   const [searchingMedications, setSearchingMedications] = useState(false);
+
+  // Student search states
+  const [studentSearch, setStudentSearch] = useState('');
+  const [allStudents, setAllStudents] = useState([]);
+  const [studentSuggestions, setStudentSuggestions] = useState([]);
+  const [showStudentDropdown, setShowStudentDropdown] = useState(false);
+  const [loadingStudents, setLoadingStudents] = useState(false);
 
   // Initialize form data when modal opens or selectedEvent changes
   useEffect(() => {
@@ -67,6 +75,24 @@ const MedicalIncidentAddModal = ({
           medicationsUsed: []
         });
       }
+
+      // Fetch all students for the dropdown
+      const fetchStudents = async () => {
+        setLoadingStudents(true);
+        try {
+          const students = await getAllStudents();
+          if (Array.isArray(students)) {
+            setAllStudents(students);
+          }
+        } catch (error) {
+          console.error("Failed to fetch students:", error);
+          toast.error("Không thể tải danh sách học sinh.");
+        } finally {
+          setLoadingStudents(false);
+        }
+      };
+
+      fetchStudents();
     }
   }, [show, selectedEvent]);
 
@@ -78,6 +104,33 @@ const MedicalIncidentAddModal = ({
       ...prevData,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  // Handle student search
+  const handleStudentSearch = (searchTerm) => {
+    setStudentSearch(searchTerm);
+    setFormData(prev => ({ ...prev, studentId: searchTerm }));
+
+    if (searchTerm.length > 0) {
+      const suggestions = allStudents.filter(student =>
+        student.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (student.fullName && student.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (student.name && student.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+      setStudentSuggestions(suggestions);
+      setShowStudentDropdown(true);
+    } else {
+      setStudentSuggestions([]);
+      setShowStudentDropdown(false);
+    }
+  };
+
+  // Handle selecting a student
+  const handleSelectStudent = (student) => {
+    setFormData(prev => ({ ...prev, studentId: student.studentId }));
+    setStudentSearch(`${student.studentId} - ${student.fullName || student.name}`);
+    setShowStudentDropdown(false);
+    setStudentSuggestions([]);
   };
 
   // Handle medication search
@@ -248,15 +301,33 @@ const MedicalIncidentAddModal = ({
           <div className="modal-body">
             <div className="form-row">
               <div className="form-group">
-                <label>Mã học sinh <span className="required">*</span></label>
+                <label htmlFor="studentId">Mã học sinh <span className="required">*</span></label>
                 <input
                   type="text"
+                  id="studentId"
                   name="studentId"
-                  value={formData.studentId}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Nhập mã học sinh"
+                  value={studentSearch}
+                  onChange={(e) => handleStudentSearch(e.target.value)}
+                  placeholder="Nhập mã hoặc tên học sinh"
+                  autoComplete="off"
+                  onFocus={() => setShowStudentDropdown(studentSuggestions.length > 0)}
+                  onBlur={() => setTimeout(() => setShowStudentDropdown(false), 200)}
                 />
+                {showStudentDropdown && (
+                  <ul className="suggestions-list student-suggestions">
+                    {loadingStudents ? (
+                      <li>Đang tải...</li>
+                    ) : studentSuggestions.length > 0 ? (
+                      studentSuggestions.map(student => (
+                        <li key={student.id} onMouseDown={() => handleSelectStudent(student)}>
+                          {student.studentId} - {student.fullName || student.name}
+                        </li>
+                      ))
+                    ) : (
+                      <li>Không tìm thấy học sinh</li>
+                    )}
+                  </ul>
+                )}
               </div>
               
               <div className="form-group">

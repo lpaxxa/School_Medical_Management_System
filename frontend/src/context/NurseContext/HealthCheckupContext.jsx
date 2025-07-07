@@ -17,7 +17,6 @@ export const HealthCheckupProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedHealthCheckup, setSelectedHealthCheckup] = useState(null);
-  const [notifications, setNotifications] = useState([]);
 
   const fetchHealthCheckups = useCallback(async () => {
     try {
@@ -28,23 +27,6 @@ export const HealthCheckupProvider = ({ children }) => {
     } catch (err) {
       console.error('Error fetching health checkups:', err);
       setError('Không thể tải dữ liệu khám sức khỏe. Vui lòng thử lại sau.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // New function to fetch health checkup notifications
-  const fetchHealthCheckupNotifications = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await healthCheckupService.getHealthCheckupNotifications();
-      setNotifications(data);
-      setError(null);
-      return data;
-    } catch (err) {
-      console.error('Error fetching health checkup notifications:', err);
-      setError('Không thể tải thông báo khám sức khỏe. Vui lòng thử lại sau.');
-      return [];
     } finally {
       setLoading(false);
     }
@@ -87,6 +69,22 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   };
 
+  const addHealthCheckup = async (checkupData) => {
+    try {
+      setLoading(true);
+      const newCheckup = await healthCheckupService.addHealthCheckup(checkupData);
+      // Refresh the main list to reflect any changes in stats
+      fetchHealthCheckups(); 
+      return newCheckup;
+    } catch (err) {
+      console.error('Error creating health checkup:', err);
+      setError('Không thể tạo hồ sơ khám sức khỏe.');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const removeHealthCheckup = async (id) => {
     try {
       setLoading(true);
@@ -106,47 +104,31 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   };
 
-  // New function to create a notification
-  const createNotification = async (notificationData) => {
-    try {
-      setLoading(true);
-      const result = await healthCheckupService.createHealthCheckupNotification(notificationData);
-      return result;
-    } catch (err) {
-      console.error('Error creating notification:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const refreshHealthCheckups = () => {
     fetchHealthCheckups();
   };
 
-  const refreshNotifications = () => {
-    return fetchHealthCheckupNotifications();
-  };
-
   const value = {
     healthCheckups,
-    notifications,
     loading,
     error,
     selectedHealthCheckup,
     setSelectedHealthCheckup,
     fetchHealthCheckupById,
+    addHealthCheckup,
     updateHealthCheckupData,
     removeHealthCheckup,
     refreshHealthCheckups,
-    fetchHealthCheckupNotifications,
-    createNotification,
-    refreshNotifications,
-    // Thêm các function mới
     getHealthCampaigns: healthCheckupService.getHealthCampaigns,
     getParents: healthCheckupService.getParents,
     sendNotification: healthCheckupService.sendNotification,
-    getStudentById: healthCheckupService.getStudentById
+    getStudentById: healthCheckupService.getStudentById,
+    getStudents: healthCheckupService.getStudents,
+    getParentById: healthCheckupService.getParentById,
+    sendCampaignNotifications: healthCheckupService.sendCampaignNotifications,
+    getCampaignStudents: healthCheckupService.getCampaignStudents,
+    getConsentDetails: healthCheckupService.getConsentDetails,
+    getStudentsRequiringFollowup: healthCheckupService.getStudentsRequiringFollowup,
   };
 
   return (

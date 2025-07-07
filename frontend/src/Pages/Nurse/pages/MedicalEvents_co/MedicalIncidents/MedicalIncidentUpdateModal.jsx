@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
+import { useMedicalEvents } from '../../../../../context/NurseContext/MedicalEventsContext';
 
 const MedicalIncidentUpdateModal = ({ 
   show, 
   selectedEvent, 
   onClose, 
-  onSubmit,
-  loading = false 
+  loading: propLoading = false 
 }) => {
+  const { updateEvent, loading: contextLoading } = useMedicalEvents();
   const [formData, setFormData] = useState({
     incidentId: '',
     incidentType: '',
@@ -29,53 +30,35 @@ const MedicalIncidentUpdateModal = ({
     medicationsUsed: ''
   });
 
-  // Medication search states
+  // Medication states
   const [medicationSearch, setMedicationSearch] = useState('');
   const [medicationResults, setMedicationResults] = useState([]);
   const [showMedicationDropdown, setShowMedicationDropdown] = useState(false);
   const [searchingMedications, setSearchingMedications] = useState(false);
   const [selectedMedications, setSelectedMedications] = useState([]);
+  const [allInventoryItems, setAllInventoryItems] = useState([]); // State for all inventory items
 
   // Initialize form data when modal opens or selectedEvent changes
   useEffect(() => {
     if (show && selectedEvent) {
-      const parseMedications = async () => {
-        let parsedMedications = [];
-        
-        if (selectedEvent.medicationsUsed && typeof selectedEvent.medicationsUsed === 'string') {
-          // Parse format like "Betadine 10% (10)"
-          const medicationParts = selectedEvent.medicationsUsed.split(',').map(med => med.trim());
-          
-          // Lookup real itemID for each medication
-          for (const medicationPart of medicationParts) {
-            const match = medicationPart.match(/^(.+?)\s*\((\d+)\)$/);
-            if (match) {
-              const [, medicationName, quantity] = match;
-              
-              try {
-                const searchResults = await inventoryService.searchItemsByName(medicationName.trim());
-                if (searchResults && searchResults.length > 0) {
-                  const foundMedication = searchResults[0];
-                  parsedMedications.push({
-                    itemID: foundMedication.itemID,
-                    itemName: foundMedication.itemName,
-                    quantityUsed: parseInt(quantity),
-                    currentStock: foundMedication.currentStock,
-                    unit: foundMedication.unit
-                  });
-                }
-              } catch (error) {
-                console.error(`Error searching for medication: ${medicationName}`, error);
-              }
-            }
+      // Fetch all inventory items first
+      const fetchInventory = async () => {
+        try {
+          const items = await inventoryService.getAllItems();
+          if (Array.isArray(items)) {
+            setAllInventoryItems(items);
+            // After fetching inventory, parse the medications
+            parseAndSetMedications(selectedEvent.medicationsUsed, items);
+          } else {
+            setAllInventoryItems([]);
           }
+        } catch (error) {
+          toast.error("Không thể tải danh sách thuốc trong kho.");
+          console.error("Failed to fetch inventory:", error);
         }
-        
-        setSelectedMedications(parsedMedications);
       };
 
-      // Parse medications asynchronously
-      parseMedications();
+      fetchInventory();
 
       setFormData({
         incidentId: selectedEvent.incidentId || '',
@@ -98,6 +81,60 @@ const MedicalIncidentUpdateModal = ({
       });
     }
   }, [show, selectedEvent]);
+  
+  // New function to parse medications using a pre-fetched inventory list
+  const parseAndSetMedications = (medicationsString, inventory) => {
+    if (!medicationsString || typeof medicationsString !== 'string' || !inventory.length) {
+      setSelectedMedications([]);
+      return;
+    }
+
+    // Helper function for robust string comparison
+    const normalizeForCompare = (str) => {
+      if (typeof str !== 'string') return '';
+      return str
+        .replace(/\s/g, ' ')    // Replace all whitespace characters with a single space
+        .normalize('NFC')       // Normalize Unicode to handle character inconsistencies
+        .toLowerCase()
+        .trim();
+    };
+
+    const parsedMedications = [];
+    const medicationParts = medicationsString.split(',').map(med => med.trim());
+
+    for (const part of medicationParts) {
+      const match = part.match(/^(.+?)\s*\((\d+)\)$/);
+      if (match) {
+        const [, name, quantity] = match;
+        const normalizedName = normalizeForCompare(name);
+        
+        // Find in the local inventory list using the normalized comparison
+        const foundItem = inventory.find(item => 
+          normalizeForCompare(item.itemName) === normalizedName
+        );
+
+        if (foundItem && foundItem.itemID != null) {
+          const itemID = parseInt(foundItem.itemID, 10);
+          const quantityUsed = parseInt(quantity, 10);
+
+          if (!isNaN(itemID) && !isNaN(quantityUsed)) {
+            parsedMedications.push({
+              itemID,
+              itemName: foundItem.itemName,
+              quantityUsed,
+              stockQuantity: foundItem.stockQuantity || 0,
+              unit: foundItem.unit || 'viên',
+            });
+          } else {
+            console.warn(`Could not parse itemID or quantity for: ${name}`);
+          }
+        } else {
+          console.warn(`Medication "${name}" not found in inventory or is missing itemID.`);
+        }
+      }
+    }
+    setSelectedMedications(parsedMedications);
+  };
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -144,7 +181,7 @@ const MedicalIncidentUpdateModal = ({
         itemID: medication.itemID,
         itemName: medication.itemName,
         quantityUsed: 1,
-        currentStock: medication.currentStock,
+        stockQuantity: medication.stockQuantity,
         unit: medication.unit || 'viên'
       }]);
     }
@@ -174,17 +211,58 @@ const MedicalIncidentUpdateModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Use the event ID from the initial selectedEvent prop
+    const eventId = selectedEvent?.incidentId || selectedEvent?.id;
+    if (!eventId) {
+      toast.error('Không tìm thấy ID sự kiện để cập nhật. Vui lòng thử lại.');
+      return;
+    }
+
     try {
       console.log("Update Modal - Starting form submission");
       console.log("Update Modal - Selected medications:", selectedMedications);
 
+      // Validate required fields
+      if (!formData.incidentType?.trim()) {
+        toast.error('Vui lòng nhập loại sự kiện');
+        return;
+      }
+      
+      if (!formData.severityLevel) {
+        toast.error('Vui lòng chọn mức độ nghiêm trọng');
+        return;
+      }
+      
+      if (!formData.studentId?.trim()) {
+        toast.error('Mã học sinh không được để trống');
+        return;
+      }
+
       // Format medications for API
-      const medicationsArray = selectedMedications.map(med => ({
-        itemID: parseInt(med.itemID),
-        quantityUsed: parseInt(med.quantityUsed)
-      }));
+      const medicationsArray = selectedMedications
+        .filter(med => med.quantityUsed > 0 && med.itemID > 0)
+        .map(med => ({
+          itemID: parseInt(med.itemID),
+          quantityUsed: parseInt(med.quantityUsed)
+        }));
 
       console.log("Update Modal - Medications array for API:", medicationsArray);
+
+      // Additional validation for medications data
+      if (medicationsArray.length > 0) {
+        for (const med of medicationsArray) {
+          if (!med.itemID || isNaN(med.itemID) || med.itemID <= 0) {
+            toast.error(`ID thuốc không hợp lệ: ${med.itemID}. Vui lòng kiểm tra lại danh sách thuốc.`);
+            console.error("Invalid itemID detected:", med);
+            return;
+          }
+          if (!med.quantityUsed || isNaN(med.quantityUsed) || med.quantityUsed <= 0) {
+            toast.error(`Số lượng thuốc phải lớn hơn 0: ${med.quantityUsed}`);
+            console.error("Invalid quantity detected:", med);
+            return;
+          }
+        }
+      }
 
       // Format data for API submission
       const apiData = {
@@ -198,19 +276,40 @@ const MedicalIncidentUpdateModal = ({
         followUpNotes: formData.followUpNotes,
         handledById: parseInt(formData.staffId) || 1,
         studentId: formData.studentId,
-        medicationsUsed: medicationsArray  // Send as array exactly as backend expects: [{itemID, quantityUsed}]
+        medicationsUsed: medicationsArray
       };
 
       console.log("Update Modal - Final API data being sent:", apiData);
-
-      const result = await onSubmit(apiData);
+      console.log("Update Modal - medicationsUsed being sent:", JSON.stringify(apiData.medicationsUsed, null, 2));
+      
+      // Final validation before sending to backend
+      if (apiData.medicationsUsed && apiData.medicationsUsed.length > 0) {
+        const invalidMedications = apiData.medicationsUsed.filter(med => !med.itemID || med.itemID <= 0);
+        if (invalidMedications.length > 0) {
+          console.error("Invalid medications detected before API call:", invalidMedications);
+          toast.error("Phát hiện thuốc có ID không hợp lệ. Vui lòng kiểm tra lại.");
+          return;
+        }
+      }
+      
+      console.log("Update Modal - Event ID for update:", eventId);
+      
+      // Directly call the context function to update the event
+      const result = await updateEvent(eventId, apiData);
+      
       if (result) {
         toast.success('Cập nhật sự kiện y tế thành công!');
         handleClose();
       }
     } catch (error) {
       console.error("Update Modal - Error in handleSubmit:", error);
-      toast.error('Lỗi khi cập nhật sự kiện y tế');
+      
+      const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định.';
+      if (error.response?.status === 400) {
+        toast.error(`Dữ liệu không hợp lệ: ${errorMessage}`);
+      } else {
+        toast.error(`Không thể cập nhật: ${errorMessage}`);
+      }
     }
   };
 
@@ -415,21 +514,21 @@ const MedicalIncidentUpdateModal = ({
                           <div className="list-group position-absolute w-100" style={{top: '100%', zIndex: 1000, maxHeight: '200px', overflowY: 'auto'}}>
                             {medicationResults.map((medication, index) => (
                               <button
-                                key={index}
+                                key={medication.itemID || index}
                                 type="button"
                                 className="list-group-item list-group-item-action"
                                 onClick={() => handleMedicationSelect(medication)}
                               >
                                 <div className="fw-bold">{medication.itemName}</div>
                                 <small className="text-muted">
-                                  Tồn kho: {medication.currentStock} {medication.unit || 'viên'}
-                                  {medication.currentStock === 0 && (
+                                  Tồn kho: {medication.stockQuantity} {medication.unit || 'viên'}
+                                  {medication.stockQuantity === 0 && (
                                     <span className="badge bg-danger ms-2">Hết hàng</span>
                                   )}
-                                  {medication.currentStock > 0 && medication.currentStock <= 5 && (
+                                  {medication.stockQuantity > 0 && medication.stockQuantity <= 5 && (
                                     <span className="badge bg-warning ms-2">Sắp hết</span>
                                   )}
-                                  {medication.currentStock > 5 && (
+                                  {medication.stockQuantity > 5 && (
                                     <span className="badge bg-success ms-2">Còn hàng</span>
                                   )}
                                 </small>
@@ -459,20 +558,20 @@ const MedicalIncidentUpdateModal = ({
                                         value={medication.quantityUsed}
                                         onChange={(e) => handleMedicationQuantityChange(medication.itemID, e.target.value)}
                                         min="0"
-                                        max={medication.currentStock}
+                                        max={medication.stockQuantity}
                                       />
                                     </div>
                                   </div>
                                   <div className="col-md-3">
                                     <small className="text-muted">
-                                      Tồn: {medication.currentStock} {medication.unit}
-                                      {medication.currentStock === 0 && (
+                                      Tồn: {medication.stockQuantity} {medication.unit}
+                                      {medication.stockQuantity === 0 && (
                                         <span className="badge bg-danger ms-1">Hết hàng</span>
                                       )}
-                                      {medication.currentStock > 0 && medication.currentStock <= 5 && (
+                                      {medication.stockQuantity > 0 && medication.stockQuantity <= 5 && (
                                         <span className="badge bg-warning ms-1">Sắp hết</span>
                                       )}
-                                      {medication.currentStock > 5 && (
+                                      {medication.stockQuantity > 5 && (
                                         <span className="badge bg-success ms-1">Còn hàng</span>
                                       )}
                                     </small>
@@ -563,9 +662,9 @@ const MedicalIncidentUpdateModal = ({
                 <button 
                   type="submit" 
                   className="btn btn-warning btn-lg"
-                  disabled={loading}
+                  disabled={propLoading || contextLoading}
                 >
-                  {loading ? (
+                  {propLoading || contextLoading ? (
                     <>
                       <i className="fas fa-spinner fa-spin me-2"></i> Đang cập nhật...
                     </>

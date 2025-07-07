@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const MedicalIncidentDetailModal = ({ 
@@ -171,6 +170,45 @@ const MedicalIncidentDetailModal = ({
                     </div>
                   </div>
 
+                  {/* Thông tin phụ huynh */}
+                  {selectedEvent.parentInfo && (
+                    <>
+                      <hr className="my-4" />
+                      <div className="row mb-3">
+                        <div className="col-12">
+                          <h5 className="text-success fw-bold mb-3">
+                            <i className="fas fa-user-friends me-2"></i>
+                            Thông tin Phụ huynh
+                          </h5>
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <h6 className="text-primary fw-bold mb-2">
+                            <i className="fas fa-user me-2"></i>Tên phụ huynh
+                          </h6>
+                          <p className="text-dark mb-0">{selectedEvent.parentInfo.fullName || 'Chưa có thông tin'}</p>
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <h6 className="text-primary fw-bold mb-2">
+                            <i className="fas fa-phone me-2"></i>Số điện thoại
+                          </h6>
+                          <p className="text-dark mb-0">{selectedEvent.parentInfo.phoneNumber || 'Chưa có thông tin'}</p>
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <h6 className="text-primary fw-bold mb-2">
+                            <i className="fas fa-envelope me-2"></i>Email
+                          </h6>
+                          <p className="text-dark mb-0">{selectedEvent.parentInfo.email || 'Chưa có thông tin'}</p>
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <h6 className="text-primary fw-bold mb-2">
+                            <i className="fas fa-users me-2"></i>Mối quan hệ
+                          </h6>
+                          <p className="text-dark mb-0">{selectedEvent.parentInfo.relationshipType || 'Chưa có thông tin'}</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <hr className="my-4" />
 
                   {/* Thông báo phụ huynh */}
@@ -205,31 +243,6 @@ const MedicalIncidentDetailModal = ({
                         <p className="border p-3 rounded bg-light text-dark">
                           {selectedEvent.followUpNotes}
                         </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Hình ảnh */}
-                  {selectedEvent.imgUrl && (
-                    <div className="row mb-3">
-                      <div className="col-12">
-                        <h6 className="text-dark fw-bold mb-2">
-                          <i className="fas fa-images me-2"></i>Hình ảnh
-                        </h6>
-                        <div className="d-flex flex-wrap gap-2">
-                          <img
-                            src={selectedEvent.imgUrl}
-                            alt="Medical incident"
-                            className="img-thumbnail"
-                            style={{ width: '150px', height: '150px', objectFit: 'cover', cursor: 'pointer' }}
-                            onClick={() => {
-                              if (setSelectedImageUrl && setShowImageModal) {
-                                setSelectedImageUrl(selectedEvent.imgUrl);
-                                setShowImageModal(true);
-                              }
-                            }}
-                          />
-                        </div>
                       </div>
                     </div>
                   )}

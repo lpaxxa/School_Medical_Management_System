@@ -103,30 +103,24 @@ export const MedicineApprovalProvider = ({ children }) => {
   const getStatusInfo = (status) => {
     switch (status) {
       case "PENDING_APPROVAL":
-        return {
-          text: "Chờ phê duyệt",
-          class: "status-pending"
-        };
+      case 0:
+        return { text: "Chờ phê duyệt", class: "status-pending" };
       case "APPROVED":
-        return {
-          text: "Đã duyệt",
-          class: "status-approved"
-        };
+      case 1:
+        return { text: "Đã duyệt", class: "status-approved" };
       case "REJECTED":
-        return {
-          text: "Từ chối",
-          class: "status-rejected"
-        };
+      case 2:
+        return { text: "Từ chối", class: "status-rejected" };
+      case "FULLY_TAKEN":
+        return { text: "Đã dùng hết", class: "status-fully-taken" };
+      case "PARTIALLY_TAKEN":
+        return { text: "Đang dùng", class: "status-partially-taken" };
+      case "EXPIRED":
+        return { text: "Đã hết hạn", class: "status-expired" };
       case "CANCELLED":
-        return {
-          text: "Đã hủy",
-          class: "status-cancelled"
-        };
+        return { text: "Đã hủy", class: "status-cancelled" };
       default:
-        return {
-          text: "Không xác định",
-          class: "status-unknown"
-        };
+        return { text: "Không xác định", class: "status-unknown" };
     }
   };
 

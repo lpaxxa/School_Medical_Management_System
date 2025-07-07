@@ -257,40 +257,10 @@ const medicalEventsService = {
     try {
       console.log(`Gọi API cập nhật sự kiện y tế ID: ${id} với data:`, eventData);
       
-      // For UPDATE: Backend expects medicationsUsed as ARRAY format
-      let medicationsUsed = [];
-      if (eventData.medicationsUsed) {
-        if (Array.isArray(eventData.medicationsUsed)) {
-          // Keep as array - backend expects: [{itemID, quantityUsed}]
-          medicationsUsed = eventData.medicationsUsed.map(med => ({
-            itemID: med.itemID,
-            quantityUsed: med.quantityUsed || med.quantity || 1
-          }));
-        } else if (typeof eventData.medicationsUsed === 'string') {
-          // If string, convert to empty array (should not happen for update)
-          console.warn('Update received string medicationsUsed, expected array');
-          medicationsUsed = [];
-        }
-      }
-
-      // Make sure we're sending data in the correct format for backend
-      const formattedData = {
-        incidentType: eventData.incidentType || '',
-        description: eventData.description || '',
-        symptoms: eventData.symptoms || '',
-        severityLevel: eventData.severityLevel || '',
-        treatment: eventData.treatment || '',
-        parentNotified: Boolean(eventData.parentNotified),
-        requiresFollowUp: Boolean(eventData.requiresFollowUp),
-        followUpNotes: eventData.followUpNotes || '',
-        handledById: parseInt(eventData.handledById) || 1,
-        studentId: eventData.studentId || '',
-        medicationsUsed: medicationsUsed  // Send as array: [{itemID, quantityUsed}]
-      };
+      // The eventData is already correctly formatted by the modal.
+      // We pass it directly to the API without the unnecessary and buggy re-processing.
+      const response = await api.put(`/medical-incidents/update/${id}`, eventData);
       
-      console.log('Formatted UPDATE data for API (medicationsUsed as array):', formattedData);
-      
-      const response = await api.put(`/medical-incidents/update/${id}`, formattedData);
       console.log('Kết quả cập nhật sự kiện:', response.data);
       return response.data;
     } catch (error) {

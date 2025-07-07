@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import './MedicationHistory.css';
 import { useMedicationAdministration } from '../../../../../context/NurseContext/MedicineApprovalContext';
+import { toast } from 'react-toastify';
 
 
 const MedicationHistory = () => {
@@ -128,8 +129,11 @@ const MedicationHistory = () => {
   const handleAddMedication = async () => {
     const result = await addMedicationAdministration(modalData);
     if (result.success) {
+      toast.success("Thêm mới lịch sử dùng thuốc thành công!");
       setShowModal(false);
       resetModalData();
+    } else {
+      toast.error(result.error?.message || "Không thể thêm mới lịch sử dùng thuốc.");
     }
   };
 
@@ -137,8 +141,11 @@ const MedicationHistory = () => {
   const handleEditMedication = async () => {
     const result = await updateMedicationAdministration(modalData.id, modalData);
     if (result.success) {
+      toast.success("Cập nhật lịch sử dùng thuốc thành công!");
       setShowModal(false);
       resetModalData();
+    } else {
+      toast.error(result.error?.message || "Không thể cập nhật lịch sử dùng thuốc.");
     }
   };
 
@@ -146,7 +153,10 @@ const MedicationHistory = () => {
   const handleDeleteMedication = async () => {
     const result = await deleteMedicationAdministration(deleteId);
     if (result.success) {
+      toast.success("Xóa lịch sử dùng thuốc thành công!");
       setShowDeleteModal(false);
+    } else {
+      toast.error(result.error?.message || "Không thể xóa lịch sử dùng thuốc.");
     }
   };
 

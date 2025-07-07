@@ -31,59 +31,45 @@ import {
 import "./MedicineReceipts.css";
 import { useMedicineApproval } from "../../../../../context/NurseContext/MedicineApprovalContext";
 import receiveMedicineService from "../../../../../services/APINurse/receiveMedicineService";
+import { toast } from "react-toastify";
 
 // Hàm chuyển đổi status thành text và style
 const getStatusInfo = (status) => {
-  // Xử lý trường hợp status là số
+  // Normalize numeric status to string status
   if (typeof status === 'number') {
     switch (status) {
       case 0:
-        return {
-          text: "Chờ phê duyệt",
-          class: "warning",
-        };
+        status = "PENDING_APPROVAL";
+        break;
       case 1:
-        return {
-          text: "Đã duyệt",
-          class: "success",
-        };
+        status = "APPROVED";
+        break;
       case 2:
-        return {
-          text: "Từ chối",
-          class: "danger",
-        };
-     
+        status = "REJECTED";
+        break;
       default:
-        return {
-          text: "Không xác định",
-          class: "info",
-        };
+        status = "UNKNOWN";
     }
   }
-  
-  // Xử lý trường hợp status là chuỗi
+
+  // Return style based on string status
   switch(status) {
     case "PENDING_APPROVAL":
-      return {
-        text: "Chờ phê duyệt",
-        class: "warning",
-      };
+      return { text: "Chờ phê duyệt", color: "#FFC107", textColor: "#212529" };
     case "APPROVED":
-      return {
-        text: "Đã duyệt",
-        class: "success",
-      };
+      return { text: "Đã duyệt", color: "#28A745", textColor: "#FFFFFF" };
     case "REJECTED":
-      return {
-        text: "Từ chối",
-        class: "danger",
-      };
-  
+      return { text: "Từ chối", color: "#DC3545", textColor: "#FFFFFF" };
+    case "FULLY_TAKEN":
+      return { text: "Đã dùng hết", color: "#0D6EFD", textColor: "#FFFFFF" };
+    case "PARTIALLY_TAKEN":
+      return { text: "Đang dùng", color: "#0DCAF0", textColor: "#FFFFFF" };
+    case "EXPIRED":
+      return { text: "Đã hết hạn", color: "#6C757D", textColor: "#FFFFFF" };
+    case "CANCELLED":
+      return { text: "Đã hủy", color: "#212529", textColor: "#FFFFFF" };
     default:
-      return {
-        text: "Không xác định",
-        class: "info",
-      };
+      return { text: "Không xác định", color: "#F8F9FA", textColor: "#212529", border: "1px solid #DEE2E6" };
   }
 };
 
@@ -112,7 +98,6 @@ const MedicineReceipts = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [pendingAdministrationId, setPendingAdministrationId] = useState(null);
   const [adminLoading, setAdminLoading] = useState(false);
-  const [adminError, setAdminError] = useState(null);
   
   // State for form data
   const [formData, setFormData] = useState({
@@ -254,7 +239,6 @@ const MedicineReceipts = () => {
     });
     setSelectedImage(null);
     setImagePreview(null);
-    setAdminError(null);
   };
 
   // Handle form input changes
@@ -272,13 +256,13 @@ const MedicineReceipts = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        setAdminError('Vui lòng chọn file ảnh hợp lệ');
+        toast.error('Vui lòng chọn file ảnh hợp lệ');
         return;
       }
       
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        setAdminError('Kích thước file không được vượt quá 5MB');
+        toast.error('Kích thước file không được vượt quá 5MB');
         return;
       }
       
@@ -288,8 +272,6 @@ const MedicineReceipts = () => {
       const reader = new FileReader();
       reader.onload = (e) => setImagePreview(e.target.result);
       reader.readAsDataURL(file);
-      
-      setAdminError(null);
     }
   };
 
@@ -299,16 +281,15 @@ const MedicineReceipts = () => {
     
     try {
       setAdminLoading(true);
-      setAdminError(null);
       
       // Validate required fields
       if (!formData.medicationInstructionId) {
-        setAdminError('Vui lòng chọn yêu cầu thuốc');
+        toast.warn('Vui lòng chọn yêu cầu thuốc');
         return;
       }
       
       if (!formData.administeredAt) {
-        setAdminError('Vui lòng chọn thời gian thực hiện');
+        toast.warn('Vui lòng chọn thời gian thực hiện');
         return;
       }
 
@@ -323,7 +304,7 @@ const MedicineReceipts = () => {
         
         if (selectedDateTime < startDate) {
           const formattedStartDate = startDate.toLocaleDateString('vi-VN');
-          setAdminError(`Thời gian ghi nhận không được trước ngày bắt đầu: ${formattedStartDate}`);
+          toast.warn(`Thời gian ghi nhận không được trước ngày bắt đầu: ${formattedStartDate}`);
           return;
         }
       }
@@ -335,14 +316,14 @@ const MedicineReceipts = () => {
         
         if (selectedDateTime > endDate) {
           const formattedEndDate = endDate.toLocaleDateString('vi-VN');
-          setAdminError(`Thời gian ghi nhận không được sau ngày kết thúc: ${formattedEndDate}`);
+          toast.warn(`Thời gian ghi nhận không được sau ngày kết thúc: ${formattedEndDate}`);
           return;
         }
       }
       
       // Validate against future time (but allow future dates within medication period)
       if (selectedDateTime > currentTime) {
-        setAdminError('Thời gian ghi nhận không được là thời gian tương lai');
+        toast.warn('Thời gian ghi nhận không được là thời gian tương lai');
         return;
       }
       
@@ -368,7 +349,7 @@ const MedicineReceipts = () => {
           setShowImageModal(true);
         } else {
           // Success without image
-          alert(`✅ Đã ghi nhận việc cung cấp thuốc thành công!\n\n📋 Mã bản ghi: #${result.data?.id}`);
+          toast.success(`✅ Đã ghi nhận việc cung cấp thuốc thành công!\n\n📋 Mã bản ghi: #${result.data?.id}`);
           setShowAdminModal(false);
           resetAdminForm();
           
@@ -378,7 +359,7 @@ const MedicineReceipts = () => {
       } else {
         // Display server error message on screen
         const errorMessage = result.message || 'Không thể ghi nhận việc cung cấp thuốc';
-        setAdminError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error('Error submitting medication administration:', err);
@@ -434,7 +415,7 @@ const MedicineReceipts = () => {
       }
       
       // Display the error message on screen
-      setAdminError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setAdminLoading(false);
     }
@@ -443,13 +424,12 @@ const MedicineReceipts = () => {
   // Handle image upload
   const handleImageUpload = async () => {
     if (!selectedImage || !pendingAdministrationId) {
-      setAdminError('Thiếu thông tin để tải lên ảnh');
+      toast.error('Thiếu thông tin để tải lên ảnh');
       return;
     }
 
     try {
       setUploadLoading(true);
-      setAdminError(null);
 
       const result = await receiveMedicineService.uploadConfirmationImage(
         pendingAdministrationId,
@@ -457,7 +437,7 @@ const MedicineReceipts = () => {
       );
 
       if (result.success) {
-        alert(`✅ Đã tải lên ảnh xác nhận thành công!\n\n📋 Mã bản ghi: #${pendingAdministrationId}`);
+        toast.success(`✅ Đã tải lên ảnh xác nhận thành công!\n\n📋 Mã bản ghi: #${pendingAdministrationId}`);
         setShowImageModal(false);
         setShowAdminModal(false);
         resetAdminForm();
@@ -466,11 +446,11 @@ const MedicineReceipts = () => {
         // Trigger a custom event to refresh history data
         window.dispatchEvent(new CustomEvent('medicationAdministrationCreated'));
       } else {
-        setAdminError(result.message || 'Không thể tải lên ảnh xác nhận');
+        toast.error(result.message || 'Không thể tải lên ảnh xác nhận');
       }
     } catch (err) {
       console.error('Error uploading image:', err);
-      setAdminError('Có lỗi xảy ra khi tải lên ảnh');
+      toast.error('Có lỗi xảy ra khi tải lên ảnh');
     } finally {
       setUploadLoading(false);
     }
@@ -478,7 +458,7 @@ const MedicineReceipts = () => {
 
   // Handle skip image upload
   const handleSkipImage = () => {
-    alert('Đã ghi nhận việc cung cấp thuốc thành công!');
+    toast.success('Đã ghi nhận việc cung cấp thuốc thành công!');
     setShowImageModal(false);
     setShowAdminModal(false);
     resetAdminForm();
@@ -508,12 +488,12 @@ const MedicineReceipts = () => {
   const handleConfirmProcess = async () => {
     try {
       if (!["APPROVED", "REJECTED"].includes(processData.decision)) {
-        alert("Quyết định không hợp lệ. Chỉ có thể là APPROVED hoặc REJECTED");
+        toast.warn("Quyết định không hợp lệ. Chỉ có thể là APPROVED hoặc REJECTED");
         return;
       }
 
       if (processData.decision === "REJECTED" && !processData.reason?.trim()) {
-        alert("Vui lòng nhập lý do từ chối");
+        toast.warn("Vui lòng nhập lý do từ chối");
         return;
       }
 
@@ -527,14 +507,14 @@ const MedicineReceipts = () => {
 
       if (result.success) {
         setShowProcessModal(false);
-        alert(`Đã ${processData.decision === "APPROVED" ? "phê duyệt" : "từ chối"} yêu cầu thuốc thành công!`);
+        toast.success(`Đã ${processData.decision === "APPROVED" ? "phê duyệt" : "từ chối"} yêu cầu thuốc thành công!`);
         fetchMedicineRequests();
       } else {
-        alert(`Không thể xử lý yêu cầu: ${result.message || "Đã xảy ra lỗi"}`);
+        toast.error(`Không thể xử lý yêu cầu: ${result.message || "Đã xảy ra lỗi"}`);
       }
     } catch (err) {
       console.error("Lỗi khi xử lý yêu cầu thuốc:", err);
-      alert("Có lỗi xảy ra khi xử lý yêu cầu thuốc. Vui lòng thử lại sau.");
+      toast.error("Có lỗi xảy ra khi xử lý yêu cầu thuốc. Vui lòng thử lại sau.");
     }
   };
 
@@ -676,7 +656,10 @@ const MedicineReceipts = () => {
                     <option value="PENDING_APPROVAL">Chờ phê duyệt</option>
                     <option value="APPROVED">Đã duyệt</option>
                     <option value="REJECTED">Từ chối</option>
-                   
+                    <option value="FULLY_TAKEN">Đã dùng hết</option>
+                    <option value="PARTIALLY_TAKEN">Đang dùng</option>
+                    <option value="EXPIRED">Đã hết hạn</option>
+                    <option value="CANCELLED">Đã hủy</option>
                   </Form.Select>
                 </InputGroup>
               </Form.Group>
@@ -781,26 +764,9 @@ const MedicineReceipts = () => {
                                 fontSize: "0.85rem",
                                 textAlign: "center",
                                 minWidth: "120px",
-                                backgroundColor:
-                                  statusInfo.text === "Chờ phê duyệt"
-                                    ? "#FFC107"
-                                    : statusInfo.text === "Đã duyệt"
-                                    ? "#28A745"
-                                    : statusInfo.text === "Từ chối"
-                                    ? "#DC3545"
-                                    : statusInfo.text === "Đã hủy"
-                                    ? "#6C757D"
-                                    : "#F8F9FA",
-                                color:
-                                  statusInfo.text === "Chờ phê duyệt"
-                                    ? "#212529"
-                                    : statusInfo.text === "Không xác định"
-                                    ? "#212529"
-                                    : "#FFFFFF",
-                                border:
-                                  statusInfo.text === "Không xác định"
-                                    ? "1px solid #DEE2E6"
-                                    : "none",
+                                backgroundColor: statusInfo.color,
+                                color: statusInfo.textColor,
+                                border: statusInfo.border || "none",
                               }}
                             >
                               {statusInfo.text}
@@ -940,10 +906,6 @@ const MedicineReceipts = () => {
         </Modal.Header>
         <Form onSubmit={handleAdminSubmit}>
           <Modal.Body>
-            {adminError && (
-              <Alert variant="danger">{adminError}</Alert>
-            )}
-
             {selectedRequest && (
               <Alert variant="info" className="mb-3">
                 <strong>Yêu cầu:</strong> #{selectedRequest.id} - {selectedRequest.studentName} - {selectedRequest.medicationName}

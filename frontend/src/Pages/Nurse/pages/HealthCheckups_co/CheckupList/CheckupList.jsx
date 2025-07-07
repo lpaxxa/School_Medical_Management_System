@@ -1,842 +1,354 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Table, Modal, Form, Row, Col, Alert, Badge } from 'react-bootstrap';
+import { Card, Button, Modal, Table, Badge, Row, Col, Alert, Spinner, ProgressBar, Form, ListGroup } from 'react-bootstrap';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
 import { useAuth } from '../../../../../context/AuthContext';
-import { FaCalendarPlus, FaFilter, FaEye, FaTrash, FaEdit, FaEnvelope, 
-  FaCheck, FaTimes, FaClock, FaSearch, FaBell, FaCalendarCheck, FaUserMd,
-  FaUserGraduate, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import './CheckupList.css';
+import { toast } from 'react-toastify';
+import {
+  FaCalendarAlt, FaUsers, FaChild, FaCheckCircle, FaTimesCircle, FaClock, FaStethoscope,
+  FaFileMedical, FaEye, FaInfoCircle, FaSearch, FaNotesMedical, FaListOl,
+} from 'react-icons/fa';
+import CreateCheckupFormModal from './CreateCheckupFormModal';
+import './CheckupList.css'; // Sẽ tạo style mới cho component này
 
 const CheckupList = () => {
-  // Context and auth
+  const { getHealthCampaigns, getCampaignStudents, getConsentDetails, addHealthCheckup } = useHealthCheckup();
   const { currentUser } = useAuth();
-  const { 
-    loading,
-    error,
-    fetchHealthCheckupNotifications,
-    getStudentById
-  } = useHealthCheckup();
 
-  // State for notifications
-  const [notifications, setNotifications] = useState([]);
-  const [selectedNotification, setSelectedNotification] = useState(null);
-  const [localLoading, setLocalLoading] = useState(false);
-  const [localError, setLocalError] = useState(null);
-  
-  // State for modals
+  // Loading states
+  const [loading, setLoading] = useState(true);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [consentLoading, setConsentLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Data states
+  const [campaigns, setCampaigns] = useState([]);
+  const [campaignStudents, setCampaignStudents] = useState([]);
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [selectedConsent, setSelectedConsent] = useState(null);
+
+  // Modal states
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showHealthProfileModal, setShowHealthProfileModal] = useState(false);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [studentForCheckup, setStudentForCheckup] = useState(null);
   
-  // State for search and filter
+  // Search state
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  
-  // State for health profile
-  const [selectedRecipient, setSelectedRecipient] = useState(null);
-  const [studentDetails, setStudentDetails] = useState(null);
-  const [healthProfileForm, setHealthProfileForm] = useState({
-    studentId: '',
-    studentName: '',
-    checkupDate: '', 
-    checkupType: '',
-    height: '',
-    weight: '',
-    bmi: '',
-    bloodPressure: '',
-    visionLeft: '',
-    visionRight: '',
-    hearingStatus: '',
-    heartRate: '',
-    bodyTemperature: '',
-    diagnosis: '',
-    recommendations: '',
-    followUpNeeded: false,
-    parentNotified: false,
-    medicalStaffId: '',
-    medicalStaffName: ''
-  });
-  
-  // Load notifications when component mounts
+
+  // Fetch campaigns on component mount
   useEffect(() => {
-    loadNotifications();
-  }, []);
-  
-  // Function to load notifications
-  const loadNotifications = async () => {
-    try {
-      setLocalLoading(true);
-      const data = await fetchHealthCheckupNotifications();
-      setNotifications(data || []);
+    const loadCampaigns = async () => {
+      try {
+        setLoading(true);
+        const data = await getHealthCampaigns();
+        // Lọc bỏ những chiến dịch đã hủy
+        const activeCampaigns = data.filter(c => c.status !== 'CANCELLED');
+        setCampaigns(activeCampaigns);
     } catch (err) {
-      setLocalError('Không thể tải thông báo. Vui lòng thử lại sau.');
+        setError('Không thể tải danh sách chiến dịch. Vui lòng thử lại sau.');
       console.error(err);
     } finally {
-      setLocalLoading(false);
-    }
-  };
-  
-  // Tính tổng số học sinh theo từng trạng thái
-  const allRecipients = notifications.flatMap(n => n.recipients || []);
-  const totalRecipients = allRecipients.length;
-  const acceptedCount = allRecipients.filter(r => r.response === 'ACCEPTED').length;
-  const rejectedCount = allRecipients.filter(r => r.response === 'REJECTED').length;
-  const pendingCount = allRecipients.filter(r => r.response === 'PENDING' || !r.response).length;
-  
-  // Handle notification details
-  const handleViewDetails = (notification) => {
-    setSelectedNotification(notification);
+        setLoading(false);
+      }
+    };
+
+    loadCampaigns();
+  }, [getHealthCampaigns]);
+
+  // Handle opening the campaign details modal
+  const handleViewDetails = async (campaign) => {
+    setSelectedCampaign(campaign);
     setShowDetailsModal(true);
-  };
-  
-  // Handle delete notification
-  const handleDeleteNotification = (notification) => {
-    setSelectedNotification(notification);
-    setShowDeleteModal(true);
-  };
-  
-  // Confirm delete notification
-  const confirmDeleteNotification = async () => {
+    setDetailsLoading(true);
     try {
-      setLocalLoading(true);
-      // API call to delete notification would go here
-      // await deleteNotification(selectedNotification.id);
-      
-      // For now, just filter it out locally
-      setNotifications(notifications.filter(n => n.id !== selectedNotification.id));
-      setShowDeleteModal(false);
+      const studentsData = await getCampaignStudents(campaign.id);
+      setCampaignStudents(studentsData);
     } catch (err) {
-      setLocalError('Không thể xóa thông báo. Vui lòng thử lại sau.');
+      toast.error(`Lỗi tải danh sách học sinh cho chiến dịch: ${campaign.title}`);
+      console.error(err);
     } finally {
-      setLocalLoading(false);
+      setDetailsLoading(false);
     }
   };
 
-  // Handle create health profile
-  const handleCreateHealthProfile = async (recipient) => {
+  // Handle opening the consent details modal
+  const handleViewConsent = async (consentId) => {
+    if (!consentId) {
+      toast.info('Phụ huynh chưa đưa ra quyết định.');
+      return;
+    }
+    setSelectedConsent(null);
+    setShowConsentModal(true);
+    setConsentLoading(true);
     try {
-      setLocalLoading(true);
-      setSelectedRecipient(recipient);
-      
-      // Gọi API để lấy thông tin chi tiết học sinh
-      console.log('=== FETCHING STUDENT DETAILS ===');
-      console.log('Recipient data:', recipient);
-      
-      // Sử dụng studentId từ recipient (mã học sinh như HS001) để gọi API
-      const studentIdToCall = recipient.studentId; // Đây là mã học sinh (HS001, HS002...)
-      console.log('Calling API with studentId:', studentIdToCall);
-      
-      const studentData = await getStudentById(studentIdToCall);
-      console.log('Student details from API:', studentData);
-      
-      setStudentDetails(studentData);
-      setHealthProfileForm({
-        ...healthProfileForm,
-        studentId: studentData.id, // Sử dụng ID số từ API (1, 2, 3...)
-        // studentCode: studentData.studentId, // Mã học sinh để hiển thị (HS001, HS002...)
-        studentName: studentData.fullName, // Tên đầy đủ từ API
-        medicalStaffId: currentUser?.id || '',
-        medicalStaffName: currentUser?.fullName || '',
-        checkupDate: new Date().toISOString().split('T')[0], // Today's date
-        checkupType: selectedNotification?.title || '', // Sử dụng tiêu đề thông báo làm loại khám
-        parentNotified: true
-      });
-      setShowHealthProfileModal(true);
+      const consentData = await getConsentDetails(consentId);
+      setSelectedConsent(consentData);
     } catch (err) {
-      setLocalError('Không thể lấy thông tin học sinh. Vui lòng thử lại sau.');
-      console.error('Error fetching student data:', err);
+      toast.error('Không thể tải chi tiết đồng ý của phụ huynh.');
+      console.error(err);
     } finally {
-      setLocalLoading(false);
+      setConsentLoading(false);
     }
   };
 
-  // Handle health profile form change
-  const handleHealthProfileFormChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setHealthProfileForm({
-      ...healthProfileForm,
-      [name]: type === 'checkbox' ? checked : value
-    });
+  // Handle opening the create health profile modal
+  const handleCreateHealthProfile = (student) => {
+    setStudentForCheckup(student);
+    setShowCreateModal(true);
   };
 
-  // Calculate BMI automatically
-  useEffect(() => {
-    if (healthProfileForm.height && healthProfileForm.weight) {
-      const heightInM = parseFloat(healthProfileForm.height) / 100;
-      const weight = parseFloat(healthProfileForm.weight);
-      const bmi = (weight / (heightInM * heightInM)).toFixed(1);
-      setHealthProfileForm(prev => ({
-        ...prev,
-        bmi: bmi
-      }));
-    }
-  }, [healthProfileForm.height, healthProfileForm.weight]);
-
-  // Submit health profile
-  const handleSubmitHealthProfile = async (e) => {
-    e.preventDefault();
-    
+  // Handle form submission from the modal
+  const handleCreateCheckupSubmit = async (formData) => {
     try {
-      setLocalLoading(true);
-      
-      // Validate required fields
-      if (!healthProfileForm.studentId || !healthProfileForm.checkupDate || 
-          !healthProfileForm.checkupType || !healthProfileForm.height || 
-          !healthProfileForm.weight || !healthProfileForm.medicalStaffId) {
-        setLocalError('Vui lòng điền đầy đủ các trường bắt buộc.');
-        return;
-      }
-      
-      // Prepare data for API - đảm bảo tất cả trường bắt buộc có giá trị
-      const profileData = {
-        studentId: studentDetails.id, // Sử dụng ID số từ studentDetails (1, 2, 3...)
-        checkupDate: healthProfileForm.checkupDate,
-        checkupType: healthProfileForm.checkupType,
-        height: parseFloat(healthProfileForm.height),
-        weight: parseFloat(healthProfileForm.weight),
-        bmi: healthProfileForm.bmi ? parseFloat(healthProfileForm.bmi) : 0,
-        bloodPressure: healthProfileForm.bloodPressure || '',
-        visionLeft: healthProfileForm.visionLeft || '',
-        visionRight: healthProfileForm.visionRight || '',
-        hearingStatus: healthProfileForm.hearingStatus || '',
-        heartRate: healthProfileForm.heartRate ? parseInt(healthProfileForm.heartRate) : 0,
-        bodyTemperature: healthProfileForm.bodyTemperature ? parseFloat(healthProfileForm.bodyTemperature) : 0,
-        diagnosis: healthProfileForm.diagnosis || '',
-        recommendations: healthProfileForm.recommendations || '',
-        followUpNeeded: healthProfileForm.followUpNeeded,
-        parentNotified: healthProfileForm.parentNotified,
-        medicalStaffId: parseInt(healthProfileForm.medicalStaffId),
-        medicalStaffName: healthProfileForm.medicalStaffName || ''
-      };
-
-      // Log detailed information
-      console.log('=== HEALTH PROFILE SUBMISSION ===');
-      console.log('Form Data:', healthProfileForm);
-      console.log('Selected Recipient:', selectedRecipient);
-      console.log('Data being sent to server:', {
-        url: 'http://localhost:8080/api/v1/medical-checkups',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: profileData
-      });
-
-      // Call API to create health profile
-      const response = await fetch('http://localhost:8080/api/v1/medical-checkups', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(profileData)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('=== API ERROR RESPONSE ===');
-        console.error('Status:', response.status);
-        console.error('Status Text:', response.statusText);
-        console.error('Error Details:', errorText);
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log('=== API SUCCESS RESPONSE ===');
-      console.log('Status:', response.status);
-      console.log('Response Data:', result);
-      
-      // Reset form and close modal
-      setHealthProfileForm({
-        studentId: '',
-        studentCode: '',
-        studentName: '',
-        checkupDate: '',
-        checkupType: '',
-        height: '',
-        weight: '',
-        bmi: '',
-        bloodPressure: '',
-        visionLeft: '',
-        visionRight: '',
-        hearingStatus: '',
-        heartRate: '',
-        bodyTemperature: '',
-        diagnosis: '',
-        recommendations: '',
-        followUpNeeded: false,
-        parentNotified: false,
-        medicalStaffId: '',
-        medicalStaffName: ''
-      });
-      
-      setStudentDetails(null);
-      
-      setShowHealthProfileModal(false);
-      
-      // Show success message
-      setLocalError(null);
-      alert('Tạo hồ sơ sức khỏe thành công!');
-      
-    } catch (err) {
-      setLocalError('Không thể tạo hồ sơ sức khỏe. Vui lòng thử lại sau.');
-      console.error('Error creating health profile:', err);
-    } finally {
-      setLocalLoading(false);
+      await addHealthCheckup(formData);
+      toast.success(`Đã tạo hồ sơ khám cho học sinh ${studentForCheckup.studentName} thành công!`);
+    } catch (error) {
+      console.error("Lỗi khi tạo hồ sơ khám:", error);
+      const errorMessage = error?.response?.data || error?.message || 'Tạo hồ sơ khám thất bại do lỗi không xác định.';
+      toast.error(errorMessage);
+      throw error; // Re-throw to keep modal open on error
     }
   };
-
   
   // Helper to format date
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('vi-VN', {
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit',
-      hour: '2-digit', 
-      minute: '2-digit'
-    }).format(date);
+    return new Date(dateString).toLocaleDateString('vi-VN');
   };
   
   // Helper to render status badge
-  const renderResponseBadge = (response) => {
-    switch(response) {
-      case 'ACCEPTED':
-        return <Badge bg="success"><FaCheck /> Đã đồng ý</Badge>;
-      case 'REJECTED':
-        return <Badge bg="danger"><FaTimes /> Từ chối</Badge>;
-      case 'PENDING':
+  const renderCampaignStatus = (status) => {
+    switch (status) {
+      case 'PREPARING':
+        return <Badge bg="info"><FaClock /> Sắp diễn ra</Badge>;
+      case 'ONGOING':
+        return <Badge bg="success"><FaStethoscope /> Đang diễn ra</Badge>;
+      case 'COMPLETED':
+        return <Badge bg="secondary"><FaCheckCircle /> Đã hoàn thành</Badge>;
       default:
-        return <Badge bg="warning"><FaClock /> Chờ phản hồi</Badge>;
+        return <Badge bg="light text-dark">{status}</Badge>;
+    }
+  };
+  
+  const getConsentStatus = (status) => {
+    switch (status) {
+      case 'APPROVED':
+      return <Badge bg="success">Đã đồng ý</Badge>;
+      case 'REJECTED':
+      return <Badge bg="danger">Đã từ chối</Badge>;
+      case 'PENDING':
+      return <Badge bg="warning">Chờ phản hồi</Badge>;
+      default:
+        return <Badge bg="secondary">Chưa có</Badge>;
     }
   };
 
-  // Filter notifications by search term and only include those with recipients
-  const filteredNotifications = notifications.filter(notification =>
-    notification.title?.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (notification.recipients?.length > 0) // Only include notifications with at least one recipient
+  const filteredCampaigns = campaigns.filter(campaign => 
+    campaign.totalStudents > 0 &&
+    (campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    campaign.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Filter recipients by status in details modal
-  const getFilteredRecipients = (recipients) => {
-    if (!statusFilter) return recipients;
-    return recipients.filter(recipient => {
-      switch(statusFilter) {
-        case 'PENDING':
-          return !recipient.response || recipient.response === 'PENDING';
-        case 'ACCEPTED':
-          return recipient.response === 'ACCEPTED';
-        case 'REJECTED':
-          return recipient.response === 'REJECTED';
-        default:
-          return true;
-      }
-    });
-  };
+  if (loading) {
+    return (
+      <div className="text-center mt-5">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+        <p>Đang tải dữ liệu chiến dịch...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="checkup-list-container">
-      {/* Loading overlay */}
-      {(loading || localLoading) && (
-        <div className="loading-overlay">
-          <div className="spinner"></div>
-        </div>
-      )}
+    <div className="checkup-list-container-new">
+      {error && <Alert variant="danger">{error}</Alert>}
       
-      {/* Error messages */}
-      {(error || localError) && (
-        <Alert variant="danger" onClose={() => setLocalError(null)} dismissible>
-          {error || localError}
-        </Alert>
-      )}
-      
-      {/* Header with search */}
       <div className="page-header">
-        <h2><FaBell className="mr-2" /> Quản lý thông báo khám sức khỏe</h2>
-          <div className="header-actions">
+        <h2><FaCalendarAlt className="mr-2" /> Quản lý Chiến dịch Khám sức khỏe</h2>
           <div className="search-container">
-            <div className="search-input-wrapper">
               <FaSearch className="search-icon" />
               <Form.Control
                 type="text"
-                placeholder="Tìm kiếm theo tiêu đề thông báo..."
+            placeholder="Tìm kiếm chiến dịch..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
               />
-            </div>
-          </div>
         </div>
       </div>
       
-      {/* Thống kê tổng quan */}
-      <div className="records-summary">
-        <div className="summary-card total">
-          <div className="summary-icon">
-            <FaUserGraduate />
-          </div>
-          <div className="summary-info">
-            <p>Tổng số đơn</p>
-            <h3>{totalRecipients}</h3>
-          </div>
-        </div>
-        
-        <div className="summary-card completed">
-          <div className="summary-icon">
-            <FaCheckCircle />
-          </div>
-          <div className="summary-info">
-            <p>Đã đồng ý</p>
-            <h3>{acceptedCount}</h3>
-            <span className="percentage">
-              {totalRecipients > 0 ? `(${Math.round((acceptedCount / totalRecipients) * 100)}%)` : '(0%)'}
-            </span>
-          </div>
-        </div>
-        
-        <div className="summary-card rejected">
-          <div className="summary-icon">
-            <FaTimesCircle />
-          </div>
-          <div className="summary-info">
-            <p>Đã từ chối</p>
-            <h3>{rejectedCount}</h3>
-            <span className="percentage">
-              {totalRecipients > 0 ? `(${Math.round((rejectedCount / totalRecipients) * 100)}%)` : '(0%)'}
-            </span>
-          </div>
-        </div>
-        
-        <div className="summary-card pending">
-          <div className="summary-icon">
-            <FaClock />
-          </div>
-          <div className="summary-info">
-            <p>Chờ phản hồi</p>
-            <h3>{pendingCount}</h3>
-            <span className="percentage">
-              {totalRecipients > 0 ? `(${Math.round((pendingCount / totalRecipients) * 100)}%)` : '(0%)'}
-            </span>
-          </div>
-        </div>
-      </div>
-      
-      {/* Notification cards */}
-      <div className="notification-list">
-        {filteredNotifications && filteredNotifications.length > 0 ? (
-          filteredNotifications.map((notification) => (
-            <Card key={notification.id} className="notification-card">
+      <Row xs={1} md={2} className="g-4">
+        {filteredCampaigns.map((campaign) => (
+          <Col key={campaign.id}>
+            <Card className="campaign-card-new">
+              <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
+                <span><FaNotesMedical /> {campaign.title}</span>
+                <div>
+                  <Badge pill bg="primary" className="me-2">
+                    ID: {campaign.id}
+                  </Badge>
+                {renderCampaignStatus(campaign.status)}
+                </div>
+              </Card.Header>
               <Card.Body>
-                <div className="notification-header">
-                  <div className="notification-title">
-                    <FaCalendarCheck className="notification-icon" />
-                    <h5>{notification.title}</h5>
+                <Card.Text>{campaign.description}</Card.Text>
+                <div className="campaign-stats">
+                  <div className="stat-item">
+                    <FaUsers size={20} />
+                    <div>
+                      <span>Tổng số</span>
+                      <strong>{campaign.totalStudents}</strong>
+                    </div>
                   </div>
-                  <div className="notification-date">
-                    {formatDate(notification.createdAt)}
+                  <div className="stat-item">
+                    <FaCheckCircle size={20} className="text-success"/>
+                    <div>
+                      <span>Đồng ý</span>
+                      <strong>{campaign.consentedStudents}</strong>
+                    </div>
+                  </div>
+                   <div className="stat-item">
+                    <FaFileMedical size={20} className="text-primary"/>
+                    <div>
+                      <span>Đã khám</span>
+                      <strong>{campaign.completedCheckups}</strong>
+                </div>
+                  </div>
+                  <div className="stat-item">
+                    <FaClock size={20} className="text-warning"/>
+                    <div>
+                      <span>Chờ khám</span>
+                      <strong>{campaign.pendingCheckups}</strong>
+                    </div>
                   </div>
                 </div>
-                
-                <Card.Text className="notification-message">
-                  {notification.message}
-                </Card.Text>
-                
-                <div className="notification-meta">
-                  <div className="notification-sender">
-                    <strong>Người gửi:</strong> {notification.senderName}
-                  </div>
-                  <div className="notification-recipients">
-                    <strong>Số người nhận:</strong> {notification.recipients?.length || 0}
-                  </div>
-                </div>
-                
-                <div className="notification-actions">
-                  <Button 
-                    variant="outline-primary" 
-                    size="sm"
-                    onClick={() => handleViewDetails(notification)}
-                  >
-                    <FaEye /> Chi tiết
-                  </Button>
-                  <Button 
-                    variant="outline-danger" 
-                    size="sm"
-                    onClick={() => handleDeleteNotification(notification)}
-                  >
-                    <FaTrash /> Xóa
-                  </Button>
-                </div>
+                <ProgressBar className="mt-3 progress-container-custom">
+                  <ProgressBar
+                    variant="success"
+                    now={campaign.totalStudents > 0 ? (campaign.consentedStudents / campaign.totalStudents) * 100 : 0}
+                    key={1}
+                    label={`Đồng ý: ${campaign.consentedStudents}`}
+                  />
+                  <ProgressBar
+                    variant="primary"
+                    now={campaign.totalStudents > 0 ? (campaign.completedCheckups / campaign.totalStudents) * 100 : 0}
+                    key={2}
+                    label={`Đã khám: ${campaign.completedCheckups}`}
+                  />
+                </ProgressBar>
               </Card.Body>
+              <Card.Footer className="text-muted d-flex justify-content-between align-items-center">
+                <span>Bắt đầu: {formatDate(campaign.startDate)}</span>
+                <Button variant="primary" onClick={() => handleViewDetails(campaign)}>
+                  <FaEye /> Xem chi tiết
+                </Button>
+              </Card.Footer>
             </Card>
-          ))
-        ) : (
-          <div className="no-data">
-            <p>Chưa có thông báo khám sức khỏe nào được tạo.</p>
-          </div>
-        )}
-      </div>
+          </Col>
+        ))}
+      </Row>
       
-      {/* Details Modal */}
-      <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)} size="lg">
+      {/* Campaign Details Modal */}
+      <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)} size="xl">
         <Modal.Header closeButton>
-          <Modal.Title>Chi tiết thông báo</Modal.Title>
+          <Modal.Title>Chi tiết chiến dịch: {selectedCampaign?.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedNotification && (
-            <>
-              <div className="notification-detail-header">
-                <h4>{selectedNotification.title}</h4>
-                <p className="notification-timestamp">
-                  Gửi lúc: {formatDate(selectedNotification.createdAt)}
-                </p>
-              </div>
-              
-              <div className="notification-detail-content">
-                <p><strong>Người gửi:</strong> {selectedNotification.senderName}</p>
-                <div className="notification-message-box">
-                  <p>{selectedNotification.message}</p>
-                </div>
-              </div>
-              
-              <div className="notification-recipients-section">
-                <div className="recipients-header">
-                  <h5>Danh sách người nhận ({selectedNotification.recipients?.length || 0})</h5>
-                  <div className="status-filter">
-                    <Form.Select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      size="sm"
-                    >
-                      <option value="">Tất cả trạng thái</option>
-                      <option value="PENDING">Chờ phản hồi</option>
-                      <option value="ACCEPTED">Đã đồng ý</option>
-                      <option value="REJECTED">Từ chối</option>
-                    </Form.Select>
-                  </div>
-                </div>
-                
-                <Table striped bordered responsive>
+          {detailsLoading ? (
+            <div className="text-center"><Spinner animation="border" /></div>
+          ) : (
+            <Table striped bordered hover responsive>
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Phụ huynh</th>
-                      <th>Học sinh</th>
-                      <th>Trạng thái</th>
+                  <th>STT</th>
+                  <th>Tên học sinh</th>
+                  <th>Lớp</th>
+                  <th>Tên phụ huynh</th>
+                  <th>Phản hồi</th>
                       <th>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedNotification.recipients?.length > 0 ? (
-                      getFilteredRecipients(selectedNotification.recipients).map(recipient => (
-                        <tr key={recipient.id}>
-                          <td>{recipient.id}</td>
-                          <td>{recipient.receiverName}</td>
-                          <td>{recipient.studentName} ({recipient.studentId})</td>
-                          <td>{renderResponseBadge(recipient.response)}</td>
-                          <td>
-                            {recipient.response === 'ACCEPTED' && (
-                              <Button
-                                variant="success"
-                                size="sm"
-                                onClick={() => handleCreateHealthProfile(recipient)}
-                              >
-                                <FaUserMd /> Tạo hồ sơ sức khỏe
+                {campaignStudents.map((student, index) => (
+                  <tr key={student.studentId}>
+                    <td>{index + 1}</td>
+                    <td>{student.studentName}</td>
+                    <td>{student.studentClass}</td>
+                    <td>{student.parentName}</td>
+                    <td>{getConsentStatus(student.consentStatus)}</td>
+                    <td>
+                      <Button variant="outline-info" size="sm" className="me-2" onClick={() => handleViewConsent(student.parentConsentId)}>
+                        <FaInfoCircle /> Xem
+                      </Button>
+                      {student.consentStatus === 'APPROVED' && (
+                        <Button variant="outline-success" size="sm" onClick={() => handleCreateHealthProfile(student)}>
+                          <FaStethoscope /> Tạo HS
                               </Button>
                             )}
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="5" className="text-center">
-                          Không có dữ liệu người nhận
-                        </td>
-                      </tr>
-                    )}
+                ))}
                   </tbody>
                 </Table>
-              </div>
-            </>
+          )}
+        </Modal.Body>
+      </Modal>
+
+      {/* Consent Details Modal */}
+      <Modal show={showConsentModal} onHide={() => setShowConsentModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Chi tiết Phản hồi của Phụ huynh</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {consentLoading ? (
+            <div className="text-center"><Spinner animation="border" /></div>
+          ) : !selectedConsent ? (
+            <Alert variant="warning">Không tìm thấy thông tin.</Alert>
+          ) : (
+            <div>
+            <Row>
+              <Col md={6}>
+                        <p><strong>Học sinh:</strong> {selectedConsent.studentName}</p>
+              </Col>
+              <Col md={6}>
+                        <p><strong>Trạng thái:</strong> {getConsentStatus(selectedConsent.consentStatus)}</p>
+              </Col>
+            </Row>
+                 <p><strong>Chiến dịch:</strong> {selectedConsent.campaignTitle}</p>
+                 <hr/>
+                 <h5><FaListOl/> Các mục khám đặc biệt đã chọn:</h5>
+                 {selectedConsent.selectedSpecialCheckupItems?.length > 0 ? (
+                    <ListGroup variant="flush">
+                        {selectedConsent.selectedSpecialCheckupItems.map((item, index) => (
+                            <ListGroup.Item key={index}>{item}</ListGroup.Item>
+                        ))}
+                    </ListGroup>
+                 ) : (
+                    <p className="text-muted">Không có mục khám đặc biệt nào được chọn.</p>
+                 )}
+                 <h5 className="mt-3"><FaNotesMedical/> Ghi chú của phụ huynh:</h5>
+                 <p className="text-muted">{selectedConsent.consent?.parentNotes || 'Không có ghi chú.'}</p>
+            </div>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
+          <Button variant="secondary" onClick={() => setShowConsentModal(false)}>
             Đóng
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Health Profile Modal */}
-      <Modal show={showHealthProfileModal} onHide={() => setShowHealthProfileModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Tạo hồ sơ sức khỏe - {healthProfileForm.studentName}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleSubmitHealthProfile}>
-            <Row>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Mã học sinh <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={healthProfileForm.studentCode}
-                    disabled
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Tên học sinh</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={healthProfileForm.studentName}
-                    disabled
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Ngày khám <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="checkupDate"
-                    value={healthProfileForm.checkupDate}
-                    onChange={handleHealthProfileFormChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Loại khám <span className="text-danger">*</span></Form.Label>
-              <Form.Control
-                type="text"
-                name="checkupType"
-                value={healthProfileForm.checkupType}
-                onChange={handleHealthProfileFormChange}
-                placeholder="Ví dụ: Khám sức khỏe định kỳ"
-                required
-              />
-            </Form.Group>
-
-            <Row>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Chiều cao (cm) <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="number"
-                    step="0.1"
-                    name="height"
-                    value={healthProfileForm.height}
-                    onChange={handleHealthProfileFormChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Cân nặng (kg) <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="number"
-                    step="0.1"
-                    name="weight"
-                    value={healthProfileForm.weight}
-                    onChange={handleHealthProfileFormChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>BMI</Form.Label>
-                  <Form.Control
-                    type="number"
-                    step="0.1"
-                    name="bmi"
-                    value={healthProfileForm.bmi}
-                    disabled
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Huyết áp</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="bloodPressure"
-                    value={healthProfileForm.bloodPressure}
-                    onChange={handleHealthProfileFormChange}
-                    placeholder="Ví dụ: 110/70"
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Nhịp tim</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="heartRate"
-                    value={healthProfileForm.heartRate}
-                    onChange={handleHealthProfileFormChange}
-                    placeholder="Nhịp/phút"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Thị lực mắt trái</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="visionLeft"
-                    value={healthProfileForm.visionLeft}
-                    onChange={handleHealthProfileFormChange}
-                    placeholder="Ví dụ: 6/6"
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Thị lực mắt phải</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="visionRight"
-                    value={healthProfileForm.visionRight}
-                    onChange={handleHealthProfileFormChange}
-                    placeholder="Ví dụ: 6/9"
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Thính lực</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="hearingStatus"
-                    value={healthProfileForm.hearingStatus}
-                    onChange={handleHealthProfileFormChange}
-                    placeholder="Ví dụ: Bình thường"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Nhiệt độ cơ thể (°C)</Form.Label>
-              <Form.Control
-                type="number"
-                step="0.1"
-                name="bodyTemperature"
-                value={healthProfileForm.bodyTemperature}
-                onChange={handleHealthProfileFormChange}
-                placeholder="Ví dụ: 36.7"
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Chẩn đoán</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="diagnosis"
-                value={healthProfileForm.diagnosis}
-                onChange={handleHealthProfileFormChange}
-                placeholder="Nhập chẩn đoán..."
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Khuyến nghị</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="recommendations"
-                value={healthProfileForm.recommendations}
-                onChange={handleHealthProfileFormChange}
-                placeholder="Nhập khuyến nghị..."
-              />
-            </Form.Group>
-
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Check
-                    type="checkbox"
-                    name="followUpNeeded"
-                    checked={healthProfileForm.followUpNeeded}
-                    onChange={handleHealthProfileFormChange}
-                    label="Cần theo dõi thêm"
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Check
-                    type="checkbox"
-                    name="parentNotified"
-                    checked={healthProfileForm.parentNotified}
-                    onChange={handleHealthProfileFormChange}
-                    label="Đã thông báo phụ huynh"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Tên nhân viên y tế</Form.Label>
-              <Form.Control
-                type="text"
-                name="medicalStaffName"
-                value={healthProfileForm.medicalStaffName}
-                onChange={handleHealthProfileFormChange}
-                placeholder="Nhập tên nhân viên y tế"
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowHealthProfileModal(false)}>
-            Hủy
-          </Button>
-          <Button 
-            variant="primary" 
-            onClick={handleSubmitHealthProfile}
-            disabled={localLoading}
-          >
-            {localLoading ? 'Đang xử lý...' : 'Tạo hồ sơ'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Xác nhận xóa</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Bạn có chắc chắn muốn xóa thông báo "{selectedNotification?.title}"?</p>
-          <p>Hành động này không thể hoàn tác.</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Hủy
-          </Button>
-          <Button 
-            variant="danger" 
-            onClick={confirmDeleteNotification}
-            disabled={localLoading}
-          >
-            {localLoading ? 'Đang xử lý...' : 'Xác nhận xóa'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* Create Checkup Form Modal */}
+      {studentForCheckup && (
+        <CreateCheckupFormModal
+            show={showCreateModal}
+            onClose={() => setShowCreateModal(false)}
+            student={studentForCheckup}
+            campaign={selectedCampaign}
+            onSubmit={handleCreateCheckupSubmit}
+        />
+      )}
     </div>
   );
 };

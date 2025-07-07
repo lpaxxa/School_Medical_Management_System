@@ -6,6 +6,7 @@ import {
   updateStudentRecord,
   addStudentNote,
   getClassList,
+  getGradeList,
   getBloodTypes
 } from '../../services/APINurse/studentRecordsService';
 
@@ -23,14 +24,15 @@ export const StudentRecordsProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   
-  // Classes và bloodTypes
+  // Classes, grades, và bloodTypes
   const [classes, setClasses] = useState([]);
+  const [grades, setGrades] = useState([]);
   const [bloodTypes, setBloodTypes] = useState([]);
   
   // Search criteria
   const [searchCriteria, setSearchCriteria] = useState({
     keyword: '',
-    class: '',
+    grade: '',
     bloodType: '',
     healthIssue: ''
   });
@@ -66,12 +68,14 @@ export const StudentRecordsProvider = ({ children }) => {
         setStudents(processedStudents);
         setFilteredStudents(processedStudents);
         
-        // Fetch classes and blood types
+        // Fetch classes, grades và blood types
         const classesData = await getClassList();
+        const gradesData = await getGradeList();
         const bloodTypesData = await getBloodTypes();
         
-        // Đảm bảo classes và bloodTypes luôn là mảng
+        // Đảm bảo classes, grades và bloodTypes luôn là mảng
         setClasses(Array.isArray(classesData) ? classesData : []);
+        setGrades(Array.isArray(gradesData) ? gradesData : []);
         setBloodTypes(Array.isArray(bloodTypesData) ? bloodTypesData : []);
         
         setLoading(false);
@@ -162,7 +166,7 @@ export const StudentRecordsProvider = ({ children }) => {
   const resetFilters = async () => {
     setSearchCriteria({
       keyword: '',
-      class: '',
+      grade: '',
       bloodType: '',
       healthIssue: ''
     });
@@ -207,6 +211,7 @@ export const StudentRecordsProvider = ({ children }) => {
     error,
     selectedStudent,
     classes,
+    grades,
     bloodTypes,
     searchCriteria,
     setSelectedStudent,
