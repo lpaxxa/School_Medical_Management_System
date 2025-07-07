@@ -2,6 +2,7 @@ package com.fpt.medically_be.controller;
 
 import com.fpt.medically_be.dto.HealthArticleDTO;
 import com.fpt.medically_be.dto.HealthArticleCreateDTO;
+import com.fpt.medically_be.dto.request.HealthArticleUpdateDTO;
 import com.fpt.medically_be.service.CloudinaryService;
 import com.fpt.medically_be.service.HealthArticleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -100,5 +101,18 @@ public class HealthArticleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Không thể upload ảnh: " + e.getMessage()));
         }
+    }
+    @Operation(summary = "Cập nhật bài viết y tế", description = "Cập nhật thông tin của một bài viết y tế dựa trên ID (yêu cầu quyền quản trị hoặc là người đã đăng bài)")
+    @PutMapping("/health-articles/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<HealthArticleDTO> updateHealthArticle(
+            @PathVariable Long id,
+            @RequestBody HealthArticleUpdateDTO updateDTO) {
+
+
+
+
+        HealthArticleDTO updatedArticle = healthArticleService.updateArticle(id, updateDTO);
+        return ResponseEntity.ok(updatedArticle);
     }
 }

@@ -37,7 +37,7 @@ public class CommentReplyServiceImpl implements CommentReplyService {
     }
 
     public PageResponse<CommentReplyDTO> getCommentReplies(Long commentId, int page, int size, String currentUserId) {
-        PostComment comment = postCommentRepository.findById(commentId)
+        PostComment comment = postCommentRepository.findByIdAndIsDeletedFalse(commentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận"));
 
         Pageable pageable = PageRequest.of(page - 1, size);
@@ -60,7 +60,7 @@ public class CommentReplyServiceImpl implements CommentReplyService {
 
     @Override
     public CommentReplyDTO createReply(Long commentId, CommentReplyRequest replyRequest, String authorId) {
-        PostComment comment = postCommentRepository.findById(commentId)
+        PostComment comment = postCommentRepository.findByIdAndIsDeletedFalse(commentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận"));
 
         AccountMember author = accountMemberRepository.findById(authorId)

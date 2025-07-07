@@ -32,7 +32,7 @@ public class BookmarkServiceImpl implements BookmarkService {
 
     @Override
     public boolean toggleBookmark(Long postId, String userId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         AccountMember user = accountMemberRepository.findById(userId)
@@ -57,7 +57,7 @@ public class BookmarkServiceImpl implements BookmarkService {
 
     @Override
     public boolean isPostBookmarkedByUser(Long postId, String userId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
         AccountMember user = accountMemberRepository.findById(userId)
@@ -87,5 +87,17 @@ public class BookmarkServiceImpl implements BookmarkService {
                 .first(bookmarksPage.isFirst())
                 .last(bookmarksPage.isLast())
                 .build();
+    }
+
+    @Override
+    public void deleteBookmarksByPostId(Long postId) {
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
+
+        // Xóa tất cả bookmark liên quan đến bài viết
+        bookmarkRepository.deleteByPost(post);
+
+        // Không cần cập nhật số lượng bookmark trong Post, vì nó không được lưu trữ trong entity Post
+
     }
 }
