@@ -10,6 +10,7 @@ import com.fpt.medically_be.repos.AccountMemberRepos;
 import com.fpt.medically_be.repos.NurseRepository;
 import com.fpt.medically_be.repos.ParentRepository;
 import com.fpt.medically_be.service.AccountMemberService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -177,6 +178,29 @@ public class AccountMemberServiceImp implements AccountMemberService {
         return members.stream()
                 .map(accountMemberMapper::memberToMemberDTO)
                 .toList();
+    }
+
+    @Override
+    public void updateAccountActiveStatus(String id, boolean isActive) {
+        AccountMember member = memberRepos.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thành viên với ID: " + id));
+
+        // Update the active status of the member
+        if (isActive) {
+            // If activating, ensure the member was previously
+            if (Boolean.TRUE.equals(member.getIsActive())) {
+                throw new RuntimeException("Member is already active.");
+            }
+        } else {
+            // If deactivating, ensure the member was previously active
+            if (Boolean.FALSE.equals(member.getIsActive())) {
+                throw new RuntimeException("Member is already inactive.");
+            }
+        }
+        member.setIsActive(isActive);
+        memberRepos.save(member);
+
+
     }
 
     // Helper method to populate role-specific fields

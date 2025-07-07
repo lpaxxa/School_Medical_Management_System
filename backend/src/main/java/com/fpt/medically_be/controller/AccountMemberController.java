@@ -88,6 +88,20 @@ public class AccountMemberController {
         }
     }
 
+    @PutMapping("update-activation-status/{id}")
+    public ResponseEntity<?> updateAccountActiveStatus(
+            @PathVariable String id,
+            @RequestParam boolean isActive) {
+        try {
+            accountMemberService.updateAccountActiveStatus(id, isActive);
+            return ResponseEntity.ok("Account activation status updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error updating account activation status: " + e.getMessage());
+        }
+
+
+    }
+
 
 
 
