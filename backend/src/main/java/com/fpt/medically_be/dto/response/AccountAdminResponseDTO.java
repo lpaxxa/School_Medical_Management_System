@@ -12,4 +12,15 @@ public class AccountAdminResponseDTO {
     private String username;
     private Boolean isActive;
     private Boolean emailSent;
+    
+    // Common profile fields
+    private String fullName;
+    
+    // Parent-specific fields
+    private String address;
+    private String relationshipType;
+    private String occupation;
+    
+    // Nurse-specific fields
+    private String qualification;
 }
