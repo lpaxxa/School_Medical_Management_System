@@ -37,7 +37,7 @@ public class MedicalCheckup {
     // Thêm trạng thái khám
     @Enumerated(EnumType.STRING)
     @Column(name = "checkup_status")
-    private CheckupStatus checkupStatus = CheckupStatus.WAITING;
+    private CheckupStatus checkupStatus = CheckupStatus.COMPLETED;
 
     private Double height;
 

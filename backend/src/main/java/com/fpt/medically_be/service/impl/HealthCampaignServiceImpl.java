@@ -301,10 +301,9 @@ public class HealthCampaignServiceImpl implements HealthCampaignService {
                 .filter(consent -> consent.getConsentStatus() == ConsentStatus.REJECTED)
                 .count();
 
-        long checkupsWaiting = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaignId, CheckupStatus.WAITING);
-        long checkupsInProgress = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaignId, CheckupStatus.IN_PROGRESS);
+
         long checkupsCompleted = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaignId, CheckupStatus.COMPLETED);
-        long checkupsCancelled = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaignId, CheckupStatus.CANCELLED);
+        long checkupsCancelled = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaignId, CheckupStatus.NEED_FOLLOW_UP);
 
         long followUpNeeded = medicalCheckupRepository.countStudentsNeedingFollowUpByHealthCampaignId(campaignId);
         long normalResults = checkupsCompleted - followUpNeeded;
@@ -323,8 +322,6 @@ public class HealthCampaignServiceImpl implements HealthCampaignService {
                 .consentReceived(consentReceived)
                 .consentApproved(consentApproved)
                 .consentRejected(consentRejected)
-                .checkupsWaiting(checkupsWaiting)
-                .checkupsInProgress(checkupsInProgress)
                 .checkupsCompleted(checkupsCompleted)
                 .checkupsCancelled(checkupsCancelled)
                 .normalResults(normalResults)
@@ -359,7 +356,7 @@ public class HealthCampaignServiceImpl implements HealthCampaignService {
         Long totalStudents = (long) parentConsentRepository.findByHealthCampaignId(campaign.getId()).size();
         Long consentedStudents = parentConsentRepository.countByHealthCampaignIdAndConsentStatus(campaign.getId(), ConsentStatus.APPROVED);
         Long completedCheckups = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaign.getId(), CheckupStatus.COMPLETED);
-        Long pendingCheckups = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaign.getId(), CheckupStatus.WAITING);
+        Long followUpCheckups = medicalCheckupRepository.countByHealthCampaignIdAndCheckupStatus(campaign.getId(), CheckupStatus.NEED_FOLLOW_UP);
 
         // Chuyển đổi JSON thành List<String> cho specialCheckupItems
         List<String> specialItems = new ArrayList<>();
@@ -386,7 +383,7 @@ public class HealthCampaignServiceImpl implements HealthCampaignService {
                 .totalStudents(totalStudents)
                 .consentedStudents(consentedStudents)
                 .completedCheckups(completedCheckups)
-                .pendingCheckups(pendingCheckups)
+                .followUpCheckups(followUpCheckups)
                 .createdAt(campaign.getCreatedAt())
                 .updatedAt(campaign.getUpdatedAt())
                 .build();

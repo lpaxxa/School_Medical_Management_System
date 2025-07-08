@@ -79,4 +79,8 @@ public class HealthProfile {
 
     @OneToMany(mappedBy = "healthProfile", cascade = CascadeType.ALL)
     private List<MedicationInstruction> medicationInstructions;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "checkup_status", nullable = false)
+    private CheckupStatus checkupStatus = CheckupStatus.COMPLETED;
 }
