@@ -2,6 +2,7 @@ package com.fpt.medically_be.service;
 
 import com.fpt.medically_be.dto.HealthProfileDTO;
 import com.fpt.medically_be.dto.request.HealthProfileRequestDTO;
+import com.fpt.medically_be.dto.response.FullHealthProfileResponseDTO;
 import com.fpt.medically_be.entity.HealthProfile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +17,7 @@ public interface HealthProfileService {
     HealthProfileDTO updateHealthProfile(Long id, HealthProfileRequestDTO healthProfileRequestDTO);
     void deleteHealthProfile(Long id);
     HealthProfileDTO getHealthProfileByStudentId(Long studentId);
+
+    FullHealthProfileResponseDTO getFullHealthProfileByStudentCode(String studentCode);
+
 }

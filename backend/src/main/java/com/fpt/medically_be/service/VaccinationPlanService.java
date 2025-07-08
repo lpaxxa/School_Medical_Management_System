@@ -44,7 +44,6 @@ public interface VaccinationPlanService {
      * Lấy kế hoạch tiêm chủng theo ID
      */
 
-
     /**
      * Tìm kiếm kế hoạch tiêm chủng theo tên vaccine
      */

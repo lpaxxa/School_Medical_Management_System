@@ -46,7 +46,8 @@ public class MedicalIncident {
     @Column(name = "follow_up_notes",columnDefinition = "NVARCHAR(150)")
     private String followUpNotes;
 
-
+    @Column(name = "image_url", columnDefinition = "NVARCHAR(255)")
+    private String imageMedicalUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false) // trỏ đến Student.studentId
