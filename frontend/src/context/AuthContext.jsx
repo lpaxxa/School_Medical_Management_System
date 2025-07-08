@@ -13,8 +13,7 @@ const API_ENDPOINTS = {
   auth: {
     login: `${BASE_URL}/auth/login`,
     logout: `${BASE_URL}/auth/logout`,
-    refresh: `${BASE_URL}
-    /auth/refresh-token`,
+    refresh: `${BASE_URL}/auth/refresh-token`,
   },
   // Parent/Medication related
   parent: {

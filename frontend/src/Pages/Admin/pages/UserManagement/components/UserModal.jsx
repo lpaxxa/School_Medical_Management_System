@@ -221,7 +221,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
       let dataToSave;
 
       if (mode === "edit") {
-        // Edit mode - include all relevant fields for role-specific updates
+        // Edit mode - format cũ
         dataToSave = {
           id: formData.id,
           email: formData.email,
@@ -230,17 +230,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
           username: formData.username,
           role: formData.role,
           isActive: formData.isActive,
-          fullName: formData.fullName,
         };
-
-        // Add role-specific fields
-        if (formData.role === 'PARENT') {
-          dataToSave.address = formData.address;
-          dataToSave.relationshipType = formData.relationshipType;
-          dataToSave.occupation = formData.occupation;
-        } else if (formData.role === 'NURSE') {
-          dataToSave.qualification = formData.qualification;
-        }
       } else {
         // Add mode - format mới theo API
         const { confirmPassword, ...allData } = formData;

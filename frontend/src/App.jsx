@@ -11,9 +11,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { StudentDataProvider } from "./context/StudentDataContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import "./styles/global.css";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 // Import routes from the route files
 import AppRoutes from "./routes";

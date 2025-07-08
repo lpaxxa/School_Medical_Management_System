@@ -2,50 +2,6 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api/v1';
 
-// Helper function to check token validity
-const isTokenValid = () => {
-  const token = localStorage.getItem('authToken');
-  if (!token) return false;
-  
-  try {
-    // Parse JWT token (assuming it's a JWT)
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    // Check if token is expired
-    return payload.exp * 1000 > Date.now();
-  } catch (e) {
-    console.error('Error checking token validity:', e);
-    return false;
-  }
-};
-
-// Helper function to refresh token if needed
-const ensureValidToken = async () => {
-  if (!isTokenValid()) {
-    console.log('Token is invalid or expired, attempting to refresh...');
-    try {
-      // Try to refresh the token
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (refreshToken) {
-        const response = await axios.post(`${API_URL}/auth/refresh-token`, {
-          refreshToken
-        });
-        
-        if (response.data && response.data.token) {
-          localStorage.setItem('authToken', response.data.token);
-          console.log('Token refreshed successfully');
-          return true;
-        }
-      }
-      console.error('Could not refresh token');
-      return false;
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-      return false;
-    }
-  }
-  return true;
-};
-
 // Cấu hình Axios instance
 const apiService = axios.create({
   baseURL: API_URL,
@@ -56,46 +12,14 @@ const apiService = axios.create({
 
 // Interceptor để xử lý token
 apiService.interceptors.request.use(
-  async (config) => {
-    // Try to ensure we have a valid token before making the request
-    await ensureValidToken();
-    
+  (config) => {
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
-      console.log('Request with token:', token.substring(0, 15) + '...');
-    } else {
-      console.warn('No auth token found in localStorage!');
     }
-    console.log('Request URL:', config.url);
-    console.log('Request method:', config.method);
-    console.log('Request headers:', JSON.stringify(config.headers));
     return config;
   },
-  (error) => {
-    console.error('Request interceptor error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Add response interceptor for better error logging
-apiService.interceptors.response.use(
-  (response) => {
-    console.log(`Response from ${response.config.url}:`, response.status);
-    return response;
-  },
-  (error) => {
-    if (error.response) {
-      console.error('Response error data:', error.response.data);
-      console.error('Response error status:', error.response.status);
-      console.error('Response error headers:', error.response.headers);
-    } else if (error.request) {
-      console.error('No response received:', error.request);
-    } else {
-      console.error('Error setting up request:', error.message);
-    }
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 const vaccinationApiService = {
@@ -154,20 +78,10 @@ const vaccinationApiService = {
     }
   },
 
-  // Cập nhật bản ghi tiêm chủng - cập nhật theo đúng API endpoint và format
+  // Cập nhật bản ghi tiêm chủng
   updateVaccination: async (id, data) => {
     try {
-      // Đảm bảo chỉ gửi các trường cần thiết theo format API
-      const updatePayload = {
-        administeredAt: data.administeredAt || "",
-        doseNumber: data.doseNumber || 1,
-        notes: data.notes || "",
-        vaccineName: data.vaccineName || "",
-        administeredBy: data.administeredBy || 1
-      };
-      
-      console.log(`Updating vaccination record ${id} with data:`, updatePayload);
-      const response = await apiService.put(`/vaccinations/${id}`, updatePayload);
+      const response = await apiService.put(`/vaccinations/${id}`, data);
       return response.data;
     } catch (error) {
       console.error(`API error in updateVaccination(${id}):`, error);
@@ -175,10 +89,9 @@ const vaccinationApiService = {
     }
   },
 
-  // Xóa bản ghi tiêm chủng - cập nhật theo đúng API endpoint
+  // Xóa bản ghi tiêm chủng
   deleteVaccination: async (id) => {
     try {
-      console.log(`Deleting vaccination record with ID: ${id}`);
       const response = await apiService.delete(`/vaccinations/${id}`);
       return response.data;
     } catch (error) {
@@ -216,70 +129,29 @@ const vaccinationApiService = {
       return response.data;
     } catch (error) {
       console.error('API error in getVaccinationPlans:', error);
-      // Trả về mock data khi API lỗi
-      return [
-        {
-          "id": 1,
-          "vaccineName": "Vắc-xin Viêm gan B",
-          "vaccinationDate": "2025-08-20",
-          "status": "ONGOING",
-          "statusVietnamese": "Đang diễn ra",
-          "description": "Kế hoạch tiêm chủng vắc xin Viêm gan B cho học sinh mới",
-          "createdAt": "2025-06-24",
-          "updatedAt": "2025-06-24"
-        },
-        {
-          "id": 2,
-          "vaccineName": "Vắc-xin Viêm gan B",
-          "vaccinationDate": "2025-08-20",
-          "status": "ONGOING",
-          "statusVietnamese": "Đang diễn ra",
-          "description": "Kế hoạch tiêm chủng vắc xin Viêm gan B cho học sinh mới",
-          "createdAt": "2025-06-24",
-          "updatedAt": "2025-06-24"
-        },
-        {
-          "id": 3,
-          "vaccineName": "Vắc-xin Sởi-Quai bị-Rubella",
-          "vaccinationDate": "2025-06-10",
-          "status": "COMPLETED",
-          "statusVietnamese": "Kết thúc",
-          "description": "Kế hoạch tiêm chủng đã hoàn thành cho học sinh khối 11",
-          "createdAt": "2025-06-24",
-          "updatedAt": "2025-06-24"
-        },
-        {
-          "id": 4,
-          "vaccineName": "Vắc-xin cúm mùa",
-          "vaccinationDate": "2025-09-05",
-          "status": "CANCELLED",
-          "statusVietnamese": "Đã hủy",
-          "description": "Kế hoạch tiêm chủng đã bị hủy do thiếu vắc xin",
-          "createdAt": "2025-06-24",
-          "updatedAt": "2025-06-24"
-        }
-      ];
+      throw error;
     }
   },
 
-  // Lấy chi tiết kế hoạch tiêm chủng theo ID
-  getVaccinationPlanById: async (id) => {
+  // Xóa kế hoạch tiêm chủng
+  deleteVaccinationPlan: async (id) => {
     try {
-      const response = await apiService.get(`/vaccination-plans/${id}`);
+      const response = await apiService.delete(`/vaccination-plans/${id}`);
       return response.data;
     } catch (error) {
-      console.error(`API error in getVaccinationPlanById(${id}):`, error);
-      // Trả về mock data khi API lỗi
-      return {
-        "id": id,
-        "vaccineName": "Vắc-xin Viêm gan B",
-        "vaccinationDate": "2025-08-20",
-        "status": "ONGOING",
-        "statusVietnamese": "Đang diễn ra",
-        "description": "Kế hoạch tiêm chủng vắc xin Viêm gan B cho học sinh mới",
-        "createdAt": "2025-06-24",
-        "updatedAt": "2025-06-24"
-      };
+      console.error(`API error in deleteVaccinationPlan(${id}):`, error);
+      throw error;
+    }
+  },
+
+  // Cập nhật kế hoạch tiêm chủng
+  updateVaccinationPlan: async (id, data) => {
+    try {
+      const response = await apiService.put(`/vaccination-plans/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error(`API error in updateVaccinationPlan(${id}):`, error);
+      throw error;
     }
   },
 
@@ -311,12 +183,12 @@ const vaccinationApiService = {
       {
         "id": 1,
         "healthProfileId": null,
-        "studentName": "Nguyễn Văn A",
+        "studentName": null,
         "vaccineName": "Vắc xin COVID-19 Pfizer",
         "vaccinationDate": "2024-04-15",
         "nextDoseDate": "2025-04-15",
         "doseNumber": 1,
-        "administeredBy": "Bác sĩ Nguyễn Thị B",
+        "administeredBy": null,
         "administeredAt": "Phòng y tế trường",
         "notes": "Không có phản ứng phụ",
         "parentConsent": null
@@ -324,12 +196,12 @@ const vaccinationApiService = {
       {
         "id": 2,
         "healthProfileId": null,
-        "studentName": "Trần Thị C",
+        "studentName": null,
         "vaccineName": "Vắc xin COVID-19 Pfizer",
         "vaccinationDate": "2024-04-15",
         "nextDoseDate": "2025-04-15",
         "doseNumber": 1,
-        "administeredBy": "Bác sĩ Nguyễn Thị B",
+        "administeredBy": null,
         "administeredAt": "Phòng y tế trường",
         "notes": "Không có phản ứng phụ",
         "parentConsent": null
@@ -337,12 +209,12 @@ const vaccinationApiService = {
       {
         "id": 3,
         "healthProfileId": null,
-        "studentName": "Lê Văn D",
+        "studentName": null,
         "vaccineName": "Vắc xin COVID-19 Pfizer",
         "vaccinationDate": "2024-04-15",
         "nextDoseDate": "2025-04-15",
         "doseNumber": 1,
-        "administeredBy": "Bác sĩ Nguyễn Thị B",
+        "administeredBy": null,
         "administeredAt": "Phòng y tế trường",
         "notes": "Không có phản ứng phụ",
         "parentConsent": null
@@ -350,12 +222,12 @@ const vaccinationApiService = {
       {
         "id": 4,
         "healthProfileId": null,
-        "studentName": "Phạm Thị E",
+        "studentName": null,
         "vaccineName": "Vắc xin Cúm mùa",
         "vaccinationDate": "2024-03-20",
         "nextDoseDate": "2025-03-20",
         "doseNumber": 1,
-        "administeredBy": "Bác sĩ Nguyễn Thị B",
+        "administeredBy": null,
         "administeredAt": "Phòng y tế trường",
         "notes": "Tiêm phòng cúm mùa thành công",
         "parentConsent": null
@@ -392,30 +264,7 @@ const vaccinationApiService = {
   // Thêm phương thức gửi thông báo
   sendNotification: async (notificationData) => {
     try {
-      // Đảm bảo senderId là số nguyên và không phải null
-      const senderId = notificationData.senderId ? parseInt(notificationData.senderId) : 1;
-      
-      // Chuẩn bị payload với senderId đã được xử lý
-      const payload = {
-        ...notificationData,
-        senderId: senderId,
-        receiverIds: notificationData.receiverIds.map(id => parseInt(id))
-      };
-      
-      console.log('Sending notification payload:', JSON.stringify(payload, null, 2));
-      
-      // Lấy token xác thực
-      const token = localStorage.getItem('authToken');
-      
-      // Tạo config request với header xác thực
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
-        }
-      };
-      
-      const response = await apiService.post('/notifications/create', payload, config);
+      const response = await apiService.post('/notifications/create', notificationData);
       return response.data;
     } catch (error) {
       console.error('API error in sendNotification:', error);
@@ -437,21 +286,7 @@ const vaccinationApiService = {
   // Thêm mũi tiêm mới
   addVaccinationRecord: async (vaccinationData) => {
     try {
-      // Chuyển đổi dữ liệu từ form sang định dạng API yêu cầu
-      const payload = {
-        administeredAt: vaccinationData.administeredAt || "Phòng y tế trường",
-        doseNumber: parseInt(vaccinationData.dose),
-        nextDoseDate: vaccinationData.nextDoseDate || null,
-        notes: vaccinationData.notes || "",
-        vaccineName: vaccinationData.vaccineName,
-        healthProfileId: parseInt(vaccinationData.studentId) || 1,
-        notificationRecipientID: vaccinationData.recipientId || 1,
-        administeredBy: 1 // ID của nhân viên y tế đang đăng nhập
-      };
-      
-      console.log("Sending vaccination data:", payload);
-      
-      const response = await apiService.post('/vaccinations/create', payload);
+      const response = await apiService.post('/vaccinations', vaccinationData);
       return response.data;
     } catch (error) {
       console.error('API error in addVaccinationRecord:', error);

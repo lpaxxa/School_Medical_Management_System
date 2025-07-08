@@ -78,9 +78,7 @@ export const addHealthCheckup = async (checkupData) => {
       const formattedData = {
         ...dataToSend,
         // Chuyển đổi thành định dạng yyyy-MM-dd theo yêu cầu API
-        checkupDate: dataToSend.checkupDate.split('T')[0],
-        // Chuyển đổi studentId sang number
-        studentId: parseInt(dataToSend.studentId)
+        checkupDate: dataToSend.checkupDate.split('T')[0]
       };
       
       console.log('Formatted data to send:', formattedData);
@@ -302,112 +300,6 @@ export const getHealthStandards = async () => {
   }
 };
 
-// Lấy tất cả các chiến dịch khám sức khỏe
-export const getHealthCampaigns = async () => {
-  try {
-    const response = await fetch('http://localhost:8080/api/v1/health-campaigns');
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log("Health campaigns data:", data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching health campaigns:', error);
-    // Fallback về dữ liệu mẫu khi API gặp lỗi
-    return mockHealthCampaigns;
-  }
-};
-
-// Lấy danh sách phụ huynh
-export const getParents = async () => {
-  try {
-    const response = await fetch('http://localhost:8080/api/v1/parents');
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log("Parents data:", data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching parents:', error);
-    // Fallback về dữ liệu mẫu khi API gặp lỗi
-    return mockParents;
-  }
-};
-
-// Gửi thông báo khám sức khỏe (đã có sẵn sendHealthCheckupNotification, thêm alias)
-export const sendNotification = async (notificationData) => {
-  return await sendHealthCheckupNotification(notificationData);
-};
-
-// Gửi thông báo khám sức khỏe
-export const sendHealthCheckupNotification = async (notificationData) => {
-  try {
-    // Get auth token from localStorage
-    const token = localStorage.getItem('authToken');
-    
-    // Ensure senderId is a number and not null
-    const senderId = notificationData.senderId ? parseInt(notificationData.senderId) : 1;
-    
-    // Prepare payload with guaranteed non-null senderId
-    const payload = {
-      ...notificationData,
-      type: 'HEALTH_CHECKUP',
-      senderId: senderId,
-      receiverIds: notificationData.receiverIds.map(id => parseInt(id))
-    };
-    
-    console.log('Sending notification with payload:', JSON.stringify(payload, null, 2));
-    
-    const response = await fetch('http://localhost:8080/api/v1/notifications/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      },
-      body: JSON.stringify(payload)
-    });
-    
-    // Log the response status and text for debugging
-    const responseText = await response.text();
-    console.log(`Response status: ${response.status}`);
-    console.log(`Response text: ${responseText}`);
-    
-    if (!response.ok) {
-      // Try to parse the error message if possible
-      let errorMessage;
-      try {
-        const errorData = JSON.parse(responseText);
-        errorMessage = errorData.message || `Error ${response.status}: ${response.statusText}`;
-      } catch (e) {
-        errorMessage = `Error ${response.status}: ${response.statusText}`;
-      }
-      
-      throw new Error(errorMessage);
-    }
-    
-    // Try to parse the response as JSON if it's not empty
-    if (responseText) {
-      try {
-        return JSON.parse(responseText);
-      } catch (e) {
-        console.warn('Response is not valid JSON:', responseText);
-        return { success: true, message: 'Notification sent successfully' };
-      }
-    } else {
-      return { success: true, message: 'Notification sent successfully' };
-    }
-  } catch (error) {
-    console.error('Error sending health checkup notification:', error);
-    throw error;
-  }
-};
-
 // Fetch health checkup notifications
 export const getHealthCheckupNotifications = async () => {
   try {
@@ -429,7 +321,7 @@ export const getHealthCheckupNotifications = async () => {
 // Create a health checkup notification
 export const createHealthCheckupNotification = async (notificationData) => {
   try {
-    const response = await fetch('http://localhost:8080/api/v1/notifications/create', {
+    const response = await fetch('http://localhost:8080/api/v1/notifications', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -547,48 +439,6 @@ const mockCampaigns = [
   }
 ];
 
-// Dữ liệu mẫu về chiến dịch khám sức khỏe
-const mockHealthCampaigns = [
-  {
-    id: 1,
-    title: "Chiến dịch khám sức khỏe định kỳ 2025",
-    startDate: "2025-07-10",
-    notes: "Khám sức khỏe định kỳ cho toàn trường",
-    status: "PREPARING"
-  },
-  {
-    id: 2,
-    title: "Khám sức khỏe đầu năm học",
-    startDate: "2025-08-15",
-    notes: "Khám sức khỏe định kỳ cho học sinh mới nhập học",
-    status: "PREPARING"
-  }
-];
-
-// Dữ liệu mẫu về phụ huynh
-const mockParents = [
-  {
-    id: 1,
-    fullName: "Nguyễn Văn Hùng",
-    phoneNumber: "0945678901",
-    email: "nguyen.phuhuynh@gmail.com",
-    address: "123 Đường Lê Lợi, Quận 1, TP.HCM",
-    occupation: null,
-    relationshipType: "Bố",
-    accountId: "PARENT001"
-  },
-  {
-    id: 2,
-    fullName: "Trần Thị Mai",
-    phoneNumber: "0956789012",
-    email: "tran.phuhuynh@gmail.com",
-    address: "456 Đường Nguyễn Huệ, Quận 3, TP.HCM",
-    occupation: null,
-    relationshipType: "Mẹ",
-    accountId: "PARENT002"
-  }
-];
-
 // Import dữ liệu từ studentService để tránh trùng lặp
 import { mockStudents } from './studentService';
 
@@ -684,135 +534,6 @@ const mockHealthStandards = {
   ]
 };
 
-// Lấy thông tin chi tiết học sinh theo ID
-export const getStudentById = async (id) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/students/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching student details:', error);
-    throw error;
-  }
-};
-
-// Lấy thông tin chi tiết phụ huynh theo ID
-export const getParentById = async (id) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/parents/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching parent details:', error);
-    throw error;
-  }
-};
-
-// Lấy danh sách học sinh
-export const getStudents = async () => {
-  try {
-    const response = await fetch(`http://localhost:8080/api/v1/students`);
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching students:', error);
-    // Fallback to mock data on error
-    return mockStudents;
-  }
-};
-
-// Send notifications for a specific campaign
-export const sendCampaignNotifications = async (campaignId, studentIds) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/health-campaigns/${campaignId}/send-notifications`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      },
-      body: JSON.stringify(studentIds)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
-    }
-
-    // The response might not contain a JSON body
-    return { success: true, message: 'Notifications sent successfully.' };
-  } catch (error) {
-    console.error('Error sending campaign notifications:', error);
-    throw error;
-  }
-};
-
-// Get student list for a specific campaign
-export const getCampaignStudents = async (campaignId) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/health-campaigns/${campaignId}/students`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching students for campaign ${campaignId}:`, error);
-    throw error;
-  }
-};
-
-// Get parent consent details
-export const getConsentDetails = async (consentId) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/parent-consents/${consentId}/details`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching consent details for ID ${consentId}:`, error);
-    throw error;
-  }
-};
-
 // Unified export to make imports consistent
 const healthCheckupService = {
   getAllHealthCheckups,
@@ -824,17 +545,7 @@ const healthCheckupService = {
   getStudentsRequiringFollowup,
   getHealthStandards,
   getHealthCheckupNotifications,
-  createHealthCheckupNotification,
-  getHealthCampaigns,
-  getParents,
-  sendNotification,
-  sendHealthCheckupNotification,
-  getStudentById,
-  getStudents,
-  getParentById,
-  sendCampaignNotifications,
-  getCampaignStudents,
-  getConsentDetails,
+  createHealthCheckupNotification
 };
 
 export default healthCheckupService;

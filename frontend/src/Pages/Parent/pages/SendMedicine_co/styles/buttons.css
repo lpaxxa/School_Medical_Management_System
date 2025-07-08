@@ -141,24 +141,6 @@
   box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
 }
 
-.med-status-fully-taken {
-  background: var(--success-gradient);
-  color: white;
-  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
-}
-
-.med-status-partially-taken {
-  background: var(--warning-gradient);
-  color: white;
-  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
-}
-
-.med-status-expired {
-  background: var(--danger-gradient);
-  color: white;
-  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-}
-
 /* Enhanced Action Buttons */
 .med-btn {
   padding: var(--spacing-xs) var(--spacing);
