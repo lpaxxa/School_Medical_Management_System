@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 import java.time.LocalDate;
+import com.fpt.medically_be.entity.CheckupStatus;
 
 @Data
 @Builder
@@ -20,7 +21,7 @@ public class HealthProfileDTO {
 
 
     private Double height;
-private Double bmi;
+    private Double bmi;
 
     private Double weight;
     private String allergies;
@@ -38,5 +39,6 @@ private Double bmi;
     private LocalDate lastPhysicalExamDate;
     private String specialNeeds;
     private LocalDateTime lastUpdated;
+    private CheckupStatus checkupStatus;
 
 }

@@ -337,7 +337,7 @@ public class MedicalCheckupServiceImpl implements MedicalCheckupService {
         // Set basic information
         checkup.setCheckupDate(requestDTO.getCheckupDate());
         checkup.setCheckupType(requestDTO.getCheckupType());
-        checkup.setCheckupStatus(requestDTO.getCheckupStatus() != null ? requestDTO.getCheckupStatus() : CheckupStatus.WAITING);
+        checkup.setCheckupStatus(requestDTO.getCheckupStatus() != null ? requestDTO.getCheckupStatus() : CheckupStatus.COMPLETED);
 
         // Set relationships
         if (requestDTO.getStudentId() != null) {

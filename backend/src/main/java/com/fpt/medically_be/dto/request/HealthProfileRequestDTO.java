@@ -2,6 +2,7 @@ package com.fpt.medically_be.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import com.fpt.medically_be.entity.CheckupStatus;
 
 import java.time.LocalDate;
 
@@ -31,6 +32,7 @@ public class HealthProfileRequestDTO {
     private String immunizationStatus;
     private LocalDate lastPhysicalExamDate;
     private String specialNeeds;
+    private CheckupStatus checkupStatus;
 
 
 }

@@ -1,10 +1,8 @@
 package com.fpt.medically_be.entity;
 
 public enum CheckupStatus {
-    WAITING("Đang chờ khám"),
-    IN_PROGRESS("Đang thực hiện khám"),
     COMPLETED("Hoàn thành khám"),
-    CANCELLED("Hủy bỏ");
+    NEED_FOLLOW_UP("Cần theo dõi thêm");
 
     private final String description;
 
