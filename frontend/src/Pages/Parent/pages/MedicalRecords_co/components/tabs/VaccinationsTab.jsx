@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   FaSyringe,
   FaExclamationCircle,
@@ -12,6 +12,7 @@ import {
   FaMapMarkerAlt,
   FaUserMd,
   FaClipboardList,
+  FaSync,
 } from "react-icons/fa";
 import medicalService from "../../../../../../services/medicalService";
 import { formatDate } from "../../utils/formatters";
@@ -21,7 +22,9 @@ import VaccinationModal from "../modals/VaccinationModal";
 const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
   const [vaccinationNotifications, setVaccinationNotifications] = useState([]);
   const [isLoadingVaccinations, setIsLoadingVaccinations] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [vaccinationsError, setVaccinationsError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,33 +33,93 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
   const [detailError, setDetailError] = useState(null);
   const [selectedNotificationId, setSelectedNotificationId] = useState(null);
 
-  useEffect(() => {
-    const fetchVaccinationData = async () => {
-      if (!parentInfo?.id || !studentCode) {
+  // Refs for managing intervals and component state
+  const refreshIntervalRef = useRef(null);
+  const componentMountedRef = useRef(true);
+
+  // Fetch vaccination data function with auto-refresh support
+  const fetchVaccinationData = useCallback(
+    async (isRefresh = false) => {
+      if (!parentInfo?.id || !studentCode || !componentMountedRef.current) {
         console.log("Missing parentId or studentCode:", {
           parentId: parentInfo?.id,
           studentCode,
         });
+        if (!isRefresh) setIsLoadingVaccinations(false);
         return;
       }
 
-      try {
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
         setIsLoadingVaccinations(true);
+      }
+      setVaccinationsError(null);
+
+      try {
+        console.log("Fetching vaccination data:", { isRefresh });
         const data = await medicalService.getVaccinationNotifications(
           parentInfo.id,
           studentCode
         );
-        setVaccinationNotifications(data);
+
+        if (componentMountedRef.current) {
+          setVaccinationNotifications(data);
+          setLastUpdated(new Date());
+        }
       } catch (error) {
         console.error("Error fetching vaccination data:", error);
-        setVaccinationsError("Không thể tải dữ liệu tiêm chủng");
+        if (componentMountedRef.current) {
+          setVaccinationsError("Không thể tải dữ liệu tiêm chủng");
+        }
       } finally {
-        setIsLoadingVaccinations(false);
+        if (componentMountedRef.current) {
+          if (isRefresh) {
+            setIsRefreshing(false);
+          } else {
+            setIsLoadingVaccinations(false);
+          }
+        }
+      }
+    },
+    [parentInfo?.id, studentCode]
+  );
+
+  // Manual refresh function
+  const handleManualRefresh = useCallback(() => {
+    fetchVaccinationData(true);
+  }, [fetchVaccinationData]);
+
+  useEffect(() => {
+    componentMountedRef.current = true;
+
+    if (parentInfo?.id && studentCode) {
+      // Fetch initial data
+      fetchVaccinationData(false);
+
+      // Setup auto-refresh every 50 seconds for vaccination data
+      refreshIntervalRef.current = setInterval(() => {
+        fetchVaccinationData(true);
+      }, 50000);
+    }
+
+    // Cleanup function
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
       }
     };
+  }, [parentInfo?.id, studentCode, fetchVaccinationData]);
 
-    fetchVaccinationData();
-  }, [parentInfo?.id, studentCode]);
+  // Cleanup effect when component unmounts
+  useEffect(() => {
+    return () => {
+      componentMountedRef.current = false;
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, []);
 
   const handleViewDetails = async (notification) => {
     const notificationId = notification.id;
@@ -117,7 +180,27 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
 
   return (
     <div className="vaccinations-panel">
-      <h3>Lịch sử tiêm chủng</h3>
+      <div className="vaccinations-header">
+        <div className="vaccinations-title-section">
+          <h3>Lịch sử tiêm chủng</h3>
+          {lastUpdated && (
+            <div className="last-updated">
+              Cập nhật: {lastUpdated.toLocaleTimeString("vi-VN")}
+            </div>
+          )}
+        </div>
+        <div className="vaccinations-controls">
+          <button
+            className={`refresh-btn ${isRefreshing ? "refreshing" : ""}`}
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            title="Làm mới dữ liệu tiêm chủng"
+          >
+            <FaSync className={isRefreshing ? "spin" : ""} />
+            <span>{isRefreshing ? "Đang tải..." : "Làm mới"}</span>
+          </button>
+        </div>
+      </div>
 
       {vaccinationsError ? (
         <div className="error-message">

@@ -1,847 +1,760 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import "./Notifications.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
-import { useNotification } from "../../../../context/NotificationContext"; // Import context
-import notificationService from "../../../../services/notificationService";
-import ReactMarkdown from "react-markdown";
+import healthCheckupConsentService from "../../../../services/healthCheckupConsentService";
 import { toast } from "react-toastify";
-import { useLocation } from "react-router-dom";
+import TestAPIWithContext from "./TestAPIWithContext";
+import ConsentDetailModal from "./ConsentDetailModal";
+import DebugParentNotes from "./DebugParentNotes";
 
 const Notifications = () => {
-  // State và refs
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
-  const [currentNotification, setCurrentNotification] = useState(null);
-  const [selectedNotificationId, setSelectedNotificationId] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [parentId, setParentId] = useState(null);
-  // Thêm state theo dõi thời điểm làm mới cuối cùng
-  const [lastRefreshed, setLastRefreshed] = useState(null);
+  // State chính
+  const [activeTab, setActiveTab] = useState("health-checkup");
+  const [loading, setLoading] = useState(false);
+
+  // State cho thông báo kiểm tra sức khỏe định kỳ
+  const [consentList, setConsentList] = useState([]);
+  const [filteredConsentList, setFilteredConsentList] = useState([]);
+  const [selectedConsentId, setSelectedConsentId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // State cho bộ lọc
+  const [filters, setFilters] = useState({
+    studentId: "", // Lọc theo học sinh
+    consentStatus: "", // Lọc theo trạng thái phản hồi
+    academicYear: "", // Lọc theo năm học
+  });
 
   // Context hooks
   const { currentUser } = useAuth();
   const { students, parentInfo } = useStudentData();
-  // Lấy thông tin từ NotificationContext
-  const { updateUnreadCount, markAsRead: markContextAsRead, markAllAsRead: markAllContextAsRead, refreshNotifications } = useNotification();
-
-  // Refs và location
-  const notificationContentRef = useRef(null);
-  const location = useLocation();
 
   // Helper function để lấy parentId
   const getParentId = () => {
-    if (parentId) return parentId;
-    if (parentInfo?.id) return parentInfo.id;
-    if (students?.length > 0 && students[0].parentId) return students[0].parentId;
+    console.log("🔍 Getting parentId...");
+    console.log("📊 parentInfo:", parentInfo);
+    console.log("👥 students:", students);
+
+    if (parentInfo?.id) {
+      console.log(`✅ Found parentId from parentInfo: ${parentInfo.id}`);
+      return parentInfo.id;
+    }
+    if (students?.length > 0 && students[0].parentId) {
+      console.log(`✅ Found parentId from students: ${students[0].parentId}`);
+      return students[0].parentId;
+    }
+    console.log("⚠️ No parentId found, returning null");
     return null;
   };
 
-  // Thiết lập parentId và TỰ ĐỘNG LÀM MỚI khi vào trang
-  useEffect(() => {
-    const newParentId = getParentId();
-    if (newParentId) {
-      console.log("Initial load - Parent ID found:", newParentId);
-      setParentId(newParentId);
-      
-      // Sử dụng Promise để đảm bảo tính tuần tự
-      const loadData = async () => {
-        try {
-          setLoading(true);
-          await fetchNotifications(newParentId);
-          refreshNotifications();
-          setLastRefreshed(new Date());
-          console.log("Initial data fetch completed successfully");
-        } catch (error) {
-          console.error("Error in initial data fetch:", error);
-        } finally {
-          setLoading(false);
+  // Helper functions cho lọc dữ liệu
+  const getUniqueStudents = () => {
+    const uniqueStudents = [];
+    const seenIds = new Set();
+
+    console.log(
+      "🎓 Getting unique students from data:",
+      consentList.length,
+      "consents"
+    );
+
+    consentList.forEach((consent) => {
+      if (!seenIds.has(consent.studentId)) {
+        seenIds.add(consent.studentId);
+        const student = {
+          id: consent.studentId,
+          name: consent.studentName,
+          class: consent.studentClass,
+        };
+        uniqueStudents.push(student);
+        console.log("📝 Added student:", student);
+      }
+    });
+
+    const sortedStudents = uniqueStudents.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+    console.log("✅ Final unique students list:", sortedStudents);
+    return sortedStudents;
+  };
+
+  // Helper function để lấy danh sách năm học từ dữ liệu
+  const getUniqueAcademicYears = () => {
+    const academicYears = [];
+    const seenYears = new Set();
+
+    console.log(
+      "📅 Getting unique academic years from data:",
+      consentList.length,
+      "consents"
+    );
+
+    consentList.forEach((consent) => {
+      let academicYear;
+
+      // Nếu data có field academicYear thì dùng
+      if (consent.academicYear) {
+        academicYear = consent.academicYear;
+      } else {
+        // Nếu không có thì tạo từ campaignStartDate
+        const startDate = new Date(consent.campaignStartDate);
+        const year = startDate.getFullYear();
+        const month = startDate.getMonth() + 1; // getMonth() trả về 0-11
+
+        // Năm học thường bắt đầu từ tháng 8-9
+        if (month >= 8) {
+          academicYear = `${year}-${year + 1}`;
+        } else {
+          academicYear = `${year - 1}-${year}`;
         }
-      };
-      
-      loadData();
-    } else {
-      console.log("No parent ID available on initial load");
+      }
+
+      if (!seenYears.has(academicYear)) {
+        seenYears.add(academicYear);
+        academicYears.push(academicYear);
+        console.log("📝 Added academic year:", academicYear);
+      }
+    });
+
+    // Sắp xếp theo thứ tự giảm dần (năm mới nhất trước)
+    const sortedYears = academicYears.sort((a, b) => {
+      const yearA = parseInt(a.split("-")[0]);
+      const yearB = parseInt(b.split("-")[0]);
+      return yearB - yearA;
+    });
+
+    console.log("✅ Final unique academic years list:", sortedYears);
+    return sortedYears;
+  };
+
+  // Function để lọc dữ liệu theo các điều kiện
+  const filterConsentList = () => {
+    let filtered = [...consentList];
+
+    // Debug logging
+    console.log("🔍 Filtering data...");
+    console.log("📊 Original list:", consentList.length, "items");
+    console.log("🎯 Current filters:", filters);
+
+    // Lọc theo học sinh
+    if (filters.studentId) {
+      console.log("👨‍🎓 Filtering by studentId:", filters.studentId);
+      console.log(
+        "📋 Available studentIds in data:",
+        consentList.map((c) => ({
+          id: c.studentId,
+          name: c.studentName,
+          type: typeof c.studentId,
+        }))
+      );
+
+      filtered = filtered.filter((consent) => {
+        // So sánh cả string và number để tránh lỗi type mismatch
+        const match = String(consent.studentId) === String(filters.studentId);
+        if (match) {
+          console.log(
+            "✅ Found match:",
+            consent.studentName,
+            consent.studentId
+          );
+        }
+        return match;
+      });
+
+      console.log("🎯 After student filter:", filtered.length, "items");
     }
-  }, [parentInfo, students]); // Chỉ chạy khi parentInfo hoặc students thay đổi
-  
-  // Thêm một useEffect mới để phát hiện khi người dùng quay lại tab này sau khi đi nơi khác
+
+    // Lọc theo trạng thái phản hồi
+    if (filters.consentStatus) {
+      console.log("✅ Filtering by consentStatus:", filters.consentStatus);
+      filtered = filtered.filter(
+        (consent) => consent.consentStatus === filters.consentStatus
+      );
+      console.log("🎯 After status filter:", filtered.length, "items");
+    }
+
+    // Lọc theo năm học
+    if (filters.academicYear) {
+      console.log("📅 Filtering by academic year:", filters.academicYear);
+      filtered = filtered.filter((consent) => {
+        let consentAcademicYear;
+
+        // Nếu data có field academicYear thì dùng
+        if (consent.academicYear) {
+          consentAcademicYear = consent.academicYear;
+        } else {
+          // Nếu không có thì tạo từ campaignStartDate
+          const startDate = new Date(consent.campaignStartDate);
+          const year = startDate.getFullYear();
+          const month = startDate.getMonth() + 1;
+
+          if (month >= 8) {
+            consentAcademicYear = `${year}-${year + 1}`;
+          } else {
+            consentAcademicYear = `${year - 1}-${year}`;
+          }
+        }
+
+        return consentAcademicYear === filters.academicYear;
+      });
+      console.log("🎯 After academic year filter:", filtered.length, "items");
+    }
+
+    console.log("🎉 Final filtered result:", filtered.length, "items");
+    return filtered;
+  };
+
+  // Handlers cho bộ lọc
+  const handleFilterChange = (filterKey, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [filterKey]: value,
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      studentId: "",
+      consentStatus: "",
+      academicYear: "",
+    });
+  };
+
+  const getActiveFilterCount = () => {
+    return Object.values(filters).filter((value) => value !== "").length;
+  };
+
+  // Load dữ liệu kiểm tra sức khỏe khi component mount hoặc khi có parentId
   useEffect(() => {
-    // Hàm này sẽ được gọi khi tab trở thành active
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        const now = new Date();
-        // Nếu đã quá 30 giây kể từ lần làm mới cuối cùng, tự động làm mới
-        if (!lastRefreshed || (now - lastRefreshed) > 30000) {
-          console.log("Tab became visible, refreshing notifications");
-          fetchNotifications();
-          refreshNotifications();
-          setLastRefreshed(now);
+    if (activeTab === "health-checkup") {
+      const parentId = getParentId();
+      if (parentId) {
+        console.log(`🚀 Parent ID available: ${parentId}, loading data...`);
+        loadHealthCheckupList();
+      } else {
+        console.log("⏳ Waiting for parent ID to be available...");
+        // Set a fallback data while waiting
+        if (parentInfo === null && students.length === 0) {
+          // Still loading contexts
+          console.log("📱 Context still loading, wait a bit more...");
+        } else {
+          // Context loaded but no parentId found
+          console.log("⚠️ Context loaded but no parentId found");
+          setConsentList([]);
+          setFilteredConsentList([]);
         }
       }
-    };
-    
-    // Đăng ký sự kiện visibilitychange
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Cleanup
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [lastRefreshed]);
-  
-  // Thêm làm mới tự động theo interval
-  useEffect(() => {
-    // Làm mới thông báo mỗi 2 phút
-    const intervalId = setInterval(() => {
-      if (getParentId()) {
-        console.log("Auto-refreshing notifications (interval)");
-        fetchNotifications();
-        refreshNotifications();
-        setLastRefreshed(new Date());
-      }
-    }, 120000); // 2 phút
-    
-    return () => clearInterval(intervalId);
-  }, []);
-
-  // Thêm useEffect để làm mới khi location.pathname thay đổi thành đường dẫn của trang thông báo
-  useEffect(() => {
-    if (location.pathname.includes('/notifications')) {
-      const now = new Date();
-      // Chỉ làm mới nếu đã quá 10 giây kể từ lần làm mới cuối
-      if (!lastRefreshed || (now - lastRefreshed) > 10000) {
-        console.log("Location changed to notifications page, refreshing");
-        fetchNotifications();
-        refreshNotifications();
-        setLastRefreshed(now);
-      }
     }
-  }, [location.pathname]);
+  }, [activeTab, parentInfo, students]); // Dependencies để reload khi có data
 
-  // Fetch notifications
-  const fetchNotifications = async (pid = getParentId()) => {
-    if (!pid) {
-      console.log("No parent ID available, skipping fetch");
-      return Promise.reject("No parent ID available");
-    }
+  // Cập nhật danh sách đã lọc khi consentList hoặc filters thay đổi
+  useEffect(() => {
+    const filtered = filterConsentList();
+    setFilteredConsentList(filtered);
+  }, [consentList, filters]);
 
+  // Load danh sách consent kiểm tra sức khỏe
+  const loadHealthCheckupList = async () => {
     setLoading(true);
-    setError(null);
-
     try {
-      console.log("Fetching notifications for parent ID:", pid);
-      const response = await notificationService.getNotifications(pid);
-      console.log("API response:", response.data);
+      const parentId = getParentId();
 
-      if (Array.isArray(response.data)) {
-        // Thêm trường isRead và category vào mỗi thông báo
-        const notificationsWithReadStatus = response.data.map(
-          (notification) => {
-            let category = getNotificationCategory(notification);
-            return {
-              ...notification,
-              isRead: notification.isRead || false,
-              category,
-            };
+      console.log("🔍 Parent ID from context:", parentId);
+      console.log("📊 Parent Info:", parentInfo);
+      console.log("👥 Students:", students);
+
+      if (!parentId) {
+        console.warn("❌ No parent ID found");
+        toast.error(
+          "Không tìm thấy thông tin phụ huynh. Vui lòng đăng nhập lại.",
+          {
+            position: "top-center",
+            autoClose: 5000,
           }
         );
-
-        console.log("Processed notifications:", notificationsWithReadStatus);
-        setNotifications(notificationsWithReadStatus);
-        
-        // Đếm số thông báo chưa đọc và cập nhật vào context
-        const unreadCount = notificationsWithReadStatus.filter(n => !n.isRead).length;
-        updateUnreadCount(unreadCount);
-
-        // Nếu có thông báo và chưa chọn thông báo nào, chọn thông báo đầu tiên
-        if (notificationsWithReadStatus.length > 0) {
-          // Nếu không có thông báo được chọn hoặc thông báo được chọn không còn trong danh sách
-          if (!selectedNotificationId || 
-              !notificationsWithReadStatus.find(n => n.id === selectedNotificationId)) {
-            const firstNotification = notificationsWithReadStatus[0];
-            setSelectedNotificationId(firstNotification.id);
-            fetchNotificationDetail(firstNotification.id, pid);
-          }
-        }
-        
-        return Promise.resolve(notificationsWithReadStatus);
-      } else {
-        console.error("API không trả về mảng:", response.data);
-        setNotifications([]);
-        updateUnreadCount(0);
-        return Promise.resolve([]);
+        setConsentList([]);
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      setError("Không thể tải danh sách thông báo. Vui lòng thử lại sau.");
-      return Promise.reject(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  // Refresh notifications
-  const handleRefresh = async () => {
-    try {
-      // Đặt loading state trước khi fetch
-      setLoading(true);
-      
-      // Gọi API
-      await fetchNotifications();
-      refreshNotifications();
-      
-      // Cập nhật thời gian làm mới
-      const now = new Date();
-      setLastRefreshed(now);
-      
-      // Thông báo thành công
-      toast.info("Đã làm mới danh sách thông báo");
-      
-    } catch (error) {
-      console.error("Error refreshing notifications:", error);
-      toast.error("Không thể làm mới thông báo. Vui lòng thử lại sau.");
-    } finally {
-      // Đảm bảo loading state được tắt
-      setLoading(false);
-    }
-  };
-
-  // Đánh dấu thông báo là đã đọc
-  const markAsRead = (id) => {
-    setNotifications(
-      notifications.map((notification) =>
-        notification.id === id
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-    
-    // Đánh dấu đã đọc trong context
-    markContextAsRead(id);
-    
-    // Đếm lại số thông báo chưa đọc và cập nhật context
-    const updatedUnreadCount = notifications.filter(
-      n => !n.isRead && n.id !== id
-    ).length;
-    updateUnreadCount(updatedUnreadCount);
-  };
-
-  // Đánh dấu tất cả là đã đọc
-  const handleMarkAllAsRead = () => {
-    setNotifications(
-      notifications.map((notification) => ({ ...notification, isRead: true }))
-    );
-    
-    // Đánh dấu tất cả đã đọc trong context
-    markAllContextAsRead();
-    updateUnreadCount(0);
-    
-    toast.success("Đã đánh dấu tất cả thông báo là đã đọc");
-  };
-
-  // Xử lý khi chọn một thông báo
-  const selectNotification = (notification) => {
-    setSelectedNotificationId(notification.id);
-    
-    // Nếu thông báo chưa đọc, đánh dấu đã đọc
-    if (!notification.isRead) {
-      markAsRead(notification.id);
-    }
-    
-    fetchNotificationDetail(notification.id);
-  };
-
-  // Fetch chi tiết thông báo - cập nhật để sử dụng notificationService
-  const fetchNotificationDetail = async (
-    notificationId,
-    parentId = getParentId()
-  ) => {
-    if (!notificationId) return;
-
-    setDetailLoading(true);
-
-    try {
-      const response = await notificationService.getNotificationDetail(
-        notificationId,
+      // Gọi API thực
+      console.log(`🚀 Calling API with parentId: ${parentId}`);
+      const response = await healthCheckupConsentService.getAllConsents(
         parentId
       );
 
-      // Xử lý và tiêu chuẩn hóa dữ liệu để đảm bảo có tất cả trường cần thiết
-      const notificationData = response.data;
-      const standardizedData = {
-        id: notificationData.id,
-        title: notificationData.title || "Không có tiêu đề",
-        message: notificationData.message || "",
-        isRequest: !!notificationData.isRequest,
-        // Xử lý các trường thời gian để đảm bảo nhất quán
-        createdAt:
-          notificationData.createdAt ||
-          notificationData.receivedDate ||
-          new Date().toISOString(),
-        senderName: notificationData.senderName || "Không xác định",
-        response: notificationData.response || "PENDING",
-        responseAt: notificationData.responseAt || null,
-      };
+      // Transform data từ API response thành format cho UI
+      const transformedData = [];
+      console.log("🔄 Transforming API response:", response);
 
-      setCurrentNotification(standardizedData);
-      // markNotificationAsRead(notificationId); // Xóa hoặc thay thế bằng dòng dưới
-      markContextAsRead(notificationId); // Sử dụng đúng tên hàm từ context
-      markAsRead(notificationId);
-    } catch (error) {
-      console.error("Error fetching notification detail:", error);
-      toast.error("Không thể tải chi tiết thông báo. Vui lòng thử lại sau.");
-      setCurrentNotification(null);
-    } finally {
-      setDetailLoading(false);
-    }
-  };
+      if (response?.childrenNotifications) {
+        response.childrenNotifications.forEach((child) => {
+          console.log("👶 Processing child:", {
+            studentId: child.studentId,
+            studentName: child.studentName,
+            studentClass: child.studentClass,
+            type: typeof child.studentId,
+          });
 
-  // Xóa thông báo
-  const deleteNotification = (id) => {
-    setNotifications(
-      notifications.filter((notification) => notification.id !== id)
-    );
-    if (selectedNotificationId === id) {
-      setSelectedNotificationId(null);
-      setCurrentNotification(null);
-    }
-    toast.success("Đã xóa thông báo thành công");
-  };
+          child.notifications.forEach((notification) => {
+            const consentItem = {
+              id: notification.consentId,
+              healthCampaignId: notification.healthCampaignId,
+              campaignTitle: notification.campaignTitle,
+              campaignDescription: notification.campaignDescription,
+              campaignStartDate: notification.campaignStartDate,
+              campaignEndDate: notification.campaignEndDate,
+              campaignStatus: notification.campaignStatus,
+              consentStatus: notification.consentStatus,
+              studentId: child.studentId,
+              studentName: child.studentName,
+              studentClass: child.studentClass,
+              studentAge: child.studentAge,
+              createdAt: notification.createdAt,
+              updatedAt: notification.updatedAt,
+            };
+            transformedData.push(consentItem);
+            console.log("📋 Added consent:", consentItem);
+          });
+        });
+      }
 
-  // Lọc thông báo theo filter và search
-  const filteredNotifications = notifications.filter((notification) => {
-    // Lọc theo unread/all
-    if (filter === "unread" && notification.isRead) {
-      return false;
-    }
+      console.log("✅ Final transformed data:", transformedData);
 
-    // Lọc theo category
-    if (activeCategory !== "all" && notification.category !== activeCategory) {
-      return false;
-    }
-
-    // Lọc theo search query
-    if (searchQuery && searchQuery.trim() !== "") {
-      return notification.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-    }
-
-    return true;
-  });
-
-  // Đếm số thông báo chưa đọc
-  const unreadCount = notifications.filter(
-    (notification) => !notification.isRead
-  ).length;
-
-  // Format date theo kiểu telegram
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-
-    const date = new Date(dateString);
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-    const isYesterday =
-      new Date(now.setDate(now.getDate() - 1)).toDateString() ===
-      date.toDateString();
-
-    const time = date.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-
-    if (isToday) {
-      return time;
-    }
-
-    if (isYesterday) {
-      return `Hôm qua, ${time}`;
-    }
-
-    return `${date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-    })}, ${time}`;
-  };
-
-  // Hiển thị trạng thái thông báo
-  const renderNotificationStatus = () => {
-    if (!currentNotification || !currentNotification.isRequest) return null;
-
-    const responseStatus = currentNotification.response || "PENDING";
-
-    return (
-      <div className="notif-status">
-        <div className="notif-status-container">
-          <strong>Trạng thái:</strong>
-          {responseStatus === "ACCEPTED" ? (
-            <span className="notif-status-badge accepted">
-              <i className="fas fa-check-circle"></i> Đã xác nhận
-            </span>
-          ) : responseStatus === "REJECTED" ? (
-            <span className="notif-status-badge rejected">
-              <i className="fas fa-times-circle"></i> Đã từ chối
-            </span>
-          ) : (
-            <span className="notif-status-badge pending">
-              <i className="fas fa-clock"></i> Chưa phản hồi
-            </span>
-          )}
-        </div>
-
-        {currentNotification.responseAt && (
-          <span className="notif-response-time">
-            <i className="far fa-calendar-check"></i>
-            Phản hồi lúc:{" "}
-            {new Date(currentNotification.responseAt).toLocaleString("vi-VN")}
-          </span>
-        )}
-      </div>
-    );
-  };
-
-  // Hiển thị nút phản hồi cho thông báo yêu cầu
-  const renderResponseButtons = () => {
-    if (!currentNotification) return null;
-
-    // Chỉ hiển thị nút phản hồi khi là request và đang ở trạng thái PENDING
-    if (
-      currentNotification.isRequest === true &&
-      currentNotification.response === "PENDING"
-    ) {
-      return (
-        <div className="notif-response-buttons">
-          <button
-            className="notif-btn notif-btn-primary"
-            onClick={() => handleResponse("ACCEPT")}
-          >
-            <i className="fas fa-check"></i> Xác nhận
-          </button>
-          <button
-            className="notif-btn notif-btn-secondary"
-            onClick={() => handleResponse("REJECT")}
-          >
-            <i className="fas fa-times"></i> Từ chối
-          </button>
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  // Xử lý phản hồi thông báo
-  const handleResponse = async (response) => {
-    if (!currentNotification) return;
-
-    // Kiểm tra xem thông báo có phải là request không
-    if (!currentNotification.isRequest) {
-      console.error("This notification is not a request");
-      toast.error("Không thể phản hồi cho thông báo này");
-      return;
-    }
-
-    const parentId = getParentId();
-    if (!parentId) {
-      console.error("Parent ID is undefined");
-      toast.error("Không thể xác định ID phụ huynh");
-      return;
-    }
-
-    try {
-      // Thêm loading state
-      setDetailLoading(true);
-
-      // Đảm bảo apiResponse là đúng giá trị
-      const apiResponse = response === "ACCEPT" ? "ACCEPTED" : "REJECTED";
-
+      setConsentList(transformedData);
+      setFilteredConsentList(transformedData); // Set initial filtered data
       console.log(
-        `Sending response ${apiResponse} for notification ${currentNotification.id}`
+        "✅ API call successful, loaded",
+        transformedData.length,
+        "notifications"
       );
 
-      // Gọi API phản hồi thông báo
-      const result = await notificationService.respondToNotification(
-        currentNotification.id,
-        parentId,
-        apiResponse
-      );
+      if (transformedData.length === 0) {
+        // Add test data for development/debugging
+        const testData = [
+          {
+            id: "test-1",
+            healthCampaignId: "hc-1",
+            campaignTitle: "Kiểm tra sức khỏe định kỳ tháng 11",
+            campaignDescription: "Kiểm tra sức khỏe tổng quát cho học sinh",
+            campaignStartDate: "2024-11-01",
+            campaignEndDate: "2024-11-30",
+            campaignStatus: "ACTIVE",
+            consentStatus: "PENDING",
+            studentId: "student-1",
+            studentName: "Nguyễn Minh An",
+            studentClass: "1A1",
+            studentAge: 7,
+            academicYear: "2024-2025",
+            createdAt: "2024-11-01T00:00:00Z",
+            updatedAt: "2024-11-01T00:00:00Z",
+          },
+          {
+            id: "test-2",
+            healthCampaignId: "hc-1",
+            campaignTitle: "Kiểm tra sức khỏe định kỳ tháng 11",
+            campaignDescription: "Kiểm tra sức khỏe tổng quát cho học sinh",
+            campaignStartDate: "2024-11-01",
+            campaignEndDate: "2024-11-30",
+            campaignStatus: "ACTIVE",
+            consentStatus: "APPROVED",
+            studentId: "student-2",
+            studentName: "Trần Văn Bình",
+            studentClass: "2B1",
+            studentAge: 8,
+            academicYear: "2024-2025",
+            createdAt: "2024-11-01T00:00:00Z",
+            updatedAt: "2024-11-02T00:00:00Z",
+          },
+          {
+            id: "test-3",
+            healthCampaignId: "hc-2",
+            campaignTitle: "Kiểm tra sức khỏe cuối năm học 2023",
+            campaignDescription: "Kiểm tra sức khỏe cuối năm học",
+            campaignStartDate: "2023-05-01",
+            campaignEndDate: "2023-05-30",
+            campaignStatus: "COMPLETED",
+            consentStatus: "APPROVED",
+            studentId: "student-1",
+            studentName: "Nguyễn Minh An",
+            studentClass: "1A1",
+            studentAge: 7,
+            academicYear: "2022-2023",
+            createdAt: "2023-05-01T00:00:00Z",
+            updatedAt: "2023-05-02T00:00:00Z",
+          },
+        ];
 
-      console.log("API returned successfully:", result);
+        console.log("⚠️ No API data, using test data:", testData);
+        setConsentList(testData);
+        setFilteredConsentList(testData);
 
-      // Tái fetch cả chi tiết thông báo để đồng bộ dữ liệu
-      await fetchNotificationDetail(currentNotification.id, parentId);
-
-      // Cập nhật lại danh sách thông báo
-      await fetchNotifications();
-
-      // Thông báo thành công
-      toast.success(
-        response === "ACCEPT"
-          ? "Đã xác nhận thành công"
-          : "Đã từ chối thành công"
-      );
+        toast.info(
+          "Hiện tại không có thông báo kiểm tra sức khỏe nào (Đang hiển thị dữ liệu test)",
+          {
+            position: "top-center",
+            autoClose: 3000,
+          }
+        );
+        setLoading(false);
+        return;
+      }
     } catch (error) {
-      console.error("Error responding to notification:", error);
-      toast.error(
-        `Không thể xử lý phản hồi: ${error.message || "Lỗi không xác định"}`
-      );
+      console.error("❌ Error loading health checkup list:", error);
+      toast.error("Lỗi khi tải danh sách thông báo: " + error.message, {
+        position: "top-center",
+        autoClose: 5000,
+      });
+      setConsentList([]);
+      setFilteredConsentList([]);
     } finally {
-      setDetailLoading(false);
+      setLoading(false);
     }
   };
 
-  // Hiển thị icon cho danh mục thông báo
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case "health":
-        return <i className="fas fa-heartbeat category-icon health"></i>;
-      case "medicine":
-        return <i className="fas fa-pills category-icon medicine"></i>;
-      case "vaccine":
-        return <i className="fas fa-syringe category-icon vaccine"></i>;
-      case "warning":
+  // Xử lý click vào một consent item
+  const handleConsentClick = (consentId) => {
+    setSelectedConsentId(consentId);
+    setIsModalOpen(true);
+  };
+
+  // Đóng modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedConsentId(null);
+  };
+
+  // Callback khi consent được cập nhật
+  const handleConsentUpdated = () => {
+    // Simulate updating the consent status in the list
+    const updatedList = consentList.map((consent) =>
+      consent.id === selectedConsentId
+        ? { ...consent, consentStatus: "APPROVED" }
+        : consent
+    );
+    setConsentList(updatedList);
+
+    // Cập nhật filteredConsentList sẽ được tự động xử lý bởi useEffect
+    toast.info("Danh sách đã được cập nhật");
+  };
+
+  // Render status badge cho consentStatus mới
+  const renderStatusBadge = (consentStatus) => {
+    switch (consentStatus) {
+      case "PENDING":
         return (
-          <i className="fas fa-exclamation-triangle category-icon warning"></i>
+          <div className="consent-status-badge pending">
+            <i className="fas fa-clock"></i>
+            Chờ phản hồi
+          </div>
+        );
+      case "APPROVED":
+        return (
+          <div className="consent-status-badge confirmed">
+            <i className="fas fa-check-circle"></i>
+            Đồng ý
+          </div>
+        );
+      case "REJECTED":
+        return (
+          <div className="consent-status-badge rejected">
+            <i className="fas fa-times-circle"></i>
+            Từ chối
+          </div>
         );
       default:
-        return <i className="fas fa-bell category-icon general"></i>;
+        return (
+          <div className="consent-status-badge unknown">
+            <i className="fas fa-question-circle"></i>
+            Chưa rõ
+          </div>
+        );
     }
   };
 
-  // Helper function để xác định category dựa vào nội dung thông báo
-  const getNotificationCategory = (notification) => {
-    const title = notification.title?.toLowerCase() || '';
-    const message = notification.message?.toLowerCase() || '';
-    
-    if (title.includes('vắc-xin') || title.includes('tiêm chủng') || 
-        message.includes('vắc-xin') || message.includes('tiêm chủng')) {
-      return 'vaccine';
-    }
-    
-    if (title.includes('thuốc') || title.includes('uống thuốc') || 
-        message.includes('thuốc') || message.includes('uống thuốc')) {
-      return 'medicine';
-    }
-    
-    if (title.includes('cảnh báo') || title.includes('khẩn cấp') || 
-        message.includes('cảnh báo') || message.includes('khẩn cấp')) {
-      return 'warning';
-    }
-    
-    if (title.includes('sức khỏe') || title.includes('bệnh') || 
-        message.includes('sức khỏe') || message.includes('bệnh')) {
-      return 'health';
-    }
-    
-    return 'general';
-  };
+  // Render bộ lọc cho kiểm tra sức khỏe
+  const renderFilterControls = () => {
+    const uniqueStudents = getUniqueStudents();
+    const uniqueAcademicYears = getUniqueAcademicYears();
+    const activeFilters = getActiveFilterCount();
 
-  // Thêm useEffect này để đảm bảo dữ liệu được tải nếu component đã mount nhưng parentId thay đổi sau đó
-  useEffect(() => {
-    const pid = getParentId();
-    if (pid && notifications.length === 0 && !loading) {
-      console.log("Component mounted but no notifications loaded yet. Loading now...");
-      fetchNotifications(pid);
-    }
-  }, [notifications.length, loading]);
-
-  // Thêm useEffect để đảm bảo selectedNotificationId luôn có giá trị
-  useEffect(() => {
-    if (notifications.length > 0 && (!selectedNotificationId || 
-        !notifications.some(n => n.id === selectedNotificationId))) {
-      console.log("Setting initial selected notification");
-      setSelectedNotificationId(notifications[0].id);
-      fetchNotificationDetail(notifications[0].id);
-    }
-  }, [notifications]);
-
-  // Thêm useEffect này để theo dõi khi người dùng rời khỏi trang thông báo
-  useEffect(() => {
-    return () => {
-      // Hàm cleanup - chạy khi component unmount (rời khỏi trang)
-      if (notifications.some(n => !n.isRead)) {
-        console.log("Leaving notifications page - marking all as read");
-        
-        // Đánh dấu tất cả là đã đọc trong local state
-        const updatedNotifications = notifications.map(n => ({...n, isRead: true}));
-        setNotifications(updatedNotifications);
-        
-        // Đánh dấu tất cả đã đọc trong context
-        markAllContextAsRead();
-        updateUnreadCount(0);
-        
-        // Không cần hiển thị toast khi tự động đánh dấu đã đọc
-      }
-    };
-  }, [notifications, markAllContextAsRead, updateUnreadCount]);
-
-  return (
-    <div className="notif-container">
-      <div className="notif-header">
-        <h1 className="notif-header-title">
-          <i className="fas fa-bell-slash"></i> Thông báo
-        </h1>
-        {unreadCount > 0 && (
-          <div className="notif-unread-badge">{unreadCount}</div>
-        )}
-      </div>
-
-      <div className="notif-layout">
-        <div className="notif-sidebar">
-          <div className="notif-search">
-            <div className="notif-search-container">
-              <i className="fas fa-search notif-search-icon"></i>
-              <input
-                type="text"
-                className="notif-search-input"
-                placeholder="Tìm kiếm thông báo..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button
-                  className="notif-search-clear"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <i className="fas fa-times"></i>
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="notif-filters">
-            <button
-              className={`notif-filter-btn ${filter === "all" ? "active" : ""}`}
-              onClick={() => setFilter("all")}
-            >
-              <i className="fas fa-list-ul"></i> Tất cả
-            </button>
-            <button
-              className={`notif-filter-btn ${
-                filter === "unread" ? "active" : ""
-              }`}
-              onClick={() => setFilter("unread")}
-            >
-              <i className="fas fa-envelope"></i> Chưa đọc
-              {unreadCount > 0 && (
-                <span className="notif-filter-badge">{unreadCount}</span>
-              )}
-            </button>
-          </div>
-
-          <div className="notif-categories">
-            <button
-              className={`notif-category-btn ${
-                activeCategory === "all" ? "active" : ""
-              }`}
-              onClick={() => setActiveCategory("all")}
-            >
-              <i className="fas fa-th-large"></i> Tất cả
-            </button>
-            <button
-              className={`notif-category-btn ${
-                activeCategory === "health" ? "active" : ""
-              }`}
-              onClick={() => setActiveCategory("health")}
-            >
-              <i className="fas fa-heartbeat"></i> Sức khỏe
-            </button>
-            <button
-              className={`notif-category-btn ${
-                activeCategory === "medicine" ? "active" : ""
-              }`}
-              onClick={() => setActiveCategory("medicine")}
-            >
-              <i className="fas fa-pills"></i> Thuốc
-            </button>
-            <button
-              className={`notif-category-btn ${
-                activeCategory === "vaccine" ? "active" : ""
-              }`}
-              onClick={() => setActiveCategory("vaccine")}
-            >
-              <i className="fas fa-syringe"></i> Vắc-xin
-            </button>
-            <button
-              className={`notif-category-btn ${
-                activeCategory === "warning" ? "active" : ""
-              }`}
-              onClick={() => setActiveCategory("warning")}
-            >
-              <i className="fas fa-exclamation-triangle"></i> Cảnh báo
-            </button>
-          </div>
-
-          <div className="notif-list">
-            {loading ? (
-              <div className="notif-loading">
-                <LoadingSpinner text="Đang tải thông báo..." />
-              </div>
-            ) : error ? (
-              <div className="notif-error">
-                <i className="fas fa-exclamation-circle"></i>
-                <p>{error}</p>
-                <button
-                  onClick={fetchNotifications}
-                  className="notif-retry-btn"
-                >
-                  <i className="fas fa-redo"></i> Thử lại
-                </button>
-              </div>
-            ) : filteredNotifications.length > 0 ? (
-              // Hiển thị danh sách thông báo
-              filteredNotifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`notif-item ${
-                    !notification.isRead ? "unread" : ""
-                  } ${
-                    selectedNotificationId === notification.id ? "selected" : ""
-                  } category-${notification.category}`}
-                  onClick={() => selectNotification(notification)}
-                >
-                  <div className="notif-avatar">
-                    {getCategoryIcon(notification.category)}
-                  </div>
-                  <div className="notif-item-content">
-                    <div className="notif-item-header">
-                      <h4 className="notif-item-title">{notification.title}</h4>
-                      <span className="notif-item-time">
-                        {formatDate(notification.receivedDate)}
-                      </span>
-                    </div>
-                    <div className="notif-item-preview">
-                      {!notification.isRead && (
-                        <span className="notif-item-unread-dot"></span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="notif-empty">
-                <i className="fas fa-bell-slash"></i>
-                <p>
-                  {notifications.length === 0
-                    ? "Không có thông báo nào"
-                    : "Không có thông báo nào phù hợp với bộ lọc"}
-                </p>
-                {(searchQuery ||
-                  filter !== "all" ||
-                  activeCategory !== "all") && (
-                  <button
-                    className="notif-empty-btn"
-                    onClick={() => {
-                      setFilter("all");
-                      setSearchQuery("");
-                      setActiveCategory("all");
-                    }}
-                  >
-                    <i className="fas fa-times-circle"></i> Xóa bộ lọc
-                  </button>
-                )}
-              </div>
+    return (
+      <div className="filter-controls">
+        <div className="filter-header">
+          <h3>
+            <i className="fas fa-filter"></i>
+            Bộ lọc
+            {activeFilters > 0 && (
+              <span className="filter-count">({activeFilters})</span>
             )}
-          </div>
-
-          <div className="notif-actions">
+          </h3>
+          {activeFilters > 0 && (
             <button
-              className="notif-action-btn"
-              onClick={handleMarkAllAsRead}
-              title="Đánh dấu tất cả là đã đọc"
-              disabled={notifications.every((n) => n.isRead)}
+              className="clear-filters-btn"
+              onClick={clearAllFilters}
+              title="Xóa tất cả bộ lọc"
             >
-              <i className="fas fa-check-double"></i>
+              <i className="fas fa-times"></i>
+              Xóa tất cả
             </button>
-            <button
-              className="notif-action-btn"
-              onClick={handleRefresh}
-              title="Làm mới thông báo"
-            >
-              <i className="fas fa-sync-alt"></i>
-            </button>
-          </div>
-        </div>
-
-        <div className="notif-content" ref={notificationContentRef}>
-          {detailLoading ? (
-            <div className="notif-loading">
-              <LoadingSpinner text="Đang tải chi tiết..." />
-            </div>
-          ) : currentNotification ? (
-            <div className="notif-message">
-              <div className="notif-message-header">
-                <div className="notif-message-info">
-                  <h3 className="notif-message-title">
-                    {currentNotification?.title}
-                  </h3>
-                  <span className="notif-message-date">
-                    <i className="far fa-calendar-alt"></i>
-                    {new Date(
-                      currentNotification?.createdAt || new Date()
-                    ).toLocaleString("vi-VN", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
-                <div className="notif-message-actions">
-                  <button
-                    className="notif-message-btn"
-                    onClick={() => deleteNotification(currentNotification.id)}
-                    title="Xóa thông báo"
-                  >
-                    <i className="fas fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div className="notif-message-body">
-                <div className="notif-message-bubble">
-                  <div className="notif-sender">
-                    <i className="fas fa-user-md"></i>
-                    <strong>
-                      Từ: {currentNotification?.senderName || "Không xác định"}
-                    </strong>
-                  </div>
-
-                  <div className="notif-message-content">
-                    <ReactMarkdown>
-                      {currentNotification?.message || ""}
-                    </ReactMarkdown>
-                  </div>
-
-                  {/* Hiển thị trạng thái thông báo */}
-                  {renderNotificationStatus()}
-
-                  {/* Hiển thị nút phản hồi */}
-                  {renderResponseButtons()}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="notif-content-empty">
-              <div className="notif-content-empty-icon">
-                <i className="far fa-comment-dots"></i>
-              </div>
-              <h3>Chọn một thông báo để xem chi tiết</h3>
-              <p>Hoặc kiểm tra các thông báo mới trong danh sách bên trái</p>
-            </div>
           )}
         </div>
+
+        <div className="filter-row">
+          {/* Lọc theo năm học */}
+          <div className="filter-group">
+            <label>
+              <i className="fas fa-calendar-alt"></i>
+              Năm học
+            </label>
+            <select
+              value={filters.academicYear}
+              onChange={(e) =>
+                handleFilterChange("academicYear", e.target.value)
+              }
+              className="filter-select"
+            >
+              <option value="">Tất cả năm học</option>
+              {uniqueAcademicYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Lọc theo học sinh */}
+          <div className="filter-group">
+            <label>
+              <i className="fas fa-user-graduate"></i>
+              Học sinh
+            </label>
+            <select
+              value={filters.studentId}
+              onChange={(e) => handleFilterChange("studentId", e.target.value)}
+              className="filter-select"
+            >
+              <option value="">Tất cả học sinh</option>
+              {uniqueStudents.map((student) => (
+                <option key={student.id} value={student.id}>
+                  {student.name} ({student.class})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Lọc theo trạng thái phản hồi */}
+          <div className="filter-group">
+            <label>
+              <i className="fas fa-check-circle"></i>
+              Trạng thái phản hồi
+            </label>
+            <select
+              value={filters.consentStatus}
+              onChange={(e) =>
+                handleFilterChange("consentStatus", e.target.value)
+              }
+              className="filter-select"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="PENDING">Chờ phản hồi</option>
+              <option value="APPROVED">Đã đồng ý</option>
+              <option value="REJECTED">Đã từ chối</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Hiển thị số kết quả */}
+        <div className="filter-results">
+          <span className="result-count">
+            <i className="fas fa-list"></i>
+            Hiển thị {filteredConsentList.length} / {consentList.length} thông
+            báo
+          </span>
+
+          {/* Debug button */}
+          <button
+            className="debug-btn"
+            onClick={() => {
+              console.log("🐛 DEBUG INFO:");
+              console.log("📊 Current filters:", filters);
+              console.log("📋 Original data:", consentList);
+              console.log("🎯 Filtered data:", filteredConsentList);
+              console.log("👥 Unique students:", getUniqueStudents());
+              console.log(
+                "📅 Unique academic years:",
+                getUniqueAcademicYears()
+              );
+              alert("Debug info printed to console. Check F12 -> Console tab");
+            }}
+            style={{
+              padding: "6px 12px",
+              background: "#6366f1",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              fontSize: "0.8rem",
+              cursor: "pointer",
+            }}
+          >
+            🐛 Debug
+          </button>
+        </div>
       </div>
+    );
+  };
+
+  // Render tab buttons
+  const renderTabButtons = () => (
+    <div className="notification-tabs">
+      <button
+        className={`tab-button ${
+          activeTab === "health-checkup" ? "active" : ""
+        }`}
+        onClick={() => setActiveTab("health-checkup")}
+      >
+        <i className="fas fa-stethoscope"></i>
+        Kiểm tra sức khỏe định kỳ
+      </button>
+      <button
+        className={`tab-button ${activeTab === "vaccination" ? "active" : ""}`}
+        onClick={() => setActiveTab("vaccination")}
+        disabled
+      >
+        <i className="fas fa-syringe"></i>
+        Thông báo tiêm chủng
+        <span className="coming-soon">(Sắp có)</span>
+      </button>
+      <button
+        className={`tab-button ${activeTab === "others" ? "active" : ""}`}
+        onClick={() => setActiveTab("others")}
+        disabled
+      >
+        <i className="fas fa-bell"></i>
+        Thông báo khác
+        <span className="coming-soon">(Sắp có)</span>
+      </button>
+    </div>
+  );
+
+  // Render nội dung kiểm tra sức khỏe định kỳ
+  const renderHealthCheckupContent = () => {
+    if (loading) {
+      return <LoadingSpinner />;
+    }
+
+    return (
+      <div className="health-checkup-content">
+        {/* Hiển thị bộ lọc nếu có dữ liệu */}
+        {consentList.length > 0 && renderFilterControls()}
+
+        {/* Hiển thị danh sách hoặc thông báo không có dữ liệu */}
+        {consentList.length === 0 ? (
+          <div className="no-data">
+            <i className="fas fa-info-circle"></i>
+            <p>Không có thông báo kiểm tra sức khỏe nào</p>
+          </div>
+        ) : filteredConsentList.length === 0 ? (
+          <div className="no-filtered-data">
+            <i className="fas fa-search"></i>
+            <p>Không tìm thấy thông báo nào phù hợp với bộ lọc hiện tại</p>
+            <button className="reset-filters-btn" onClick={clearAllFilters}>
+              <i className="fas fa-refresh"></i>
+              Đặt lại bộ lọc
+            </button>
+          </div>
+        ) : (
+          <div className="consent-list">
+            {filteredConsentList.map((consent) => (
+              <div
+                key={consent.id}
+                className="consent-item"
+                onClick={() => handleConsentClick(consent.id)}
+              >
+                <div className="consent-item-content">
+                  <div className="consent-item-title">
+                    {consent.campaignTitle}
+                  </div>
+                  <div className="consent-item-meta">
+                    Học sinh: {consent.studentName} ({consent.studentClass}){" "}
+                    <br />
+                    Thời gian:{" "}
+                    {new Date(consent.campaignStartDate).toLocaleDateString(
+                      "vi-VN"
+                    )}{" "}
+                    -{" "}
+                    {new Date(consent.campaignEndDate).toLocaleDateString(
+                      "vi-VN"
+                    )}
+                  </div>
+                </div>
+                {renderStatusBadge(consent.consentStatus)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render nội dung tab hiện tại
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "health-checkup":
+        return renderHealthCheckupContent();
+      case "vaccination":
+        return (
+          <div className="coming-soon-content">
+            <i className="fas fa-syringe"></i>
+            <h3>Thông báo tiêm chủng</h3>
+            <p>Tính năng này sẽ được cập nhật sớm</p>
+          </div>
+        );
+      case "others":
+        return (
+          <div className="coming-soon-content">
+            <i className="fas fa-bell"></i>
+            <h3>Thông báo khác</h3>
+            <p>Tính năng này sẽ được cập nhật sớm</p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="notifications-container">
+      {/* API Test Component with Context */}
+      <TestAPIWithContext />
+
+      <div className="notifications-header">
+        <div className="header-title">
+          <h1>
+            <i className="fas fa-bell"></i>
+            Thông báo
+          </h1>
+          <p>Quản lý các thông báo và yêu cầu từ nhà trường</p>
+        </div>
+      </div>
+
+      <div className="notifications-content">
+        {renderTabButtons()}
+        <div className="tab-content">{renderTabContent()}</div>
+      </div>
+
+      {/* Modal chi tiết consent */}
+      <ConsentDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        consentId={selectedConsentId}
+        onConsentUpdated={handleConsentUpdated}
+      />
+
+      {/* Debug component for parent notes */}
+      <DebugParentNotes />
     </div>
   );
 };

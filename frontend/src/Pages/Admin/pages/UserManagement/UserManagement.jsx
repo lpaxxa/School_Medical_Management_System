@@ -14,6 +14,8 @@ import {
 import axios from "axios";
 import UserTable from "./components/UserTable";
 import UserModal from "./components/UserModal";
+import SuccessModal from "../../components/SuccessModal";
+import { useSuccessModal } from "../../hooks/useSuccessModal";
 import { useAuth } from "../../../../context/AuthContext";
 import {
   getAllUsers,
@@ -29,6 +31,14 @@ import "./UserManagement.css";
 
 const UserManagement = () => {
   const { currentUser } = useAuth(); // Lấy thông tin user hiện tại
+
+  // Success modal hook
+  const {
+    isOpen: isSuccessOpen,
+    modalData: successData,
+    showSuccess,
+    hideSuccess,
+  } = useSuccessModal();
 
   // State cho dữ liệu người dùng
   const [users, setUsers] = useState([]);
@@ -349,7 +359,13 @@ const UserManagement = () => {
         const apiData = transformUserToAPI(userData);
         console.log("Add mode - API data:", apiData);
         await createUser(apiData);
-        alert("Thêm người dùng thành công!");
+        showSuccess(
+          "Thêm người dùng thành công!",
+          "Người dùng mới đã được tạo trong hệ thống.",
+          `Tài khoản "${userData.username}" với vai trò "${getRoleDisplayName(
+            userData.role
+          )}" đã được thêm.`
+        );
       } else if (modalMode === "edit") {
         console.log("Edit mode - updating user with ID:", userData.id);
         // Cho edit mode, gửi tất cả các fields bao gồm cả role-specific fields
@@ -372,7 +388,11 @@ const UserManagement = () => {
 
         console.log("Edit mode - sending data:", editData);
         await updateUser(userData.id, editData);
-        alert("Cập nhật người dùng thành công!");
+        showSuccess(
+          "Cập nhật người dùng thành công!",
+          "Thông tin người dùng đã được cập nhật.",
+          `Tài khoản "${userData.username}" đã được cập nhật thông tin mới.`
+        );
       }
 
       await loadUsers(); // Reload data sau khi save
@@ -455,7 +475,11 @@ const UserManagement = () => {
           )
         );
 
-        alert(`✅ Gửi email thành công cho ${user.username}!`);
+        showSuccess(
+          "Gửi email thành công!",
+          "Email thông tin tài khoản đã được gửi.",
+          `Email đã được gửi đến ${user.email} cho tài khoản "${user.username}".`
+        );
       }
     } catch (error) {
       console.error("Error sending email:", error);
@@ -762,6 +786,17 @@ const UserManagement = () => {
           getRoleDisplayName={getRoleDisplayName}
         />
       )}
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={isSuccessOpen}
+        onClose={hideSuccess}
+        title={successData.title}
+        message={successData.message}
+        details={successData.details}
+        autoClose={successData.autoClose}
+        autoCloseDelay={successData.autoCloseDelay}
+      />
     </div>
   );
 };

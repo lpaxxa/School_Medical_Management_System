@@ -1,0 +1,554 @@
+/* MODERN NOTIFICATIONS WITH TABS DESIGN */
+
+:root {
+  /* Colors */
+  --primary-blue: #015C92;
+  --primary-light: #2D82B5;
+  --primary-lighter: #428CD4;
+  --primary-lightest: #88CDF6;
+  --primary-dark: #015C92;
+  
+  /* Status Colors */
+  --status-pending: #f59e0b;
+  --status-pending-light: #fef3c7;
+  --status-accepted: #428CD4;
+  --status-accepted-light: #e1f2ff;
+  --status-rejected: #ef4444;
+  --status-rejected-light: #fee2e2;
+  
+  /* Category Colors */
+  --category-health: #428CD4;
+  --category-medicine: #2D82B5;
+  --category-vaccine: #88CDF6;
+  --category-warning: #f43f5e;
+  
+  /* Neutrals */
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05);
+  --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.05);
+
+  /* Typography */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Reset & Base */
+.notifications-container * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Container */
+.notifications-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--gray-50) 0%, #ffffff 100%);
+  font-family: var(--font-sans);
+  padding: 20px;
+}
+
+/* Header */
+.notifications-header {
+  margin-bottom: 30px;
+}
+
+.header-title h1 {
+  font-size: 2.5rem;
+  color: var(--primary-blue);
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-title h1 i {
+  font-size: 2.2rem;
+}
+
+.header-title p {
+  color: var(--gray-600);
+  font-size: 1.1rem;
+  margin-left: 60px;
+}
+
+/* Tabs */
+.notification-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--gray-100);
+  padding: 6px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: var(--shadow-inner);
+}
+
+.tab-button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 15px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+}
+
+.tab-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--primary-blue);
+}
+
+.tab-button.active {
+  background: white;
+  color: var(--primary-blue);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tab-button .coming-soon {
+  font-size: 0.75rem;
+  background: var(--gray-300);
+  color: var(--gray-600);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+/* Content */
+.notifications-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.tab-content {
+  min-height: 600px;
+}
+
+/* Health Checkup Content */
+.health-checkup-content {
+  padding: 30px;
+}
+
+.campaign-info {
+  background: linear-gradient(135deg, var(--primary-lightest) 0%, var(--primary-lighter) 100%);
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 30px;
+  color: white;
+}
+
+.campaign-header {
+  margin-bottom: 15px;
+}
+
+.campaign-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.student-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  opacity: 0.95;
+}
+
+.student-info i {
+  font-size: 1.1rem;
+}
+
+.campaign-description {
+  margin-bottom: 20px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+.consent-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.consent-status.pending {
+  background: rgba(245, 158, 11, 0.2);
+  color: #92400e;
+  border: 2px solid rgba(245, 158, 11, 0.3);
+}
+
+.consent-status.confirmed {
+  background: rgba(34, 197, 94, 0.2);
+  color: #166534;
+  border: 2px solid rgba(34, 197, 94, 0.3);
+}
+
+/* Consent Form */
+.consent-form {
+  background: var(--gray-50);
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+}
+
+.consent-form h3 {
+  font-size: 1.4rem;
+  color: var(--gray-800);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.form-description {
+  color: var(--gray-600);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.checkup-items {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.checkup-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid var(--gray-200);
+}
+
+.checkup-item:hover {
+  border-color: var(--primary-lighter);
+  box-shadow: var(--shadow-sm);
+}
+
+.checkup-item input[type="checkbox"] {
+  display: none;
+}
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gray-300);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.checkup-item input[type="checkbox"]:checked + .checkmark {
+  background: var(--primary-blue);
+  border-color: var(--primary-blue);
+}
+
+.checkup-item input[type="checkbox"]:checked + .checkmark::after {
+  content: '✓';
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.item-text {
+  font-size: 1rem;
+  color: var(--gray-700);
+  font-weight: 500;
+}
+
+.parent-notes {
+  margin-bottom: 25px;
+}
+
+.parent-notes label {
+  display: block;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 8px;
+}
+
+.parent-notes textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.parent-notes textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(1, 92, 146, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submit-btn {
+  background: var(--primary-blue);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Confirmed Info */
+.confirmed-info {
+  background: var(--status-accepted-light);
+  border-radius: 12px;
+  padding: 25px;
+  border: 2px solid var(--status-accepted);
+}
+
+.confirmed-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.confirmed-header i {
+  font-size: 1.5rem;
+  color: var(--status-accepted);
+}
+
+.confirmed-header h3 {
+  font-size: 1.4rem;
+  color: var(--status-accepted);
+  font-weight: 600;
+}
+
+.selected-items h4 {
+  font-size: 1.1rem;
+  color: var(--gray-800);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.selected-items ul {
+  list-style: none;
+  padding: 0;
+}
+
+.selected-items li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  color: var(--gray-700);
+}
+
+.selected-items li i {
+  color: var(--status-accepted);
+  font-size: 0.9rem;
+}
+
+.parent-notes-display {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.parent-notes-display h4 {
+  font-size: 1.1rem;
+  color: var(--gray-800);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.parent-notes-display p {
+  color: var(--gray-700);
+  line-height: 1.6;
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid var(--status-accepted);
+}
+
+/* Coming Soon Content */
+.coming-soon-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 30px;
+  text-align: center;
+  color: var(--gray-500);
+}
+
+.coming-soon-content i {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.coming-soon-content h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: var(--gray-600);
+}
+
+.coming-soon-content p {
+  font-size: 1.1rem;
+}
+
+/* No Data */
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 30px;
+  text-align: center;
+  color: var(--gray-500);
+}
+
+.no-data i {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  opacity: 0.6;
+}
+
+.no-data p {
+  font-size: 1.1rem;
+  color: var(--gray-600);
+}
+
+/* Loading Spinner */
+.notifications-container .spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .notifications-container {
+    padding: 15px;
+  }
+  
+  .header-title h1 {
+    font-size: 2rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .header-title p {
+    margin-left: 0;
+  }
+  
+  .notification-tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .tab-button {
+    justify-content: flex-start;
+  }
+  
+  .health-checkup-content {
+    padding: 20px;
+  }
+  
+  .campaign-info {
+    padding: 20px;
+  }
+  
+  .consent-form {
+    padding: 20px;
+  }
+  
+  .checkup-items {
+    gap: 8px;
+  }
+  
+  .checkup-item {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notifications-container {
+    padding: 10px;
+  }
+  
+  .header-title h1 {
+    font-size: 1.8rem;
+  }
+  
+  .tab-button {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+  }
+  
+  .campaign-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

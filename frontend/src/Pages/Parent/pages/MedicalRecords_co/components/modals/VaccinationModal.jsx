@@ -8,26 +8,19 @@ import {
   FaMapMarkerAlt,
   FaUserMd,
   FaClipboardList,
-  FaCalendarCheck,
-  FaStickyNote,
   FaIdCard,
-  FaGraduationCap,
+  FaSchool,
   FaShieldAlt,
   FaInfoCircle,
   FaSpinner,
-  FaAward,
-  FaHeartbeat,
   FaCheckCircle,
-  FaCertificate,
   FaVial,
   FaUser,
-  FaSchool,
-  FaMedal,
   FaBell,
   FaCalendarPlus,
+  FaStickyNote,
 } from "react-icons/fa";
 import { formatDate, formatDateTime } from "../../utils/formatters";
-import { modalClasses } from "../../utils/helpers";
 
 const VaccinationModal = ({
   isOpen,
@@ -38,393 +31,263 @@ const VaccinationModal = ({
 }) => {
   if (!isOpen) return null;
 
-  // Debug log
-  console.log("🔍 VaccinationModal render with props:", {
-    isOpen,
-    isLoading,
-    error,
-    vaccinationDetail,
-    vaccinationDetailType: typeof vaccinationDetail,
-    vaccinationDetailKeys: vaccinationDetail
-      ? Object.keys(vaccinationDetail)
-      : null,
-  });
-
-  const {
-    modalOverlayClass,
-    modalContentClass,
-    modalHeaderClass,
-    modalBodyClass,
-    closeModalBtnClass,
-  } = modalClasses;
-
   const getDoseStatus = (doseNumber) => {
-    if (!doseNumber)
-      return {
-        status: "Chưa xác định",
-        color: "#6b7280",
-        bgColor: "linear-gradient(135deg, #f3f4f6, #e5e7eb)",
-        icon: "❓",
-      };
+    if (!doseNumber) return { status: "Chưa xác định", type: "info" };
     const dose = parseInt(doseNumber);
-    if (dose === 1)
-      return {
-        status: "Mũi cơ bản",
-        color: "#3b82f6",
-        bgColor: "linear-gradient(135deg, #dbeafe, #bfdbfe)",
-        icon: "🛡️",
-      };
-    if (dose <= 3)
-      return {
-        status: "Mũi nhắc lại",
-        color: "#10b981",
-        bgColor: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
-        icon: "🔄",
-      };
-    return {
-      status: "Mũi bổ sung",
-      color: "#f59e0b",
-      bgColor: "linear-gradient(135deg, #fef3c7, #fde68a)",
-      icon: "➕",
-    };
-  };
-
-  const getVaccineTypeColor = (vaccineName) => {
-    if (!vaccineName) return "#6b7280";
-    const name = vaccineName.toLowerCase();
-    if (name.includes("covid")) return "#ef4444";
-    if (name.includes("cúm")) return "#3b82f6";
-    if (name.includes("viêm gan")) return "#f59e0b";
-    if (name.includes("bạch hầu")) return "#8b5cf6";
-    return "#10b981";
+    if (dose === 1) return { status: "Mũi cơ bản", type: "success" };
+    if (dose <= 3) return { status: "Mũi nhắc lại", type: "info" };
+    return { status: "Mũi bổ sung", type: "warning" };
   };
 
   return (
     <div className="modern-modal-overlay" onClick={onClose}>
       <div
-        className="modern-modal-content vaccination-modal"
+        className="modern-modal-content"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Enhanced Header */}
+        {/* Simple Modern Header */}
         <div className="modern-modal-header">
-          <div className="modal-header-main">
-            <div className="header-icon-container vaccination-header">
-              <FaSyringe className="header-main-icon" />
-              <div className="icon-pulse vaccination-pulse"></div>
+          <div className="modal-header-content">
+            <div className="modal-header-left">
+              <div className="modal-header-icon">
+                <FaSyringe />
+              </div>
+              <div className="modal-header-text">
+                <h2>Chi tiết tiêm chủng</h2>
+                <p>Thông tin chi tiết về vắc xin đã tiêm</p>
+              </div>
             </div>
-            <div className="header-content">
-              <h2>Chi tiết tiêm chủng</h2>
-              <p className="header-subtitle">
-                <FaShieldAlt /> Thông tin chi tiết về vắc xin đã tiêm
-              </p>
-            </div>
+            <button className="modal-close-btn" onClick={onClose}>
+              <FaTimes />
+            </button>
           </div>
-          <button className="modern-close-btn" onClick={onClose}>
-            <FaTimes />
-            <span className="close-btn-tooltip">Đóng</span>
-          </button>
         </div>
 
-        {/* Enhanced Body */}
+        {/* Simple Modern Body */}
         <div className="modern-modal-body">
           {isLoading ? (
-            <div className="modern-loading-state">
-              <div className="loading-icon-wrapper">
-                <FaSpinner className="loading-icon spinning" />
-                <div className="loading-pulse"></div>
-              </div>
-              <div className="loading-content">
-                <h3>Đang tải thông tin...</h3>
-                <p>Vui lòng chờ trong giây lát</p>
-              </div>
+            <div className="modal-loading">
+              <div className="modal-loading-spinner"></div>
+              <h3>Đang tải thông tin...</h3>
+              <p>Vui lòng chờ trong giây lát</p>
             </div>
           ) : error ? (
-            <div className="modern-error-state">
-              <div className="error-icon-wrapper">
-                <FaExclamationCircle className="error-icon" />
-              </div>
-              <div className="error-content">
-                <h3>Lỗi tải dữ liệu</h3>
-                <p>{error}</p>
-                <button
-                  className="retry-btn-modern"
-                  onClick={() => window.location.reload()}
-                >
-                  <FaSpinner />
-                  Thử lại
-                </button>
-              </div>
+            <div className="modal-error">
+              <FaExclamationCircle className="modal-error-icon" />
+              <h3>Lỗi tải dữ liệu</h3>
+              <p>{error}</p>
+              <button
+                className="modal-error-btn"
+                onClick={() => window.location.reload()}
+              >
+                <FaSpinner />
+                Thử lại
+              </button>
             </div>
           ) : vaccinationDetail ? (
-            <div className="vaccination-detail-content-modern">
+            <>
               {/* Student Information */}
-              <div className="modern-section">
-                <div className="section-header-modern">
-                  <div className="section-icon-wrapper">
-                    <FaUser />
-                  </div>
-                  <h3>Thông tin học sinh</h3>
-                </div>
-
-                <div className="student-info-modern-grid">
-                  <div className="modern-student-card name">
-                    <div className="student-card-icon">
-                      <FaUserGraduate />
+              <div className="modal-section">
+                <h3 className="section-title">
+                  <FaUser />
+                  Thông tin học sinh
+                </h3>
+                <div className="info-cards-grid">
+                  <div className="info-card-simple">
+                    <div className="info-card-header">
+                      <FaUserGraduate className="info-card-icon" />
+                      <span className="info-card-label">Họ tên</span>
                     </div>
-                    <div className="student-card-content">
-                      <span className="student-card-label">Họ tên</span>
-                      <span className="student-card-value">
-                        {vaccinationDetail.studentName || "Không có thông tin"}
-                      </span>
+                    <div className="info-card-value">
+                      {vaccinationDetail.studentName || "Không có thông tin"}
                     </div>
-                    <div className="student-card-decoration"></div>
                   </div>
 
-                  <div className="modern-student-card id">
-                    <div className="student-card-icon">
-                      <FaIdCard />
+                  <div className="info-card-simple">
+                    <div className="info-card-header">
+                      <FaIdCard className="info-card-icon" />
+                      <span className="info-card-label">Mã học sinh</span>
                     </div>
-                    <div className="student-card-content">
-                      <span className="student-card-label">Mã học sinh</span>
-                      <span className="student-card-value">
-                        {vaccinationDetail.studentId || "Không có thông tin"}
-                      </span>
+                    <div className="info-card-value">
+                      {vaccinationDetail.studentId || "Không có thông tin"}
                     </div>
-                    <div className="student-card-decoration"></div>
                   </div>
 
-                  <div className="modern-student-card class">
-                    <div className="student-card-icon">
-                      <FaSchool />
+                  <div className="info-card-simple">
+                    <div className="info-card-header">
+                      <FaSchool className="info-card-icon" />
+                      <span className="info-card-label">Lớp</span>
                     </div>
-                    <div className="student-card-content">
-                      <span className="student-card-label">Lớp</span>
-                      <span className="student-card-value">
-                        {vaccinationDetail.className || "Không có thông tin"}
-                      </span>
+                    <div className="info-card-value">
+                      {vaccinationDetail.className || "Không có thông tin"}
                     </div>
-                    <div className="student-card-decoration"></div>
                   </div>
                 </div>
               </div>
 
               {/* Vaccine Information */}
-              <div className="modern-section">
-                <div className="section-header-modern">
-                  <div className="section-icon-wrapper">
-                    <FaVial />
-                  </div>
-                  <h3>Thông tin vắc xin</h3>
-                </div>
+              <div className="modal-section">
+                <h3 className="section-title">
+                  <FaVial />
+                  Thông tin vắc xin
+                </h3>
 
-                {/* Main Vaccine Card */}
-                <div
-                  className="vaccine-main-card-modern"
-                  style={{
-                    background: `linear-gradient(135deg, ${getVaccineTypeColor(
-                      vaccinationDetail.vaccineName
-                    )}20, ${getVaccineTypeColor(
-                      vaccinationDetail.vaccineName
-                    )}10)`,
-                  }}
-                >
-                  <div className="vaccine-main-header">
-                    <div
-                      className="vaccine-main-icon"
-                      style={{
-                        backgroundColor: getVaccineTypeColor(
-                          vaccinationDetail.vaccineName
-                        ),
-                      }}
-                    >
-                      <FaShieldAlt />
-                    </div>
-                    <div className="vaccine-main-content">
-                      <h4 className="vaccine-main-title">
-                        {vaccinationDetail.vaccineName || "Không có thông tin"}
-                      </h4>
-                      {vaccinationDetail.doseNumber && (
-                        <div
-                          className="dose-badge-modern"
-                          style={{
-                            background: getDoseStatus(
-                              vaccinationDetail.doseNumber
-                            ).bgColor,
-                            color: getDoseStatus(vaccinationDetail.doseNumber)
-                              .color,
-                            border: `1px solid ${
-                              getDoseStatus(vaccinationDetail.doseNumber).color
-                            }30`,
-                          }}
+                {/* Main Vaccine Info */}
+                <div className="content-card">
+                  <div className="content-card-title">
+                    <FaShieldAlt />
+                    Tên vắc xin
+                  </div>
+                  <div className="info-card-value">
+                    {vaccinationDetail.vaccineName || "Không có thông tin"}
+                    {vaccinationDetail.doseNumber && (
+                      <div style={{ marginTop: "8px" }}>
+                        <span
+                          className={`status-badge-simple ${
+                            getDoseStatus(vaccinationDetail.doseNumber).type
+                          }`}
                         >
-                          <span className="dose-emoji">
-                            {getDoseStatus(vaccinationDetail.doseNumber).icon}
-                          </span>
-                          <span>Mũi thứ {vaccinationDetail.doseNumber}</span>
-                          <span className="dose-type">
-                            {getDoseStatus(vaccinationDetail.doseNumber).status}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="vaccine-main-decoration"></div>
-                </div>
-
-                {/* Vaccination Details Grid */}
-                <div className="vaccination-details-modern-grid">
-                  <div className="modern-vaccine-detail-card date">
-                    <div className="detail-card-header">
-                      <FaCalendarAlt className="detail-icon" />
-                      <span className="detail-title">Ngày tiêm</span>
-                    </div>
-                    <div className="detail-card-content">
-                      <span className="detail-value">
-                        {vaccinationDetail.vaccinationDate
-                          ? formatDateTime(vaccinationDetail.vaccinationDate)
-                          : "Không có thông tin"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="modern-vaccine-detail-card location">
-                    <div className="detail-card-header">
-                      <FaMapMarkerAlt className="detail-icon" />
-                      <span className="detail-title">Địa điểm</span>
-                    </div>
-                    <div className="detail-card-content">
-                      <span className="detail-value">
-                        {vaccinationDetail.administeredAt ||
-                          "Không có thông tin"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="modern-vaccine-detail-card doctor">
-                    <div className="detail-card-header">
-                      <FaUserMd className="detail-icon" />
-                      <span className="detail-title">Người thực hiện</span>
-                    </div>
-                    <div className="detail-card-content">
-                      <span className="detail-value">
-                        {vaccinationDetail.administeredBy ||
-                          "Không có thông tin"}
-                      </span>
-                    </div>
+                          Mũi thứ {vaccinationDetail.doseNumber} -{" "}
+                          {getDoseStatus(vaccinationDetail.doseNumber).status}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Next Dose Card */}
-                {vaccinationDetail.nextDoseDate && (
-                  <div className="next-dose-modern-card">
-                    <div className="next-dose-header">
-                      <div className="next-dose-icon-wrapper">
-                        <FaCalendarPlus />
-                        <div className="icon-glow"></div>
-                      </div>
-                      <div className="next-dose-content">
-                        <h4>Lịch tiêm kế tiếp</h4>
-                        <p className="next-dose-date-modern">
-                          {formatDate(vaccinationDetail.nextDoseDate)}
-                        </p>
-                      </div>
+                <div className="info-cards-grid">
+                  <div className="info-card-simple">
+                    <div className="info-card-header">
+                      <FaCalendarAlt className="info-card-icon" />
+                      <span className="info-card-label">Ngày tiêm</span>
                     </div>
-                    <div className="next-dose-reminder-modern">
-                      <FaBell className="reminder-icon" />
-                      <span>
-                        Vui lòng đưa con đến đúng hẹn để đảm bảo hiệu quả vắc
-                        xin
-                      </span>
+                    <div className="info-card-value">
+                      {vaccinationDetail.vaccinationDate
+                        ? formatDateTime(vaccinationDetail.vaccinationDate)
+                        : "Không có thông tin"}
                     </div>
                   </div>
-                )}
 
-                {/* Notes Section */}
-                {vaccinationDetail.notes && (
-                  <div className="notes-modern-section">
-                    <div className="notes-header-modern">
-                      <FaStickyNote className="notes-icon-modern" />
-                      <h4>Ghi chú</h4>
+                  <div className="info-card-simple">
+                    <div className="info-card-header">
+                      <FaMapMarkerAlt className="info-card-icon" />
+                      <span className="info-card-label">Địa điểm tiêm</span>
                     </div>
-                    <div className="notes-content-modern">
-                      <p>{vaccinationDetail.notes}</p>
+                    <div className="info-card-value">
+                      {vaccinationDetail.administeredAt || "Không có thông tin"}
                     </div>
                   </div>
-                )}
+
+                  <div className="info-card-simple">
+                    <div className="info-card-header">
+                      <FaUserMd className="info-card-icon" />
+                      <span className="info-card-label">Người thực hiện</span>
+                    </div>
+                    <div className="info-card-value">
+                      {vaccinationDetail.administeredBy || "Không có thông tin"}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Summary Section */}
-              <div className="modern-section">
-                <div className="section-header-modern">
-                  <div className="section-icon-wrapper">
-                    <FaMedal />
+              {/* Next Dose */}
+              {vaccinationDetail.nextDoseDate && (
+                <div className="modal-section">
+                  <h3 className="section-title">
+                    <FaCalendarPlus />
+                    Lịch tiêm kế tiếp
+                  </h3>
+                  <div className="content-card">
+                    <div className="content-card-title">
+                      <FaBell />
+                      Nhắc nhở
+                    </div>
+                    <p className="content-card-text">
+                      <strong>Ngày hẹn tiêm kế tiếp: </strong>
+                      {formatDate(vaccinationDetail.nextDoseDate)}
+                    </p>
+                    <p className="content-card-text">
+                      Vui lòng đưa con đến đúng hẹn để đảm bảo hiệu quả vắc xin.
+                    </p>
                   </div>
-                  <h3>Tóm tắt thông tin</h3>
                 </div>
+              )}
 
-                <div className="summary-modern-grid">
-                  <div className="modern-summary-card completed">
-                    <div className="summary-card-icon">
-                      <FaCheckCircle />
+              {/* Notes */}
+              {vaccinationDetail.notes && (
+                <div className="modal-section">
+                  <h3 className="section-title">
+                    <FaStickyNote />
+                    Ghi chú
+                  </h3>
+                  <div className="content-card">
+                    <div className="content-card-title">
+                      <FaClipboardList />
+                      Thông tin bổ sung
                     </div>
-                    <div className="summary-card-content">
-                      <span className="summary-card-label">Trạng thái</span>
-                      <span className="summary-card-value">Đã hoàn thành</span>
+                    <p className="content-card-text">
+                      {vaccinationDetail.notes}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Status Summary */}
+              <div className="modal-section">
+                <h3 className="section-title">
+                  <FaCheckCircle />
+                  Tình trạng tiêm chủng
+                </h3>
+                <div className="info-cards-grid">
+                  <div className="info-card-simple">
+                    <div className="info-card-header">
+                      <FaCheckCircle className="info-card-icon" />
+                      <span className="info-card-label">Trạng thái</span>
                     </div>
-                    <div className="summary-card-status completed"></div>
+                    <div className="info-card-value">
+                      <span className="status-badge-simple success">
+                        Đã hoàn thành
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="modern-summary-card active">
-                    <div className="summary-card-icon">
-                      <FaHeartbeat />
+                  <div className="info-card-simple">
+                    <div className="info-card-header">
+                      <FaShieldAlt className="info-card-icon" />
+                      <span className="info-card-label">Hiệu lực</span>
                     </div>
-                    <div className="summary-card-content">
-                      <span className="summary-card-label">Hiệu lực</span>
-                      <span className="summary-card-value">Đang hoạt động</span>
+                    <div className="info-card-value">
+                      <span className="status-badge-simple success">
+                        Đang hoạt động
+                      </span>
                     </div>
-                    <div className="summary-card-status active"></div>
                   </div>
 
                   {vaccinationDetail.nextDoseDate && (
-                    <div className="modern-summary-card reminder">
-                      <div className="summary-card-icon">
-                        <FaCalendarCheck />
+                    <div className="info-card-simple">
+                      <div className="info-card-header">
+                        <FaCalendarPlus className="info-card-icon" />
+                        <span className="info-card-label">Theo dõi</span>
                       </div>
-                      <div className="summary-card-content">
-                        <span className="summary-card-label">Theo dõi</span>
-                        <span className="summary-card-value">Có lịch hẹn</span>
+                      <div className="info-card-value">
+                        <span className="status-badge-simple info">
+                          Có lịch hẹn
+                        </span>
                       </div>
-                      <div className="summary-card-status reminder"></div>
                     </div>
                   )}
-
-                  <div className="modern-summary-card certificate">
-                    <div className="summary-card-icon">
-                      <FaCertificate />
-                    </div>
-                    <div className="summary-card-content">
-                      <span className="summary-card-label">Chứng nhận</span>
-                      <span className="summary-card-value">Hợp lệ</span>
-                    </div>
-                    <div className="summary-card-status certificate"></div>
-                  </div>
                 </div>
               </div>
-            </div>
+            </>
           ) : (
-            <div className="modern-no-data-state">
-              <div className="no-data-icon-wrapper">
-                <FaInfoCircle className="no-data-icon" />
-                <div className="no-data-pulse"></div>
-              </div>
-              <div className="no-data-content">
-                <h3>Không có thông tin chi tiết</h3>
-                <p>Thông tin chi tiết về mũi tiêm này hiện chưa có sẵn.</p>
-                <button className="back-btn-modern" onClick={onClose}>
-                  <FaTimes />
-                  Đóng
-                </button>
-              </div>
+            <div className="modal-error">
+              <FaInfoCircle className="modal-error-icon" />
+              <h3>Không có thông tin chi tiết</h3>
+              <p>Thông tin chi tiết về mũi tiêm này hiện chưa có sẵn.</p>
+              <button className="modal-error-btn" onClick={onClose}>
+                <FaTimes />
+                Đóng
+              </button>
             </div>
           )}
         </div>

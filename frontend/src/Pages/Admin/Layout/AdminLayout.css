@@ -9,16 +9,20 @@
 .admin-main {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 60px);
+  height: calc(100vh - 60px);
+  overflow: hidden;
 }
 
-.admin-content {  flex: 1;
+.admin-content {
+  flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   background: linear-gradient(135deg, #f5f7fa 0%, #e6f7f5 100%);
   position: relative;
   padding: 30px;
   border-radius: 10px;
   box-shadow: inset 0 2px 15px rgba(76, 193, 176, 0.05);
+  max-height: calc(100vh - 60px);
 }
 
 .admin-content::before {

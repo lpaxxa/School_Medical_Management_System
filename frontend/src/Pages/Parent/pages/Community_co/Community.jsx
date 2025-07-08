@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "../shared/header-fix.css"; // Import header-fix TRƯỚC Community.css
 import "./Community.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
+import SearchBox from "../../../../components/SearchBox/SearchBox"; // Import SearchBox component
 import { useAuth } from "../../../../context/AuthContext";
 import communityService from "../../../../services/communityService"; // Import communityService
 
@@ -47,81 +48,6 @@ const Community = () => {
     }
 
     return true;
-  };
-
-  // Test API connection
-  const testAPIConnection = async () => {
-    console.log("🧪 Testing API connection...");
-    try {
-      const token = localStorage.getItem("authToken");
-      console.log(
-        "🔑 Using token:",
-        token ? `${token.substring(0, 20)}...` : "none"
-      );
-
-      // Test với endpoint chính xác
-      const response = await fetch(`${API_URL}/community/posts?page=1&size=5`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("📡 API Response status:", response.status);
-      console.log(
-        "📡 API Response headers:",
-        Object.fromEntries(response.headers.entries())
-      );
-
-      if (!response.ok) {
-        console.error(
-          "❌ API Response not OK:",
-          response.status,
-          response.statusText
-        );
-        const errorText = await response.text();
-        console.error("❌ Error body:", errorText);
-        return;
-      }
-
-      const data = await response.json();
-      console.log("✅ API Response data:", data);
-
-      // Test cấu trúc mới
-      if (
-        data.status === "success" &&
-        data.data &&
-        Array.isArray(data.data.content)
-      ) {
-        console.log("✅ API Structure Valid:");
-        console.log("- Posts count:", data.data.content.length);
-        console.log("- Total pages:", data.data.totalPages);
-        console.log("- Total elements:", data.data.totalElements);
-        console.log("- Current page:", data.data.page);
-        console.log("- First sample post:", data.data.content[0]?.title);
-      } else {
-        console.warn("⚠️ Unexpected API structure:", data);
-      }
-    } catch (error) {
-      console.error("❌ API Test failed:", error);
-    }
-  };
-
-  // Force refresh data from API
-  const forceRefreshFromAPI = async () => {
-    console.clear();
-    console.log("🔄 Force refreshing from API...");
-
-    // Reset states
-    setPosts([]);
-    setLikedPosts([]);
-    setBookmarkedPosts([]);
-    setLoading(true);
-
-    // Trigger useEffect by changing page
-    setPage(1);
-    setActiveTab("all");
-    setSearchQuery("");
   };
 
   // Helper function to normalize role matching
@@ -619,78 +545,6 @@ const Community = () => {
 
   return (
     <div className="community-container">
-      {/* Debug Info - Hiển thị API data */}
-      <div
-        style={{
-          background: "#e8f4fd",
-          padding: "15px",
-          margin: "10px 0",
-          borderRadius: "8px",
-          fontSize: "14px",
-          border: "1px solid #3b82f6",
-        }}
-      >
-        <strong>📡 API Data Info:</strong>
-        <div>
-          • Posts loaded: <strong>{posts.length}</strong> posts
-        </div>
-        <div>
-          • Data source:{" "}
-          <strong>{posts === MOCK_POSTS ? "Mock Data" : "Live API"}</strong>
-        </div>
-        <div>
-          • Current page: <strong>{page}</strong> /{" "}
-          <strong>{totalPages}</strong>
-        </div>
-        <div>
-          • Liked posts: <strong>{likedPosts.length}</strong>
-        </div>
-        <div>
-          • Bookmarked posts: <strong>{bookmarkedPosts.length}</strong>
-        </div>
-        <div>
-          • Active filter: <strong>{activeTab}</strong>
-        </div>
-        {posts.length > 0 && posts !== MOCK_POSTS && (
-          <div>
-            • Sample post ID: <strong>{posts[0]?.id}</strong> - "
-            {posts[0]?.title?.substring(0, 50)}..."
-          </div>
-        )}
-
-        <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
-          <button
-            onClick={testAPIConnection}
-            style={{
-              background: "#10b981",
-              color: "white",
-              border: "none",
-              padding: "8px 12px",
-              borderRadius: "6px",
-              fontSize: "12px",
-              cursor: "pointer",
-            }}
-          >
-            🧪 Test API
-          </button>
-
-          <button
-            onClick={forceRefreshFromAPI}
-            style={{
-              background: "#f59e0b",
-              color: "white",
-              border: "none",
-              padding: "8px 12px",
-              borderRadius: "6px",
-              fontSize: "12px",
-              cursor: "pointer",
-            }}
-          >
-            🔄 Force Refresh API
-          </button>
-        </div>
-      </div>
-
       <div className="community-header">
         <div className="community-title">
           <h1>Cộng đồng sức khỏe học đường</h1>
@@ -756,15 +610,13 @@ const Community = () => {
         </div>
 
         <div className="search-bar">
-          <input
-            type="text"
+          <SearchBox
             placeholder="Tìm kiếm bài viết..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onSearch={() => {}} // Search tự động xử lý qua onChange
+            className="community-search"
           />
-          <button className="search-btn">
-            <i className="fas fa-search"></i>
-          </button>
         </div>
       </div>
 
