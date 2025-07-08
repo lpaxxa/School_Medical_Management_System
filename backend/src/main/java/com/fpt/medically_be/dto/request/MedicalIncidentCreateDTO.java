@@ -41,6 +41,8 @@ public class MedicalIncidentCreateDTO {
     private Long handledById;
     private String studentId;
 
+    private String imageMedicalUrl;
+
     // xem lai
     @Valid
     private List<MedicationUsedDTO> medicationsUsed;

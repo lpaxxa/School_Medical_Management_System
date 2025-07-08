@@ -1,5 +1,6 @@
 package com.fpt.medically_be.dto.response;
 
+import com.fpt.medically_be.entity.VaccinationType;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -13,5 +14,8 @@ public class VaccinationCreateWithHeathResponse {
     private String administeredAt;
     private String notes;
     private String parentNotes;
+    private LocalDate nextDoseDate;
+    private VaccinationType vaccinationType;
+
 
 }

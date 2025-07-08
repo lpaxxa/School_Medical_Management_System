@@ -17,4 +17,9 @@ public interface VaccinationService {
     StudentVaccinationHistoryResponse getVaccinationHistoryForStudent(Long parentId, Long studentId);
     void updateVaccinationNote(VaccinationUpdateNoteRequest dto);
 
+    void deleteVaccination(Long vaccinationId);
+
+    VaccinationCreateWithHeathResponse getVaccinationById(Long vaccinationId);
+    List<VaccinationCreateWithHeathResponse> getAllVaccination();
+    List<VaccinationCreateWithHeathResponse>  getAllVaccinationByHeathProfileId(Long healthProfileId);
 }

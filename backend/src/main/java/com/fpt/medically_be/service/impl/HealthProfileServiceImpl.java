@@ -2,9 +2,12 @@ package com.fpt.medically_be.service.impl;
 
 import com.fpt.medically_be.dto.HealthProfileDTO;
 import com.fpt.medically_be.dto.request.HealthProfileRequestDTO;
+import com.fpt.medically_be.dto.response.FullHealthProfileResponseDTO;
 import com.fpt.medically_be.entity.HealthProfile;
 import com.fpt.medically_be.entity.Student;
+import com.fpt.medically_be.entity.Vaccination;
 import com.fpt.medically_be.mapper.HealthProfileMapper;
+import com.fpt.medically_be.mapper.VaccinationMapper;
 import com.fpt.medically_be.repos.HealthProfileRepository;
 import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.HealthProfileService;
@@ -24,12 +27,18 @@ public class HealthProfileServiceImpl implements HealthProfileService {
     private final HealthProfileRepository healthProfileRepository;
     private final HealthProfileMapper healthProfileMapper;
     private final StudentRepository studentRepository;
+    private final VaccinationMapper vaccinationMapper;
+
+
+
+
 
     @Autowired
-    public HealthProfileServiceImpl(HealthProfileRepository healthProfileRepository, HealthProfileMapper healthProfileMapper, StudentRepository studentRepository) {
+    public HealthProfileServiceImpl(HealthProfileRepository healthProfileRepository, HealthProfileMapper healthProfileMapper, StudentRepository studentRepository, VaccinationMapper vaccinationMapper) {
         this.healthProfileRepository = healthProfileRepository;
         this.healthProfileMapper = healthProfileMapper;
         this.studentRepository = studentRepository;
+        this.vaccinationMapper = vaccinationMapper;
     }
 
     @Override
@@ -122,6 +131,27 @@ public class HealthProfileServiceImpl implements HealthProfileService {
         return healthProfileRepository.findByStudentId(studentId)
                 .map(healthProfileMapper::toObject)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hồ sơ sức khỏe cho học sinh với ID: " + studentId));
+    }
+
+    @Override
+    public FullHealthProfileResponseDTO getFullHealthProfileByStudentCode(String studentCode) {
+        Student student = studentRepository.findStudentByStudentId(studentCode)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học sinh với mã: " + studentCode));
+
+        HealthProfile profile = student.getHealthProfile();
+
+        if (profile == null) {
+            throw new EntityNotFoundException("Học sinh chưa có hồ sơ sức khỏe");
+        }
+
+        List<Vaccination> vaccinations = profile.getVaccinations();
+
+        return FullHealthProfileResponseDTO.builder()
+                .healthProfile(healthProfileMapper.toObject(profile))
+                .vaccinations(vaccinations.stream()
+                        .map(vaccinationMapper::toCreateWithHealthResponse)
+                        .toList())
+                .build();
     }
 
     // Phương thức chuyển đổi từ Entity sang DTO

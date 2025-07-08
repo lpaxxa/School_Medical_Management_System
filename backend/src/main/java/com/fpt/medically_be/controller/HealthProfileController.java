@@ -3,6 +3,7 @@ package com.fpt.medically_be.controller;
 import com.fpt.medically_be.dto.HealthProfileDTO;
 import com.fpt.medically_be.dto.request.FullHealthProfileRequestDTO;
 import com.fpt.medically_be.dto.request.HealthProfileRequestDTO;
+import com.fpt.medically_be.dto.response.FullHealthProfileResponseDTO;
 import com.fpt.medically_be.service.HealthProfileService;
 import com.fpt.medically_be.service.VaccinationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,29 +47,59 @@ public class HealthProfileController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+   // @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
     public ResponseEntity<HealthProfileDTO> getHealthProfileById(@PathVariable Long id) {
         return ResponseEntity.ok(healthProfileService.getHealthProfileById(id));
 
     }
 
-    @GetMapping("/student/{studentId}")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
-    @Operation(summary = "Lấy hồ sơ sức khỏe theo studentId")
-    public ResponseEntity<HealthProfileDTO> getHealthProfileByStudentId(@PathVariable Long studentId) {
-        return ResponseEntity.ok(healthProfileService.getHealthProfileByStudentId(studentId));
+//    @GetMapping("/student/{studentId}")
+////    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+//    @Operation(summary = "Lấy hồ sơ sức khỏe theo studentId")
+//    public ResponseEntity<HealthProfileDTO> getHealthProfileByStudentId(@PathVariable Long studentId) {
+//        return ResponseEntity.ok(healthProfileService.getHealthProfileByStudentId(studentId));
+//    }
+
+
+    @GetMapping("/getStudentProfileByID/{studentCode}")
+    @Operation(summary = "Lấy hồ sơ sức khỏe và mũi tiêm theo mã học sinh")
+    public ResponseEntity<FullHealthProfileResponseDTO> getFullHealthProfile(@PathVariable String studentCode) {
+        return ResponseEntity.ok(healthProfileService.getFullHealthProfileByStudentCode(studentCode));
     }
 
-    @PostMapping
-   // @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
-    public ResponseEntity<HealthProfileDTO> createHealthProfile(@Valid @RequestBody HealthProfileRequestDTO healthProfileRequestDTO) {
-        // Log the incoming request for debugging
-        System.out.println("Received health profile request: " + healthProfileRequestDTO);
-        return ResponseEntity.ok(healthProfileService.createHealthProfile(healthProfileRequestDTO));
+
+
+
+//    @PostMapping
+//   // @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+//    public ResponseEntity<HealthProfileDTO> createHealthProfile(@Valid @RequestBody HealthProfileRequestDTO healthProfileRequestDTO) {
+//        // Log the incoming request for debugging
+//        System.out.println("Received health profile request: " + healthProfileRequestDTO);
+//        return ResponseEntity.ok(healthProfileService.createHealthProfile(healthProfileRequestDTO));
+//    }
+
+    @PostMapping("/full")
+     @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+    @Operation(summary = "Tạo hồ sơ sức khỏe kèm khai báo vaccine", description = "Tạo mới hồ sơ và lưu các mũi vaccine do phụ huynh khai báo")
+    public ResponseEntity<HealthProfileDTO> createFullHealthProfile(
+            @Valid @RequestBody FullHealthProfileRequestDTO request) {
+
+        // 1. Tạo hồ sơ sức khỏe
+        HealthProfileDTO createdProfile = healthProfileService.createHealthProfile(request.getHealthProfile());
+
+        // 2. Nếu có danh sách vaccine được khai báo
+        if (request.getVaccinations() != null && !request.getVaccinations().isEmpty()) {
+            vaccinationService.addParentDeclaredVaccination(
+                    createdProfile.getId(), request.getVaccinations()
+            );
+        }
+
+        return ResponseEntity.ok(createdProfile);
     }
+
 
     @PostMapping("/create-or-update")
-   // @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+    @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
     public ResponseEntity<HealthProfileDTO> createOrUpdateHealthProfile(@Valid @RequestBody HealthProfileRequestDTO healthProfileRequestDTO) {
         // Log the incoming request for debugging
         System.out.println("Received create/update health profile request: " + healthProfileRequestDTO);
@@ -112,7 +143,7 @@ public class HealthProfileController {
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteHealthProfile(@PathVariable Long id) {
         healthProfileService.deleteHealthProfile(id);
         return ResponseEntity.noContent().build();
@@ -131,22 +162,7 @@ public class HealthProfileController {
         return errors;
     }
 
-    @PostMapping("/full")
-   // @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
-    @Operation(summary = "Tạo hồ sơ sức khỏe kèm khai báo vaccine", description = "Tạo mới hồ sơ và lưu các mũi vaccine do phụ huynh khai báo")
-    public ResponseEntity<HealthProfileDTO> createFullHealthProfile(
-            @Valid @RequestBody FullHealthProfileRequestDTO request) {
 
-        // 1. Tạo hồ sơ sức khỏe
-        HealthProfileDTO createdProfile = healthProfileService.createHealthProfile(request.getHealthProfile());
 
-        // 2. Nếu có danh sách vaccine được khai báo
-        if (request.getVaccinations() != null && !request.getVaccinations().isEmpty()) {
-            vaccinationService.addParentDeclaredVaccination(
-                    createdProfile.getId(), request.getVaccinations()
-            );
-        }
 
-        return ResponseEntity.ok(createdProfile);
-    }
 }

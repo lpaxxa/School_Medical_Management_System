@@ -23,10 +23,6 @@ public class MedicalIncidentResponseDTO {
     @Column(name = "date_time")
     private LocalDateTime dateTime;
 
-//    private LocalDateTime createdAt;
-//
-//    private LocalDateTime updatedAt;
-
     @NotBlank(message = "Description is required")
     @Size(max = 250)
     private String description;
@@ -49,7 +45,7 @@ public class MedicalIncidentResponseDTO {
 
     @Size(max = 150)
     private String followUpNotes;
-
+    private String imageMedicalUrl;
     private Long staffId;
     private String staffName;
     private Long parentID;

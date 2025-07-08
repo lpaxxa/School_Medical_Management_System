@@ -52,6 +52,18 @@ public class VaccinationServiceImpl implements VaccinationService {
     }
 
     @Override
+    public void deleteVaccination(Long vaccinationId) {
+        Vaccination vaccination = vaccinationRepository.findById(vaccinationId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi tiêm có ID: " + vaccinationId));
+
+        if (vaccination.getVaccinationType() != VaccinationType.PARENT_DECLARED) {
+            throw new RuntimeException("Chỉ có thể xoá các bản ghi do phụ huynh khai báo (PARENT_DECLARED)");
+        }
+
+        vaccinationRepository.deleteById(vaccinationId);
+    }
+
+    @Override
     public StudentVaccinationHistoryResponse getVaccinationHistoryForStudent(Long parentId, Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
@@ -181,7 +193,6 @@ public class VaccinationServiceImpl implements VaccinationService {
             vaccination.setVaccine(vaccine);
             vaccination.setDoseNumber(nextDoseNumber);
             vaccination.setVaccinationType(VaccinationType.PARENT_DECLARED);
-
             Vaccination savedVaccination = vaccinationRepository.save(vaccination);
 
             VaccinationCreateWithHeathResponse resultDto = vaccinationMapper.toCreateWithHealthResponse(savedVaccination);
@@ -200,6 +211,40 @@ public class VaccinationServiceImpl implements VaccinationService {
         return lastDose == null ? 1 : lastDose + 1;
     }
 
+    @Override
+    public VaccinationCreateWithHeathResponse getVaccinationById(Long vaccinationId) {
+
+        Vaccination vaccination = vaccinationRepository.findById(vaccinationId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi tiêm có ID: " + vaccinationId));
+        VaccinationCreateWithHeathResponse response = vaccinationMapper.toCreateWithHealthResponse(vaccination);
+
+        return response;
+
+    }
+
+    @Override
+    public List<VaccinationCreateWithHeathResponse> getAllVaccination() {
+        List<Vaccination> vaccinations = vaccinationRepository.findAll();
+        return  vaccinations.stream()
+                .map(vaccinationMapper::toCreateWithHealthResponse)
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    public List<VaccinationCreateWithHeathResponse> getAllVaccinationByHeathProfileId(Long healthProfileId) {
+        HealthProfile healthProfile = healthProfileRepository.findById(healthProfileId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ sức khỏe với ID: " + healthProfileId));
+
+        List<Vaccination> vaccinations = vaccinationRepository.findByHealthProfileId(healthProfileId);
+
+        if (vaccinations.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy bản ghi tiêm nào cho hồ sơ sức khỏe này");
+        }
+        return vaccinations.stream()
+                .map(vaccinationMapper::toCreateWithHealthResponse)
+                .collect(Collectors.toList());
+    }
 
 
 }
