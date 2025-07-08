@@ -4,6 +4,7 @@ import com.fpt.medically_be.dto.request.MedicalCheckupRequestDTO;
 import com.fpt.medically_be.dto.response.MedicalCheckupResponseDTO;
 import com.fpt.medically_be.entity.CheckupStatus;
 import com.fpt.medically_be.service.MedicalCheckupService;
+import com.fpt.medically_be.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 public class MedicalCheckupController {
 
     private final MedicalCheckupService medicalCheckupService;
+    private final EmailService emailService;
 
     /**
      * Lấy danh sách tất cả các kiểm tra y tế
@@ -207,6 +209,40 @@ public class MedicalCheckupController {
         response.put("message", sent ? "Kết quả đã được gửi thành công" : "Gửi kết quả thất bại");
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Gửi thông báo kết quả khám sức khỏe cho phụ huynh qua email
+     * POST /api/v1/medical-checkups/{checkupId}/notify-parent
+     */
+    @PostMapping("/{checkupId}/notify-parent")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Gửi thông báo kết quả khám sức khỏe cho phụ huynh")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Gửi email thông báo thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy kiểm tra y tế"),
+            @ApiResponse(responseCode = "500", description = "Lỗi khi gửi email")
+    })
+    public ResponseEntity<Map<String, Object>> notifyParent(@PathVariable Long checkupId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            emailService.sendHealthCheckupNotificationByCheckupId(checkupId);
+            
+            response.put("checkupId", checkupId);
+            response.put("emailSent", true);
+            response.put("message", "Email thông báo kết quả khám sức khỏe đã được gửi thành công");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (RuntimeException e) {
+            response.put("checkupId", checkupId);
+            response.put("emailSent", false);
+            response.put("message", "Gửi email thất bại: " + e.getMessage());
+            response.put("error", e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     /**
