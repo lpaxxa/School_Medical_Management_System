@@ -57,7 +57,10 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
     setIsLoading(true);
     try {
       await onSubmit(formData);
-      onClose();
+      // Add a small delay to allow toast to show before closing modal
+      setTimeout(() => {
+        onClose();
+      }, 500);
     } catch (error) {
       // Error is handled by the parent component's toast
     } finally {

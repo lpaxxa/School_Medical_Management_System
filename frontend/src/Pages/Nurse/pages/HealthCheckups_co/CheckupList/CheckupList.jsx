@@ -102,6 +102,16 @@ const CheckupList = () => {
     try {
       await addHealthCheckup(formData);
       toast.success(`Đã tạo hồ sơ khám cho học sinh ${studentForCheckup.studentName} thành công!`);
+      
+      // Refresh campaign students data to show updated status
+      if (selectedCampaign) {
+        try {
+          const studentsData = await getCampaignStudents(selectedCampaign.id);
+          setCampaignStudents(studentsData);
+        } catch (refreshError) {
+          console.error("Error refreshing students data:", refreshError);
+        }
+      }
     } catch (error) {
       console.error("Lỗi khi tạo hồ sơ khám:", error);
       const errorMessage = error?.response?.data || error?.message || 'Tạo hồ sơ khám thất bại do lỗi không xác định.';

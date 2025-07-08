@@ -36,11 +36,8 @@ import { toast } from "react-toastify";
 
 // Hàm chuyển đổi status thành text và style - Updated to match backend Status enum
 const getStatusInfo = (status) => {
-
   // Normalize numeric status to string status
-
   // Xử lý trường hợp status là số (legacy support)
-
   if (typeof status === 'number') {
     switch (status) {
       case 0:
@@ -54,22 +51,6 @@ const getStatusInfo = (status) => {
         break;
       default:
         status = "UNKNOWN";
-    }
-  }
-        return {
-          text: "Đã duyệt",
-          class: "info",
-        };
-      case 2:
-        return {
-          text: "Từ chối",
-          class: "danger",
-        };
-      default:
-        return {
-          text: "Không xác định",
-          class: "secondary",
-        };
     }
   }
   
@@ -91,35 +72,6 @@ const getStatusInfo = (status) => {
       return { text: "Đã hủy", color: "#212529", textColor: "#FFFFFF" };
     default:
       return { text: "Không xác định", color: "#F8F9FA", textColor: "#212529", border: "1px solid #DEE2E6" };
-      return {
-        text: "Đã duyệt",
-        class: "info",
-      };
-    case "REJECTED":
-      return {
-        text: "Từ chối",
-        class: "danger",
-      };
-    case "FULLY_TAKEN":
-      return {
-        text: "Đã hoàn thành",
-        class: "success",
-      };
-    case "PARTIALLY_TAKEN":
-      return {
-        text: "Hoàn thành một phần",
-        class: "warning",
-      };
-    case "EXPIRED":
-      return {
-        text: "Đã hết hạn",
-        class: "danger",
-      };
-    default:
-      return {
-        text: "Không xác định",
-        class: "secondary",
-      };
   }
 };
 
@@ -901,9 +853,6 @@ const MedicineReceipts = () => {
                                 fontSize: "0.85rem",
                                 textAlign: "center",
                                 minWidth: "120px",
-                                backgroundColor: statusInfo.color,
-                                color: statusInfo.textColor,
-                                border: statusInfo.border || "none",
                                 backgroundColor:
                                   statusInfo.text === "Chờ phê duyệt"
                                     ? "#FFC107"
