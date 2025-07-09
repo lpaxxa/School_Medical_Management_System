@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -100,6 +101,7 @@ public class VaccinationPlanServiceImp implements VaccinationPlanService {
         plan.setStatus(status);
         vaccinationPlanRepository.save(plan);
     }
+
     @Override
     public List<VaccinationPlanForParentResponse> getPlansForStudent(Long studentId) {
         List<NotificationRecipients> recipients = notificationRecipientsRepository.findByStudent_Id(studentId);
@@ -109,13 +111,49 @@ public class VaccinationPlanServiceImp implements VaccinationPlanService {
                 .map(rec -> {
                     VaccinationPlan plan = rec.getNotification().getVaccinationPlan();
 
+                    // Map plan sang response DTO
                     VaccinationPlanForParentResponse dto = vaccinationPlanMapper.toParentResponse(plan);
                     dto.setNotificationRecipientId(rec.getId());
+
+                    // Lấy danh sách VaccineInfoResponse từ plan
+                    List<VaccineInfoResponse> vaccines = dto.getVaccines();
+
+                    // Map các phản hồi từ NotificationRecipientVaccine
+                    Map<Long, ResponseStatus> vaccineResponseMap = rec.getNotificationRecipientVaccines()
+                            .stream()
+                            .collect(Collectors.toMap(
+                                    v -> v.getVaccine().getId(),
+                                    NotificationRecipientVaccine::getResponse
+                            ));
+
+                    // Gắn trạng thái phản hồi vào từng vaccine
+                    vaccines.forEach(vaccine -> {
+                        if (vaccineResponseMap.containsKey(vaccine.getId())) {
+                            vaccine.setResponse(vaccineResponseMap.get(vaccine.getId()));
+                        }
+                    });
 
                     return dto;
                 })
                 .toList();
     }
+
+//    @Override
+//    public List<VaccinationPlanForParentResponse> getPlansForStudent(Long studentId) {
+//        List<NotificationRecipients> recipients = notificationRecipientsRepository.findByStudent_Id(studentId);
+//
+//        return recipients.stream()
+//                .filter(rec -> rec.getNotification() != null && rec.getNotification().getVaccinationPlan() != null)
+//                .map(rec -> {
+//                    VaccinationPlan plan = rec.getNotification().getVaccinationPlan();
+//
+//                    VaccinationPlanForParentResponse dto = vaccinationPlanMapper.toParentResponse(plan);
+//                    dto.setNotificationRecipientId(rec.getId());
+//
+//                    return dto;
+//                })
+//                .toList();
+//    }
 
 
 

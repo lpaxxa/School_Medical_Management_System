@@ -53,12 +53,12 @@ public class HealthProfileController {
 
     }
 
-//    @GetMapping("/student/{studentId}")
-////    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
-//    @Operation(summary = "Lấy hồ sơ sức khỏe theo studentId")
-//    public ResponseEntity<HealthProfileDTO> getHealthProfileByStudentId(@PathVariable Long studentId) {
-//        return ResponseEntity.ok(healthProfileService.getHealthProfileByStudentId(studentId));
-//    }
+    @GetMapping("/student/{studentId}")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE') or hasRole('PARENT')")
+    @Operation(summary = "Lấy hồ sơ sức khỏe theo studentId")
+    public ResponseEntity<HealthProfileDTO> getHealthProfileByStudentId(@PathVariable Long studentId) {
+        return ResponseEntity.ok(healthProfileService.getHealthProfileByStudentId(studentId));
+    }
 
 
     @GetMapping("/getStudentProfileByID/{studentCode}")
@@ -70,13 +70,13 @@ public class HealthProfileController {
 
 
 
-//    @PostMapping
-//   // @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
-//    public ResponseEntity<HealthProfileDTO> createHealthProfile(@Valid @RequestBody HealthProfileRequestDTO healthProfileRequestDTO) {
-//        // Log the incoming request for debugging
-//        System.out.println("Received health profile request: " + healthProfileRequestDTO);
-//        return ResponseEntity.ok(healthProfileService.createHealthProfile(healthProfileRequestDTO));
-//    }
+    @PostMapping
+   // @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
+    public ResponseEntity<HealthProfileDTO> createHealthProfile(@Valid @RequestBody HealthProfileRequestDTO healthProfileRequestDTO) {
+        // Log the incoming request for debugging
+        System.out.println("Received health profile request: " + healthProfileRequestDTO);
+        return ResponseEntity.ok(healthProfileService.createHealthProfile(healthProfileRequestDTO));
+    }
 
     @PostMapping("/full")
      @PreAuthorize("hasRole('PARENT') or hasRole('NURSE')")
