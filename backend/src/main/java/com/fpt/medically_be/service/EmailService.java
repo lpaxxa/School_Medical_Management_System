@@ -2,6 +2,8 @@ package com.fpt.medically_be.service;
 
 import com.fpt.medically_be.dto.response.ParentHealthCheckupNotificationDTO;
 
+import java.util.List;
+
 public interface EmailService {
     void sendAccountInfoEmail(String memberId);
     
@@ -21,5 +23,5 @@ public interface EmailService {
      * Send batch health checkup notifications to multiple parents
      * @param checkupIds List of medical checkup IDs to send notifications for
      */
-    void sendBatchHealthCheckupNotifications(java.util.List<Long> checkupIds);
+    void sendBatchHealthCheckupNotifications(List<Long> checkupIds);
 }

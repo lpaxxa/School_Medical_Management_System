@@ -244,8 +244,22 @@ public class MedicalCheckupController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+    @PostMapping("/batch-notify-parents")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Gửi thông báo kết quả khám sức khỏe cho nhiều phụ huynh",
+            description = "Gửi email thông báo kết quả khám sức khỏe cho nhiều phụ huynh dựa trên danh sách ID các đợt khám.")
+    public ResponseEntity<String> sendBatchHealthNotificationsToParents(@RequestBody List<Long> checkupIds) {
+        try {
+            emailService.sendBatchHealthCheckupNotifications(checkupIds);
+            return ResponseEntity.ok(String.format("Đã gửi thành công thông báo cho %d đợt khám sức khỏe.", checkupIds.size()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Gửi email thất bại: " + e.getMessage());
+        }
+    }
 
-    /**
+
+
+/**
      * Lấy danh sách học sinh cần theo dõi thêm theo chiến dịch (Bước 11)
      * GET /api/v1/medical-checkups/campaign/{campaignId}/follow-up
      */
