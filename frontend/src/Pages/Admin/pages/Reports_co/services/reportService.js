@@ -27,6 +27,19 @@ export const reportService = {
     }
   },
 
+  // Fetch vaccine report from API
+  getVaccineReport: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/vaccines/getAllVaccine`);
+      const data = await response.json();
+      
+      return processVaccineData(data);
+    } catch (error) {
+      console.error('Error fetching vaccine data:', error);
+      throw new Error('Không thể lấy dữ liệu vaccine');
+    }
+  },
+
   // Fetch raw vaccination data for detail view
   getVaccinationDetailData: async () => {
     try {
@@ -48,6 +61,18 @@ export const reportService = {
     } catch (error) {
       console.error('Error fetching checkup detail data:', error);
       throw new Error('Không thể lấy chi tiết dữ liệu khám sức khỏe');
+    }
+  },
+
+  // Fetch vaccine detail data for detail view
+  getVaccineDetailData: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/vaccines/getAllVaccine`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching vaccine detail data:', error);
+      throw new Error('Không thể lấy chi tiết dữ liệu vaccine');
     }
   },
 
@@ -119,6 +144,64 @@ export const reportService = {
 };
 
 // Helper functions to process API data
+const processVaccineData = (data) => {
+  if (!Array.isArray(data)) {
+    return getMockVaccineReport();
+  }
+
+  const totalVaccines = data.length;
+  const activeVaccines = data.filter(v => v.isActive).length;
+  const inactiveVaccines = data.filter(v => !v.isActive).length;
+  const multiDoseVaccines = data.filter(v => v.totalDoses > 1).length;
+  const singleDoseVaccines = data.filter(v => v.totalDoses === 1).length;
+
+  // Phân loại theo nhóm tuổi
+  const ageGroups = {
+    'Trẻ sơ sinh (0-1 tuổi)': data.filter(v => v.maxAgeMonths <= 12).length,
+    'Trẻ em (1-5 tuổi)': data.filter(v => v.minAgeMonths <= 60 && v.maxAgeMonths > 12).length,
+    'Thiếu niên (5+ tuổi)': data.filter(v => v.minAgeMonths > 60).length
+  };
+
+  return {
+    title: 'Báo cáo vaccine',
+    summary: {
+      totalVaccines,
+      activeVaccines,
+      inactiveVaccines,
+      multiDoseVaccines,
+      singleDoseVaccines,
+      ageGroups: Object.keys(ageGroups).length
+    },
+    charts: [
+      {
+        type: 'pie',
+        title: 'Trạng thái vaccine',
+        data: [
+          { label: 'Đang sử dụng', value: activeVaccines, color: '#4CAF50' },
+          { label: 'Tạm dừng', value: inactiveVaccines, color: '#F44336' }
+        ]
+      },
+      {
+        type: 'pie',
+        title: 'Phân loại theo số liều',
+        data: [
+          { label: 'Một liều', value: singleDoseVaccines, color: '#2196F3' },
+          { label: 'Nhiều liều', value: multiDoseVaccines, color: '#FF9800' }
+        ]
+      },
+      {
+        type: 'bar',
+        title: 'Phân bố theo nhóm tuổi',
+        data: Object.entries(ageGroups).map(([group, count], index) => ({
+          label: group,
+          value: count,
+          color: ['#9C27B0', '#3F51B5', '#009688'][index % 3]
+        }))
+      }
+    ]
+  };
+};
+
 const processVaccinationData = (data) => {
   const totalNotifications = data.length;
   let totalRecipients = 0;
@@ -238,6 +321,28 @@ const getMockHealthReport = () => ({
         { label: 'Tốt', value: 450, color: '#8BC34A' },
         { label: 'Trung bình', value: 190, color: '#FF9800' },
         { label: 'Cần theo dõi', value: 34, color: '#F44336' }
+      ]
+    }
+  ]
+});
+
+const getMockVaccineReport = () => ({
+  title: 'Báo cáo vaccine',
+  summary: {
+    totalVaccines: 14,
+    activeVaccines: 13,
+    inactiveVaccines: 1,
+    multiDoseVaccines: 6,
+    singleDoseVaccines: 8,
+    ageGroups: 3
+  },
+  charts: [
+    {
+      type: 'pie',
+      title: 'Trạng thái vaccine',
+      data: [
+        { label: 'Đang sử dụng', value: 13, color: '#4CAF50' },
+        { label: 'Tạm dừng', value: 1, color: '#F44336' }
       ]
     }
   ]

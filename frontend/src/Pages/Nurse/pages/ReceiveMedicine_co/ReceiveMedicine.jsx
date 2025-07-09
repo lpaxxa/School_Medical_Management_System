@@ -1,45 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Nav, Tab, Alert, Spinner } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Container, Row, Col, Card, Nav, Tab, Alert } from 'react-bootstrap';
 import './ReceiveMedicine.css';
 import MedicineReceipts from './MedicineReceipts/MedicineReceipts';
 import MedicationHistory from './MedicationHistory/MedicationHistory';
-import { MedicineApprovalProvider } from '../../../../context/NurseContext/MedicineApprovalContext';
 
 // Component ReceiveMedicineMain (đã gộp từ file ReceiveMedicineMain.jsx và áp dụng Bootstrap)
 const ReceiveMedicineMain = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  // Giả lập hiệu ứng loading
-  useEffect(() => {
-    // Thiết lập timeout để hiện loading indicator
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500); // 1.5 giây để giả lập loading
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <Container fluid className="py-5 text-center">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-3">Đang tải dữ liệu...</p>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container fluid className="py-5">
-        <Alert variant="danger">
-          <Alert.Heading>Đã xảy ra lỗi!</Alert.Heading>
-          <p>{error || "Không thể tải dữ liệu. Vui lòng thử lại sau."}</p>
-        </Alert>
-      </Container>
-    );
-  }
-
   return (
     <Container fluid className="py-4">
       {/* Page header with Bootstrap styling */}
@@ -89,11 +55,9 @@ const ReceiveMedicineMain = () => {
 // Component chính ReceiveMedicine
 const ReceiveMedicine = () => {
   return (
-    <MedicineApprovalProvider>
-      <div className="receive-medicine-wrapper bg-light min-vh-100">
-        <ReceiveMedicineMain />
-      </div>
-    </MedicineApprovalProvider>
+    <div className="receive-medicine-wrapper bg-light min-vh-100">
+      <ReceiveMedicineMain />
+    </div>
   );
 };
 

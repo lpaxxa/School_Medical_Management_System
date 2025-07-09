@@ -14,6 +14,8 @@ import {
 import axios from "axios";
 import UserTable from "./components/UserTable";
 import UserModal from "./components/UserModal";
+import SuccessModal from "../../components/SuccessModal";
+import { useSuccessModal } from "../../hooks/useSuccessModal";
 import { useAuth } from "../../../../context/AuthContext";
 import {
   getAllUsers,
@@ -29,6 +31,14 @@ import "./UserManagement.css";
 
 const UserManagement = () => {
   const { currentUser } = useAuth(); // Lấy thông tin user hiện tại
+
+  // Success modal hook
+  const {
+    isOpen: isSuccessOpen,
+    modalData: successData,
+    showSuccess,
+    hideSuccess,
+  } = useSuccessModal();
 
   // State cho dữ liệu người dùng
   const [users, setUsers] = useState([]);
@@ -247,7 +257,8 @@ const UserManagement = () => {
   useEffect(() => {
     let result = [...users];
 
-    // Lọc theo trạng thái
+    // Lọc theo trạng thái chỉ khi người dùng chọn lọc
+    // Nếu không lọc (statusFilter === "all") thì hiển thị cả tài khoản active và inactive
     if (statusFilter !== "all") {
       const statusValue = statusFilter === "active";
       result = result.filter((user) => user.isActive === statusValue);
@@ -263,14 +274,16 @@ const UserManagement = () => {
       const searchLower = searchTerm.toLowerCase();
       result = result.filter(
         (user) =>
-          user.username?.toLowerCase().includes(searchLower) ||
-          user.email?.toLowerCase().includes(searchLower) ||
-          user.phoneNumber?.toLowerCase().includes(searchLower) ||
-          user.id?.toLowerCase().includes(searchLower)
+          (user.username?.toLowerCase() || "").includes(searchLower) ||
+          (user.email?.toLowerCase() || "").includes(searchLower) ||
+          (user.phoneNumber?.toLowerCase() || "").includes(searchLower) ||
+          (user.id?.toLowerCase() || "").includes(searchLower) ||
+          (user.fullName?.toLowerCase() || "").includes(searchLower)
       );
     }
 
     setFilteredUsers(result);
+    console.log("Filtered users:", result.length, "total users:", users.length);
   }, [users, searchTerm, roleFilter, statusFilter]);
 
   // Handlers
@@ -327,15 +340,61 @@ const UserManagement = () => {
   const handleToggleStatus = async (userId) => {
     try {
       const user = users.find((u) => u.id === userId);
-      await toggleUserStatus(userId, !user.isActive);
-      await loadUsers(); // Reload data sau khi toggle
+      if (!user) {
+        alert(`Không tìm thấy người dùng với ID: ${userId}`);
+        return;
+      }
+
+      const newStatus = !user.isActive;
+      console.log(
+        `Toggling status for user: ${userId}, current: ${user.isActive}, new: ${newStatus}`
+      );
+
+      // Hiển thị thông báo đang xử lý
+      const statusMessage = newStatus ? "kích hoạt" : "vô hiệu hóa";
+      console.log(`Đang ${statusMessage} tài khoản ${userId}...`);
+
+      // Gọi API với userId CHÍNH XÁC (không thay đổi)
+      await toggleUserStatus(userId, newStatus);
+
+      // Reload dữ liệu sau khi toggle
+      await loadUsers();
+
+      // Hiển thị thông báo thành công
+      showSuccess(
+        `${newStatus ? "Kích hoạt" : "Vô hiệu hóa"} tài khoản thành công`,
+        `Trạng thái của tài khoản đã được ${
+          newStatus ? "kích hoạt" : "vô hiệu hóa"
+        }.`,
+        `Người dùng "${user.username}" hiện đang ${
+          newStatus ? "hoạt động" : "tạm ngưng"
+        }.`
+      );
     } catch (error) {
       console.error("Error toggling user status:", error);
+
+      // Detailed error handling
       if (error.message.includes("Unauthorized")) {
         setAuthRequired(true);
         alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      } else if (
+        error.message.includes("404") ||
+        error.message.includes("không tìm thấy")
+      ) {
+        alert(`Không tìm thấy tài khoản: ${error.message}`);
+        // Reload để đồng bộ với server
+        await loadUsers();
+      } else if (error.message.includes("JSON")) {
+        console.error("JSON Parse Error:", error);
+        alert(
+          "Trạng thái có thể đã được thay đổi, nhưng có lỗi khi xử lý phản hồi. Đang tải lại dữ liệu..."
+        );
+        // Reload data to check if the status was actually changed
+        await loadUsers();
       } else {
         alert(`Có lỗi xảy ra khi thay đổi trạng thái: ${error.message}`);
+        // Reload để đảm bảo UI hiển thị trạng thái chính xác
+        await loadUsers();
       }
     }
   };
@@ -349,30 +408,28 @@ const UserManagement = () => {
         const apiData = transformUserToAPI(userData);
         console.log("Add mode - API data:", apiData);
         await createUser(apiData);
-        alert("Thêm người dùng thành công!");
+        showSuccess(
+          "Thêm người dùng thành công!",
+          "Người dùng mới đã được tạo trong hệ thống.",
+          `Tài khoản "${userData.username}" với vai trò "${getRoleDisplayName(
+            userData.role
+          )}" đã được thêm.`
+        );
       } else if (modalMode === "edit") {
         console.log("Edit mode - updating user with ID:", userData.id);
-        // Cho edit mode, gửi tất cả các fields bao gồm cả role-specific fields
+        // Cho edit mode, chỉ gửi những fields cần thiết
         const editData = {
           email: userData.email,
           password: userData.password,
           phoneNumber: userData.phoneNumber,
-          fullName: userData.fullName,
-          role: userData.role,
         };
-
-        // Thêm fields theo role
-        if (userData.role === 'PARENT') {
-          editData.address = userData.address;
-          editData.relationshipType = userData.relationshipType;
-          editData.occupation = userData.occupation;
-        } else if (userData.role === 'NURSE') {
-          editData.qualification = userData.qualification;
-        }
-
         console.log("Edit mode - sending data:", editData);
         await updateUser(userData.id, editData);
-        alert("Cập nhật người dùng thành công!");
+        showSuccess(
+          "Cập nhật người dùng thành công!",
+          "Thông tin người dùng đã được cập nhật.",
+          `Tài khoản "${userData.username}" đã được cập nhật thông tin mới.`
+        );
       }
 
       await loadUsers(); // Reload data sau khi save
@@ -455,7 +512,11 @@ const UserManagement = () => {
           )
         );
 
-        alert(`✅ Gửi email thành công cho ${user.username}!`);
+        showSuccess(
+          "Gửi email thành công!",
+          "Email thông tin tài khoản đã được gửi.",
+          `Email đã được gửi đến ${user.email} cho tài khoản "${user.username}".`
+        );
       }
     } catch (error) {
       console.error("Error sending email:", error);
@@ -762,6 +823,17 @@ const UserManagement = () => {
           getRoleDisplayName={getRoleDisplayName}
         />
       )}
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={isSuccessOpen}
+        onClose={hideSuccess}
+        title={successData.title}
+        message={successData.message}
+        details={successData.details}
+        autoClose={successData.autoClose}
+        autoCloseDelay={successData.autoCloseDelay}
+      />
     </div>
   );
 };

@@ -8,8 +8,8 @@ import {
   FaSpinner,
   FaPlusCircle,
   FaStethoscope,
+  FaTrashAlt,
 } from "react-icons/fa";
-import healthCampaignService from "../../../../services/APIAdmin/healthCampaignService";
 import "./CreateHealthCampaign.css";
 
 const CreateHealthCampaign = () => {
@@ -21,15 +21,25 @@ const CreateHealthCampaign = () => {
   // Form data với giá trị mặc định
   const [formData, setFormData] = useState({
     title: "",
+    description: "",
     startDate: "",
-    status: "PREPARING",
+    endDate: "",
     notes: "",
+    status: "PREPARING",
+    specialCheckupItems: [],
   });
+
+  // State cho special checkup items
+  const [newCheckupItem, setNewCheckupItem] = useState("");
 
   // Validate form
   const validateForm = () => {
     if (!formData.title.trim()) {
       setErrorMessage("Vui lòng nhập tiêu đề chiến dịch");
+      return false;
+    }
+    if (!formData.description.trim()) {
+      setErrorMessage("Vui lòng nhập mô tả chiến dịch");
       return false;
     }
     if (!formData.startDate) {
@@ -46,7 +56,6 @@ const CreateHealthCampaign = () => {
   // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) {
       setShowError(true);
       setTimeout(() => setShowError(false), 5000);
@@ -60,21 +69,38 @@ const CreateHealthCampaign = () => {
     try {
       console.log("🚀 Tạo chiến dịch kiểm tra sức khỏe:", formData);
 
-      const result = await healthCampaignService.createHealthCampaign(formData);
+      // Gọi API tạo mới: http://localhost:8080/api/v1/health-campaigns
+      const response = await fetch(
+        "http://localhost:8080/api/v1/health-campaigns",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
-      if (result.success) {
-        setShowSuccess(true);
-        // Reset form sau khi thành công
-        setFormData({
-          title: "",
-          startDate: "",
-          status: "PREPARING",
-          notes: "",
-        });
-        setTimeout(() => setShowSuccess(false), 5000);
-      } else {
-        throw new Error(result.message || "Có lỗi xảy ra khi tạo chiến dịch");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const result = await response.json();
+      console.log("✅ Tạo thành công:", result);
+      setShowSuccess(true);
+
+      // Reset form sau khi thành công
+      setFormData({
+        title: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        notes: "",
+        status: "PREPARING",
+        specialCheckupItems: [],
+      });
+
+      setTimeout(() => setShowSuccess(false), 5000);
     } catch (err) {
       console.error("❌ Lỗi tạo chiến dịch:", err);
       setErrorMessage(err.message || "Có lỗi không mong muốn xảy ra");
@@ -92,6 +118,45 @@ const CreateHealthCampaign = () => {
       [field]: value,
     }));
   };
+
+  // Thêm special checkup item
+  const addCheckupItem = () => {
+    if (
+      newCheckupItem.trim() &&
+      !formData.specialCheckupItems.includes(newCheckupItem.trim())
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        specialCheckupItems: [
+          ...prev.specialCheckupItems,
+          newCheckupItem.trim(),
+        ],
+      }));
+      setNewCheckupItem("");
+    }
+  };
+
+  // Xóa special checkup item
+  const removeCheckupItem = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      specialCheckupItems: prev.specialCheckupItems.filter(
+        (_, i) => i !== index
+      ),
+    }));
+  };
+
+  // Các mục kiểm tra sẵn có để chọn nhanh
+  const predefinedItems = [
+    "Khám mắt chuyên sâu",
+    "Khám răng miệng",
+    "Xét nghiệm máu",
+    "Siêu âm tim",
+    "Đo loãng xương",
+    "Đo chiều cao, cân nặng",
+    "Kiểm tra huyết áp",
+    "Khám tai mũi họng",
+  ];
 
   return (
     <div className="create-health-campaign">
@@ -135,7 +200,6 @@ const CreateHealthCampaign = () => {
             <FaHeartbeat className="section-icon" />
             Thông Tin Chiến Dịch
           </h3>
-
           <div className="form-grid">
             <div className="form-group">
               <label htmlFor="title">
@@ -145,13 +209,32 @@ const CreateHealthCampaign = () => {
               <input
                 id="title"
                 type="text"
-                placeholder="Ví dụ: Khám sức khỏe định kỳ, Phòng chống sốt xuất huyết..."
+                placeholder="Ví dụ: Khám sức khỏe định kỳ học kỳ I năm 2024-2025"
                 value={formData.title}
                 onChange={(e) => handleInputChange("title", e.target.value)}
                 required
               />
             </div>
 
+            <div className="form-group">
+              <label htmlFor="description">
+                <FaFileAlt className="label-icon" />
+                Mô Tả Chiến Dịch *
+              </label>
+              <textarea
+                id="description"
+                rows="3"
+                placeholder="Mô tả ngắn gọn về chiến dịch kiểm tra sức khỏe"
+                value={formData.description}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-grid">
             <div className="form-group">
               <label htmlFor="startDate">
                 <FaCalendarAlt className="label-icon" />
@@ -162,8 +245,20 @@ const CreateHealthCampaign = () => {
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => handleInputChange("startDate", e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
                 required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="endDate">
+                <FaCalendarAlt className="label-icon" />
+                Ngày Kết Thúc
+              </label>
+              <input
+                id="endDate"
+                type="date"
+                value={formData.endDate}
+                onChange={(e) => handleInputChange("endDate", e.target.value)}
               />
             </div>
 
@@ -188,6 +283,96 @@ const CreateHealthCampaign = () => {
 
         <div className="form-section">
           <h3>
+            <FaStethoscope className="section-icon" />
+            Các Mục Kiểm Tra Đặc Biệt
+          </h3>
+
+          {/* Danh sách mục kiểm tra hiện tại */}
+          {formData.specialCheckupItems.length > 0 && (
+            <div className="current-items">
+              <h4>Các mục kiểm tra đã chọn:</h4>
+              <div className="items-list">
+                {formData.specialCheckupItems.map((item, index) => (
+                  <div key={index} className="item-tag">
+                    <span>{item}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeCheckupItem(index)}
+                      className="remove-item"
+                    >
+                      <FaTrashAlt />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Thêm mục kiểm tra mới */}
+          <div className="add-item-section">
+            <div className="form-group">
+              <label htmlFor="newCheckupItem">
+                <FaPlusCircle className="label-icon" />
+                Thêm Mục Kiểm Tra
+              </label>
+              <div className="input-with-button">
+                <input
+                  id="newCheckupItem"
+                  type="text"
+                  placeholder="Nhập tên mục kiểm tra..."
+                  value={newCheckupItem}
+                  onChange={(e) => setNewCheckupItem(e.target.value)}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), addCheckupItem())
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={addCheckupItem}
+                  className="add-button"
+                  disabled={!newCheckupItem.trim()}
+                >
+                  <FaPlusCircle />
+                </button>
+              </div>
+            </div>
+
+            {/* Mục kiểm tra gợi ý */}
+            <div className="predefined-items">
+              <h4>Mục kiểm tra phổ biến:</h4>
+              <div className="predefined-list">
+                {predefinedItems.map((item, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className={`predefined-item ${
+                      formData.specialCheckupItems.includes(item)
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      if (!formData.specialCheckupItems.includes(item)) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          specialCheckupItems: [
+                            ...prev.specialCheckupItems,
+                            item,
+                          ],
+                        }));
+                      }
+                    }}
+                    disabled={formData.specialCheckupItems.includes(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h3>
             <FaFileAlt className="section-icon" />
             Ghi Chú Chi Tiết
           </h3>
@@ -199,8 +384,8 @@ const CreateHealthCampaign = () => {
             </label>
             <textarea
               id="notes"
-              rows="6"
-              placeholder="Mô tả chi tiết về chiến dịch, đối tượng tham gia, quy trình thực hiện, lưu ý đặc biệt..."
+              rows="4"
+              placeholder="Ghi chú chi tiết về chiến dịch, đối tượng ưu tiên, quy trình thực hiện..."
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
               required
@@ -216,54 +401,18 @@ const CreateHealthCampaign = () => {
           <button type="submit" className="submit-button" disabled={isLoading}>
             {isLoading ? (
               <>
-                <FaSpinner className="spinning" />
+                <FaSpinner className="spin" />
                 Đang tạo chiến dịch...
               </>
             ) : (
               <>
-                <FaPlusCircle />
+                <FaCheck />
                 Tạo Chiến Dịch
               </>
             )}
           </button>
         </div>
       </form>
-
-      {/* Info Cards */}
-      <div className="info-cards">
-        <div className="info-card">
-          <div className="card-icon">🩺</div>
-          <div className="card-content">
-            <h4>Quy trình chuẩn</h4>
-            <p>
-              Tất cả chiến dịch cần tuân thủ quy trình kiểm tra sức khỏe theo
-              quy định của Bộ Y tế
-            </p>
-          </div>
-        </div>
-
-        <div className="info-card">
-          <div className="card-icon">📅</div>
-          <div className="card-content">
-            <h4>Lập kế hoạch</h4>
-            <p>
-              Nên lập kế hoạch trước ít nhất 2 tuần để chuẩn bị đầy đủ nhân lực
-              và trang thiết bị
-            </p>
-          </div>
-        </div>
-
-        <div className="info-card">
-          <div className="card-icon">👨‍⚕️</div>
-          <div className="card-content">
-            <h4>Đội ngũ thực hiện</h4>
-            <p>
-              Bác sĩ, y tá và các chuyên gia y tế cần có đủ chuyên môn và kinh
-              nghiệm
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

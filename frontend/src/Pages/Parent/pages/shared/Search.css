@@ -1,73 +1,50 @@
 /**
- * Shared search component styling
+ * DEPRECATED: Legacy shared search styling
+ * This file is kept for backward compatibility with older components
+ * New components should use the modern SearchBox component with unique class variants
+ * 
+ * @deprecated Use SearchBox component with className prop instead
  */
 
-.search-box {
+/* 
+ * This file now serves as a fallback for any legacy search implementations
+ * All new search functionality should use:
+ * - health-guide-search for HealthGuide pages
+ * - community-search for Community pages  
+ * - modern-search-container base class from SearchBox component
+ */
+
+/* Legacy fallback - minimal styling to prevent breaks */
+.legacy-search-fallback {
+  /* Intentionally minimal to encourage migration to SearchBox component */
   position: relative;
+  width: 100%;
   margin-bottom: 20px;
+}
+
+.legacy-search-fallback input {
   width: 100%;
-}
-
-.search-box input[type="text"] {
-  width: 100%;
-  padding: 14px 50px 14px 16px;
-  border-radius: 100px;
-  border: 1px solid #e2e8f0;
-  background-color: #ffffff;
-  font-size: 15px;
-  color: #1e293b;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  font-family: var(--font-body);
-}
-
-.search-box input[type="text"]:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.search-box input[type="text"]::placeholder {
-  color: #94a3b8;
-}
-
-.search-btn {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border: none;
-  background-color: #3b82f6;
-  color: white;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
-  z-index: 2;
-}
-
-.search-btn:hover {
-  background-color: #1d4ed8;
-}
-
-.search-btn i {
+  padding: 12px 40px 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   font-size: 14px;
 }
 
-/* Responsive styling */
-@media (max-width: 768px) {
-  .search-box input[type="text"] {
-    padding: 12px 45px 12px 14px;
-    font-size: 14px;
-  }
-  
-  .search-btn {
-    width: 36px;
-    height: 36px;
-  }
+.legacy-search-fallback button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #6b7280;
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  cursor: pointer;
 }
+
+/* Note: To use modern search styling, replace with:
+ * <SearchBox className="health-guide-search" /> or
+ * <SearchBox className="community-search" />
+ */

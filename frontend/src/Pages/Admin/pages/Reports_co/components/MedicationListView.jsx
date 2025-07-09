@@ -113,7 +113,7 @@ const MedicationListView = ({ onBack }) => {
 
     if (daysUntilExpiry < 0) return { class: "expired", text: "Đã hết hạn" };
     if (daysUntilExpiry <= 30)
-      return { class: "expiring-soon", text: "Sắp hết hạn" };
+      return { class: "expiring-soon", text: "Sắp hết thuốc" };
     if (daysUntilExpiry <= 180)
       return { class: "expiring-warning", text: "Cần theo dõi" };
     return { class: "expiry-good", text: "Còn hạn" };
@@ -159,7 +159,7 @@ const MedicationListView = ({ onBack }) => {
             </div>
             <div className="stat-content">
               <h3>{statistics.total}</h3>
-              <p>Tổng số mặt hàng</p>
+              <p>Tổng số loại thuốc</p>
             </div>
           </div>
 
@@ -233,7 +233,8 @@ const MedicationListView = ({ onBack }) => {
         </div>
 
         <div className="results-count">
-          Hiển thị {filteredMedications.length} / {medications.length} mặt hàng
+          Hiển thị {filteredMedications.length} / {medications.length} loại
+          thuốc
         </div>
       </div>
 
@@ -246,71 +247,205 @@ const MedicationListView = ({ onBack }) => {
         </div>
       )}
 
-      {/* Medication List */}
+      {/* Medication Table */}
       {filteredMedications.length > 0 ? (
-        <div className="medication-grid">
-          {filteredMedications.map((medication) => {
-            const stockStatus = getStockStatus(medication.stockQuantity);
-            const expiryStatus = getExpiryStatus(medication.expiryDate);
+        <div className="medication-table-container">
+          <table
+            className="medication-table"
+            cellSpacing="0"
+            cellPadding="0"
+            border="1"
+          >
+            <thead>
+              <tr>
+                <th width="50">ID</th>
+                <th width="250">Tên thuốc</th>
+                <th width="100">Loại</th>
+                <th width="80">Đơn vị</th>
+                <th width="80">Tồn kho</th>
+                <th width="100">Hết hạn</th>
+                <th width="120">Trạng thái</th>
+                <th width="80">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredMedications.map((medication) => {
+                const stockStatus = getStockStatus(medication.stockQuantity);
+                const expiryStatus = getExpiryStatus(medication.expiryDate);
 
-            return (
-              <div
-                key={medication.itemId}
-                className="medication-card"
-                onClick={() => handleViewDetail(medication)}
-              >
-                <div className="medication-card-header">
-                  <h3 className="medication-name">{medication.itemName}</h3>
-                  <div className="medication-badges">
-                    <span className={`stock-badge ${stockStatus.class}`}>
-                      {stockStatus.text}
-                    </span>
-                    <span className={`expiry-badge ${expiryStatus.class}`}>
-                      {expiryStatus.text}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="medication-card-body">
-                  <div className="medication-info">
-                    <div className="info-row">
-                      <span className="label">Loại:</span>
-                      <span className="value">{medication.itemType}</span>
-                    </div>
-                    <div className="info-row">
-                      <span className="label">Đơn vị:</span>
-                      <span className="value">{medication.unit}</span>
-                    </div>
-                    <div className="info-row">
-                      <span className="label">Tồn kho:</span>
-                      <span className={`value stock-${stockStatus.class}`}>
-                        {medication.stockQuantity} {medication.unit}
+                return (
+                  <tr key={medication.itemId} className="medication-row">
+                    <td style={{ textAlign: "center" }}>
+                      {medication.itemId || "-"}
+                    </td>
+                    <td>
+                      <div>
+                        <strong>{medication.itemName || "Chưa có tên"}</strong>
+                        <div style={{ fontSize: "12px", color: "#666" }}>
+                          {medication.itemDescription &&
+                          medication.itemDescription.length > 60
+                            ? `${medication.itemDescription.substring(
+                                0,
+                                60
+                              )}...`
+                            : medication.itemDescription || "Không có mô tả"}
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <span
+                        style={{
+                          background: "#e9ecef",
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          fontSize: "11px",
+                        }}
+                      >
+                        {medication.itemType || "N/A"}
                       </span>
-                    </div>
-                    <div className="info-row">
-                      <span className="label">Hết hạn:</span>
-                      <span className="value">
-                        {formatDate(medication.expiryDate)}
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      {medication.unit || "N/A"}
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <span
+                        style={{
+                          background:
+                            stockStatus.class === "out-of-stock"
+                              ? "#f8d7da"
+                              : stockStatus.class === "low-stock"
+                              ? "#fff3cd"
+                              : "#d4edda",
+                          color:
+                            stockStatus.class === "out-of-stock"
+                              ? "#721c24"
+                              : stockStatus.class === "low-stock"
+                              ? "#856404"
+                              : "#155724",
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          fontWeight: "bold",
+                          display: "inline-block",
+                        }}
+                      >
+                        {typeof medication.stockQuantity === "number"
+                          ? medication.stockQuantity
+                          : "N/A"}
                       </span>
-                    </div>
-                  </div>
-
-                  <div className="medication-description">
-                    {medication.itemDescription.length > 100
-                      ? `${medication.itemDescription.substring(0, 100)}...`
-                      : medication.itemDescription}
-                  </div>
-                </div>
-
-                <div className="medication-card-footer">
-                  <span className="medication-id">ID: {medication.itemId}</span>
-                  <button className="view-detail-btn">
-                    <i className="fas fa-eye"></i> Xem chi tiết
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <span
+                        style={{
+                          background:
+                            expiryStatus.class === "expired" ||
+                            expiryStatus.class === "expiring-soon"
+                              ? "#f8d7da"
+                              : expiryStatus.class === "expiring-warning"
+                              ? "#fff3cd"
+                              : "#d4edda",
+                          color:
+                            expiryStatus.class === "expired" ||
+                            expiryStatus.class === "expiring-soon"
+                              ? "#721c24"
+                              : expiryStatus.class === "expiring-warning"
+                              ? "#856404"
+                              : "#155724",
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          fontWeight: "bold",
+                          display: "inline-block",
+                        }}
+                      >
+                        {medication.expiryDate
+                          ? formatDate(medication.expiryDate)
+                          : "N/A"}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "3px",
+                          alignItems: "center",
+                        }}
+                      >
+                        <span
+                          style={{
+                            background:
+                              stockStatus.class === "out-of-stock"
+                                ? "#f8d7da"
+                                : stockStatus.class === "low-stock"
+                                ? "#fff3cd"
+                                : "#d4edda",
+                            color:
+                              stockStatus.class === "out-of-stock"
+                                ? "#721c24"
+                                : stockStatus.class === "low-stock"
+                                ? "#856404"
+                                : "#155724",
+                            padding: "2px 6px",
+                            borderRadius: "3px",
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {stockStatus.text}
+                        </span>
+                        <span
+                          style={{
+                            background:
+                              expiryStatus.class === "expired" ||
+                              expiryStatus.class === "expiring-soon"
+                                ? "#f8d7da"
+                                : expiryStatus.class === "expiring-warning"
+                                ? "#fff3cd"
+                                : "#d4edda",
+                            color:
+                              expiryStatus.class === "expired" ||
+                              expiryStatus.class === "expiring-soon"
+                                ? "#721c24"
+                                : expiryStatus.class === "expiring-warning"
+                                ? "#856404"
+                                : "#155724",
+                            padding: "2px 6px",
+                            borderRadius: "3px",
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {expiryStatus.text}
+                        </span>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <button
+                        style={{
+                          background: "#007bff",
+                          color: "white",
+                          border: "none",
+                          padding: "6px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "30px",
+                          height: "30px",
+                        }}
+                        onClick={() => handleViewDetail(medication)}
+                        title="Xem chi tiết"
+                      >
+                        <i className="fas fa-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       ) : (
         <div className="no-data">

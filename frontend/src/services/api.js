@@ -93,38 +93,38 @@ api.interceptors.response.use(
 
 // Define specific API endpoints
 const endpoints = {
-  login: `${API_URL}/auth/login`,
-  getStudents: `${API_URL}/parents/my-students`,
+  login: `/auth/login`,
+  getStudents: `/parents/my-students`,
   
   // Health profile endpoints
   healthProfiles: {
-    getByStudentId: (studentId) => `${API_URL}/health-profiles/student/${studentId}`,
-    submitDeclaration: `${API_URL}/health-profiles`
+    getByStudentId: (studentId) => `/health-profiles/student/${studentId}`,
+    submitDeclaration: `/health-profiles`
   },
   
   // Medical checkups endpoints
   medicalCheckups: {
-    getByStudentId: (studentId) => `${API_URL}/medical-checkups/student/${studentId}`
+    getByStudentId: (studentId) => `/medical-checkups/student/${studentId}`
   },
   
   // Medication requests endpoints
   medicationRequests: {
-    getMyRequests: `${API_URL}/parent-medication-requests/my-requests`,
-    submitRequest: `${API_URL}/parent-medication-requests/submit-request`,
-    updateRequest: (id) => `${API_URL}/parent-medication-requests/${id}`,
-    deleteRequest: (id) => `${API_URL}/parent-medication-requests/${id}`
+    getMyRequests: `/parent-medication-requests/my-requests`,
+    submitRequest: `/parent-medication-requests/submit-request`,
+    updateRequest: (id) => `/parent-medication-requests/${id}`,
+    deleteRequest: (id) => `/parent-medication-requests/${id}`
   },
 
   // Notifications endpoints - Cập nhật cho đúng với API trong Notifications.jsx
   notifications: {
     // Lấy danh sách tiêu đề thông báo
-    getTitles: (parentId) => `${API_URL}/notifications/getTitlesByParentId/${parentId}`,
+    getTitles: (parentId) => `/notifications/getTitlesByParentId/${parentId}`,
     
     // Lấy chi tiết thông báo
-    getDetail: (notificationId, parentId) => `${API_URL}/notifications/getDetail/${notificationId}/${parentId}`,
+    getDetail: (notificationId, parentId) => `/notifications/getDetail/${notificationId}/${parentId}`,
     
     // Phản hồi thông báo (Xác nhận/Từ chối)
-    respond: (notificationId, parentId) => `${API_URL}/notifications/respond/${notificationId}/${parentId}`
+    respond: (notificationId, parentId) => `/notifications/respond/${notificationId}/${parentId}`
   }
 };
 

@@ -99,6 +99,48 @@
   font-weight: 500;
 }
 
+/* Error Banner */
+.error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.error-banner-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.error-close-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.error-close-btn:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
 /* Toolbar */
 .history-toolbar {
   display: flex;
@@ -474,13 +516,13 @@
   border: 1px solid;
 }
 
-.status-pending {
+.status-waiting {
   background: #fef3c7;
   color: #d97706;
   border-color: #fbbf24;
 }
 
-.status-ongoing {
+.status-progress {
   background: #dbeafe;
   color: #2563eb;
   border-color: #60a5fa;
@@ -492,7 +534,7 @@
   border-color: #34d399;
 }
 
-.status-cancelled {
+.status-canceled {
   background: #fee2e2;
   color: #dc2626;
   border-color: #f87171;
@@ -501,6 +543,41 @@
 .status-default {
   background: #f1f5f9;
   color: #64748b;
+  border-color: #cbd5e1;
+}
+
+/* Time Status Styles */
+.time-status {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.time-status-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.time-status-badge.normal {
+  background: #d1fae5;
+  border-color: #34d399;
+}
+
+.time-status-badge.urgent {
+  background: #fef3c7;
+  border-color: #fbbf24;
+}
+
+.time-status-badge.overdue {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+.time-status-badge.past {
+  background: #f1f5f9;
   border-color: #cbd5e1;
 }
 
@@ -779,6 +856,178 @@
   transform: none;
 }
 
+/* Table Layout Styles */
+.plans-table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.plans-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.plans-table thead {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.plans-table th {
+  padding: 16px 12px;
+  text-align: center;
+  font-weight: 600;
+  color: #374151;
+  border-right: 1px solid #e2e8f0;
+}
+
+.plans-table th:last-child {
+  border-right: none;
+}
+
+.plans-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+
+.plans-table td:last-child {
+  border-right: none;
+}
+
+.plans-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.plans-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Cell Specific Styles */
+.plan-id-cell {
+  font-weight: 600;
+  color: #6366f1;
+  width: 60px;
+  text-align: center;
+}
+
+.plan-name-cell {
+  min-width: 250px;
+  max-width: 350px;
+}
+
+.name-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.name-with-icon .vaccine-icon {
+  color: #10b981;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.name-with-icon span {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.date-cell, .deadline-cell {
+  width: 120px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.status-cell {
+  width: 180px;
+  position: relative;
+}
+
+.status-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: white;
+  min-width: 160px;
+}
+
+.status-select.status-waiting {
+  background: #fef3c7;
+  color: #d97706;
+  border-color: #fbbf24;
+}
+
+.status-select.status-progress {
+  background: #dbeafe;
+  color: #2563eb;
+  border-color: #60a5fa;
+}
+
+.status-select.status-completed {
+  background: #d1fae5;
+  color: #059669;
+  border-color: #34d399;
+}
+
+.status-select.status-canceled {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #f87171;
+}
+
+.status-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-spinner {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  color: #6366f1;
+}
+
+.time-status-cell {
+  width: 120px;
+}
+
+.time-status-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.description-cell {
+  max-width: 300px;
+  min-width: 200px;
+}
+
+.description-text {
+  line-height: 1.4;
+  color: #6b7280;
+  font-size: 0.85rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-height: none;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .plans-grid {
@@ -873,4 +1122,25 @@
     grid-template-columns: 1fr;
     gap: 15px;
   }
-} 
+
+  .plans-table {
+    font-size: 0.8rem;
+  }
+  
+  .plans-table th,
+  .plans-table td {
+    padding: 8px 6px;
+  }
+  
+  .description-cell {
+    max-width: 150px;
+  }
+
+  .plans-table-container {
+    overflow-x: auto;
+  }
+  
+  .plans-table {
+    min-width: 800px;
+  }
+}

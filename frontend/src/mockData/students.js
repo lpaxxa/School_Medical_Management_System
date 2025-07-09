@@ -2,6 +2,7 @@
 export const MOCK_STUDENTS = [
   {
     id: 101,
+    studentId: "HS001",
     name: "Trần Minh An",
     class: "3A",
     parentId: 3,
@@ -63,6 +64,7 @@ export const MOCK_STUDENTS = [
   },
   {
     id: 102,
+    studentId: "HS002",
     name: "Trần Minh Châu",
     class: "1B",
     parentId: 3,
@@ -78,6 +80,7 @@ export const MOCK_STUDENTS = [
   },
   {
     id: 103,
+    studentId: "HS003",
     name: "Lê Ngọc Bảo",
     class: "5A",
     parentId: 4,
@@ -93,6 +96,7 @@ export const MOCK_STUDENTS = [
   },
   {
     id: 104,
+    studentId: "HS004",
     name: "Nguyễn Gia Huy",
     class: "2C",
     parentId: 99, // Google user

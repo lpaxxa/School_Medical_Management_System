@@ -2,14 +2,11 @@ import React, { useState } from "react";
 import {
   FaEye,
   FaEdit,
-  FaTrash,
   FaToggleOn,
   FaToggleOff,
   FaSpinner,
   FaInbox,
-  FaPaperPlane,
   FaCheck,
-  FaClock,
 } from "react-icons/fa";
 import "./UserTable.css";
 
@@ -72,7 +69,6 @@ const UserTable = ({
               <th className="col-phone">Số điện thoại</th>
               <th className="col-role">Vai trò</th>
               <th className="col-status">Trạng thái</th>
-              <th className="col-email-sent">Email gửi</th>
               <th className="col-actions">Thao tác</th>
             </tr>
           </thead>
@@ -111,55 +107,30 @@ const UserTable = ({
                     className={`status-toggle ${
                       user.isActive ? "active" : "inactive"
                     }`}
-                    onClick={() => onToggleStatus(user.id)}
-                    title="Click để thay đổi trạng thái"
+                    onClick={() => {
+                      console.log(
+                        `Toggle status button clicked for user ID: ${user.id}`
+                      );
+                      onToggleStatus(user.id);
+                    }}
+                    title={
+                      user.isActive
+                        ? "Nhấn để vô hiệu hóa tài khoản"
+                        : "Nhấn để kích hoạt tài khoản"
+                    }
                   >
                     {user.isActive ? (
                       <>
                         <FaToggleOn className="toggle-icon" />
-                        <span>Hoạt động</span>
+                        <span>HOẠT ĐỘNG</span>
                       </>
                     ) : (
                       <>
                         <FaToggleOff className="toggle-icon" />
-                        <span>Tạm ngưng</span>
+                        <span>TẠM NGƯNG</span>
                       </>
                     )}
                   </button>
-                </td>
-
-                <td className="col-email-sent">
-                  {user.emailSent === null ? (
-                    <span className="email-status hidden">-</span>
-                  ) : user.emailSent === true ? (
-                    <span className="email-status sent">
-                      <FaCheck className="status-icon" />
-                      Đã gửi
-                    </span>
-                  ) : (
-                    <button
-                      className={`email-send-btn ${
-                        isSendingEmail && sendingUserId === user.id
-                          ? "sending"
-                          : ""
-                      }`}
-                      onClick={() => onSendEmail && onSendEmail(user)}
-                      disabled={isSendingEmail && sendingUserId === user.id}
-                      title="Gửi email tài khoản"
-                    >
-                      {isSendingEmail && sendingUserId === user.id ? (
-                        <>
-                          <FaSpinner className="spin-icon" />
-                          Đang gửi...
-                        </>
-                      ) : (
-                        <>
-                          <FaPaperPlane className="send-icon" />
-                          Gửi email
-                        </>
-                      )}
-                    </button>
-                  )}
                 </td>
 
                 <td className="col-actions">
@@ -171,34 +142,12 @@ const UserTable = ({
                     >
                       <FaEye />
                     </button>
-
                     <button
                       className="action-btn edit"
                       onClick={() => onEdit(user)}
                       title="Chỉnh sửa"
                     >
                       <FaEdit />
-                    </button>
-
-                    <button
-                      className="action-btn delete"
-                      onClick={() => {
-                        if (user.role === "ADMIN") {
-                          alert(
-                            "⚠️ Không thể xóa tài khoản Admin!\n\nTài khoản Admin được bảo vệ để đảm bảo an toàn hệ thống."
-                          );
-                          return;
-                        }
-                        onDelete(user.id);
-                      }}
-                      title={
-                        user.role === "ADMIN"
-                          ? "Không thể xóa tài khoản Admin"
-                          : `Xóa người dùng ${user.username}`
-                      }
-                      disabled={user.role === "ADMIN"}
-                    >
-                      <FaTrash />
                     </button>
                   </div>
                 </td>

@@ -7,6 +7,7 @@ import NotificationDetail from "./components/NotificationDetail";
 import StudentListView from "./components/StudentListView";
 import StudentDetailView from "./components/StudentDetailView";
 import MedicationListView from "./components/MedicationListView";
+import VaccineListView from "./components/VaccineListView";
 import { reportService } from "./services/reportService";
 
 const ReportGenerator = () => {
@@ -53,6 +54,9 @@ const ReportGenerator = () => {
         case "medication":
           reportData = await reportService.getMedicationReport();
           break;
+        case "vaccine":
+          reportData = await reportService.getVaccineReport();
+          break;
         default:
           throw new Error("Loại báo cáo không hỗ trợ");
       }
@@ -85,6 +89,10 @@ const ReportGenerator = () => {
         setDetailViewType("medication");
         // Lấy dữ liệu thuốc từ API
         rawData = await reportService.getMedicationDetailData();
+      } else if (reportType === "vaccine") {
+        setDetailViewType("vaccine");
+        // Lấy dữ liệu vaccine từ API
+        rawData = await reportService.getVaccineDetailData();
       } else {
         setDetailViewType("notification");
         // Lấy dữ liệu thông báo cho các báo cáo khác
@@ -143,7 +151,7 @@ const ReportGenerator = () => {
           </div>
           <div className="reports-header-stats">
             <div className="reports-stat-item">
-              <span className="reports-stat-number">4</span>
+              <span className="reports-stat-number">5</span>
               <span className="reports-stat-label">Loại báo cáo</span>
             </div>
           </div>
@@ -219,6 +227,8 @@ const ReportGenerator = () => {
           />
         ) : detailViewType === "medication" ? (
           <MedicationListView onBack={handleBackFromDetail} />
+        ) : detailViewType === "vaccine" ? (
+          <VaccineListView onBack={handleBackFromDetail} />
         ) : (
           <DetailView
             data={detailData}

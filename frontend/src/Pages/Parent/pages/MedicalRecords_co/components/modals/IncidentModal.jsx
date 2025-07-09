@@ -20,14 +20,10 @@ import {
   FaThermometerHalf,
   FaAmbulance,
   FaNotesMedical,
-  FaShieldAlt,
   FaChartLine,
-  FaCalendarCheck,
   FaUserShield,
   FaCamera,
-  FaAward,
   FaHandHoldingMedical,
-  FaBookMedical,
 } from "react-icons/fa";
 import { formatDateTime } from "../../utils/formatters";
 
@@ -40,44 +36,28 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
       case "high":
       case "cao":
         return {
-          icon: FaExclamationTriangle,
-          color: "#ef4444",
-          bgColor: "linear-gradient(135deg, #fee2e2, #fecaca)",
-          borderColor: "#ef4444",
           label: "Nghiêm trọng",
-          emoji: "🚨",
+          type: "error",
           priority: "KHẨN CẤP",
         };
       case "medium":
       case "trung bình":
         return {
-          icon: FaExclamationCircle,
-          color: "#f59e0b",
-          bgColor: "linear-gradient(135deg, #fef3c7, #fde68a)",
-          borderColor: "#f59e0b",
           label: "Trung bình",
-          emoji: "⚠️",
+          type: "warning",
           priority: "QUAN TRỌNG",
         };
       case "low":
       case "thấp":
         return {
-          icon: FaInfoCircle,
-          color: "#10b981",
-          bgColor: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
-          borderColor: "#10b981",
           label: "Nhẹ",
-          emoji: "ℹ️",
+          type: "info",
           priority: "THÔNG THƯỜNG",
         };
       default:
         return {
-          icon: FaInfoCircle,
-          color: "#6b7280",
-          bgColor: "linear-gradient(135deg, #f3f4f6, #e5e7eb)",
-          borderColor: "#6b7280",
           label: severityLevel || "Không xác định",
-          emoji: "❓",
+          type: "info",
           priority: "KHÔNG RÕ",
         };
     }
@@ -95,183 +75,145 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
   };
 
   const severityConfig = getSeverityConfig(incident.severityLevel);
-  const SeverityIcon = severityConfig.icon;
   const IncidentTypeIcon = getIncidentTypeIcon(incident.incidentType);
 
   return (
     <div className="modern-modal-overlay" onClick={onClose}>
       <div
-        className="modern-modal-content incident-modal"
+        className="modern-modal-content"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Enhanced Header */}
+        {/* Simple Modern Header */}
         <div className="modern-modal-header">
-          <div className="modal-header-main">
-            <div className="header-icon-container incident-header">
-              <FaBandAid className="header-main-icon" />
-              <div className="icon-pulse incident-pulse"></div>
+          <div className="modal-header-content">
+            <div className="modal-header-left">
+              <div className="modal-header-icon">
+                <FaBandAid />
+              </div>
+              <div className="modal-header-text">
+                <h2>Chi tiết sự cố y tế</h2>
+                <p>Thông tin chi tiết về sự cố và cách xử lý</p>
+              </div>
             </div>
-            <div className="header-content">
-              <h2>Chi tiết sự cố y tế</h2>
-              <p className="header-subtitle">
-                <FaFirstAid /> Thông tin chi tiết về sự cố và cách xử lý
-              </p>
-            </div>
+            <button className="modal-close-btn" onClick={onClose}>
+              <FaTimes />
+            </button>
           </div>
-          <button className="modern-close-btn" onClick={onClose}>
-            <FaTimes />
-            <span className="close-btn-tooltip">Đóng</span>
-          </button>
         </div>
 
-        {/* Enhanced Body */}
+        {/* Simple Modern Body */}
         <div className="modern-modal-body">
           {/* Basic Information */}
-          <div className="modern-section">
-            <div className="section-header-modern">
-              <div className="section-icon-wrapper">
-                <FaInfoCircle />
+          <div className="modal-section">
+            <h3 className="section-title">
+              <FaInfoCircle />
+              Thông tin cơ bản
+            </h3>
+
+            {/* Severity Badge */}
+            <div className="content-card">
+              <div className="content-card-title">
+                <FaExclamationTriangle />
+                Mức độ nghiêm trọng
               </div>
-              <h3>Thông tin cơ bản</h3>
+              <div className="info-card-value">
+                <span className={`status-badge-simple ${severityConfig.type}`}>
+                  {severityConfig.label} - {severityConfig.priority}
+                </span>
+              </div>
             </div>
 
-            <div className="incident-basic-modern">
-              {/* Severity Badge */}
-              <div className="severity-badge-container">
-                <div
-                  className="severity-badge-modern-large"
-                  style={{
-                    background: severityConfig.bgColor,
-                    borderColor: severityConfig.borderColor,
-                  }}
-                >
-                  <div className="severity-icon-container">
-                    <SeverityIcon style={{ color: severityConfig.color }} />
-                    <span className="severity-emoji">
-                      {severityConfig.emoji}
-                    </span>
-                  </div>
-                  <div className="severity-content">
-                    <span
-                      className="severity-level-modern"
-                      style={{ color: severityConfig.color }}
-                    >
-                      {severityConfig.label}
-                    </span>
-                    <span
-                      className="severity-priority"
-                      style={{ color: severityConfig.color }}
-                    >
-                      {severityConfig.priority}
-                    </span>
-                  </div>
-                  <div className="severity-decoration"></div>
+            <div className="info-cards-grid">
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <IncidentTypeIcon className="info-card-icon" />
+                  <span className="info-card-label">Loại sự cố</span>
+                </div>
+                <div className="info-card-value">{incident.incidentType}</div>
+              </div>
+
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaClock className="info-card-icon" />
+                  <span className="info-card-label">Thời gian xảy ra</span>
+                </div>
+                <div className="info-card-value">
+                  {formatDateTime(incident.dateTime)}
                 </div>
               </div>
 
-              {/* Incident Type & Time Cards */}
-              <div className="incident-info-cards-modern">
-                <div className="modern-incident-info-card type">
-                  <div
-                    className="incident-card-icon"
-                    style={{ color: severityConfig.color }}
-                  >
-                    <IncidentTypeIcon />
-                  </div>
-                  <div className="incident-card-content">
-                    <span className="incident-card-label">Loại sự cố</span>
-                    <span className="incident-card-value">
-                      {incident.incidentType}
-                    </span>
-                  </div>
-                  <div
-                    className="incident-card-accent"
-                    style={{ backgroundColor: severityConfig.color }}
-                  ></div>
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaUserShield className="info-card-icon" />
+                  <span className="info-card-label">Nhân viên xử lý</span>
                 </div>
+                <div className="info-card-value">
+                  {incident.staffName || "Không xác định"}
+                </div>
+              </div>
 
-                <div className="modern-incident-info-card time">
-                  <div className="incident-card-icon">
-                    <FaClock />
-                  </div>
-                  <div className="incident-card-content">
-                    <span className="incident-card-label">
-                      Thời gian xảy ra
-                    </span>
-                    <span className="incident-card-value">
-                      {formatDateTime(incident.dateTime)}
-                    </span>
-                  </div>
-                  <div className="incident-card-accent"></div>
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaUserMd className="info-card-icon" />
+                  <span className="info-card-label">Học sinh</span>
+                </div>
+                <div className="info-card-value">
+                  {incident.studentName} ({incident.studentId})
                 </div>
               </div>
             </div>
           </div>
 
           {/* Description */}
-          <div className="modern-section">
-            <div className="section-header-modern">
-              <div className="section-icon-wrapper">
-                <FaBookMedical />
-              </div>
-              <h3>Mô tả sự cố</h3>
-            </div>
-
-            <div className="modern-content-card description-modern">
-              <div className="content-card-header-modern">
+          <div className="modal-section">
+            <h3 className="section-title">
+              <FaNotesMedical />
+              Mô tả sự cố
+            </h3>
+            <div className="content-card">
+              <div className="content-card-title">
                 <FaClipboardList />
-                <h4>Chi tiết diễn biến</h4>
+                Chi tiết diễn biến
               </div>
-              <div className="content-card-body-modern">
-                <p>{incident.description}</p>
-              </div>
+              <p className="content-card-text">{incident.description}</p>
             </div>
           </div>
 
           {/* Symptoms */}
           {incident.symptoms && (
-            <div className="modern-section">
-              <div className="section-header-modern">
-                <div className="section-icon-wrapper">
-                  <FaHeartbeat />
-                </div>
-                <h3>Triệu chứng quan sát</h3>
-              </div>
-
-              <div className="modern-content-card symptoms-modern">
-                <div className="content-card-header-modern symptoms-header">
+            <div className="modal-section">
+              <h3 className="section-title">
+                <FaHeartbeat />
+                Triệu chứng quan sát
+              </h3>
+              <div className="content-card">
+                <div className="content-card-title">
                   <FaHeart />
-                  <h4>Biểu hiện lâm sàng</h4>
+                  Biểu hiện lâm sàng
                 </div>
-                <div className="content-card-body-modern">
-                  <p>{incident.symptoms}</p>
-                </div>
-                <div className="symptoms-decoration"></div>
+                <p className="content-card-text">{incident.symptoms}</p>
               </div>
             </div>
           )}
 
           {/* Treatment */}
           {incident.treatment && (
-            <div className="modern-section">
-              <div className="section-header-modern">
-                <div className="section-icon-wrapper">
-                  <FaHandHoldingMedical />
-                </div>
-                <h3>Biện pháp xử lý</h3>
-              </div>
-
-              <div className="modern-content-card treatment-modern">
-                <div className="content-card-header-modern treatment-header">
+            <div className="modal-section">
+              <h3 className="section-title">
+                <FaHandHoldingMedical />
+                Biện pháp xử lý
+              </h3>
+              <div className="content-card">
+                <div className="content-card-title">
                   <FaStethoscope />
-                  <h4>Phương pháp điều trị</h4>
+                  Phương pháp điều trị
                 </div>
-                <div className="content-card-body-modern">
-                  <p>{incident.treatment}</p>
-                </div>
-                <div className="treatment-success-indicator">
-                  <FaCheckCircle />
-                  <span>Đã thực hiện</span>
+                <p className="content-card-text">{incident.treatment}</p>
+                <div style={{ marginTop: "12px" }}>
+                  <span className="status-badge-simple success">
+                    <FaCheckCircle style={{ marginRight: "4px" }} />
+                    Đã thực hiện
+                  </span>
                 </div>
               </div>
             </div>
@@ -279,28 +221,22 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
 
           {/* Medications */}
           {incident.medicationsUsed && (
-            <div className="modern-section">
-              <div className="section-header-modern">
-                <div className="section-icon-wrapper">
+            <div className="modal-section">
+              <h3 className="section-title">
+                <FaPills />
+                Thuốc đã sử dụng
+              </h3>
+              <div className="content-card">
+                <div className="content-card-title">
                   <FaPills />
+                  Danh sách thuốc
                 </div>
-                <h3>Thuốc đã sử dụng</h3>
-              </div>
-
-              <div className="medication-modern-card">
-                <div className="medication-card-header">
-                  <div className="medication-icon-wrapper">
-                    <FaPills />
-                    <div className="medication-pulse"></div>
-                  </div>
-                  <div className="medication-content">
-                    <h4>Danh sách thuốc</h4>
-                    <p>{incident.medicationsUsed}</p>
-                  </div>
-                </div>
-                <div className="medication-status">
-                  <FaCheckCircle />
-                  <span>Đã sử dụng an toàn</span>
+                <p className="content-card-text">{incident.medicationsUsed}</p>
+                <div style={{ marginTop: "12px" }}>
+                  <span className="status-badge-simple success">
+                    <FaCheckCircle style={{ marginRight: "4px" }} />
+                    Đã sử dụng an toàn
+                  </span>
                 </div>
               </div>
             </div>
@@ -308,161 +244,123 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
 
           {/* Follow-up */}
           {incident.requiresFollowUp && incident.followUpNotes && (
-            <div className="modern-section">
-              <div className="section-header-modern">
-                <div className="section-icon-wrapper">
-                  <FaChartLine />
+            <div className="modal-section">
+              <h3 className="section-title">
+                <FaChartLine />
+                Theo dõi sau xử lý
+              </h3>
+              <div className="content-card">
+                <div className="content-card-title">
+                  <FaFlag />
+                  Ghi chú theo dõi
                 </div>
-                <h3>Theo dõi sau xử lý</h3>
-              </div>
-
-              <div className="followup-modern-card">
-                <div className="followup-header-modern">
-                  <div className="followup-status-badge">
-                    <FaFlag />
-                    <span>Cần theo dõi</span>
-                  </div>
-                </div>
-                <div className="followup-content-modern">
-                  <FaCalendarCheck className="followup-icon" />
-                  <p>{incident.followUpNotes}</p>
-                </div>
-                <div className="followup-timeline">
-                  <div className="timeline-dot"></div>
-                  <span>Đang theo dõi</span>
+                <p className="content-card-text">{incident.followUpNotes}</p>
+                <div style={{ marginTop: "12px" }}>
+                  <span className="status-badge-simple warning">
+                    <FaFlag style={{ marginRight: "4px" }} />
+                    Cần theo dõi
+                  </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Medical Staff */}
-          <div className="modern-section">
-            <div className="section-header-modern">
-              <div className="section-icon-wrapper">
-                <FaUserShield />
-              </div>
-              <h3>Nhân viên xử lý</h3>
-            </div>
-
-            <div className="staff-modern-card">
-              <div className="staff-card-header">
-                <div className="staff-avatar">
-                  <FaUserMd />
-                </div>
-                <div className="staff-info-modern">
-                  <span className="staff-role">Nhân viên y tế phụ trách</span>
-                  <span className="staff-name-modern">
-                    {incident.staffName || "Không xác định"}
-                  </span>
-                </div>
-              </div>
-              <div className="staff-verification">
-                <FaShieldAlt />
-                <span>Đã xác minh</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Image */}
-          {incident.imgUrl && (
-            <div className="modern-section">
-              <div className="section-header-modern">
-                <div className="section-icon-wrapper">
-                  <FaCamera />
-                </div>
-                <h3>Hình ảnh minh họa</h3>
-              </div>
-
-              <div className="image-modern-card">
-                <div className="image-container-modern">
-                  <img
-                    src={incident.imgUrl}
-                    alt="Hình ảnh sự cố y tế"
-                    className="incident-image-modern"
-                  />
-                  <div className="image-overlay-modern">
-                    <FaImage />
-                    <span>Hình ảnh minh họa</span>
-                  </div>
-                </div>
+          {/* Medical Images */}
+          {incident.imageMedicalUrl && (
+            <div className="modal-section">
+              <h3 className="section-title">
+                <FaCamera />
+                Hình ảnh sự cố
+              </h3>
+              <div className="modal-image-container">
+                <img
+                  src={incident.imageMedicalUrl}
+                  alt="Hình ảnh sự cố y tế"
+                  className="modal-image"
+                />
               </div>
             </div>
           )}
 
           {/* Status Summary */}
-          <div className="modern-section">
-            <div className="section-header-modern">
-              <div className="section-icon-wrapper">
-                <FaAward />
-              </div>
-              <h3>Tóm tắt trạng thái</h3>
-            </div>
-
-            <div className="status-summary-modern-grid">
-              <div className="modern-status-summary-card resolved">
-                <div className="status-summary-icon">
-                  <FaCheckCircle />
+          <div className="modal-section">
+            <h3 className="section-title">
+              <FaCheckCircle />
+              Tóm tắt trạng thái
+            </h3>
+            <div className="info-cards-grid">
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaCheckCircle className="info-card-icon" />
+                  <span className="info-card-label">Tình trạng</span>
                 </div>
-                <div className="status-summary-content">
-                  <span className="status-summary-label">Tình trạng</span>
-                  <span className="status-summary-value">
+                <div className="info-card-value">
+                  <span className="status-badge-simple success">
                     Đã xử lý hoàn tất
                   </span>
                 </div>
-                <div className="status-summary-indicator resolved"></div>
               </div>
 
-              <div
-                className="modern-status-summary-card severity"
-                style={{ borderColor: severityConfig.color }}
-              >
-                <div
-                  className="status-summary-icon"
-                  style={{ color: severityConfig.color }}
-                >
-                  <SeverityIcon />
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaExclamationTriangle className="info-card-icon" />
+                  <span className="info-card-label">Mức độ</span>
                 </div>
-                <div className="status-summary-content">
-                  <span className="status-summary-label">Mức độ</span>
+                <div className="info-card-value">
                   <span
-                    className="status-summary-value"
-                    style={{ color: severityConfig.color }}
+                    className={`status-badge-simple ${severityConfig.type}`}
                   >
                     {severityConfig.label}
                   </span>
                 </div>
-                <div
-                  className="status-summary-indicator"
-                  style={{ backgroundColor: severityConfig.color }}
-                ></div>
+              </div>
+
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaUserMd className="info-card-icon" />
+                  <span className="info-card-label">Thông báo phụ huynh</span>
+                </div>
+                <div className="info-card-value">
+                  <span
+                    className={`status-badge-simple ${
+                      incident.parentNotified ? "success" : "warning"
+                    }`}
+                  >
+                    {incident.parentNotified
+                      ? "Đã thông báo"
+                      : "Chưa thông báo"}
+                  </span>
+                </div>
               </div>
 
               {incident.requiresFollowUp && (
-                <div className="modern-status-summary-card followup">
-                  <div className="status-summary-icon">
-                    <FaFlag />
+                <div className="info-card-simple">
+                  <div className="info-card-header">
+                    <FaFlag className="info-card-icon" />
+                    <span className="info-card-label">Theo dõi</span>
                   </div>
-                  <div className="status-summary-content">
-                    <span className="status-summary-label">Theo dõi</span>
-                    <span className="status-summary-value">
+                  <div className="info-card-value">
+                    <span className="status-badge-simple warning">
                       Cần theo dõi thêm
                     </span>
                   </div>
-                  <div className="status-summary-indicator followup"></div>
                 </div>
               )}
 
-              <div className="modern-status-summary-card treatment">
-                <div className="status-summary-icon">
-                  <FaHandHoldingMedical />
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaHandHoldingMedical className="info-card-icon" />
+                  <span className="info-card-label">Điều trị</span>
                 </div>
-                <div className="status-summary-content">
-                  <span className="status-summary-label">Điều trị</span>
-                  <span className="status-summary-value">
+                <div className="info-card-value">
+                  <span
+                    className={`status-badge-simple ${
+                      incident.treatment ? "success" : "info"
+                    }`}
+                  >
                     {incident.treatment ? "Đã thực hiện" : "Không cần thiết"}
                   </span>
                 </div>
-                <div className="status-summary-indicator treatment"></div>
               </div>
             </div>
           </div>

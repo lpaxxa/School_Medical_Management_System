@@ -3,10 +3,13 @@
   color: #ecf0f1;
   width: 280px;
   min-height: calc(100vh - 60px);
+  max-height: calc(100vh - 60px);
   overflow-y: auto;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  position: relative;
+  position: sticky;
+  top: 0;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .admin-sidebar::before {

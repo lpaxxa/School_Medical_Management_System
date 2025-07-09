@@ -167,9 +167,7 @@ export const StudentDataProvider = ({ children }) => {
     setIsLoadingHealthProfiles(true);
     try {
       // SỬA: Sử dụng đúng endpoint API với student ID
-      const response = await api.get(
-        `/health-profiles/student/${studentId}`
-      );
+      const response = await api.get(`/health-profiles/student/${studentId}`);
 
       console.log("Health profile data received:", response.data);
       // In chi tiết các trường dữ liệu
@@ -199,7 +197,7 @@ export const StudentDataProvider = ({ children }) => {
     }
   };
 
-  // Sửa hàm updateHealthProfile để sử dụng đúng endpoint
+  // Sửa hàm updateHealthProfile để sử dụng đúng endpoint với vaccination
   const updateHealthProfile = async (healthProfileData) => {
     try {
       // Kiểm tra token trước khi gửi
@@ -208,8 +206,8 @@ export const StudentDataProvider = ({ children }) => {
         throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
       }
 
-      // Chuẩn bị dữ liệu gửi API (đảm bảo format đúng)
-      const apiData = {
+      // Chuẩn bị dữ liệu health profile
+      const healthProfile = {
         id: healthProfileData.id,
         bloodType: healthProfileData.bloodType || "Chưa cập nhật",
         height: healthProfileData.height || 0,
@@ -229,10 +227,16 @@ export const StudentDataProvider = ({ children }) => {
         specialNeeds: healthProfileData.specialNeeds || "Không",
       };
 
+      // Chuẩn bị dữ liệu gửi API với cả healthProfile và vaccinations
+      const apiData = {
+        healthProfile: healthProfile,
+        vaccinations: healthProfileData.vaccinations || [],
+      };
+
       console.log("Sending health profile data to API:", apiData);
 
-      // SỬA: Sử dụng đúng endpoint API
-      const response = await api.post("/health-profiles", apiData, {
+      // SỬA: Sử dụng đúng endpoint API mới
+      const response = await api.post("/health-profiles/full", apiData, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

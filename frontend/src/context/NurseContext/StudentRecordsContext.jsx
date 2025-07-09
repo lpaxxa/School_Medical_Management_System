@@ -6,7 +6,6 @@ import {
   updateStudentRecord,
   addStudentNote,
   getClassList,
-  getGradeList,
   getBloodTypes
 } from '../../services/APINurse/studentRecordsService';
 
@@ -24,15 +23,14 @@ export const StudentRecordsProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   
-  // Classes, grades, và bloodTypes
+  // Classes và bloodTypes
   const [classes, setClasses] = useState([]);
-  const [grades, setGrades] = useState([]);
   const [bloodTypes, setBloodTypes] = useState([]);
   
   // Search criteria
   const [searchCriteria, setSearchCriteria] = useState({
     keyword: '',
-    grade: '',
+    class: '',
     bloodType: '',
     healthIssue: ''
   });
@@ -48,6 +46,19 @@ export const StudentRecordsProvider = ({ children }) => {
         const processedStudents = Array.isArray(studentsData) 
           ? studentsData.map(student => {
               // Đảm bảo ID và healthProfileID là số nếu có thể
+              let healthProfileId;
+              if (student.healthProfileId) {
+                healthProfileId = isNaN(parseInt(student.healthProfileId)) 
+                  ? student.healthProfileId 
+                  : parseInt(student.healthProfileId);
+              } else if (student.healthProfile?.id) {
+                healthProfileId = student.healthProfile.id;
+              } else {
+                // Nếu không có healthProfileId, sử dụng ID học sinh như fallback
+                // Trong thực tế, healthProfileId và student.id nên khác nhau
+                healthProfileId = student.id;
+              }
+              
               return {
                 ...student,
                 // Đảm bảo các trường cần thiết có giá trị mặc định
@@ -55,8 +66,8 @@ export const StudentRecordsProvider = ({ children }) => {
                 className: student.className || student.class || 'Chưa phân lớp',
                 dateOfBirth: student.dateOfBirth || new Date().toISOString().split('T')[0],
                 gender: student.gender || 'Không xác định',
-                // Đảm bảo healthProfileId là số nguyên
-                healthProfileId: student.healthProfileId ? parseInt(student.healthProfileId) : null,
+                // Lưu healthProfileId vừa xử lý
+                healthProfileId: healthProfileId,
                 // Giữ student.id cho việc cập nhật và xử lý dữ liệu
                 id: student.id || student.studentId || `temp-${Math.random()}`
               };
@@ -68,14 +79,12 @@ export const StudentRecordsProvider = ({ children }) => {
         setStudents(processedStudents);
         setFilteredStudents(processedStudents);
         
-        // Fetch classes, grades và blood types
+        // Fetch classes and blood types
         const classesData = await getClassList();
-        const gradesData = await getGradeList();
         const bloodTypesData = await getBloodTypes();
         
-        // Đảm bảo classes, grades và bloodTypes luôn là mảng
+        // Đảm bảo classes và bloodTypes luôn là mảng
         setClasses(Array.isArray(classesData) ? classesData : []);
-        setGrades(Array.isArray(gradesData) ? gradesData : []);
         setBloodTypes(Array.isArray(bloodTypesData) ? bloodTypesData : []);
         
         setLoading(false);
@@ -166,7 +175,7 @@ export const StudentRecordsProvider = ({ children }) => {
   const resetFilters = async () => {
     setSearchCriteria({
       keyword: '',
-      grade: '',
+      class: '',
       bloodType: '',
       healthIssue: ''
     });
@@ -211,7 +220,6 @@ export const StudentRecordsProvider = ({ children }) => {
     error,
     selectedStudent,
     classes,
-    grades,
     bloodTypes,
     searchCriteria,
     setSelectedStudent,

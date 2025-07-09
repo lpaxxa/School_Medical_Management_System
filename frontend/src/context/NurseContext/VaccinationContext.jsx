@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import vaccinationApiService from '../../services/APINurse/vaccinationApiService';
-import { useAuth } from '../AuthContext'; // Import useAuth hook
 
 // Thêm vào đầu file VaccinationContext.jsx sau phần import
 axios.interceptors.request.use(request => {
@@ -30,9 +29,6 @@ export const useVaccination = () => useContext(VaccinationContext);
 const API_URL = 'http://localhost:8080/api/v1';
 
 export const VaccinationProvider = ({ children }) => {
-  // Use auth context for token management
-  const { currentUser } = useAuth ? useAuth() : { currentUser: null };
-  
   // Thêm state cho thông báo tiêm chủng
   const [notifications, setNotifications] = useState([]);
   const [vaccines, setVaccines] = useState([]);
@@ -43,10 +39,6 @@ export const VaccinationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
-  // State cho kế hoạch tiêm chủng
-  const [vaccinationPlans, setVaccinationPlans] = useState([]);
-  const [selectedPlan, setSelectedPlan] = useState(null);
 
   // Fetch danh sách tiêm chủng
   const fetchVaccinations = useCallback(async () => {
@@ -86,169 +78,6 @@ export const VaccinationProvider = ({ children }) => {
     }
   }, []);
 
-  // Fetch danh sách kế hoạch tiêm chủng
-  const fetchVaccinationPlans = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const data = await vaccinationApiService.getVaccinationPlans();
-      console.log('Vaccination plans data:', data);
-      setVaccinationPlans(data);
-      return data;
-    } catch (error) {
-      console.error('Error fetching vaccination plans:', error);
-      setError('Không thể lấy danh sách kế hoạch tiêm chủng. Vui lòng thử lại sau.');
-      // Sử dụng mock data khi API không hoạt động
-      const mockData = vaccinationApiService.getVaccinationPlans();
-      setVaccinationPlans(mockData);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Fetch chi tiết kế hoạch tiêm chủng theo ID
-  const getVaccinationPlanById = useCallback(async (id) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const data = await vaccinationApiService.getVaccinationPlanById(id);
-      console.log('Vaccination plan detail:', data);
-      setSelectedPlan(data);
-      return data;
-    } catch (error) {
-      console.error(`Error fetching vaccination plan with ID ${id}:`, error);
-      setError('Không thể lấy chi tiết kế hoạch tiêm chủng. Vui lòng thử lại sau.');
-      // Sử dụng mock data khi API không hoạt động
-      const mockData = await vaccinationApiService.getVaccinationPlanById(id);
-      setSelectedPlan(mockData);
-      return mockData;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Check authentication status
-  const checkAuthentication = useCallback(() => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      console.error('No authentication token found');
-      setError('Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      return false;
-    }
-    
-    try {
-      // Check if token is expired (if it's a JWT)
-      const tokenData = JSON.parse(atob(token.split('.')[1]));
-      const expiry = tokenData.exp * 1000; // Convert to milliseconds
-      
-      if (Date.now() > expiry) {
-        console.error('Token has expired');
-        setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error parsing token:', error);
-      return true; // Assume token is valid if we can't parse it
-    }
-  }, []);
-
-  // Fetch danh sách bản ghi tiêm chủng từ API thật
-  const fetchVaccinationRecords = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
-    // Check authentication before making API call
-    if (!checkAuthentication()) {
-      setLoading(false);
-      // Return mock data if authentication fails
-      return vaccinationApiService.getMockVaccinationRecords();
-    }
-    
-    try {
-      // Get the authentication token from localStorage
-      const token = localStorage.getItem('authToken');
-      
-      // Make the request with proper authorization header
-      const response = await fetch(`${API_URL}/vaccinations`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('Vaccination records from API:', data);
-      return data;
-    } catch (error) {
-      console.error('Error fetching vaccination records from API:', error);
-      setError('Không thể lấy danh sách bản ghi tiêm chủng từ API. Sử dụng dữ liệu mẫu.');
-      
-      // Trả về mock data thay vì throw error
-      const mockData = vaccinationApiService.getMockVaccinationRecords();
-      console.log('Using mock vaccination records:', mockData);
-      return mockData;
-    } finally {
-      setLoading(false);
-    }
-  }, [checkAuthentication]);
-
-  // Xóa bản ghi tiêm chủng qua API - cập nhật để sử dụng vaccinationApiService
-  const deleteVaccinationRecordAPI = async (id) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      console.log(`Deleting vaccination record with ID: ${id}`);
-      await vaccinationApiService.deleteVaccination(id);
-      
-      setSuccess('Đã xóa bản ghi tiêm chủng thành công!');
-      return { success: true };
-    } catch (error) {
-      console.error('Error deleting vaccination record:', error);
-      setError('Không thể xóa bản ghi tiêm chủng. Vui lòng thử lại sau.');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Cập nhật bản ghi tiêm chủng qua API - cập nhật để sử dụng vaccinationApiService
-  const updateVaccinationRecordAPI = async (id, recordData) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      console.log(`Updating vaccination record with ID: ${id}`, recordData);
-      
-      // Chuẩn bị dữ liệu theo format API yêu cầu
-      const updatePayload = {
-        administeredAt: recordData.administeredAt || "",
-        doseNumber: parseInt(recordData.doseNumber) || 1,
-        notes: recordData.notes || "",
-        vaccineName: recordData.vaccineName || "",
-        administeredBy: parseInt(recordData.administeredBy) || 1
-      };
-      
-      const updatedRecord = await vaccinationApiService.updateVaccination(id, updatePayload);
-      
-      setSuccess('Đã cập nhật bản ghi tiêm chủng thành công!');
-      return updatedRecord;
-    } catch (error) {
-      console.error('Error updating vaccination record:', error);
-      setError('Không thể cập nhật bản ghi tiêm chủng. Vui lòng thử lại sau.');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Xóa bản ghi tiêm chủng
   const deleteVaccinationRecord = async (id) => {
     setLoading(true);
@@ -276,29 +105,22 @@ export const VaccinationProvider = ({ children }) => {
     setError(null);
     
     try {
-      // Đảm bảo senderId là số nguyên và không phải null
-      const senderId = notificationData.senderId ? parseInt(notificationData.senderId) : 1;
-      
       // Chỉ gửi chính xác các trường mà API cần, loại bỏ trường date không cần thiết
       const dataToSend = {
         title: notificationData.title,
         message: notificationData.message,
         isRequest: notificationData.isRequest,
-        senderId: senderId, // Đảm bảo senderId không null
+        senderId: notificationData.senderId,
         type: notificationData.type,
-        receiverIds: notificationData.receiverIds.map(id => parseInt(id)) // Đảm bảo ID là số nguyên
+        receiverIds: notificationData.receiverIds
       };
       
-      console.log('Sending notification with payload:', JSON.stringify(dataToSend, null, 2));
-      
-      // Lấy token xác thực từ localStorage
-      const token = localStorage.getItem('authToken');
+      console.log('Sending notification with payload:', dataToSend);
       
       const response = await fetch(`${API_URL}/notifications/create`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(dataToSend)
       });
@@ -411,13 +233,11 @@ export const VaccinationProvider = ({ children }) => {
     setError(null);
   };
 
-  // Load dữ liệu khi component mount hoặc khi currentUser thay đổi
+  // Load dữ liệu khi component mount
   useEffect(() => {
-    if (currentUser) {
-      fetchVaccinations();
-      fetchParents();
-    }
-  }, [fetchVaccinations, fetchParents, currentUser]);
+    fetchVaccinations();
+    fetchParents();
+  }, [fetchVaccinations, fetchParents]);
 
   // Cập nhật contextValue để thêm các state và phương thức mới
   const contextValue = {
@@ -437,13 +257,6 @@ export const VaccinationProvider = ({ children }) => {
     clearSuccess,
     clearError,
     sendNotification,
-    vaccinationPlans,
-    selectedPlan,
-    fetchVaccinationPlans,
-    getVaccinationPlanById,
-    fetchVaccinationRecords,
-    deleteVaccinationRecordAPI,
-    updateVaccinationRecordAPI,
   };
 
   return (
