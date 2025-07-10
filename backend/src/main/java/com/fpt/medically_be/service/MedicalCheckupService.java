@@ -108,4 +108,9 @@ public interface MedicalCheckupService {
     default List<MedicalCheckupResponseDTO> getCheckupHistoryByStudent(Long studentId) {
         return getMedicalCheckupsByStudent(studentId);
     }
+
+    /**
+     * Xóa kiểm tra y tế
+     */
+    void deleteMedicalCheckup(Long id);
 }

@@ -190,6 +190,22 @@ public class MedicalCheckupController {
     }
 
     /**
+     * Xóa kiểm tra y tế
+     * DELETE /api/v1/medical-checkups/{id}
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('NURSE')")
+    @Operation(summary = "Xóa kiểm tra y tế")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Xóa thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy kiểm tra y tế")
+    })
+    public ResponseEntity<Void> deleteMedicalCheckup(@PathVariable Long id) {
+        medicalCheckupService.deleteMedicalCheckup(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * Gửi kết quả kiểm tra cho phụ huynh (Bước 9)
      * POST /api/v1/medical-checkups/{id}/send-results
      */
