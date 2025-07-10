@@ -1,519 +1,524 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Form, Button, Table, Alert, Row, Col, Card, Modal } from 'react-bootstrap';
-import { useStudentRecords } from '../../../../../context/NurseContext/StudentRecordsContext';
-import { useAuth } from '../../../../../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Badge, Card, Modal, Spinner, Form, Row, Col } from 'react-bootstrap';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
+import { toast } from 'react-toastify';
 import './ScheduleConsultation.css';
+import CheckupDetailModal from '../Dashboard/CheckupDetailModal';
 
-const ScheduleConsultation = ({ refreshData }) => {
-  // State cho thông tin lịch hẹn
+const MedicalCheckupList = ({ refreshData }) => {
+  // Get data from context
+  const { 
+    medicalCheckups, 
+    loading, 
+    error, 
+    fetchMedicalCheckupById, 
+    updateMedicalCheckup,
+    sendParentNotification,
+    refreshMedicalCheckups,
+    notifyParent,
+    scheduleConsultation,
+    notifyAllParents, // Will be used later
+  } = useHealthCheckup();
+
+  // State for detail modal
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedCheckup, setSelectedCheckup] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  
+  // State for edit modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  
+  // State for single notification modal
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  
+  // State for scheduling consultation modal
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [consultationData, setConsultationData] = useState({
-    studentId: '',
-    studentName: '',
-    date: '',
-    time: '',
-    duration: 30,
-    reason: '',
-    notes: '',
-    location: 'Phòng y tế trường học'
+    additionalProp1: '',
+    additionalProp2: '',
+    additionalProp3: '',
   });
+  const [scheduling, setScheduling] = useState(false);
   
-  // State cho danh sách lịch hẹn
-  const [consultations, setConsultations] = useState([]);
-  
-  // State cho tìm kiếm học sinh
-  const [studentSearchTerm, setStudentSearchTerm] = useState('');
-  const [filteredStudents, setFilteredStudents] = useState([]);
-  const [showStudentResults, setShowStudentResults] = useState(false);
-  
-  // State cho thông báo
-  const [message, setMessage] = useState({ type: '', text: '' });
-  
-  // State cho modal xác nhận
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [selectedConsultation, setSelectedConsultation] = useState(null);
-  
-  // Refs cho dropdown tìm kiếm
-  const searchResultsRef = useRef(null);
-  
-  // Get data từ các context
-  const { students } = useStudentRecords();
-  const { currentUser } = useAuth();
-  const { createConsultation, getConsultations, updateConsultationStatus } = useHealthCheckup();
-  
-  // Load danh sách lịch hẹn khi component mount
+  // State for filtering
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+
+  // Load data when component mounts
   useEffect(() => {
-    fetchConsultations();
+    refreshMedicalCheckups();
   }, []);
-  
-  // Fetch danh sách lịch hẹn từ API
-  const fetchConsultations = async () => {
+
+  // Filter checkups based on search term and status
+  const filteredCheckups = medicalCheckups.filter(checkup => {
+    const matchesSearch = 
+      checkup.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      checkup.studentId?.toString().includes(searchTerm) ||
+      checkup.studentClass?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === '' || checkup.checkupStatus === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Handle view checkup details
+  const handleViewCheckupDetail = async (checkup) => {
     try {
-      const data = await getConsultations();
-      setConsultations(Array.isArray(data) ? data : []);
+      setDetailLoading(true);
+      setSelectedCheckup(null);
+      
+      const checkupDetail = await fetchMedicalCheckupById(checkup.id);
+      
+      setSelectedCheckup(checkupDetail);
+      setShowDetailModal(true);
     } catch (error) {
-      console.error('Error fetching consultations:', error);
-      setMessage({
-        type: 'danger',
-        text: 'Không thể tải danh sách lịch hẹn tư vấn'
-      });
-    }
-  };
-  
-  // Xử lý click ra ngoài dropdown
-  const handleClickOutside = (event) => {
-    if (searchResultsRef.current && !searchResultsRef.current.contains(event.target)) {
-      setShowStudentResults(false);
-    }
-  };
-  
-  // Thêm sự kiện click ra ngoài dropdown
-  useEffect(() => {
-    if (showStudentResults) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showStudentResults]);
-  
-  // Xử lý tìm kiếm học sinh
-  const handleStudentSearch = (searchTerm) => {
-    setStudentSearchTerm(searchTerm);
-    
-    if (searchTerm.trim() === '') {
-      setFilteredStudents([]);
-      setShowStudentResults(false);
-      return;
-    }
-    
-    const filtered = students.filter(student => 
-      student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.studentId.toLowerCase().includes(searchTerm.toLowerCase())
-    ).slice(0, 10); // Giới hạn 10 kết quả
-    
-    setFilteredStudents(filtered);
-    setShowStudentResults(filtered.length > 0);
-  };
-  
-  // Xử lý chọn học sinh
-  const handleSelectStudent = (student) => {
-    setConsultationData(prev => ({
-      ...prev,
-      studentId: student.id,
-      studentName: student.fullName
-    }));
-    setShowStudentResults(false);
-  };
-  
-  // Xử lý thay đổi form
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setConsultationData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
-  // Xử lý submit form
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validate form
-    if (!consultationData.studentId || !consultationData.date || !consultationData.time) {
-      setMessage({
-        type: 'danger',
-        text: 'Vui lòng điền đầy đủ thông tin học sinh, ngày và giờ hẹn'
-      });
-      return;
-    }
-    
-    try {
-      // Format datetime cho API
-      const dateTime = `${consultationData.date}T${consultationData.time}:00`;
-      
-      const newConsultation = {
-        studentId: consultationData.studentId,
-        scheduledTime: dateTime,
-        duration: consultationData.duration,
-        reason: consultationData.reason,
-        notes: consultationData.notes,
-        location: consultationData.location,
-        status: 'SCHEDULED',
-        createdBy: currentUser?.id || 1
-      };
-      
-      await createConsultation(newConsultation);
-      
-      // Reset form
-      setConsultationData({
-        studentId: '',
-        studentName: '',
-        date: '',
-        time: '',
-        duration: 30,
-        reason: '',
-        notes: '',
-        location: 'Phòng y tế trường học'
-      });
-      
-      setMessage({
-        type: 'success',
-        text: 'Đặt lịch tư vấn thành công!'
-      });
-      
-      // Refresh danh sách
-      fetchConsultations();
-      
-      // Thông báo cho component cha
-      if (refreshData) refreshData();
-      
-    } catch (error) {
-      setMessage({
-        type: 'danger',
-        text: `Lỗi khi đặt lịch: ${error.message}`
-      });
-      console.error('Error scheduling consultation:', error);
-    }
-  };
-  
-  // Xử lý xác nhận/hủy lịch hẹn
-  const handleConfirmAction = async () => {
-    if (!selectedConsultation) return;
-    
-    try {
-      await updateConsultationStatus(
-        selectedConsultation.id,
-        selectedConsultation.action === 'complete' ? 'COMPLETED' : 'CANCELLED'
-      );
-      
-      // Refresh danh sách
-      fetchConsultations();
-      
-      setMessage({
-        type: 'success',
-        text: selectedConsultation.action === 'complete' 
-          ? 'Đã xác nhận hoàn thành buổi tư vấn' 
-          : 'Đã hủy lịch hẹn tư vấn'
-      });
-      
-    } catch (error) {
-      setMessage({
-        type: 'danger',
-        text: `Lỗi khi cập nhật trạng thái: ${error.message}`
-      });
-      console.error('Error updating consultation status:', error);
+      console.error('Error fetching checkup details:', error);
+      toast.error('Không thể tải thông tin chi tiết. Vui lòng thử lại sau.');
     } finally {
-      setShowConfirmModal(false);
-      setSelectedConsultation(null);
+      setDetailLoading(false);
     }
   };
-  
-  // Xử lý hiển thị modal xác nhận
-  const showConfirmationModal = (consultation, action) => {
-    setSelectedConsultation({ ...consultation, action });
-    setShowConfirmModal(true);
-  };
-  
-  // Hàm định dạng ngày giờ
-  const formatDateTime = (dateTimeString) => {
-    if (!dateTimeString) return 'N/A';
-    
-    const date = new Date(dateTimeString);
-    return new Intl.DateTimeFormat('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-  
-  // Hàm lấy class theo trạng thái
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'SCHEDULED':
-        return 'status-scheduled';
-      case 'COMPLETED':
-        return 'status-completed';
-      case 'CANCELLED':
-        return 'status-cancelled';
-      case 'NO_SHOW':
-        return 'status-no-show';
-      default:
-        return '';
-    }
-  };
-  
-  // Hàm hiển thị text theo trạng thái
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'SCHEDULED':
-        return 'Đã lên lịch';
-      case 'COMPLETED':
-        return 'Hoàn thành';
-      case 'CANCELLED':
-        return 'Đã hủy';
-      case 'NO_SHOW':
-        return 'Vắng mặt';
-      default:
-        return 'Không xác định';
-    }
-  };
-  
-  return (
-    <div className="schedule-consultation-container">
-      <h2>Lập lịch tư vấn riêng</h2>
+
+  // Handle edit checkup
+  const handleEditCheckup = async (checkup) => {
+    try {
+      setDetailLoading(true);
+      const checkupDetail = await fetchMedicalCheckupById(checkup.id);
       
-      {message.text && (
-        <Alert variant={message.type} onClose={() => setMessage({ type: '', text: '' })} dismissible>
-          {message.text}
-        </Alert>
+      setEditFormData({ ...checkupDetail, specialCheckupItems: checkupDetail.specialCheckupItems || [] });
+      setShowEditModal(true);
+    } catch (error) {
+      console.error('Error fetching checkup details for edit:', error);
+      toast.error('Không thể tải thông tin để chỉnh sửa. Vui lòng thử lại sau.');
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+  
+  // Handle submit updated data
+  const handleUpdateSubmit = async (updatedData) => {
+    setSubmitting(true);
+    try {
+        await updateMedicalCheckup(updatedData.id, updatedData);
+        toast.success(`Đã cập nhật hồ sơ cho học sinh ${updatedData.studentName} thành công!`);
+        setShowEditModal(false);
+        refreshMedicalCheckups();
+    } catch (error) {
+        console.error("Failed to update checkup", error);
+        const errorMessage = error?.response?.data || error?.message || 'Cập nhật thất bại. Vui lòng thử lại.';
+        toast.error(errorMessage);
+    } finally {
+        setSubmitting(false);
+    }
+  };
+  
+  // Handle open send notification modal
+  const handleSendNotification = (checkup) => {
+    setSelectedCheckup(checkup);
+    setShowNotificationModal(true);
+  };
+  
+  // Handle open schedule consultation modal
+  const handleScheduleConsultation = (checkup) => {
+    setSelectedCheckup(checkup);
+    setConsultationData({ additionalProp1: '', additionalProp2: '', additionalProp3: '' });
+    setShowScheduleModal(true);
+  };
+
+  // Handle confirm sending notification
+  const confirmSendNotification = async () => {
+    if (!selectedCheckup) return;
+    setSubmitting(true);
+    try {
+      await notifyParent(selectedCheckup.id);
+      toast.success(`Đã gửi thông báo cho phụ huynh em ${selectedCheckup.studentName}`);
+      setShowNotificationModal(false);
+    } catch (error) {
+      toast.error(`Lỗi khi gửi thông báo: ${error.message}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  
+  // Handle consultation form change
+  const handleConsultationChange = (e) => {
+    const { name, value } = e.target;
+    setConsultationData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle submit consultation schedule
+  const handleSubmitConsultation = async (e) => {
+    e.preventDefault();
+    const { additionalProp1, additionalProp2, additionalProp3 } = consultationData;
+    if (!additionalProp1 && !additionalProp2 && !additionalProp3) {
+      toast.error('Vui lòng nhập ít nhất một thông tin tư vấn.');
+      return;
+    }
+    
+    setScheduling(true);
+    try {
+      await scheduleConsultation(selectedCheckup.id, consultationData);
+      toast.success('Đã lên lịch tư vấn thành công!');
+      setShowScheduleModal(false);
+      refreshMedicalCheckups();
+    } catch (error) {
+      toast.error(`Lỗi khi lên lịch tư vấn: ${error.message}`);
+    } finally {
+      setScheduling(false);
+    }
+  };
+  
+  // Handle send notification to all (placeholder)
+  const handleNotifyAll = () => {
+    toast.info('Chức năng "Gửi thông báo tất cả" sẽ được cập nhật sớm.');
+    // Example call (when API is ready)
+    // notifyAllParents("Your message here");
+  };
+
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'COMPLETED': return 'success';
+      case 'NEED_FOLLOW_UP': return 'warning';
+      default: return 'secondary';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return new Date(dateString).toLocaleDateString('vi-VN', options);
+  };
+
+  return (
+    <div className="medical-checkup-list-container">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>Danh sách khám sức khỏe</h2>
+        <Button variant="info" onClick={handleNotifyAll}>
+          <i className="fas fa-bullhorn me-2"></i> Gửi thông báo tất cả
+        </Button>
+      </div>
+      
+      <div className="filter-container mb-3">
+        <div className="row">
+          <div className="col-md-6">
+            <Form.Control
+              type="text"
+              placeholder="Tìm kiếm theo tên, mã học sinh hoặc lớp..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="mb-2"
+            />
+          </div>
+          <div className="col-md-4">
+            <Form.Select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="mb-2"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="COMPLETED">Đã hoàn thành</option>
+              <option value="NEED_FOLLOW_UP">Cần theo dõi</option>
+            </Form.Select>
+          </div>
+          <div className="col-md-2">
+            <Button 
+              variant="primary" 
+              className="w-100"
+              onClick={refreshMedicalCheckups}
+            >
+              <i className="fas fa-sync-alt"></i> Làm mới
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      {loading && (
+        <div className="text-center py-5">
+          <Spinner animation="border" role="status" variant="primary">
+            <span className="visually-hidden">Đang tải...</span>
+          </Spinner>
+        </div>
       )}
       
-      <Row>
-        <Col md={5}>
-          <Card className="mb-4">
-            <Card.Header as="h3">Đặt lịch hẹn mới</Card.Header>
-            <Card.Body>
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3 student-search-container">
-                  <Form.Label>Học sinh <span className="required">*</span></Form.Label>
-                  <Form.Control 
-                    type="text"
-                    placeholder="Nhập tên học sinh để tìm kiếm..."
-                    value={studentSearchTerm}
-                    onChange={(e) => handleStudentSearch(e.target.value)}
-                    onFocus={() => {
-                      if (filteredStudents.length > 0) setShowStudentResults(true);
-                    }}
-                    required
-                  />
-                  
-                  {showStudentResults && (
-                    <div className="student-search-results" ref={searchResultsRef}>
-                      {filteredStudents.map(student => (
-                        <div 
-                          key={student.id} 
-                          className="student-search-item"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelectStudent(student);
-                          }}
-                        >
-                          <span className="student-id">{student.studentId}</span>
-                          <span className="student-name">{student.fullName}</span>
-                          <span className="student-class">{student.className || 'N/A'}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {consultationData.studentId && (
-                    <div className="selected-student-info">
-                      Đã chọn: <strong>{consultationData.studentName}</strong>
-                    </div>
-                  )}
-                </Form.Group>
-                
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Ngày hẹn <span className="required">*</span></Form.Label>
-                      <Form.Control
-                        type="date"
-                        name="date"
-                        value={consultationData.date}
-                        onChange={handleInputChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Giờ hẹn <span className="required">*</span></Form.Label>
-                      <Form.Control
-                        type="time"
-                        name="time"
-                        value={consultationData.time}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                
-                <Form.Group className="mb-3">
-                  <Form.Label>Thời lượng (phút)</Form.Label>
-                  <Form.Select
-                    name="duration"
-                    value={consultationData.duration}
-                    onChange={handleInputChange}
-                  >
-                    <option value="15">15 phút</option>
-                    <option value="30">30 phút</option>
-                    <option value="45">45 phút</option>
-                    <option value="60">60 phút</option>
-                  </Form.Select>
-                </Form.Group>
-                
-                <Form.Group className="mb-3">
-                  <Form.Label>Lý do tư vấn</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    name="reason"
-                    value={consultationData.reason}
-                    onChange={handleInputChange}
-                    placeholder="Nhập lý do cần tư vấn"
-                    rows={2}
-                  />
-                </Form.Group>
-                
-                <Form.Group className="mb-3">
-                  <Form.Label>Địa điểm</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="location"
-                    value={consultationData.location}
-                    onChange={handleInputChange}
-                    placeholder="Nhập địa điểm tư vấn"
-                  />
-                </Form.Group>
-                
-                <Form.Group className="mb-3">
-                  <Form.Label>Ghi chú</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    name="notes"
-                    value={consultationData.notes}
-                    onChange={handleInputChange}
-                    placeholder="Thông tin bổ sung khác (nếu có)"
-                    rows={2}
-                  />
-                </Form.Group>
-                
-                <Button type="submit" variant="primary">
-                  <i className="fas fa-calendar-plus"></i> Đặt lịch hẹn
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-        
-        <Col md={7}>
-          <Card>
-            <Card.Header as="h3">
-              Danh sách lịch hẹn tư vấn
-              <Button 
-                variant="outline-primary" 
-                size="sm" 
-                className="float-end"
-                onClick={fetchConsultations}
-              >
-                <i className="fas fa-sync"></i> Làm mới
-              </Button>
-            </Card.Header>
-            <Card.Body>
-              <div className="consultations-table-container">
-                <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th>Học sinh</th>
-                      <th>Thời gian</th>
-                      <th>Lý do</th>
-                      <th>Trạng thái</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {consultations.length > 0 ? (
-                      consultations.map(consultation => (
-                        <tr key={consultation.id}>
-                          <td>{consultation.studentName}</td>
-                          <td>{formatDateTime(consultation.scheduledTime)}</td>
-                          <td>{consultation.reason || 'Không có'}</td>
-                          <td>
-                            <span className={`status-badge ${getStatusClass(consultation.status)}`}>
-                              {getStatusText(consultation.status)}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="consultation-actions">
-                              {consultation.status === 'SCHEDULED' && (
-                                <>
-                                  <Button 
-                                    variant="success" 
-                                    size="sm" 
-                                    title="Đánh dấu hoàn thành"
-                                    onClick={() => showConfirmationModal(consultation, 'complete')}
-                                  >
-                                    <i className="fas fa-check"></i>
-                                  </Button>
-                                  <Button 
-                                    variant="danger" 
-                                    size="sm" 
-                                    title="Hủy lịch hẹn"
-                                    onClick={() => showConfirmationModal(consultation, 'cancel')}
-                                  >
-                                    <i className="fas fa-times"></i>
-                                  </Button>
-                                </>
-                              )}
-                              <Button 
-                                variant="info" 
-                                size="sm" 
-                                title="Xem chi tiết"
-                              >
-                                <i className="fas fa-eye"></i>
+      {error && !loading && (
+        <div className="alert alert-danger">{error}</div>
+      )}
+      
+      {!loading && !error && (
+        <Card>
+          <Card.Body>
+            <div className="table-responsive">
+              <Table striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Mã học sinh</th>
+                    <th>Tên học sinh</th>
+                    <th>Lớp</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày khám</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCheckups.length > 0 ? (
+                    filteredCheckups.map((checkup, index) => (
+                      <tr key={checkup.id}>
+                        <td>{index + 1}</td>
+                        <td>{checkup.studentId}</td>
+                        <td>{checkup.studentName}</td>
+                        <td>{checkup.studentClass}</td>
+                        <td>
+                          <Badge bg={getStatusVariant(checkup.checkupStatus)}>
+                            {checkup.checkupStatus === 'COMPLETED' ? 'Đã hoàn thành' : 'Cần theo dõi'}
+                          </Badge>
+                        </td>
+                        <td>{formatDate(checkup.checkupDate)}</td>
+                        <td>
+                          <div className="d-flex gap-2">
+                            <Button variant="info" size="sm" onClick={() => handleViewCheckupDetail(checkup)} title="Xem chi tiết">
+                              <i className="fas fa-eye"></i>
+                            </Button>
+                            <Button variant="warning" size="sm" onClick={() => handleEditCheckup(checkup)} title="Chỉnh sửa">
+                              <i className="fas fa-edit"></i>
+                            </Button>
+                            <Button variant="primary" size="sm" onClick={() => handleSendNotification(checkup)} title="Gửi thông báo">
+                              <i className="fas fa-paper-plane"></i>
+                            </Button>
+                            {checkup.checkupStatus === 'NEED_FOLLOW_UP' && (
+                              <Button variant="success" size="sm" onClick={() => handleScheduleConsultation(checkup)} title="Lên lịch tư vấn">
+                                <i className="fas fa-calendar-plus"></i>
                               </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="5" className="text-center">
-                          Chưa có lịch hẹn tư vấn nào
+                            )}
+                          </div>
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="text-center py-3">Không tìm thấy dữ liệu</td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </div>
+          </Card.Body>
+        </Card>
+      )}
       
-      {/* Modal xác nhận hành động */}
-      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
+      {/* Detail Modal */}
+      <CheckupDetailModal
+        show={showDetailModal}
+        onHide={() => setShowDetailModal(false)}
+        details={selectedCheckup}
+        loading={detailLoading}
+      />
+      
+      {/* Edit Modal */}
+      <EditCheckupModal
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+        checkupData={editFormData}
+        onSubmit={handleUpdateSubmit}
+        loading={submitting}
+      />
+
+      {/* Send Notification Modal */}
+      <Modal show={showNotificationModal} onHide={() => setShowNotificationModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>
-            {selectedConsultation?.action === 'complete' ? 'Xác nhận hoàn thành' : 'Xác nhận hủy lịch'}
-          </Modal.Title>
+          <Modal.Title>Xác nhận gửi thông báo</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedConsultation?.action === 'complete' ? (
-            <p>Bạn muốn xác nhận đã hoàn thành buổi tư vấn cho học sinh <strong>{selectedConsultation?.studentName}</strong>?</p>
-          ) : (
-            <p>Bạn chắc chắn muốn hủy lịch hẹn tư vấn với học sinh <strong>{selectedConsultation?.studentName}</strong>?</p>
-          )}
+          {selectedCheckup && <p>Bạn có chắc chắn muốn gửi thông báo cho phụ huynh của em <strong>{selectedCheckup.studentName}</strong>?</p>}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
-            Đóng
-          </Button>
-          <Button 
-            variant={selectedConsultation?.action === 'complete' ? "success" : "danger"}
-            onClick={handleConfirmAction}
-          >
-            {selectedConsultation?.action === 'complete' ? 'Xác nhận hoàn thành' : 'Xác nhận hủy'}
+          <Button variant="secondary" onClick={() => setShowNotificationModal(false)}>Hủy</Button>
+          <Button variant="primary" onClick={confirmSendNotification} disabled={submitting}>
+            {submitting ? 'Đang gửi...' : 'Xác nhận gửi'}
           </Button>
         </Modal.Footer>
+      </Modal>
+      
+      {/* Schedule Consultation Modal */}
+      <Modal show={showScheduleModal} onHide={() => setShowScheduleModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Lên lịch tư vấn</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleSubmitConsultation}>
+          <Modal.Body>
+            {selectedCheckup && <p>Lên lịch tư vấn cho học sinh: <strong>{selectedCheckup.studentName}</strong></p>}
+            <Form.Group className="mb-3">
+              <Form.Label>Nội dung tư vấn 1</Form.Label>
+              <Form.Control 
+                type="text"
+                name="additionalProp1"
+                value={consultationData.additionalProp1}
+                onChange={handleConsultationChange}
+                placeholder="Cần mang theo sổ khám bệnh cũ"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Nội dung tư vấn 2</Form.Label>
+              <Form.Control 
+                type="text"
+                name="additionalProp2"
+                value={consultationData.additionalProp2}
+                onChange={handleConsultationChange}
+                placeholder="Học sinh có tiền sử dị ứng thuốc"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Nội dung tư vấn 3</Form.Label>
+              <Form.Control 
+                type="text"
+                name="additionalProp3"
+                value={consultationData.additionalProp3}
+                onChange={handleConsultationChange}
+                placeholder="Phụ huynh đã xác nhận qua điện thoại"
+              />
+            </Form.Group>
+            <small className="text-muted">Bạn phải điền ít nhất một trong ba nội dung trên.</small>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowScheduleModal(false)}>Hủy</Button>
+            <Button variant="primary" type="submit" disabled={scheduling}>
+              {scheduling ? 'Đang lưu...' : 'Lên lịch'}
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
     </div>
   );
 };
 
-export default ScheduleConsultation;
+// Component for the Edit Modal, now defined within the same file
+const EditCheckupModal = ({ show, onHide, checkupData, onSubmit, loading }) => {
+    const [formData, setFormData] = useState({});
+
+    useEffect(() => {
+        if (checkupData) {
+            const formattedData = {
+                ...checkupData,
+                checkupDate: checkupData.checkupDate ? new Date(checkupData.checkupDate).toISOString().split('T')[0] : '',
+                specialCheckupItems: checkupData.specialCheckupItems || [],
+            };
+            setFormData(formattedData);
+        }
+    }, [checkupData]);
+
+     useEffect(() => {
+        if (formData.height > 0 && formData.weight > 0) {
+            const heightInMeters = formData.height / 100;
+            const bmi = (formData.weight / (heightInMeters * heightInMeters)).toFixed(2);
+            setFormData(prev => ({ ...prev, bmi }));
+        }
+    }, [formData.height, formData.weight]);
+
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSubmit(formData);
+    };
+
+    if (!checkupData) return null;
+
+    return (
+        <Modal show={show} onHide={onHide} size="xl" backdrop="static">
+            <Modal.Header closeButton>
+                <Modal.Title>Chỉnh sửa Hồ sơ khám: {formData.studentName}</Modal.Title>
+            </Modal.Header>
+            <Form onSubmit={handleSubmit}>
+                <Modal.Body>
+                    <div className="form-section">
+                        <h5>Thông tin chung (Không thể thay đổi)</h5>
+                        <Row>
+                            <Col md={4}><p><strong>Học sinh:</strong> {formData.studentName}</p></Col>
+                            <Col md={4}><p><strong>Lớp:</strong> {formData.studentClass}</p></Col>
+                            <Col md={4}><p><strong>Chiến dịch:</strong> {formData.campaignTitle}</p></Col>
+                        </Row>
+                    </div>
+
+                    <div className="form-section">
+                        <h5>Thông tin khám</h5>
+                        <Row>
+                            <Col md={4}>
+                                <Form.Group controlId="checkupDate">
+                                    <Form.Label>Ngày khám</Form.Label>
+                                    <Form.Control type="date" name="checkupDate" value={formData.checkupDate || ''} onChange={handleChange} required />
+                                </Form.Group>
+                            </Col>
+                            <Col md={4}>
+                                <Form.Group controlId="checkupType">
+                                    <Form.Label>Loại hình khám</Form.Label>
+                                    <Form.Control type="text" name="checkupType" value={formData.checkupType || ''} onChange={handleChange} required />
+                                </Form.Group>
+                            </Col>
+                            <Col md={4}>
+                                <Form.Group controlId="checkupStatus">
+                                    <Form.Label>Trạng thái khám</Form.Label>
+                                    <Form.Select name="checkupStatus" value={formData.checkupStatus || ''} onChange={handleChange} required>
+                                        <option value="COMPLETED">Đã hoàn thành</option>
+                                        <option value="NEED_FOLLOW_UP">Cần theo dõi</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                    </div>
+
+                    <div className="form-section">
+                        <h5>Các chỉ số sức khỏe</h5>
+                        <Row>
+                            <Col md={3}><Form.Group><Form.Label>Chiều cao (cm)</Form.Label><Form.Control type="number" name="height" value={formData.height || ''} onChange={handleChange} /></Form.Group></Col>
+                            <Col md={3}><Form.Group><Form.Label>Cân nặng (kg)</Form.Label><Form.Control type="number" name="weight" value={formData.weight || ''} onChange={handleChange} /></Form.Group></Col>
+                            <Col md={3}><Form.Group><Form.Label>BMI</Form.Label><Form.Control type="number" name="bmi" value={formData.bmi || ''} readOnly /></Form.Group></Col>
+                            <Col md={3}><Form.Group><Form.Label>Huyết áp</Form.Label><Form.Control type="text" name="bloodPressure" value={formData.bloodPressure || ''} onChange={handleChange} /></Form.Group></Col>
+                        </Row>
+                        <Row>
+                            <Col md={3}><Form.Group><Form.Label>Thị lực (Trái)</Form.Label><Form.Control type="text" name="visionLeft" value={formData.visionLeft || ''} onChange={handleChange} /></Form.Group></Col>
+                            <Col md={3}><Form.Group><Form.Label>Thị lực (Phải)</Form.Label><Form.Control type="text" name="visionRight" value={formData.visionRight || ''} onChange={handleChange} /></Form.Group></Col>
+                            <Col md={3}><Form.Group><Form.Label>Thính lực</Form.Label><Form.Control type="text" name="hearingStatus" value={formData.hearingStatus || ''} onChange={handleChange} /></Form.Group></Col>
+                            <Col md={3}><Form.Group><Form.Label>Nhịp tim</Form.Label><Form.Control type="number" name="heartRate" value={formData.heartRate || ''} onChange={handleChange} /></Form.Group></Col>
+                        </Row>
+                         <Row>
+                            <Col md={3}><Form.Group><Form.Label>Nhiệt độ (°C)</Form.Label><Form.Control type="number" step="0.1" name="bodyTemperature" value={formData.bodyTemperature || ''} onChange={handleChange} /></Form.Group></Col>
+                        </Row>
+                    </div>
+
+                    <div className="form-section">
+                        <h5>Kết luận & Đề nghị</h5>
+                        <Form.Group controlId="diagnosis" className="mb-3">
+                            <Form.Label>Chẩn đoán</Form.Label>
+                            <Form.Control as="textarea" rows={3} name="diagnosis" value={formData.diagnosis || ''} onChange={handleChange} />
+                        </Form.Group>
+                        <Form.Group controlId="recommendations">
+                            <Form.Label>Đề nghị</Form.Label>
+                            <Form.Control as="textarea" rows={3} name="recommendations" value={formData.recommendations || ''} onChange={handleChange} />
+                        </Form.Group>
+                         <Form.Group className="mt-3" controlId="followUpNeeded">
+                            <Form.Check type="checkbox" name="followUpNeeded" label="Cần theo dõi thêm" checked={formData.followUpNeeded || false} onChange={handleChange} />
+                        </Form.Group>
+                    </div>
+
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={onHide} disabled={loading}>Hủy</Button>
+                    <Button variant="primary" type="submit" disabled={loading}>
+                        {loading ? <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Đang lưu...</> : 'Lưu thay đổi'}
+                    </Button>
+                </Modal.Footer>
+            </Form>
+        </Modal>
+    );
+};
+
+export default MedicalCheckupList;

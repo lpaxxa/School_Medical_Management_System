@@ -1,5 +1,5 @@
 import React from 'react';
-import MedicalIncidentsManagement from './MedicalIncidents/MedicalIncidentsManagement';
+import MedicalIncidentsList from './MedicalIncidents/MedicalIncidentsList';
 import './MedicalEventsMain.css';
 
 // Export the page component for routes
@@ -16,7 +16,7 @@ const MedicalEventsMain = () => {
     <div className="medical-events-container">
       <h2 className="page-title">Quản lý sự kiện y tế</h2>
       <div className="medical-events-content">
-        <MedicalIncidentsManagement />
+        <MedicalIncidentsList />
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './InventoryMain.css';
 import { useInventory } from '../../../../context/NurseContext';
-import inventoryService from '../../../../services/APINurse/inventoryService';
 import AddItem from './AddItem/AddItem';
 import EditItem from './EditItem/EditItem';
 import DeleteItem from './DeleteItem/DeleteItem';
 import ExportData from './ExportData/ExportData';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const InventoryPage = () => {    // Use context directly without fallback mechanism to prevent double renders
   const {
@@ -103,7 +104,6 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
       }
     } catch (err) {
       console.error("Lỗi khi thêm vật phẩm:", err);
-      alert(`Không thể thêm vật phẩm: ${err.message || 'Lỗi không xác định'}`);
       // Mở lại modal trong trường hợp lỗi nếu muốn
       // setShowAddModal(true);
     }
@@ -151,7 +151,6 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
       console.log("Hoàn tất fetchItems()");
     } catch (err) {
       console.error("Lỗi khi cập nhật vật phẩm:", err);
-      alert("Có lỗi xảy ra khi cập nhật vật phẩm: " + (err.message || "Vui lòng thử lại."));
     }
   };
   
@@ -167,7 +166,6 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
       await fetchItems();
     } catch (err) {
       console.error("Lỗi khi xóa vật phẩm:", err);
-      alert("Có lỗi xảy ra khi xóa vật phẩm: " + (err.message || "Vui lòng thử lại."));
     }
   };
 
@@ -218,8 +216,9 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
 
   // Function to calculate status based on quantity
   const getItemStatus = (quantity) => {
-    // Convert to number in case it's a string
-    const qty = Number(quantity);
+    // Convert to number in case it's a string, handle null/undefined
+    const qty = quantity !== undefined && quantity !== null ? Number(quantity) : 0;
+    console.log('getItemStatus - quantity:', quantity, 'parsed qty:', qty, 'type:', typeof quantity);
     
     if (qty === 0) {
       return 'Hết hàng';
@@ -232,13 +231,33 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
   const renderInventoryTable = () => {
     // Only show loading on initial load, not during filtering or other operations
     if (loading && (!inventoryItems || inventoryItems.length === 0)) {
-      return <div className="loading">Đang tải dữ liệu...</div>;
+      return (
+        <div className="d-flex justify-content-center align-items-center py-5">
+          <div className="spinner-border text-primary me-3" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <span className="text-muted">Đang tải dữ liệu...</span>
+        </div>
+      );
     }
     
-    if (error) return <div className="error">{error}</div>;
+    if (error) {
+      return (
+        <div className="alert alert-danger m-3" role="alert">
+          <i className="fas fa-exclamation-triangle me-2"></i>
+          {error}
+        </div>
+      );
+    }
     
     if (!filteredItems || filteredItems.length === 0) {
-      return <div className="no-items">Không tìm thấy vật phẩm nào phù hợp.</div>;
+      return (
+        <div className="text-center py-5">
+          <i className="fas fa-box-open text-muted mb-3" style={{ fontSize: '3rem' }}></i>
+          <h5 className="text-muted">Không tìm thấy vật phẩm nào phù hợp</h5>
+          <p className="text-muted">Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm</p>
+        </div>
+      );
     }
     
     // Logic phân trang
@@ -251,59 +270,104 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
     
     return (
       <>
-        <div className="table-container">
-          <table className="inventory-table">
-            <thead>
+        <div className="table-responsive">
+          <table className="table table-hover align-middle">
+            <thead className="table-primary">
               <tr>
-                <th>ID</th>
-                <th>Tên vật phẩm</th>
-                <th>Loại</th>
-                <th>Số lượng</th>
-                <th>Đơn vị</th>
-                <th>Ngày sản xuất</th>
-                <th>Ngày hết hạn</th>
-                <th>Mô tả</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
+                <th scope="col" style={{ minWidth: '60px' }}>
+                  <i className="fas fa-hashtag me-1"></i>ID
+                </th>
+                <th scope="col" style={{ minWidth: '150px' }}>
+                  <i className="fas fa-tag me-1"></i>Tên vật phẩm
+                </th>
+                <th scope="col" style={{ minWidth: '120px' }}>
+                  <i className="fas fa-list me-1"></i>Loại
+                </th>
+                <th scope="col" style={{ minWidth: '80px' }}>
+                  <i className="fas fa-boxes me-1"></i>Số lượng
+                </th>
+                <th scope="col" style={{ minWidth: '80px' }}>
+                  <i className="fas fa-ruler me-1"></i>Đơn vị
+                </th>
+                <th scope="col" style={{ minWidth: '120px' }}>
+                  <i className="fas fa-calendar-alt me-1"></i>Ngày SX
+                </th>
+                <th scope="col" style={{ minWidth: '120px' }}>
+                  <i className="fas fa-calendar-times me-1"></i>Ngày HH
+                </th>
+                <th scope="col" style={{ minWidth: '150px' }}>
+                  <i className="fas fa-align-left me-1"></i>Mô tả
+                </th>
+                <th scope="col" style={{ minWidth: '100px' }}>
+                  <i className="fas fa-info-circle me-1"></i>Trạng thái
+                </th>
+                <th scope="col" style={{ minWidth: '140px' }}>
+                  <i className="fas fa-cogs me-1"></i>Thao tác
+                </th>
               </tr>
             </thead>
             <tbody>
               {currentItems.map((item, index) => (
                 <tr key={item.itemId || index}>
-                  <td className="id-column">{item.itemId || 'N/A'}</td>
-                  <td>{item.itemName || item.name}</td>
-                  <td>{item.itemType || item.category}</td>
-                  <td>{item.stockQuantity || item.quantity}</td>
-                  <td>{item.unit}</td>              
-                  <td>{formatDate(item.manufactureDate || item.dateAdded)}</td>
-                  <td>{formatDate(item.expiryDate) || 'N/A'}</td>
-                  <td>{item.itemDescription || item.description || '-'}</td>
+                  <td className="fw-bold text-primary">{item.itemId || 'N/A'}</td>
+                  <td className="fw-semibold">{item.itemName || item.name}</td>
+                  <td>
+                    <span className="badge bg-secondary">
+                      {item.itemType || item.category}
+                    </span>
+                  </td>
+                  <td className="text-center fw-bold">
+                    {(() => {
+                      const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 
+                                     item.quantity !== undefined && item.quantity !== null ? item.quantity : 
+                                     item.currentStock !== undefined && item.currentStock !== null ? item.currentStock : 0;
+                      return quantity !== undefined && quantity !== null ? quantity : 0;
+                    })()}
+                  </td>
+                  <td className="text-dark">{item.unit}</td>              
+                  <td className="text-dark">{formatDate(item.manufactureDate || item.dateAdded)}</td>
+                  <td className="text-dark">{formatDate(item.expiryDate) || 'N/A'}</td>
+                  <td>
+                    <span className="text-truncate d-inline-block" style={{ maxWidth: '150px' }} title={item.itemDescription || item.description || '-'}>
+                      {item.itemDescription || item.description || '-'}
+                    </span>
+                  </td>
                   <td>
                     {(() => {
-                      const quantity = item.stockQuantity || item.quantity;
+                      const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 
+                                     item.quantity !== undefined && item.quantity !== null ? item.quantity : 
+                                     item.currentStock !== undefined && item.currentStock !== null ? item.currentStock : 0;
+                      console.log('Item:', item.itemName, 'stockQuantity:', item.stockQuantity, 'quantity:', item.quantity, 'currentStock:', item.currentStock, 'final quantity:', quantity);
                       const status = getItemStatus(quantity);
                       return (
-                        <span className={`status ${status === 'Sẵn có' ? 'available' : 
-                                                status === 'Sắp hết' ? 'low' : 
-                                                status === 'Hết hàng' ? 'out' : ''}`}>
+                        <span className={`badge ${
+                          status === 'Sẵn có' ? 'bg-success' : 
+                          status === 'Sắp hết' ? 'bg-warning text-dark' : 
+                          status === 'Hết hàng' ? 'bg-danger' : 'bg-secondary'
+                        }`}>
+                          <i className="fas fa-circle me-1" style={{ fontSize: '0.6rem' }}></i>
                           {status}
                         </span>
                       );
                     })()}
                   </td>
-                  <td className="action-buttons">
-                    <button 
-                      className="edit-button"
-                      onClick={() => openEditModal(item)}
-                    >
-                      <i className="fas fa-edit"></i> Sửa
-                    </button>
-                    <button 
-                      className="delete-button"
-                      onClick={() => openDeleteModal(item)}
-                    >
-                      <i className="fas fa-trash-alt"></i> Xóa
-                    </button>
+                  <td>
+                    <div className="btn-group btn-group-sm" role="group">
+                      <button 
+                        className="btn btn-outline-primary"
+                        onClick={() => openEditModal(item)}
+                        title="Chỉnh sửa"
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                      <button 
+                        className="btn btn-outline-danger"
+                        onClick={() => openDeleteModal(item)}
+                        title="Xóa"
+                      >
+                        <i className="fas fa-trash-alt"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -311,48 +375,85 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
           </table>
         </div>
         
-        {/* Phân trang */}
+        {/* Bootstrap Pagination */}
         {totalPages > 1 && (
-          <div className="pagination">
-            <button 
-              onClick={() => setCurrentPage(1)} 
-              disabled={currentPage === 1}
-              className="pagination-button"
-            >
-              <i className="fas fa-angle-double-left"></i>
-            </button>
-            
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
-              disabled={currentPage === 1}
-              className="pagination-button"
-            >
-              <i className="fas fa-angle-left"></i>
-            </button>
-            
-            <div className="pagination-info">
-              Trang {currentPage} / {totalPages}
-            </div>
-            
-            <button 
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
-              disabled={currentPage === totalPages}
-              className="pagination-button"
-            >
-              <i className="fas fa-angle-right"></i>
-            </button>
-            
-            <button 
-              onClick={() => setCurrentPage(totalPages)} 
-              disabled={currentPage === totalPages}
-              className="pagination-button"
-            >
-              <i className="fas fa-angle-double-right"></i>
-            </button>
-            
-            <div className="pagination-text">
+          <div className="d-flex justify-content-between align-items-center px-3 py-3 border-top">
+            <div className="text-muted small">
               Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredItems.length)} trên {filteredItems.length} vật phẩm
             </div>
+            
+            <nav aria-label="Table pagination">
+              <ul className="pagination pagination-sm mb-0">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link"
+                    onClick={() => setCurrentPage(1)} 
+                    disabled={currentPage === 1}
+                    title="Trang đầu"
+                  >
+                    <i className="fas fa-angle-double-left"></i>
+                  </button>
+                </li>
+                
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                    disabled={currentPage === 1}
+                    title="Trang trước"
+                  >
+                    <i className="fas fa-angle-left"></i>
+                  </button>
+                </li>
+                
+                {/* Page numbers */}
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNumber;
+                  if (totalPages <= 5) {
+                    pageNumber = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNumber = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNumber = totalPages - 4 + i;
+                  } else {
+                    pageNumber = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <li key={pageNumber} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
+                      <button 
+                        className="page-link"
+                        onClick={() => setCurrentPage(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    </li>
+                  );
+                })}
+                
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+                    disabled={currentPage === totalPages}
+                    title="Trang sau"
+                  >
+                    <i className="fas fa-angle-right"></i>
+                  </button>
+                </li>
+                
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link"
+                    onClick={() => setCurrentPage(totalPages)} 
+                    disabled={currentPage === totalPages}
+                    title="Trang cuối"
+                  >
+                    <i className="fas fa-angle-double-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
           </div>
         )}
       </>
@@ -375,96 +476,164 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
   };
 
   return (
-    <div className="inventory-page">
-      <div className="inventory-container">        
-        <div className="inventory-header">
-          <h2>Quản lý kho y tế</h2>
-        </div>
-        
-        <div className="action-bar">
-          {/* <div className="filter-buttons">
-            <button className="filter-button active">Tên vật phẩm</button>
-          </div> */}            
-          <div className="search-area">              <div className="search-input-container">
-                <input 
-                  type="text" 
-                  placeholder="Tìm kiếm..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input"
-                />
-                {searchTerm && (
-                  <button 
-                    className="clear-search" 
-                    onClick={() => setSearchTerm('')}
-                    title="Xóa tìm kiếm"
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
-                )}
-              </div>
-              <button 
-                className="search-button"
-                title="Tìm kiếm"
-              >
-                <i className="fas fa-search"></i>
-              </button>
+    <div className="container-fluid px-4 py-3">
+      <div className="row">
+        <div className="col-12">
+          {/* Header */}
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h2 className="text-primary mb-1">
+                <i className="fas fa-warehouse me-2"></i>
+                Quản lý kho y tế
+              </h2>
+              <p className="text-muted mb-0">Quản lý vật phẩm y tế và dược phẩm</p>
+            </div>
           </div>
           
-          <div className="button-group">
-            <button className="add-button" onClick={() => setShowAddModal(true)}>
-              <i className="fas fa-plus"></i> Thêm vật phẩm
-            </button>
-            <button className="export-button" onClick={() => setShowExportModal(true)}>
-              <i className="fas fa-file-export"></i> Xuất báo cáo
-            </button>            <div className="dropdown">
-              <button className="dropbtn filter-btn">
-                <i className="fas fa-filter"></i> Lọc
-              </button>              <div className="dropdown-content">                
-                <a href="#" onClick={(e) => {
-                  e.preventDefault();
-                  setFilteredItems(inventoryItems.filter(item => {
-                    const quantity = item.stockQuantity || item.quantity;
-                    return getItemStatus(quantity) === 'Sẵn có';
-                  }));
-                  setCurrentPage(1); // Reset về trang 1 khi lọc
-                }}>
-                  <span className="status-dot available"></span> Sẵn có
-                </a>
-                <a href="#" onClick={(e) => {
-                  e.preventDefault();
-                  setFilteredItems(inventoryItems.filter(item => {
-                    const quantity = item.stockQuantity || item.quantity;
-                    return getItemStatus(quantity) === 'Sắp hết';
-                  }));
-                  setCurrentPage(1); // Reset về trang 1 khi lọc
-                }}>
-                  <span className="status-dot low"></span> Sắp hết
-                </a>
-                <a href="#" onClick={(e) => {
-                  e.preventDefault();
-                  setFilteredItems(inventoryItems.filter(item => {
-                    const quantity = item.stockQuantity || item.quantity;
-                    return getItemStatus(quantity) === 'Hết hàng';
-                  }));
-                  setCurrentPage(1); // Reset về trang 1 khi lọc
-                }}>
-                  <span className="status-dot out"></span> Hết hàng
-                </a>
-                <a href="#" onClick={(e) => {
-                  e.preventDefault();
-                  setFilteredItems(inventoryItems);
-                  setCurrentPage(1); // Reset về trang 1 khi lọc
-                }}>
-                  <i className="fas fa-redo-alt"></i> Hiển thị tất cả
-                </a>
+          {/* Action Bar */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-body">
+              <div className="row align-items-center">
+                {/* Search Area */}
+                <div className="col-md-6 mb-3 mb-md-0">
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <i className="fas fa-search"></i>
+                    </span>
+                    <input 
+                      type="text" 
+                      className="form-control"
+                      placeholder="Tìm kiếm theo tên, loại hoặc đơn vị..." 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                      <button 
+                        className="btn btn-outline-secondary" 
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        title="Xóa tìm kiếm"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="col-md-6">
+                  <div className="d-flex justify-content-end gap-2 flex-wrap">
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => setShowAddModal(true)}
+                    >
+                      <i className="fas fa-plus me-1"></i>
+                      Thêm vật phẩm
+                    </button>
+                    
+                    <button 
+                      className="btn btn-success"
+                      onClick={() => setShowExportModal(true)}
+                    >
+                      <i className="fas fa-file-export me-1"></i>
+                      Xuất báo cáo
+                    </button>
+                    
+                    {/* Filter Dropdown */}
+                    <div className="dropdown">
+                      <button 
+                        className="btn btn-outline-secondary dropdown-toggle" 
+                        type="button" 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false"
+                      >
+                        <i className="fas fa-filter me-1"></i>
+                        Lọc
+                      </button>
+                      <ul className="dropdown-menu">
+                        <li>
+                          <a 
+                            className="dropdown-item" 
+                            href="#" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setFilteredItems(inventoryItems.filter(item => {
+                                const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 
+                                               item.quantity !== undefined && item.quantity !== null ? item.quantity : 0;
+                                return getItemStatus(quantity) === 'Sẵn có';
+                              }));
+                              setCurrentPage(1);
+                            }}
+                          >
+                            <span className="badge bg-success me-2"></span>
+                            Sẵn có
+                          </a>
+                        </li>
+                        <li>
+                          <a 
+                            className="dropdown-item" 
+                            href="#" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setFilteredItems(inventoryItems.filter(item => {
+                                const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 
+                                               item.quantity !== undefined && item.quantity !== null ? item.quantity : 0;
+                                return getItemStatus(quantity) === 'Sắp hết';
+                              }));
+                              setCurrentPage(1);
+                            }}
+                          >
+                            <span className="badge bg-warning me-2"></span>
+                            Sắp hết
+                          </a>
+                        </li>
+                        <li>
+                          <a 
+                            className="dropdown-item" 
+                            href="#" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setFilteredItems(inventoryItems.filter(item => {
+                                const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 
+                                               item.quantity !== undefined && item.quantity !== null ? item.quantity : 0;
+                                return getItemStatus(quantity) === 'Hết hàng';
+                              }));
+                              setCurrentPage(1);
+                            }}
+                          >
+                            <span className="badge bg-danger me-2"></span>
+                            Hết hàng
+                          </a>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li>
+                          <a 
+                            className="dropdown-item" 
+                            href="#" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setFilteredItems(inventoryItems);
+                              setCurrentPage(1);
+                            }}
+                          >
+                            <i className="fas fa-redo-alt me-2"></i>
+                            Hiển thị tất cả
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="inventory-content">
-          {renderInventoryTable()}
+          
+          {/* Content */}
+          <div className="card shadow-sm">
+            <div className="card-body p-0">
+              {renderInventoryTable()}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -500,6 +669,20 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
           onClose={() => setShowExportModal(false)}
         />
       )}
+
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 };

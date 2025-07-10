@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import InventoryPage from "../Inventory_co";
 import MedicalEventsPage from "../MedicalEvents_co";
-import VaccinationPage from "../Vaccination_co";
+import VaccinationPage from "../Vaccination_co/VaccinationMain";
 import StudentRecordsPage from "../StudentRecords_co";
 import Consultation from "../Consultation_co/ConsultationMain";
 import HealthCheckupsPage from "../HealthCheckups_co";

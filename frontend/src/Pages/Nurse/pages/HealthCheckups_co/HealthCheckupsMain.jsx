@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HealthCheckupProvider } from '../../../../context/NurseContext/HealthCheckupContext';
 import Dashboard from './Dashboard/Dashboard';
 import CheckupList from './CheckupList/CheckupList';
-import Reports from './Reports/Reports';
-import StudentDetailView from './StudentDetail/StudentDetail';
 import './HealthCheckupsMain.css';
 
-// Thêm import cho các component mới
-import CreateCheckupList from './CreateCheckupList/CreateCheckupList';  // Cần tạo component này
-import ScheduleConsultation from './ScheduleConsultation/ScheduleConsultation';  // Cần tạo component này
+// Import renamed component
+import MedicalCheckupList from './ScheduleConsultation/ScheduleConsultation';
 
 // Export the HealthCheckupsPage component for routes
 export const HealthCheckupsPage = () => {
@@ -20,31 +17,21 @@ export const HealthCheckupsPage = () => {
 };
 
 const HealthCheckups = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('healthCheckupsActiveTab') || 'dashboard';
+  });
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  useEffect(() => {
+    sessionStorage.setItem('healthCheckupsActiveTab', activeTab);
+  }, [activeTab]);
 
   const refreshData = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  const handleCampaignSelect = (campaign) => {
-    setSelectedCampaign(campaign);
-    setActiveTab('results');
-  };
-
-  const handleStudentSelect = (student) => {
-    setSelectedStudent(student);
-    setActiveTab('student-detail');
-  };
-
   const handleBack = () => {
-    if (activeTab === 'student-detail') {
-      setActiveTab('results');
-    } else if (activeTab === 'results') {
-      setActiveTab('campaign-list');
-    } else if (activeTab === 'create-checkup') {
+    if (activeTab === 'create-checkup') {
       setActiveTab('dashboard');
     } else if (activeTab === 'create-checkup-list') {
       setActiveTab('dashboard');
@@ -60,19 +47,13 @@ const HealthCheckups = () => {
         <h1 className="health-checkups-title">Quản lý khám sức khỏe</h1>
       </div>
       
-      {/* Tabs điều hướng các chức năng - Đã sắp xếp lại theo yêu cầu */}
+      {/* Tabs điều hướng các chức năng */}
       <div className="health-checkups-tabs">
         <button 
           className={`tab-button ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
         >
           <i className="fas fa-chart-line"></i> Dashboard
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'create-checkup-list' ? 'active' : ''}`}
-          onClick={() => setActiveTab('create-checkup-list')}
-        >
-          <i className="fas fa-clipboard-list"></i> Lập danh sách khám
         </button>
         <button 
           className={`tab-button ${activeTab === 'campaign-list' ? 'active' : ''}`}
@@ -84,19 +65,11 @@ const HealthCheckups = () => {
           className={`tab-button ${activeTab === 'schedule-consultation' ? 'active' : ''}`}
           onClick={() => setActiveTab('schedule-consultation')}
         >
-          <i className="fas fa-calendar-alt"></i> Lập lịch tư vấn riêng
+          <i className="fas fa-calendar-alt"></i> Danh sách khám sức khỏe
         </button>
-        <button 
-          className={`tab-button ${activeTab === 'reports' ? 'active' : ''}`}
-          onClick={() => setActiveTab('reports')}
-        >
-          <i className="fas fa-file-medical-alt"></i> Báo cáo
-        </button>
-        {(activeTab === 'results' || activeTab === 'student-detail') && (
-          <button className="tab-button back-button" onClick={handleBack}>
-            <i className="fas fa-arrow-left"></i> Quay lại
-          </button>
-        )}
+        {/* <button className="tab-button back-button" onClick={handleBack}>
+          <i className="fas fa-arrow-left"></i> Quay lại
+        </button> */}
       </div>
       
       {/* Hiển thị nội dung theo tab đang active */}
@@ -106,14 +79,6 @@ const HealthCheckups = () => {
           <Dashboard 
             stats={{}} 
             campaignsData={[]} 
-            onCampaignSelect={handleCampaignSelect}
-            refreshData={refreshData}
-          />
-        )}
-        
-        {/* Lập danh sách khám - Chức năng mới */}
-        {activeTab === 'create-checkup-list' && (
-          <CreateCheckupList 
             refreshData={refreshData}
           />
         )}
@@ -123,33 +88,10 @@ const HealthCheckups = () => {
           <CheckupList />
         )}
         
-        {/* Lập lịch tư vấn riêng - Chức năng mới */}
+        {/* Medical Checkup List */}
         {activeTab === 'schedule-consultation' && (
-          <ScheduleConsultation 
+          <MedicalCheckupList 
             refreshData={refreshData}
-          />
-        )}
-        
-        {/* Reports */}
-        {activeTab === 'reports' && (
-          <Reports />
-        )}
-        
-        {/* Checkup Results */}
-        {activeTab === 'results' && selectedCampaign && (
-          <ResultList 
-            campaignId={selectedCampaign.id}
-            onStudentSelect={handleStudentSelect}
-            refreshTrigger={refreshTrigger}
-          />
-        )}
-        
-        {/* Student Detail */}
-        {activeTab === 'student-detail' && selectedStudent && (
-          <StudentDetailView 
-            studentId={selectedStudent.id}
-            campaignId={selectedCampaign?.id}
-            refreshTrigger={refreshTrigger}
           />
         )}
       </div>

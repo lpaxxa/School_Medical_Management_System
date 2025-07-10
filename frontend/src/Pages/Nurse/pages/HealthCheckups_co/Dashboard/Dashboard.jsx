@@ -1,307 +1,242 @@
 import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
-import * as healthCheckupService from '../../../../../services/APINurse/healthCheckupService';
+import { Pie } from 'react-chartjs-2';
+import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
 import './Dashboard.css';
-import { Button } from 'react-bootstrap';
+import { Button, Card, Row, Col, Spinner, Alert, Table } from 'react-bootstrap';
+import {
+  FaNotesMedical, FaTasks, FaUserMd, FaPlusCircle, FaArrowRight,
+  FaWalking, FaChartPie, FaUsers, FaExclamationTriangle, FaStethoscope, FaCalendarPlus
+} from 'react-icons/fa';
+import CheckupDetailModal from './CheckupDetailModal'; // Import the new modal
+import { toast } from 'react-toastify';
 
-// Đăng ký các components cho Chart.js
+
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
-const Dashboard = ({ stats, campaignsData, onCampaignSelect, refreshData, onCreateNewCheckup }) => {
+const Dashboard = ({ onCampaignSelect, onCreateNewCheckup }) => {
+  const { getHealthCampaigns, medicalCheckups, fetchMedicalCheckupById } = useHealthCheckup();
+
+  const [stats, setStats] = useState({});
   const [recentCampaigns, setRecentCampaigns] = useState([]);
   const [followupStudents, setFollowupStudents] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Lấy danh sách học sinh cần theo dõi và đợt khám gần đây
+  // State for the detail modal
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedCheckup, setSelectedCheckup] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const campaignsData = await getHealthCampaigns();
+
+      // Lọc dữ liệu ngay trên client-side
+      const completedCheckups = medicalCheckups.filter(c => c.checkupStatus === 'COMPLETED').length;
+      const needsFollowUpCheckups = medicalCheckups.filter(c => c.checkupStatus === 'NEED_FOLLOW_UP');
+      
+      const calculatedStats = {
+        totalCheckups: medicalCheckups.length,
+        completed: completedCheckups,
+        needsFollowUp: needsFollowUpCheckups.length,
+        ongoingCampaigns: campaignsData.filter(c => c.status === 'ONGOING').length,
+      };
+
+      setStats(calculatedStats);
+      setFollowupStudents(needsFollowUpCheckups);
+      
+      const sortedCampaigns = (campaignsData || [])
+        .sort((a, b) => new Date(b.startDate || b.createdAt) - new Date(a.startDate || a.createdAt))
+        .slice(0, 5);
+      setRecentCampaigns(sortedCampaigns);
+
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError("Không thể tải dữ liệu dashboard. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const studentsRequiringFollowup = await healthCheckupService.getStudentsRequiringFollowup() || [];
-        setFollowupStudents(studentsRequiringFollowup);
-        
-        // Lấy các đợt khám gần nhất và kiểm tra dữ liệu có tồn tại không
-        if (Array.isArray(campaignsData) && campaignsData.length > 0) {
-          // Sắp xếp theo ngày bắt đầu mới nhất
-          const sortedCampaigns = [...campaignsData].sort((a, b) => {
-            // Dùng startDate nếu có, nếu không thì dùng createdAt
-            const dateA = a.startDate ? new Date(a.startDate) : (a.createdAt ? new Date(a.createdAt) : new Date());
-            const dateB = b.startDate ? new Date(b.startDate) : (b.createdAt ? new Date(b.createdAt) : new Date());
-            return dateB - dateA;
-          }).slice(0, 5);
-          
-          setRecentCampaigns(sortedCampaigns);
-        } else {
-          setRecentCampaigns([]);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        setFollowupStudents([]);
-        setRecentCampaigns([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchDashboardData();
-  }, [campaignsData]);
+    fetchData();
+  }, [medicalCheckups]);
 
-  // Dữ liệu cho biểu đồ trạng thái đợt khám
-  const campaignStatusChart = {
-    labels: ['Đang diễn ra', 'Sắp diễn ra', 'Đã hoàn thành', 'Huỷ'],
-    datasets: [
-      {
-        data: [
-          stats.activeCampaigns,
-          stats.upcomingCampaigns,
-          stats.completedCampaigns,
-          campaignsData.filter(c => c.status === 'Huỷ').length
-        ],
-        backgroundColor: [
-          '#4CAF50', // Xanh lá - đang diễn ra
-          '#2196F3', // Xanh dương - sắp diễn ra
-          '#9C27B0', // Tím - đã hoàn thành
-          '#F44336'  // Đỏ - huỷ
-        ],
-        borderWidth: 1
-      },
-    ],
+  const handleViewDetails = async (checkupId) => {
+    setDetailLoading(true);
+    setShowDetailModal(true);
+    setSelectedCheckup(null);
+    try {
+        const data = await fetchMedicalCheckupById(checkupId);
+        setSelectedCheckup(data);
+    } catch (err) {
+        console.error("Failed to fetch checkup details", err);
+        toast.error("Không thể tải chi tiết lượt khám.");
+        setShowDetailModal(false); // Close modal on error
+    } finally {
+        setDetailLoading(false);
+    }
   };
 
-  // Kiểm tra dữ liệu cho biểu đồ tiến độ
-  const progressChart = {
-    labels: Array.isArray(campaignsData) ? 
-      campaignsData
-        .filter(c => c.status === 'Đang diễn ra')
-        .map(c => c.name && c.name.length > 25 ? c.name.substring(0, 25) + '...' : (c.name || 'Không có tên')) :
-      [],
-    datasets: [
-      {
-        label: 'Hoàn thành (%)',
-        data: Array.isArray(campaignsData) ?
-          campaignsData
-            .filter(c => c.status === 'Đang diễn ra')
-            .map(c => {
-              // Kiểm tra các trường dữ liệu trước khi tính toán
-              const completed = c.completedStudents || c.examinedStudents || 0;
-              const total = c.totalStudents || 1; // Tránh chia cho 0
-              return Math.round((completed / total) * 100);
-            }) :
-          [],
-        backgroundColor: '#3498db',
-      },
-    ],
-  };
 
-  const barOptions = {
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100
-      }
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner animation="border" variant="primary" />
+        <h4 className="ms-3">Đang tải dữ liệu...</h4>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <Alert variant="danger">{error}</Alert>;
+  }
+  
+  const checkupStatusChartData = {
+    labels: ['Đã hoàn thành', 'Cần theo dõi'],
+    datasets: [{
+      data: [stats.completed, stats.needsFollowUp],
+      backgroundColor: ['#28a745', '#ffc107'],
+      hoverBackgroundColor: ['#218838', '#e0a800']
+    }],
+  };
+  
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+      },
     },
-    maintainAspectRatio: false
+  };
+  
+  const renderProgress = (completed, total) => {
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return (
+      <div className="custom-progress-bar">
+        <div className="progress-fill" style={{ width: `${percentage}%` }}></div>
+        <span className="progress-label">{completed}/{total}</span>
+      </div>
+    );
   };
 
   return (
-    <div className="dashboard-container">
-      <h2 className="dashboard-title">Dashboard Khám Sức Khoẻ</h2>
-      
-      {/* Thống kê tổng quan */}
-      <div className="stats-container">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <i className="fas fa-calendar-alt"></i>
+    <div className="new-health-dashboard">
+      <Row>
+        {/* Left Column */}
+        <Col lg={8}>
+          <div className="dashboard-header">
+            <h3>Tổng quan sức khỏe học đường</h3>
+            <p>Phân tích và theo dõi các hoạt động khám sức khỏe.</p>
           </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.totalCampaigns}</span>
-            <span className="stat-label">Tổng số đợt khám</span>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon active">
-            <i className="fas fa-calendar-check"></i>
-          </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.activeCampaigns}</span>
-            <span className="stat-label">Đang diễn ra</span>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon upcoming">
-            <i className="fas fa-calendar-plus"></i>
-          </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.upcomingCampaigns}</span>
-            <span className="stat-label">Sắp diễn ra</span>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon completed">
-            <i className="fas fa-calendar-day"></i>
-          </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.completedCampaigns}</span>
-            <span className="stat-label">Đã hoàn thành</span>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon followup">
-            <i className="fas fa-user-md"></i>
-          </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.followupStudents}</span>
-            <span className="stat-label">Học sinh cần theo dõi</span>
-          </div>
-        </div>
-      </div>
-      
-      <div className="dashboard-content">
-        <div className="dashboard-row">
-          {/* Biểu đồ trạng thái đợt khám */}
-          <div className="chart-container">
-            <h3>Trạng thái đợt khám</h3>
-            <div className="chart-wrapper">
-              <Pie data={campaignStatusChart} />
-            </div>
-          </div>
-          
-          {/* Biểu đồ tiến độ hoàn thành */}
-          <div className="chart-container progress-chart">
-            <h3>Tiến độ hoàn thành đợt khám đang diễn ra</h3>
-            {progressChart.labels.length > 0 ? (
-              <div className="chart-wrapper bar-chart">
-                <Bar data={progressChart} options={barOptions} />
-              </div>
-            ) : (
-              <p className="no-data">Không có đợt khám nào đang diễn ra</p>
-            )}
-          </div>
-        </div>
-        
-        <div className="dashboard-row">
-          {/* Đợt khám gần đây */}
-          <div className="recent-campaigns">
-            <h3>Đợt khám gần đây</h3>
-            {loading ? (
-              <p>Đang tải...</p>
-            ) : (
-              <>
-                {recentCampaigns.length > 0 ? (
-                  <table className="campaigns-table">
-                    <thead>
-                      <tr>
-                        <th>Tên đợt khám</th>
-                        <th>Ngày dự kiến</th>
-                        <th>Trạng thái</th>
-                        <th>Tiến độ</th>
-                        <th>Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentCampaigns.map(campaign => (
-                        <tr key={campaign.id}>
-                          <td>{campaign.name || 'Không có tên'}</td>
-                          <td>{campaign.scheduledDate || campaign.startDate || 'Chưa xác định'}</td>
-                          <td>
-                            <span className={`status-badge ${(campaign.status || '').toLowerCase().replace(' ', '-')}`}>
-                              {campaign.status || 'Chưa cập nhật'}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="progress-bar-container">
-                              <div 
-                                className="progress-bar" 
-                                style={{ 
-                                  width: `${Math.round(((campaign.completedStudents || campaign.examinedStudents || 0) / (campaign.totalStudents || 1)) * 100)}%` 
-                                }}
-                              ></div>
-                              <span className="progress-text">
-                                {campaign.completedStudents || campaign.examinedStudents || 0}/{campaign.totalStudents || 0} 
-                                ({Math.round(((campaign.completedStudents || campaign.examinedStudents || 0) / (campaign.totalStudents || 1)) * 100)}%)
-                              </span>
-                            </div>
-                          </td>
-                          <td>
-                            <button className="action-button view" onClick={() => onCampaignSelect(campaign)}>
-                              <i className="fas fa-eye"></i> Xem
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="no-data">Chưa có đợt khám nào được tạo</p>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-        
-        {/* Học sinh cần theo dõi đặc biệt */}
-        <div className="dashboard-row">
-          <div className="followup-students">
-            <h3>Học sinh cần theo dõi đặc biệt</h3>
-            {loading ? (
-              <p>Đang tải...</p>
-            ) : (
-              <>
-                {followupStudents && followupStudents.length > 0 ? (
-                  <table className="students-table">
-                    <thead>
-                      <tr>
-                        <th>Mã học sinh</th>
-                        <th>Họ và tên</th>
-                        <th>Lớp</th>
-                        <th>Vấn đề cần theo dõi</th>
-                        <th>Ngày tái khám</th>
-                        <th>Đã thông báo</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {followupStudents.map((student, index) => (
-                        <tr key={index}>
-                          <td>{student.id || student.studentCode || 'N/A'}</td>
-                          <td>{student.fullName || student.studentName || 'N/A'}</td>
-                          <td>{student.class || student.className || 'N/A'}</td>
-                          <td>{student.diagnosis || student.issue || 'Không có thông tin'}</td>
-                          <td>{student.followupDate || 'Chưa xác định'}</td>
-                          <td>
-                            {(student.parentNotified || student.notifiedToParent) ? (
-                              <span className="notified yes"><i className="fas fa-check-circle"></i> Đã thông báo</span>
-                            ) : (
-                              <span className="notified no"><i className="fas fa-times-circle"></i> Chưa thông báo</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="no-data">Không có học sinh nào cần theo dõi đặc biệt</p>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Thêm nút tạo mới ở đây */}
-      <div className="dashboard-actions">
-        <Button 
-          variant="primary" 
-          className="create-checkup-btn"
-          onClick={onCreateNewCheckup}
-        >
-          <i className="fas fa-plus-circle"></i> Tạo khám sức khỏe mới
-        </Button>
-      </div>
+          <Row>
+            <Col md={12}>
+              <Card className="dashboard-card chart-card">
+                <Card.Body>
+                  <Card.Title>Tỷ lệ trạng thái khám</Card.Title>
+                   <div className="chart-container">
+                    <Pie data={checkupStatusChartData} options={chartOptions} />
+                   </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+
+          <Card className="dashboard-card">
+            <Card.Header>
+              <Card.Title>Các đợt khám gần đây</Card.Title>
+              <Button variant="primary" size="sm" onClick={onCreateNewCheckup}>
+                <FaCalendarPlus /> Tạo đợt khám mới
+              </Button>
+            </Card.Header>
+            <Card.Body>
+              <Table hover responsive className="campaign-table">
+                <thead>
+                  <tr>
+                    <th>Tên đợt khám</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Trạng thái</th>
+                    <th>Tiến độ</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentCampaigns.map(c => (
+                    <tr key={c.id}>
+                      <td>{c.title}</td>
+                      <td>{new Date(c.startDate).toLocaleDateString('vi-VN')}</td>
+                      <td><span className={`status-badge status-${c.status.toLowerCase()}`}>{c.status}</span></td>
+                      <td>{renderProgress(c.completedCheckups, c.consentedStudents)}</td>
+                      <td>
+                        <Button variant="link" size="sm" onClick={() => onCampaignSelect(c)}>
+                          Chi tiết <FaArrowRight />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Right Column */}
+        <Col lg={4}>
+          <Card className="dashboard-card stat-card blue">
+            <Card.Body>
+              <div className="stat-icon"><FaStethoscope /></div>
+              <div className="stat-content">
+                <p>Tổng số lượt khám</p>
+                <h3>{stats.totalCheckups}</h3>
+              </div>
+            </Card.Body>
+          </Card>
+          <Card className="dashboard-card stat-card green">
+            <Card.Body>
+                <div className="stat-icon"><FaTasks /></div>
+                <div className="stat-content">
+                    <p>Chiến dịch đang diễn ra</p>
+                    <h3>{stats.ongoingCampaigns}</h3>
+                </div>
+            </Card.Body>
+          </Card>
+
+           <Card className="dashboard-card">
+            <Card.Header>
+                <Card.Title><FaExclamationTriangle className="text-warning me-2" /> Học sinh cần theo dõi</Card.Title>
+            </Card.Header>
+            <Card.Body>
+               <div className="followup-list">
+                {followupStudents.length > 0 ? (
+                  followupStudents.map(student => (
+                    <div key={student.id} className="followup-item">
+                      <div className="student-info">
+                        <strong>{student.studentName}</strong>
+                        <span> - Lớp {student.studentClass}</span>
+                      </div>
+                       <Button variant="outline-primary" size="sm" onClick={() => handleViewDetails(student.id)}>Xem</Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted">Không có học sinh nào cần theo dõi.</p>
+                )}
+               </div>
+            </Card.Body>
+           </Card>
+        </Col>
+      </Row>
+       <CheckupDetailModal
+        show={showDetailModal}
+        onHide={() => setShowDetailModal(false)}
+        details={selectedCheckup}
+        loading={detailLoading}
+      />
     </div>
   );
 };
