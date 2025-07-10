@@ -109,7 +109,8 @@ const receiveMedicineService = {
       console.log('Gọi API lấy danh sách yêu cầu thuốc...');
       console.log('Auth token status:', localStorage.getItem('authToken') ? 'Token exists' : 'No token');
       
-      const response = await api.get('/nurse-medication-approvals/all-requests');
+      // SỬA ĐỔI: Sử dụng apiService thay vì api và điều chỉnh endpoint
+      const response = await apiService.get('/all-requests');
       console.log('API getAllMedicineRequests response:', response.data);
       
       return response.data;

@@ -17,7 +17,7 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
         medicalStaffId: currentUser?.id ? 1 : 1, // Default to 1 as per requirement
         checkupDate: new Date().toISOString().split('T')[0],
         checkupType: "Khám tổng quát định kỳ",
-        checkupStatus: "WAITING",
+        checkupStatus: "COMPLETED",
         specialCheckupItems: student.specialCheckupItems || [],
         height: 135.2,
         weight: 32.5,
@@ -91,10 +91,19 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
                         <Form.Control type="date" name="checkupDate" value={formData.checkupDate || ''} onChange={handleChange} required />
                     </Form.Group>
                 </Col>
-                <Col md={8}>
+                <Col md={4}>
                     <Form.Group controlId="checkupType">
                         <Form.Label>Loại hình khám</Form.Label>
                         <Form.Control type="text" name="checkupType" value={formData.checkupType || ''} onChange={handleChange} required />
+                    </Form.Group>
+                </Col>
+                <Col md={4}>
+                    <Form.Group controlId="checkupStatus">
+                        <Form.Label>Trạng thái khám</Form.Label>
+                        <Form.Select name="checkupStatus" value={formData.checkupStatus || 'COMPLETED'} onChange={handleChange} required>
+                            <option value="COMPLETED">Đã hoàn thành</option>
+                            <option value="NEED_FOLLOW_UP">Cần theo dõi</option>
+                        </Form.Select>
                     </Form.Group>
                 </Col>
             </Row>
@@ -150,9 +159,9 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
                     </Form.Group>
                 </Col>
             </Row>
-            <Form.Group className="mt-3" controlId="followUpNeeded">
+            {/* <Form.Group className="mt-3" controlId="followUpNeeded">
               <Form.Check type="checkbox" name="followUpNeeded" label="Cần theo dõi thêm" checked={formData.followUpNeeded || false} onChange={handleChange} />
-            </Form.Group>
+            </Form.Group> */}
           </div>
           <Modal.Footer>
             <Button variant="secondary" onClick={onClose} disabled={isLoading}>Hủy</Button>

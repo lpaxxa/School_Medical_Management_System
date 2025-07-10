@@ -6,10 +6,259 @@ const config = {
   apiUrl: 'http://localhost:8080/api/v1/medical-checkups'
 };
 
+// API base URL
+const API_BASE_URL = 'http://localhost:8080/api/v1';
+
 // Hàm trễ để mô phỏng API delay
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Hàm lấy tất cả bản ghi khám sức khỏe
+// Get all medical checkups
+export const getAllMedicalCheckups = async () => {
+  try {
+    // Lấy token xác thực từ localStorage
+    const token = localStorage.getItem('authToken');
+    
+    // Gọi API với token trong header
+    const response = await axios.get(`${API_BASE_URL}/medical-checkups`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching medical checkups:', error);
+    
+    // Hiển thị chi tiết lỗi từ API để debug
+    if (error.response) {
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+      console.error('Response error headers:', error.response.headers);
+      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      console.error('Request was made but no response received:', error.request);
+      throw new Error('Không nhận được phản hồi từ máy chủ');
+    } else {
+      console.error('Error setting up request:', error.message);
+      throw error;
+    }
+  }
+};
+
+// Get medical checkup by ID
+export const getMedicalCheckupById = async (id) => {
+  try {
+    // Lấy token xác thực từ localStorage
+    const token = localStorage.getItem('authToken');
+    
+    // Gọi API với token trong header
+    const response = await axios.get(`${API_BASE_URL}/medical-checkups/${id}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching medical checkup with ID ${id}:`, error);
+    
+    // Hiển thị chi tiết lỗi từ API để debug
+    if (error.response) {
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+      console.error('Response error headers:', error.response.headers);
+      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      console.error('Request was made but no response received:', error.request);
+      throw new Error('Không nhận được phản hồi từ máy chủ');
+    } else {
+      console.error('Error setting up request:', error.message);
+      throw error;
+    }
+  }
+};
+
+// Update medical checkup
+export const updateMedicalCheckup = async (id, checkupData) => {
+  try {
+    // Lấy token xác thực từ localStorage
+    const token = localStorage.getItem('authToken');
+    
+    // Gọi API với token trong header
+    const response = await axios.put(`${API_BASE_URL}/medical-checkups/${id}`, checkupData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating medical checkup with ID ${id}:`, error);
+    
+    // Hiển thị chi tiết lỗi từ API để debug
+    if (error.response) {
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+      console.error('Response error headers:', error.response.headers);
+      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      console.error('Request was made but no response received:', error.request);
+      throw new Error('Không nhận được phản hồi từ máy chủ');
+    } else {
+      console.error('Error setting up request:', error.message);
+      throw error;
+    }
+  }
+};
+
+// Send notification to parent
+export const sendParentNotification = async (studentId, message) => {
+  try {
+    // Lấy token xác thực từ localStorage
+    const token = localStorage.getItem('authToken');
+    
+    // Chuẩn bị dữ liệu thông báo
+    const notificationData = {
+      type: 'HEALTH_CHECKUP',
+      receiverIds: [studentId],
+      title: 'Thông báo kết quả khám sức khỏe',
+      content: message
+    };
+    
+    // Gọi API với token trong header
+    const response = await axios.post(`${API_BASE_URL}/notifications/create`, notificationData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error sending notification:', error);
+    
+    // Hiển thị chi tiết lỗi từ API để debug
+    if (error.response) {
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+      console.error('Response error headers:', error.response.headers);
+      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      console.error('Request was made but no response received:', error.request);
+      throw new Error('Không nhận được phản hồi từ máy chủ');
+    } else {
+      console.error('Error setting up request:', error.message);
+      throw error;
+    }
+  }
+};
+
+// Gửi thông báo cho phụ huynh của một học sinh theo checkupId
+export const notifyParent = async (checkupId) => {
+  try {
+    // Lấy token xác thực từ localStorage
+    const token = localStorage.getItem('authToken');
+    
+    // Gọi API với token trong header
+    const response = await axios.post(`${API_BASE_URL}/medical-checkups/${checkupId}/notify-parent`, {}, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error notifying parent for checkup ID ${checkupId}:`, error);
+    
+    // Hiển thị chi tiết lỗi từ API để debug
+    if (error.response) {
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+      console.error('Response error headers:', error.response.headers);
+      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      console.error('Request was made but no response received:', error.request);
+      throw new Error('Không nhận được phản hồi từ máy chủ');
+    } else {
+      console.error('Error setting up request:', error.message);
+      throw error;
+    }
+  }
+};
+
+// Gửi thông báo cho tất cả phụ huynh (API sẽ được cung cấp sau)
+export const notifyAllParents = async (message) => {
+  try {
+    // Lấy token xác thực từ localStorage
+    const token = localStorage.getItem('authToken');
+    
+    // API này sẽ được cập nhật sau khi có API thật
+    const response = await axios.post(`${API_BASE_URL}/medical-checkups/notify-all-parents`, { message }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error notifying all parents:', error);
+    
+    // Hiển thị chi tiết lỗi từ API để debug
+    if (error.response) {
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+      console.error('Response error headers:', error.response.headers);
+      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      console.error('Request was made but no response received:', error.request);
+      throw new Error('Không nhận được phản hồi từ máy chủ');
+    } else {
+      console.error('Error setting up request:', error.message);
+      throw error;
+    }
+  }
+};
+
+// Đặt lịch tư vấn cho học sinh cần theo dõi (NEED_FOLLOW_UP)
+export const scheduleConsultation = async (checkupId, consultationData) => {
+  try {
+    // Lấy token xác thực từ localStorage
+    const token = localStorage.getItem('authToken');
+    
+    // Gọi API với token trong header
+    const response = await axios.post(`${API_BASE_URL}/medical-checkups/${checkupId}/schedule-consultation`, consultationData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error scheduling consultation for checkup ID ${checkupId}:`, error);
+    
+    // Hiển thị chi tiết lỗi từ API để debug
+    if (error.response) {
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+      console.error('Response error headers:', error.response.headers);
+      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      console.error('Request was made but no response received:', error.request);
+      throw new Error('Không nhận được phản hồi từ máy chủ');
+    } else {
+      console.error('Error setting up request:', error.message);
+      throw error;
+    }
+  }
+};
+
+// Hàm lấy tất cả bản ghi khám sức khỏe (API cũ)
 export const getAllHealthCheckups = async () => {
   try {
     if (config.useMockData) {
@@ -35,7 +284,7 @@ export const getAllHealthCheckups = async () => {
   }
 };
 
-// Hàm lấy chi tiết một bản ghi khám sức khỏe theo ID
+// Hàm lấy chi tiết một bản ghi khám sức khỏe theo ID (API cũ)
 export const getHealthCheckupById = async (id) => {
   try {
     if (config.useMockData) {
@@ -60,7 +309,7 @@ export const getHealthCheckupById = async (id) => {
   }
 };
 
-// Thêm bản ghi khám sức khỏe mới
+// Thêm bản ghi khám sức khỏe mới (API cũ)
 export const addHealthCheckup = async (checkupData) => {
   try {
     if (config.useMockData) {
@@ -117,7 +366,7 @@ export const addHealthCheckup = async (checkupData) => {
   }
 };
 
-// Cập nhật bản ghi khám sức khỏe
+// Cập nhật bản ghi khám sức khỏe (API cũ)
 export const updateHealthCheckup = async (id, checkupData) => {
   try {
     if (config.useMockData) {
@@ -153,7 +402,7 @@ export const updateHealthCheckup = async (id, checkupData) => {
   }
 };
 
-// Xóa bản ghi khám sức khỏe
+// Xóa bản ghi khám sức khỏe (API cũ)
 export const deleteHealthCheckup = async (id) => {
   try {
     if (config.useMockData) {
@@ -182,127 +431,7 @@ export const deleteHealthCheckup = async (id) => {
   }
 };
 
-// Lấy tất cả các chiến dịch khám sức khỏe
-export const getAllCheckupCampaigns = async () => {
-  try {
-    if (config.useMockData) {
-      // Giả lập độ trễ mạng
-      await delay(600);
-      return mockCampaigns;
-    } else {
-      // Trong thực tế, API của bạn có thể có endpoint riêng cho campaigns
-      // Nhưng hiện tại, ta tạm coi đây là cùng API medical-checkups
-      const response = await fetch(config.apiUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
-      
-      const checkups = await response.json();
-      
-      // Chuyển đổi dữ liệu từ checkups thành định dạng campaigns
-      // Đây chỉ là ví dụ, bạn cần điều chỉnh theo cấu trúc thực của API
-      const campaigns = [
-        {
-          id: 1,
-          name: 'Khám sức khỏe định kỳ năm 2024',
-          startDate: '2024-03-15',
-          endDate: '2024-04-15',
-          description: 'Khám sức khỏe định kỳ cho học sinh toàn trường',
-          status: 'Đã hoàn thành',
-          totalStudents: 5,
-          examinedStudents: 5,
-          flaggedStudents: 3
-        }
-      ];
-      
-      return campaigns;
-    }
-  } catch (error) {
-    console.error('Error fetching checkup campaigns:', error);
-    // Fallback về dữ liệu mẫu khi API gặp lỗi
-    return mockCampaigns;
-  }
-};
-
-// Lấy danh sách học sinh cần theo dõi sức khỏe
-export const getStudentsRequiringFollowup = async () => {
-  try {
-    if (config.useMockData) {
-      // Giả lập độ trễ mạng
-      await delay(500);
-      
-      // Lọc ra những học sinh cần theo dõi từ kết quả khám
-      const followupResults = mockHealthCheckups.filter(checkup => checkup.followUpNeeded === true);
-      
-      // Tạo danh sách học sinh không trùng lặp
-      const studentsWithFollowup = [];
-      const studentIdsAdded = new Set();
-      
-      // Thêm thông tin học sinh (từ mockStudents) vào kết quả
-      for (const result of followupResults) {
-        if (!studentIdsAdded.has(result.studentId)) {
-          studentIdsAdded.add(result.studentId);
-          
-          // Tìm học sinh tương ứng từ danh sách học sinh mẫu
-          const student = mockStudents.find(s => s.id === result.studentId);
-          
-          if (student) {
-            studentsWithFollowup.push({
-              ...student,
-              checkupId: result.id,
-              checkupDate: result.checkupDate,
-              diagnosis: result.diagnosis,
-              recommendations: result.recommendations
-            });
-          }
-        }
-      }
-      
-      return studentsWithFollowup;
-    } else {
-      // Trong thực tế, backend có thể có API riêng để lấy danh sách học sinh cần theo dõi
-      // Hiện tại, chúng ta sẽ lọc từ dữ liệu checkups
-      const response = await fetch(config.apiUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
-      
-      const checkups = await response.json();
-      const followupStudents = checkups
-        .filter(c => c.followUpNeeded === true)
-        .map(c => ({
-          id: c.studentId,
-          fullName: c.studentName,
-          checkupId: c.id,
-          checkupDate: c.checkupDate,
-          diagnosis: c.diagnosis,
-          recommendations: c.recommendations,
-          class: "N/A" // Dữ liệu API của bạn không có field này
-        }));
-      
-      return followupStudents;
-    }
-  } catch (error) {
-    console.error('Error fetching students requiring followup:', error);
-    return []; // Trả về mảng rỗng nếu có lỗi
-  }
-};
-
-// Lấy tiêu chuẩn sức khỏe theo độ tuổi
-export const getHealthStandards = async () => {
-  try {
-    // Luôn sử dụng dữ liệu mẫu cho health standards
-    await delay(400); // Giả lập độ trễ mạng để trải nghiệm UI tốt hơn
-    return mockHealthStandards;
-  } catch (error) {
-    console.error('Error fetching health standards:', error);
-    return mockHealthStandards; // Fallback về dữ liệu mẫu
-  }
-};
-
-// Lấy tất cả các chiến dịch khám sức khỏe
+// Lấy tất cả các chiến dịch khám sức khỏe (API cũ)
 export const getHealthCampaigns = async () => {
   try {
     const response = await fetch('http://localhost:8080/api/v1/health-campaigns');
@@ -321,7 +450,7 @@ export const getHealthCampaigns = async () => {
   }
 };
 
-// Lấy danh sách phụ huynh
+// Lấy danh sách phụ huynh (API cũ)
 export const getParents = async () => {
   try {
     const response = await fetch('http://localhost:8080/api/v1/parents');
@@ -340,12 +469,35 @@ export const getParents = async () => {
   }
 };
 
-// Gửi thông báo khám sức khỏe (đã có sẵn sendHealthCheckupNotification, thêm alias)
+// Lấy thông tin chi tiết phụ huynh theo ID
+export const getParentById = async (id) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8080/api/v1/parents/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching parent details:', error);
+    throw error;
+  }
+};
+
+// Gửi thông báo khám sức khỏe (API cũ)
 export const sendNotification = async (notificationData) => {
   return await sendHealthCheckupNotification(notificationData);
 };
 
-// Gửi thông báo khám sức khỏe
+// Gửi thông báo khám sức khỏe (API cũ)
 export const sendHealthCheckupNotification = async (notificationData) => {
   try {
     // Get auth token from localStorage
@@ -408,46 +560,68 @@ export const sendHealthCheckupNotification = async (notificationData) => {
   }
 };
 
-// Fetch health checkup notifications
-export const getHealthCheckupNotifications = async () => {
+// Get student list for a specific campaign (API cũ)
+export const getCampaignStudents = async (campaignId) => {
   try {
-    const response = await fetch('http://localhost:8080/api/v1/notifications/nurse/getNotificationsByType/HEALTH_CHECKUP');
-    
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8080/api/v1/health-campaigns/${campaignId}/students`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
-    
-    const data = await response.json();
-    console.log("Health checkup notifications:", data);
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error('Error fetching health checkup notifications:', error);
+    console.error(`Error fetching students for campaign ${campaignId}:`, error);
     throw error;
   }
 };
 
-// Create a health checkup notification
-export const createHealthCheckupNotification = async (notificationData) => {
+// Get parent consent details (API cũ)
+export const getConsentDetails = async (consentId) => {
   try {
-    const response = await fetch('http://localhost:8080/api/v1/notifications/create', {
-      method: 'POST',
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8080/api/v1/parent-consents/${consentId}/details`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ...notificationData,
-        type: 'HEALTH_CHECKUP'
-      })
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
     });
-    
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
-    
     return await response.json();
   } catch (error) {
-    console.error('Error creating health checkup notification:', error);
+    console.error(`Error fetching consent details for ID ${consentId}:`, error);
     throw error;
+  }
+};
+
+// Get students requiring follow-up
+export const getStudentsRequiringFollowup = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get(`${API_BASE_URL}/medical-checkups/requiring-follow-up`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching students requiring follow-up:', error);
+    if (error.response) {
+      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      throw new Error('Không nhận được phản hồi từ máy chủ');
+    } else {
+      throw error;
+    }
   }
 };
 
@@ -499,54 +673,6 @@ const mockHealthCheckups = [
   }
 ];
 
-// Dữ liệu mẫu về các đợt khám sức khỏe
-const mockCampaigns = [
-  {
-    id: 1,
-    name: 'Khám sức khỏe đầu năm 2025-2026',
-    startDate: '2025-05-15',
-    endDate: '2025-06-30',
-    description: 'Khám sức khỏe định kỳ đầu năm học cho học sinh toàn trường',
-    status: 'Đang diễn ra',
-    totalStudents: 800,
-    examinedStudents: 650,
-    flaggedStudents: 45
-  },
-  {
-    id: 2,
-    name: 'Khám sức khỏe cho học sinh Khối 10',
-    startDate: '2025-07-10',
-    endDate: '2025-07-20',
-    description: 'Khám sức khỏe chuyên sâu dành cho học sinh Khối 10',
-    status: 'Sắp diễn ra',
-    totalStudents: 320,
-    examinedStudents: 0,
-    flaggedStudents: 0
-  },
-  {
-    id: 3,
-    name: 'Khám sức khỏe răng miệng',
-    startDate: '2025-04-01',
-    endDate: '2025-04-15',
-    description: 'Chương trình khám và chăm sóc răng miệng cho học sinh',
-    status: 'Đã hoàn thành',
-    totalStudents: 800,
-    examinedStudents: 780,
-    flaggedStudents: 120
-  },
-  {
-    id: 4,
-    name: 'Khám sức khỏe mắt',
-    startDate: '2025-03-01',
-    endDate: '2025-03-10',
-    description: 'Chương trình kiểm tra thị lực và sức khỏe mắt',
-    status: 'Đã hoàn thành',
-    totalStudents: 800,
-    examinedStudents: 790,
-    flaggedStudents: 95
-  }
-];
-
 // Dữ liệu mẫu về chiến dịch khám sức khỏe
 const mockHealthCampaigns = [
   {
@@ -589,252 +715,29 @@ const mockParents = [
   }
 ];
 
-// Import dữ liệu từ studentService để tránh trùng lặp
-import { mockStudents } from './studentService';
-
-// Định nghĩa dữ liệu mẫu về tiêu chuẩn sức khỏe theo độ tuổi
-const mockHealthStandards = {
-  heightWeight: [
-    { ageGroup: '6-7', gender: 'Nam', minHeight: 110, maxHeight: 125, minWeight: 18, maxWeight: 25 },
-    { ageGroup: '6-7', gender: 'Nữ', minHeight: 108, maxHeight: 122, minWeight: 17, maxWeight: 24 },
-    { ageGroup: '8-9', gender: 'Nam', minHeight: 124, maxHeight: 135, minWeight: 23, maxWeight: 32 },
-    { ageGroup: '8-9', gender: 'Nữ', minHeight: 122, maxHeight: 134, minWeight: 22, maxWeight: 31 },
-    { ageGroup: '10-11', gender: 'Nam', minHeight: 134, maxHeight: 145, minWeight: 28, maxWeight: 40 },
-    { ageGroup: '10-11', gender: 'Nữ', minHeight: 132, maxHeight: 147, minWeight: 27, maxWeight: 42 },
-    { ageGroup: '12-13', gender: 'Nam', minHeight: 144, maxHeight: 160, minWeight: 35, maxWeight: 50 },
-    { ageGroup: '12-13', gender: 'Nữ', minHeight: 145, maxHeight: 158, minWeight: 35, maxWeight: 52 },
-    { ageGroup: '14-15', gender: 'Nam', minHeight: 155, maxHeight: 175, minWeight: 43, maxWeight: 65 },
-    { ageGroup: '14-15', gender: 'Nữ', minHeight: 150, maxHeight: 165, minWeight: 43, maxWeight: 58 },
-    { ageGroup: '16-17', gender: 'Nam', minHeight: 165, maxHeight: 185, minWeight: 55, maxWeight: 75 },
-    { ageGroup: '16-17', gender: 'Nữ', minHeight: 154, maxHeight: 170, minWeight: 47, maxWeight: 63 }
-  ],
-  bmi: [
-    { category: 'Thiếu cân', range: '< 18.5', risk: 'Tăng nguy cơ một số vấn đề sức khỏe' },
-    { category: 'Bình thường', range: '18.5 - 22.9', risk: 'Nguy cơ thấp' },
-    { category: 'Thừa cân', range: '23 - 24.9', risk: 'Nguy cơ tăng nhẹ' },
-    { category: 'Béo phì độ I', range: '25 - 29.9', risk: 'Nguy cơ cao' },
-    { category: 'Béo phì độ II', range: '≥ 30', risk: 'Nguy cơ rất cao' }
-  ],
-  bloodPressure: [
-    { ageGroup: '6-9', category: 'Bình thường', systolic: '< 110', diastolic: '< 70' },
-    { ageGroup: '6-9', category: 'Tiền tăng huyết áp', systolic: '110-120', diastolic: '70-80' },
-    { ageGroup: '6-9', category: 'Tăng huyết áp', systolic: '> 120', diastolic: '> 80' },
-    { ageGroup: '10-12', category: 'Bình thường', systolic: '< 115', diastolic: '< 75' },
-    { ageGroup: '10-12', category: 'Tiền tăng huyết áp', systolic: '115-125', diastolic: '75-85' },
-    { ageGroup: '10-12', category: 'Tăng huyết áp', systolic: '> 125', diastolic: '> 85' },
-    { ageGroup: '13-15', category: 'Bình thường', systolic: '< 120', diastolic: '< 80' },
-    { ageGroup: '13-15', category: 'Tiền tăng huyết áp', systolic: '120-130', diastolic: '80-85' },
-    { ageGroup: '13-15', category: 'Tăng huyết áp', systolic: '> 130', diastolic: '> 85' },
-    { ageGroup: '16-18', category: 'Bình thường', systolic: '< 130', diastolic: '< 85' },
-    { ageGroup: '16-18', category: 'Tiền tăng huyết áp', systolic: '130-140', diastolic: '85-90' },
-    { ageGroup: '16-18', category: 'Tăng huyết áp', systolic: '> 140', diastolic: '> 90' }
-  ],
-  vision: [
-    { category: 'Bình thường', range: '20/20 - 20/30' },
-    { category: 'Cận thị nhẹ', range: '20/40 - 20/60' },
-    { category: 'Cận thị trung bình', range: '20/70 - 20/160' },
-    { category: 'Cận thị nặng', range: '20/200 hoặc kém hơn' }
-  ],
-  heartRate: [
-    { ageGroup: '6-8', minRate: 70, maxRate: 110 },
-    { ageGroup: '9-11', minRate: 65, maxRate: 105 },
-    { ageGroup: '12-15', minRate: 60, maxRate: 100 },
-    { ageGroup: '16-18', minRate: 55, maxRate: 95 }
-  ],
+// Export tất cả các hàm
+export default {
+  // API mới
+  getAllMedicalCheckups,
+  getMedicalCheckupById,
+  updateMedicalCheckup,
+  sendParentNotification,
+  notifyParent,
+  notifyAllParents,
+  scheduleConsultation,
   
-  // Thêm một số tiêu chuẩn mới
-  bodyTemperature: [
-    { category: 'Hạ thân nhiệt', range: '< 35.0°C', risk: 'Nguy hiểm, cần chăm sóc y tế ngay lập tức' },
-    { category: 'Bình thường thấp', range: '35.0 - 36.5°C', risk: 'Theo dõi' },
-    { category: 'Bình thường', range: '36.5 - 37.5°C', risk: 'Không có rủi ro' },
-    { category: 'Sốt nhẹ', range: '37.5 - 38.0°C', risk: 'Theo dõi' },
-    { category: 'Sốt', range: '38.0 - 39.0°C', risk: 'Cần điều trị hạ sốt' },
-    { category: 'Sốt cao', range: '39.0 - 40.0°C', risk: 'Cần điều trị và theo dõi' },
-    { category: 'Sốt rất cao', range: '> 40.0°C', risk: 'Nguy hiểm, cần chăm sóc y tế ngay lập tức' }
-  ],
-  
-  nutrition: [
-    { category: 'Thiếu dinh dưỡng', signs: 'BMI thấp, thiếu năng lượng, chậm phát triển', recommendations: 'Cải thiện chế độ ăn, bổ sung dinh dưỡng' },
-    { category: 'Dinh dưỡng tốt', signs: 'BMI bình thường, năng lượng tốt, phát triển phù hợp', recommendations: 'Duy trì chế độ ăn cân bằng' },
-    { category: 'Thừa cân', signs: 'BMI cao, dễ mệt mỏi', recommendations: 'Điều chỉnh chế độ ăn, tăng hoạt động thể chất' }
-  ],
-  
-  physicalActivity: [
-    { ageGroup: '6-10', minActivity: '60 phút/ngày', type: 'Hoạt động vui chơi, thể thao nhẹ nhàng' },
-    { ageGroup: '11-14', minActivity: '60 phút/ngày', type: 'Kết hợp các hoạt động aerobic và tăng cường sức mạnh' },
-    { ageGroup: '15-18', minActivity: '60 phút/ngày', type: 'Kết hợp các hoạt động aerobic cường độ vừa đến mạnh và tăng cường sức mạnh' }
-  ],
-  
-  oralHealth: [
-    { category: 'Tốt', description: 'Không có sâu răng, nướu khỏe mạnh', recommendations: 'Kiểm tra nha khoa 6 tháng/lần' },
-    { category: 'Trung bình', description: 'Có dấu hiệu sâu răng nhẹ hoặc viêm nướu nhẹ', recommendations: 'Kiểm tra nha khoa 3-6 tháng/lần' },
-    { category: 'Kém', description: 'Sâu răng, viêm nướu, có thể đau nhức', recommendations: 'Cần điều trị nha khoa ngay' }
-  ],
-  
-  sleepRequirements: [
-    { ageGroup: '6-12', hoursNeeded: '9-12 giờ/ngày' },
-    { ageGroup: '13-18', hoursNeeded: '8-10 giờ/ngày' }
-  ],
-  
-  immunizationSchedule: [
-    { age: '4-6 tuổi', vaccines: ['Bạch hầu, Uốn ván, Ho gà (DTP)', 'Bại liệt', 'Sởi, Quai bị, Rubella (MMR)'] },
-    { age: '11-12 tuổi', vaccines: ['Viêm gan B', 'HPV (2 liều, cách nhau 6 tháng)'] },
-    { age: '16 tuổi', vaccines: ['Viêm màng não cầu khuẩn'] },
-    { age: 'Hàng năm', vaccines: ['Cúm mùa'] }
-  ]
-};
-
-// Lấy thông tin chi tiết học sinh theo ID
-export const getStudentById = async (id) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/students/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching student details:', error);
-    throw error;
-  }
-};
-
-// Lấy thông tin chi tiết phụ huynh theo ID
-export const getParentById = async (id) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/parents/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching parent details:', error);
-    throw error;
-  }
-};
-
-// Lấy danh sách học sinh
-export const getStudents = async () => {
-  try {
-    const response = await fetch(`http://localhost:8080/api/v1/students`);
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching students:', error);
-    // Fallback to mock data on error
-    return mockStudents;
-  }
-};
-
-// Send notifications for a specific campaign
-export const sendCampaignNotifications = async (campaignId, studentIds) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/health-campaigns/${campaignId}/send-notifications`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      },
-      body: JSON.stringify(studentIds)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
-    }
-
-    // The response might not contain a JSON body
-    return { success: true, message: 'Notifications sent successfully.' };
-  } catch (error) {
-    console.error('Error sending campaign notifications:', error);
-    throw error;
-  }
-};
-
-// Get student list for a specific campaign
-export const getCampaignStudents = async (campaignId) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/health-campaigns/${campaignId}/students`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching students for campaign ${campaignId}:`, error);
-    throw error;
-  }
-};
-
-// Get parent consent details
-export const getConsentDetails = async (consentId) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/parent-consents/${consentId}/details`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching consent details for ID ${consentId}:`, error);
-    throw error;
-  }
-};
-
-// Unified export to make imports consistent
-const healthCheckupService = {
+  // API cũ
   getAllHealthCheckups,
   getHealthCheckupById,
   addHealthCheckup,
   updateHealthCheckup,
   deleteHealthCheckup,
-  getAllCheckupCampaigns,
-  getStudentsRequiringFollowup,
-  getHealthStandards,
-  getHealthCheckupNotifications,
-  createHealthCheckupNotification,
   getHealthCampaigns,
   getParents,
   sendNotification,
   sendHealthCheckupNotification,
-  getStudentById,
-  getStudents,
-  getParentById,
-  sendCampaignNotifications,
   getCampaignStudents,
   getConsentDetails,
+  getParentById,
+  getStudentsRequiringFollowup
 };
-
-export default healthCheckupService;

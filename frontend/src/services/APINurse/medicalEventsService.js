@@ -257,9 +257,42 @@ const medicalEventsService = {
     try {
       console.log(`Gọi API cập nhật sự kiện y tế ID: ${id} với data:`, eventData);
       
-      // The eventData is already correctly formatted by the modal.
-      // We pass it directly to the API without the unnecessary and buggy re-processing.
-      const response = await api.put(`/medical-incidents/update/${id}`, eventData);
+      // Format data theo yêu cầu mới của API
+      const formattedData = {
+        incidentType: eventData.incidentType || '',
+        description: eventData.description || '',
+        symptoms: eventData.symptoms || '',
+        severityLevel: eventData.severityLevel || '',
+        treatment: eventData.treatment || '',
+        parentNotified: Boolean(eventData.parentNotified),
+        requiresFollowUp: Boolean(eventData.requiresFollowUp),
+        followUpNotes: eventData.followUpNotes || '',
+        handledById: parseInt(eventData.handledById) || 1,
+        studentId: eventData.studentId || '',
+        imageMedicalUrl: eventData.imageMedicalUrl || '',
+        medicationsUsed: Array.isArray(eventData.medicationsUsed) 
+          ? eventData.medicationsUsed.filter(med => med && med.itemID)
+              .map(med => {
+                // Đảm bảo cả hai giá trị đều là số nguyên 
+                const itemID = typeof med.itemID === 'string' ? parseInt(med.itemID.trim(), 10) : parseInt(med.itemID, 10);
+                const quantityUsed = typeof med.quantityUsed === 'string' ? parseInt(med.quantityUsed.trim(), 10) : parseInt(med.quantityUsed, 10);
+                
+                // Đảm bảo giá trị hợp lệ
+                if (isNaN(itemID) || isNaN(quantityUsed)) {
+                  console.warn(`Skip invalid medication: ${JSON.stringify(med)}`);
+                  return null;
+                }
+                
+                return {
+                  itemID: itemID,
+                  quantityUsed: quantityUsed < 1 ? 1 : quantityUsed // Đảm bảo số lượng tối thiểu là 1
+                };
+              }).filter(Boolean) // Loại bỏ các giá trị null/undefined
+          : []
+      };
+      
+      console.log('Formatted data for API:', formattedData);
+      const response = await api.put(`/medical-incidents/update/${id}`, formattedData);
       
       console.log('Kết quả cập nhật sự kiện:', response.data);
       return response.data;

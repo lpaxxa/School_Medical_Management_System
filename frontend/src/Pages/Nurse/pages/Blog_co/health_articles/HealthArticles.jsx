@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Form, InputGroup, Modal, Spinner } from 'react-bootstrap';
+import { toast } from 'react-toastify';
 import { useBlog } from '../../../../../context/NurseContext/BlogContext';
 import { useAuth } from '../../../../../context/AuthContext';
 import './HealthArticles.css';
@@ -33,7 +34,8 @@ const HealthArticles = () => {
     author: '',
     category: '',
     imageUrl: '',
-    tags: ''
+    tags: '',
+    memberId: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -103,16 +105,19 @@ const HealthArticles = () => {
       const articleData = {
         ...formData,
         tags: tagsArray,
-        memberId: currentUser?.id || 'NURSE001'
       };
+
+      console.log('Sending data to API:', articleData);
 
       if (isEditing && selectedArticle) {
         await updateBlog({
           id: selectedArticle.id,
           ...articleData
         });
+        toast.success('Cập nhật bài viết thành công!');
       } else {
         await addBlog(articleData);
+        toast.success('Thêm bài viết thành công!');
       }
 
       // Reset form and close modal
@@ -123,7 +128,8 @@ const HealthArticles = () => {
         author: '',
         category: '',
         imageUrl: '',
-        tags: ''
+        tags: '',
+        memberId: ''
       });
       setShowModal(false);
       
@@ -131,7 +137,7 @@ const HealthArticles = () => {
       fetchBlogs();
     } catch (error) {
       console.error('Error submitting article:', error);
-      alert('Có lỗi xảy ra khi lưu bài viết. Vui lòng thử lại sau.');
+      toast.error('Có lỗi xảy ra khi lưu bài viết. Vui lòng thử lại sau.');
     } finally {
       setSubmitting(false);
     }
@@ -150,7 +156,7 @@ const HealthArticles = () => {
       setShowDetailModal(true);
     } catch (error) {
       console.error('Error fetching article details:', error);
-      alert('Không thể tải thông tin chi tiết bài viết. Vui lòng thử lại sau.');
+      toast.error('Không thể tải thông tin chi tiết bài viết. Vui lòng thử lại sau.');
     } finally {
       setDetailLoading(false);
     }
@@ -169,6 +175,7 @@ const HealthArticles = () => {
         summary: articleDetail.summary || '',
         content: articleDetail.content || '',
         author: articleDetail.author || '',
+        memberId: articleDetail.memberId || '',
         category: articleDetail.category || '',
         imageUrl: articleDetail.imageUrl || '',
         tags: Array.isArray(articleDetail.tags) ? articleDetail.tags.join(', ') : ''
@@ -176,7 +183,7 @@ const HealthArticles = () => {
       setShowModal(true);
     } catch (error) {
       console.error('Error fetching article details:', error);
-      alert('Không thể tải thông tin bài viết. Vui lòng thử lại sau.');
+      toast.error('Không thể tải thông tin bài viết. Vui lòng thử lại sau.');
     }
   };
 
@@ -199,7 +206,7 @@ const HealthArticles = () => {
       fetchBlogs();
     } catch (error) {
       console.error('Error deleting article:', error);
-      alert('Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại sau.');
+      toast.error('Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại sau.');
     }
   };
 
@@ -211,7 +218,8 @@ const HealthArticles = () => {
       title: '',
       summary: '',
       content: '',
-      author: currentUser?.name || '',
+      author: '',
+      memberId: '',
       category: '',
       imageUrl: '',
       tags: ''
@@ -440,6 +448,20 @@ const HealthArticles = () => {
                   />
                 </Form.Group>
               </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>ID Thành viên</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="memberId"
+                    value={formData.memberId}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Danh mục <span className="text-danger">*</span></Form.Label>

@@ -156,9 +156,116 @@ const inventoryService = {
     }
   },
 
+  // Tìm kiếm thuốc theo từ khóa (có thể trả về nhiều kết quả)
+  getItemsByKeyword: async (keyword) => {
+    if (!keyword || keyword.trim() === '') {
+      console.log("Empty keyword provided to getItemsByKeyword, returning empty array");
+      return [];
+    }
+
+    try {
+      const encodedKeyword = encodeURIComponent(keyword.trim());
+      console.log(`Searching medications by keyword: "${keyword}" (encoded: "${encodedKeyword}")`);
+      
+      // First check cache for matches
+      if (inventoryService._cache.getAllItems) {
+        const cacheMatches = inventoryService._cache.getAllItems.filter(item => {
+          if (!item || !item.itemName) return false;
+          const itemName = item.itemName.toLowerCase().trim();
+          const searchTerm = keyword.toLowerCase().trim();
+          return itemName.includes(searchTerm) || searchTerm.includes(itemName);
+        });
+        
+        if (cacheMatches.length > 0) {
+          console.log(`Found ${cacheMatches.length} medications matching "${keyword}" in cache`);
+          return cacheMatches;
+        }
+      }
+      
+      // If not in cache, call API
+      const response = await axiosInstance.get(`${API_URL}/get-by-name/${encodedKeyword}`);
+      
+      if (Array.isArray(response.data)) {
+        console.log(`API returned ${response.data.length} medications matching keyword "${keyword}"`);
+        return response.data;
+      } else if (response.data) {
+        // Nếu API trả về một item đơn lẻ, bọc nó trong array
+        console.log(`API returned 1 medication matching keyword "${keyword}": ${response.data.itemName}`);
+        return [response.data];
+      }
+      console.log(`No medications found for keyword "${keyword}"`);
+      return [];
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log(`No medications found for keyword "${keyword}"`);
+        return [];
+      }
+      console.error(`Error searching medications by keyword "${keyword}":`, error);
+      return [];
+    }
+  },
+
   // Alias for searchItemsByName - for backward compatibility
   getMedicationByName: async (name) => {
     return inventoryService.searchItemsByName(name);
+  },
+
+  // Tìm thuốc theo ID
+  getItemById: async (id) => {
+    // Skip API call for invalid IDs (null, empty, NaN, or 0)
+    if (!id || isNaN(parseInt(id)) || parseInt(id) <= 0) {
+      console.log(`Invalid medication ID: ${id}, skipping API call`);
+      return null;
+    }
+
+    try {
+      const numericId = parseInt(id);
+      console.log(`Fetching medication item by ID: ${numericId}`);
+      
+      // Kiểm tra cache trước
+      if (inventoryService._cache.getAllItems) {
+        const cachedItem = inventoryService._cache.getAllItems.find(item => {
+          const itemId = parseInt(item.itemID || item.itemId || item.id);
+          return itemId === numericId;
+        });
+        
+        if (cachedItem) {
+          console.log(`Found medication in cache: ID=${numericId}, Name=${cachedItem.itemName}`);
+          return cachedItem;
+        }
+      }
+      
+      // Nếu không có trong cache, gọi API
+      try {
+        const response = await axiosInstance.get(`${API_URL}/get-by-id/${numericId}?id=${numericId}`);
+        if (response.data) {
+          console.log(`API returned medication: ID=${numericId}, Name=${response.data.itemName}`);
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`Error fetching medication with ID=${numericId}: ${error.message}`);
+        // Nếu không tìm thấy theo ID, thử tìm theo tên sử dụng getItemsByKeyword
+        console.log(`Trying to find medication by ID=${numericId} using keyword search`);
+        const keywordResults = await inventoryService.getItemsByKeyword(String(numericId));
+        if (keywordResults && keywordResults.length > 0) {
+          const exactMatch = keywordResults.find(item => 
+            parseInt(item.itemID || item.itemId || item.id) === numericId
+          );
+          if (exactMatch) {
+            console.log(`Found medication using keyword search: ID=${numericId}, Name=${exactMatch.itemName}`);
+            return exactMatch;
+          }
+        }
+      }
+      return null;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.log(`Medication with ID=${id} not found in inventory`);
+        return null;
+      }
+      console.error(`Lỗi khi tìm vật phẩm theo ID ${id}:`, error);
+      return null;
+    }
   },
 
   checkItemNameExists: async (name, excludeId) => {

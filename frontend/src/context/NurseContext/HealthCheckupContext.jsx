@@ -3,21 +3,43 @@ import * as healthCheckupService from '../../services/APINurse/healthCheckupServ
 
 export const HealthCheckupContext = createContext();
 
-// Tạo custom hook để sử dụng context
+// Custom hook to use context
 export const useHealthCheckup = () => {
   const context = useContext(HealthCheckupContext);
   if (!context) {
-    throw new Error('useHealthCheckup phải được sử dụng trong HealthCheckupProvider');
+    throw new Error('useHealthCheckup must be used within a HealthCheckupProvider');
   }
   return context;
 };
 
 export const HealthCheckupProvider = ({ children }) => {
+  // State cho API mới
+  const [medicalCheckups, setMedicalCheckups] = useState([]);
+  
+  // State cho API cũ
   const [healthCheckups, setHealthCheckups] = useState([]);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedCheckup, setSelectedCheckup] = useState(null);
   const [selectedHealthCheckup, setSelectedHealthCheckup] = useState(null);
 
+  // Fetch all medical checkups (API mới)
+  const fetchMedicalCheckups = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await healthCheckupService.getAllMedicalCheckups();
+      setMedicalCheckups(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching medical checkups:', err);
+      setError('Không thể tải dữ liệu khám sức khỏe. Vui lòng thử lại sau.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch all health checkups (API cũ)
   const fetchHealthCheckups = useCallback(async () => {
     try {
       setLoading(true);
@@ -32,10 +54,27 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   }, []);
 
+  // Load medical checkups when component mounts
   useEffect(() => {
+    fetchMedicalCheckups();
     fetchHealthCheckups();
-  }, [fetchHealthCheckups]);
+  }, [fetchMedicalCheckups, fetchHealthCheckups]);
 
+  // Get medical checkup by ID (API mới)
+  const fetchMedicalCheckupById = async (id) => {
+    try {
+      setLoading(true);
+      const data = await healthCheckupService.getMedicalCheckupById(id);
+      return data;
+    } catch (err) {
+      console.error(`Error fetching medical checkup with ID ${id}:`, err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get health checkup by ID (API cũ)
   const fetchHealthCheckupById = async (id) => {
     try {
       setLoading(true);
@@ -49,13 +88,33 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   };
 
+  // Update medical checkup (API mới)
+  const updateMedicalCheckup = async (id, checkupData) => {
+    try {
+      setLoading(true);
+      const result = await healthCheckupService.updateMedicalCheckup(id, checkupData);
+      
+      // Update state
+      setMedicalCheckups(medicalCheckups.map(checkup => 
+        checkup.id === id ? result : checkup
+      ));
+      
+      return result;
+    } catch (err) {
+      console.error(`Error updating medical checkup with ID ${id}:`, err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Update health checkup (API cũ)
   const updateHealthCheckupData = async (id, checkupData) => {
     try {
       setLoading(true);
       const result = await healthCheckupService.updateHealthCheckup(id, checkupData);
       
-      // Cập nhật state
+      // Update state
       setHealthCheckups(healthCheckups.map(checkup => 
         checkup.id === id ? result : checkup
       ));
@@ -69,6 +128,7 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   };
 
+  // Add health checkup (API cũ)
   const addHealthCheckup = async (checkupData) => {
     try {
       setLoading(true);
@@ -85,13 +145,14 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   };
 
+  // Remove health checkup (API cũ)
   const removeHealthCheckup = async (id) => {
     try {
       setLoading(true);
       const result = await healthCheckupService.deleteHealthCheckup(id);
       
       if (result) {
-        // Xóa khỏi state
+        // Remove from state
         setHealthCheckups(healthCheckups.filter(checkup => checkup.id !== id));
       }
       
@@ -104,16 +165,91 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   };
 
+  // Send notification to parent (API mới)
+  const sendParentNotification = async (studentId, message) => {
+    try {
+      setLoading(true);
+      const result = await healthCheckupService.sendParentNotification(studentId, message);
+      return result;
+    } catch (err) {
+      console.error('Error sending notification:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Notify parent by checkup ID
+  const notifyParent = async (checkupId) => {
+    try {
+      setLoading(true);
+      const result = await healthCheckupService.notifyParent(checkupId);
+      return result;
+    } catch (err) {
+      console.error(`Error notifying parent for checkup ID ${checkupId}:`, err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Notify all parents
+  const notifyAllParents = async (message) => {
+    try {
+      setLoading(true);
+      const result = await healthCheckupService.notifyAllParents(message);
+      return result;
+    } catch (err) {
+      console.error('Error notifying all parents:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Schedule consultation for student with NEED_FOLLOW_UP status
+  const scheduleConsultation = async (checkupId, consultationData) => {
+    try {
+      setLoading(true);
+      const result = await healthCheckupService.scheduleConsultation(checkupId, consultationData);
+      return result;
+    } catch (err) {
+      console.error(`Error scheduling consultation for checkup ID ${checkupId}:`, err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Refresh medical checkups
+  const refreshMedicalCheckups = () => {
+    fetchMedicalCheckups();
+  };
+
+  // Refresh health checkups
   const refreshHealthCheckups = () => {
     fetchHealthCheckups();
   };
 
   const value = {
+    // API mới
+    medicalCheckups,
+    fetchMedicalCheckupById,
+    updateMedicalCheckup,
+    sendParentNotification,
+    refreshMedicalCheckups,
+    notifyParent,
+    notifyAllParents,
+    scheduleConsultation,
+    
+    // API cũ
     healthCheckups,
     loading,
     error,
     selectedHealthCheckup,
     setSelectedHealthCheckup,
+    selectedCheckup,
+    setSelectedCheckup,
     fetchHealthCheckupById,
     addHealthCheckup,
     updateHealthCheckupData,

@@ -61,6 +61,41 @@
   padding: 20px;
 }
 
+/* Custom styling for Bootstrap tabs */
+.nav-tabs-custom .nav-link {
+  color: #6c757d;
+  transition: all 0.3s ease;
+  position: relative;
+  margin-right: 4px;
+  border-radius: 0.25rem 0.25rem 0 0;
+}
+
+.nav-tabs-custom .nav-link.active {
+  color: #495057 !important;
+  background-color: #fff;
+  border-color: #dee2e6 #dee2e6 #fff;
+  font-weight: 600;
+}
+
+.nav-tabs-custom .nav-link:hover {
+  border-color: #e9ecef #e9ecef #dee2e6;
+}
+
+.nav-tabs-custom .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #007bff, #6610f2);
+}
+
+.card-title {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 992px) {
   .vaccination-tab i {

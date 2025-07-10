@@ -526,7 +526,7 @@ const MedicalIncidentsList = () => {
               <div className="card-body p-0">
                 <div className="table-responsive">
                   <table className="table table-striped table-hover mb-0">
-                    <thead className="table-dark">
+                    <thead className="table-primary">
                       <tr className="text-center">
                         <th scope="col">
                           STT

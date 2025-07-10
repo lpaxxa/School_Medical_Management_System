@@ -211,6 +211,9 @@ export const BlogProvider = ({ children }) => {
       setLoading(true);
       console.log("BlogContext - Dữ liệu gửi đi:", blogData);
       
+      // Thêm log mới để kiểm tra memberId
+      console.log("BlogContext - memberId được gửi đi:", blogData.memberId);
+      
       const result = await blogService.createBlog(blogData);
       console.log("BlogContext - Kết quả trả về:", result);
       

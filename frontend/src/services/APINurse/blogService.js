@@ -56,20 +56,7 @@ export const getBlogById = async (id) => {
 // Tạo bài viết mới
 export const createBlog = async (blogData) => {
   try {
-    // Xử lý dữ liệu trước khi gửi đi
-    const formattedData = {
-      title: blogData.title,
-      summary: blogData.summary || '',
-      content: blogData.content,
-      author: blogData.author || 'School Health Officer',
-      memberId: blogData.memberId || localStorage.getItem('userId') || 'NURSE001',
-      category: blogData.category || 'Health Information',
-      imageUrl: blogData.imageUrl || '',
-      tags: Array.isArray(blogData.tags) ? blogData.tags : 
-             typeof blogData.tags === 'string' ? blogData.tags.split(',').map(tag => tag.trim()) : []
-    };
-    
-    const response = await api.post('', formattedData);
+    const response = await api.post('', blogData);
     return response.data;
   } catch (error) {
     console.error('Error creating blog:', error);
