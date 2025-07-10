@@ -1,72 +1,126 @@
-/* Styles for SearchBox component */
+/* Modern SearchBox Component - Unique Classes to Prevent Conflicts */
 
-.search-box {
+/* Base Modern Search Container */
+.modern-search-container {
   position: relative;
   margin-bottom: 20px;
   width: 100%;
+  box-sizing: border-box;
 }
 
-.search-box input[type="text"] {
+/* Modern Search Input - Base Styles */
+.modern-search-input {
   width: 100%;
-  padding: 14px 50px 14px 16px;
-  border-radius: 100px;
-  border: 1px solid #e2e8f0;
-  background-color: #ffffff !important; /* Thêm !important để ngăn ghi đè */
-  font-size: 15px;
-  color: #1e293b;
+  padding: 14px 50px 14px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  font-family: var(--font-body, 'Nunito', sans-serif);
+  color: #334155;
+  outline: none;
+  box-sizing: border-box;
+  line-height: normal;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: 2px solid #e2e8f0;
+  margin: 0;
 }
 
-.search-box input[type="text"]:focus {
+/* Modern Search Input Placeholder */
+.modern-search-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+  opacity: 1;
+}
+
+/* Modern Search Input Focus */
+.modern-search-input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
 
-.search-box input[type="text"]::placeholder {
-  color: #94a3b8;
-}
-
-.search-btn {
+/* Modern Search Button - Base Styles */
+.modern-search-button {
   position: absolute;
+  right: 8px;
   top: 50%;
-  right: 4px;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   border: none;
-  background-color: #dae0ea !important; /* Thêm !important để ngăn ghi đè */
-  color: white !important;
-  border-radius: 50%;
+  color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 10px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  width: 36px;
+  height: 36px;
   z-index: 2;
-  padding: 0; /* Đảm bảo không có padding gây lệch */
-}
-
-.search-btn:hover {
-  background-color: #1d4ed8 !important;
-}
-
-.search-btn i {
+  box-sizing: border-box;
+  margin: 0;
+  font-family: inherit;
   font-size: 14px;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: baseline;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
-/* Responsive styling */
+/* Modern Search Button Hover */
+.modern-search-button:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Modern Search Button Active */
+.modern-search-button:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Modern Search Button Icon */
+.modern-search-button i {
+  font-size: 14px;
+  color: white;
+  pointer-events: none;
+}
+
+/* Variant styles moved to SearchBoxVariants.css */
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .search-box input[type="text"] {
-    padding: 12px 45px 12px 14px;
-    font-size: 14px;
+  .modern-search-input {
+    padding: 12px 45px 12px 16px;
+    font-size: 0.9rem;
   }
   
-  .search-btn {
-    width: 36px;
-    height: 36px;
+  .modern-search-button {
+    width: 32px;
+    height: 32px;
+    right: 6px;
   }
+  
+  .modern-search-button i {
+    font-size: 12px;
+  }
+}
+
+/* CSS Reset for modern search containers */
+.modern-search-container *,
+.modern-search-container *::before,
+.modern-search-container *::after {
+  box-sizing: border-box;
 }

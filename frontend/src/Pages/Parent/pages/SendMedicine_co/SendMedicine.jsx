@@ -4,10 +4,9 @@ import "./styles/index.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import { useAuth } from "../../../../context/AuthContext";
 import axios from "axios";
-import api from "../../../../services/api";
+// import api from "../../../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import TestAPIDebug from "./test-api-debug";
 
 //http://localhost:8080/api/parent-medication-requests/my-requests
 //lịch sử gửi thuốc của phụ huynh
@@ -92,20 +91,6 @@ const SendMedicine = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    // Validate frequency field to only allow numbers
-    if (name === 'frequency') {
-      // Allow only numbers (including decimal numbers)
-      const numberRegex = /^\d*\.?\d*$/;
-      if (value !== '' && !numberRegex.test(value)) {
-        setErrors({
-          ...errors,
-          frequency: "Tần suất chỉ được nhập số"
-        });
-        return; // Don't update the value if invalid
-      }
-    }
-    
     setFormData({
       ...formData,
       [name]: value,
@@ -270,22 +255,6 @@ const SendMedicine = () => {
       );
 
       console.log("API Response:", response.data);
-      
-      // Lấy ID của yêu cầu thuốc vừa tạo
-      const medicationRequestId = response.data?.id || response.data?.data?.id;
-      
-      // Nếu có hình ảnh xác nhận, upload lên server
-      if (formData.prescriptionImage && medicationRequestId) {
-        try {
-          await uploadConfirmationImage(medicationRequestId, formData.prescriptionImage);
-          console.log("Hình ảnh xác nhận đã được upload thành công");
-        } catch (uploadError) {
-          console.error("Lỗi khi upload hình ảnh xác nhận:", uploadError);
-          // Không hiển thị lỗi cho user vì yêu cầu thuốc đã được tạo thành công
-          // Chỉ log lỗi để theo dõi
-        }
-      }
-      
       setFormSubmitted(true);
 
       // Cuộn lên đầu trang
@@ -341,30 +310,6 @@ const SendMedicine = () => {
         reject(error);
       };
     });
-  };
-
-  // Thêm hàm để upload hình ảnh xác nhận
-  const uploadConfirmationImage = async (medicationRequestId, imageFile) => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      throw new Error("Token không tồn tại");
-    }
-
-    const formData = new FormData();
-    formData.append('image', imageFile);
-
-    const response = await axios.post(
-      `http://localhost:8080/api/v1/parent-medication-requests/${medicationRequestId}/upload-confirmation-image`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-
-    return response.data;
   };
 
   // Format date cho việc hiển thị
@@ -434,9 +379,6 @@ const SendMedicine = () => {
       PENDING_APPROVAL: "Đang chờ duyệt",
       APPROVED: "Đã duyệt",
       REJECTED: "Từ chối",
-      FULLY_TAKEN: "Đã hoàn thành",
-      PARTIALLY_TAKEN: "Hoàn thành một phần",
-      EXPIRED: "Đã hết hạn",
       COMPLETED: "Đã hoàn thành",
       CANCELLED: "Đã hủy",
     };
@@ -445,20 +387,9 @@ const SendMedicine = () => {
 
   // Lấy class cho trạng thái
   const getStatusClass = (status) => {
-    // Map status to appropriate CSS classes
-    const statusClassMap = {
-      PENDING_APPROVAL: "med-status-pending-approval",
-      APPROVED: "med-status-approved",
-      REJECTED: "med-status-rejected",
-      FULLY_TAKEN: "med-status-fully-taken",
-      PARTIALLY_TAKEN: "med-status-partially-taken",
-      EXPIRED: "med-status-expired",
-      COMPLETED: "med-status-completed",
-      CANCELLED: "med-status-cancelled",
-    };
-    
-    // Return specific class if exists, otherwise fallback to generic format
-    return statusClassMap[status] || `med-status-${status.toLowerCase().replace("_", "-")}`;
+    // Chuyển đổi status code sang format CSS class mới
+    const statusCode = status.toLowerCase().replace("_", "-");
+    return `med-status-${statusCode}`;
   };
 
   // Lọc danh sách lịch sử theo học sinh
@@ -556,13 +487,6 @@ const SendMedicine = () => {
     }
   };
 
-  // Handler để xem hình ảnh đơn thuốc
-  const handleViewPrescriptionImage = (request) => {
-    setSelectedPrescriptionRequest(request);
-    setSelectedPrescriptionImage(request.prescriptionImageUrl);
-    setIsPrescriptionImageModalOpen(true);
-  };
-
   // Thêm state cho modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -580,11 +504,6 @@ const SendMedicine = () => {
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [confirmationData, setConfirmationData] = useState(null);
   const [confirmationLoading, setConfirmationLoading] = useState(false);
-
-  // State cho prescription image modal
-  const [isPrescriptionImageModalOpen, setIsPrescriptionImageModalOpen] = useState(false);
-  const [selectedPrescriptionImage, setSelectedPrescriptionImage] = useState(null);
-  const [selectedPrescriptionRequest, setSelectedPrescriptionRequest] = useState(null);
 
   const [modalErrors, setModalErrors] = useState({});
 
@@ -715,32 +634,24 @@ const SendMedicine = () => {
     });
   };
 
-  // Function để lấy label và class cho administration status - Updated to match backend Status enum
+  // Function để lấy label và class cho administration status
   const getAdministrationStatusInfo = (status) => {
     const statusMap = {
-      PENDING_APPROVAL: {
-        label: "Chờ phê duyệt",
-        class: "warning",
-      },
-      APPROVED: {
-        label: "Đã duyệt",
-        class: "info",
-      },
-      REJECTED: {
-        label: "Từ chối",
-        class: "danger",
-      },
-      FULLY_TAKEN: {
-        label: "Đã hoàn thành",
+      SUCCESSFUL: {
+        label: "Thành công",
         class: "success",
       },
-      PARTIALLY_TAKEN: {
-        label: "Hoàn thành một phần",
-        class: "warning",
+      REFUSED: {
+        label: "Từ chối",
+        class: "refused",
       },
-      EXPIRED: {
-        label: "Đã hết hạn",
-        class: "danger",
+      PARTIAL: {
+        label: "Một phần",
+        class: "partial",
+      },
+      ISSUE: {
+        label: "Có vấn đề",
+        class: "issue",
       },
     };
 
@@ -754,32 +665,10 @@ const SendMedicine = () => {
 
   const handleModalInputChange = (e) => {
     const { name, value } = e.target;
-    
-    // Validate frequency field to only allow numbers
-    if (name === 'frequencyPerDay') {
-      // Allow only numbers (including decimal numbers)
-      const numberRegex = /^\d*\.?\d*$/;
-      if (value !== '' && !numberRegex.test(value)) {
-        setModalErrors({
-          ...modalErrors,
-          frequencyPerDay: "Tần suất chỉ được nhập số"
-        });
-        return; // Don't update the value if invalid
-      }
-    }
-    
     setEditFormData({
       ...editFormData,
       [name]: value,
     });
-
-    // Clear error when user inputs
-    if (modalErrors[name]) {
-      setModalErrors({
-        ...modalErrors,
-        [name]: null,
-      });
-    }
   };
 
   const handleModalTimeChange = (e) => {
@@ -1417,14 +1306,6 @@ const SendMedicine = () => {
                           {confirmationLoading ? "Đang tải..." : "Xem xác nhận"}
                         </button>
                       )}
-                      {request.prescriptionImageUrl && (
-                        <button
-                          className="med-btn med-btn-info"
-                          onClick={() => handleViewPrescriptionImage(request)}
-                        >
-                          Xem đơn thuốc
-                        </button>
-                      )}
                       <div
                         className={`med-status med-status-${request.status
                           .toLowerCase()
@@ -1847,94 +1728,6 @@ const SendMedicine = () => {
                   }}
                 >
                   Đóng
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal xem ảnh đơn thuốc */}
-      {isPrescriptionImageModalOpen && selectedPrescriptionImage && (
-        <div className="med-modal-overlay">
-          <div className="med-modal prescription-image-modal">
-            <div className="med-modal-header">
-              <h3>Ảnh đơn thuốc - {selectedPrescriptionRequest?.medicationName}</h3>
-              <button
-                className="med-modal-close"
-                onClick={() => {
-                  setIsPrescriptionImageModalOpen(false);
-                  setSelectedPrescriptionImage(null);
-                  setSelectedPrescriptionRequest(null);
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="med-modal-content">
-              <div className="prescription-image-section">
-                <div className="prescription-image-container">
-                  <img
-                    src={selectedPrescriptionImage}
-                    alt="Ảnh đơn thuốc"
-                    style={{
-                      maxWidth: "100%",
-                      height: "auto",
-                      borderRadius: "8px",
-                      maxHeight: "70vh",
-                    }}
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                      e.target.nextSibling.style.display = "block";
-                    }}
-                  />
-                  <div
-                    className="no-image-placeholder"
-                    style={{
-                      display: "none",
-                      textAlign: "center",
-                      color: "#64748b",
-                      padding: "40px",
-                      border: "2px dashed #d1d5db",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <p>Không thể tải ảnh đơn thuốc</p>
-                  </div>
-                </div>
-
-                {selectedPrescriptionRequest && (
-                  <div className="prescription-info">
-                    <h4>Thông tin yêu cầu</h4>
-                    <div className="prescription-details">
-                      <p><strong>Thuốc:</strong> {selectedPrescriptionRequest.medicationName}</p>
-                      <p><strong>Học sinh:</strong> {selectedPrescriptionRequest.studentName}</p>
-                      <p><strong>Ngày yêu cầu:</strong> {formatDate(selectedPrescriptionRequest.submittedAt)}</p>
-                      <p><strong>Trạng thái:</strong> {getStatusLabel(selectedPrescriptionRequest.status)}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="med-modal-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => {
-                    setIsPrescriptionImageModalOpen(false);
-                    setSelectedPrescriptionImage(null);
-                    setSelectedPrescriptionRequest(null);
-                  }}
-                >
-                  Đóng
-                </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => window.open(selectedPrescriptionImage, '_blank')}
-                >
-                  Mở ảnh gốc
                 </button>
               </div>
             </div>

@@ -6,6 +6,7 @@ import Dashboard from "../pages/Dashboard_co/Dashboard";
 import UserManagement from "../pages/UserManagement";
 import { PlanManager } from "../pages/MedicalEventPlanning";
 import Reports from "../pages/Reports_co/index.jsx";
+import Notifications from "../pages/EmailManagement_co/Notifications";
 import "./AdminLayout.css";
 
 const AdminLayout = () => {
@@ -27,6 +28,8 @@ const AdminLayout = () => {
         return <UserManagement />;
       case "medical-planning":
         return <PlanManager />;
+      case "notifications":
+        return <Notifications />;
       case "reports":
         return <Reports />;
       default:

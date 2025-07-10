@@ -3,14 +3,11 @@ import {
   FaSearch,
   FaFilter,
   FaSync,
-  FaEdit,
-  FaTrash,
   FaCalendarAlt,
   FaSyringe,
   FaInfoCircle,
   FaSpinner,
-  FaSave,
-  FaTimes,
+  FaClock,
 } from "react-icons/fa";
 import vaccinationPlanService from "../../../../services/APIAdmin/vaccinationPlanService";
 import "./VaccinationPlanHistory.css";
@@ -25,21 +22,8 @@ const VaccinationPlanHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  // Edit modal state
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    vaccineName: "",
-    vaccinationDate: "",
-    status: "",
-    description: "",
-  });
-  const [editLoading, setEditLoading] = useState(false);
-
-  // Delete confirmation state
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [planToDelete, setPlanToDelete] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  // Status change state
+  const [statusChanging, setStatusChanging] = useState({});
 
   // Load data khi component mount
   useEffect(() => {
@@ -106,7 +90,7 @@ const VaccinationPlanHistory = () => {
     if (searchTerm.trim()) {
       filtered = filtered.filter(
         (plan) =>
-          plan.vaccineName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          plan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           plan.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -119,139 +103,61 @@ const VaccinationPlanHistory = () => {
     setFilteredPlans(filtered);
   };
 
-  // Handle edit button click
-  const handleEditPlan = (plan) => {
-    setSelectedPlan(plan);
-    setEditFormData({
-      vaccineName: plan.vaccineName,
-      vaccinationDate: plan.vaccinationDate,
-      status: plan.status,
-      description: plan.description,
-    });
-    setShowEditModal(true);
-  };
+  // Handle status change
+  const handleStatusChange = async (planId, newStatus) => {
+    setStatusChanging((prev) => ({ ...prev, [planId]: true }));
 
-  // Handle save edit
-  const handleSaveEdit = async () => {
-    if (!selectedPlan) return;
-
-    setEditLoading(true);
     try {
-      console.log("🔄 Đang cập nhật kế hoạch tiêm chủng...", editFormData);
+      console.log(
+        `🔄 Thay đổi trạng thái kế hoạch ${planId} thành:`,
+        newStatus
+      );
 
-      const result = await vaccinationPlanService.updateVaccinationPlan(
-        selectedPlan.id,
-        editFormData
+      const result = await vaccinationPlanService.updateVaccinationPlanStatus(
+        planId,
+        newStatus
       );
 
       if (result.success) {
-        console.log("✅ Cập nhật thành công!");
-        setShowEditModal(false);
-        loadVaccinationPlans(); // Reload data
+        console.log("✅ Thay đổi trạng thái thành công!");
+        loadVaccinationPlans(); // Reload data to reflect changes
       } else {
-        console.error("❌ Cập nhật thất bại:", result.message);
-        setError("Cập nhật thất bại: " + result.message);
+        console.error("❌ Thay đổi trạng thái thất bại:", result.message);
+        setError("Thay đổi trạng thái thất bại: " + result.message);
       }
     } catch (err) {
-      console.error("❌ Exception khi cập nhật:", err);
-      setError("Có lỗi khi cập nhật: " + err.message);
+      console.error("❌ Exception khi thay đổi trạng thái:", err);
+      setError("Có lỗi khi thay đổi trạng thái: " + err.message);
     } finally {
-      setEditLoading(false);
+      setStatusChanging((prev) => ({ ...prev, [planId]: false }));
     }
-  };
-
-  // Handle delete button click
-  const handleDeletePlan = (plan) => {
-    setPlanToDelete(plan);
-    setShowDeleteConfirm(true);
-  };
-
-  // Handle confirm delete
-  const handleConfirmDelete = async () => {
-    if (!planToDelete) return;
-
-    setDeleteLoading(true);
-    try {
-      console.log("🗑️ Đang xóa kế hoạch tiêm chủng:", planToDelete.id);
-
-      const result = await vaccinationPlanService.deleteVaccinationPlan(
-        planToDelete.id
-      );
-
-      if (result.success) {
-        console.log("✅ Xóa thành công!");
-        setShowDeleteConfirm(false);
-        setPlanToDelete(null);
-        loadVaccinationPlans(); // Reload data
-      } else {
-        console.error("❌ Xóa thất bại:", result.message);
-        setError("Xóa thất bại: " + result.message);
-      }
-    } catch (err) {
-      console.error("❌ Exception khi xóa:", err);
-      setError("Có lỗi khi xóa: " + err.message);
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
-
-  // Format date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
-  // Format date for input
-  const formatDateForInput = (dateString) => {
-    const date = new Date(dateString);
-    return date.toISOString().split("T")[0];
   };
 
   // Get status badge class
   const getStatusBadgeClass = (status) => {
     switch (status) {
-      case "PENDING":
-        return "status-pending";
-      case "ONGOING":
-        return "status-ongoing";
+      case "WAITING_PARENT":
+        return "status-waiting";
+      case "IN_PROGRESS":
+        return "status-progress";
       case "COMPLETED":
         return "status-completed";
-      case "CANCELLED":
-        return "status-cancelled";
+      case "CANCELED":
+        return "status-canceled";
       default:
         return "status-default";
-    }
-  };
-
-  // Get status label
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case "PENDING":
-        return "Chờ thực hiện";
-      case "ONGOING":
-        return "Đang diễn ra";
-      case "COMPLETED":
-        return "Đã hoàn thành";
-      case "CANCELLED":
-        return "Đã hủy";
-      default:
-        return status;
     }
   };
 
   // Get statistics
   const getStatistics = () => {
     const total = plans.length;
-    const ongoing = plans.filter((p) => p.status === "ONGOING").length;
+    const waiting = plans.filter((p) => p.status === "WAITING_PARENT").length;
+    const progress = plans.filter((p) => p.status === "IN_PROGRESS").length;
     const completed = plans.filter((p) => p.status === "COMPLETED").length;
-    const cancelled = plans.filter((p) => p.status === "CANCELLED").length;
-    const pending = plans.filter((p) => p.status === "PENDING").length;
+    const canceled = plans.filter((p) => p.status === "CANCELED").length;
 
-    return { total, ongoing, completed, cancelled, pending };
+    return { total, waiting, progress, completed, canceled };
   };
 
   const stats = getStatistics();
@@ -275,21 +181,28 @@ const VaccinationPlanHistory = () => {
 
         <div className="stat-card ongoing">
           <div className="stat-info">
-            <span className="stat-number">{stats.ongoing}</span>
-            <span className="stat-label">Đang diễn ra</span>
+            <span className="stat-number">{stats.waiting}</span>
+            <span className="stat-label">Chờ phụ huynh</span>
+          </div>
+        </div>
+
+        <div className="stat-card ongoing">
+          <div className="stat-info">
+            <span className="stat-number">{stats.progress}</span>
+            <span className="stat-label">Đang triển khai</span>
           </div>
         </div>
 
         <div className="stat-card completed">
           <div className="stat-info">
             <span className="stat-number">{stats.completed}</span>
-            <span className="stat-label">Đã hoàn thành</span>
+            <span className="stat-label">Hoàn thành</span>
           </div>
         </div>
 
         <div className="stat-card cancelled">
           <div className="stat-info">
-            <span className="stat-number">{stats.cancelled}</span>
+            <span className="stat-number">{stats.canceled}</span>
             <span className="stat-label">Đã hủy</span>
           </div>
         </div>
@@ -315,10 +228,10 @@ const VaccinationPlanHistory = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="ALL">Tất cả trạng thái</option>
-              <option value="PENDING">Chờ thực hiện</option>
-              <option value="ONGOING">Đang diễn ra</option>
-              <option value="COMPLETED">Đã hoàn thành</option>
-              <option value="CANCELLED">Đã hủy</option>
+              <option value="WAITING_PARENT">Chờ phụ huynh</option>
+              <option value="IN_PROGRESS">Đang triển khai</option>
+              <option value="COMPLETED">Hoàn thành</option>
+              <option value="CANCELED">Đã hủy</option>
             </select>
           </div>
         </div>
@@ -334,6 +247,21 @@ const VaccinationPlanHistory = () => {
           </button>
         </div>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="error-banner">
+          <FaInfoCircle className="error-banner-icon" />
+          <span>{error}</span>
+          <button
+            className="error-close-btn"
+            onClick={() => setError(null)}
+            title="Đóng thông báo"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Content */}
       {loading ? (
@@ -351,60 +279,85 @@ const VaccinationPlanHistory = () => {
           </button>
         </div>
       ) : filteredPlans.length > 0 ? (
-        <div className="plans-grid">
-          {filteredPlans.map((plan) => (
-            <div key={plan.id} className="plan-card">
-              <div className="plan-card-header">
-                <div className="vaccine-info">
-                  <FaSyringe className="vaccine-icon" />
-                  <h3>{plan.vaccineName}</h3>
-                </div>
-                <div
-                  className={`status-badge ${getStatusBadgeClass(plan.status)}`}
-                >
-                  {plan.statusVietnamese || getStatusLabel(plan.status)}
-                </div>
-              </div>
+        <div className="plans-table-container">
+          <table className="plans-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tên Kế Hoạch</th>
+                <th>Ngày Tiêm</th>
+                <th>Hạn Đăng Ký</th>
+                <th>Trạng Thái</th>
+                <th>Thời Gian</th>
+                <th>Mô Tả</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPlans.map((plan) => {
+                const timeStatus = vaccinationPlanService.getTimeStatus(
+                  plan.vaccinationDate,
+                  plan.deadlineDate
+                );
 
-              <div className="plan-card-body">
-                <div className="plan-meta">
-                  <div className="meta-item">
-                    <FaCalendarAlt className="meta-icon" />
-                    <span>Ngày tiêm: {formatDate(plan.vaccinationDate)}</span>
-                  </div>
-                  <div className="meta-item">
-                    <span className="plan-id">ID: {plan.id}</span>
-                  </div>
-                </div>
+                return (
+                  <tr key={plan.id}>
+                    <td className="plan-id-cell">{plan.id}</td>
 
-                <p className="plan-description">
-                  {plan.description.length > 150
-                    ? `${plan.description.substring(0, 150)}...`
-                    : plan.description}
-                </p>
+                    <td className="plan-name-cell">
+                      <div className="name-with-icon">
+                        <FaSyringe className="vaccine-icon" />
+                        <span>{plan.name}</span>
+                      </div>
+                    </td>
 
-                <div className="plan-dates">
-                  <span>Tạo: {formatDate(plan.createdAt)}</span>
-                  <span>Cập nhật: {formatDate(plan.updatedAt)}</span>
-                </div>
-              </div>
+                    <td className="date-cell">
+                      {vaccinationPlanService.formatVaccinationDate(
+                        plan.vaccinationDate
+                      )}
+                    </td>
 
-              <div className="plan-card-footer">
-                <button
-                  className="edit-button"
-                  onClick={() => handleEditPlan(plan)}
-                >
-                  <FaEdit /> Sửa
-                </button>
-                <button
-                  className="delete-button"
-                  onClick={() => handleDeletePlan(plan)}
-                >
-                  <FaTrash /> Xóa
-                </button>
-              </div>
-            </div>
-          ))}
+                    <td className="deadline-cell">
+                      {vaccinationPlanService.formatDate(plan.deadlineDate)}
+                    </td>
+
+                    <td className="status-cell">
+                      <select
+                        className={`status-select ${getStatusBadgeClass(
+                          plan.status
+                        )}`}
+                        value={plan.status}
+                        onChange={(e) =>
+                          handleStatusChange(plan.id, e.target.value)
+                        }
+                        disabled={statusChanging[plan.id]}
+                      >
+                        <option value="WAITING_PARENT">Chờ phụ huynh</option>
+                        <option value="IN_PROGRESS">Đang triển khai</option>
+                        <option value="COMPLETED">Hoàn thành</option>
+                        <option value="CANCELED">Đã hủy</option>
+                      </select>
+                      {statusChanging[plan.id] && (
+                        <FaSpinner className="status-spinner spinning" />
+                      )}
+                    </td>
+
+                    <td className="time-status-cell">
+                      <span
+                        className={`time-status-badge ${timeStatus.type}`}
+                        style={{ color: timeStatus.color }}
+                      >
+                        {timeStatus.text}
+                      </span>
+                    </td>
+
+                    <td className="description-cell">
+                      <div className="description-text">{plan.description}</div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       ) : (
         <div className="no-data-section">
@@ -418,153 +371,6 @@ const VaccinationPlanHistory = () => {
           <button className="retry-button" onClick={loadVaccinationPlans}>
             Thử tải lại từ API
           </button>
-        </div>
-      )}
-
-      {/* Edit Modal */}
-      {showEditModal && selectedPlan && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div
-            className="modal-content edit-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-header">
-              <h2>✏️ Chỉnh Sửa Kế Hoạch Tiêm Chủng</h2>
-              <button
-                className="close-button"
-                onClick={() => setShowEditModal(false)}
-              >
-                <FaTimes />
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Tên vaccine:</label>
-                <input
-                  type="text"
-                  value={editFormData.vaccineName}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      vaccineName: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Ngày tiêm:</label>
-                <input
-                  type="date"
-                  value={formatDateForInput(editFormData.vaccinationDate)}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      vaccinationDate: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Trạng thái:</label>
-                <select
-                  value={editFormData.status}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      status: e.target.value,
-                    })
-                  }
-                >
-                  <option value="PENDING">Chờ thực hiện</option>
-                  <option value="ONGOING">Đang diễn ra</option>
-                  <option value="COMPLETED">Đã hoàn thành</option>
-                  <option value="CANCELLED">Đã hủy</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Mô tả:</label>
-                <textarea
-                  rows="4"
-                  value={editFormData.description}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      description: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button
-                className="cancel-button"
-                onClick={() => setShowEditModal(false)}
-              >
-                <FaTimes /> Hủy
-              </button>
-              <button
-                className="save-button"
-                onClick={handleSaveEdit}
-                disabled={editLoading}
-              >
-                {editLoading ? <FaSpinner className="spinning" /> : <FaSave />}
-                Lưu
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && planToDelete && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowDeleteConfirm(false)}
-        >
-          <div
-            className="modal-content delete-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-header">
-              <h2>🗑️ Xác Nhận Xóa</h2>
-            </div>
-
-            <div className="modal-body">
-              <p>Bạn có chắc chắn muốn xóa kế hoạch tiêm chủng này?</p>
-              <div className="delete-info">
-                <strong>{planToDelete.vaccineName}</strong>
-                <br />
-                Ngày tiêm: {formatDate(planToDelete.vaccinationDate)}
-              </div>
-              <p className="warning-text">Hành động này không thể hoàn tác!</p>
-            </div>
-
-            <div className="modal-footer">
-              <button
-                className="cancel-button"
-                onClick={() => setShowDeleteConfirm(false)}
-              >
-                <FaTimes /> Hủy
-              </button>
-              <button
-                className="delete-confirm-button"
-                onClick={handleConfirmDelete}
-                disabled={deleteLoading}
-              >
-                {deleteLoading ? (
-                  <FaSpinner className="spinning" />
-                ) : (
-                  <FaTrash />
-                )}
-                Xóa
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>

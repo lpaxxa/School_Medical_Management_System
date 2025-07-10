@@ -16,9 +16,6 @@ import {
   FaUser,
   FaNotesMedical,
   FaHeart,
-  FaEyeDropper,
-  FaStar,
-  FaTrophy,
   FaAward,
 } from "react-icons/fa";
 import { formatDate } from "../../utils/formatters";
@@ -31,84 +28,20 @@ const CheckupModal = ({ isOpen, onClose, checkup }) => {
   };
 
   const getBMIStatus = (bmi) => {
-    if (!bmi)
-      return {
-        status: "Chưa có thông tin",
-        color: "#6b7280",
-        bgColor: "#f3f4f6",
-      };
+    if (!bmi) return { status: "Chưa có thông tin", type: "info" };
     const bmiValue = parseFloat(bmi);
-    if (bmiValue < 18.5)
-      return {
-        status: "Thiếu cân",
-        color: "#f59e0b",
-        bgColor: "linear-gradient(135deg, #fef3c7, #fde68a)",
-        icon: "⚠️",
-      };
-    if (bmiValue <= 24.9)
-      return {
-        status: "Bình thường",
-        color: "#10b981",
-        bgColor: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
-        icon: "✅",
-      };
-    if (bmiValue <= 29.9)
-      return {
-        status: "Thừa cân",
-        color: "#f59e0b",
-        bgColor: "linear-gradient(135deg, #fef3c7, #fde68a)",
-        icon: "⚠️",
-      };
-    return {
-      status: "Béo phì",
-      color: "#ef4444",
-      bgColor: "linear-gradient(135deg, #fee2e2, #fecaca)",
-      icon: "⚠️",
-    };
+    if (bmiValue < 18.5) return { status: "Thiếu cân", type: "warning" };
+    if (bmiValue <= 24.9) return { status: "Bình thường", type: "success" };
+    if (bmiValue <= 29.9) return { status: "Thừa cân", type: "warning" };
+    return { status: "Béo phì", type: "error" };
   };
 
   const getVisionStatus = (vision) => {
-    if (!vision)
-      return {
-        status: "Chưa đánh giá",
-        color: "#6b7280",
-        bgColor: "#f3f4f6",
-        icon: "❓",
-      };
+    if (!vision) return { status: "Chưa đánh giá", type: "info" };
     if (vision.includes("10/10") || vision.includes("bình thường")) {
-      return {
-        status: "Tốt",
-        color: "#10b981",
-        bgColor: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
-        icon: "👁️",
-      };
+      return { status: "Tốt", type: "success" };
     }
-    return {
-      status: "Cần theo dõi",
-      color: "#f59e0b",
-      bgColor: "linear-gradient(135deg, #fef3c7, #fde68a)",
-      icon: "👓",
-    };
-  };
-
-  const getVitalStatus = (value, type) => {
-    if (!value) return { color: "#6b7280", status: "normal" };
-
-    if (type === "heartRate") {
-      const rate = parseInt(value);
-      if (rate < 60 || rate > 100)
-        return { color: "#f59e0b", status: "warning" };
-      return { color: "#10b981", status: "good" };
-    }
-
-    if (type === "temperature") {
-      const temp = parseFloat(value);
-      if (temp < 36 || temp > 37.5)
-        return { color: "#f59e0b", status: "warning" };
-      return { color: "#10b981", status: "good" };
-    }
-
-    return { color: "#3b82f6", status: "normal" };
+    return { status: "Cần theo dõi", type: "warning" };
   };
 
   const bmiStatus = getBMIStatus(checkup.bmi);
@@ -118,313 +51,205 @@ const CheckupModal = ({ isOpen, onClose, checkup }) => {
   return (
     <div className="modern-modal-overlay" onClick={onClose}>
       <div
-        className="modern-modal-content checkup-modal"
+        className="modern-modal-content"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Enhanced Header */}
+        {/* Simple Modern Header */}
         <div className="modern-modal-header">
-          <div className="modal-header-main">
-            <div className="header-icon-container">
-              <FaStethoscope className="header-main-icon" />
-              <div className="icon-pulse"></div>
+          <div className="modal-header-content">
+            <div className="modal-header-left">
+              <div className="modal-header-icon">
+                <FaStethoscope />
+              </div>
+              <div className="modal-header-text">
+                <h2>Chi tiết kiểm tra sức khỏe</h2>
+                <p>Thông tin chi tiết về kết quả khám sức khỏe định kỳ</p>
+              </div>
             </div>
-            <div className="header-content">
-              <h2>Chi tiết kiểm tra sức khỏe định kỳ</h2>
-              <p className="header-subtitle">
-                <FaCalendarAlt /> {formatDate(checkup.checkupDate)} •{" "}
-                {checkup.checkupType || "Kiểm tra định kỳ"}
-              </p>
-            </div>
+            <button className="modal-close-btn" onClick={onClose}>
+              <FaTimes />
+            </button>
           </div>
-          <button className="modern-close-btn" onClick={onClose}>
-            <FaTimes />
-            <span className="close-btn-tooltip">Đóng</span>
-          </button>
         </div>
 
-        {/* Enhanced Body */}
+        {/* Simple Modern Body */}
         <div className="modern-modal-body">
-          {/* Basic Info Cards */}
-          <div className="modern-section">
-            <div className="section-header-modern">
-              <div className="section-icon-wrapper">
-                <FaClipboardList />
-              </div>
-              <h3>Thông tin cơ bản</h3>
-            </div>
-
-            <div className="info-cards-modern-grid">
-              <div className="modern-info-card basic-info">
-                <div className="card-icon-wrapper date-icon">
-                  <FaCalendarAlt />
+          {/* Basic Information */}
+          <div className="modal-section">
+            <h3 className="section-title">
+              <FaClipboardList />
+              Thông tin cơ bản
+            </h3>
+            <div className="info-cards-grid">
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaCalendarAlt className="info-card-icon" />
+                  <span className="info-card-label">Ngày khám</span>
                 </div>
-                <div className="card-content">
-                  <span className="card-label">Ngày khám</span>
-                  <span className="card-value">
-                    {formatDate(checkup.checkupDate)}
-                  </span>
+                <div className="info-card-value">
+                  {formatDate(checkup.checkupDate)}
                 </div>
-                <div className="card-accent"></div>
               </div>
 
-              <div className="modern-info-card basic-info">
-                <div className="card-icon-wrapper type-icon">
-                  <FaNotesMedical />
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaNotesMedical className="info-card-icon" />
+                  <span className="info-card-label">Loại khám</span>
                 </div>
-                <div className="card-content">
-                  <span className="card-label">Loại khám</span>
-                  <span className="card-value">
-                    {checkup.checkupType || "Kiểm tra định kỳ"}
-                  </span>
+                <div className="info-card-value">
+                  {checkup.checkupType || "Kiểm tra định kỳ"}
                 </div>
-                <div className="card-accent"></div>
               </div>
 
-              <div className="modern-info-card basic-info">
-                <div className="card-icon-wrapper staff-icon">
-                  <FaUserMd />
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaUserMd className="info-card-icon" />
+                  <span className="info-card-label">Nhân viên y tế</span>
                 </div>
-                <div className="card-content">
-                  <span className="card-label">Nhân viên y tế</span>
-                  <span className="card-value">
-                    {checkup.medicalStaffName || "Chưa có thông tin"}
-                  </span>
+                <div className="info-card-value">
+                  {checkup.medicalStaffName || "Chưa có thông tin"}
                 </div>
-                <div className="card-accent"></div>
               </div>
             </div>
           </div>
 
           {/* Body Measurements */}
-          <div className="modern-section">
-            <div className="section-header-modern">
-              <div className="section-icon-wrapper">
-                <FaRulerVertical />
-              </div>
-              <h3>Chỉ số cơ thể</h3>
-            </div>
-
-            <div className="measurements-modern-grid">
-              <div className="modern-measurement-card height">
-                <div className="measurement-icon-wrapper">
-                  <FaRulerVertical />
+          <div className="modal-section">
+            <h3 className="section-title">
+              <FaRulerVertical />
+              Chỉ số cơ thể
+            </h3>
+            <div className="info-cards-grid">
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaRulerVertical className="info-card-icon" />
+                  <span className="info-card-label">Chiều cao</span>
                 </div>
-                <div className="measurement-content">
-                  <span className="measurement-label">Chiều cao</span>
-                  <span className="measurement-value">
-                    {formatValue(checkup.height, " cm")}
-                  </span>
-                  <div className="measurement-bar">
-                    <div
-                      className="measurement-progress"
-                      style={{
-                        width: checkup.height
-                          ? `${Math.min(checkup.height / 2, 100)}%`
-                          : "0%",
-                      }}
-                    ></div>
-                  </div>
+                <div className="info-card-value">
+                  {formatValue(checkup.height, " cm")}
                 </div>
               </div>
 
-              <div className="modern-measurement-card weight">
-                <div className="measurement-icon-wrapper">
-                  <FaWeight />
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaWeight className="info-card-icon" />
+                  <span className="info-card-label">Cân nặng</span>
                 </div>
-                <div className="measurement-content">
-                  <span className="measurement-label">Cân nặng</span>
-                  <span className="measurement-value">
-                    {formatValue(checkup.weight, " kg")}
-                  </span>
-                  <div className="measurement-bar">
-                    <div
-                      className="measurement-progress"
-                      style={{
-                        width: checkup.weight
-                          ? `${Math.min(checkup.weight * 1.5, 100)}%`
-                          : "0%",
-                      }}
-                    ></div>
-                  </div>
+                <div className="info-card-value">
+                  {formatValue(checkup.weight, " kg")}
                 </div>
               </div>
 
-              <div className="modern-measurement-card bmi">
-                <div
-                  className="measurement-icon-wrapper"
-                  style={{ color: bmiStatus.color }}
-                >
-                  <FaTrophy />
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaAward className="info-card-icon" />
+                  <span className="info-card-label">Chỉ số BMI</span>
                 </div>
-                <div className="measurement-content">
-                  <span className="measurement-label">Chỉ số BMI</span>
-                  <div className="bmi-result">
-                    <span className="measurement-value">
-                      {formatValue(checkup.bmi)}
-                    </span>
-                    {checkup.bmi && (
-                      <div
-                        className="bmi-status-modern"
-                        style={{
-                          background: bmiStatus.bgColor,
-                          color: bmiStatus.color,
-                          border: `1px solid ${bmiStatus.color}30`,
-                        }}
-                      >
-                        <span className="bmi-emoji">{bmiStatus.icon}</span>
-                        <span>{bmiStatus.status}</span>
-                      </div>
-                    )}
-                  </div>
+                <div className="info-card-value">
+                  {formatValue(checkup.bmi)}
+                  {checkup.bmi && (
+                    <div style={{ marginTop: "8px" }}>
+                      <span className={`status-badge-simple ${bmiStatus.type}`}>
+                        {bmiStatus.status}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Vital Signs */}
-          <div className="modern-section">
-            <div className="section-header-modern">
-              <div className="section-icon-wrapper">
-                <FaHeart />
-              </div>
-              <h3>Dấu hiệu sinh tồn</h3>
-            </div>
-
-            <div className="vitals-modern-grid">
-              <div className="modern-vital-card">
-                <div className="vital-icon-wrapper bp">
-                  <FaHeartbeat />
+          <div className="modal-section">
+            <h3 className="section-title">
+              <FaHeartbeat />
+              Dấu hiệu sinh tồn
+            </h3>
+            <div className="info-cards-grid">
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaHeartbeat className="info-card-icon" />
+                  <span className="info-card-label">Huyết áp</span>
                 </div>
-                <div className="vital-content">
-                  <span className="vital-label">Huyết áp</span>
-                  <span className="vital-value">
-                    {checkup.bloodPressure || "Chưa có thông tin"}
-                  </span>
-                  <div className="vital-status-indicator normal"></div>
+                <div className="info-card-value">
+                  {checkup.bloodPressure || "Chưa có thông tin"}
                 </div>
               </div>
 
-              <div className="modern-vital-card">
-                <div
-                  className="vital-icon-wrapper hr"
-                  style={{
-                    color: getVitalStatus(checkup.heartRate, "heartRate").color,
-                  }}
-                >
-                  <FaHeart />
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaHeart className="info-card-icon" />
+                  <span className="info-card-label">Nhịp tim</span>
                 </div>
-                <div className="vital-content">
-                  <span className="vital-label">Nhịp tim</span>
-                  <span className="vital-value">
-                    {formatValue(checkup.heartRate, " lần/phút")}
-                  </span>
-                  <div
-                    className={`vital-status-indicator ${
-                      getVitalStatus(checkup.heartRate, "heartRate").status
-                    }`}
-                  ></div>
+                <div className="info-card-value">
+                  {formatValue(checkup.heartRate, " lần/phút")}
                 </div>
               </div>
 
-              <div className="modern-vital-card">
-                <div
-                  className="vital-icon-wrapper temp"
-                  style={{
-                    color: getVitalStatus(
-                      checkup.bodyTemperature,
-                      "temperature"
-                    ).color,
-                  }}
-                >
-                  <FaThermometerHalf />
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaThermometerHalf className="info-card-icon" />
+                  <span className="info-card-label">Thân nhiệt</span>
                 </div>
-                <div className="vital-content">
-                  <span className="vital-label">Thân nhiệt</span>
-                  <span className="vital-value">
-                    {formatValue(checkup.bodyTemperature, "°C")}
-                  </span>
-                  <div
-                    className={`vital-status-indicator ${
-                      getVitalStatus(checkup.bodyTemperature, "temperature")
-                        .status
-                    }`}
-                  ></div>
+                <div className="info-card-value">
+                  {formatValue(checkup.bodyTemperature, "°C")}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Specialist Examinations */}
-          <div className="modern-section">
-            <div className="section-header-modern">
-              <div className="section-icon-wrapper">
-                <FaEyeDropper />
-              </div>
-              <h3>Khám chuyên khoa</h3>
-            </div>
-
-            <div className="specialist-modern-grid">
-              <div className="modern-specialist-card">
-                <div className="specialist-header">
-                  <FaEye className="specialist-icon" />
-                  <span className="specialist-title">Thị lực mắt trái</span>
+          {/* Vision & Hearing */}
+          <div className="modal-section">
+            <h3 className="section-title">
+              <FaEye />
+              Khám chuyên khoa
+            </h3>
+            <div className="info-cards-grid">
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaEye className="info-card-icon" />
+                  <span className="info-card-label">Thị lực mắt trái</span>
                 </div>
-                <div className="specialist-result">
-                  <span className="specialist-value">
-                    {checkup.visionLeft || "Chưa có thông tin"}
-                  </span>
+                <div className="info-card-value">
+                  {checkup.visionLeft || "Chưa có thông tin"}
                   {checkup.visionLeft && (
-                    <div
-                      className="vision-status-modern"
-                      style={{
-                        background: leftVisionStatus.bgColor,
-                        color: leftVisionStatus.color,
-                      }}
-                    >
-                      <span>{leftVisionStatus.icon}</span>
-                      <span>{leftVisionStatus.status}</span>
+                    <div style={{ marginTop: "8px" }}>
+                      <span
+                        className={`status-badge-simple ${leftVisionStatus.type}`}
+                      >
+                        {leftVisionStatus.status}
+                      </span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="modern-specialist-card">
-                <div className="specialist-header">
-                  <FaEye className="specialist-icon" />
-                  <span className="specialist-title">Thị lực mắt phải</span>
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaEye className="info-card-icon" />
+                  <span className="info-card-label">Thị lực mắt phải</span>
                 </div>
-                <div className="specialist-result">
-                  <span className="specialist-value">
-                    {checkup.visionRight || "Chưa có thông tin"}
-                  </span>
+                <div className="info-card-value">
+                  {checkup.visionRight || "Chưa có thông tin"}
                   {checkup.visionRight && (
-                    <div
-                      className="vision-status-modern"
-                      style={{
-                        background: rightVisionStatus.bgColor,
-                        color: rightVisionStatus.color,
-                      }}
-                    >
-                      <span>{rightVisionStatus.icon}</span>
-                      <span>{rightVisionStatus.status}</span>
+                    <div style={{ marginTop: "8px" }}>
+                      <span
+                        className={`status-badge-simple ${rightVisionStatus.type}`}
+                      >
+                        {rightVisionStatus.status}
+                      </span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="modern-specialist-card">
-                <div className="specialist-header">
-                  <FaStethoscope className="specialist-icon" />
-                  <span className="specialist-title">Thính lực</span>
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaStethoscope className="info-card-icon" />
+                  <span className="info-card-label">Thính lực</span>
                 </div>
-                <div className="specialist-result">
-                  <span className="specialist-value">
-                    {checkup.hearingStatus || "Chưa có thông tin"}
-                  </span>
-                  <div className="hearing-status-modern">
-                    <span>🔊</span>
-                    <span>Bình thường</span>
-                  </div>
+                <div className="info-card-value">
+                  {checkup.hearingStatus || "Chưa có thông tin"}
                 </div>
               </div>
             </div>
@@ -432,68 +257,49 @@ const CheckupModal = ({ isOpen, onClose, checkup }) => {
 
           {/* Diagnosis & Recommendations */}
           {(checkup.diagnosis || checkup.recommendations) && (
-            <div className="modern-section">
-              <div className="section-header-modern">
-                <div className="section-icon-wrapper">
-                  <FaNotesMedical />
+            <div className="modal-section">
+              <h3 className="section-title">
+                <FaNotesMedical />
+                Chẩn đoán & Khuyến nghị
+              </h3>
+
+              {checkup.diagnosis && (
+                <div className="content-card">
+                  <div className="content-card-title">
+                    <FaStethoscope />
+                    Chẩn đoán
+                  </div>
+                  <p className="content-card-text">{checkup.diagnosis}</p>
                 </div>
-                <h3>Chẩn đoán & Khuyến nghị</h3>
-              </div>
+              )}
 
-              <div className="content-cards-modern">
-                {checkup.diagnosis && (
-                  <div className="modern-content-card diagnosis">
-                    <div className="content-card-header">
-                      <FaStethoscope />
-                      <h4>Chẩn đoán</h4>
-                    </div>
-                    <div className="content-card-body">
-                      <p>{checkup.diagnosis}</p>
-                    </div>
+              {checkup.recommendations && (
+                <div className="content-card">
+                  <div className="content-card-title">
+                    <FaClipboardList />
+                    Khuyến nghị
                   </div>
-                )}
-
-                {checkup.recommendations && (
-                  <div className="modern-content-card recommendations">
-                    <div className="content-card-header">
-                      <FaStar />
-                      <h4>Khuyến nghị</h4>
-                    </div>
-                    <div className="content-card-body">
-                      <p>{checkup.recommendations}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  <p className="content-card-text">{checkup.recommendations}</p>
+                </div>
+              )}
             </div>
           )}
 
           {/* Status Summary */}
-          <div className="modern-section">
-            <div className="section-header-modern">
-              <div className="section-icon-wrapper">
-                <FaAward />
-              </div>
-              <h3>Tổng kết tình trạng</h3>
-            </div>
-
-            <div className="status-summary-modern">
-              <div className="modern-status-card">
-                <div
-                  className={`status-icon-modern ${
-                    checkup.followUpNeeded ? "warning" : "success"
-                  }`}
-                >
-                  {checkup.followUpNeeded ? (
-                    <FaExclamationTriangle />
-                  ) : (
-                    <FaCheckCircle />
-                  )}
+          <div className="modal-section">
+            <h3 className="section-title">
+              <FaCheckCircle />
+              Tình trạng theo dõi
+            </h3>
+            <div className="info-cards-grid">
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaExclamationTriangle className="info-card-icon" />
+                  <span className="info-card-label">Theo dõi</span>
                 </div>
-                <div className="status-content">
-                  <span className="status-label">Theo dõi</span>
+                <div className="info-card-value">
                   <span
-                    className={`status-value ${
+                    className={`status-badge-simple ${
                       checkup.followUpNeeded ? "warning" : "success"
                     }`}
                   >
@@ -502,18 +308,14 @@ const CheckupModal = ({ isOpen, onClose, checkup }) => {
                 </div>
               </div>
 
-              <div className="modern-status-card">
-                <div
-                  className={`status-icon-modern ${
-                    checkup.parentNotified ? "success" : "warning"
-                  }`}
-                >
-                  {checkup.parentNotified ? <FaCheckCircle /> : <FaBell />}
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaBell className="info-card-icon" />
+                  <span className="info-card-label">Thông báo phụ huynh</span>
                 </div>
-                <div className="status-content">
-                  <span className="status-label">Thông báo</span>
+                <div className="info-card-value">
                   <span
-                    className={`status-value ${
+                    className={`status-badge-simple ${
                       checkup.parentNotified ? "success" : "warning"
                     }`}
                   >
@@ -522,13 +324,15 @@ const CheckupModal = ({ isOpen, onClose, checkup }) => {
                 </div>
               </div>
 
-              <div className="modern-status-card">
-                <div className="status-icon-modern info">
-                  <FaUser />
+              <div className="info-card-simple">
+                <div className="info-card-header">
+                  <FaUser className="info-card-icon" />
+                  <span className="info-card-label">Trạng thái</span>
                 </div>
-                <div className="status-content">
-                  <span className="status-label">Trạng thái</span>
-                  <span className="status-value info">Hoàn thành khám</span>
+                <div className="info-card-value">
+                  <span className="status-badge-simple success">
+                    Hoàn thành khám
+                  </span>
                 </div>
               </div>
             </div>

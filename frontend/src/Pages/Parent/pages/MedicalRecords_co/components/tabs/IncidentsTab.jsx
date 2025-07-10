@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   FaBandAid,
   FaExclamationCircle,
@@ -14,6 +14,7 @@ import {
   FaClock,
   FaFlag,
   FaClipboardList,
+  FaSync,
 } from "react-icons/fa";
 import medicalService from "../../../../../../services/medicalService";
 import { formatDate } from "../../utils/formatters";
@@ -23,31 +24,101 @@ import IncidentModal from "../modals/IncidentModal";
 const IncidentsTab = ({ studentId }) => {
   const [medicalIncidents, setMedicalIncidents] = useState([]);
   const [isLoadingIncidents, setIsLoadingIncidents] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [incidentsError, setIncidentsError] = useState(null);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  useEffect(() => {
-    const fetchIncidentsData = async () => {
-      if (!studentId || typeof studentId !== "number") {
+  // Refs for managing intervals and component state
+  const refreshIntervalRef = useRef(null);
+  const componentMountedRef = useRef(true);
+
+  // Fetch incidents data function with auto-refresh support
+  const fetchIncidentsData = useCallback(
+    async (isRefresh = false) => {
+      if (
+        !studentId ||
+        typeof studentId !== "number" ||
+        !componentMountedRef.current
+      ) {
         console.log("Invalid studentId:", studentId);
+        if (!isRefresh) setIsLoadingIncidents(false);
         return;
       }
 
-      try {
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
         setIsLoadingIncidents(true);
+      }
+      setIncidentsError(null);
+
+      try {
+        console.log("Fetching incidents data:", { studentId, isRefresh });
+
+        // Sử dụng API hiện có: /medical-incidents/student/{studentId}
         const data = await medicalService.getMedicalIncidents(studentId);
-        setMedicalIncidents(data);
+        console.log("Incidents data received:", data);
+
+        if (componentMountedRef.current) {
+          // data là array trực tiếp theo cấu trúc JSON mới
+          setMedicalIncidents(Array.isArray(data) ? data : []);
+          setLastUpdated(new Date());
+        }
       } catch (error) {
         console.error("Error fetching incidents data:", error);
-        setIncidentsError("Không thể tải dữ liệu sự cố y tế");
+        if (componentMountedRef.current) {
+          setIncidentsError("Không thể tải dữ liệu sự cố y tế");
+        }
       } finally {
-        setIsLoadingIncidents(false);
+        if (componentMountedRef.current) {
+          if (isRefresh) {
+            setIsRefreshing(false);
+          } else {
+            setIsLoadingIncidents(false);
+          }
+        }
+      }
+    },
+    [studentId]
+  );
+
+  // Manual refresh function
+  const handleManualRefresh = useCallback(() => {
+    fetchIncidentsData(true);
+  }, [fetchIncidentsData]);
+
+  useEffect(() => {
+    componentMountedRef.current = true;
+
+    if (studentId && typeof studentId === "number") {
+      // Fetch initial data
+      fetchIncidentsData(false);
+
+      // Setup auto-refresh every 40 seconds for incident data
+      refreshIntervalRef.current = setInterval(() => {
+        fetchIncidentsData(true);
+      }, 40000);
+    }
+
+    // Cleanup function
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
       }
     };
+  }, [studentId, fetchIncidentsData]);
 
-    fetchIncidentsData();
-  }, [studentId]);
+  // Cleanup effect when component unmounts
+  useEffect(() => {
+    return () => {
+      componentMountedRef.current = false;
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, []);
 
   const openIncidentModal = (incident) => {
     setSelectedIncident(incident);
@@ -123,7 +194,27 @@ const IncidentsTab = ({ studentId }) => {
 
   return (
     <div className="incidents-panel">
-      <h3>Lịch sử sự cố y tế</h3>
+      <div className="incidents-header">
+        <div className="incidents-title-section">
+          <h3>Lịch sử sự cố y tế</h3>
+          {lastUpdated && (
+            <div className="last-updated">
+              Cập nhật: {lastUpdated.toLocaleTimeString("vi-VN")}
+            </div>
+          )}
+        </div>
+        <div className="incidents-controls">
+          <button
+            className={`refresh-btn ${isRefreshing ? "refreshing" : ""}`}
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            title="Làm mới dữ liệu sự cố y tế"
+          >
+            <FaSync className={isRefreshing ? "spin" : ""} />
+            <span>{isRefreshing ? "Đang tải..." : "Làm mới"}</span>
+          </button>
+        </div>
+      </div>
 
       {incidentsError ? (
         <div className="error-message">

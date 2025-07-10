@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import '../InventoryMain.css';
 import './EditItem.css';
-import { toast } from 'react-toastify';
+import inventoryService from '../../../../../services/APINurse/inventoryService';
 
 // Hàm định dạng ngày từ form input sang định dạng API yêu cầu (yyyy-MM-dd)
 const formatDateForApi = (dateString) => {
@@ -142,14 +142,6 @@ const EditItem = ({ item, onClose, onEditItem }) => {
       
       // Status được tính toán tự động dựa vào số lượng sản phẩm nên không cần truyền
       await onEditItem(formattedItem);
-      toast.success('Cập nhật vật phẩm thành công!', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
       onClose();
     } catch (err) {
       console.error("Lỗi khi cập nhật vật phẩm:", err);
@@ -160,14 +152,9 @@ const EditItem = ({ item, onClose, onEditItem }) => {
         if (typeof err.response.data === 'string') {
           if (err.response.data.includes("already exists") || 
               err.response.data.includes("đã tồn tại")) {
-            const errorMsg = "Tên vật phẩm đã tồn tại trong hệ thống";
             setErrors({
               ...errors,
-              itemName: errorMsg
-            });
-            toast.error(errorMsg, {
-              position: "top-right",
-              autoClose: 5000,
+              itemName: "Tên vật phẩm đã tồn tại trong hệ thống"
             });
             setLoading(false);
             return; // Dừng xử lý sau khi đã set lỗi
@@ -181,36 +168,21 @@ const EditItem = ({ item, onClose, onEditItem }) => {
             err.message.includes("đã tồn tại") || 
             err.message.includes("trùng") || 
             err.message.includes("tồn tại")) {
-          const errorMsg = "Tên vật phẩm đã tồn tại trong hệ thống";
           setErrors({
             ...errors,
-            itemName: errorMsg
-          });
-          toast.error(errorMsg, {
-            position: "top-right",
-            autoClose: 5000,
+            itemName: "Tên vật phẩm đã tồn tại trong hệ thống"
           });
         } else {
-          const errorMsg = err.message;
           setErrors({
             ...errors,
-            submit: errorMsg
-          });
-          toast.error(`Lỗi: ${errorMsg}`, {
-            position: "top-right",
-            autoClose: 5000,
+            submit: err.message
           });
         }
       } else {
         // Lỗi không xác định
-        const errorMsg = "Có lỗi xảy ra khi cập nhật vật phẩm.";
         setErrors({
           ...errors,
-          submit: errorMsg
-        });
-        toast.error(errorMsg, {
-          position: "top-right",
-          autoClose: 5000,
+          submit: "Có lỗi xảy ra khi cập nhật vật phẩm."
         });
       }
       setLoading(false);
@@ -226,276 +198,148 @@ const EditItem = ({ item, onClose, onEditItem }) => {
     currentStatus === 'Hết hàng' ? 'out' : '';
 
   return (
-    <>
-      {/* Bootstrap Modal */}
-      <div 
-        className="modal fade show" 
-        style={{ display: 'block' }} 
-        tabIndex="-1" 
-        role="dialog"
-        aria-labelledby="editItemModal"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-lg modal-dialog-centered" role="document">
-          <div className="modal-content shadow-lg">
-            {/* Modal Header */}
-            <div className="modal-header bg-warning text-dark">
-              <h5 className="modal-title" id="editItemModal">
-                <i className="fas fa-edit me-2"></i>
-                Sửa thông tin vật phẩm
-              </h5>
-              <button 
-                type="button" 
-                className="btn-close" 
-                onClick={onClose}
-                aria-label="Close"
-              ></button>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h3>Sửa thông tin vật phẩm</h3>
+          <button className="close-button" onClick={onClose}>&times;</button>
+        </div>
+          <form onSubmit={handleSubmit}>          <div className="form-group">            <label htmlFor="itemName">Tên vật phẩm <span className="required-mark">*</span></label>
+            <div>
+              <input 
+                type="text" 
+                id="itemName" 
+                name="itemName" 
+                className={`form-control ${errors.itemName ? 'is-invalid' : ''}`}
+                value={editedItem.itemName}
+                onChange={handleInputChange}
+                required
+              />
             </div>
-
-            {/* Modal Body */}
-            <div className="modal-body p-4">
-              <form id="editItemForm" onSubmit={handleSubmit}>
-                <div className="container-fluid">
-                  {/* Tên vật phẩm */}
-                  <div className="row mb-3">
-                    <div className="col-12">
-                      <label htmlFor="itemName" className="form-label fw-bold">
-                        <i className="fas fa-tag me-1"></i>
-                        Tên vật phẩm <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.itemName ? 'is-invalid' : ''}`}
-                        id="itemName"
-                        name="itemName"
-                        value={editedItem.itemName}
-                        onChange={handleInputChange}
-                        placeholder="Nhập tên vật phẩm..."
-                        required
-                      />
-                      {errors.itemName && (
-                        <div className="invalid-feedback">
-                          <i className="fas fa-exclamation-triangle me-1"></i>
-                          {errors.itemName}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Loại vật phẩm */}
-                  <div className="row mb-3">
-                    <div className="col-12">
-                      <label htmlFor="itemType" className="form-label fw-bold">
-                        <i className="fas fa-list me-1"></i>
-                        Loại <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.itemType ? 'is-invalid' : ''}`}
-                        id="itemType"
-                        name="itemType"
-                        value={editedItem.itemType}
-                        onChange={handleInputChange}
-                        placeholder="Thuốc, Thiết bị y tế, v.v..."
-                        required
-                      />
-                      {errors.itemType && (
-                        <div className="invalid-feedback">
-                          <i className="fas fa-exclamation-triangle me-1"></i>
-                          {errors.itemType}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Số lượng và Đơn vị */}
-                  <div className="row mb-3">
-                    <div className="col-md-6">
-                      <label htmlFor="stockQuantity" className="form-label fw-bold">
-                        <i className="fas fa-boxes me-1"></i>
-                        Số lượng <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        className={`form-control ${errors.stockQuantity ? 'is-invalid' : ''}`}
-                        id="stockQuantity"
-                        name="stockQuantity"
-                        value={editedItem.stockQuantity}
-                        onChange={handleInputChange}
-                        min="0"
-                        max="10000"
-                        required
-                      />
-                      {errors.stockQuantity && (
-                        <div className="invalid-feedback">
-                          <i className="fas fa-exclamation-triangle me-1"></i>
-                          {errors.stockQuantity}
-                        </div>
-                      )}
-                    </div>
-                    <div className="col-md-6">
-                      <label htmlFor="unit" className="form-label fw-bold">
-                        <i className="fas fa-ruler me-1"></i>
-                        Đơn vị <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.unit ? 'is-invalid' : ''}`}
-                        id="unit"
-                        name="unit"
-                        value={editedItem.unit}
-                        onChange={handleInputChange}
-                        placeholder="hộp, tuýp, cái..."
-                        required
-                      />
-                      {errors.unit && (
-                        <div className="invalid-feedback">
-                          <i className="fas fa-exclamation-triangle me-1"></i>
-                          {errors.unit}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Ngày sản xuất và Ngày hết hạn */}
-                  <div className="row mb-3">
-                    <div className="col-md-6">
-                      <label htmlFor="manufactureDate" className="form-label fw-bold">
-                        <i className="fas fa-calendar-alt me-1"></i>
-                        Ngày sản xuất
-                      </label>
-                      <input
-                        type="date"
-                        className={`form-control ${errors.manufactureDate ? 'is-invalid' : ''}`}
-                        id="manufactureDate"
-                        name="manufactureDate"
-                        value={editedItem.manufactureDate ? formatDateForApi(editedItem.manufactureDate) : ''}
-                        onChange={handleInputChange}
-                      />
-                      {errors.manufactureDate && (
-                        <div className="invalid-feedback">
-                          <i className="fas fa-exclamation-triangle me-1"></i>
-                          {errors.manufactureDate}
-                        </div>
-                      )}
-                    </div>
-                    <div className="col-md-6">
-                      <label htmlFor="expiryDate" className="form-label fw-bold">
-                        <i className="fas fa-calendar-times me-1"></i>
-                        Ngày hết hạn
-                      </label>
-                      <input
-                        type="date"
-                        className={`form-control ${errors.expiryDate ? 'is-invalid' : ''}`}
-                        id="expiryDate"
-                        name="expiryDate"
-                        value={editedItem.expiryDate ? formatDateForApi(editedItem.expiryDate) : ''}
-                        onChange={handleInputChange}
-                      />
-                      {errors.expiryDate && (
-                        <div className="invalid-feedback">
-                          <i className="fas fa-exclamation-triangle me-1"></i>
-                          {errors.expiryDate}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Mô tả */}
-                  <div className="row mb-3">
-                    <div className="col-12">
-                      <label htmlFor="itemDescription" className="form-label fw-bold">
-                        <i className="fas fa-align-left me-1"></i>
-                        Mô tả
-                      </label>
-                      <textarea
-                        className="form-control"
-                        id="itemDescription"
-                        name="itemDescription"
-                        value={editedItem.itemDescription}
-                        onChange={handleInputChange}
-                        rows="3"
-                        placeholder="Nhập mô tả về vật phẩm..."
-                      ></textarea>
-                    </div>
-                  </div>
-
-                  {/* Trạng thái tự động */}
-                  {editedItem.stockQuantity !== '' && (
-                    <div className="row mb-3">
-                      <div className="col-12">
-                        <label className="form-label fw-bold">
-                          <i className="fas fa-info-circle me-1"></i>
-                          Trạng thái (tự động):
-                        </label>
-                        <div className="d-flex align-items-center mt-2">
-                          <span className={`badge fs-6 me-3 ${
-                            currentStatus === 'Sẵn có' ? 'bg-success' :
-                            currentStatus === 'Sắp hết' ? 'bg-warning text-dark' :
-                            'bg-danger'
-                          }`}>
-                            <i className="fas fa-circle me-1"></i>
-                            {currentStatus}
-                          </span>
-                          <small className="text-muted">
-                            Trạng thái được tính tự động dựa vào số lượng
-                          </small>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Error message */}
-                  {errors.submit && (
-                    <div className="row mb-3">
-                      <div className="col-12">
-                        <div className="alert alert-danger d-flex align-items-center" role="alert">
-                          <i className="fas fa-exclamation-circle me-2"></i>
-                          <div>{errors.submit}</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </form>
+            {errors.itemName && <div className="invalid-feedback">{errors.itemName}</div>}
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="itemType">Loại <span className="required-mark">*</span></label>
+            <input 
+              type="text" 
+              id="itemType" 
+              name="itemType" 
+              className={`form-control ${errors.itemType ? 'is-invalid' : ''}`}
+              value={editedItem.itemType}
+              onChange={handleInputChange}
+              placeholder="Thuốc, Thiết bị y tế, v.v..."
+              required
+            />
+            {errors.itemType && <div className="invalid-feedback">{errors.itemType}</div>}
+          </div>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="stockQuantity">Số lượng <span className="required-mark">*</span></label>
+              <input 
+                type="number" 
+                id="stockQuantity" 
+                name="stockQuantity" 
+                className={`form-control ${errors.stockQuantity ? 'is-invalid' : ''}`}
+                value={editedItem.stockQuantity}
+                onChange={handleInputChange}
+                min="0"
+                max="10000"
+                required
+              />
+              {errors.stockQuantity && <div className="invalid-feedback">{errors.stockQuantity}</div>}
             </div>
-
-            {/* Modal Footer */}
-            <div className="modal-footer bg-light">
-              <button 
-                type="button" 
-                className="btn btn-outline-secondary me-2"
-                onClick={onClose}
-              >
-                <i className="fas fa-times me-1"></i>
-                Hủy
-              </button>
-              <button 
-                type="submit"
-                form="editItemForm"
-                className="btn btn-warning"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Đang lưu...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-save me-1"></i>
-                    Lưu thay đổi
-                  </>
-                )}
-              </button>
+            
+            <div className="form-group">
+              <label htmlFor="unit">Đơn vị <span className="required-mark">*</span></label>
+              <input 
+                type="text" 
+                id="unit" 
+                name="unit" 
+                className={`form-control ${errors.unit ? 'is-invalid' : ''}`}
+                value={editedItem.unit}
+                onChange={handleInputChange}
+                placeholder="hộp, tuýp, cái..."
+                required
+              />
+              {errors.unit && <div className="invalid-feedback">{errors.unit}</div>}
             </div>
           </div>
-        </div>
-      </div>
+            <div className="form-group">
+            <label htmlFor="manufactureDate">Ngày sản xuất</label>
+            <input 
+              type="date" 
+              id="manufactureDate" 
+              name="manufactureDate" 
+              className={`form-control ${errors.manufactureDate ? 'is-invalid' : ''}`}
+              value={editedItem.manufactureDate ? formatDateForApi(editedItem.manufactureDate) : ''}
+              onChange={handleInputChange}
+            />
+            {errors.manufactureDate && <div className="invalid-feedback">{errors.manufactureDate}</div>}
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="expiryDate">Ngày hết hạn</label>
+            <input 
+              type="date" 
+              id="expiryDate" 
+              name="expiryDate" 
+              className={`form-control ${errors.expiryDate ? 'is-invalid' : ''}`}
+              value={editedItem.expiryDate ? formatDateForApi(editedItem.expiryDate) : ''}
+              onChange={handleInputChange}
+            />
+            {errors.expiryDate && <div className="invalid-feedback">{errors.expiryDate}</div>}
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="itemDescription">Mô tả</label>
+            <textarea 
+              id="itemDescription" 
+              name="itemDescription" 
+              className="form-control"
+              value={editedItem.itemDescription}
+              onChange={handleInputChange}
+              rows="3"
+              placeholder="Nhập mô tả về vật phẩm..."
+            />
+          </div>            {/* Hiển thị trạng thái tự động dựa trên số lượng */}
+          {editedItem.stockQuantity !== '' && (
+            <div className="form-group">
+              <label>Trạng thái (tự động):</label>
+              <div className="auto-status-display">
+                <span className={`status ${statusClass}`}>
+                  {currentStatus}
+                </span>
+                <small className="status-help-text">
+                  Trạng thái được tính tự động dựa vào số lượng
+                </small>
+              </div>
+            </div>
+          )}
+            {errors.submit && (
+            <div className="alert alert-danger">{errors.submit}</div>
+          )}
 
-      {/* Modal Backdrop */}
-      <div className="modal-backdrop fade show"></div>
-    </>
+          <div className="form-actions">
+            <button 
+              type="button" 
+              className="btn btn-secondary" 
+              onClick={onClose}
+            >
+              Hủy
+            </button>
+            <button 
+              type="submit" 
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 

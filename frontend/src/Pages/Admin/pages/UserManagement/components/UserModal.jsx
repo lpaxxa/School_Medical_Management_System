@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes, FaPlus, FaTrash, FaUser, FaUsers } from "react-icons/fa";
+import {
+  FaTimes,
+  FaPlus,
+  FaTrash,
+  FaUser,
+  FaUsers,
+  FaUserTie,
+} from "react-icons/fa";
 import "./UserModal.css";
 
 const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
@@ -203,7 +210,21 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
           newErrors.confirmPassword = "Mật khẩu không khớp";
       }
     } else if (formData.role === "ADMIN") {
-      // Admin - chỉ cần các thông tin cơ bản
+      // Admin validation - added specific fields for ADMIN
+      if (!formData.fullName.trim())
+        newErrors.fullName = "Vui lòng nhập họ tên đầy đủ";
+
+      // Password validation for admin
+      if (mode === "add") {
+        if (!formData.password) newErrors.password = "Vui lòng nhập mật khẩu";
+        else if (formData.password.length < 5)
+          newErrors.password = "Mật khẩu phải có ít nhất 5 ký tự";
+
+        if (!formData.confirmPassword)
+          newErrors.confirmPassword = "Vui lòng xác nhận mật khẩu";
+        else if (formData.password !== formData.confirmPassword)
+          newErrors.confirmPassword = "Mật khẩu không khớp";
+      }
     }
 
     // Password validation cho edit mode
@@ -221,7 +242,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
       let dataToSave;
 
       if (mode === "edit") {
-        // Edit mode - include all relevant fields for role-specific updates
+        // Edit mode - format cũ
         dataToSave = {
           id: formData.id,
           email: formData.email,
@@ -230,17 +251,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
           username: formData.username,
           role: formData.role,
           isActive: formData.isActive,
-          fullName: formData.fullName,
         };
-
-        // Add role-specific fields
-        if (formData.role === 'PARENT') {
-          dataToSave.address = formData.address;
-          dataToSave.relationshipType = formData.relationshipType;
-          dataToSave.occupation = formData.occupation;
-        } else if (formData.role === 'NURSE') {
-          dataToSave.qualification = formData.qualification;
-        }
       } else {
         // Add mode - format mới theo API
         const { confirmPassword, ...allData } = formData;
@@ -347,6 +358,77 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
               )}
             </div>
           </div>
+
+          {/* Fields cho Admin */}
+          {formData.role === "ADMIN" && (
+            <div className="form-section">
+              <h3>
+                <FaUserTie /> Thông tin Quản trị viên
+              </h3>
+
+              <div className="form-group">
+                <label htmlFor="fullName">
+                  Họ tên đầy đủ <span className="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  disabled={mode === "view"}
+                  className={errors.fullName ? "error" : ""}
+                  placeholder="Nhập họ tên đầy đủ"
+                />
+                {errors.fullName && (
+                  <span className="error-message">{errors.fullName}</span>
+                )}
+              </div>
+
+              {/* Password fields cho Admin */}
+              {mode === "add" && (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="password">
+                      Mật khẩu <span className="required">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={errors.password ? "error" : ""}
+                      placeholder="Nhập mật khẩu"
+                    />
+                    {errors.password && (
+                      <span className="error-message">{errors.password}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="confirmPassword">
+                      Xác nhận mật khẩu <span className="required">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className={errors.confirmPassword ? "error" : ""}
+                      placeholder="Nhập lại mật khẩu"
+                    />
+                    {errors.confirmPassword && (
+                      <span className="error-message">
+                        {errors.confirmPassword}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Fields cho Y tá */}
           {formData.role === "NURSE" && (

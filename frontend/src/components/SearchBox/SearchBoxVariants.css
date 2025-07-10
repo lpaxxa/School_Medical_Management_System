@@ -1,0 +1,94 @@
+/* SearchBox Variants - Specific styles for different pages */
+
+/* Health Guide Search Variant - Sky Blue Theme */
+.health-guide-search-variant {
+  /* Container specific overrides */
+}
+
+.health-guide-search-variant .modern-search-input {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
+  border-color: #bae6fd !important;
+}
+
+.health-guide-search-variant .modern-search-input:focus {
+  border-color: #0ea5e9 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%) !important;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.health-guide-search-variant .modern-search-button {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3) !important;
+}
+
+.health-guide-search-variant .modern-search-button:hover {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4) !important;
+}
+
+/* Community Search Variant - Amber/Orange Theme */
+.community-search-variant {
+  /* Container specific overrides */
+}
+
+.community-search-variant .modern-search-input {
+  background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%) !important;
+  border-color: #fdba74 !important;
+}
+
+.community-search-variant .modern-search-input:focus {
+  border-color: #f59e0b !important;
+  background: linear-gradient(135deg, #ffffff 0%, #fef3c7 100%) !important;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.community-search-variant .modern-search-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3) !important;
+}
+
+.community-search-variant .modern-search-button:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4) !important;
+}
+
+/* Default Search Variant - Blue Theme */
+.default-search-variant {
+  /* Container specific overrides */
+}
+
+.default-search-variant .modern-search-input {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-color: #e2e8f0 !important;
+}
+
+.default-search-variant .modern-search-input:focus {
+  border-color: #3b82f6 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.default-search-variant .modern-search-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+.default-search-variant .modern-search-button:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Additional overrides to ensure no conflicts */
+.health-guide-search-variant *,
+.community-search-variant *,
+.default-search-variant * {
+  box-sizing: border-box !important;
+}
+
+/* Force specificity for all variants */
+.modern-search-container.health-guide-search-variant,
+.modern-search-container.community-search-variant,
+.modern-search-container.default-search-variant {
+  position: relative !important;
+  width: 100% !important;
+} 

@@ -1,1445 +1,1932 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import api from "../../../../services/api";
-import "./HealthDeclaration.css"; // CSS chính - Design system hiện đại
-import "./HealthDeclarationFix.css"; // CSS bổ sung - History & Enhancements
-import "../shared/student-selector.css"; // CSS shared
-import "../SendMedicine_co/styles/success.css"; // Import CSS của success message
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./HealthDeclaration.css";
+import "./HealthDeclarationFix.css";
+import "../shared/student-selector.css";
+import "./VaccineSelection.css";
+import "./ServerWarning.css";
+import "./VaccinationSection.css";
 
-// Mock data cho trường học
-const MOCK_SCHOOL = {
-  id: "SCH001",
-  name: "THCS Nguyễn Đình Chiểu",
-  address: "123 Nguyễn Du, Quận 1, TP.HCM",
-  phone: "028.1234.5678",
-  email: "thcsnguyendu@edu.vn",
-  logo: "/school-logo.png",
-};
-
-// Danh sách triệu chứng
-const SYMPTOM_OPTIONS = [
-  { id: "fever", label: "Sốt" },
-  { id: "cough", label: "Ho" },
-  { id: "headache", label: "Đau đầu" },
-  { id: "sore_throat", label: "Đau họng" },
-  { id: "runny_nose", label: "Sổ mũi" },
-  { id: "fatigue", label: "Mệt mỏi" },
-  { id: "muscle_pain", label: "Đau cơ" },
-  { id: "dizziness", label: "Chóng mặt" },
-  { id: "nausea", label: "Buồn nôn" },
-  { id: "diarrhea", label: "Tiêu chảy" },
-  { id: "breathing_difficulty", label: "Khó thở" },
-  { id: "rash", label: "Phát ban" },
+// Các tùy chọn cho nhóm máu
+const BLOOD_TYPE_OPTIONS = [
+  { value: "A", label: "A" },
+  { value: "B", label: "B" },
+  { value: "AB", label: "AB" },
+  { value: "O", label: "O" },
+  { value: "A+", label: "A+" },
+  { value: "A-", label: "A-" },
+  { value: "B+", label: "B+" },
+  { value: "B-", label: "B-" },
+  { value: "AB+", label: "AB+" },
+  { value: "AB-", label: "AB-" },
+  { value: "O+", label: "O+" },
+  { value: "O-", label: "O-" },
 ];
 
-// Mock data for history display
-const MOCK_DECLARATIONS = [
-  {
-    id: "DEC001",
-    studentId: "ST001",
-    studentName: "Nguyễn Văn An",
-    date: "2023-05-15",
-    status: "approved",
-    symptoms: ["Sốt nhẹ", "Ho"],
-    temperature: 37.8,
-    notes: "Đã cho uống thuốc hạ sốt",
-    attendanceDecision: "Nghỉ học",
-    reviewedBy: "Y tá Nguyễn Thị Hoa",
-    reviewedAt: "2023-05-15 09:30:00",
-  },
-  {
-    id: "DEC002",
-    studentId: "ST002",
-    studentName: "Trần Thị Bình",
-    date: "2023-05-14",
-    status: "pending",
-    symptoms: ["Không có triệu chứng"],
-    temperature: 36.5,
-    notes: "",
-    attendanceDecision: "Chờ xác nhận",
-    reviewedBy: null,
-    reviewedAt: null,
-  },
-  {
-    id: "DEC003",
-    studentId: "ST001",
-    studentName: "Nguyễn Văn An",
-    date: "2023-05-10",
-    status: "rejected",
-    symptoms: ["Đau bụng", "Nôn"],
-    temperature: 36.8,
-    notes: "Học sinh có biểu hiện đau bụng, đã uống thuốc tại nhà",
-    attendanceDecision: "Cần đến cơ sở y tế",
-    reviewedBy: "Bác sĩ Lê Văn Hải",
-    reviewedAt: "2023-05-10 08:15:00",
-  },
+// Các tùy chọn cho thị lực
+const VISION_OPTIONS = [
+  { value: "Chưa kiểm tra", label: "Chưa kiểm tra" },
+  { value: "Bình thường", label: "Bình thường" },
+  { value: "Cận thị nhẹ", label: "Cận thị nhẹ" },
+  { value: "Cận thị vừa", label: "Cận thị vừa" },
+  { value: "Cận thị nặng", label: "Cận thị nặng" },
+  { value: "Viễn thị", label: "Viễn thị" },
+  { value: "Loạn thị", label: "Loạn thị" },
+  { value: "Khác", label: "Khác" },
+];
+
+// Các tùy chọn cho thính lực
+const HEARING_OPTIONS = [
+  { value: "Bình thường", label: "Bình thường" },
+  { value: "Giảm thính lực nhẹ", label: "Giảm thính lực nhẹ" },
+  { value: "Giảm thính lực vừa", label: "Giảm thính lực vừa" },
+  { value: "Giảm thính lực nặng", label: "Giảm thính lực nặng" },
+  { value: "Khác", label: "Khác" },
 ];
 
 const HealthDeclaration = () => {
   const { currentUser } = useAuth();
 
-  // Lấy tất cả thông tin cần thiết từ StudentDataContext
+  // Lấy thông tin học sinh từ context
   const {
     students,
     parentInfo,
     isLoading: studentsLoading,
     error: studentsError,
-    refreshStudents,
-    healthProfiles,
-    isLoadingHealthProfiles,
     fetchHealthProfile,
-    updateHealthProfile,
   } = useStudentData();
 
-  // THÊM state quản lý trạng thái đang tải profile
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
-
-  // State để lưu danh sách khai báo
-  const [declarations, setDeclarations] = useState([]);
+  // State quản lý trạng thái
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("form"); // "form" or "history"
+  const [isServerError, setIsServerError] = useState(false);
   const [fetchError, setFetchError] = useState(null);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    id: "",
-    bloodType: "",
-    height: "",
-    weight: "",
-    allergies: "",
-    chronicDiseases: "",
-    visionLeft: "",
-    visionRight: "",
-    hearingStatus: "",
-    dietaryRestrictions: "",
-    emergencyContactInfo: "",
-    immunizationStatus: "",
-    lastPhysicalExamDate: new Date().toISOString().split("T")[0], // Ngày mặc định là hôm nay
-    specialNeeds: "",
-    symptoms: [],
-    notes: "",
-    studentId: "", // Dùng cho phần lọc history
-  });
-
-  const [formErrors, setFormErrors] = useState({});
-  const [formSubmitStatus, setFormSubmitStatus] = useState({
-    submitted: false,
-    success: false,
-    message: "",
-  });
-
-  // Thêm state mới trong component HealthDeclaration
+  // State hiển thị thông báo thành công
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-  // Fetch danh sách khai báo sức khỏe từ API
-  useEffect(() => {
-    if (currentUser && currentUser.role === "parent") {
-      fetchHealthDeclarations();
-    }
-  }, [currentUser]);
-
-  // Khi danh sách học sinh được tải xong, chọn học sinh đầu tiên và lấy thông tin sức khỏe
-  useEffect(() => {
-    if (students.length > 0 && !formData.id) {
-      const firstStudent = students[0];
-      setFormData((prev) => ({
-        ...prev,
-        id: firstStudent.id,
-      }));
-
-      // Load hồ sơ y tế của học sinh này
-      fetchHealthProfile(firstStudent.id);
-    }
-  }, [students, formData.id, fetchHealthProfile]);
-
-  // Kiểm tra kết nối API khi component mount
-  useEffect(() => {
-    const checkApiConnection = async () => {
-      try {
-        // Thử gọi một API endpoint đơn giản để kiểm tra kết nối
-        await api.get("/ping");
-        console.log("API connection check: OK");
-        setFetchError(null);
-      } catch (error) {
-        console.warn("API connection check failed:", error.message);
-        // Không hiển thị lỗi ngay lập tức để tránh làm người dùng lo lắng
-      }
-    };
-
-    checkApiConnection();
-  }, []);
-
-  // Thêm useEffect để thiết lập fallback data nếu tải quá lâu
-  useEffect(() => {
-    let timeoutId;
-
-    if (studentsLoading) {
-      timeoutId = setTimeout(() => {
-        console.warn("API taking too long, showing error message");
-        // Hiển thị thông báo lỗi tải quá lâu
-        setFetchError(
-          "Tải dữ liệu mất nhiều thời gian hơn dự kiến. Vui lòng kiểm tra kết nối mạng và thử lại sau."
-        );
-      }, 10000); // 10 giây
-    }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [studentsLoading]);
-
-  // Fetch danh sách khai báo sức khỏe
-  const fetchHealthDeclarations = async () => {
-    setIsLoading(true);
-    setFetchError(null);
-
-    try {
-      // Đầu tiên, thử lấy từ localStorage
-      const savedDeclarations = JSON.parse(
-        localStorage.getItem("healthDeclarations") || "[]"
-      );
-
-      if (savedDeclarations.length > 0) {
-        // Nếu có dữ liệu trong localStorage, sử dụng nó
-        setDeclarations(savedDeclarations);
-        setIsLoading(false);
-      } else {
-        // Nếu không có, sử dụng mock data
-        setTimeout(() => {
-          setDeclarations(MOCK_DECLARATIONS);
-          setIsLoading(false);
-        }, 800);
-      }
-    } catch (error) {
-      console.error("Error fetching health declarations:", error);
-      setFetchError(
-        "Không thể tải danh sách khai báo sức khỏe. Vui lòng thử lại sau."
-      );
-      setIsLoading(false);
-    }
-  };
-
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error for this field
-    if (formErrors[name]) {
-      setFormErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
-  };
-
-  // Handle student change - also load their health profile
-  const handleStudentChange = (studentId) => {
-    if (!studentId) return;
-
-    setFormData((prev) => ({
-      ...prev,
-      id: studentId,
-      // Reset các trường về trạng thái rỗng
-      bloodType: "",
+  // Form data
+  const [formData, setFormData] = useState({
+    healthProfile: {
+      id: 0,
+      bloodType: "A",
       height: "",
       weight: "",
       allergies: "",
       chronicDiseases: "",
-      visionLeft: "",
-      visionRight: "",
-      hearingStatus: "",
+      visionLeft: "Chưa kiểm tra",
+      visionRight: "Chưa kiểm tra",
+      hearingStatus: "Bình thường",
       dietaryRestrictions: "",
       emergencyContactInfo: "",
       immunizationStatus: "",
-      specialNeeds: "",
-      // Vẫn giữ ngày là ngày hiện tại
       lastPhysicalExamDate: new Date().toISOString().split("T")[0],
-      symptoms: [],
-      notes: "",
-    }));
+      specialNeeds: "",
+    },
+    vaccinations: [],
+  });
 
-    setIsLoadingProfile(false); // Không cần loading profile nữa vì không lấy dữ liệu
+  const [formErrors, setFormErrors] = useState({});
+
+  // State cho vaccines
+  const [vaccines, setVaccines] = useState([]);
+  const [isLoadingVaccines, setIsLoadingVaccines] = useState(false);
+  const [vaccinesError, setVaccinesError] = useState(null);
+  const [selectedVaccines, setSelectedVaccines] = useState([]);
+
+  // State cho vaccine đã tiêm từ server (không cho phép thay đổi)
+  const [vaccinatedFromServer, setVaccinatedFromServer] = useState([]);
+
+  // State cho thông tin vaccine mới chọn
+  const [vaccineNotes, setVaccineNotes] = useState({});
+  const [vaccineAdministeredAt, setVaccineAdministeredAt] = useState({});
+
+  // State cho modal thông báo vaccine đã tiêm
+  const [showVaccineAlreadyTakenModal, setShowVaccineAlreadyTakenModal] =
+    useState(false);
+  const [selectedVaccineInfo, setSelectedVaccineInfo] = useState(null);
+
+  // Fetch danh sách vaccine từ API
+  useEffect(() => {
+    const fetchVaccines = async () => {
+      setIsLoadingVaccines(true);
+      setVaccinesError(null);
+      try {
+        // Sử dụng endpoint chính xác như yêu cầu
+        const response = await axios.get(
+          "http://localhost:8080/api/v1/vaccines/getAllVaccine"
+        );
+        setVaccines(response.data);
+      } catch (error) {
+        console.error("Không thể tải danh sách vaccine:", error);
+        setVaccinesError(
+          "Không thể tải danh sách vaccine. Vui lòng thử lại sau."
+        );
+        setIsServerError(true);
+      } finally {
+        setIsLoadingVaccines(false);
+      }
+    };
+
+    fetchVaccines();
+  }, []);
+
+  // Khi danh sách học sinh được tải xong, chọn học sinh đầu tiên
+  useEffect(() => {
+    if (students.length > 0 && formData.healthProfile.id === 0) {
+      const firstStudent = students[0];
+      setFormData((prevState) => ({
+        ...prevState,
+        healthProfile: {
+          ...prevState.healthProfile,
+          id: firstStudent.id,
+        },
+      }));
+
+      // Load hồ sơ y tế của học sinh này
+      fetchStudentHealthProfile(firstStudent.id);
+    }
+  }, [students]);
+
+  // Fetch thông tin sức khỏe của học sinh
+  const fetchStudentHealthProfile = async (studentId) => {
+    setIsLoading(true);
+    setFetchError(null);
+    try {
+      // Lấy thông tin hồ sơ sức khỏe đầy đủ từ API
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/health-profiles/student/${studentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      if (response.data) {
+        // Cập nhật form data với thông tin từ API
+        setFormData((prevState) => ({
+          ...prevState,
+          healthProfile: {
+            ...prevState.healthProfile,
+            ...response.data,
+            id: studentId, // Đảm bảo ID học sinh không bị ghi đè
+          },
+        }));
+
+        // Nếu có thông tin vaccine trong response, cập nhật selected vaccines
+        if (
+          response.data.vaccinations &&
+          response.data.vaccinations.length > 0
+        ) {
+          const vaccineIds = response.data.vaccinations.map((v) => v.vaccineId);
+          setSelectedVaccines(vaccineIds);
+
+          // Lưu vaccine đã tiêm từ server (không cho phép sửa)
+          setVaccinatedFromServer(vaccineIds);
+
+          // Cập nhật vaccine notes
+          const notes = {};
+          const administeredAts = {};
+          response.data.vaccinations.forEach((v) => {
+            if (v.parentNotes) {
+              notes[v.vaccineId] = v.parentNotes;
+            }
+            if (v.administeredAt) {
+              administeredAts[v.vaccineId] = v.administeredAt;
+            }
+          });
+          setVaccineNotes(notes);
+          setVaccineAdministeredAt(administeredAts);
+
+          // Cập nhật form data vaccinations
+          setFormData((prevState) => ({
+            ...prevState,
+            vaccinations: response.data.vaccinations,
+          }));
+        } else {
+          // Reset nếu không có vaccine nào đã tiêm
+          setVaccinatedFromServer([]);
+        }
+      }
+    } catch (error) {
+      console.error("Không thể tải thông tin sức khỏe:", error);
+      setFetchError(
+        "Không thể tải thông tin sức khỏe. Dữ liệu sẽ được tạo mới."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Handle checkbox changes for symptoms
-  const handleSymptomChange = (symptomId) => {
-    setFormData((prev) => {
-      const currentSymptoms = [...prev.symptoms];
+  // Xử lý khi thay đổi input
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      healthProfile: {
+        ...prevState.healthProfile,
+        [name]: value,
+      },
+    }));
 
-      if (symptomId === "none") {
-        // If "none" is selected, clear all other symptoms
-        return {
+    // Real-time validation cho một số trường
+    if (["height", "weight", "emergencyContactInfo"].includes(name)) {
+      handleRealTimeValidation(name, value);
+    } else {
+      // Xóa lỗi của trường này khi người dùng nhập lại
+      if (formErrors[name]) {
+        setFormErrors((prev) => ({
           ...prev,
-          symptoms: currentSymptoms.includes("none") ? [] : ["none"],
-        };
-      } else {
-        // If any other symptom is selected, remove "none" if present
-        let newSymptoms = currentSymptoms.filter((id) => id !== "none");
-
-        if (newSymptoms.includes(symptomId)) {
-          // Remove the symptom if already selected
-          newSymptoms = newSymptoms.filter((id) => id !== symptomId);
-        } else {
-          // Add the symptom if not selected
-          newSymptoms.push(symptomId);
-        }
-
-        return {
-          ...prev,
-          symptoms: newSymptoms,
-        };
+          [name]: null,
+        }));
       }
-    });
+    }
+  };
 
-    // Clear symptoms error if it exists
-    if (formErrors.symptoms) {
-      setFormErrors((prev) => ({
+  // Xử lý khi chọn học sinh
+  const handleStudentChange = (e) => {
+    const studentId = parseInt(e.target.value);
+    if (!studentId) return;
+
+    setFormData((prevState) => ({
+      ...prevState,
+      healthProfile: {
+        ...prevState.healthProfile,
+        id: studentId,
+      },
+    }));
+
+    // Reset selected vaccines and notes when changing student
+    setSelectedVaccines([]);
+    setVaccineNotes({});
+    setVaccineAdministeredAt({});
+    setVaccinatedFromServer([]); // Reset vaccine đã tiêm từ server
+
+    // Tải thông tin sức khỏe của học sinh được chọn
+    fetchStudentHealthProfile(studentId);
+  };
+
+  // Xử lý khi chọn/bỏ chọn vaccine
+  const handleVaccineChange = (vaccineId) => {
+    // Tìm thông tin vaccine để hiển thị tên
+    const vaccine = vaccines.find((v) => v.id === vaccineId);
+    const vaccineName = vaccine ? vaccine.name : `Vaccine ID: ${vaccineId}`;
+
+    // Kiểm tra xem vaccine này đã tiêm từ server chưa (không cho phép thay đổi)
+    if (vaccinatedFromServer.includes(vaccineId)) {
+      console.log("Vaccine already taken, showing modal for:", vaccine); // Debug log
+
+      // Hiển thị modal thông báo chi tiết (chỉ khi có vaccine info)
+      if (vaccine) {
+        showVaccineAlreadyTakenNotification(vaccine);
+        console.log("Modal should be shown for:", vaccine.name); // Debug log
+      } else {
+        console.log("No vaccine info found for ID:", vaccineId); // Debug log
+      }
+
+      // Hiển thị toast warning với thông tin chi tiết
+      toast.warning(
+        `🚫 ${vaccineName} đã được tiêm trước đó và không thể thay đổi!`,
+        {
+          position: "top-center",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          className: "vaccine-already-taken-toast",
+        }
+      );
+
+      // Log để debug
+      console.log(
+        `Attempted to change already vaccinated: ${vaccineName} (ID: ${vaccineId})`
+      );
+      return;
+    }
+
+    if (selectedVaccines.includes(vaccineId)) {
+      // Bỏ chọn vaccine (chỉ những vaccine mới thêm)
+      setSelectedVaccines(selectedVaccines.filter((id) => id !== vaccineId));
+
+      // Cập nhật formData để loại bỏ vaccine này
+      setFormData((prevState) => ({
+        ...prevState,
+        vaccinations: prevState.vaccinations.filter(
+          (v) => v.vaccineId !== vaccineId
+        ),
+      }));
+
+      // Xóa notes của vaccine này
+      const updatedNotes = { ...vaccineNotes };
+      delete updatedNotes[vaccineId];
+      setVaccineNotes(updatedNotes);
+
+      // Xóa administeredAt của vaccine này
+      const updatedAdministeredAt = { ...vaccineAdministeredAt };
+      delete updatedAdministeredAt[vaccineId];
+      setVaccineAdministeredAt(updatedAdministeredAt);
+    } else {
+      // Thêm vaccine vào danh sách đã chọn
+      setSelectedVaccines([...selectedVaccines, vaccineId]);
+
+      // Cập nhật formData để thêm vaccine mới
+      setFormData((prevState) => ({
+        ...prevState,
+        vaccinations: [
+          ...prevState.vaccinations,
+          {
+            vaccineId: vaccineId,
+            vaccinationDate: new Date().toISOString(),
+            administeredAt: "Trường học", // Mặc định
+            notes: "",
+            parentNotes: "",
+          },
+        ],
+      }));
+
+      // Đặt địa điểm tiêm mặc định
+      setVaccineAdministeredAt((prev) => ({
         ...prev,
-        symptoms: "",
+        [vaccineId]: "Trường học",
       }));
     }
+  };
+
+  // Xử lý khi thay đổi ghi chú của vaccine
+  const handleVaccineNoteChange = (vaccineId, e) => {
+    const { value } = e.target;
+
+    // Cập nhật state ghi chú
+    setVaccineNotes({
+      ...vaccineNotes,
+      [vaccineId]: value,
+    });
+
+    // Cập nhật formData
+    setFormData((prevState) => ({
+      ...prevState,
+      vaccinations: prevState.vaccinations.map((v) => {
+        if (v.vaccineId === vaccineId) {
+          return {
+            ...v,
+            parentNotes: value,
+          };
+        }
+        return v;
+      }),
+    }));
+  };
+
+  // Xử lý khi thay đổi địa điểm tiêm vaccine
+  const handleVaccineAdministeredAtChange = (vaccineId, e) => {
+    const { value } = e.target;
+
+    // Cập nhật state địa điểm tiêm
+    setVaccineAdministeredAt({
+      ...vaccineAdministeredAt,
+      [vaccineId]: value,
+    });
+
+    // Cập nhật formData
+    setFormData((prevState) => ({
+      ...prevState,
+      vaccinations: prevState.vaccinations.map((v) => {
+        if (v.vaccineId === vaccineId) {
+          return {
+            ...v,
+            administeredAt: value,
+          };
+        }
+        return v;
+      }),
+    }));
   };
 
   // Validate form
   const validateForm = () => {
     const errors = {};
+    const { healthProfile } = formData;
 
-    if (!formData.id) {
-      errors.id = "Vui lòng chọn học sinh";
+    console.log("Validating form data:", healthProfile); // Debug log
+
+    // Validate student ID - bắt buộc
+    if (!healthProfile.id || healthProfile.id === 0) {
+      errors.studentId = "Vui lòng chọn học sinh";
     }
 
-    if (!formData.lastPhysicalExamDate) {
-      errors.lastPhysicalExamDate = "Vui lòng chọn ngày khai báo";
+    // Validate blood type - bắt buộc
+    if (!healthProfile.bloodType || healthProfile.bloodType === "") {
+      errors.bloodType = "Vui lòng chọn nhóm máu";
+    }
+
+    // Validate height - nếu có thì phải hợp lệ
+    if (healthProfile.height && healthProfile.height !== "") {
+      const height = parseFloat(healthProfile.height);
+      if (isNaN(height)) {
+        errors.height = "Chiều cao phải là số";
+      } else if (height < 30) {
+        errors.height = "Chiều cao quá thấp (tối thiểu 30cm)";
+      } else if (height > 300) {
+        errors.height = "Chiều cao quá cao (tối đa 300cm)";
+      }
+    }
+
+    // Validate weight - nếu có thì phải hợp lệ
+    if (healthProfile.weight && healthProfile.weight !== "") {
+      const weight = parseFloat(healthProfile.weight);
+      if (isNaN(weight)) {
+        errors.weight = "Cân nặng phải là số";
+      } else if (weight < 5) {
+        errors.weight = "Cân nặng quá nhẹ (tối thiểu 5kg)";
+      } else if (weight > 500) {
+        errors.weight = "Cân nặng quá nặng (tối đa 500kg)";
+      }
+    }
+
+    // Validate vision - bắt buộc
+    if (!healthProfile.visionLeft || healthProfile.visionLeft === "") {
+      errors.visionLeft = "Vui lòng chọn tình trạng thị lực mắt trái";
+    }
+    if (!healthProfile.visionRight || healthProfile.visionRight === "") {
+      errors.visionRight = "Vui lòng chọn tình trạng thị lực mắt phải";
+    }
+
+    // Validate hearing - bắt buộc
+    if (!healthProfile.hearingStatus || healthProfile.hearingStatus === "") {
+      errors.hearingStatus = "Vui lòng chọn tình trạng thính lực";
+    }
+
+    // Validate lastPhysicalExamDate - bắt buộc
+    if (
+      !healthProfile.lastPhysicalExamDate ||
+      healthProfile.lastPhysicalExamDate.trim() === ""
+    ) {
+      errors.lastPhysicalExamDate =
+        "Vui lòng chọn ngày kiểm tra sức khỏe gần nhất";
     } else {
-      // Kiểm tra ngày hợp lệ
-      const selectedDate = new Date(formData.lastPhysicalExamDate);
+      // Kiểm tra ngày không được trong tương lai
+      const examDate = new Date(healthProfile.lastPhysicalExamDate);
       const today = new Date();
-      if (selectedDate > today) {
-        errors.lastPhysicalExamDate = "Ngày khai báo không thể trong tương lai";
+      today.setHours(23, 59, 59, 999); // Set to end of today
+
+      if (examDate > today) {
+        errors.lastPhysicalExamDate =
+          "Ngày kiểm tra không được trong tương lai";
+      }
+
+      // Kiểm tra ngày không được quá xa trong quá khứ (5 năm)
+      const fiveYearsAgo = new Date();
+      fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+
+      if (examDate < fiveYearsAgo) {
+        errors.lastPhysicalExamDate =
+          "Ngày kiểm tra không được quá 5 năm trước";
       }
     }
 
-    // Validate height if entered
-    if (formData.height) {
-      const height = parseFloat(formData.height);
-      if (isNaN(height) || height <= 0 || height > 250) {
-        errors.height = "Chiều cao phải lớn hơn 0 và nhỏ hơn 250 cm";
+    // Validate emergency contact - bắt buộc
+    if (
+      !healthProfile.emergencyContactInfo ||
+      healthProfile.emergencyContactInfo.trim() === ""
+    ) {
+      errors.emergencyContactInfo = "Vui lòng nhập thông tin liên lạc khẩn cấp";
+    } else if (healthProfile.emergencyContactInfo.trim().length < 10) {
+      errors.emergencyContactInfo =
+        "Thông tin liên lạc khẩn cấp quá ngắn (tối thiểu 10 ký tự)";
+    } else {
+      // Kiểm tra có chứa số điện thoại hợp lệ
+      const contactInfo = healthProfile.emergencyContactInfo;
+      const hasValidPhone = isValidPhoneNumber(contactInfo);
+
+      if (!hasValidPhone) {
+        // Tìm kiếm số điện thoại trong text
+        const phoneNumbers = contactInfo.match(/[\d\+\-\s()]+/g);
+        const hasAnyPhonePattern =
+          phoneNumbers &&
+          phoneNumbers.some((num) => num.replace(/\D/g, "").length >= 10);
+
+        if (!hasAnyPhonePattern) {
+          errors.emergencyContactInfo =
+            "Thông tin liên lạc cần bao gồm số điện thoại hợp lệ (10-11 số)";
+        }
       }
     }
 
-    // Validate weight if entered
-    if (formData.weight) {
-      const weight = parseFloat(formData.weight);
-      if (isNaN(weight) || weight <= 0 || weight > 200) {
-        errors.weight = "Cân nặng phải lớn hơn 0 và nhỏ hơn 200 kg";
-      }
+    // Validate allergies length
+    if (healthProfile.allergies && healthProfile.allergies.length > 500) {
+      errors.allergies = "Thông tin dị ứng quá dài (tối đa 500 ký tự)";
     }
 
-    return errors;
+    // Validate chronic diseases length
+    if (
+      healthProfile.chronicDiseases &&
+      healthProfile.chronicDiseases.length > 500
+    ) {
+      errors.chronicDiseases =
+        "Thông tin bệnh mãn tính quá dài (tối đa 500 ký tự)";
+    }
+
+    // Validate dietary restrictions length
+    if (
+      healthProfile.dietaryRestrictions &&
+      healthProfile.dietaryRestrictions.length > 500
+    ) {
+      errors.dietaryRestrictions =
+        "Thông tin hạn chế ăn uống quá dài (tối đa 500 ký tự)";
+    }
+
+    // Validate special needs length
+    if (healthProfile.specialNeeds && healthProfile.specialNeeds.length > 500) {
+      errors.specialNeeds =
+        "Thông tin nhu cầu đặc biệt quá dài (tối đa 500 ký tự)";
+    }
+
+    console.log("Validation errors:", errors); // Debug log
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  // Reset form
-  const resetForm = () => {
-    // Giữ lại id học sinh đã chọn
-    const studentId = formData.id;
-
-    setFormData({
-      id: studentId,
-      bloodType: "",
-      height: "",
-      weight: "",
-      allergies: "",
-      chronicDiseases: "",
-      visionLeft: "",
-      visionRight: "",
-      hearingStatus: "",
-      dietaryRestrictions: "",
-      emergencyContactInfo: "",
-      immunizationStatus: "",
-      lastPhysicalExamDate: new Date().toISOString().split("T")[0],
-      specialNeeds: "",
-      symptoms: [],
-      notes: "",
-      studentId: formData.studentId, // Giữ lại giá trị lọc trong history
-    });
-  };
-
-  // Thêm khai báo mới vào danh sách lịch sử
-  const addToHistory = (healthProfileData) => {
-    const student = students.find((s) => s.id === healthProfileData.id);
-
-    // Tạo ID ngẫu nhiên độc nhất cho khai báo mới
-    const newDeclarationId = `DEC${Date.now()}`;
-
-    const newDeclaration = {
-      id: newDeclarationId,
-      studentId: healthProfileData.id,
-      studentName: student?.fullName || student?.name || "Học sinh",
-      date:
-        healthProfileData.lastPhysicalExamDate ||
-        new Date().toISOString().split("T")[0],
-      status: "pending", // Trạng thái ban đầu luôn là "đang chờ"
-      symptoms: formData.symptoms.includes("none")
-        ? ["Không có triệu chứng"]
-        : formData.symptoms.map(
-            (id) =>
-              SYMPTOM_OPTIONS.find((option) => option.id === id)?.label || id
-          ),
-      temperature: 0, // Có thể thêm nhiệt độ nếu form có trường này
-      notes: formData.notes || "",
-      attendanceDecision: "Chờ xác nhận",
-      reviewedBy: null,
-      reviewedAt: null,
-      createdAt: new Date().toISOString(), // Thêm thời gian tạo chính xác
-    };
-
-    // Thêm vào đầu danh sách declarations
-    setDeclarations((prev) => [newDeclaration, ...prev]);
-
-    // Lưu vào localStorage để duy trì khi refresh trang
-    const currentDeclarations = JSON.parse(
-      localStorage.getItem("healthDeclarations") || "[]"
-    );
-    localStorage.setItem(
-      "healthDeclarations",
-      JSON.stringify([newDeclaration, ...currentDeclarations])
-    );
-  };
-
-  // Handle form submission
+  // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted");
 
-    // Validate form
-    const errors = validateForm();
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+    console.log("Form submit triggered"); // Debug log
+    console.log("Current form data:", formData); // Debug log
+
+    if (!validateForm()) {
+      console.log("Form validation failed"); // Debug log
+
+      // Hiển thị thông báo lỗi chi tiết
+      const errorCount = Object.keys(formErrors).length;
+      const firstError = Object.values(formErrors)[0];
+
+      // Hiển thị toast với thông tin cụ thể hơn
+      toast.error(
+        `Có ${errorCount} lỗi cần sửa. Vui lòng kiểm tra form và sửa các lỗi được đánh dấu.`,
+        {
+          position: "top-center",
+          autoClose: 6000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
+
+      // Scroll đến field đầu tiên có lỗi
+      const firstErrorField = Object.keys(formErrors)[0];
+      const errorElement =
+        document.getElementById(firstErrorField) ||
+        document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        // Thêm delay để scroll hoàn thành trước khi focus
+        setTimeout(() => {
+          errorElement.focus();
+          // Thêm highlight effect
+          errorElement.classList.add("field-highlight");
+          setTimeout(() => {
+            errorElement.classList.remove("field-highlight");
+          }, 2000);
+        }, 300);
+      }
+
       return;
     }
 
+    console.log("Form validation passed, submitting..."); // Debug log
     setIsSubmitting(true);
-    setFormSubmitStatus({
-      submitted: false,
-      success: false,
-      message: "",
-    });
 
     try {
-      // Tính BMI trước khi gửi (server sẽ tính lại nhưng chúng ta cũng tính để hiển thị)
-      const height = formData.height ? parseFloat(formData.height) : 0;
-      const weight = formData.weight ? parseFloat(formData.weight) : 0;
-      let calculatedBMI = 0;
-
-      if (height > 0 && weight > 0) {
-        calculatedBMI = weight / Math.pow(height / 100, 2);
-        calculatedBMI = parseFloat(calculatedBMI.toFixed(1));
-      }
-
-      // QUAN TRỌNG: Đảm bảo dữ liệu đúng định dạng theo API
-      const healthProfileData = {
-        id: parseInt(formData.id), // ID học sinh
-        bloodType: formData.bloodType || "Chưa cập nhật",
-        height: formData.height ? parseFloat(formData.height) : 0,
-        weight: formData.weight ? parseFloat(formData.weight) : 0,
-        allergies: formData.allergies || "Không",
-        chronicDiseases: formData.chronicDiseases || "Không",
-        visionLeft: formData.visionLeft || "Bình thường",
-        visionRight: formData.visionRight || "Bình thường",
-        hearingStatus: formData.hearingStatus || "Bình thường",
-        dietaryRestrictions: formData.dietaryRestrictions || "Không",
-        emergencyContactInfo: formData.emergencyContactInfo || "Không có",
-        immunizationStatus: formData.immunizationStatus || "Không",
-        lastPhysicalExamDate: formData.lastPhysicalExamDate,
-        specialNeeds: formData.specialNeeds || "Không",
+      // Chuyển đổi dữ liệu theo format API mới
+      const submissionData = {
+        healthProfile: {
+          ...formData.healthProfile,
+          height:
+            formData.healthProfile.height &&
+            formData.healthProfile.height !== ""
+              ? parseFloat(formData.healthProfile.height)
+              : 0, // Gửi 0 thay vì 300 nếu trống
+          weight:
+            formData.healthProfile.weight &&
+            formData.healthProfile.weight !== ""
+              ? parseFloat(formData.healthProfile.weight)
+              : 0, // Gửi 0 thay vì 500 nếu trống
+          checkupStatus: "COMPLETED", // Thêm checkupStatus khi submit
+        },
+        vaccinations: formData.vaccinations.map((vaccination) => ({
+          vaccineId: vaccination.vaccineId,
+          vaccinationDate: vaccination.vaccinationDate,
+          administeredAt: vaccination.administeredAt || "Trường học",
+          notes: vaccination.notes || "",
+          parentNotes: vaccination.parentNotes || "",
+        })),
       };
 
-      // Validate dữ liệu trước khi gửi
-      if (!healthProfileData.id || healthProfileData.id <= 0) {
-        throw new Error("ID học sinh không hợp lệ");
-      }
+      console.log("Dữ liệu gửi đi:", submissionData);
 
-      if (!healthProfileData.lastPhysicalExamDate) {
-        throw new Error("Ngày khai báo không được để trống");
-      }
+      // Sử dụng API endpoint chính xác theo yêu cầu
+      const response = await axios.post(
+        "http://localhost:8080/api/v1/health-profiles/full",
+        submissionData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
 
-      console.log("Sending health profile data:", healthProfileData);
+      console.log("API response:", response);
 
-      // Gọi API qua context
-      const response = await updateHealthProfile(healthProfileData);
-      console.log("Health profile API response:", response);
-
-      // Chuẩn bị dữ liệu đầy đủ để cập nhật UI (bao gồm cả BMI và lastUpdated từ server)
-      const updatedProfileData = {
-        ...healthProfileData,
-        // Sử dụng dữ liệu từ server response nếu có
-        bmi: response.bmi || calculatedBMI, // Server sẽ tính BMI chính xác
-        lastUpdated: response.lastUpdated || new Date().toISOString(),
-        // Merge tất cả dữ liệu từ server response
-        ...response,
-      };
-
-      console.log("Complete profile data for event:", updatedProfileData);
-
-      // Kích hoạt sự kiện để thông báo cập nhật hồ sơ y tế
-      import("../../../../services/eventBus").then((module) => {
-        const eventBus = module.default;
-        eventBus.emit(
-          "healthProfileUpdated",
-          updatedProfileData.id, // studentId
-          updatedProfileData // dữ liệu đầy đủ
-        );
-        console.log(
-          "Đã gửi sự kiện cập nhật cho student ID:",
-          updatedProfileData.id
-        );
-      });
-
-      // Reset form trước
-      resetForm();
-
-      // Thêm vào lịch sử
-      addToHistory(updatedProfileData);
-
-      // Hiển thị thông báo thành công - đặt sau cùng để đảm bảo mọi thứ đã sẵn sàng
+      // Hiển thị thông báo thành công
       setShowSuccessMessage(true);
+      toast.success("Cập nhật hồ sơ sức khỏe thành công!");
 
-      // Auto-hide success message after 5 seconds
+      // Ẩn thông báo sau 5 giây
       setTimeout(() => {
         setShowSuccessMessage(false);
       }, 5000);
+
+      // Reset selected vaccines
+      setSelectedVaccines([]);
+      setVaccineNotes({});
+      setVaccineAdministeredAt({});
+      setFormData((prevState) => ({
+        ...prevState,
+        vaccinations: [],
+      }));
     } catch (error) {
-      console.error("Error submitting health declaration:", error);
+      console.error("Lỗi khi gửi dữ liệu:", error);
+      console.error("Error details:", error.response?.data); // Debug log
+      setIsServerError(true);
 
-      let errorMessage = "Không thể gửi khai báo sức khỏe.";
+      // Kiểm tra nếu lỗi 400 có liên quan đến vaccine đã tiêm
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message || "";
 
-      if (error.response) {
-        // Lỗi từ server
-        console.error("Server error details:", error.response.data);
-        errorMessage =
-          error.response.data?.message ||
-          `Lỗi server: ${error.response.status}`;
-      } else if (error.request) {
-        // Không nhận được phản hồi từ server
-        errorMessage =
-          "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.";
-      } else {
-        // Lỗi khác
-        errorMessage = error.message || "Đã xảy ra lỗi không xác định.";
+        // Nếu lỗi liên quan đến vaccine đã tiêm
+        if (
+          errorMessage.toLowerCase().includes("vaccine") ||
+          errorMessage.toLowerCase().includes("tiêm") ||
+          errorMessage.toLowerCase().includes("vaccination")
+        ) {
+          toast.error(
+            "❌ Không thể cập nhật do có vaccine đã được tiêm trước đó trong danh sách. Hệ thống không cho phép thay đổi thông tin vaccine đã tiêm!",
+            {
+              position: "top-center",
+              autoClose: 8000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            }
+          );
+
+          // Tìm và hiển thị thông tin về vaccine đã tiêm
+          const vaccinatedVaccines = formData.vaccinations.filter((v) =>
+            vaccinatedFromServer.includes(v.vaccineId)
+          );
+
+          if (vaccinatedVaccines.length > 0) {
+            const vaccineNames = vaccinatedVaccines
+              .map((v) => {
+                const vaccine = vaccines.find((vac) => vac.id === v.vaccineId);
+                return vaccine ? vaccine.name : `ID: ${v.vaccineId}`;
+              })
+              .join(", ");
+
+            toast.info(
+              `📋 Vaccine đã tiêm: ${vaccineNames}. Vui lòng bỏ chọn các vaccine này để có thể cập nhật thành công.`,
+              {
+                position: "top-center",
+                autoClose: 10000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              }
+            );
+          }
+
+          return; // Dừng xử lý, không hiển thị lỗi chung
+        }
       }
 
-      setFormSubmitStatus({
-        submitted: true,
-        success: false,
-        message: errorMessage,
+      // Hiển thị lỗi chi tiết hơn với better error handling
+      let errorMessage =
+        "Không thể cập nhật hồ sơ sức khỏe. Vui lòng thử lại sau!";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.statusText) {
+        errorMessage = error.response.statusText;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage, {
+        position: "top-center",
+        autoClose: 6000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Thêm hàm mới để tính toán trạng thái sức khỏe
-  const calculateHealthStatus = (data) => {
-    // Kiểm tra các điều kiện để xác định trạng thái sức khỏe
-    if (
-      data.symptoms &&
-      data.symptoms.length > 0 &&
-      !data.symptoms.includes("none")
-    ) {
-      return "Cần chú ý";
-    }
+  // Hàm hiển thị modal thông báo vaccine đã tiêm
+  const showVaccineAlreadyTakenNotification = (vaccine) => {
+    console.log("=== showVaccineAlreadyTakenNotification called ==="); // Debug log
+    console.log("Vaccine data:", vaccine); // Debug log
 
-    // Nếu có bệnh mãn tính
-    if (data.chronicDiseases && data.chronicDiseases !== "Không có") {
-      return "Theo dõi";
-    }
+    // Force update state immediately
+    setSelectedVaccineInfo(vaccine);
+    setShowVaccineAlreadyTakenModal(true);
 
-    // Nếu có dị ứng đáng chú ý
-    if (data.allergies && data.allergies !== "Không có") {
-      return "Lưu ý dị ứng";
-    }
+    console.log("Modal state updated - should show modal now"); // Debug log
 
-    return "Bình thường";
+    // Tự động ẩn modal sau 20 giây
+    setTimeout(() => {
+      console.log("Auto-hiding modal after 20 seconds"); // Debug log
+      setShowVaccineAlreadyTakenModal(false);
+    }, 20000);
   };
 
-  // Get the selected student
-  const selectedStudent = students.find((s) => s.id === formData.id);
+  // Render modal thông báo vaccine đã tiêm - sử dụng Portal
+  const renderVaccineAlreadyTakenModal = () => {
+    console.log("renderVaccineAlreadyTakenModal called"); // Debug log
+    console.log("showVaccineAlreadyTakenModal:", showVaccineAlreadyTakenModal); // Debug log
+    console.log("selectedVaccineInfo:", selectedVaccineInfo); // Debug log
 
-  // Format date for display
-  const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("vi-VN", options);
-  };
-
-  // Calculate age from birthdate
-  const calculateAge = (dob) => {
-    if (!dob) return "";
-
-    // Handle year-only format
-    const fullDob = dob.length === 4 ? `${dob}-01-01` : dob;
-
-    const birthDate = new Date(fullDob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
+    if (!showVaccineAlreadyTakenModal || !selectedVaccineInfo) {
+      console.log("Modal not shown - missing state or info"); // Debug log
+      return null;
     }
 
-    return age;
+    console.log("Creating modal portal for vaccine:", selectedVaccineInfo.name); // Debug log
+
+    const modalContent = (
+      <div
+        className="vaccine-already-taken-modal-overlay"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 999999,
+          animation: "fadeIn 0.3s ease-out",
+        }}
+        onClick={() => {
+          console.log("Modal overlay clicked - closing modal"); // Debug log
+          setShowVaccineAlreadyTakenModal(false);
+        }}
+      >
+        <div
+          className="vaccine-already-taken-modal"
+          style={{
+            backgroundColor: "white",
+            borderRadius: "12px",
+            padding: "24px",
+            maxWidth: "600px",
+            width: "90%",
+            maxHeight: "80vh",
+            overflow: "auto",
+            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
+            position: "relative",
+            animation: "slideUp 0.3s ease-out",
+            border: "3px solid #ff6b6b",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            console.log("Modal content clicked - not closing"); // Debug log
+          }}
+        >
+          <div
+            className="modal-header"
+            style={{ textAlign: "center", marginBottom: "20px" }}
+          >
+            <div
+              className="modal-icon"
+              style={{ fontSize: "48px", marginBottom: "10px" }}
+            >
+              🚫
+            </div>
+            <h3 style={{ color: "#ff6b6b", margin: "0", fontSize: "24px" }}>
+              Vaccine Đã Được Tiêm
+            </h3>
+            <button
+              className="modal-close-btn"
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "15px",
+                background: "none",
+                border: "none",
+                fontSize: "30px",
+                cursor: "pointer",
+                color: "#999",
+              }}
+              onClick={() => {
+                console.log("Close button clicked"); // Debug log
+                setShowVaccineAlreadyTakenModal(false);
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="modal-content">
+            <div
+              className="vaccine-info-display"
+              style={{ marginBottom: "20px" }}
+            >
+              <h4
+                style={{
+                  color: "#333",
+                  fontSize: "20px",
+                  marginBottom: "10px",
+                }}
+              >
+                {selectedVaccineInfo.name}
+              </h4>
+              <p
+                className="vaccine-description"
+                style={{ color: "#666", marginBottom: "15px" }}
+              >
+                {selectedVaccineInfo.description}
+              </p>
+
+              <div
+                className="vaccine-details-grid"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "10px",
+                  marginBottom: "20px",
+                }}
+              >
+                <div
+                  className="vaccine-detail-item"
+                  style={{
+                    padding: "10px",
+                    background: "#f5f5f5",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <span
+                    className="label"
+                    style={{ fontWeight: "bold", color: "#333" }}
+                  >
+                    Số liều:
+                  </span>
+                  <span
+                    className="value"
+                    style={{ marginLeft: "5px", color: "#666" }}
+                  >
+                    {selectedVaccineInfo.totalDoses}
+                  </span>
+                </div>
+                <div
+                  className="vaccine-detail-item"
+                  style={{
+                    padding: "10px",
+                    background: "#f5f5f5",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <span
+                    className="label"
+                    style={{ fontWeight: "bold", color: "#333" }}
+                  >
+                    Khoảng cách:
+                  </span>
+                  <span
+                    className="value"
+                    style={{ marginLeft: "5px", color: "#666" }}
+                  >
+                    {selectedVaccineInfo.intervalDays} ngày
+                  </span>
+                </div>
+                <div
+                  className="vaccine-detail-item"
+                  style={{
+                    padding: "10px",
+                    background: "#f5f5f5",
+                    borderRadius: "8px",
+                    gridColumn: "1 / -1",
+                  }}
+                >
+                  <span
+                    className="label"
+                    style={{ fontWeight: "bold", color: "#333" }}
+                  >
+                    Độ tuổi:
+                  </span>
+                  <span
+                    className="value"
+                    style={{ marginLeft: "5px", color: "#666" }}
+                  >
+                    {selectedVaccineInfo.minAgeMonths}-
+                    {selectedVaccineInfo.maxAgeMonths} tháng
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="notification-message"
+              style={{
+                background: "#fff3cd",
+                border: "1px solid #ffeaa7",
+                borderRadius: "8px",
+                padding: "15px",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "10px",
+              }}
+            >
+              <div className="warning-icon" style={{ fontSize: "24px" }}>
+                ⚠️
+              </div>
+              <div className="message-text">
+                <p
+                  style={{
+                    margin: "0 0 10px 0",
+                    fontWeight: "bold",
+                    color: "#856404",
+                  }}
+                >
+                  Vaccine này đã được tiêm cho học sinh!
+                </p>
+                <p style={{ margin: "0 0 10px 0", color: "#856404" }}>
+                  Thông tin tiêm chủng đã được ghi nhận trong hệ thống và không
+                  thể thay đổi.
+                </p>
+                <p style={{ margin: "0", color: "#856404" }}>
+                  Nếu có thắc mắc, vui lòng liên hệ với y tế trường.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="modal-footer"
+            style={{ textAlign: "center", marginTop: "20px" }}
+          >
+            <button
+              className="btn-understood"
+              style={{
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                padding: "12px 24px",
+                borderRadius: "8px",
+                fontSize: "16px",
+                cursor: "pointer",
+                minWidth: "120px",
+              }}
+              onClick={() => {
+                console.log("Understood button clicked"); // Debug log
+                setShowVaccineAlreadyTakenModal(false);
+              }}
+            >
+              Đã hiểu
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+
+    // Sử dụng createPortal để render modal ngoài component tree
+    return createPortal(modalContent, document.body);
   };
 
-  // Filter declarations for the selected student
-  const getStudentDeclarations = (studentId) => {
-    return declarations.filter(
-      (declaration) => declaration.studentId === studentId
+  // Render thông báo thành công
+  const renderSuccessMessage = () => {
+    if (!showSuccessMessage) return null;
+
+    return (
+      <div className="success-message">
+        <div className="success-icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="12" cy="12" r="11" fill="#4CAF50" />
+            <path
+              fill="#FFFFFF"
+              d="M9.75 15.46l-3.15-3.15a.996.996 0 00-1.41 0 .996.996 0 000 1.41l3.86 3.86c.39.39 1.02.39 1.41 0l8.54-8.54a.996.996 0 000-1.41.996.996 0 00-1.41 0l-7.84 7.83z"
+            />
+          </svg>
+        </div>
+        <h3>Cập nhật hồ sơ sức khỏe thành công!</h3>
+        <p>Thông tin sức khỏe và tiêm chủng của học sinh đã được cập nhật</p>
+      </div>
     );
   };
 
-  // Sắp xếp khai báo theo thời gian mới nhất
-  const sortedDeclarations = declarations
-    .filter((declaration) =>
-      formData.studentId ? declaration.studentId === formData.studentId : true
-    )
-    .sort((a, b) => {
-      // Sắp xếp theo ngày tạo mới nhất (nếu có)
-      if (a.createdAt && b.createdAt) {
-        return new Date(b.createdAt) - new Date(a.createdAt);
+  // Render thông báo lỗi server
+  const renderServerError = () => {
+    if (!isServerError) return null;
+
+    return (
+      <div className="server-warning">
+        <div className="warning-icon">⚠️</div>
+        <div className="warning-content">
+          <h4>Kết nối máy chủ không ổn định</h4>
+          <p>
+            Hệ thống đang gặp vấn đề kết nối đến máy chủ. Dữ liệu có thể không
+            được lưu trữ đầy đủ.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  // Render danh sách vaccine để chọn
+  const renderVaccineSelection = () => {
+    if (isLoadingVaccines) {
+      return (
+        <div className="loading-spinner">Đang tải danh sách vaccine...</div>
+      );
+    }
+
+    if (vaccinesError) {
+      return <div className="error-message">{vaccinesError}</div>;
+    }
+
+    return (
+      <div className="vaccine-selection-section">
+        <h3>Thông tin tiêm chủng</h3>
+        <p className="help-text">
+          Chọn các loại vaccine mà học sinh đã tiêm. Phụ huynh có thể bỏ trống
+          hoặc chọn vaccine đã tiêm. Thông tin này giúp nhà trường theo dõi tình
+          trạng tiêm chủng của học sinh.
+          <br />
+          <strong>Lưu ý:</strong> Những vaccine đã được ghi nhận trong hệ thống
+          (có dấu ✓ Đã tiêm) không thể thay đổi và chỉ có thể xem thông tin.
+        </p>
+
+        <div className="vaccines-grid">
+          {vaccines.map((vaccine) => {
+            const isVaccinatedFromServer = vaccinatedFromServer.includes(
+              vaccine.id
+            );
+            const isSelected = selectedVaccines.includes(vaccine.id);
+
+            return (
+              <div
+                key={vaccine.id}
+                className={`vaccine-item ${isSelected ? "selected" : ""} ${
+                  isVaccinatedFromServer ? "vaccinated-from-server" : ""
+                }`}
+              >
+                <div className="vaccine-header">
+                  <input
+                    type="checkbox"
+                    id={`vaccine-${vaccine.id}`}
+                    checked={isSelected}
+                    onChange={() => handleVaccineChange(vaccine.id)}
+                    disabled={isVaccinatedFromServer}
+                  />
+                  <label htmlFor={`vaccine-${vaccine.id}`}>
+                    {vaccine.name}
+                    {isVaccinatedFromServer && (
+                      <span className="vaccinated-badge">✓ Đã tiêm</span>
+                    )}
+                  </label>
+                </div>
+
+                <div className="vaccine-description">{vaccine.description}</div>
+
+                <div className="vaccine-info">
+                  <span>Số liều: {vaccine.totalDoses}</span>
+                  <span>Khoảng cách: {vaccine.intervalDays} ngày</span>
+                  <span>
+                    Độ tuổi: {vaccine.minAgeMonths}-{vaccine.maxAgeMonths} tháng
+                  </span>
+                  <span
+                    className={`vaccine-status ${
+                      vaccine.isActive ? "active" : "inactive"
+                    }`}
+                  >
+                    {vaccine.isActive ? "Đang sử dụng" : "Ngừng sử dụng"}
+                  </span>
+                </div>
+
+                {isSelected && (
+                  <div className="vaccine-details">
+                    <div
+                      className="vaccine-administered-at"
+                      style={{ marginBottom: "15px" }}
+                    >
+                      <label htmlFor={`administered-at-${vaccine.id}`}>
+                        Địa điểm tiêm: <span className="required">*</span>
+                      </label>
+                      <select
+                        id={`administered-at-${vaccine.id}`}
+                        value={
+                          vaccineAdministeredAt[vaccine.id] || "Trường học"
+                        }
+                        onChange={(e) =>
+                          handleVaccineAdministeredAtChange(vaccine.id, e)
+                        }
+                        disabled={isVaccinatedFromServer}
+                        style={{
+                          width: "100%",
+                          padding: "8px 12px",
+                          border: "1px solid #ddd",
+                          borderRadius: "4px",
+                          fontSize: "14px",
+                        }}
+                      >
+                        <option value="Trường học">Trường học</option>
+                        <option value="Bệnh viện">Bệnh viện</option>
+                        <option value="Trạm y tế">Trạm y tế</option>
+                        <option value="Phòng khám tư">Phòng khám tư</option>
+                        <option value="Trung tâm y tế">Trung tâm y tế</option>
+                        <option value="Khác">Khác</option>
+                      </select>
+                    </div>
+
+                    <div className="vaccine-notes">
+                      <label htmlFor={`notes-${vaccine.id}`}>
+                        Ghi chú của phụ huynh:
+                      </label>
+                      <textarea
+                        id={`notes-${vaccine.id}`}
+                        placeholder={
+                          isVaccinatedFromServer
+                            ? "Vaccine đã tiêm - chỉ có thể xem thông tin"
+                            : "Thông tin bổ sung về tiêm chủng: ngày tiêm cụ thể, phản ứng (nếu có), bác sĩ tiêm..."
+                        }
+                        value={vaccineNotes[vaccine.id] || ""}
+                        onChange={(e) => handleVaccineNoteChange(vaccine.id, e)}
+                        disabled={isVaccinatedFromServer}
+                        style={{
+                          width: "100%",
+                          minHeight: "80px",
+                          padding: "8px 12px",
+                          border: "1px solid #ddd",
+                          borderRadius: "4px",
+                          fontSize: "14px",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {vaccines.length === 0 && !isLoadingVaccines && (
+          <div className="no-vaccines-message">
+            <p>Chưa có vaccine nào trong hệ thống.</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render validation summary
+  const renderValidationSummary = () => {
+    if (Object.keys(formErrors).length === 0) return null;
+
+    return (
+      <div className="validation-summary error-message">
+        <h3>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+          </svg>
+          Có {Object.keys(formErrors).length} lỗi cần sửa:
+        </h3>
+        <ul>
+          {Object.entries(formErrors).map(([fieldName, errorMessage]) => {
+            const fieldLabels = {
+              studentId: "Học sinh",
+              bloodType: "Nhóm máu",
+              height: "Chiều cao",
+              weight: "Cân nặng",
+              visionLeft: "Thị lực mắt trái",
+              visionRight: "Thị lực mắt phải",
+              hearingStatus: "Tình trạng thính lực",
+              lastPhysicalExamDate: "Ngày kiểm tra sức khỏe gần nhất",
+              emergencyContactInfo: "Thông tin liên lạc khẩn cấp",
+              allergies: "Dị ứng",
+              chronicDiseases: "Bệnh mãn tính",
+              dietaryRestrictions: "Hạn chế ăn uống",
+              specialNeeds: "Nhu cầu đặc biệt",
+            };
+
+            return (
+              <li key={fieldName}>
+                <strong>{fieldLabels[fieldName] || fieldName}:</strong>{" "}
+                {errorMessage}
+                <button
+                  type="button"
+                  className="error-goto-button"
+                  onClick={() => {
+                    const element =
+                      document.getElementById(fieldName) ||
+                      document.querySelector(`[name="${fieldName}"]`);
+                    if (element) {
+                      element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                      element.focus();
+                    }
+                  }}
+                >
+                  Đi tới
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  };
+
+  // Hàm tính character count với cảnh báo
+  const getCharacterCountInfo = (text, maxLength) => {
+    const currentLength = text ? text.length : 0;
+    const remaining = maxLength - currentLength;
+    const isNearLimit = remaining <= maxLength * 0.1; // Cảnh báo khi còn 10%
+
+    return {
+      currentLength,
+      remaining,
+      isNearLimit,
+      isOverLimit: remaining < 0,
+    };
+  };
+
+  // Render character counter
+  const renderCharacterCounter = (text, maxLength, fieldName) => {
+    const info = getCharacterCountInfo(text, maxLength);
+
+    return (
+      <div
+        className={`char-count ${info.isNearLimit ? "warning" : ""} ${
+          info.isOverLimit ? "error" : ""
+        }`}
+      >
+        {info.currentLength}/{maxLength} ký tự
+        {info.isNearLimit && !info.isOverLimit && (
+          <span className="char-warning"> - Sắp đạt giới hạn!</span>
+        )}
+        {info.isOverLimit && (
+          <span className="char-error"> - Vượt quá giới hạn!</span>
+        )}
+      </div>
+    );
+  };
+
+  // Hàm helper để validate email (nếu có trong emergency contact)
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Hàm helper để validate phone number (Việt Nam)
+  const isValidPhoneNumber = (phone) => {
+    const phoneRegex = /^(\+84|84|0)[3|5|7|8|9][0-9]{8}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ""));
+  };
+
+  // Hàm hiển thị tooltip cho validation
+  const renderFieldTooltip = (fieldName) => {
+    const tooltips = {
+      height: "Chiều cao được tính bằng cm, từ 30cm đến 300cm",
+      weight: "Cân nặng được tính bằng kg, từ 5kg đến 500kg",
+      emergencyContactInfo:
+        "Cần ít nhất 10 ký tự. Nên bao gồm số điện thoại và tên người liên hệ",
+      lastPhysicalExamDate:
+        "Ngày kiểm tra sức khỏe không được trong tương lai và không quá 5 năm",
+      allergies: "Mô tả chi tiết các loại dị ứng mà học sinh có (nếu có)",
+      chronicDiseases: "Liệt kê các bệnh mãn tính mà học sinh đang mắc phải",
+      dietaryRestrictions:
+        "Những hạn chế về ăn uống do tôn giáo, sức khỏe hoặc lý do khác",
+      specialNeeds:
+        "Các nhu cầu đặc biệt trong việc chăm sóc, học tập của học sinh",
+    };
+
+    if (!tooltips[fieldName]) return null;
+
+    return (
+      <span className="field-tooltip" title={tooltips[fieldName]}>
+        ℹ️
+      </span>
+    );
+  };
+
+  // Real-time validation cho các trường specific
+  const handleRealTimeValidation = (fieldName, value) => {
+    const errors = { ...formErrors };
+
+    switch (fieldName) {
+      case "height":
+        if (value && value !== "") {
+          const height = parseFloat(value);
+          if (isNaN(height)) {
+            errors.height = "Chiều cao phải là số";
+          } else if (height < 30) {
+            errors.height = "Chiều cao quá thấp (tối thiểu 30cm)";
+          } else if (height > 300) {
+            errors.height = "Chiều cao quá cao (tối đa 300cm)";
+          } else {
+            delete errors.height;
+          }
+        } else {
+          delete errors.height;
+        }
+        break;
+
+      case "weight":
+        if (value && value !== "") {
+          const weight = parseFloat(value);
+          if (isNaN(weight)) {
+            errors.weight = "Cân nặng phải là số";
+          } else if (weight < 5) {
+            errors.weight = "Cân nặng quá nhẹ (tối thiểu 5kg)";
+          } else if (weight > 500) {
+            errors.weight = "Cân nặng quá nặng (tối đa 500kg)";
+          } else {
+            delete errors.weight;
+          }
+        } else {
+          delete errors.weight;
+        }
+        break;
+
+      case "emergencyContactInfo":
+        if (value && value.trim() !== "") {
+          if (value.trim().length < 10) {
+            errors.emergencyContactInfo =
+              "Thông tin liên lạc khẩn cấp quá ngắn (tối thiểu 10 ký tự)";
+          } else {
+            delete errors.emergencyContactInfo;
+          }
+        } else {
+          errors.emergencyContactInfo =
+            "Vui lòng nhập thông tin liên lạc khẩn cấp";
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setFormErrors(errors);
+  };
+
+  // Tính toán progress của form
+  const calculateFormProgress = () => {
+    const { healthProfile } = formData;
+    const requiredFields = [
+      "bloodType",
+      "visionLeft",
+      "visionRight",
+      "hearingStatus",
+      "lastPhysicalExamDate",
+      "emergencyContactInfo",
+    ];
+
+    const optionalFields = [
+      "height",
+      "weight",
+      "allergies",
+      "chronicDiseases",
+      "dietaryRestrictions",
+      "specialNeeds",
+    ];
+
+    let completedRequired = 0;
+    let completedOptional = 0;
+
+    requiredFields.forEach((field) => {
+      if (
+        healthProfile[field] &&
+        healthProfile[field].toString().trim() !== ""
+      ) {
+        completedRequired++;
       }
-      // Nếu không có createdAt, sắp xếp theo date
-      return new Date(b.date) - new Date(a.date);
     });
+
+    optionalFields.forEach((field) => {
+      if (
+        healthProfile[field] &&
+        healthProfile[field].toString().trim() !== ""
+      ) {
+        completedOptional++;
+      }
+    });
+
+    const requiredProgress = (completedRequired / requiredFields.length) * 80; // 80% for required
+    const optionalProgress = (completedOptional / optionalFields.length) * 20; // 20% for optional
+
+    return Math.round(requiredProgress + optionalProgress);
+  };
+
+  // Render progress indicator
+  const renderFormProgress = () => {
+    const progress = calculateFormProgress();
+    const isComplete = progress === 100;
+
+    return (
+      <div className="form-progress-container">
+        <div className="form-progress-header">
+          <span className="progress-label">Tiến độ hoàn thành form</span>
+          <span
+            className={`progress-percentage ${isComplete ? "complete" : ""}`}
+          >
+            {progress}%
+          </span>
+        </div>
+        <div className="form-progress">
+          <div
+            className="form-progress-bar"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+        {progress < 100 && (
+          <div className="progress-hint">
+            Vui lòng điền đầy đủ thông tin bắt buộc (có dấu{" "}
+            <span className="required">*</span>)
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="health-declaration-container">
-      {/* Header */}
-      <div className="health-declaration-header">
-        <div className="school-info">
-          <img
-            src={MOCK_SCHOOL.logo || "/default-school-logo.png"}
-            alt={MOCK_SCHOOL.name}
-            className="school-logo"
-          />
-          <h1>Khai báo sức khỏe học sinh</h1>
-          <p>{MOCK_SCHOOL.name}</p>
-        </div>
-        <p className="header-description">
-          Thông tin khai báo sẽ được gửi đến y tá/bác sĩ của trường để theo dõi
-          sức khỏe của học sinh
+      <ToastContainer position="top-right" autoClose={5000} />
+
+      {renderServerError()}
+      {renderSuccessMessage()}
+      {renderValidationSummary()}
+      {renderVaccineAlreadyTakenModal()}
+
+      <div className="page-header">
+        <h1>Khai báo sức khỏe học sinh</h1>
+        <p>
+          Cập nhật thông tin sức khỏe và tiêm chủng của học sinh để nhà trường
+          có thể chăm sóc tốt nhất. Phụ huynh có thể bỏ trống phần vaccine hoặc
+          chọn những vaccine đã tiêm.
         </p>
       </div>
 
-      {/* Tab navigation */}
-      <div className="tab-navigation">
-        <button
-          className={`tab-button ${activeTab === "form" ? "active" : ""}`}
-          onClick={() => setActiveTab("form")}
-        >
-          <i className="fas fa-file-medical"></i> Biểu mẫu khai báo
-        </button>
-        <button
-          className={`tab-button ${activeTab === "history" ? "active" : ""}`}
-          onClick={() => setActiveTab("history")}
-        >
-          <i className="fas fa-history"></i> Lịch sử khai báo
-        </button>
-      </div>
+      {/* Form khai báo sức khỏe */}
+      <form onSubmit={handleSubmit} className="health-declaration-form">
+        {/* Form Progress */}
+        {renderFormProgress()}
 
-      {/* Hiển thị thông báo thành công dạng modal overlay */}
-      {showSuccessMessage && (
-        <div className="success-container">
-          <div className="success-message">
-            <div className="success-icon">
-              <i className="fas fa-check-circle"></i>
+        {/* Validation Summary */}
+        {renderValidationSummary()}
+        {/* Student selector */}
+        <div className="form-section">
+          <h3>Thông tin học sinh</h3>
+
+          <div className="student-selector">
+            <label htmlFor="studentId">
+              Chọn học sinh: <span className="required">*</span>
+              {formErrors.studentId && (
+                <span className="error-text">{formErrors.studentId}</span>
+              )}
+            </label>
+            <select
+              id="studentId"
+              value={formData.healthProfile.id}
+              onChange={handleStudentChange}
+              disabled={isSubmitting || studentsLoading}
+              className={formErrors.studentId ? "error" : ""}
+            >
+              {students.map((student) => (
+                <option key={student.id} value={student.id}>
+                  {student.fullName} - Lớp {student.className}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Health Profile Information */}
+        <div className="form-section">
+          <h3>Thông tin sức khỏe cơ bản</h3>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="bloodType">
+                Nhóm máu: <span className="required">*</span>
+                {formErrors.bloodType && (
+                  <span className="error-text">{formErrors.bloodType}</span>
+                )}
+              </label>
+              <select
+                id="bloodType"
+                name="bloodType"
+                value={formData.healthProfile.bloodType}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className={formErrors.bloodType ? "error" : ""}
+              >
+                {BLOOD_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
-            <h2>Gửi khai báo thành công!</h2>
-            <p>
-              Khai báo sức khỏe của bạn đã được gửi đi. Nhà trường sẽ xem xét và
-              phản hồi sớm.
-            </p>
-            <div className="success-actions">
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  setShowSuccessMessage(false);
-                  setActiveTab("form");
-                }}
+
+            <div className="form-group">
+              <label htmlFor="height">
+                Chiều cao (cm): {renderFieldTooltip("height")}
+                {formErrors.height && (
+                  <span className="error-text">{formErrors.height}</span>
+                )}
+              </label>
+              <input
+                type="number"
+                id="height"
+                name="height"
+                value={formData.healthProfile.height}
+                onChange={handleInputChange}
+                min="30"
+                max="300"
+                step="0.1"
+                disabled={isSubmitting}
+                placeholder="Ví dụ: 150"
+                className={formErrors.height ? "error" : ""}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="weight">
+                Cân nặng (kg): {renderFieldTooltip("weight")}
+                {formErrors.weight && (
+                  <span className="error-text">{formErrors.weight}</span>
+                )}
+              </label>
+              <input
+                type="number"
+                id="weight"
+                name="weight"
+                value={formData.healthProfile.weight}
+                onChange={handleInputChange}
+                min="5"
+                max="500"
+                step="0.1"
+                disabled={isSubmitting}
+                placeholder="Ví dụ: 45"
+                className={formErrors.weight ? "error" : ""}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="visionLeft">
+                Thị lực mắt trái: <span className="required">*</span>
+                {formErrors.visionLeft && (
+                  <span className="error-text">{formErrors.visionLeft}</span>
+                )}
+              </label>
+              <select
+                id="visionLeft"
+                name="visionLeft"
+                value={formData.healthProfile.visionLeft}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className={formErrors.visionLeft ? "error" : ""}
               >
-                Tạo khai báo mới
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => {
-                  setShowSuccessMessage(false);
-                  setActiveTab("history");
-                  // Cuộn lên đầu phần lịch sử để thấy khai báo mới nhất
-                  setTimeout(() => {
-                    const historySection =
-                      document.querySelector(".declarations-list");
-                    if (historySection)
-                      historySection.scrollIntoView({ behavior: "smooth" });
-                  }, 100);
-                }}
+                {VISION_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="visionRight">
+                Thị lực mắt phải: <span className="required">*</span>
+                {formErrors.visionRight && (
+                  <span className="error-text">{formErrors.visionRight}</span>
+                )}
+              </label>
+              <select
+                id="visionRight"
+                name="visionRight"
+                value={formData.healthProfile.visionRight}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className={formErrors.visionRight ? "error" : ""}
               >
-                Xem lịch sử khai báo
-              </button>
+                {VISION_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="hearingStatus">
+                Tình trạng thính lực: <span className="required">*</span>
+                {formErrors.hearingStatus && (
+                  <span className="error-text">{formErrors.hearingStatus}</span>
+                )}
+              </label>
+              <select
+                id="hearingStatus"
+                name="hearingStatus"
+                value={formData.healthProfile.hearingStatus}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className={formErrors.hearingStatus ? "error" : ""}
+              >
+                {HEARING_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Hiển thị nội dung tab dưới thông báo thành công */}
-      {activeTab === "form" ? (
-        <div className="declaration-form-section">
-          {/* Thông báo lỗi kết nối */}
-          {fetchError && (
-            <div className="error-message global-error">
-              <i className="fas fa-exclamation-triangle"></i> {fetchError}
-            </div>
-          )}
+        <div className="form-section">
+          <h3>Thông tin y tế bổ sung</h3>
 
-          {/* Thông báo trạng thái form */}
-          {formSubmitStatus.submitted && (
-            <div
-              className={`form-message ${
-                formSubmitStatus.success ? "success" : "error"
-              }`}
-            >
-              <i
-                className={`fas ${
-                  formSubmitStatus.success
-                    ? "fa-check-circle"
-                    : "fa-exclamation-triangle"
-                }`}
-              ></i>
-              {formSubmitStatus.message}
-            </div>
-          )}
-
-          {/* Form khai báo sức khỏe */}
-          <form className="health-declaration-form" onSubmit={handleSubmit}>
-            {/* Phần 1: Thông tin học sinh - Đã sửa lại */}
-            <div className="form-section" id="student-info-section">
-              <h3>
-                <i className="fas fa-user-graduate"></i> 1. Thông tin học sinh
-              </h3>
-
-              {studentsLoading ? (
-                <div className="loading-container form-loading">
-                  <div className="spinner-container">
-                    <div className="spinner-border"></div>
-                  </div>
-                  <p>Đang tải thông tin học sinh...</p>
-                  <button
-                    onClick={refreshStudents}
-                    className="retry-button"
-                    type="button"
-                  >
-                    <i className="fas fa-sync"></i> Tải lại
-                  </button>
-                </div>
-              ) : studentsError ? (
-                <div className="error-message">
-                  <i className="fas fa-exclamation-circle"></i>
-                  <p>{studentsError}</p>
-                  <button
-                    onClick={refreshStudents}
-                    className="retry-button"
-                    type="button"
-                  >
-                    <i className="fas fa-sync"></i> Thử lại
-                  </button>
-                </div>
-              ) : students.length === 0 ? (
-                <div className="no-student-info">
-                  <i className="fas fa-exclamation-triangle"></i>
-                  <p>
-                    Không tìm thấy thông tin học sinh. Vui lòng liên hệ với nhà
-                    trường.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Phần chọn học sinh */}
-                  <div className="student-tabs-container">
-                    <p className="selection-label">Chọn học sinh:</p>
-                    <div className="student-tabs">
-                      {students.map((student) => (
-                        <div
-                          key={student.id}
-                          className={`student-tab ${
-                            formData.id === student.id ? "active" : ""
-                          }`}
-                          onClick={() => handleStudentChange(student.id)}
-                        >
-                          <div className="student-avatar">
-                            <img
-                              src={
-                                student.avatar ||
-                                "https://i.pravatar.cc/150?img=11"
-                              }
-                              alt={student.fullName || student.name}
-                            />
-                          </div>
-                          <div className="student-tab-info">
-                            <span className="student-name">
-                              {student.fullName || student.name}
-                            </span>
-                            <span className="student-class">
-                              Lớp {student.className || student.class}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Hiển thị thông tin chi tiết học sinh đã chọn */}
-                  {selectedStudent && (
-                    <div className="selected-student-details">
-                      {isLoadingProfile ? (
-                        <div className="profile-loading">
-                          <div className="spinner-border-sm"></div>
-                          <span>Đang tải hồ sơ...</span>
-                        </div>
-                      ) : (
-                        <>
-                          {/* Phần header thông tin học sinh */}
-                          <div className="student-profile-header">
-                            <img
-                              src={
-                                selectedStudent.avatar ||
-                                "https://i.pravatar.cc/150?img=11"
-                              }
-                              alt={
-                                selectedStudent.fullName || selectedStudent.name
-                              }
-                              className="profile-avatar"
-                            />
-                            <div className="profile-basic-info">
-                              <h4>
-                                {selectedStudent.fullName ||
-                                  selectedStudent.name}
-                              </h4>
-                              <p>
-                                Lớp{" "}
-                                {selectedStudent.className ||
-                                  selectedStudent.class}
-                              </p>
-                              <p className="school-name">
-                                {selectedStudent.schoolName || MOCK_SCHOOL.name}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Thông tin chi tiết */}
-                          <div className="student-profile-details">
-                            <div className="detail-item">
-                              <span className="label">Mã học sinh:</span>
-                              <span className="value">
-                                {selectedStudent.studentCode ||
-                                  selectedStudent.id}
-                              </span>
-                            </div>
-                            <div className="detail-item">
-                              <span className="label">Ngày sinh:</span>
-                              <span className="value">
-                                {formatDate(
-                                  selectedStudent.dateOfBirth ||
-                                    selectedStudent.dob
-                                ) || "Chưa cập nhật"}
-                              </span>
-                            </div>
-                            <div className="detail-item">
-                              <span className="label">Tuổi:</span>
-                              <span className="value">
-                                {selectedStudent.age ||
-                                  calculateAge(
-                                    selectedStudent.dateOfBirth ||
-                                      selectedStudent.dob
-                                  ) ||
-                                  "N/A"}{" "}
-                                tuổi
-                              </span>
-                            </div>
-                            <div className="detail-item">
-                              <span className="label">Giới tính:</span>
-                              <span className="value">
-                                {selectedStudent.gender || "Chưa cập nhật"}
-                              </span>
-                            </div>
-                            <div className="detail-item health-status-item">
-                              <span className="label">Tình trạng:</span>
-                              <span className="value health-status">
-                                {healthProfiles &&
-                                healthProfiles[selectedStudent.id]
-                                  ? healthProfiles[selectedStudent.id]
-                                      .healthStatus || "Bình thường"
-                                  : selectedStudent.healthStatus ||
-                                    "Chưa có thông tin"}
-                              </span>
-                            </div>
-                            {/* Hiển thị thông tin phụ huynh nếu có */}
-                            {parentInfo && (
-                              <div className="detail-item parent-info">
-                                <span className="label">Phụ huynh:</span>
-                                <span className="value">
-                                  {parentInfo.fullName}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Hiển thị khai báo gần đây */}
-                          {getStudentDeclarations(selectedStudent.id).length >
-                            0 && (
-                            <div className="recent-declaration">
-                              <h5>Khai báo gần đây nhất:</h5>
-                              <div
-                                className={`recent-status ${getStatusBadgeClass(
-                                  getStudentDeclarations(selectedStudent.id)[0]
-                                    .status
-                                )}`}
-                              >
-                                <div className="recent-date">
-                                  <i className="far fa-calendar-alt"></i>{" "}
-                                  {formatDate(
-                                    getStudentDeclarations(
-                                      selectedStudent.id
-                                    )[0].date
-                                  )}
-                                </div>
-                                <div className="recent-decision">
-                                  {
-                                    getStudentDeclarations(
-                                      selectedStudent.id
-                                    )[0].attendanceDecision
-                                  }
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Hiển thị lỗi nếu có */}
-                  {formErrors.id && (
-                    <div className="error-message">{formErrors.id}</div>
-                  )}
-                </>
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label htmlFor="allergies">
+                Dị ứng (nếu có):
+                {formErrors.allergies && (
+                  <span className="error-text">{formErrors.allergies}</span>
+                )}
+              </label>
+              <textarea
+                id="allergies"
+                name="allergies"
+                value={formData.healthProfile.allergies}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder="Liệt kê các dị ứng của học sinh (tối đa 500 ký tự)"
+                maxLength="500"
+                className={formErrors.allergies ? "error" : ""}
+              ></textarea>
+              {renderCharacterCounter(
+                formData.healthProfile.allergies,
+                500,
+                "allergies"
               )}
             </div>
+          </div>
 
-            {/* Phần 2: Thông tin khai báo */}
-            <div className="form-section">
-              <h3>2. Thông tin sức khỏe cơ bản</h3>
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label htmlFor="chronicDiseases">
+                Bệnh mãn tính (nếu có):
+                {formErrors.chronicDiseases && (
+                  <span className="error-text">
+                    {formErrors.chronicDiseases}
+                  </span>
+                )}
+              </label>
+              <textarea
+                id="chronicDiseases"
+                name="chronicDiseases"
+                value={formData.healthProfile.chronicDiseases}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder="Thông tin về các bệnh mãn tính (tối đa 500 ký tự)"
+                maxLength="500"
+                className={formErrors.chronicDiseases ? "error" : ""}
+              ></textarea>
+              {renderCharacterCounter(
+                formData.healthProfile.chronicDiseases,
+                500,
+                "chronicDiseases"
+              )}
+            </div>
+          </div>
 
-              <div className="form-group">
-                <label htmlFor="lastPhysicalExamDate">
-                  Ngày khai báo <span className="required">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="lastPhysicalExamDate"
-                  name="lastPhysicalExamDate"
-                  value={formData.lastPhysicalExamDate}
-                  onChange={handleInputChange}
-                  max={new Date().toISOString().split("T")[0]}
-                  required
-                />
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label htmlFor="dietaryRestrictions">
+                Hạn chế về ăn uống:
+                {formErrors.dietaryRestrictions && (
+                  <span className="error-text">
+                    {formErrors.dietaryRestrictions}
+                  </span>
+                )}
+              </label>
+              <textarea
+                id="dietaryRestrictions"
+                name="dietaryRestrictions"
+                value={formData.healthProfile.dietaryRestrictions}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder="Thông tin về các hạn chế trong chế độ ăn uống của học sinh (tối đa 500 ký tự)"
+                maxLength="500"
+                className={formErrors.dietaryRestrictions ? "error" : ""}
+              ></textarea>
+              {renderCharacterCounter(
+                formData.healthProfile.dietaryRestrictions,
+                500,
+                "dietaryRestrictions"
+              )}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label htmlFor="emergencyContactInfo">
+                Thông tin liên lạc khẩn cấp: <span className="required">*</span>{" "}
+                {renderFieldTooltip("emergencyContactInfo")}
+                {formErrors.emergencyContactInfo && (
+                  <span className="error-text">
+                    {formErrors.emergencyContactInfo}
+                  </span>
+                )}
+              </label>
+              <textarea
+                id="emergencyContactInfo"
+                name="emergencyContactInfo"
+                value={formData.healthProfile.emergencyContactInfo}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder="Số điện thoại và thông tin liên lạc trong trường hợp khẩn cấp (bắt buộc, tối thiểu 10 ký tự)"
+                className={formErrors.emergencyContactInfo ? "error" : ""}
+              ></textarea>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="lastPhysicalExamDate">
+                Ngày kiểm tra sức khỏe gần nhất:{" "}
+                <span className="required">*</span>{" "}
+                {renderFieldTooltip("lastPhysicalExamDate")}
                 {formErrors.lastPhysicalExamDate && (
-                  <div className="error-message">
+                  <span className="error-text">
                     {formErrors.lastPhysicalExamDate}
-                  </div>
+                  </span>
                 )}
-              </div>
-
-              {/* Thêm các trường thông tin sức khỏe mới */}
-              <div className="form-row">
-                <div className="form-group half">
-                  <label htmlFor="height">Chiều cao (cm)</label>
-                  <input
-                    type="number"
-                    id="height"
-                    name="height"
-                    placeholder="Nhập chiều cao (cm)"
-                    value={formData.height}
-                    onChange={handleInputChange}
-                    min="0"
-                    step="0.1"
-                  />
-                  {formErrors.height && (
-                    <div className="error-message">{formErrors.height}</div>
-                  )}
-                </div>
-
-                <div className="form-group half">
-                  <label htmlFor="weight">Cân nặng (kg)</label>
-                  <input
-                    type="number"
-                    id="weight"
-                    name="weight"
-                    placeholder="Nhập cân nặng (kg)"
-                    value={formData.weight}
-                    onChange={handleInputChange}
-                    min="0"
-                    step="0.1"
-                  />
-                  {formErrors.weight && (
-                    <div className="error-message">{formErrors.weight}</div>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group half">
-                  <label htmlFor="bloodType">Nhóm máu</label>
-                  <select
-                    id="bloodType"
-                    name="bloodType"
-                    value={formData.bloodType}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">-- Chọn nhóm máu --</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                    <option value="Chưa xác định">Chưa xác định</option>
-                  </select>
-                </div>
-
-                <div className="form-group half">
-                  <label htmlFor="allergies">Dị ứng</label>
-                  <input
-                    type="text"
-                    id="allergies"
-                    name="allergies"
-                    placeholder="Nhập thông tin dị ứng (nếu có)"
-                    value={formData.allergies}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="chronicDiseases">Bệnh mãn tính</label>
-                <input
-                  type="text"
-                  id="chronicDiseases"
-                  name="chronicDiseases"
-                  placeholder="Nhập thông tin về bệnh mãn tính (nếu có)"
-                  value={formData.chronicDiseases}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              {/* Phần thị lực */}
-              <div className="form-row">
-                <div className="form-group half">
-                  <label htmlFor="visionLeft">Thị lực mắt trái</label>
-                  <input
-                    type="text"
-                    id="visionLeft"
-                    name="visionLeft"
-                    placeholder="Ví dụ: 20/20"
-                    value={formData.visionLeft}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="form-group half">
-                  <label htmlFor="visionRight">Thị lực mắt phải</label>
-                  <input
-                    type="text"
-                    id="visionRight"
-                    name="visionRight"
-                    placeholder="Ví dụ: 20/20"
-                    value={formData.visionRight}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="hearingStatus">Thính lực</label>
-                <select
-                  id="hearingStatus"
-                  name="hearingStatus"
-                  value={formData.hearingStatus}
-                  onChange={handleInputChange}
-                >
-                  <option value="">-- Chọn tình trạng thính lực --</option>
-                  <option value="Bình thường">Bình thường</option>
-                  <option value="Giảm nhẹ">Giảm nhẹ</option>
-                  <option value="Giảm trung bình">Giảm trung bình</option>
-                  <option value="Giảm nặng">Giảm nặng</option>
-                  <option value="Chưa kiểm tra">Chưa kiểm tra</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="dietaryRestrictions">
-                  Chế độ ăn uống đặc biệt
-                </label>
-                <input
-                  type="text"
-                  id="dietaryRestrictions"
-                  name="dietaryRestrictions"
-                  placeholder="Nhập thông tin về hạn chế ăn uống (nếu có)"
-                  value={formData.dietaryRestrictions}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="immunizationStatus">
-                  Tình trạng tiêm chủng
-                </label>
-                <select
-                  id="immunizationStatus"
-                  name="immunizationStatus"
-                  value={formData.immunizationStatus}
-                  onChange={handleInputChange}
-                >
-                  <option value="">-- Chọn tình trạng tiêm chủng --</option>
-                  <option value="Đầy đủ">Đầy đủ</option>
-                  <option value="Chưa đầy đủ">Chưa đầy đủ</option>
-                  <option value="Đang cập nhật">Đang cập nhật</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="specialNeeds">Nhu cầu đặc biệt</label>
-                <textarea
-                  id="specialNeeds"
-                  name="specialNeeds"
-                  placeholder="Nhập thông tin về nhu cầu đặc biệt (nếu có)"
-                  value={formData.specialNeeds}
-                  onChange={handleInputChange}
-                  rows="2"
-                ></textarea>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="emergencyContactInfo">
-                  Thông tin liên hệ khẩn cấp
-                </label>
-                <textarea
-                  id="emergencyContactInfo"
-                  name="emergencyContactInfo"
-                  placeholder="Nhập thông tin liên hệ khẩn cấp"
-                  value={formData.emergencyContactInfo}
-                  onChange={handleInputChange}
-                  rows="2"
-                ></textarea>
-              </div>
+              </label>
+              <input
+                type="date"
+                id="lastPhysicalExamDate"
+                name="lastPhysicalExamDate"
+                value={formData.healthProfile.lastPhysicalExamDate}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                max={new Date().toISOString().split("T")[0]}
+                className={formErrors.lastPhysicalExamDate ? "error" : ""}
+              />
             </div>
+          </div>
 
-            {/* Phần 3: Triệu chứng và ghi chú */}
-            <div className="form-section">
-              <h3>3. Triệu chứng và ghi chú</h3>
-
-              <div className="form-group">
-                <label>
-                  Triệu chứng <span className="required">*</span>
-                </label>
-                <div className="symptoms-grid">
-                  {SYMPTOM_OPTIONS.map((symptom) => (
-                    <div className="symptom-checkbox" key={symptom.id}>
-                      <input
-                        type="checkbox"
-                        id={`symptom-${symptom.id}`}
-                        checked={formData.symptoms.includes(symptom.id)}
-                        onChange={() => handleSymptomChange(symptom.id)}
-                        disabled={formData.symptoms.includes("none")}
-                      />
-                      <label htmlFor={`symptom-${symptom.id}`}>
-                        {symptom.label}
-                      </label>
-                    </div>
-                  ))}
-                  <div className="symptom-checkbox symptom-none">
-                    <input
-                      type="checkbox"
-                      id="symptom-none"
-                      checked={formData.symptoms.includes("none")}
-                      onChange={() => handleSymptomChange("none")}
-                    />
-                    <label htmlFor="symptom-none">Không có triệu chứng</label>
-                  </div>
-                </div>
-                {formErrors.symptoms && (
-                  <div className="error-message">{formErrors.symptoms}</div>
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label htmlFor="specialNeeds">
+                Nhu cầu đặc biệt (nếu có):
+                {formErrors.specialNeeds && (
+                  <span className="error-text">{formErrors.specialNeeds}</span>
                 )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="notes">Ghi chú bổ sung</label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  placeholder="Nhập các thông tin bổ sung về tình trạng sức khỏe của học sinh..."
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  rows="4"
-                ></textarea>
-              </div>
+              </label>
+              <textarea
+                id="specialNeeds"
+                name="specialNeeds"
+                value={formData.healthProfile.specialNeeds}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder="Thông tin về các nhu cầu đặc biệt của học sinh (tối đa 500 ký tự)"
+                maxLength="500"
+                className={formErrors.specialNeeds ? "error" : ""}
+              ></textarea>
+              <small className="char-count">
+                {formData.healthProfile.specialNeeds?.length || 0}/500 ký tự
+              </small>
             </div>
-
-            <div className="form-actions">
-              <button
-                type="submit"
-                className="submit-btn"
-                disabled={isSubmitting || isLoadingHealthProfiles}
-              >
-                {isSubmitting ? (
-                  <div className="button-loading">
-                    <div className="spinner-border-sm"></div>
-                    <span>Đang gửi...</span>
-                  </div>
-                ) : (
-                  <>
-                    <i className="fas fa-paper-plane"></i> Gửi khai báo
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-
-          <div className="declaration-info">
-            <h3>
-              <i className="fas fa-info-circle"></i> Lưu ý quan trọng
-            </h3>
-            <ul>
-              <li>
-                Thông tin khai báo sẽ được gửi trực tiếp đến y tá/bác sĩ của{" "}
-                {MOCK_SCHOOL.name}.
-              </li>
-              <li>
-                Vui lòng khai báo thông tin chính xác để nhà trường có biện pháp
-                theo dõi và hỗ trợ kịp thời.
-              </li>
-              <li>
-                Với các triệu chứng nghiêm trọng, phụ huynh nên đưa học sinh đến
-                cơ sở y tế để được khám và điều trị.
-              </li>
-              <li>
-                Y tá nhà trường sẽ liên hệ với phụ huynh nếu cần thêm thông tin.
-              </li>
-            </ul>
           </div>
         </div>
-      ) : (
-        <div className="declaration-history-section">
-          {students.length > 0 && (
-            <div className="history-filter">
-              <div className="filter-student">
-                <h3>Lịch sử khai báo sức khỏe</h3>
-                <div className="student-filter-tabs">
-                  <button
-                    className={formData.studentId === "" ? "active" : ""}
-                    onClick={() =>
-                      setFormData((prev) => ({ ...prev, studentId: "" }))
-                    }
-                    type="button"
-                  >
-                    Tất cả học sinh
-                  </button>
-                  {students.map((student) => (
-                    <button
-                      key={student.id}
-                      className={
-                        formData.studentId === student.id ? "active" : ""
-                      }
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          studentId: student.id,
-                        }))
-                      }
-                      type="button"
-                    >
-                      {student.fullName || student.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+
+        {/* Vaccine selection section */}
+        {renderVaccineSelection()}
+
+        {/* Submit button */}
+        <div className="form-actions">
+          {/* Debug button - chỉ hiển thị khi đang develop */}
+          {process.env.NODE_ENV === "development" && (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  console.log("=== DEBUG FORM DATA ===");
+                  console.log("Form Data:", formData);
+                  console.log("Selected Vaccines:", selectedVaccines);
+                  console.log("Vaccine Notes:", vaccineNotes);
+                  console.log(
+                    "Vaccine Administered At:",
+                    vaccineAdministeredAt
+                  );
+                  console.log("Vaccinated From Server:", vaccinatedFromServer);
+                  console.log("Form Errors:", formErrors);
+                  console.log("Is Submitting:", isSubmitting);
+                  console.log("Auth Token:", localStorage.getItem("authToken"));
+                }}
+                style={{
+                  backgroundColor: "#f0f0f0",
+                  border: "1px solid #ccc",
+                  padding: "8px 16px",
+                  marginRight: "10px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                🐛 Debug Data
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  console.log("=== TESTING MODAL ===");
+                  const testVaccine = {
+                    id: 999,
+                    name: "Test Vaccine Modal",
+                    description: "Đây là test để kiểm tra modal hiển thị",
+                    totalDoses: 2,
+                    intervalDays: 30,
+                    minAgeMonths: 6,
+                    maxAgeMonths: 60,
+                  };
+                  showVaccineAlreadyTakenNotification(testVaccine);
+                }}
+                style={{
+                  backgroundColor: "#ff6b6b",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 16px",
+                  marginRight: "10px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                🧪 Test Modal
+              </button>
+            </>
           )}
 
-          {isLoading ? (
-            <div className="loading-container">
-              <div className="spinner-container">
-                <div className="spinner-border"></div>
-              </div>
-              <p>Đang tải lịch sử khai báo...</p>
-            </div>
-          ) : declarations.length === 0 ? (
-            <div className="no-declarations">
-              <i className="fas fa-folder-open"></i>
-              <p>Chưa có khai báo sức khỏe nào được ghi nhận</p>
-            </div>
-          ) : (
-            <div className="declarations-list">
-              {sortedDeclarations.map((declaration) => (
-                <div className="declaration-card" key={declaration.id}>
-                  <div className="declaration-header">
-                    <div className="declaration-info">
-                      <h3>{declaration.studentName}</h3>
-                      <p className="declaration-date">
-                        <i className="far fa-calendar-alt"></i>{" "}
-                        {formatDate(declaration.date)}
-                        {declaration.createdAt && (
-                          <span className="declaration-time">
-                            {" "}
-                            ({formatTime(declaration.createdAt)})
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <div
-                      className={`status-badge ${getStatusBadgeClass(
-                        declaration.status
-                      )}`}
-                    >
-                      {declaration.status === "approved"
-                        ? "Đã duyệt"
-                        : declaration.status === "rejected"
-                        ? "Từ chối"
-                        : "Đang chờ"}
-                    </div>
-                  </div>
-
-                  <div className="declaration-body">
-                    <div className="declaration-item">
-                      <span className="label">Triệu chứng:</span>
-                      <div className="symptoms-list">
-                        {declaration.symptoms.length > 0 ? (
-                          declaration.symptoms.map((symptom, index) => (
-                            <span className="symptom-tag" key={index}>
-                              {symptom}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="no-symptoms">
-                            Không có triệu chứng
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {declaration.temperature > 0 && (
-                      <div className="declaration-item">
-                        <span className="label">Nhiệt độ:</span>
-                        <span
-                          className={`temperature-value ${
-                            declaration.temperature >= 37.5 ? "high-temp" : ""
-                          }`}
-                        >
-                          {declaration.temperature}°C
-                        </span>
-                      </div>
-                    )}
-
-                    {declaration.notes && (
-                      <div className="declaration-item">
-                        <span className="label">Ghi chú:</span>
-                        <span className="notes-value">{declaration.notes}</span>
-                      </div>
-                    )}
-
-                    <div className="declaration-item">
-                      <span className="label">Kết quả:</span>
-                      <span className="decision-value">
-                        {declaration.attendanceDecision}
-                      </span>
-                    </div>
-                  </div>
-
-                  {declaration.reviewedBy && (
-                    <div className="declaration-footer">
-                      <p>
-                        <i className="fas fa-user-nurse"></i> Phản hồi bởi:{" "}
-                        {declaration.reviewedBy}
-                      </p>
-                      <p>
-                        <i className="far fa-clock"></i> Thời gian:{" "}
-                        {declaration.reviewedAt}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <button
+            type="submit"
+            className="submit-button"
+            disabled={isSubmitting}
+          >
+            {isSubmitting
+              ? "Đang gửi dữ liệu..."
+              : "Cập nhật khai báo sức khỏe"}
+          </button>
         </div>
-      )}
+
+        {/* Progress bar */}
+        {renderFormProgress()}
+      </form>
     </div>
   );
-};
-
-// Sửa lỗi hàm formatDate
-const formatDate = (dateString) => {
-  if (!dateString) return "";
-
-  try {
-    // Handle year-only format
-    const fullDate =
-      dateString.length === 4 ? `${dateString}-01-01` : dateString;
-
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(fullDate).toLocaleDateString("vi-VN", options);
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return ""; // Return empty string if can't format
-  }
-};
-
-// Hàm định dạng thời gian
-const formatTime = (dateTimeString) => {
-  if (!dateTimeString) return "";
-
-  try {
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch (error) {
-    console.error("Error formatting time:", error);
-    return "";
-  }
-};
-
-// Helper function for status badge classes
-const getStatusBadgeClass = (status) => {
-  switch (status) {
-    case "approved":
-      return "status-approved";
-    case "rejected":
-      return "status-rejected";
-    case "pending":
-      return "status-pending";
-    default:
-      return "";
-  }
 };
 
 export default HealthDeclaration;

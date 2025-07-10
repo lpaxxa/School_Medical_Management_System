@@ -109,22 +109,12 @@ export const updateUser = async (userId, userData) => {
     console.log('Update data:', userData);
     console.log('Using auth token:', getAuthToken() ? 'Yes' : 'No');
     
-    // Chuẩn bị data theo format API yêu cầu - bao gồm cả role-specific fields
+    // Chuẩn bị data theo format API yêu cầu
     const updatePayload = {
       email: userData.email,
       password: userData.password,
-      phoneNumber: userData.phoneNumber,
-      fullName: userData.fullName
+      phoneNumber: userData.phoneNumber
     };
-
-    // Thêm fields theo role
-    if (userData.role === 'PARENT') {
-      updatePayload.address = userData.address;
-      updatePayload.relationshipType = userData.relationshipType;
-      updatePayload.occupation = userData.occupation;
-    } else if (userData.role === 'NURSE') {
-      updatePayload.qualification = userData.qualification;
-    }
     
     console.log('Update payload:', updatePayload);
     console.log('API endpoint:', `${API_BASE_URL}/update/${userId}`);
@@ -227,32 +217,91 @@ export const toggleUserStatus = async (userId, isActive) => {
     console.log('Toggling user status:', userId, isActive);
     console.log('Using auth token:', getAuthToken() ? 'Yes' : 'No');
     
-    const response = await fetch(`${API_BASE_URL}/toggle-status/${userId}`, {
-      method: 'PATCH',
+    // Đảm bảo userId có đúng định dạng - KHÔNG sửa đổi userId đầu vào
+    // API yêu cầu chính xác định dạng: /update-activation-status/ADMIN038?isActive=false
+    
+    // Convert boolean to string "true" or "false"
+    const isActiveAsString = isActive.toString();
+    
+    // Tạo URL chính xác theo định dạng API yêu cầu
+    const apiUrl = `${API_BASE_URL}/update-activation-status/${userId}?isActive=${isActiveAsString}`;
+    console.log('API URL:', apiUrl);
+    
+    // Gọi API với phương thức PUT
+    const response = await fetch(apiUrl, {
+      method: 'PUT',
       headers: createHeaders(true),
       credentials: 'include',
-      body: JSON.stringify({ isActive }),
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    // Xử lý lỗi từ response
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Toggle status error: ${response.status} ${response.statusText}`, errorText);
+      let errorMessage;
+      try {
+        const errorText = await response.text();
+        console.error(`Toggle status error: ${response.status} ${response.statusText}`, errorText);
+        errorMessage = errorText || `HTTP Error: ${response.status}`;
+      } catch (e) {
+        errorMessage = `HTTP Error: ${response.status}`;
+      }
       
       if (response.status === 401) {
         throw new Error('Unauthorized: Bạn cần đăng nhập để thực hiện thao tác này');
       } else if (response.status === 403) {
         throw new Error('Forbidden: Bạn không có quyền thay đổi trạng thái người dùng này');
+      } else if (response.status === 404) {
+        throw new Error(`Không tìm thấy tài khoản với ID: ${userId}`);
+      } else if (response.status === 400) {
+        throw new Error(`Yêu cầu không hợp lệ: ${errorMessage}`);
       }
       
-      throw new Error(`Failed to toggle user status: ${response.status} ${response.statusText}`);
+      throw new Error(`Lỗi cập nhật trạng thái: ${errorMessage}`);
     }
 
-    const data = await response.json();
-    console.log('User status toggled successfully:', data);
-    return data;
+    // Xử lý response thành công - không nhất thiết phải là JSON
+    try {
+      // Kiểm tra Content-Type của response trước khi parse
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+        console.log('User status toggled successfully:', data);
+      } else {
+        // Nếu không phải JSON, chỉ lấy response text
+        const text = await response.text();
+        console.log('User status toggled successfully. Response:', text);
+        data = { success: true, message: text || 'Cập nhật trạng thái thành công' };
+      }
+      
+      return data;
+    } catch (error) {
+      console.log('Error parsing response, but status update may have succeeded:', error);
+      return { success: true, message: 'Cập nhật trạng thái thành công' };
+    }
   } catch (error) {
     console.error('Error toggling user status:', error);
-    throw error;
+    console.log('User ID passed to function:', userId);
+    console.log('isActive value passed to function:', isActive);
+    
+    // Check for JSON parse errors
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      console.error('Response was not valid JSON. This may be a server configuration issue.');
+      throw new Error('Lỗi định dạng dữ liệu từ server. Hãy thử lại sau hoặc liên hệ admin.');
+    }
+    
+    // Handle other network errors
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Không thể kết nối tới server. Hãy kiểm tra kết nối mạng của bạn.');
+    }
+    
+    // Add additional information to the error message
+    const enhancedError = new Error(`${error.message} (userId: ${userId}, isActive: ${isActive})`);
+    enhancedError.originalError = error;
+    throw enhancedError;
   }
 };
 
@@ -345,13 +394,15 @@ export const transformUserToAPI = (formUser) => {
       students: formUser.students || []
     };
   } else if (formUser.role === 'ADMIN') {
-    // Format cho Admin (nếu cần)
+    // Format cho Admin (đã cập nhật theo yêu cầu)
     return {
-      memberId: formUser.memberId || generateUserId('ADMIN'),
       email: formUser.email,
-      role: formUser.role,
+      password: formUser.password,
+      fullName: formUser.fullName,
       phoneNumber: formUser.phoneNumber,
-      token: null
+      role: formUser.role,
+      // Thêm các trường còn thiếu nếu cần
+      isActive: formUser.isActive !== undefined ? formUser.isActive : true
     };
   }
   

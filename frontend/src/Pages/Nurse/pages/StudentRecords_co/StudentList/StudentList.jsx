@@ -3,7 +3,7 @@ import { useStudentRecords } from '../../../../../context/NurseContext/StudentRe
 import './StudentList.css';
 import StudentDetail from '../StudentDetail/StudentDetail';
 import AddEditRecord from '../AddEditRecord/AddEditRecord';
-import { Form, Container, Row, Col, Card, Table, Button, InputGroup, Badge, Spinner, Alert } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
 
 const StudentList = () => {
   // Sử dụng context thay vì local state và API calls
@@ -123,33 +123,21 @@ const StudentList = () => {
   // Hiển thị trạng thái loading
   if (loading) {
     return (
-      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "300px" }}>
-        <div className="text-center">
-          <Spinner animation="border" variant="primary" />
-          <p className="mt-3">Đang tải dữ liệu...</p>
-        </div>
-      </Container>
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Đang tải dữ liệu...</p>
+      </div>
     );
   }
 
   // Hiển thị lỗi nếu có
   if (error) {
     return (
-      <Container className="my-4">
-        <Alert variant="danger">
-          <Alert.Heading>
-            <i className="fas fa-exclamation-circle me-2"></i>
-            Đã xảy ra lỗi
-          </Alert.Heading>
-          <p>{error}</p>
-          <hr />
-          <div className="d-flex justify-content-end">
-            <Button variant="outline-danger" onClick={() => window.location.reload()}>
-              Thử lại
-            </Button>
-          </div>
-        </Alert>
-      </Container>
+      <div className="error-container">
+        <i className="fas fa-exclamation-circle"></i>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>Thử lại</button>
+      </div>
     );
   }
 
@@ -178,80 +166,63 @@ const StudentList = () => {
   // Hàm render bảng học sinh
   const renderStudentTable = () => {
     return (
-      <div className="table-responsive">
+      <div className="student-table-container">
         {filteredStudents.length === 0 ? (
-          <Card className="text-center p-5 my-4">
-            <Card.Body>
-              <i className="fas fa-search fa-3x mb-3 text-muted"></i>
-              <Card.Title>Không tìm thấy kết quả</Card.Title>
-              <Card.Text>Không tìm thấy học sinh nào phù hợp với tiêu chí tìm kiếm</Card.Text>
-              <Button variant="outline-primary" onClick={resetFilters}>
-                <i className="fas fa-redo me-2"></i>Xóa bộ lọc
-              </Button>
-            </Card.Body>
-          </Card>
+          <div className="no-results">
+            <i className="fas fa-search"></i>
+            <p>Không tìm thấy học sinh nào phù hợp với tiêu chí tìm kiếm</p>
+            <button onClick={resetFilters} className="btn-reset">
+              Xóa bộ lọc
+            </button>
+          </div>
         ) : (
-          <Card className="border-0 shadow-sm">
-            <Card.Body className="p-0">
-              <Table hover responsive className="mb-0">
-                <thead className="bg-light">
-                  <tr>
-                    <th>ID Hồ sơ y tế</th>
-                    <th>Họ và tên</th>
-                    <th>Mã học sinh</th>
-                    <th>Lớp</th>
-                    <th>Giới tính</th>
-                    <th>Ngày sinh</th>
-                    <th className="text-center">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStudents.map((student) => (
-                    <tr key={student.id} style={{ cursor: 'pointer' }} onClick={() => handleViewStudent(student)}>
-                      <td>
-                        {student.healthProfileId ? (
-                          <Badge bg="info" pill>{student.healthProfileId}</Badge>
-                        ) : (
-                          <Badge bg="secondary" pill>N/A</Badge>
-                        )}
-                      </td>
-                      <td className="fw-bold">{student.fullName || student.name}</td>
-                      <td>{student.studentId}</td>
-                      <td>
-                        <Badge bg="light" text="dark">{student.className || student.class}</Badge>
-                      </td>
-                      <td>{student.gender}</td>
-                      <td>{new Date(student.dateOfBirth).toLocaleDateString('vi-VN')}</td>
-                      <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewStudent(student);
-                            }}
-                          >
-                            <i className="fas fa-eye"></i>
-                          </Button>
-                          <Button
-                            variant="outline-success"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditRecord(student);
-                            }}
-                          >
-                            <i className="fas fa-edit"></i>
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
+          <table className="student-table">
+            <thead>
+              <tr>
+                <th>ID Hồ sơ y tế</th>
+                <th>Họ và tên</th>
+                <th>Mã học sinh</th>
+                <th>Lớp</th>
+                <th>Giới tính</th>
+                <th>Ngày sinh</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.map((student) => (
+                <tr key={student.id} onClick={() => handleViewStudent(student)}>
+                  <td>{student.healthProfileId || 'N/A'}</td>
+                  <td className="student-name">
+                    <span>{student.fullName || student.name}</span>
+                  </td>
+                  <td>{student.studentId}</td>
+                  <td>{student.className || student.class}</td>
+                  <td>{student.gender}</td>
+                  <td>{new Date(student.dateOfBirth).toLocaleDateString('vi-VN')}</td>
+                  <td className="action-buttons">
+                    <button
+                      className="btn-view"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewStudent(student);
+                      }}
+                    >
+                      <i className="fas fa-eye"></i>
+                    </button>
+                    <button
+                      className="btn-edit"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditRecord(student);
+                      }}
+                    >
+                      <i className="fas fa-edit"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     );
@@ -259,118 +230,96 @@ const StudentList = () => {
 
   // Hiển thị danh sách học sinh
   return (
-    <Container fluid className="py-4">
-      <Card className="shadow-sm mb-4">
-        <Card.Body>
-          <Form onSubmit={handleSearchSubmit}>
-            <Row className="mb-3">
-              <Col md={6} lg={8}>
-                <InputGroup>
-                  <Form.Control
-                    type="text"
-                    name="keyword"
-                    placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
-                    value={keyword}
-                    onChange={handleSearchInputChange}
-                  />
-                  <Button variant="primary" type="submit">
-                    <i className="fas fa-search me-1"></i> Tìm kiếm
-                  </Button>
-                </InputGroup>
-              </Col>
-              <Col md={6} lg={4} className="d-flex justify-content-end">
-                <Button 
-                  variant="outline-secondary" 
-                  onClick={handleResetFilters}
-                  className="w-100"
+    <div className="student-records-container">
+      <div className="search-filter-container">
+        <form onSubmit={handleSearchSubmit} className="search-form">
+          <div className="search-bar">
+            <input
+              type="text"
+              name="keyword"
+              placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
+              value={keyword}
+              onChange={handleSearchInputChange}
+              className="search-input"
+            />
+            <button type="submit" className="search-button">
+              <i className="fas fa-search"></i>
+            </button>
+          </div>
+          
+          <div className="filter-options">
+            <div className="filter-group">
+              <label>Lớp:</label>
+              <Form.Group controlId="formClass">
+                <Form.Label>Lớp</Form.Label>
+                <Form.Control
+                  as="select"
+                  name="class"
+                  value={selectedClass} // Sử dụng state local thay vì context trực tiếp
+                  onChange={handleSearchInputChange}
                 >
-                  <i className="fas fa-redo me-1"></i> Đặt lại bộ lọc
-                </Button>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    <i className="fas fa-chalkboard me-1"></i> Lớp
-                  </Form.Label>
-                  <Form.Select
-                    name="class"
-                    value={selectedClass}
-                    onChange={handleSearchInputChange}
-                  >
-                    <option value="">Tất cả các lớp</option>
-                    {Array.isArray(classes) && classes.map((classItem, index) => {
-                      const classKey = typeof classItem === 'string' ? classItem : (classItem?.id || index);
-                      const classValue = typeof classItem === 'string' ? classItem : (classItem?.className || classItem?.name || '');
-                      
-                      return (
-                        <option key={classKey} value={classValue}>
-                          {classValue}
-                        </option>
-                      );
-                    })}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    <i className="fas fa-tint me-1"></i> Nhóm máu
-                  </Form.Label>
-                  <Form.Select
-                    name="bloodType"
-                    value={selectedBloodType}
-                    onChange={handleSearchInputChange}
-                  >
-                    <option value="">Tất cả</option>
-                    {bloodTypes.map((type, index) => (
-                      <option key={type || index} value={type || ''}>
-                        {type}
+                  <option value="">Tất cả các lớp</option>
+                  {Array.isArray(classes) && classes.map((classItem, index) => {
+                    // Xử lý an toàn cho classItem
+                    const classKey = typeof classItem === 'string' ? classItem : (classItem?.id || index);
+                    const classValue = typeof classItem === 'string' ? classItem : (classItem?.className || classItem?.name || '');
+                    
+                    return (
+                      <option key={classKey} value={classValue}>
+                        {classValue}
                       </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    <i className="fas fa-heartbeat me-1"></i> Vấn đề sức khỏe
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="healthIssue"
-                    placeholder="Dị ứng, bệnh mãn tính..."
-                    value={selectedHealthIssue}
-                    onChange={handleSearchInputChange}
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-          </Form>
-        </Card.Body>
-      </Card>
-
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="mb-0">
-          Danh sách học sinh 
-          <Badge bg="primary" className="ms-2">
-            {filteredStudents.length}
-          </Badge>
-        </h4>
-        <Button 
-          variant="success" 
-          onClick={handleAddRecord}
-        >
-          <i className="fas fa-plus me-1"></i> Thêm hồ sơ mới
-        </Button>
+                    );
+                  })}
+                </Form.Control>
+              </Form.Group>
+            </div>
+            
+            <div className="filter-group">
+              <label>Nhóm máu:</label>
+              <select
+                name="bloodType"
+                value={selectedBloodType}
+                onChange={handleSearchInputChange}
+                className="filter-select"
+              >
+                <option value="">Tất cả</option>
+                {bloodTypes.map((type, index) => (
+                  <option key={type || index} value={type || ''}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="filter-group">
+              <label>Vấn đề sức khỏe:</label>
+              <input
+                type="text"
+                name="healthIssue"
+                placeholder="Dị ứng, bệnh mãn tính..."
+                value={selectedHealthIssue}
+                onChange={handleSearchInputChange}
+                className="filter-input"
+              />
+            </div>
+            
+            <button type="button" onClick={handleResetFilters} className="reset-button">
+              Đặt lại bộ lọc
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <div className="student-records-header">
+        <h3>Danh sách học sinh ({filteredStudents.length})</h3>
+        <button onClick={handleAddRecord} className="add-record-button">
+          <i className="fas fa-plus"></i>
+          Thêm hồ sơ mới
+        </button>
       </div>
       
       {renderStudentTable()}
-    </Container>
+    </div>
   );
 };
 

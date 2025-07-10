@@ -1,0 +1,513 @@
+/* Vaccine Detail Modal Styles */
+.vaccine-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(5px);
+}
+
+.vaccine-modal-container {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Header */
+.vaccine-modal-header {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+  padding: 25px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vaccine-modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vaccine-id {
+  font-size: 14px;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Content */
+.vaccine-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px;
+}
+
+.info-section {
+  margin-bottom: 30px;
+}
+
+.info-section:last-child {
+  margin-bottom: 0;
+}
+
+.info-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.info-section h3 i {
+  color: #4a90e2;
+}
+
+/* Basic Information */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 14px;
+}
+
+.vaccine-name-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.vaccine-name-display strong {
+  font-size: 20px;
+  color: #2c3e50;
+}
+
+.status-indicator {
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-indicator.active {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.status-indicator.inactive {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.description-box {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #4a90e2;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #495057;
+}
+
+/* Age Information Card */
+.age-info-card {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 12px;
+  padding: 25px;
+  border: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.age-category {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.category-badge {
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.age-range {
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c3e50;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.age-description {
+  margin: 0 0 20px 0;
+  color: #495057;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.age-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.age-detail-item {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(74, 144, 226, 0.1);
+}
+
+.age-detail-item .label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.age-detail-item .value {
+  display: block;
+  font-size: 16px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Dosage Information Card */
+.dosage-info-card {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-radius: 12px;
+  padding: 25px;
+  border: 1px solid rgba(253, 126, 20, 0.2);
+}
+
+.dosage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.dosage-type {
+  background: linear-gradient(135deg, #fd7e14, #e55a00);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.total-doses {
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c3e50;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid rgba(253, 126, 20, 0.2);
+}
+
+.dosage-description {
+  margin: 0 0 20px 0;
+  color: #495057;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dosage-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.dosage-detail-item {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(253, 126, 20, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dosage-detail-item i {
+  color: #fd7e14;
+  font-size: 18px;
+}
+
+.dosage-detail-item .label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.dosage-detail-item .value {
+  display: block;
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Status Information Card */
+.status-info-card {
+  border-radius: 12px;
+  padding: 25px;
+  border: 1px solid;
+}
+
+.status-info-card.active {
+  background: linear-gradient(135deg, #e8f5e8 0%, #c3e6c3 100%);
+  border-color: rgba(40, 167, 69, 0.2);
+}
+
+.status-info-card.inactive {
+  background: linear-gradient(135deg, #fdeaea 0%, #f8c9c9 100%);
+  border-color: rgba(220, 53, 69, 0.2);
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.status-info-card.active .status-header i {
+  color: #28a745;
+  font-size: 20px;
+}
+
+.status-info-card.inactive .status-header i {
+  color: #dc3545;
+  font-size: 20px;
+}
+
+.status-text {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.status-info-card.active .status-text {
+  color: #28a745;
+}
+
+.status-info-card.inactive .status-text {
+  color: #dc3545;
+}
+
+.status-description {
+  margin: 0;
+  color: #495057;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Additional Information */
+.additional-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.info-row {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #4a90e2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-row .label {
+  font-size: 14px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.info-row .value {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.info-row .value.status-active {
+  color: #28a745;
+}
+
+.info-row .value.status-inactive {
+  color: #dc3545;
+}
+
+/* Footer */
+.vaccine-modal-footer {
+  background: #f8f9fa;
+  padding: 20px 30px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .vaccine-modal-backdrop {
+    padding: 10px;
+  }
+  
+  .vaccine-modal-container {
+    max-height: 95vh;
+  }
+  
+  .vaccine-modal-header {
+    padding: 20px;
+  }
+  
+  .vaccine-modal-header h2 {
+    font-size: 20px;
+  }
+  
+  .vaccine-modal-content {
+    padding: 20px;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .age-details,
+  .dosage-details,
+  .additional-info {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .vaccine-name-display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .age-category {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .dosage-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .vaccine-modal-footer {
+    padding: 15px 20px;
+  }
+}

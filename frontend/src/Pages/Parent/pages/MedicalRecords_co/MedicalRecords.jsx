@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 // Import mới của CSS
 import "./styles/index.css";
@@ -15,6 +15,7 @@ import {
   FaChevronDown,
   FaSpinner,
   FaExclamationTriangle,
+  FaSync,
 } from "react-icons/fa";
 
 // Import các component khác
@@ -30,7 +31,7 @@ import GrowthTab from "./components/tabs/GrowthTab";
 import { cacheData, getCachedData } from "./utils/helpers";
 
 const MedicalRecord = () => {
-  const { studentId } = useParams();
+  const { healthProfileId } = useParams();
   const navigate = useNavigate();
   const { students, parentInfo } = useStudentData();
 
@@ -40,9 +41,15 @@ const MedicalRecord = () => {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [healthProfileData, setHealthProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [modalImage, setModalImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  // Refs for managing intervals and component state
+  const refreshIntervalRef = useRef(null);
+  const componentMountedRef = useRef(true);
 
   // Modal handlers
   const openImageModal = (imageUrl) => {
@@ -63,7 +70,7 @@ const MedicalRecord = () => {
     }
 
     let foundStudent = students.find(
-      (s) => s && String(s.id) === String(studentId)
+      (s) => s && String(s.id) === String(healthProfileId)
     );
 
     if (!foundStudent && students.length > 0) {
@@ -72,44 +79,115 @@ const MedicalRecord = () => {
 
     setSelectedStudent(foundStudent || null);
     setSelectedStudentId(foundStudent ? foundStudent.id : null);
-  }, [students, studentId]);
+  }, [students, healthProfileId]);
 
-  // Fetch dữ liệu sức khỏe - đơn giản hóa
-  const fetchHealthProfile = async () => {
-    if (!selectedStudentId) {
-      setIsLoading(false);
-      return;
-    }
+  // Fetch dữ liệu sức khỏe - đơn giản hóa với auto-refresh
+  const fetchHealthProfile = useCallback(
+    async (isRefresh = false) => {
+      // Kiểm tra xem có học sinh được chọn không và component còn mounted không
+      if (!selectedStudent || !componentMountedRef.current) {
+        if (!isRefresh) {
+          setIsLoading(false);
+          if (!selectedStudent) {
+            setError(
+              "Không tìm thấy thông tin học sinh. Vui lòng chọn học sinh khác."
+            );
+          }
+        }
+        return;
+      }
 
-    setIsLoading(true);
-    setError(null);
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      setError(null);
 
-    try {
-      console.log("Fetching health profile for student:", selectedStudentId);
-      const response = await medicalService.getHealthProfile(selectedStudentId);
-      setHealthProfileData(response);
-    } catch (err) {
-      console.error("Error fetching health profile:", err);
-      setError("Không thể tải dữ liệu hồ sơ sức khỏe. Vui lòng thử lại.");
-      setHealthProfileData(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      try {
+        console.log(
+          "Fetching health profile for student:",
+          selectedStudent.studentId,
+          isRefresh ? "(refresh)" : "(initial)"
+        );
+        // Sử dụng studentId hoặc id tùy thuộc vào API yêu cầu gì
+        const studentIdentifier =
+          selectedStudent.studentId || selectedStudent.id;
+        console.log(
+          "Using student identifier for API call:",
+          studentIdentifier
+        );
 
-  // Effect để fetch data khi selectedStudentId thay đổi
+        const response = await medicalService.getHealthProfile(
+          studentIdentifier
+        );
+
+        if (componentMountedRef.current) {
+          setHealthProfileData(response);
+          setLastUpdated(new Date());
+        }
+      } catch (err) {
+        console.error("Error fetching health profile:", err);
+        if (componentMountedRef.current) {
+          setError("Không thể tải dữ liệu hồ sơ sức khỏe. Vui lòng thử lại.");
+          setHealthProfileData(null);
+        }
+      } finally {
+        if (componentMountedRef.current) {
+          if (isRefresh) {
+            setIsRefreshing(false);
+          } else {
+            setIsLoading(false);
+          }
+        }
+      }
+    },
+    [selectedStudent?.studentId]
+  );
+
+  // Manual refresh function
+  const handleManualRefresh = useCallback(() => {
+    fetchHealthProfile(true);
+  }, [fetchHealthProfile]);
+
+  // Effect để fetch data khi selectedStudent thay đổi với auto-refresh
   useEffect(() => {
-    if (selectedStudentId) {
-      fetchHealthProfile();
+    componentMountedRef.current = true;
+
+    if (selectedStudent?.studentId) {
+      // Fetch initial data
+      fetchHealthProfile(false);
+
+      // Setup auto-refresh every 60 seconds for general health profile
+      refreshIntervalRef.current = setInterval(() => {
+        fetchHealthProfile(true);
+      }, 60000);
     }
-  }, [selectedStudentId]);
+
+    // Cleanup function
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [selectedStudent?.studentId, fetchHealthProfile]);
 
   // Effect để refetch khi chuyển về tab general
   useEffect(() => {
-    if (activeTab === "general" && selectedStudentId) {
-      fetchHealthProfile();
+    if (activeTab === "general" && selectedStudent?.studentId) {
+      fetchHealthProfile(false);
     }
-  }, [activeTab]);
+  }, [activeTab, selectedStudent?.studentId, fetchHealthProfile]);
+
+  // Cleanup effect when component unmounts
+  useEffect(() => {
+    return () => {
+      componentMountedRef.current = false;
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Handler cho việc thay đổi học sinh
   const handleStudentChange = (e) => {
@@ -121,9 +199,17 @@ const MedicalRecord = () => {
     );
     if (!student) return;
 
+    // Cập nhật state
     setSelectedStudent(student);
     setSelectedStudentId(student.id);
-    navigate(`/health-profile/student/${student.id}`, { replace: true });
+
+    // Log thông tin để debug
+    console.log("Selected student:", student);
+    console.log("Navigating to:", `/parent/health-profile/${student.id}`);
+
+    // Sử dụng đúng route pattern với prefix /parent/ và không dùng /student/
+    // Vì route được config là /parent/health-profile/:healthProfileId
+    navigate(`/parent/health-profile/${student.id}`, { replace: true });
   };
 
   // Loading state
@@ -172,6 +258,18 @@ const MedicalRecord = () => {
             </div>
 
             <div className="header-actions">
+              {selectedStudent?.studentId && (
+                <button
+                  className={`refresh-btn ${isRefreshing ? "refreshing" : ""}`}
+                  onClick={handleManualRefresh}
+                  disabled={isRefreshing}
+                  title="Làm mới dữ liệu hồ sơ y tế"
+                >
+                  <FaSync className={isRefreshing ? "spin" : ""} />
+                  <span>{isRefreshing ? "Đang tải..." : "Làm mới"}</span>
+                </button>
+              )}
+
               <Link to="/parent/student-profile" className="back-btn">
                 <FaArrowLeft />
                 <span>Trở về</span>
@@ -253,7 +351,7 @@ const MedicalRecord = () => {
                   healthProfileData={healthProfileData}
                   isLoading={isLoading}
                   error={error}
-                  studentId={selectedStudentId}
+                  studentId={selectedStudent?.studentId}
                   onRefresh={fetchHealthProfile}
                 />
               )}

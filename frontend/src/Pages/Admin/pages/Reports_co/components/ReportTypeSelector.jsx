@@ -16,6 +16,12 @@ const ReportTypeSelector = ({ reportType, setReportType }) => {
       desc: "Kết quả chiến dịch tiêm chủng",
     },
     {
+      id: "vaccine",
+      icon: "fas fa-shield-virus",
+      title: "Báo cáo vaccine",
+      desc: "Danh sách và thông tin vaccine",
+    },
+    {
       id: "medication",
       icon: "fas fa-pills",
       title: "Báo cáo thuốc",
