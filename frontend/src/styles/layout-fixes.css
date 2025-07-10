@@ -1,0 +1,204 @@
+/* layout-fixes.css - Sửa các lỗi bố cục và xung đột CSS giữa các module */
+
+/* Ngăn chặn tràn ngang */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Đảm bảo app container không bị tràn */
+.app {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix cho parent module */
+.parent-layout {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding-top: 130px; /* Đảm bảo có đủ khoảng trống cho header */
+}
+
+/* Fix cho parent-home */
+.parent-home {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  margin-top: 0;
+}
+
+/* Fix cho hero section */
+.hero.modern-hero {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Sửa lỗi cho header khi scroll */
+.parent-header {
+  z-index: 1000;
+  width: 100%;
+  left: 0;
+  right: 0;
+  will-change: transform;
+  position: fixed;
+  top: 0;
+}
+
+.parent-header.scrolled {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Đảm bảo các section không bị tràn ngang */
+.parent-home-section,
+.features-section,
+.about-section,
+.vision-section,
+.cta-section {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Đảm bảo các container đúng kích thước */
+.parent-container,
+.section-container,
+.hero-container {
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+/* Fix cho grid layouts */
+.hero-content,
+.about-content,
+.features-grid {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix cho các phần tử con trong hero */
+.hero-text,
+.hero-visual {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Đảm bảo phone mockup đúng kích thước */
+.phone-mockup,
+.phone-frame {
+  max-width: 260px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Đảm bảo các section trong parent module không bị tràn */
+.parent-main-content > * {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Fix cho các phần tử con trong parent module */
+.parent-main-content section,
+.parent-main-content div {
+  box-sizing: border-box;
+}
+
+/* Đảm bảo các phần tử không bị tràn ra ngoài container */
+img, svg, video, canvas, audio, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Đảm bảo các container trong nurse và admin module không bị tràn */
+.nurse-layout,
+.admin-layout {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Sửa lỗi margin collapse giữa các section */
+section + section {
+  margin-top: 0;
+}
+
+/* Fix cho các component trong parent module */
+.parent-home-section > * {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix cho các component trong hero */
+.hero-container > * {
+  box-sizing: border-box;
+}
+
+/* Fix cho các component trong features */
+.features-section > * {
+  box-sizing: border-box;
+}
+
+/* Fix cho các component trong about */
+.about-section > * {
+  box-sizing: border-box;
+}
+
+/* Fix cho các component trong vision */
+.vision-section > * {
+  box-sizing: border-box;
+}
+
+/* Fix cho các component trong cta */
+.cta-section > * {
+  box-sizing: border-box;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .about-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .parent-layout {
+    padding-top: 70px; /* Giảm padding-top trên mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .phone-mockup,
+  .phone-frame {
+    max-width: 200px;
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .parent-layout {
+    padding-top: 60px; /* Giảm padding-top trên mobile nhỏ */
+  }
+} 

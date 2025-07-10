@@ -1,9 +1,10 @@
 import React from "react";
 import "./Hero.css";
+import { parentNS } from "../../../../styles/namespace-manager";
 
 export default function Hero() {
   return (
-    <section className="hero modern-hero">
+    <section className={`hero modern-hero ${parentNS.cls("hero")}`}>
       <div className="hero-container">
         <div className="hero-content">
           <div className="hero-text">
