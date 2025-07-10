@@ -2,6 +2,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap');
 
+/* CSS Namespace prefixes - Thêm vào để đảm bảo không có xung đột CSS */
+:root {
+  --ns-admin: "admin";  /* Namespace cho Admin */
+  --ns-nurse: "nurse";  /* Namespace cho Nurse */
+  --ns-parent: "parent";  /* Namespace cho Parent */
+  --ns-shared: "shared";  /* Namespace cho shared components */
+}
+
 /* Thêm phần này vào global.css để đảm bảo các ảnh hưởng đến position: fixed */
 body {
   position: relative !important;
@@ -78,6 +86,25 @@ body {
   --transition-fast: all 0.2s ease;
   --transition-normal: all 0.3s ease;
   --transition-slow: all 0.5s ease;
+}
+
+/* Đảm bảo không trùng CSS - thêm prefix vào các class thông dụng */
+.p-app { /* parent app */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.n-app { /* nurse app */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.a-app { /* admin app */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 * {
@@ -185,6 +212,57 @@ main {
 .card:hover {
   transform: translateY(-5px);
   box-shadow: var(--shadow-blue);
+}
+
+/* Shared Layout Styles */
+.shared-admin-layout {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.shared-basic-content {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+}
+
+.shared-error-layout {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-light);
+}
+
+.shared-error-content {
+  text-align: center;
+  padding: 2rem;
+  background: var(--bg-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+}
+
+.shared-auth-layout {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-gradient);
+}
+
+.shared-auth-content {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background: var(--bg-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Utility Classes */

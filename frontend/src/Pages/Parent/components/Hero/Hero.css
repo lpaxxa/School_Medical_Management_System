@@ -1,16 +1,17 @@
 /* Modern Hero Section - Professional Blue Theme for Parent Pages */
 
-.hero.modern-hero {
+.hero.modern-hero,
+.parent-hero {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 25%, #f1f5f9 50%, #e2e8f0 75%, #f8fafc 100%);
   min-height: 55vh;
   display: flex;
   align-items: center;
   position: relative;
   overflow: hidden;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
-  margin-right: calc(-50vw + 50%);
+  width: 100%;
+  box-sizing: border-box;
   padding: 1.5rem 0;
+  margin: 0;
 }
 
 .hero-background {
@@ -65,6 +66,7 @@
   position: relative;
   z-index: 2;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .hero-content {
@@ -74,6 +76,8 @@
   align-items: center;
   min-height: auto;
   padding: 1rem 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Left side - Text content */
@@ -81,6 +85,8 @@
   color: #1f2937;
   animation: fadeInUp 0.8s ease-out forwards;
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .hero-badge {
@@ -112,7 +118,6 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .hero-description {
@@ -179,6 +184,7 @@
   gap: 1.5rem;
   animation: slideInLeft 0.8s ease-out 1s backwards;
   justify-content: center;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
 }
 
 .stat-item {
@@ -191,6 +197,7 @@
   border: 1px solid rgba(1, 92, 146, 0.1);
   transition: all 0.3s ease;
   min-width: 110px;
+  box-sizing: border-box;
 }
 
 .stat-item:hover {
@@ -233,66 +240,81 @@
   justify-content: center;
   align-items: center;
   animation: fadeInRight 0.8s ease-out 0.5s backwards;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .phone-mockup {
   position: relative;
   z-index: 3;
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
 }
 
 .phone-frame {
-  width: 260px;
+  width: 100%;
+  max-width: 260px;
   height: 540px;
   background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
   border-radius: 35px;
   padding: 8px;
   box-shadow: 
     0 20px 40px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  animation: float 6s ease-in-out infinite;
+    0 15px 20px rgba(0, 0, 0, 0.2),
+    0 5px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .phone-screen {
   width: 100%;
   height: 100%;
-  background: #000;
-  border-radius: 28px;
+  background: #0A2540;
+  border-radius: 30px;
   overflow: hidden;
   position: relative;
+  box-sizing: border-box;
 }
 
 .phone-header {
+  height: 30px;
+  padding: 0 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px 8px;
-  background: #000;
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .phone-time {
   color: white;
-  font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .phone-status {
   display: flex;
-  gap: 4px;
   align-items: center;
+  gap: 5px;
 }
 
 .signal, .wifi, .battery {
-  width: 20px;
-  height: 12px;
+  width: 15px;
+  height: 15px;
   background: white;
+  opacity: 0.8;
   border-radius: 2px;
 }
 
 .battery {
-  width: 24px;
+  width: 20px;
+  height: 10px;
+  border-radius: 2px;
   border: 1px solid white;
-  background: transparent;
   position: relative;
+  background: transparent;
 }
 
 .battery::after {
@@ -300,26 +322,26 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  right: 2px;
-  bottom: 2px;
-  background: #428CD4;
+  width: 14px;
+  height: 6px;
+  background: white;
   border-radius: 1px;
-  width: 80%;
 }
 
 .app-content {
-  background: linear-gradient(135deg, #015C92, #2D82B5);
-  height: calc(100% - 40px);
-  padding: 20px;
-  color: white;
-  overflow-y: auto;
+  padding: 15px;
+  height: calc(100% - 30px);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  box-sizing: border-box;
 }
 
 .welcome-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 .user-avatar {
@@ -327,204 +349,222 @@
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid #88CDF6;
+  box-shadow: 0 0 10px rgba(136, 205, 246, 0.5);
 }
 
 .user-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  object-position: center;
 }
 
 .welcome-text {
   flex: 1;
-  margin-left: 12px;
+  padding-left: 10px;
 }
 
 .welcome-label {
   display: block;
-  font-size: 12px;
-  opacity: 0.8;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 10px;
+  color: #88CDF6;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
 .user-name {
-  display: block;
-  font-weight: 600;
-  font-size: 14px;
   color: white;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 .notification-icon {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+}
+
+.balance-card {
+  background: linear-gradient(135deg, rgba(1, 92, 146, 0.8), rgba(45, 130, 181, 0.8));
+  border-radius: 20px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.balance-icon {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 30px;
+  height: 30px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-}
-
-.balance-card {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.balance-icon {
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-bottom: 12px;
-  color: white;
+  font-weight: 700;
+  font-size: 16px;
 }
 
 .balance-amount {
+  color: white;
   font-size: 24px;
   font-weight: 700;
-  margin-bottom: 4px;
-  color: white;
+  margin-top: 15px;
+  text-align: center;
 }
 
 .balance-label {
+  color: rgba(255, 255, 255, 0.7);
   font-size: 12px;
-  opacity: 0.8;
-  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  margin-top: 5px;
 }
 
 .quick-actions {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
 }
 
 .action-btn {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 16px 8px;
-  text-align: center;
-  font-size: 12px;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 12px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   color: white;
+  font-size: 10px;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .action-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .action-btn i {
-  display: block;
   font-size: 16px;
-  margin-bottom: 6px;
-  color: white;
+  color: #88CDF6;
+  margin-bottom: 3px;
 }
 
 .recent-section {
-  margin-bottom: 20px;
+  margin-top: 5px;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  color: white;
   font-size: 14px;
   font-weight: 600;
-  color: white;
+  margin-bottom: 10px;
 }
 
 .see-all {
+  color: #88CDF6;
   font-size: 12px;
-  opacity: 0.8;
-  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  cursor: pointer;
 }
 
 .recent-contacts {
   display: flex;
-  gap: 12px;
+  gap: 15px;
   overflow-x: auto;
   padding-bottom: 5px;
+  scrollbar-width: none;
 }
 
 .contact-item {
-  text-align: center;
-  font-size: 10px;
-  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
   color: white;
+  font-size: 10px;
 }
 
 .contact-item img {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  margin-bottom: 4px;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
 }
 
 .transaction-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 16px;
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 10px;
 }
 
 .transaction-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  color: white;
   font-size: 14px;
   font-weight: 600;
-  color: white;
+  margin-bottom: 10px;
 }
 
 .transaction-amount {
-  font-size: 16px;
+  color: #34D399;
+  font-size: 14px;
   font-weight: 700;
-  color: white;
 }
 
 .transaction-detail {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: white;
+  gap: 10px;
 }
 
 .transaction-detail img {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
 }
 
 .transaction-name {
   color: white;
+  font-size: 12px;
+  flex: 1;
 }
 
 .transaction-growth {
-  margin-left: auto;
-  color: #88CDF6;
+  color: #34D399;
+  font-size: 12px;
   font-weight: 600;
 }
 
-/* Animations */
 @keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
@@ -532,6 +572,10 @@
 }
 
 @keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
   to {
     opacity: 1;
     transform: translateX(0);
@@ -539,6 +583,10 @@
 }
 
 @keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
   to {
     opacity: 1;
     transform: translateX(0);
@@ -546,44 +594,47 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0% {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0px);
   }
 }
 
-/* Responsive adjustments */
+/* Responsive design */
 @media (max-width: 1200px) {
   .hero-content {
-    gap: 3rem;
+    gap: 1.5rem;
   }
   
   .phone-frame {
-    width: 280px;
-    height: 580px;
+    max-width: 240px;
+    height: 500px;
   }
   
   .hero-title {
-    font-size: 3.2rem;
+    font-size: 2.5rem;
   }
 }
 
 @media (max-width: 992px) {
-  .hero.modern-hero {
-    min-height: 45vh;
-    padding: 1rem 0;
+  .hero.modern-hero,
+  .parent-hero {
+    min-height: auto;
+    padding: 3rem 0;
   }
   
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 3rem;
     text-align: center;
   }
   
   .hero-title {
-    font-size: 2.8rem;
+    font-size: 2.2rem;
   }
   
   .hero-description {
@@ -595,8 +646,9 @@
   }
   
   .phone-frame {
-    width: 260px;
-    height: 540px;
+    max-width: 220px;
+    height: 460px;
+    margin: 2rem auto 0;
   }
 }
 
@@ -606,28 +658,28 @@
   }
   
   .hero-title {
-    font-size: 2.2rem;
+    font-size: 2rem;
   }
   
   .hero-description {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
   
   .phone-frame {
-    width: 240px;
-    height: 500px;
+    max-width: 200px;
+    height: 420px;
   }
   
   .app-content {
-    padding: 15px;
+    padding: 12px;
   }
   
   .hero-stats {
-    gap: 1.5rem;
+    flex-wrap: wrap;
   }
   
   .stat-number {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
 }
 
@@ -637,25 +689,30 @@
   }
   
   .hero-description {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
   
   .hero-buttons {
     flex-direction: column;
-    gap: 0.75rem;
+    width: 100%;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
   }
   
   .hero-btn {
+    width: 100%;
     justify-content: center;
   }
   
   .phone-frame {
-    width: 220px;
-    height: 460px;
+    max-width: 180px;
+    height: 380px;
   }
   
   .app-content {
-    padding: 12px;
+    padding: 10px;
+    gap: 10px;
   }
   
   .balance-card {

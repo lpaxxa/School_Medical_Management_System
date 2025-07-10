@@ -38,12 +38,16 @@ export const NotificationProvider = ({ children }) => {
   const [readNotifications, setReadNotifications] = useState(
     getReadNotificationsFromStorage()
   );
-  const { parentInfo, students } = useStudentData();
+
+  // Safely destructure with default values
+  const studentDataContext = useStudentData();
+  const parentInfo = studentDataContext?.parentInfo || null;
+  const students = studentDataContext?.students || [];
 
   // Lấy parentId từ context
   const getParentId = useCallback(() => {
     if (parentInfo?.id) return parentInfo.id;
-    if (students?.length > 0 && students[0].parentId)
+    if (students?.length > 0 && students[0]?.parentId)
       return students[0].parentId;
     return null;
   }, [parentInfo, students]);
