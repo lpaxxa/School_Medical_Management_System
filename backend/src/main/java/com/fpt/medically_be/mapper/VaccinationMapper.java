@@ -18,6 +18,7 @@ public interface VaccinationMapper {
     Vaccination toEntity(VaccinationRequestDTO dto);
 
     @Mapping(source = "vaccinationDate", target = "vaccinationDate")
+    @Mapping(source = "vaccine.name", target = "vaccineName")
     VaccinationCreateWithHeathResponse toCreateWithHealthResponse(Vaccination vaccination);
     default LocalDate map(LocalDateTime vaccinationDate) {
         return vaccinationDate == null ? null : vaccinationDate.toLocalDate();

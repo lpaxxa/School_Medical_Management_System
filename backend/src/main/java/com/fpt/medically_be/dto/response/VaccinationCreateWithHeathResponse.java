@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Data
 public class VaccinationCreateWithHeathResponse {
     private Long id;
+    private String vaccineName;
     private Integer doseNumber;
     private LocalDate vaccinationDate;
     private String administeredAt;
