@@ -8,9 +8,10 @@ import StudentRecordsPage from "../Pages/Nurse/pages/StudentRecords_co";
 import HealthCheckupsPage from "../Pages/Nurse/pages/HealthCheckups_co";
 import InventoryPage from "../Pages/Nurse/pages/Inventory_co";
 import MedicalEventsPage from "../Pages/Nurse/pages/MedicalEvents_co";
-import VaccinationPage from "../Pages/Nurse/pages/Vaccination_co";
+import VaccinationPage from "../Pages/Nurse/pages/Vaccination_co/VaccinationMain";
 // Import BlogManagement directly from the file to avoid potential issues with index.js
 import BlogManagement from "../Pages/Nurse/pages/Blog_co/BlogManagement";
+import ReceiveMedicine from "../Pages/Nurse/pages/ReceiveMedicine_co";
 
 // NurseLayout đã được import từ file riêng
 
@@ -32,6 +33,7 @@ const NurseRoutes = () => {
                 path="blog-management" 
                 element={<BlogManagement />} 
               />
+              <Route path="receive-medicine" element={<ReceiveMedicine />} />
             </Routes>
           </NurseLayout>
         </ProtectedRoute>
