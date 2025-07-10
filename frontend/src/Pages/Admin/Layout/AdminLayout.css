@@ -9,8 +9,10 @@
 .admin-main {
   display: flex;
   flex: 1;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 70px);
   overflow: hidden;
+  margin-top: 70px;
+  margin-left: 280px;
 }
 
 .admin-content {
@@ -22,7 +24,7 @@
   padding: 30px;
   border-radius: 10px;
   box-shadow: inset 0 2px 15px rgba(76, 193, 176, 0.05);
-  max-height: calc(100vh - 60px);
+  max-height: calc(100vh - 70px);
 }
 
 .admin-content::before {
@@ -44,10 +46,11 @@
 @media (max-width: 768px) {
   .admin-main {
     flex-direction: column;
+    margin-left: 70px;
   }
   
   .admin-content {
-    min-height: calc(100vh - 130px);
+    min-height: calc(100vh - 140px);
     padding: 15px;
   }
 }
@@ -81,5 +84,9 @@
   
   .user-info {
     display: none;
+  }
+  
+  .admin-main {
+    margin-left: 60px;
   }
 }

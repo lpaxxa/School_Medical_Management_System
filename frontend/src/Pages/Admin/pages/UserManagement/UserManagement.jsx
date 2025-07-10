@@ -10,6 +10,8 @@ import {
   FaFilter,
   FaWifi,
   FaSignInAlt,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import axios from "axios";
 import UserTable from "./components/UserTable";
@@ -61,6 +63,11 @@ const UserManagement = () => {
   // State cho chức năng gửi email
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [sendingUserId, setSendingUserId] = useState(null);
+
+  // State cho pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [paginatedUsers, setPaginatedUsers] = useState([]);
 
   // Thống kê
   const [stats, setStats] = useState({
@@ -256,17 +263,34 @@ const UserManagement = () => {
   // Xử lý tìm kiếm và lọc
   useEffect(() => {
     let result = [...users];
+    
+    console.log("=== FILTERING DEBUG ===");
+    console.log("Total users:", users.length);
+    console.log("statusFilter:", statusFilter);
+    console.log("roleFilter:", roleFilter);
+    console.log("searchTerm:", searchTerm);
 
     // Lọc theo trạng thái chỉ khi người dùng chọn lọc
     // Nếu không lọc (statusFilter === "all") thì hiển thị cả tài khoản active và inactive
     if (statusFilter !== "all") {
       const statusValue = statusFilter === "active";
+      console.log("Filtering by status:", statusValue);
+      
+      // Debug: Show isActive values for first few users
+      console.log("Sample user isActive values:", users.slice(0, 3).map(u => ({
+        username: u.username,
+        isActive: u.isActive,
+        typeof: typeof u.isActive
+      })));
+      
       result = result.filter((user) => user.isActive === statusValue);
+      console.log("After status filter:", result.length);
     }
 
     // Lọc theo vai trò
     if (roleFilter !== "all") {
       result = result.filter((user) => user.role === roleFilter.toUpperCase());
+      console.log("After role filter:", result.length);
     }
 
     // Tìm kiếm theo từ khóa
@@ -280,11 +304,32 @@ const UserManagement = () => {
           (user.id?.toLowerCase() || "").includes(searchLower) ||
           (user.fullName?.toLowerCase() || "").includes(searchLower)
       );
+      console.log("After search filter:", result.length);
     }
 
     setFilteredUsers(result);
-    console.log("Filtered users:", result.length, "total users:", users.length);
+    console.log("Final filtered users:", result.length);
+    console.log("=== END FILTERING DEBUG ===");
   }, [users, searchTerm, roleFilter, statusFilter]);
+
+  // Handle pagination when filteredUsers changes
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    
+    // Reset to page 1 if current page is out of bounds
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+      return;
+    }
+
+    // Calculate start and end indices for current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    
+    // Get users for current page
+    const usersForCurrentPage = filteredUsers.slice(startIndex, endIndex);
+    setPaginatedUsers(usersForCurrentPage);
+  }, [filteredUsers, currentPage, itemsPerPage]);
 
   // Handlers
   const handleAddUser = () => {
@@ -420,9 +465,14 @@ const UserManagement = () => {
         // Cho edit mode, chỉ gửi những fields cần thiết
         const editData = {
           email: userData.email,
-          password: userData.password,
           phoneNumber: userData.phoneNumber,
         };
+        
+        // Chỉ gửi password nếu người dùng thực sự muốn đổi mật khẩu
+        if (userData.password && userData.password.trim() !== "") {
+          editData.password = userData.password;
+        }
+        
         console.log("Edit mode - sending data:", editData);
         await updateUser(userData.id, editData);
         showSuccess(
@@ -554,6 +604,31 @@ const UserManagement = () => {
     window.location.href = "/login";
   };
 
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, filteredUsers.length);
+  const hasNextPage = currentPage < totalPages;
+  const hasPreviousPage = currentPage > 1;
+
   if (apiConnectionStatus === "checking") {
     return (
       <div className="user-management-container">
@@ -670,11 +745,11 @@ const UserManagement = () => {
           <p>
             Quản lý thông tin và phân quyền người dùng trong hệ thống
             <span className="connection-status success">
-              <FaWifi /> API Connected
+              {/* <FaWifi /> API Connected */}
             </span>
             {currentUser && (
               <span className="user-info">
-                | Đăng nhập: <strong>{currentUser.role}</strong>
+                {/* | Đăng nhập: <strong>{currentUser.role}</strong> */}
               </span>
             )}
           </p>
@@ -704,7 +779,7 @@ const UserManagement = () => {
               <FaUserTie />
             </div>
             <div className="stat-info">
-              <div className="stat-label">Quản trị viên</div>
+              <div className="stat-label">Quản trị</div>
               <div className="stat-value">{stats.admin}</div>
             </div>
           </div>
@@ -716,7 +791,7 @@ const UserManagement = () => {
               <FaUserMd />
             </div>
             <div className="stat-info">
-              <div className="stat-label">Y tá trường</div>
+              <div className="stat-label">Y tá</div>
               <div className="stat-value">{stats.nurse}</div>
             </div>
           </div>
@@ -728,7 +803,7 @@ const UserManagement = () => {
               <FaUsers />
             </div>
             <div className="stat-info">
-              <div className="stat-label">Phụ huynh</div>
+              <div className="stat-label">Ph. Huynh</div>
               <div className="stat-value">{stats.parent}</div>
             </div>
           </div>
@@ -740,7 +815,7 @@ const UserManagement = () => {
               <FaUserCheck />
             </div>
             <div className="stat-info">
-              <div className="stat-label">Hoạt động</div>
+              <div className="stat-label">Kích hoạt</div>
               <div className="stat-value">{stats.active}</div>
             </div>
           </div>
@@ -752,7 +827,7 @@ const UserManagement = () => {
               <FaUserClock />
             </div>
             <div className="stat-info">
-              <div className="stat-label">Tạm ngưng</div>
+              <div className="stat-label">Khóa</div>
               <div className="stat-value">{stats.inactive}</div>
             </div>
           </div>
@@ -800,7 +875,12 @@ const UserManagement = () => {
       {/* Modern User Table */}
       <div className="user-table-wrapper">
         <UserTable
-          users={filteredUsers}
+          users={paginatedUsers}
+          totalUsers={filteredUsers.length}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          startIndex={startIndex}
+          endIndex={endIndex}
           isLoading={isLoading}
           onView={handleViewUser}
           onEdit={handleEditUser}
@@ -811,6 +891,68 @@ const UserManagement = () => {
           isSendingEmail={isSendingEmail}
           sendingUserId={sendingUserId}
         />
+        
+        {/* Pagination Controls */}
+        {filteredUsers.length > itemsPerPage && (
+          <div className="pagination-container">
+            <div className="pagination-info">
+              <span>
+                Hiển thị {startIndex}-{endIndex} trong tổng số {filteredUsers.length} người dùng
+              </span>
+            </div>
+            
+            <div className="pagination-controls">
+                             <button
+                 className={`pagination-btn ${!hasPreviousPage ? 'disabled' : ''}`}
+                 onClick={handlePreviousPage}
+                 disabled={!hasPreviousPage}
+                 title="Trang trước"
+               >
+                 <FaChevronLeft />
+               </button>
+              
+              <div className="pagination-pages">
+                {Array.from({ length: totalPages }, (_, index) => {
+                  const page = index + 1;
+                  const isCurrentPage = page === currentPage;
+                  
+                  // Show first page, last page, current page, and pages around current page
+                  const showPage = 
+                    page === 1 || 
+                    page === totalPages || 
+                    (page >= currentPage - 1 && page <= currentPage + 1);
+                  
+                  if (!showPage) {
+                    // Show ellipsis for gaps
+                    if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="pagination-ellipsis">...</span>;
+                    }
+                    return null;
+                  }
+                  
+                  return (
+                    <button
+                      key={page}
+                      className={`pagination-page ${isCurrentPage ? 'active' : ''}`}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+              
+                             <button
+                 className={`pagination-btn ${!hasNextPage ? 'disabled' : ''}`}
+                 onClick={handleNextPage}
+                 disabled={!hasNextPage}
+                 title="Trang sau"
+               >
+                 <FaChevronRight />
+               </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal */}

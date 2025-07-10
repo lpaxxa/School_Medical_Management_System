@@ -216,7 +216,18 @@ textarea.error {
   font-style: normal;
 }
 
+.optional {
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  font-style: italic;
+}
+
 .form-group label .required {
+  margin-left: var(--space-1);
+}
+
+.form-group label .optional {
   margin-left: var(--space-1);
 }
 

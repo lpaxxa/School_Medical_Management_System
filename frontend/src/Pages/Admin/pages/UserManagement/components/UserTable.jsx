@@ -12,6 +12,11 @@ import "./UserTable.css";
 
 const UserTable = ({
   users,
+  totalUsers,
+  currentPage,
+  itemsPerPage,
+  startIndex,
+  endIndex,
   isLoading,
   onView,
   onEdit,
@@ -56,7 +61,12 @@ const UserTable = ({
     <div className="modern-table-container">
       <div className="table-header">
         <h3>Danh sách người dùng</h3>
-        <span className="table-count">{users.length} người dùng</span>
+        <span className="table-count">
+          {totalUsers > 0 
+            ? `Trang ${currentPage} - ${users.length} người dùng (${totalUsers} tổng)`
+            : `${users.length} người dùng`
+          }
+        </span>
       </div>
 
       <div className="table-scroll">

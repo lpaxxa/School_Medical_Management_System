@@ -2,14 +2,16 @@
   background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
   color: #ecf0f1;
   width: 280px;
-  min-height: calc(100vh - 60px);
-  max-height: calc(100vh - 60px);
+  min-height: calc(100vh - 70px);
+  max-height: calc(100vh - 70px);
   overflow-y: auto;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 70px;
+  left: 0;
   transition: all 0.3s ease;
   flex-shrink: 0;
+  z-index: 900;
 }
 
 .admin-sidebar::before {

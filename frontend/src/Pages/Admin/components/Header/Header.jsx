@@ -75,11 +75,12 @@ const Header = ({ user }) => {
             <h1>MediCare</h1>
             <span>School Management</span>
           </div>
-        </div>{" "}
-        
-      </div>      <div className="admin-header-right">
+        </div>
+      </div>
+      <div className="admin-header-right">
         {/* Notifications */}
-        <div className="header-notifications">          <button
+        <div className="header-notifications">
+          <button
             className={`notification-btn ${notificationsOpen ? "active" : ""}`}
             onClick={toggleNotifications}
             title="Thông báo"
@@ -165,7 +166,7 @@ const Header = ({ user }) => {
                         ""}
                     </p>
                     <span className="user-role">
-                      {parentInfo?.relationshipType || "Phụ huynh"}
+                      {currentUser?.role || "Admin"}
                     </span>
                   </div>
                 </div>
@@ -178,10 +179,10 @@ const Header = ({ user }) => {
                   <i className="fas fa-cog"></i>
                   <span>Cài đặt</span>
                 </button>
-                <button className="dropdown-item" onClick={() => {}}>
+                {/* <button className="dropdown-item" onClick={() => {}}>
                   <i className="fas fa-moon"></i>
                   <span>Chế độ tối</span>
-                </button>
+                </button> */}
                 <div className="dropdown-divider"></div>
                 <button className="dropdown-item logout" onClick={handleLogout}>
                   <i className="fas fa-sign-out-alt"></i>

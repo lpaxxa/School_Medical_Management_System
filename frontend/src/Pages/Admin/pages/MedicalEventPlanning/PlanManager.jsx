@@ -95,12 +95,12 @@ const PlanManager = () => {
               dục
             </p>
           </div>
-          <div className="header-stats">
+          {/* <div className="header-stats">
             <div className="stat-item">
               <span className="stat-number">2</span>
               <span className="stat-label">Mô-đun</span>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -108,10 +108,8 @@ const PlanManager = () => {
       {!selectedSection && !selectedAction && (
         <div className="section-selector">
           <div className="selector-header">
-            <h2 className="selector-title">Mô-đun Y Tế</h2>
-            <p className="selector-subtitle">
-              Chọn một mô-đun để quản lý các hoạt động y tế
-            </p>
+            <h2 className="selector-title">Kế Hoạch Y Tế</h2>
+            
           </div>
 
           <div className="sections-grid">
@@ -196,7 +194,7 @@ const PlanManager = () => {
         <div className="content-area">
           <div className="content-header">
             <button className="back-button" onClick={handleBackToActions}>
-              <FaArrowLeft /> Quay lại Chức năng
+              <FaArrowLeft /> Quay lại
             </button>
             <div className="breadcrumb">
               <span className="breadcrumb-item" onClick={handleBackToSections}>

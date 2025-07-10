@@ -527,17 +527,17 @@ const CreateVaccinationPlan = () => {
         </div>
 
         {/* Submit Button */}
-        <div className="form-actions">
+        <div >
           <button type="submit" className="submit-button" disabled={isLoading}>
             {isLoading ? (
               <>
                 <FaSpinner className="spinning" />
-                Đang tạo kế hoạch...
+                <span>Đang xử lý...</span>
               </>
             ) : (
               <>
                 <FaPlusCircle />
-                Tạo Kế Hoạch
+                <span>Tạo kế hoạch</span>
               </>
             )}
           </button>

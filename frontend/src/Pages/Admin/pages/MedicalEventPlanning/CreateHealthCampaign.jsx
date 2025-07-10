@@ -397,7 +397,7 @@ const CreateHealthCampaign = () => {
         </div>
 
         {/* Submit Button */}
-        <div className="form-actions">
+        <div >
           <button type="submit" className="submit-button" disabled={isLoading}>
             {isLoading ? (
               <>

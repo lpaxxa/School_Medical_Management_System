@@ -350,6 +350,20 @@ export const testApiConnection = async () => {
 
 // Utility functions để transform data
 export const transformUserFromAPI = (apiUser) => {
+  // For admin users, use username as fallback for fullName if fullName is not provided
+  const fallbackFullName = apiUser.fullName || 
+    (apiUser.role === 'ADMIN' ? apiUser.username : null);
+    
+  // Debug logging for admin users
+  if (apiUser.role === 'ADMIN') {
+    console.log('=== ADMIN USER DEBUG ===');
+    console.log('Raw API User:', apiUser);
+    console.log('Original fullName:', apiUser.fullName);
+    console.log('Username:', apiUser.username);
+    console.log('Fallback fullName:', fallbackFullName);
+    console.log('=== END ADMIN DEBUG ===');
+  }
+    
   return {
     id: apiUser.memberId || apiUser.id,
     username: apiUser.username || apiUser.fullName || apiUser.email,
@@ -358,7 +372,7 @@ export const transformUserFromAPI = (apiUser) => {
     role: apiUser.role,
     isActive: apiUser.isActive !== undefined ? apiUser.isActive : true,
     emailSent: apiUser.emailSent, // Thêm field emailSent
-    fullName: apiUser.fullName,
+    fullName: fallbackFullName,
     address: apiUser.address,
     emergencyPhoneNumber: apiUser.emergencyPhoneNumber,
     relationshipType: apiUser.relationshipType,

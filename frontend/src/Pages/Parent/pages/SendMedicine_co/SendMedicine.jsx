@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./styles/index.css";
+// Import only our consolidated CSS file
+import "./styles/SendMedicine.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import { useAuth } from "../../../../context/AuthContext";
-import axios from "axios";
-// import api from "../../../../services/api";
+import medicationRequestService from "../../../../services/medicationRequestService";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -57,23 +57,17 @@ const SendMedicine = () => {
     }
   }, [activeTab]);
 
-  // Fetch lịch sử gửi thuốc
+  // Fetch lịch sử gửi thuốc - Updated to use the service
   const fetchMedicationHistory = async () => {
     setIsHistoryLoading(true);
     setHistoryError(null);
 
     try {
-      // Cập nhật endpoint API
-      const response = await axios.get(
-        "http://localhost:8080/api/v1/parent-medication-requests/my-requests",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        }
-      );
-      console.log("Medication history:", response.data);
-      setMedicationHistory(response.data || []);
+      // Use the medication request service instead of axios
+      const medicationHistory =
+        await medicationRequestService.fetchMedicationHistory();
+      console.log("Medication history:", medicationHistory);
+      setMedicationHistory(medicationHistory || []);
 
       // Cuộn lên đầu trang sau khi tải xong dữ liệu
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -152,6 +146,17 @@ const SendMedicine = () => {
         prescriptionImage: file,
       });
 
+      // Create image preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({
+          ...formData,
+          prescriptionImage: file,
+          prescriptionImagePreview: reader.result,
+        });
+      };
+      reader.readAsDataURL(file);
+
       // Xóa lỗi khi người dùng chọn file hợp lệ
       if (errors.prescriptionImage) {
         setErrors({
@@ -209,9 +214,9 @@ const SendMedicine = () => {
         return;
       }
 
-      // Chuẩn bị dữ liệu cơ bản
-      const requestData = {
-        studentId: parseInt(formData.studentId),
+      // Use the medication request service instead of direct API call
+      const response = await medicationRequestService.submitMedicationRequest({
+        studentId: formData.studentId,
         medicineName: formData.medicineName,
         dosage: formData.dosage,
         frequency: formData.frequency,
@@ -219,42 +224,10 @@ const SendMedicine = () => {
         endDate: formData.endDate,
         timeToTake: formData.timeToTake,
         notes: formData.notes || "",
-        prescriptionImageBase64: null,
-        prescriptionImageType: null,
-      };
+        prescriptionImage: formData.prescriptionImage,
+      });
 
-      // Xử lý hình ảnh đơn thuốc nếu có
-      if (formData.prescriptionImage) {
-        try {
-          // Chuyển đổi file hình ảnh sang Base64
-          const base64Image = await convertImageToBase64(
-            formData.prescriptionImage
-          );
-          requestData.prescriptionImageBase64 = base64Image;
-          requestData.prescriptionImageType = formData.prescriptionImage.type;
-        } catch (imageError) {
-          console.error("Lỗi chuyển đổi hình ảnh:", imageError);
-          toast.error("Không thể xử lý hình ảnh đơn thuốc. Vui lòng thử lại.");
-          setLoading(false);
-          return;
-        }
-      }
-
-      console.log("Dữ liệu gửi đi:", requestData);
-
-      // Gọi API
-      const response = await axios.post(
-        "http://localhost:8080/api/v1/parent-medication-requests/submit-request",
-        requestData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("API Response:", response.data);
+      console.log("API Response:", response);
       setFormSubmitted(true);
 
       // Cuộn lên đầu trang
@@ -294,23 +267,8 @@ const SendMedicine = () => {
     }
   };
 
-  // Thêm hàm để chuyển đổi hình ảnh sang Base64
-  const convertImageToBase64 = (imageFile) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(imageFile);
-
-      reader.onload = () => {
-        // Lấy phần base64 sau dấu phẩy (loại bỏ phần data:image/jpeg;base64,)
-        const base64String = reader.result.split(",")[1];
-        resolve(base64String);
-      };
-
-      reader.onerror = (error) => {
-        reject(error);
-      };
-    });
-  };
+  // Thêm hàm để chuyển đổi hình ảnh sang Base64 - Use from service instead
+  const convertImageToBase64 = medicationRequestService.convertImageToBase64;
 
   // Format date cho việc hiển thị
   const formatDate = (dateString) => {
@@ -426,7 +384,7 @@ const SendMedicine = () => {
       return;
     }
 
-    // Điền form modal với dữ liệu hiện tại
+    // Điền form modal với dữ liệu hiện tại, nhưng xóa trắng thời gian uống và hướng dẫn đặc biệt
     setEditFormData({
       id: requestToUpdate.id,
       medicationName: requestToUpdate.medicationName || "",
@@ -434,8 +392,8 @@ const SendMedicine = () => {
       frequencyPerDay: requestToUpdate.frequencyPerDay || "",
       startDate: requestToUpdate.startDate?.substring(0, 10) || "",
       endDate: requestToUpdate.endDate?.substring(0, 10) || "",
-      timeToTake: parseTimeOfDay(requestToUpdate.timeOfDay) || [],
-      specialInstructions: requestToUpdate.specialInstructions || "",
+      timeToTake: [], // Xóa trắng thời gian uống để người dùng chọn lại
+      specialInstructions: "", // Xóa trắng hướng dẫn đặc biệt
       // Lưu thêm thông tin khác cần thiết
       submittedAt: requestToUpdate.submittedAt,
       healthProfileId: requestToUpdate.healthProfileId,
@@ -443,13 +401,20 @@ const SendMedicine = () => {
       requestedBy: requestToUpdate.requestedBy,
       requestedByAccountId: requestToUpdate.requestedByAccountId,
       parentProvided: requestToUpdate.parentProvided,
+      studentClass: requestToUpdate.studentClass,
+      studentId: requestToUpdate.studentId,
+      prescriptionImage: null,
     });
+
+    // Reset modal image state
+    setModalPrescriptionImage(null);
+    setModalImagePreview(null);
 
     // Mở modal
     setIsModalOpen(true);
   };
 
-  // Thêm hàm handleDeleteRequest
+  // Thêm hàm handleDeleteRequest - Updated to use service
   const handleDeleteRequest = async (requestId) => {
     // Confirm before cancellation
     if (!window.confirm("Bạn có chắc chắn muốn hủy yêu cầu này không?")) {
@@ -459,23 +424,12 @@ const SendMedicine = () => {
     setIsHistoryLoading(true);
 
     try {
-      const token = localStorage.getItem("authToken");
+      // Use the service instead of direct axios call
+      await medicationRequestService.cancelMedicationRequest(requestId);
 
-      // Thay đổi URL để sử dụng cancel-request endpoint
-      const response = await axios.delete(
-        `http://localhost:8080/api/v1/parent-medication-requests/cancel-request/${requestId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.status === 200 || response.status === 204) {
-        // Cập nhật lại danh sách yêu cầu thuốc
-        fetchMedicationHistory();
-        toast.success("Yêu cầu đã được hủy thành công");
-      }
+      // Cập nhật lại danh sách yêu cầu thuốc
+      fetchMedicationHistory();
+      toast.success("Yêu cầu đã được hủy thành công");
     } catch (error) {
       console.error("Error canceling medication request:", error);
       toast.error(
@@ -498,7 +452,12 @@ const SendMedicine = () => {
     endDate: "",
     timeToTake: [],
     specialInstructions: "",
+    prescriptionImage: null,
   });
+
+  // State cho prescription image trong modal
+  const [modalPrescriptionImage, setModalPrescriptionImage] = useState(null);
+  const [modalImagePreview, setModalImagePreview] = useState(null);
 
   // State cho confirmation modal
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
@@ -511,104 +470,23 @@ const SendMedicine = () => {
   const fetchConfirmationData = async (requestId) => {
     setConfirmationLoading(true);
     try {
-      const token = localStorage.getItem("authToken");
+      // Use the service to get medication administration details
+      const response =
+        await medicationRequestService.getMedicationAdministrationDetails(
+          requestId,
+          API_ENDPOINTS
+        );
 
-      // Phương pháp ĐÚNG: Sử dụng endpoint chính xác
-      let response;
-      let endpointUsed;
+      // Check if response has the new JSON format structure
+      const confirmationData =
+        response.data &&
+        response.data.content &&
+        response.data.content.length > 0
+          ? response.data.content[0]
+          : response;
 
-      try {
-        endpointUsed =
-          API_ENDPOINTS.medicationAdministrations.getByMedicationInstructionId(
-            requestId
-          );
-
-        response = await axios.get(endpointUsed, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        // API trả về cấu trúc: { data: [...], count: number, status: "success" }
-        const apiResponse = response.data;
-
-        if (apiResponse.status !== "success") {
-          throw new Error(`API returned status: ${apiResponse.status}`);
-        }
-
-        let confirmationData = apiResponse.data; // Lấy array từ trường "data"
-
-        // Xử lý array data
-        if (Array.isArray(confirmationData)) {
-          if (confirmationData.length > 0) {
-            // Lấy item mới nhất (có administeredAt gần nhất)
-            confirmationData = confirmationData.sort(
-              (a, b) => new Date(b.administeredAt) - new Date(a.administeredAt)
-            )[0];
-          } else {
-            throw new Error("Không có thông tin xác nhận cho yêu cầu này");
-          }
-        } else if (confirmationData) {
-          // Nếu là single object - sử dụng trực tiếp
-        } else {
-          throw new Error("Không có dữ liệu xác nhận");
-        }
-
-        setConfirmationData(confirmationData);
-        setIsConfirmationModalOpen(true);
-      } catch (error1) {
-        // Fallback: Thử các endpoint khác nếu endpoint chính thất bại
-        try {
-          endpointUsed =
-            API_ENDPOINTS.medicationAdministrations.getById(requestId);
-
-          response = await axios.get(endpointUsed, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
-          setConfirmationData(response.data);
-          setIsConfirmationModalOpen(true);
-        } catch (error2) {
-          // Fallback 2: Lấy tất cả và filter
-          try {
-            endpointUsed = API_ENDPOINTS.medicationAdministrations.getAll;
-
-            response = await axios.get(endpointUsed, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            });
-
-            // Xử lý cấu trúc wrapper nếu có
-            let administrations = response.data;
-            if (administrations && administrations.data) {
-              administrations = administrations.data;
-            }
-
-            const allAdministrations = Array.isArray(administrations)
-              ? administrations
-              : [administrations];
-            const matchingAdmin = allAdministrations.find(
-              (admin) => admin.medicationInstructionId == requestId
-            );
-
-            if (matchingAdmin) {
-              setConfirmationData(matchingAdmin);
-              setIsConfirmationModalOpen(true);
-            } else {
-              throw new Error(
-                "Không tìm thấy thông tin xác nhận cho yêu cầu này"
-              );
-            }
-          } catch (error3) {
-            throw error1; // Ném lỗi của endpoint chính
-          }
-        }
-      }
+      setConfirmationData(confirmationData);
+      setIsConfirmationModalOpen(true);
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
@@ -637,21 +515,29 @@ const SendMedicine = () => {
   // Function để lấy label và class cho administration status
   const getAdministrationStatusInfo = (status) => {
     const statusMap = {
-      SUCCESSFUL: {
-        label: "Thành công",
+      PENDING_APPROVAL: {
+        label: "Chờ xác nhận",
+        class: "pending",
+      },
+      APPROVED: {
+        label: "Đã xác nhận",
         class: "success",
       },
-      REFUSED: {
+      REJECTED: {
         label: "Từ chối",
         class: "refused",
       },
-      PARTIAL: {
-        label: "Một phần",
+      FULLY_TAKEN: {
+        label: "Đã uống đầy đủ",
+        class: "success",
+      },
+      PARTIALLY_TAKEN: {
+        label: "Đã uống một phần",
         class: "partial",
       },
-      ISSUE: {
-        label: "Có vấn đề",
-        class: "issue",
+      EXPIRED: {
+        label: "Hết hạn",
+        class: "refused",
       },
     };
 
@@ -686,61 +572,99 @@ const SendMedicine = () => {
     }
   };
 
+  // Thêm handler cho modal image upload
+  const handleModalImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File không được vượt quá 5MB");
+        return;
+      }
+
+      if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+        toast.error("Chỉ chấp nhận file ảnh (JPEG, PNG, JPG)");
+        return;
+      }
+
+      setModalPrescriptionImage(file);
+
+      // Tạo preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setModalImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Thêm hàm kiểm tra form trước khi submit
   const validateModalForm = () => {
-    const modalErrors = {};
+    const newErrors = {};
 
     if (!editFormData.medicationName) {
-      modalErrors.medicationName = "Vui lòng nhập tên thuốc";
+      newErrors.medicationName = "Vui lòng nhập tên thuốc";
     }
 
     if (!editFormData.dosageInstructions) {
-      modalErrors.dosageInstructions = "Vui lòng nhập liều lượng";
+      newErrors.dosageInstructions = "Vui lòng nhập liều lượng";
     }
 
-    if (!editFormData.frequencyPerDay) {
-      modalErrors.frequencyPerDay = "Vui lòng nhập tần suất";
+    // Sửa lỗi xác thực frequencyPerDay
+    if (
+      !editFormData.frequencyPerDay ||
+      isNaN(Number(editFormData.frequencyPerDay)) ||
+      Number(editFormData.frequencyPerDay) < 1
+    ) {
+      newErrors.frequencyPerDay = "Vui lòng nhập số lần dùng thuốc hợp lệ";
     }
 
     if (!editFormData.startDate) {
-      modalErrors.startDate = "Vui lòng chọn ngày bắt đầu";
+      newErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     }
 
     if (!editFormData.endDate) {
-      modalErrors.endDate = "Vui lòng chọn ngày kết thúc";
+      newErrors.endDate = "Vui lòng chọn ngày kết thúc";
     }
 
     if (editFormData.timeToTake.length === 0) {
-      modalErrors.timeToTake = "Vui lòng chọn thời điểm uống thuốc";
+      newErrors.timeToTake = "Vui lòng chọn thời điểm uống thuốc";
     }
 
-    if (Object.keys(modalErrors).length > 0) {
-      setModalErrors(modalErrors);
-      return false;
-    }
-
-    return true;
+    setModalErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleModalFormSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validateModalForm()) {
+      toast.error("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Kiểm tra các trường bắt buộc
-      if (
-        !editFormData.medicationName?.trim() ||
-        !editFormData.dosageInstructions?.trim() ||
-        !editFormData.frequencyPerDay?.trim() ||
-        !editFormData.startDate ||
-        !editFormData.endDate ||
-        !editFormData.timeToTake ||
-        editFormData.timeToTake.length === 0
-      ) {
-        toast.error("Vui lòng điền đầy đủ thông tin thuốc");
-        setLoading(false);
-        return;
+      // Chuẩn bị dữ liệu để gửi
+      const formData = new FormData();
+      formData.append("medicationName", editFormData.medicationName);
+      formData.append("dosageInstructions", editFormData.dosageInstructions);
+      // Sửa lỗi xử lý frequencyPerDay
+      formData.append(
+        "frequencyPerDay",
+        editFormData.frequencyPerDay.toString()
+      );
+      formData.append("startDate", formatDateForAPI(editFormData.startDate));
+      formData.append("endDate", formatDateForAPI(editFormData.endDate));
+      formData.append("timeToTake", JSON.stringify(editFormData.timeToTake));
+      formData.append(
+        "specialInstructions",
+        editFormData.specialInstructions || ""
+      );
+
+      // Thêm hình ảnh nếu có
+      if (modalPrescriptionImage) {
+        formData.append("prescriptionImage", modalPrescriptionImage);
       }
 
       // Lấy token xác thực
@@ -751,61 +675,46 @@ const SendMedicine = () => {
         return;
       }
 
-      // Chuẩn bị dữ liệu gửi đi với TẤT CẢ tên trường có thể
+      // Xử lý hình ảnh nếu có
+      let imageBase64 = null;
+      if (modalPrescriptionImage) {
+        imageBase64 = await medicationRequestService.convertImageToBase64(
+          modalPrescriptionImage
+        );
+      }
+
+      // Chuẩn bị dữ liệu theo định dạng JSON yêu cầu bởi API
       const updateData = {
-        id: editFormData.id,
-        submittedAt:
-          editFormData.submittedAt || new Date().toISOString().split("T")[0],
-        healthProfileId: editFormData.healthProfileId,
-        studentName: editFormData.studentName,
-        requestedBy: editFormData.requestedBy,
-        requestedByAccountId: editFormData.requestedByAccountId,
+        // Thông tin học sinh
+        studentId: parseInt(
+          editFormData.studentId || editFormData.healthProfileId
+        ),
 
-        // Các trường thông tin thuốc - gửi tất cả các biến thể tên có thể
-        medicationName: editFormData.medicationName.trim(),
-        medicineName: editFormData.medicationName.trim(), // Thêm tên trường này
-        medicine: editFormData.medicationName.trim(), // Thêm tên trường này
+        // Thông tin thuốc - sử dụng đúng tên trường theo yêu cầu
+        medicineName: editFormData.medicationName.trim(),
+        dosage: editFormData.dosageInstructions.trim(),
+        frequency: parseInt(editFormData.frequencyPerDay) || 1,
 
-        dosageInstructions: editFormData.dosageInstructions.trim(),
-        dosage: editFormData.dosageInstructions.trim(), // Thêm tên trường này
-
-        frequencyPerDay: editFormData.frequencyPerDay.trim(),
-        frequency: editFormData.frequencyPerDay.trim(),
-
+        // Thời gian dùng thuốc
         startDate: editFormData.startDate,
         endDate: editFormData.endDate,
+        timeToTake: editFormData.timeToTake, // Mảng thời gian uống thuốc
 
-        // Thêm nhiều biến thể cho timeOfDay/timeToTake
-        timeOfDay: Array.isArray(editFormData.timeToTake)
-          ? `[${editFormData.timeToTake.join(", ")}]`
-          : `[${editFormData.timeToTake}]`,
-        timeToTake: editFormData.timeToTake,
-
-        specialInstructions: editFormData.specialInstructions?.trim() || "",
+        // Ghi chú bổ sung
         notes: editFormData.specialInstructions?.trim() || "",
 
-        parentProvided: true,
-        status: "PENDING_APPROVAL",
-        rejectionReason: null,
-        approvedBy: null,
-        responseDate: null,
+        // Hình ảnh đơn thuốc nếu có
+        prescriptionImageBase64: imageBase64,
       };
 
-      console.log("JSON gửi đi:", JSON.stringify(updateData, null, 2));
+      console.log("Updating medication request with data:", updateData);
 
-      // Gọi API cập nhật
-      const response = await axios.put(
-        `http://localhost:8080/api/v1/parent-medication-requests/${editFormData.id}`,
-        updateData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      // Sử dụng service để cập nhật yêu cầu
+      await medicationRequestService.updateMedicationRequest(
+        editFormData.id,
+        updateData
       );
 
-      console.log("Phản hồi API:", response.data);
       toast.success("Cập nhật yêu cầu thuốc thành công!");
       setIsModalOpen(false);
       fetchMedicationHistory();
@@ -828,59 +737,6 @@ const SendMedicine = () => {
           "Không thể cập nhật yêu cầu thuốc. Vui lòng thử lại sau.";
       }
 
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Format lại dữ liệu trước khi gửi đi
-  const handleUpdate = async () => {
-    try {
-      // Đảm bảo định dạng ngày tháng đúng (yyyy-MM-dd)
-      const formattedStartDate = formatDateForAPI(editData.startDate);
-      const formattedEndDate = formatDateForAPI(editData.endDate);
-
-      // Tạo dữ liệu cập nhật với định dạng ngày tháng đúng
-      const updateData = {
-        ...requestToUpdate,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        timeOfDay: JSON.stringify(selectedTimes), // Đảm bảo timeOfDay là chuỗi JSON
-      };
-
-      // Gọi API cập nhật
-      const response = await axios.put(
-        `http://localhost:8080/api/v1/parent-medication-requests/${updateData.id}`,
-        updateData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      // Xử lý thành công
-      toast.success("Cập nhật yêu cầu thuốc thành công!");
-      setIsModalOpen(false);
-
-      // Cập nhật lại danh sách lịch sử
-      fetchMedicationHistory();
-    } catch (error) {
-      console.error("Lỗi khi cập nhật yêu cầu thuốc:", error);
-
-      // Log chi tiết lỗi để debug
-      if (error.response) {
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
-        console.error("Response headers:", error.response.headers);
-      }
-
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Không thể cập nhật yêu cầu thuốc";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -922,6 +778,19 @@ const SendMedicine = () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [formSubmitted]);
+
+  // State for image zoom functionality
+  const [zoomedImage, setZoomedImage] = useState(null);
+
+  // Function to handle image click for zooming
+  const handleImageClick = (imageUrl) => {
+    setZoomedImage(imageUrl);
+  };
+
+  // Function to close the zoomed image
+  const handleCloseZoom = () => {
+    setZoomedImage(null);
+  };
 
   return (
     <div className="send-medicine-container">
@@ -1134,35 +1003,45 @@ const SendMedicine = () => {
 
             <div className="form-section">
               <h3>Thông tin bổ sung</h3>
-              <div className="form-group-horizontal">
-                <label htmlFor="prescriptionImage">
-                  Đính kèm đơn thuốc (nếu có):
-                </label>
-                <div>
-                  <div className="file-input-container">
-                    <input
-                      type="file"
-                      id="prescriptionImage"
-                      name="prescriptionImage"
-                      onChange={handleImageChange}
-                      accept="image/jpeg,image/png,image/jpg"
-                      className={errors.prescriptionImage ? "error" : ""}
-                    />
-                    <label htmlFor="prescriptionImage" className="file-label">
-                      {formData.prescriptionImage
-                        ? formData.prescriptionImage.name
-                        : "Chọn file ảnh"}
-                    </label>
-                  </div>
-                  {errors.prescriptionImage && (
-                    <span className="error-text">
-                      {errors.prescriptionImage}
+              {/* Thêm trường hình ảnh đơn thuốc */}
+              <div className="form-group">
+                <label htmlFor="prescriptionImage">Hình ảnh đơn thuốc:</label>
+                <div className="image-upload-container">
+                  <input
+                    type="file"
+                    id="prescriptionImage"
+                    name="prescriptionImage"
+                    accept="image/jpeg,image/png,image/jpg"
+                    onChange={handleImageChange}
+                    className="image-input"
+                  />
+                  <label htmlFor="prescriptionImage" className="upload-button">
+                    Chọn ảnh
+                  </label>
+                  {formData.prescriptionImage && (
+                    <span className="file-name">
+                      {formData.prescriptionImage.name}
                     </span>
                   )}
-                  <span className="help-text">
-                    Chỉ chấp nhận file ảnh (JPEG, PNG, JPG), tối đa 5MB
-                  </span>
+                  {errors.prescriptionImage && (
+                    <div className="error-text">{errors.prescriptionImage}</div>
+                  )}
+                  {formData.prescriptionImagePreview && (
+                    <div className="image-preview-container">
+                      <img
+                        src={formData.prescriptionImagePreview}
+                        alt="Đơn thuốc"
+                        className="image-preview"
+                        onClick={() =>
+                          handleImageClick(formData.prescriptionImagePreview)
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
+                <span className="help-text">
+                  Tối đa 5MB. Định dạng: JPG, PNG.
+                </span>
               </div>
 
               <div className="form-row-large">
@@ -1211,7 +1090,7 @@ const SendMedicine = () => {
                 type="submit"
                 className="btn-primary"
                 disabled={loading}
-                onClick={isUpdating ? handleUpdateSubmit : handleSubmit}
+                onClick={isUpdating ? handleModalFormSubmit : handleSubmit}
               >
                 {loading ? (
                   <span className="spinner"></span>
@@ -1412,101 +1291,142 @@ const SendMedicine = () => {
                 className="med-modal-close"
                 onClick={() => setIsModalOpen(false)}
               >
-                ×
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6 6L18 18M6 18L18 6"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </button>
             </div>
-
             <div className="med-modal-content">
               <form onSubmit={handleModalFormSubmit}>
-                <div className="med-form-group">
-                  <label htmlFor="modal-medicineName">Tên thuốc:</label>
+                {/* Student info */}
+                <div className="form-group">
+                  <label htmlFor="modal-studentId">Học sinh:</label>
                   <input
                     type="text"
-                    id="modal-medicineName"
+                    id="modal-studentName"
+                    value={`${editFormData.studentName || ""} - Lớp ${
+                      editFormData.studentClass || ""
+                    }`}
+                    disabled
+                  />
+                </div>
+
+                {/* Medicine info */}
+                <div className="form-group">
+                  <label htmlFor="modal-medicationName">Tên thuốc:</label>
+                  <input
+                    type="text"
+                    id="modal-medicationName"
                     name="medicationName"
-                    value={editFormData.medicineName}
+                    value={editFormData.medicationName || ""}
                     onChange={handleModalInputChange}
                     placeholder="Nhập tên thuốc"
+                    className={modalErrors.medicationName ? "error" : ""}
                     required
-                    className={modalErrors.medicationName ? "med-error" : ""}
                   />
                   {modalErrors.medicationName && (
-                    <span className="med-error-text">
+                    <span className="error-text">
                       {modalErrors.medicationName}
                     </span>
                   )}
                 </div>
 
-                <div className="med-form-row">
-                  <div className="med-form-group">
-                    <label htmlFor="modal-dosage">Liều lượng:</label>
+                {/* Form rows for better layout */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="modal-dosageInstructions">
+                      Liều lượng:
+                    </label>
                     <input
                       type="text"
-                      id="modal-dosage"
+                      id="modal-dosageInstructions"
                       name="dosageInstructions"
-                      value={editFormData.dosageInstructions}
+                      value={editFormData.dosageInstructions || ""}
                       onChange={handleModalInputChange}
-                      placeholder="VD: 1 viên, 5ml, ..."
+                      placeholder="Ví dụ: 1 viên mỗi lần"
+                      className={modalErrors.dosageInstructions ? "error" : ""}
                       required
-                      className={
-                        modalErrors.dosageInstructions ? "med-error" : ""
-                      }
                     />
                     {modalErrors.dosageInstructions && (
-                      <span className="med-error-text">
+                      <span className="error-text">
                         {modalErrors.dosageInstructions}
                       </span>
                     )}
                   </div>
 
-                  <div className="med-form-group">
-                    <label htmlFor="modal-frequency">Tần suất:</label>
+                  <div className="form-group">
+                    <label htmlFor="modal-frequencyPerDay">
+                      Số lần dùng mỗi ngày:
+                    </label>
                     <input
-                      type="text"
-                      id="modal-frequency"
+                      type="number"
+                      id="modal-frequencyPerDay"
                       name="frequencyPerDay"
-                      value={editFormData.frequencyPerDay}
+                      value={editFormData.frequencyPerDay || ""}
                       onChange={handleModalInputChange}
-                      placeholder="VD: 2 lần/ngày"
+                      min="1"
+                      max="10"
+                      placeholder="Số lần dùng thuốc trong ngày"
+                      className={modalErrors.frequencyPerDay ? "error" : ""}
                       required
-                      className={modalErrors.frequencyPerDay ? "med-error" : ""}
                     />
                     {modalErrors.frequencyPerDay && (
-                      <span className="med-error-text">
+                      <span className="error-text">
                         {modalErrors.frequencyPerDay}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="med-form-row">
-                  <div className="med-form-group">
+                <div className="form-row">
+                  <div className="form-group">
                     <label htmlFor="modal-startDate">Ngày bắt đầu:</label>
                     <input
                       type="date"
                       id="modal-startDate"
                       name="startDate"
-                      value={editFormData.startDate}
+                      value={editFormData.startDate || ""}
                       onChange={handleModalInputChange}
+                      className={modalErrors.startDate ? "error" : ""}
                       required
                     />
+                    {modalErrors.startDate && (
+                      <span className="error-text">
+                        {modalErrors.startDate}
+                      </span>
+                    )}
                   </div>
 
-                  <div className="med-form-group">
+                  <div className="form-group">
                     <label htmlFor="modal-endDate">Ngày kết thúc:</label>
                     <input
                       type="date"
                       id="modal-endDate"
                       name="endDate"
-                      value={editFormData.endDate}
+                      value={editFormData.endDate || ""}
                       onChange={handleModalInputChange}
+                      className={modalErrors.endDate ? "error" : ""}
                       required
                     />
+                    {modalErrors.endDate && (
+                      <span className="error-text">{modalErrors.endDate}</span>
+                    )}
                   </div>
                 </div>
 
-                <div className="med-form-group">
-                  <label>Thời điểm uống thuốc:</label>
+                <div className="form-group">
+                  <label htmlFor="time-options">Thời gian uống thuốc:</label>
                   <div className="checkbox-group">
                     {timeOptions.map((option) => (
                       <div className="checkbox-item" key={option.value}>
@@ -1526,23 +1446,69 @@ const SendMedicine = () => {
                       </div>
                     ))}
                   </div>
+                  {editFormData.timeToTake.length === 0 && (
+                    <span className="error-text">
+                      Vui lòng chọn ít nhất một thời điểm uống thuốc
+                    </span>
+                  )}
                 </div>
 
-                <div className="med-form-group">
+                <div className="form-group">
                   <label htmlFor="modal-specialInstructions">
                     Hướng dẫn đặc biệt:
                   </label>
                   <textarea
                     id="modal-specialInstructions"
                     name="specialInstructions"
-                    value={editFormData.specialInstructions}
+                    value={editFormData.specialInstructions || ""}
                     onChange={handleModalInputChange}
                     placeholder="Nhập hướng dẫn đặc biệt (nếu có)"
-                    rows="4"
+                    rows="3"
                   ></textarea>
                 </div>
 
-                <div className="med-modal-actions">
+                {/* Image Upload Section */}
+                <div className="form-group">
+                  <label htmlFor="modal-prescriptionImage">
+                    Hình ảnh đơn thuốc:
+                  </label>
+                  <div className="image-upload-container">
+                    <input
+                      type="file"
+                      id="modal-prescriptionImage"
+                      name="prescriptionImage"
+                      accept="image/jpeg,image/png,image/jpg"
+                      onChange={handleModalImageChange}
+                      className="image-input"
+                    />
+                    <label
+                      htmlFor="modal-prescriptionImage"
+                      className="upload-button"
+                    >
+                      Chọn ảnh
+                    </label>
+                    {modalPrescriptionImage && (
+                      <span className="file-name">
+                        {modalPrescriptionImage.name}
+                      </span>
+                    )}
+                    <span className="help-text">
+                      Tối đa 5MB. Định dạng: JPG, PNG.
+                    </span>
+                    {modalImagePreview && (
+                      <div className="image-preview-container">
+                        <img
+                          src={modalImagePreview}
+                          alt="Đơn thuốc"
+                          className="image-preview"
+                          onClick={() => handleImageClick(modalImagePreview)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-actions">
                   <button
                     type="button"
                     className="btn-secondary"
@@ -1555,7 +1521,7 @@ const SendMedicine = () => {
                     className="btn-primary"
                     disabled={loading}
                   >
-                    {loading ? <span className="spinner"></span> : "Cập nhật"}
+                    {loading ? "Đang cập nhật..." : "Cập nhật"}
                   </button>
                 </div>
               </form>
@@ -1564,7 +1530,7 @@ const SendMedicine = () => {
         </div>
       )}
 
-      {/* Modal xác nhận */}
+      {/* Confirmation Modal - Updated with image zoom */}
       {isConfirmationModalOpen && confirmationData && (
         <div className="med-modal-overlay">
           <div className="med-modal confirmation-modal">
@@ -1577,7 +1543,20 @@ const SendMedicine = () => {
                   setConfirmationData(null);
                 }}
               >
-                ×
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6 6L18 18M6 18L18 6"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </button>
             </div>
 
@@ -1600,24 +1579,32 @@ const SendMedicine = () => {
                       </span>
                     </div>
                   </div>
-                  {confirmationData.medicationInstructionId && (
-                    <div className="confirmation-row">
-                      <div className="confirmation-item">
-                        <span className="confirmation-label">
-                          Mã yêu cầu thuốc:
-                        </span>
-                        <span className="confirmation-value">
-                          #{confirmationData.medicationInstructionId}
-                        </span>
-                      </div>
-                      <div className="confirmation-item">
-                        <span className="confirmation-label">Mã xác nhận:</span>
-                        <span className="confirmation-value">
-                          #{confirmationData.id}
-                        </span>
-                      </div>
+                  <div className="confirmation-row">
+                    <div className="confirmation-item">
+                      <span className="confirmation-label">
+                        Mã yêu cầu thuốc:
+                      </span>
+                      <span className="confirmation-value">
+                        #{confirmationData.medicationInstructionId || "N/A"}
+                      </span>
                     </div>
-                  )}
+                    <div className="confirmation-item">
+                      <span className="confirmation-label">Mã xác nhận:</span>
+                      <span className="confirmation-value">
+                        #{confirmationData.id || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="confirmation-row">
+                    <div className="confirmation-item">
+                      <span className="confirmation-label">
+                        Số lần dùng mỗi ngày:
+                      </span>
+                      <span className="confirmation-value">
+                        {confirmationData.frequencyPerDay || "N/A"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Thông tin thực hiện */}
@@ -1688,39 +1675,28 @@ const SendMedicine = () => {
                       <img
                         src={confirmationData.confirmationImageUrl}
                         alt="Hình ảnh xác nhận cho thuốc"
-                        style={{
-                          maxWidth: "100%",
-                          height: "auto",
-                          borderRadius: "8px",
-                        }}
+                        className="confirmation-img"
+                        onClick={() =>
+                          handleImageClick(
+                            confirmationData.confirmationImageUrl
+                          )
+                        }
                         onError={(e) => {
                           e.target.style.display = "none";
                           e.target.nextSibling.style.display = "block";
                         }}
                       />
-                    ) : null}
-                    <div
-                      className="no-image-placeholder"
-                      style={{
-                        display: confirmationData.confirmationImageUrl
-                          ? "none"
-                          : "block",
-                        textAlign: "center",
-                        color: "#64748b",
-                        padding: "20px",
-                        border: "2px dashed #d1d5db",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <p>Không có hình ảnh xác nhận</p>
-                    </div>
+                    ) : (
+                      <div className="no-image-placeholder">
+                        <p>Không có hình ảnh xác nhận</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
               <div className="med-modal-actions">
                 <button
-                  type="button"
                   className="btn-primary"
                   onClick={() => {
                     setIsConfirmationModalOpen(false);
@@ -1732,6 +1708,34 @@ const SendMedicine = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Image Zoom Overlay */}
+      {zoomedImage && (
+        <div className="zoom-overlay" onClick={handleCloseZoom}>
+          <img
+            src={zoomedImage}
+            alt="Hình ảnh chi tiết"
+            className="zoomed-image"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button className="zoom-close-btn" onClick={handleCloseZoom}>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 6L18 18M6 18L18 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
         </div>
       )}
 
