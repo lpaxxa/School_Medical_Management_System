@@ -8,6 +8,8 @@ import {
   FaInfoCircle,
   FaSpinner,
   FaClock,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import vaccinationPlanService from "../../../../services/APIAdmin/vaccinationPlanService";
 import "./VaccinationPlanHistory.css";
@@ -25,6 +27,11 @@ const VaccinationPlanHistory = () => {
   // Status change state
   const [statusChanging, setStatusChanging] = useState({});
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [paginatedPlans, setPaginatedPlans] = useState([]);
+
   // Load data khi component mount
   useEffect(() => {
     loadVaccinationPlans();
@@ -34,6 +41,25 @@ const VaccinationPlanHistory = () => {
   useEffect(() => {
     filterPlans();
   }, [plans, searchTerm, statusFilter]);
+
+  // Handle pagination when filteredPlans changes
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredPlans.length / itemsPerPage);
+    
+    // Reset to page 1 if current page is out of bounds
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+      return;
+    }
+
+    // Calculate start and end indices for current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    
+    // Get plans for current page
+    const plansForCurrentPage = filteredPlans.slice(startIndex, endIndex);
+    setPaginatedPlans(plansForCurrentPage);
+  }, [filteredPlans, currentPage, itemsPerPage]);
 
   // Hàm load danh sách kế hoạch
   const loadVaccinationPlans = async () => {
@@ -162,6 +188,31 @@ const VaccinationPlanHistory = () => {
 
   const stats = getStatistics();
 
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    const totalPages = Math.ceil(filteredPlans.length / itemsPerPage);
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(filteredPlans.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, filteredPlans.length);
+  const hasNextPage = currentPage < totalPages;
+  const hasPreviousPage = currentPage > 1;
+
   return (
     <div className="vaccination-plan-history">
       {/* Header */}
@@ -279,21 +330,22 @@ const VaccinationPlanHistory = () => {
           </button>
         </div>
       ) : filteredPlans.length > 0 ? (
-        <div className="plans-table-container">
-          <table className="plans-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Tên Kế Hoạch</th>
-                <th>Ngày Tiêm</th>
-                <th>Hạn Đăng Ký</th>
-                <th>Trạng Thái</th>
-                <th>Thời Gian</th>
-                <th>Mô Tả</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPlans.map((plan) => {
+        <>
+          <div className="plans-table-container">
+            <table className="plans-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tên Kế Hoạch</th>
+                  <th>Ngày Tiêm</th>
+                  <th>Hạn Đăng Ký</th>
+                  <th>Trạng Thái</th>
+                  <th>Thời Gian</th>
+                  <th>Mô Tả</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedPlans.map((plan) => {
                 const timeStatus = vaccinationPlanService.getTimeStatus(
                   plan.vaccinationDate,
                   plan.deadlineDate
@@ -358,7 +410,70 @@ const VaccinationPlanHistory = () => {
               })}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          {filteredPlans.length > itemsPerPage && (
+            <div className="pagination-container">
+              <div className="pagination-info">
+                <span>
+                  Hiển thị {startIndex}-{endIndex} trong tổng số {filteredPlans.length} kế hoạch
+                </span>
+              </div>
+              
+              <div className="pagination-controls">
+                <button
+                  className={`pagination-btn ${!hasPreviousPage ? 'disabled' : ''}`}
+                  onClick={handlePreviousPage}
+                  disabled={!hasPreviousPage}
+                  title="Trang trước"
+                >
+                  <FaChevronLeft />
+                </button>
+                
+                <div className="pagination-pages">
+                  {Array.from({ length: totalPages }, (_, index) => {
+                    const page = index + 1;
+                    const isCurrentPage = page === currentPage;
+                    
+                    // Show first page, last page, current page, and pages around current page
+                    const showPage = 
+                      page === 1 || 
+                      page === totalPages || 
+                      (page >= currentPage - 1 && page <= currentPage + 1);
+                    
+                    if (!showPage) {
+                      // Show ellipsis for gaps
+                      if (page === currentPage - 2 || page === currentPage + 2) {
+                        return <span key={page} className="pagination-ellipsis">...</span>;
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <button
+                        key={page}
+                        className={`pagination-page ${isCurrentPage ? 'active' : ''}`}
+                        onClick={() => handlePageChange(page)}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  className={`pagination-btn ${!hasNextPage ? 'disabled' : ''}`}
+                  onClick={handleNextPage}
+                  disabled={!hasNextPage}
+                  title="Trang sau"
+                >
+                  <FaChevronRight />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+        </>
       ) : (
         <div className="no-data-section">
           <FaSyringe className="no-data-icon" />

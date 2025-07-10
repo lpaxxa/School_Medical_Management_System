@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FaTimes,
   FaBandAid,
@@ -24,10 +24,101 @@ import {
   FaUserShield,
   FaCamera,
   FaHandHoldingMedical,
+  FaSearch,
+  FaExpand,
 } from "react-icons/fa";
 import { formatDateTime } from "../../utils/formatters";
+// Remove import of SendMedicine.css
+
+// Add custom styles for the modal image and zoom overlay - renamed to avoid conflicts
+const modalImageStyles = {
+  modalImageContainer: {
+    position: "relative",
+    marginTop: "10px",
+    borderRadius: "8px",
+    overflow: "hidden",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+  },
+  modalImage: {
+    width: "100%",
+    maxHeight: "400px",
+    objectFit: "contain",
+    cursor: "zoom-in",
+    backgroundColor: "#f8f9fa",
+    transition: "transform 0.3s ease",
+    display: "block",
+    borderRadius: "8px",
+  },
+  imageZoomHint: {
+    position: "absolute",
+    bottom: "10px",
+    right: "10px",
+    background: "rgba(0, 0, 0, 0.5)",
+    color: "white",
+    padding: "5px 10px",
+    borderRadius: "4px",
+    fontSize: "12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+  },
+  // Renamed to avoid conflicts with SendMedicine component
+  incidentZoomOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.85)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+    padding: "20px",
+  },
+  // Renamed to avoid conflicts with SendMedicine component
+  incidentZoomedImage: {
+    width: "650px",
+    height: "600px",
+    objectFit: "contain",
+    borderRadius: "8px",
+    backgroundColor: "#fff",
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.25)",
+  },
+  // Renamed to avoid conflicts with SendMedicine component
+  incidentZoomCloseBtn: {
+    position: "absolute",
+    top: "20px",
+    right: "20px",
+    background: "white",
+    color: "#333",
+    border: "none",
+    borderRadius: "50%",
+    width: "40px",
+    height: "40px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    cursor: "pointer",
+    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
+    fontSize: "20px",
+  },
+};
 
 const IncidentModal = ({ isOpen, onClose, incident }) => {
+  // State for image zoom functionality
+  const [zoomedImage, setZoomedImage] = useState(null);
+
+  // Function to handle image click for zooming
+  const handleImageClick = (imageUrl) => {
+    setZoomedImage(imageUrl);
+  };
+
+  // Function to close the zoomed image
+  const handleCloseZoom = () => {
+    setZoomedImage(null);
+  };
+
   if (!isOpen || !incident) return null;
 
   const getSeverityConfig = (severityLevel) => {
@@ -265,19 +356,23 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
             </div>
           )}
 
-          {/* Medical Images */}
+          {/* Medical Images - Updated with zoom functionality */}
           {incident.imageMedicalUrl && (
             <div className="modal-section">
               <h3 className="section-title">
                 <FaCamera />
                 Hình ảnh sự cố
               </h3>
-              <div className="modal-image-container">
+              <div style={modalImageStyles.modalImageContainer}>
                 <img
                   src={incident.imageMedicalUrl}
                   alt="Hình ảnh sự cố y tế"
-                  className="modal-image"
+                  style={modalImageStyles.modalImage}
+                  onClick={() => handleImageClick(incident.imageMedicalUrl)}
                 />
+                <div style={modalImageStyles.imageZoomHint}>
+                  <FaExpand /> Nhấp vào ảnh để phóng to
+                </div>
               </div>
             </div>
           )}
@@ -366,6 +461,27 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
           </div>
         </div>
       </div>
+
+      {/* Image Zoom Overlay - Class names changed to avoid conflicts */}
+      {zoomedImage && (
+        <div
+          style={modalImageStyles.incidentZoomOverlay}
+          onClick={handleCloseZoom}
+        >
+          <img
+            src={zoomedImage}
+            alt="Zoomed image"
+            style={modalImageStyles.incidentZoomedImage}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            style={modalImageStyles.incidentZoomCloseBtn}
+            onClick={handleCloseZoom}
+          >
+            <FaTimes />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

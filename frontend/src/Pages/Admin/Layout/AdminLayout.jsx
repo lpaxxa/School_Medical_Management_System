@@ -40,12 +40,12 @@ const AdminLayout = () => {
   return (
     <div className="admin-layout">
       <Header user={currentUser} />
+      <Sidebar
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        userRole={currentUser?.role || "admin"}
+      />
       <div className="admin-main">
-        <Sidebar
-          activeSection={activeSection}
-          onSectionChange={handleSectionChange}
-          userRole={currentUser?.role || "admin"}
-        />
         <main className="admin-content">{renderContent()}</main>
       </div>
     </div>
