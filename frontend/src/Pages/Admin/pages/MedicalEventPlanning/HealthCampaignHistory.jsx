@@ -16,6 +16,8 @@ import {
   FaPaperPlane,
   FaPlus,
   FaCheck,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import SuccessModal from "../../components/SuccessModal";
 import { useSuccessModal } from "../../hooks/useSuccessModal";
@@ -69,6 +71,11 @@ const HealthCampaignHistory = () => {
   const [isAllGradesSelected, setIsAllGradesSelected] = useState(false);
   const [sendingNotification, setSendingNotification] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [paginatedCampaigns, setPaginatedCampaigns] = useState([]);
+
   // Load data when component mounts
   useEffect(() => {
     loadHealthCampaigns();
@@ -78,6 +85,25 @@ const HealthCampaignHistory = () => {
   useEffect(() => {
     filterCampaigns();
   }, [campaigns, searchTerm, statusFilter]);
+
+  // Handle pagination when filteredCampaigns changes
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+    
+    // Reset to page 1 if current page is out of bounds
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+      return;
+    }
+
+    // Calculate start and end indices for current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    
+    // Get campaigns for current page
+    const campaignsForCurrentPage = filteredCampaigns.slice(startIndex, endIndex);
+    setPaginatedCampaigns(campaignsForCurrentPage);
+  }, [filteredCampaigns, currentPage, itemsPerPage]);
 
   // Load health campaigns from API
   const loadHealthCampaigns = async () => {
@@ -487,6 +513,12 @@ const HealthCampaignHistory = () => {
     try {
       console.log("📧 Sending notification for campaign:", selectedCampaign.id);
       console.log("👥 Selected student IDs:", studentIds);
+      console.log("📝 Campaign details:", selectedCampaign);
+      console.log("📊 Request payload:", {
+        campaignId: selectedCampaign.id,
+        studentIds: studentIds,
+        totalStudents: studentIds.length
+      });
 
       // Get auth token from localStorage
       const token = localStorage.getItem("authToken");
@@ -548,7 +580,17 @@ const HealthCampaignHistory = () => {
       );
     } catch (err) {
       console.error("❌ Send notification failed:", err);
-      alert("Gửi thông báo thất bại: " + err.message);
+      
+      // Check for specific database constraint errors
+      if (err.message.includes("consent_given") && err.message.includes("NULL")) {
+        alert(
+          "Lỗi cơ sở dữ liệu: Thiếu trường 'consent_given' bắt buộc.\n\n" +
+          "Đây là lỗi từ hệ thống backend. Vui lòng liên hệ đội phát triển để sửa lỗi này.\n\n" +
+          "Chi tiết kỹ thuật: " + err.message
+        );
+      } else {
+        alert("Gửi thông báo thất bại: " + err.message);
+      }
     } finally {
       setSendingNotification(false);
     }
@@ -736,6 +778,31 @@ const HealthCampaignHistory = () => {
     return { total, preparing, ongoing, completed, cancelled };
   };
 
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, filteredCampaigns.length);
+  const hasNextPage = currentPage < totalPages;
+  const hasPreviousPage = currentPage > 1;
+
   const stats = getStatistics();
 
   return (
@@ -744,7 +811,7 @@ const HealthCampaignHistory = () => {
       <div className="page-header">
         <div className="header-content">
           <h1>Lịch Sử Chiến Dịch Kiểm Tra Sức Khỏe</h1>
-          <p>Xem và quản lý các chiến dịch kiểm tra sức khỏe định kỳ</p>
+          {/* <p>Xem và quản lý các chiến dịch kiểm tra sức khỏe định kỳ</p> */}
         </div>
       </div>
 
@@ -859,19 +926,20 @@ const HealthCampaignHistory = () => {
             </button>
           </div>
         ) : filteredCampaigns.length > 0 ? (
-          <table className="campaigns-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Tiêu đề</th>
-                <th>Ngày bắt đầu</th>
-                <th>Trạng thái</th>
-                <th>Gửi thông báo</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCampaigns.map((campaign) => (
+          <>
+            <table className="campaigns-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tiêu đề</th>
+                  <th>Ngày bắt đầu</th>
+                  <th>Trạng thái</th>
+                  <th>Gửi thông báo</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedCampaigns.map((campaign) => (
                 <tr
                   key={campaign.id}
                   onClick={() => handleRowClick(campaign)}
@@ -932,6 +1000,69 @@ const HealthCampaignHistory = () => {
               ))}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          {filteredCampaigns.length > itemsPerPage && (
+            <div className="pagination-container">
+              <div className="pagination-info">
+                <span>
+                  Hiển thị {startIndex}-{endIndex} trong tổng số {filteredCampaigns.length} chiến dịch
+                </span>
+              </div>
+              
+              <div className="pagination-controls">
+                <button
+                  className={`pagination-btn ${!hasPreviousPage ? 'disabled' : ''}`}
+                  onClick={handlePreviousPage}
+                  disabled={!hasPreviousPage}
+                  title="Trang trước"
+                >
+                  <FaChevronLeft />
+                </button>
+                
+                <div className="pagination-pages">
+                  {Array.from({ length: totalPages }, (_, index) => {
+                    const page = index + 1;
+                    const isCurrentPage = page === currentPage;
+                    
+                    // Show first page, last page, current page, and pages around current page
+                    const showPage = 
+                      page === 1 || 
+                      page === totalPages || 
+                      (page >= currentPage - 1 && page <= currentPage + 1);
+                    
+                    if (!showPage) {
+                      // Show ellipsis for gaps
+                      if (page === currentPage - 2 || page === currentPage + 2) {
+                        return <span key={page} className="pagination-ellipsis">...</span>;
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <button
+                        key={page}
+                        className={`pagination-page ${isCurrentPage ? 'active' : ''}`}
+                        onClick={() => handlePageChange(page)}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  className={`pagination-btn ${!hasNextPage ? 'disabled' : ''}`}
+                  onClick={handleNextPage}
+                  disabled={!hasNextPage}
+                  title="Trang sau"
+                >
+                  <FaChevronRight />
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         ) : (
           <div className="empty-state">
             <FaHeartbeat />

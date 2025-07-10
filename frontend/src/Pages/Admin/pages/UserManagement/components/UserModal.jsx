@@ -44,6 +44,16 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
 
   useEffect(() => {
     if (user && (mode === "edit" || mode === "view")) {
+      // Debug logging for admin users
+      if (user.role === "ADMIN") {
+        console.log("=== ADMIN USER MODAL DEBUG ===");
+        console.log("User object received:", user);
+        console.log("User fullName:", user.fullName);
+        console.log("User username:", user.username);
+        console.log("Mode:", mode);
+        console.log("=== END ADMIN MODAL DEBUG ===");
+      }
+      
       setFormData({
         id: user.id || "",
         username: user.username || "",
@@ -374,12 +384,20 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                   type="text"
                   id="fullName"
                   name="fullName"
-                  value={formData.fullName}
+                  value={formData.fullName || (mode === "view" ? formData.username : "")}
                   onChange={handleChange}
                   disabled={mode === "view"}
                   className={errors.fullName ? "error" : ""}
-                  placeholder="Nhập họ tên đầy đủ"
+                  placeholder={mode === "view" ? 
+                    (formData.fullName || formData.username || "Chưa có thông tin") : 
+                    "Nhập họ tên đầy đủ"
+                  }
                 />
+                {mode === "view" && !formData.fullName && (
+                  <small className="field-note">
+                    Hiển thị username: {formData.username}
+                  </small>
+                )}
                 {errors.fullName && (
                   <span className="error-message">{errors.fullName}</span>
                 )}
@@ -923,7 +941,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
           {mode === "edit" && (
             <div className="form-group">
               <label htmlFor="password">
-                Mật khẩu mới <span className="required">(để cập nhật)</span>
+                Mật khẩu mới <span className="optional">(tùy chọn)</span>
               </label>
               <input
                 type="password"
@@ -932,10 +950,10 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                 value={formData.password}
                 onChange={handleChange}
                 className={errors.password ? "error" : ""}
-                placeholder="Nhập mật khẩu mới để cập nhật"
+                placeholder="Để trống nếu không muốn thay đổi mật khẩu"
               />
               <small className="field-note">
-                Nhập mật khẩu mới để cập nhật thông tin
+                Chỉ nhập mật khẩu mới nếu muốn thay đổi. Để trống sẽ giữ nguyên mật khẩu cũ.
               </small>
               {errors.password && (
                 <span className="error-message">{errors.password}</span>

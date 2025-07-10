@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
@@ -6,12 +6,7 @@ import api from "../../../../services/api";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "./HealthDeclaration.css";
-import "./HealthDeclarationFix.css";
-import "../shared/student-selector.css";
-import "./VaccineSelection.css";
-import "./ServerWarning.css";
-import "./VaccinationSection.css";
+import "./HealthDeclarationModern.css";
 
 // Các tùy chọn cho nhóm máu
 const BLOOD_TYPE_OPTIONS = [
@@ -32,13 +27,18 @@ const BLOOD_TYPE_OPTIONS = [
 // Các tùy chọn cho thị lực
 const VISION_OPTIONS = [
   { value: "Chưa kiểm tra", label: "Chưa kiểm tra" },
-  { value: "Bình thường", label: "Bình thường" },
-  { value: "Cận thị nhẹ", label: "Cận thị nhẹ" },
-  { value: "Cận thị vừa", label: "Cận thị vừa" },
-  { value: "Cận thị nặng", label: "Cận thị nặng" },
-  { value: "Viễn thị", label: "Viễn thị" },
-  { value: "Loạn thị", label: "Loạn thị" },
-  { value: "Khác", label: "Khác" },
+  { value: "6/6", label: "6/6 (Bình thường)" },
+  { value: "20/20", label: "20/20 (Bình thường)" },
+  { value: "6/9", label: "6/9 (Cận thị nhẹ)" },
+  { value: "20/30", label: "20/30 (Cận thị nhẹ)" },
+  { value: "6/12", label: "6/12 (Cận thị vừa)" },
+  { value: "20/40", label: "20/40 (Cận thị vừa)" },
+  { value: "6/18", label: "6/18 (Cận thị nặng)" },
+  { value: "20/60", label: "20/60 (Cận thị nặng)" },
+  { value: "6/24", label: "6/24 (Kém hơn)" },
+  { value: "20/80", label: "20/80 (Kém hơn)" },
+  { value: "6/60", label: "6/60 (Kém nhiều)" },
+  { value: "20/200", label: "20/200 (Kém nhiều)" },
 ];
 
 // Các tùy chọn cho thính lực
@@ -52,6 +52,62 @@ const HEARING_OPTIONS = [
 
 const HealthDeclaration = () => {
   const { currentUser } = useAuth();
+
+  // Helper function để xử lý dữ liệu từ API
+  const processFormData = (data) => {
+    const processedData = { ...data };
+
+    // Các trường "Thông tin y tế bổ sung" - luôn để trống cho người dùng tự nhập
+    const additionalHealthFields = [
+      "allergies",
+      "chronicDiseases",
+      "dietaryRestrictions",
+      "specialNeeds",
+      "emergencyContactInfo",
+    ];
+
+    // Các giá trị cần được coi là "rỗng" và chuyển thành chuỗi trống (chỉ áp dụng cho phần bổ sung)
+    const emptyValues = [
+      "Không có",
+      "Chưa có",
+      "Không",
+      "None",
+      "N/A",
+      "null",
+      "undefined",
+      "Chưa cập nhật",
+      "Trống",
+    ];
+
+    // Xử lý các trường "Thông tin y tế bổ sung" - luôn để trống để người dùng tự nhập
+    additionalHealthFields.forEach((field) => {
+      // Luôn để trống các trường bổ sung để người dùng tự nhập
+      processedData[field] = "";
+    });
+
+    // Các trường "Thông tin sức khỏe cơ bản" - giữ nguyên dữ liệu từ API làm text mẫu
+    const basicHealthFields = [
+      "height",
+      "weight",
+      "bloodType",
+      "visionLeft",
+      "visionRight",
+      "hearingStatus",
+      "lastPhysicalExamDate",
+    ];
+
+    // Giữ nguyên các trường cơ bản từ API - KHÔNG xóa dữ liệu
+    // Chỉ xử lý khi dữ liệu thực sự rỗng hoặc null
+    basicHealthFields.forEach((field) => {
+      if (processedData[field] === null || processedData[field] === undefined) {
+        processedData[field] = "";
+      }
+      // Giữ nguyên tất cả dữ liệu khác từ API, kể cả "Không có", "Chưa có"...
+      // vì đây là thông tin thực tế từ hồ sơ y tế
+    });
+
+    return processedData;
+  };
 
   // Lấy thông tin học sinh từ context
   const {
@@ -71,10 +127,13 @@ const HealthDeclaration = () => {
   // State hiển thị thông báo thành công
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
+  // State lưu trữ ID số từ API (dùng cho submit)
+  const [studentNumericId, setStudentNumericId] = useState(null);
+
   // Form data
   const [formData, setFormData] = useState({
     healthProfile: {
-      id: 0,
+      id: "", // Sử dụng string rỗng vì studentId từ context là string (HS001, HS002, etc.)
       bloodType: "A",
       height: "",
       weight: "",
@@ -82,7 +141,7 @@ const HealthDeclaration = () => {
       chronicDiseases: "",
       visionLeft: "Chưa kiểm tra",
       visionRight: "Chưa kiểm tra",
-      hearingStatus: "Bình thường",
+      hearingStatus: "",
       dietaryRestrictions: "",
       emergencyContactInfo: "",
       immunizationStatus: "",
@@ -103,6 +162,9 @@ const HealthDeclaration = () => {
   // State cho vaccine đã tiêm từ server (không cho phép thay đổi)
   const [vaccinatedFromServer, setVaccinatedFromServer] = useState([]);
 
+  // State cho vaccine đã tiêm đủ liều (không cho phép chọn thêm)
+  const [fullyVaccinatedVaccines, setFullyVaccinatedVaccines] = useState([]);
+
   // State cho thông tin vaccine mới chọn
   const [vaccineNotes, setVaccineNotes] = useState({});
   const [vaccineAdministeredAt, setVaccineAdministeredAt] = useState({});
@@ -112,9 +174,108 @@ const HealthDeclaration = () => {
     useState(false);
   const [selectedVaccineInfo, setSelectedVaccineInfo] = useState(null);
 
+  // Ref để theo dõi nếu component đã unmount
+  const isMounted = useRef(true);
+  // Ref để theo dõi nếu đã load dữ liệu ban đầu
+  const initialDataLoaded = useRef(false);
+
+  // Hiển thị thông báo thành công
+  const showSuccessToast = (message) => {
+    if (!isMounted.current) return;
+
+    const toastOptions = {
+      position: "top-center",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      closeButton: true,
+    };
+
+    try {
+      toast.success(message, toastOptions);
+    } catch (error) {
+      console.error("Error showing toast:", error);
+    }
+  };
+
+  // Hiển thị thông báo lỗi
+  const showErrorToast = (message) => {
+    if (!isMounted.current) return;
+
+    const toastOptions = {
+      position: "top-center",
+      autoClose: 6000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      closeButton: true,
+    };
+
+    try {
+      toast.error(message, toastOptions);
+    } catch (error) {
+      console.error("Error showing toast:", error);
+    }
+  };
+
+  // Hiển thị thông báo thông tin
+  const showInfoToast = (message) => {
+    if (!isMounted.current) return;
+
+    const toastOptions = {
+      position: "top-center",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      closeButton: true,
+    };
+
+    try {
+      toast.info(message, toastOptions);
+    } catch (error) {
+      console.error("Error showing toast:", error);
+    }
+  };
+
+  // Hiển thị thông báo cảnh báo
+  const showWarningToast = (message) => {
+    if (!isMounted.current) return;
+
+    const toastOptions = {
+      position: "top-center",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      closeButton: true,
+    };
+
+    try {
+      toast.warning(message, toastOptions);
+    } catch (error) {
+      console.error("Error showing toast:", error);
+    }
+  };
+
+  // Theo dõi khi component unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+      initialDataLoaded.current = false;
+    };
+  }, []);
+
   // Fetch danh sách vaccine từ API
   useEffect(() => {
     const fetchVaccines = async () => {
+      if (!isMounted.current) return;
+
       setIsLoadingVaccines(true);
       setVaccinesError(null);
       try {
@@ -122,108 +283,317 @@ const HealthDeclaration = () => {
         const response = await axios.get(
           "http://localhost:8080/api/v1/vaccines/getAllVaccine"
         );
-        setVaccines(response.data);
+        if (isMounted.current) {
+          setVaccines(response.data);
+        }
       } catch (error) {
         console.error("Không thể tải danh sách vaccine:", error);
-        setVaccinesError(
-          "Không thể tải danh sách vaccine. Vui lòng thử lại sau."
-        );
+
+        if (!isMounted.current) return;
+
+        // Better error handling for vaccine fetching
+        if (error.response?.status === 500) {
+          setVaccinesError(
+            "Hệ thống backend đang gặp sự cố. Không thể tải danh sách vaccine."
+          );
+        } else if (error.response?.status === 401) {
+          setVaccinesError("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        } else if (
+          error.code === "ECONNREFUSED" ||
+          error.code === "NETWORK_ERROR"
+        ) {
+          setVaccinesError(
+            "Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng."
+          );
+        } else {
+          setVaccinesError(
+            "Không thể tải danh sách vaccine. Vui lòng thử lại sau."
+          );
+        }
         setIsServerError(true);
       } finally {
-        setIsLoadingVaccines(false);
+        if (isMounted.current) {
+          setIsLoadingVaccines(false);
+        }
       }
     };
 
     fetchVaccines();
   }, []);
 
+  // Memoize fetchStudentHealthProfile function to avoid recreating it on each render
+  const fetchStudentHealthProfile = useCallback(
+    async (studentId) => {
+      if (!isMounted.current) return;
+
+      setIsLoading(true);
+      setFetchError(null);
+      try {
+        // Lấy thông tin hồ sơ sức khỏe đầy đủ từ API
+        // studentId đã có định dạng đúng từ context (HS001, HS002, etc.)
+        console.log(`Fetching health profile for student: ${studentId}`);
+
+        const response = await axios.get(
+          `http://localhost:8080/api/v1/health-profiles/getStudentProfileByID/${studentId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+
+        if (!isMounted.current) return;
+
+        if (response.data && response.data.healthProfile) {
+          // Debug: Log dữ liệu gốc từ API
+          console.log("=== RAW API DATA ===");
+          console.log(`Student ID: ${studentId}`);
+          console.log("Original API response:", response.data);
+          console.log("Health Profile data:", response.data.healthProfile); // Lấy dữ liệu từ healthProfile object
+          const healthProfileData = response.data.healthProfile;
+
+          // Lưu ID số từ API để sử dụng khi submit
+          setStudentNumericId(healthProfileData.id);
+          console.log(
+            `Numeric ID from API: ${healthProfileData.id} (for submit)`
+          );
+
+          // Lọc và xử lý dữ liệu từ API
+          const processedData = processFormData(healthProfileData);
+
+          // Debug: Log dữ liệu sau khi xử lý
+          console.log("=== PROCESSED DATA ===");
+          console.log("Processed data:", processedData);
+
+          // Debug: So sánh từng trường cơ bản
+          const basicFields = [
+            "height",
+            "weight",
+            "bloodType",
+            "visionLeft",
+            "visionRight",
+            "hearingStatus",
+            "lastPhysicalExamDate",
+          ];
+          console.log("=== BASIC FIELDS COMPARISON ===");
+          basicFields.forEach((field) => {
+            console.log(
+              `${field}: "${healthProfileData[field]}" -> "${processedData[field]}"`
+            );
+          });
+
+          // Cập nhật form data với thông tin đã được xử lý
+          setFormData((prevState) => ({
+            ...prevState,
+            healthProfile: {
+              ...prevState.healthProfile,
+              ...processedData,
+              id: studentId, // Đảm bảo ID học sinh không bị ghi đè
+            },
+          }));
+
+          // Nếu có thông tin vaccine trong response, cập nhật selected vaccines
+          if (
+            response.data.vaccinations &&
+            response.data.vaccinations.length > 0
+          ) {
+            console.log("=== PROCESSING VACCINATIONS FROM API ===");
+            console.log("Vaccinations data:", response.data.vaccinations);
+
+            // Tạo danh sách tên vaccine đã tiêm
+            const vaccinatedNames = response.data.vaccinations.map(
+              (v) => v.vaccineName
+            );
+            console.log("Vaccinated Names:", vaccinatedNames);
+
+            // Phân loại vaccine: đã tiêm vs đã tiêm đủ liều
+            const vaccinatedIds = [];
+            const fullyVaccinatedIds = [];
+
+            // Lưu thông tin vaccine đã tiêm theo tên
+            const vaccinatedNameMap = {};
+            response.data.vaccinations.forEach((v) => {
+              vaccinatedNameMap[v.vaccineName] = true;
+            });
+
+            // Tìm ID của vaccine dựa trên tên vaccine
+            if (vaccines.length > 0) {
+              vaccines.forEach((vaccine) => {
+                if (vaccinatedNameMap[vaccine.name]) {
+                  // Nếu tên vaccine có trong danh sách đã tiêm
+                  console.log(
+                    `Found matching vaccine: ${vaccine.name} (ID: ${vaccine.id})`
+                  );
+                  vaccinatedIds.push(vaccine.id);
+                }
+              });
+            }
+
+            console.log(
+              "Vaccinated IDs based on name matching:",
+              vaccinatedIds
+            );
+            console.log("Fully vaccinated IDs:", fullyVaccinatedIds);
+
+            // Cập nhật states
+            setSelectedVaccines([...vaccinatedIds, ...fullyVaccinatedIds]);
+            setVaccinatedFromServer(vaccinatedIds);
+            setFullyVaccinatedVaccines(fullyVaccinatedIds);
+
+            // Cập nhật vaccine notes
+            const notes = {};
+            const administeredAts = {};
+            response.data.vaccinations.forEach((v) => {
+              // Tìm vaccine ID dựa trên tên
+              const matchingVaccine = vaccines.find(
+                (vaccine) => vaccine.name === v.vaccineName
+              );
+              if (matchingVaccine) {
+                if (v.parentNotes) {
+                  notes[matchingVaccine.id] = v.parentNotes;
+                }
+                if (v.administeredAt) {
+                  administeredAts[matchingVaccine.id] = v.administeredAt;
+                }
+              }
+            });
+            setVaccineNotes(notes);
+            setVaccineAdministeredAt(administeredAts);
+
+            // Cập nhật form data vaccinations với định dạng mới
+            const formVaccinations = [];
+            response.data.vaccinations.forEach((v) => {
+              // Tìm vaccine ID dựa trên tên
+              const matchingVaccine = vaccines.find(
+                (vaccine) => vaccine.name === v.vaccineName
+              );
+              if (matchingVaccine) {
+                formVaccinations.push({
+                  vaccineId: matchingVaccine.id,
+                  vaccinationDate: v.vaccinationDate
+                    ? new Date(v.vaccinationDate).toISOString()
+                    : new Date().toISOString(),
+                  administeredAt: v.administeredAt || "string",
+                  notes: v.notes || "string",
+                  parentNotes: v.parentNotes || "string",
+                });
+              }
+            });
+
+            setFormData((prevState) => ({
+              ...prevState,
+              vaccinations: formVaccinations,
+            }));
+          } else {
+            // Reset nếu không có vaccine nào đã tiêm
+            setVaccinatedFromServer([]);
+            setFullyVaccinatedVaccines([]);
+          }
+        }
+
+        // Mark that initial data has been loaded
+        initialDataLoaded.current = true;
+      } catch (error) {
+        if (!isMounted.current) return;
+
+        console.error(
+          `Không thể tải thông tin sức khỏe cho học sinh ${studentId}:`,
+          error
+        );
+
+        // Better error handling for different scenarios
+        if (error.response?.status === 500) {
+          setFetchError(
+            "Hệ thống backend đang gặp sự cố. Vui lòng thử lại sau hoặc liên hệ admin."
+          );
+        } else if (error.response?.status === 404) {
+          setFetchError(
+            "Không tìm thấy thông tin học sinh. Dữ liệu sẽ được tạo mới."
+          );
+        } else if (error.response?.status === 401) {
+          setFetchError("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        } else if (
+          error.code === "ECONNREFUSED" ||
+          error.code === "NETWORK_ERROR"
+        ) {
+          setFetchError(
+            "Không thể kết nối với server. Vui lòng kiểm tra kết nối mạng."
+          );
+        } else {
+          setFetchError(
+            "Không thể tải thông tin sức khỏe. Dữ liệu sẽ được tạo mới."
+          );
+        }
+
+        // Reset states when error occurs
+        setVaccinatedFromServer([]);
+        setFullyVaccinatedVaccines([]);
+        setStudentNumericId(null);
+
+        // Mark that initial data has been loaded even if there was an error
+        initialDataLoaded.current = true;
+      } finally {
+        if (isMounted.current) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [vaccines]
+  );
+
   // Khi danh sách học sinh được tải xong, chọn học sinh đầu tiên
   useEffect(() => {
-    if (students.length > 0 && formData.healthProfile.id === 0) {
+    if (
+      students.length > 0 &&
+      (formData.healthProfile.id === "" || formData.healthProfile.id === 0)
+    ) {
       const firstStudent = students[0];
+      const studentId = firstStudent.studentId || firstStudent.id;
+
+      // Reset form về trạng thái ban đầu với student ID đầu tiên
       setFormData((prevState) => ({
         ...prevState,
         healthProfile: {
-          ...prevState.healthProfile,
-          id: firstStudent.id,
+          id: studentId,
+          bloodType: "A",
+          height: "",
+          weight: "",
+          visionLeft: "Chưa kiểm tra",
+          visionRight: "Chưa kiểm tra",
+          hearingStatus: "",
+          lastPhysicalExamDate: new Date().toISOString().split("T")[0],
+          immunizationStatus: "",
+          // Các trường bổ sung luôn để trống để người dùng tự nhập
+          allergies: "",
+          chronicDiseases: "",
+          dietaryRestrictions: "",
+          specialNeeds: "",
+          emergencyContactInfo: "",
         },
       }));
 
       // Load hồ sơ y tế của học sinh này
-      fetchStudentHealthProfile(firstStudent.id);
+      fetchStudentHealthProfile(studentId);
     }
-  }, [students]);
+  }, [students, fetchStudentHealthProfile]);
 
-  // Fetch thông tin sức khỏe của học sinh
-  const fetchStudentHealthProfile = async (studentId) => {
-    setIsLoading(true);
-    setFetchError(null);
-    try {
-      // Lấy thông tin hồ sơ sức khỏe đầy đủ từ API
-      const response = await axios.get(
-        `http://localhost:8080/api/v1/health-profiles/student/${studentId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        }
-      );
-
-      if (response.data) {
-        // Cập nhật form data với thông tin từ API
-        setFormData((prevState) => ({
-          ...prevState,
-          healthProfile: {
-            ...prevState.healthProfile,
-            ...response.data,
-            id: studentId, // Đảm bảo ID học sinh không bị ghi đè
-          },
-        }));
-
-        // Nếu có thông tin vaccine trong response, cập nhật selected vaccines
-        if (
-          response.data.vaccinations &&
-          response.data.vaccinations.length > 0
-        ) {
-          const vaccineIds = response.data.vaccinations.map((v) => v.vaccineId);
-          setSelectedVaccines(vaccineIds);
-
-          // Lưu vaccine đã tiêm từ server (không cho phép sửa)
-          setVaccinatedFromServer(vaccineIds);
-
-          // Cập nhật vaccine notes
-          const notes = {};
-          const administeredAts = {};
-          response.data.vaccinations.forEach((v) => {
-            if (v.parentNotes) {
-              notes[v.vaccineId] = v.parentNotes;
-            }
-            if (v.administeredAt) {
-              administeredAts[v.vaccineId] = v.administeredAt;
-            }
-          });
-          setVaccineNotes(notes);
-          setVaccineAdministeredAt(administeredAts);
-
-          // Cập nhật form data vaccinations
-          setFormData((prevState) => ({
-            ...prevState,
-            vaccinations: response.data.vaccinations,
-          }));
-        } else {
-          // Reset nếu không có vaccine nào đã tiêm
-          setVaccinatedFromServer([]);
-        }
-      }
-    } catch (error) {
-      console.error("Không thể tải thông tin sức khỏe:", error);
-      setFetchError(
-        "Không thể tải thông tin sức khỏe. Dữ liệu sẽ được tạo mới."
-      );
-    } finally {
-      setIsLoading(false);
+  // Add a useEffect to ensure data is loaded when vaccines are available
+  useEffect(() => {
+    if (
+      vaccines.length > 0 &&
+      students.length > 0 &&
+      formData.healthProfile.id &&
+      !initialDataLoaded.current
+    ) {
+      console.log("Triggering data load after vaccines are available");
+      fetchStudentHealthProfile(formData.healthProfile.id);
     }
-  };
+  }, [
+    vaccines,
+    students,
+    formData.healthProfile.id,
+    fetchStudentHealthProfile,
+  ]);
 
   // Xử lý khi thay đổi input
   const handleInputChange = (e) => {
@@ -252,14 +622,29 @@ const HealthDeclaration = () => {
 
   // Xử lý khi chọn học sinh
   const handleStudentChange = (e) => {
-    const studentId = parseInt(e.target.value);
+    const studentId = e.target.value;
     if (!studentId) return;
 
+    // Reset form về trạng thái ban đầu với student ID mới
+    // Chỉ reset các trường "Thông tin y tế bổ sung" về trống
     setFormData((prevState) => ({
       ...prevState,
       healthProfile: {
-        ...prevState.healthProfile,
         id: studentId,
+        bloodType: "A",
+        height: "",
+        weight: "",
+        visionLeft: "Chưa kiểm tra",
+        visionRight: "Chưa kiểm tra",
+        hearingStatus: "",
+        lastPhysicalExamDate: new Date().toISOString().split("T")[0],
+        immunizationStatus: "",
+        // Các trường bổ sung luôn để trống để người dùng tự nhập
+        allergies: "",
+        chronicDiseases: "",
+        dietaryRestrictions: "",
+        specialNeeds: "",
+        emergencyContactInfo: "",
       },
     }));
 
@@ -268,13 +653,15 @@ const HealthDeclaration = () => {
     setVaccineNotes({});
     setVaccineAdministeredAt({});
     setVaccinatedFromServer([]); // Reset vaccine đã tiêm từ server
+    setFullyVaccinatedVaccines([]); // Reset vaccine đã tiêm đủ liều
+    setStudentNumericId(null); // Reset numeric ID
 
     // Tải thông tin sức khỏe của học sinh được chọn
     fetchStudentHealthProfile(studentId);
   };
 
   // Xử lý khi chọn/bỏ chọn vaccine
-  const handleVaccineChange = (vaccineId) => {
+  const handleVaccineChange = async (vaccineId) => {
     // Tìm thông tin vaccine để hiển thị tên
     const vaccine = vaccines.find((v) => v.id === vaccineId);
     const vaccineName = vaccine ? vaccine.name : `Vaccine ID: ${vaccineId}`;
@@ -285,24 +672,16 @@ const HealthDeclaration = () => {
 
       // Hiển thị modal thông báo chi tiết (chỉ khi có vaccine info)
       if (vaccine) {
-        showVaccineAlreadyTakenNotification(vaccine);
+        setSelectedVaccineInfo(vaccine);
+        setShowVaccineAlreadyTakenModal(true);
         console.log("Modal should be shown for:", vaccine.name); // Debug log
       } else {
         console.log("No vaccine info found for ID:", vaccineId); // Debug log
       }
 
       // Hiển thị toast warning với thông tin chi tiết
-      toast.warning(
-        `🚫 ${vaccineName} đã được tiêm trước đó và không thể thay đổi!`,
-        {
-          position: "top-center",
-          autoClose: 4000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          className: "vaccine-already-taken-toast",
-        }
+      showWarningToast(
+        `🚫 ${vaccineName} đã được tiêm trước đó và không thể thay đổi!`
       );
 
       // Log để debug
@@ -312,51 +691,134 @@ const HealthDeclaration = () => {
       return;
     }
 
-    if (selectedVaccines.includes(vaccineId)) {
-      // Bỏ chọn vaccine (chỉ những vaccine mới thêm)
-      setSelectedVaccines(selectedVaccines.filter((id) => id !== vaccineId));
+    // Kiểm tra xem vaccine này đã tiêm đủ liều chưa (không cho phép thay đổi)
+    if (fullyVaccinatedVaccines.includes(vaccineId)) {
+      console.log(
+        "Vaccine fully vaccinated, showing notification for:",
+        vaccine
+      ); // Debug log
 
-      // Cập nhật formData để loại bỏ vaccine này
-      setFormData((prevState) => ({
-        ...prevState,
-        vaccinations: prevState.vaccinations.filter(
-          (v) => v.vaccineId !== vaccineId
-        ),
-      }));
+      // Hiển thị modal thông báo chi tiết (chỉ khi có vaccine info)
+      if (vaccine) {
+        setSelectedVaccineInfo(vaccine);
+        setShowVaccineAlreadyTakenModal(true);
+        console.log("Modal should be shown for:", vaccine.name); // Debug log
+      }
 
-      // Xóa notes của vaccine này
-      const updatedNotes = { ...vaccineNotes };
-      delete updatedNotes[vaccineId];
-      setVaccineNotes(updatedNotes);
+      // Hiển thị toast warning với thông tin chi tiết
+      showWarningToast(
+        `🚫 ${vaccineName} đã tiêm đủ liều theo quy định và không thể thay đổi!`
+      );
 
-      // Xóa administeredAt của vaccine này
-      const updatedAdministeredAt = { ...vaccineAdministeredAt };
-      delete updatedAdministeredAt[vaccineId];
-      setVaccineAdministeredAt(updatedAdministeredAt);
-    } else {
-      // Thêm vaccine vào danh sách đã chọn
-      setSelectedVaccines([...selectedVaccines, vaccineId]);
+      // Log để debug
+      console.log(
+        `Attempted to change fully vaccinated: ${vaccineName} (ID: ${vaccineId})`
+      );
+      return;
+    }
 
-      // Cập nhật formData để thêm vaccine mới
-      setFormData((prevState) => ({
-        ...prevState,
-        vaccinations: [
-          ...prevState.vaccinations,
-          {
-            vaccineId: vaccineId,
-            vaccinationDate: new Date().toISOString(),
-            administeredAt: "Trường học", // Mặc định
-            notes: "",
-            parentNotes: "",
-          },
-        ],
-      }));
+    try {
+      if (selectedVaccines.includes(vaccineId)) {
+        // Bỏ chọn vaccine (chỉ những vaccine mới thêm)
+        setSelectedVaccines(selectedVaccines.filter((id) => id !== vaccineId));
 
-      // Đặt địa điểm tiêm mặc định
-      setVaccineAdministeredAt((prev) => ({
-        ...prev,
-        [vaccineId]: "Trường học",
-      }));
+        // Cập nhật formData để loại bỏ vaccine này
+        setFormData((prevState) => ({
+          ...prevState,
+          vaccinations: prevState.vaccinations.filter(
+            (v) => v.vaccineId !== vaccineId
+          ),
+        }));
+
+        // Xóa notes của vaccine này
+        const updatedNotes = { ...vaccineNotes };
+        delete updatedNotes[vaccineId];
+        setVaccineNotes(updatedNotes);
+
+        // Xóa administeredAt của vaccine này
+        const updatedAdministeredAt = { ...vaccineAdministeredAt };
+        delete updatedAdministeredAt[vaccineId];
+        setVaccineAdministeredAt(updatedAdministeredAt);
+
+        // Hiển thị thông báo bỏ chọn
+        showInfoToast(`📋 Đã bỏ chọn vaccine: ${vaccineName}`);
+      } else {
+        // Thêm vaccine vào danh sách đã chọn
+        setSelectedVaccines([...selectedVaccines, vaccineId]);
+
+        // Cập nhật formData để thêm vaccine mới
+        setFormData((prevState) => ({
+          ...prevState,
+          vaccinations: [
+            ...prevState.vaccinations,
+            {
+              vaccineId: vaccineId,
+              vaccinationDate: new Date().toISOString(),
+              administeredAt: "Trường học", // Mặc định "Trường học"
+              notes: "string",
+              parentNotes: "string",
+            },
+          ],
+        }));
+
+        // Đặt địa điểm tiêm mặc định
+        setVaccineAdministeredAt((prev) => ({
+          ...prev,
+          [vaccineId]: "Trường học",
+        }));
+
+        // Hiển thị thông báo thành công ngay lập tức
+        showSuccessToast(`✅ Đã chọn vaccine: ${vaccineName}`);
+
+        // Gọi API thông báo chọn vaccine (optional - không ảnh hưởng đến UX)
+        if (studentNumericId) {
+          try {
+            const notificationData = {
+              studentId: studentNumericId, // Sử dụng ID số
+              vaccineId: vaccineId,
+              recipientType: "PARENT", // Hoặc theo yêu cầu hệ thống
+            };
+
+            console.log(
+              "Sending vaccine selection notification:",
+              notificationData
+            );
+
+            await axios.post(
+              "http://localhost:8080/api/v1/notification-recipient-vaccines/create",
+              notificationData,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                },
+              }
+            );
+
+            console.log(
+              `Successfully notified vaccine selection: ${vaccineName}`
+            );
+          } catch (error) {
+            console.error(
+              "Error sending vaccine selection notification:",
+              error
+            );
+            // Chỉ log lỗi, không hiển thị thông báo cho user vì đây là tính năng phụ
+            console.warn(
+              `Notification API failed for vaccine ${vaccineName}, but selection is still valid.`
+            );
+          }
+        } else {
+          console.warn(
+            "No studentNumericId available, skipping notification API call"
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error in vaccine selection:", error);
+      showErrorToast(
+        `❌ Có lỗi xảy ra khi chọn vaccine ${vaccineName}. Vui lòng thử lại.`
+      );
     }
   };
 
@@ -418,7 +880,11 @@ const HealthDeclaration = () => {
     console.log("Validating form data:", healthProfile); // Debug log
 
     // Validate student ID - bắt buộc
-    if (!healthProfile.id || healthProfile.id === 0) {
+    if (
+      !healthProfile.id ||
+      healthProfile.id === "" ||
+      healthProfile.id === 0
+    ) {
       errors.studentId = "Vui lòng chọn học sinh";
     }
 
@@ -569,16 +1035,8 @@ const HealthDeclaration = () => {
       const firstError = Object.values(formErrors)[0];
 
       // Hiển thị toast với thông tin cụ thể hơn
-      toast.error(
-        `Có ${errorCount} lỗi cần sửa. Vui lòng kiểm tra form và sửa các lỗi được đánh dấu.`,
-        {
-          position: "top-center",
-          autoClose: 6000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        }
+      showErrorToast(
+        `Có ${errorCount} lỗi cần sửa. Vui lòng kiểm tra form và sửa các lỗi được đánh dấu.`
       );
 
       // Scroll đến field đầu tiên có lỗi
@@ -605,420 +1063,410 @@ const HealthDeclaration = () => {
       return;
     }
 
+    // Kiểm tra token đăng nhập
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      showErrorToast(
+        "Bạn cần đăng nhập để khai báo sức khỏe. Vui lòng đăng nhập lại!"
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     console.log("Form validation passed, submitting..."); // Debug log
     setIsSubmitting(true);
 
+    // Kiểm tra xem có ID số để submit không
+    if (!studentNumericId) {
+      console.error("Missing numeric ID for submission");
+      showErrorToast(
+        "Thiếu ID học sinh để gửi dữ liệu. Vui lòng chọn lại học sinh!"
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      // Chuyển đổi dữ liệu theo format API mới
+      // Before submitting, filter out any fully vaccinated or already vaccinated vaccines
+      const filteredVaccinations = formData.vaccinations.filter(
+        (vaccination) => {
+          return (
+            !vaccinatedFromServer.includes(vaccination.vaccineId) &&
+            !fullyVaccinatedVaccines.includes(vaccination.vaccineId)
+          );
+        }
+      );
+
+      // Chuyển đổi dữ liệu theo format API chính xác từ Swagger
       const submissionData = {
         healthProfile: {
-          ...formData.healthProfile,
+          id: studentNumericId, // ID số từ API
+          bloodType: formData.healthProfile.bloodType || "Chưa xác định",
           height:
             formData.healthProfile.height &&
             formData.healthProfile.height !== ""
               ? parseFloat(formData.healthProfile.height)
-              : 0, // Gửi 0 thay vì 300 nếu trống
+              : 300, // Gửi 300 (default) nếu trống
           weight:
             formData.healthProfile.weight &&
             formData.healthProfile.weight !== ""
               ? parseFloat(formData.healthProfile.weight)
-              : 0, // Gửi 0 thay vì 500 nếu trống
-          checkupStatus: "COMPLETED", // Thêm checkupStatus khi submit
+              : 500, // Gửi 500 (default) nếu trống
+          allergies: formData.healthProfile.allergies || "string",
+          chronicDiseases: formData.healthProfile.chronicDiseases || "string",
+          visionLeft: formData.healthProfile.visionLeft || "Chưa kiểm tra",
+          visionRight: formData.healthProfile.visionRight || "Chưa kiểm tra",
+          hearingStatus: formData.healthProfile.hearingStatus || "string",
+          dietaryRestrictions:
+            formData.healthProfile.dietaryRestrictions || "string",
+          emergencyContactInfo:
+            formData.healthProfile.emergencyContactInfo || "Liên hệ phụ huynh",
+          immunizationStatus:
+            formData.healthProfile.immunizationStatus || "string",
+          lastPhysicalExamDate:
+            formData.healthProfile.lastPhysicalExamDate ||
+            new Date().toISOString().split("T")[0],
+          specialNeeds: formData.healthProfile.specialNeeds || "string",
+          checkupStatus: "COMPLETED",
         },
-        vaccinations: formData.vaccinations.map((vaccination) => ({
+        vaccinations: filteredVaccinations.map((vaccination) => ({
           vaccineId: vaccination.vaccineId,
-          vaccinationDate: vaccination.vaccinationDate,
-          administeredAt: vaccination.administeredAt || "Trường học",
-          notes: vaccination.notes || "",
-          parentNotes: vaccination.parentNotes || "",
+          vaccinationDate: new Date(vaccination.vaccinationDate).toISOString(),
+          administeredAt: vaccination.administeredAt || "string",
+          notes: vaccination.notes || "string",
+          parentNotes: vaccination.parentNotes || "string",
         })),
       };
 
-      console.log("Dữ liệu gửi đi:", submissionData);
-
-      // Sử dụng API endpoint chính xác theo yêu cầu
-      const response = await axios.post(
-        "http://localhost:8080/api/v1/health-profiles/full",
-        submissionData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        }
+      console.log("=== SUBMISSION DATA ===");
+      console.log("Dữ liệu gửi đi:", JSON.stringify(submissionData, null, 2));
+      console.log(`Using numeric ID: ${studentNumericId} for API submission`);
+      console.log(
+        `Total selected vaccinations: ${formData.vaccinations.length}`
       );
+      console.log(
+        `Filtered vaccinations count: ${filteredVaccinations.length}`
+      );
+      console.log(`Vaccinated from server: ${vaccinatedFromServer.length}`);
+      console.log(`Fully vaccinated: ${fullyVaccinatedVaccines.length}`);
 
-      console.log("API response:", response);
+      // Gọi API thực tế để cập nhật hồ sơ sức khỏe
+      try {
+        const response = await axios.post(
+          "http://localhost:8080/api/v1/health-profiles/full",
+          submissionData,
+          {
+            headers: {
+              accept: "*/*",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
 
-      // Hiển thị thông báo thành công
-      setShowSuccessMessage(true);
-      toast.success("Cập nhật hồ sơ sức khỏe thành công!");
+        console.log("API response:", response);
 
-      // Ẩn thông báo sau 5 giây
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-      }, 5000);
+        // Hiển thị thông báo thành công
+        setShowSuccessMessage(true);
 
-      // Reset selected vaccines
-      setSelectedVaccines([]);
-      setVaccineNotes({});
-      setVaccineAdministeredAt({});
-      setFormData((prevState) => ({
-        ...prevState,
-        vaccinations: [],
-      }));
-    } catch (error) {
-      console.error("Lỗi khi gửi dữ liệu:", error);
-      console.error("Error details:", error.response?.data); // Debug log
-      setIsServerError(true);
+        if (isMounted.current) {
+          showSuccessToast("Cập nhật hồ sơ sức khỏe thành công!");
 
-      // Kiểm tra nếu lỗi 400 có liên quan đến vaccine đã tiêm
-      if (error.response?.status === 400) {
-        const errorMessage = error.response?.data?.message || "";
-
-        // Nếu lỗi liên quan đến vaccine đã tiêm
-        if (
-          errorMessage.toLowerCase().includes("vaccine") ||
-          errorMessage.toLowerCase().includes("tiêm") ||
-          errorMessage.toLowerCase().includes("vaccination")
-        ) {
-          toast.error(
-            "❌ Không thể cập nhật do có vaccine đã được tiêm trước đó trong danh sách. Hệ thống không cho phép thay đổi thông tin vaccine đã tiêm!",
-            {
-              position: "top-center",
-              autoClose: 8000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
+          // Ẩn thông báo sau 5 giây
+          setTimeout(() => {
+            if (isMounted.current) {
+              setShowSuccessMessage(false);
             }
+          }, 5000);
+
+          // Reset selected vaccines
+          setSelectedVaccines([]);
+          setVaccineNotes({});
+          setVaccineAdministeredAt({});
+          setFormData((prevState) => ({
+            ...prevState,
+            vaccinations: [],
+          }));
+
+          // Tự động reload dữ liệu sau khi cập nhật thành công
+          setTimeout(() => {
+            if (isMounted.current) {
+              // Lấy ID học sinh hiện tại
+              const currentStudentId = formData.healthProfile.id;
+              console.log("Reloading data for student:", currentStudentId);
+
+              // Reload dữ liệu hồ sơ sức khỏe
+              fetchStudentHealthProfile(currentStudentId);
+
+              // Hiển thị thông báo reload
+              showInfoToast("Đang tải lại dữ liệu mới nhất...");
+            }
+          }, 1000); // Đợi 1 giây trước khi reload để đảm bảo dữ liệu đã được lưu trên server
+        }
+      } catch (error) {
+        console.error("Lỗi khi gửi dữ liệu:", error);
+        console.error("Error details:", error.response?.data); // Debug log
+
+        // Kiểm tra nếu lỗi liên quan đến chuyển đổi "full" thành Long
+        if (
+          error.response?.data?.message?.includes(
+            "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \"full\""
+          )
+        ) {
+          console.error(
+            "Phát hiện lỗi chuyển đổi 'full' thành Long, thử endpoint khác"
           );
 
-          // Tìm và hiển thị thông tin về vaccine đã tiêm
-          const vaccinatedVaccines = formData.vaccinations.filter((v) =>
-            vaccinatedFromServer.includes(v.vaccineId)
-          );
-
-          if (vaccinatedVaccines.length > 0) {
-            const vaccineNames = vaccinatedVaccines
-              .map((v) => {
-                const vaccine = vaccines.find((vac) => vac.id === v.vaccineId);
-                return vaccine ? vaccine.name : `ID: ${v.vaccineId}`;
-              })
-              .join(", ");
-
-            toast.info(
-              `📋 Vaccine đã tiêm: ${vaccineNames}. Vui lòng bỏ chọn các vaccine này để có thể cập nhật thành công.`,
+          // Thử với endpoint khác
+          try {
+            const response = await axios.post(
+              `http://localhost:8080/api/v1/health-profiles/${studentNumericId}`,
+              submissionData,
               {
-                position: "top-center",
-                autoClose: 10000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
+                headers: {
+                  accept: "*/*",
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                },
               }
             );
-          }
 
-          return; // Dừng xử lý, không hiển thị lỗi chung
+            console.log("API response with alternative endpoint:", response);
+
+            // Hiển thị thông báo thành công
+            if (isMounted.current) {
+              setShowSuccessMessage(true);
+              showSuccessToast("Cập nhật hồ sơ sức khỏe thành công!");
+
+              // Ẩn thông báo sau 5 giây
+              setTimeout(() => {
+                if (isMounted.current) {
+                  setShowSuccessMessage(false);
+                }
+              }, 5000);
+
+              // Reset selected vaccines
+              setSelectedVaccines([]);
+              setVaccineNotes({});
+              setVaccineAdministeredAt({});
+              setFormData((prevState) => ({
+                ...prevState,
+                vaccinations: [],
+              }));
+
+              // Tự động reload dữ liệu sau khi cập nhật thành công
+              setTimeout(() => {
+                if (isMounted.current) {
+                  // Lấy ID học sinh hiện tại
+                  const currentStudentId = formData.healthProfile.id;
+                  console.log("Reloading data for student:", currentStudentId);
+
+                  // Reload dữ liệu hồ sơ sức khỏe
+                  fetchStudentHealthProfile(currentStudentId);
+
+                  // Hiển thị thông báo reload
+                  showInfoToast("Đang tải lại dữ liệu mới nhất...");
+                }
+              }, 1000); // Đợi 1 giây trước khi reload
+            }
+
+            return; // Thoát khỏi hàm nếu thành công
+          } catch (secondError) {
+            console.error("Lỗi khi thử endpoint thay thế:", secondError);
+          }
+        }
+
+        if (isMounted.current) {
+          setIsServerError(true);
+        }
+
+        // Kiểm tra nếu lỗi 400 có liên quan đến vaccine đã tiêm
+        if (error.response?.status === 400) {
+          const errorMessage = error.response?.data?.message || "";
+
+          // Nếu lỗi liên quan đến vaccine đã tiêm
+          if (
+            errorMessage.toLowerCase().includes("vaccine") ||
+            errorMessage.toLowerCase().includes("tiêm") ||
+            errorMessage.toLowerCase().includes("vaccination")
+          ) {
+            showErrorToast(
+              "❌ Không thể cập nhật do có vaccine đã được tiêm trước đó trong danh sách. Hệ thống không cho phép thay đổi thông tin vaccine đã tiêm!"
+            );
+
+            // Tìm và hiển thị thông tin về vaccine đã tiêm
+            const vaccinatedVaccines = formData.vaccinations.filter((v) =>
+              vaccinatedFromServer.includes(v.vaccineId)
+            );
+
+            if (vaccinatedVaccines.length > 0) {
+              const vaccineNames = vaccinatedVaccines
+                .map((v) => {
+                  const vaccine = vaccines.find(
+                    (vac) => vac.id === v.vaccineId
+                  );
+                  return vaccine ? vaccine.name : `ID: ${v.vaccineId}`;
+                })
+                .join(", ");
+
+              showInfoToast(
+                `📋 Vaccine đã tiêm: ${vaccineNames}. Vui lòng bỏ chọn các vaccine này để có thể cập nhật thành công.`
+              );
+            }
+
+            return; // Dừng xử lý, không hiển thị lỗi chung
+          }
+        }
+
+        // Hiển thị lỗi chi tiết hơn với better error handling
+        let errorMessage =
+          "Không thể cập nhật hồ sơ sức khỏe. Vui lòng thử lại sau!";
+
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.statusText) {
+          errorMessage = error.response.statusText;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        showErrorToast(errorMessage);
+      } finally {
+        if (isMounted.current) {
+          setIsSubmitting(false);
         }
       }
-
-      // Hiển thị lỗi chi tiết hơn với better error handling
-      let errorMessage =
-        "Không thể cập nhật hồ sơ sức khỏe. Vui lòng thử lại sau!";
-
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.statusText) {
-        errorMessage = error.response.statusText;
-      } else if (error.message) {
-        errorMessage = error.message;
+    } catch (error) {
+      console.error("Lỗi khi gửi dữ liệu:", error);
+      if (isMounted.current) {
+        setIsServerError(true);
+        showErrorToast(
+          "Có lỗi xảy ra khi xử lý dữ liệu. Vui lòng thử lại sau!"
+        );
+        setIsSubmitting(false);
       }
+    }
+  };
 
-      toast.error(errorMessage, {
+  // Thêm hàm để reload dữ liệu
+  const reloadData = () => {
+    if (!isMounted.current) return;
+
+    // Lấy ID học sinh hiện tại
+    const currentStudentId = formData.healthProfile.id;
+    if (!currentStudentId) {
+      console.warn("No student ID available for reload");
+      return;
+    }
+
+    console.log("Manually reloading data for student:", currentStudentId);
+
+    // Set loading state
+    setIsLoading(true);
+
+    // Hiển thị thông báo đang tải
+    try {
+      toast.info("Đang tải lại dữ liệu...", {
         position: "top-center",
-        autoClose: 6000,
+        autoClose: 2000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
       });
-    } finally {
-      setIsSubmitting(false);
+    } catch (error) {
+      console.error("Error showing toast:", error);
     }
+
+    // Reload dữ liệu hồ sơ sức khỏe
+    fetchStudentHealthProfile(currentStudentId);
   };
 
-  // Hàm hiển thị modal thông báo vaccine đã tiêm
+  // Hiển thị thông báo vaccine đã tiêm
   const showVaccineAlreadyTakenNotification = (vaccine) => {
-    console.log("=== showVaccineAlreadyTakenNotification called ==="); // Debug log
-    console.log("Vaccine data:", vaccine); // Debug log
-
-    // Force update state immediately
+    // Lưu thông tin vaccine để hiển thị trong modal
     setSelectedVaccineInfo(vaccine);
+
+    // Hiển thị modal
     setShowVaccineAlreadyTakenModal(true);
 
-    console.log("Modal state updated - should show modal now"); // Debug log
-
-    // Tự động ẩn modal sau 20 giây
-    setTimeout(() => {
-      console.log("Auto-hiding modal after 20 seconds"); // Debug log
-      setShowVaccineAlreadyTakenModal(false);
-    }, 20000);
+    console.log("Modal should be shown for:", vaccine.name); // Debug log
   };
 
-  // Render modal thông báo vaccine đã tiêm - sử dụng Portal
+  // Render modal thông báo vaccine đã tiêm
   const renderVaccineAlreadyTakenModal = () => {
-    console.log("renderVaccineAlreadyTakenModal called"); // Debug log
-    console.log("showVaccineAlreadyTakenModal:", showVaccineAlreadyTakenModal); // Debug log
-    console.log("selectedVaccineInfo:", selectedVaccineInfo); // Debug log
+    if (!showVaccineAlreadyTakenModal || !selectedVaccineInfo) return null;
 
-    if (!showVaccineAlreadyTakenModal || !selectedVaccineInfo) {
-      console.log("Modal not shown - missing state or info"); // Debug log
-      return null;
-    }
-
-    console.log("Creating modal portal for vaccine:", selectedVaccineInfo.name); // Debug log
-
-    const modalContent = (
-      <div
-        className="vaccine-already-taken-modal-overlay"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.8)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 999999,
-          animation: "fadeIn 0.3s ease-out",
-        }}
-        onClick={() => {
-          console.log("Modal overlay clicked - closing modal"); // Debug log
-          setShowVaccineAlreadyTakenModal(false);
-        }}
-      >
-        <div
-          className="vaccine-already-taken-modal"
-          style={{
-            backgroundColor: "white",
-            borderRadius: "12px",
-            padding: "24px",
-            maxWidth: "600px",
-            width: "90%",
-            maxHeight: "80vh",
-            overflow: "auto",
-            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
-            position: "relative",
-            animation: "slideUp 0.3s ease-out",
-            border: "3px solid #ff6b6b",
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            console.log("Modal content clicked - not closing"); // Debug log
-          }}
-        >
-          <div
-            className="modal-header"
-            style={{ textAlign: "center", marginBottom: "20px" }}
-          >
-            <div
-              className="modal-icon"
-              style={{ fontSize: "48px", marginBottom: "10px" }}
-            >
-              🚫
-            </div>
-            <h3 style={{ color: "#ff6b6b", margin: "0", fontSize: "24px" }}>
-              Vaccine Đã Được Tiêm
-            </h3>
+    return createPortal(
+      <div className="hdm-modal-overlay">
+        <div className="hdm-modal-content">
+          <div className="hdm-modal-header">
+            <h3>Thông tin vaccine đã tiêm</h3>
             <button
-              className="modal-close-btn"
-              style={{
-                position: "absolute",
-                top: "10px",
-                right: "15px",
-                background: "none",
-                border: "none",
-                fontSize: "30px",
-                cursor: "pointer",
-                color: "#999",
-              }}
-              onClick={() => {
-                console.log("Close button clicked"); // Debug log
-                setShowVaccineAlreadyTakenModal(false);
-              }}
+              className="hdm-modal-close"
+              onClick={() => setShowVaccineAlreadyTakenModal(false)}
             >
-              ×
+              &times;
             </button>
           </div>
+          <div className="hdm-modal-body">
+            <div className="vaccine-info-container">
+              <div className="vaccine-info-header">
+                <h4>{selectedVaccineInfo.name}</h4>
+                <span className="vaccinated-badge">✓ Đã tiêm</span>
+              </div>
 
-          <div className="modal-content">
-            <div
-              className="vaccine-info-display"
-              style={{ marginBottom: "20px" }}
-            >
-              <h4
-                style={{
-                  color: "#333",
-                  fontSize: "20px",
-                  marginBottom: "10px",
-                }}
-              >
-                {selectedVaccineInfo.name}
-              </h4>
-              <p
-                className="vaccine-description"
-                style={{ color: "#666", marginBottom: "15px" }}
-              >
-                {selectedVaccineInfo.description}
-              </p>
-
-              <div
-                className="vaccine-details-grid"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "10px",
-                  marginBottom: "20px",
-                }}
-              >
-                <div
-                  className="vaccine-detail-item"
-                  style={{
-                    padding: "10px",
-                    background: "#f5f5f5",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <span
-                    className="label"
-                    style={{ fontWeight: "bold", color: "#333" }}
-                  >
-                    Số liều:
-                  </span>
-                  <span
-                    className="value"
-                    style={{ marginLeft: "5px", color: "#666" }}
-                  >
-                    {selectedVaccineInfo.totalDoses}
-                  </span>
-                </div>
-                <div
-                  className="vaccine-detail-item"
-                  style={{
-                    padding: "10px",
-                    background: "#f5f5f5",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <span
-                    className="label"
-                    style={{ fontWeight: "bold", color: "#333" }}
-                  >
-                    Khoảng cách:
-                  </span>
-                  <span
-                    className="value"
-                    style={{ marginLeft: "5px", color: "#666" }}
-                  >
+              <div className="vaccine-info-details">
+                <p>
+                  <strong>Mô tả:</strong>{" "}
+                  {selectedVaccineInfo.description || "Không có mô tả"}
+                </p>
+                <p>
+                  <strong>Số liều cần thiết:</strong>{" "}
+                  {selectedVaccineInfo.totalDoses || 1} liều
+                </p>
+                {selectedVaccineInfo.intervalDays && (
+                  <p>
+                    <strong>Khoảng cách giữa các liều:</strong>{" "}
                     {selectedVaccineInfo.intervalDays} ngày
-                  </span>
-                </div>
-                <div
-                  className="vaccine-detail-item"
-                  style={{
-                    padding: "10px",
-                    background: "#f5f5f5",
-                    borderRadius: "8px",
-                    gridColumn: "1 / -1",
-                  }}
-                >
-                  <span
-                    className="label"
-                    style={{ fontWeight: "bold", color: "#333" }}
-                  >
-                    Độ tuổi:
-                  </span>
-                  <span
-                    className="value"
-                    style={{ marginLeft: "5px", color: "#666" }}
-                  >
-                    {selectedVaccineInfo.minAgeMonths}-
-                    {selectedVaccineInfo.maxAgeMonths} tháng
-                  </span>
-                </div>
+                  </p>
+                )}
+                <p>
+                  <strong>Độ tuổi phù hợp:</strong>{" "}
+                  {selectedVaccineInfo.minAgeMonths
+                    ? `${selectedVaccineInfo.minAgeMonths} tháng`
+                    : "0 tháng"}{" "}
+                  đến{" "}
+                  {selectedVaccineInfo.maxAgeMonths
+                    ? `${selectedVaccineInfo.maxAgeMonths} tháng`
+                    : "không giới hạn"}
+                </p>
               </div>
-            </div>
 
-            <div
-              className="notification-message"
-              style={{
-                background: "#fff3cd",
-                border: "1px solid #ffeaa7",
-                borderRadius: "8px",
-                padding: "15px",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "10px",
-              }}
-            >
-              <div className="warning-icon" style={{ fontSize: "24px" }}>
-                ⚠️
-              </div>
-              <div className="message-text">
-                <p
-                  style={{
-                    margin: "0 0 10px 0",
-                    fontWeight: "bold",
-                    color: "#856404",
-                  }}
-                >
-                  Vaccine này đã được tiêm cho học sinh!
+              <div className="vaccine-info-message">
+                <p className="vaccine-warning">
+                  <i className="warning-icon">⚠️</i> Vaccine này đã được ghi
+                  nhận trong hồ sơ y tế của học sinh và không thể thay đổi.
                 </p>
-                <p style={{ margin: "0 0 10px 0", color: "#856404" }}>
-                  Thông tin tiêm chủng đã được ghi nhận trong hệ thống và không
-                  thể thay đổi.
-                </p>
-                <p style={{ margin: "0", color: "#856404" }}>
-                  Nếu có thắc mắc, vui lòng liên hệ với y tế trường.
+                <p>
+                  Nếu bạn cần cập nhật thông tin về vaccine này, vui lòng liên
+                  hệ với nhà trường hoặc y tá trường học.
                 </p>
               </div>
             </div>
           </div>
-
-          <div
-            className="modal-footer"
-            style={{ textAlign: "center", marginTop: "20px" }}
-          >
+          <div className="hdm-modal-footer">
             <button
-              className="btn-understood"
-              style={{
-                backgroundColor: "#007bff",
-                color: "white",
-                border: "none",
-                padding: "12px 24px",
-                borderRadius: "8px",
-                fontSize: "16px",
-                cursor: "pointer",
-                minWidth: "120px",
-              }}
-              onClick={() => {
-                console.log("Understood button clicked"); // Debug log
-                setShowVaccineAlreadyTakenModal(false);
-              }}
+              className="hdm-button primary"
+              onClick={() => setShowVaccineAlreadyTakenModal(false)}
             >
               Đã hiểu
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
-
-    // Sử dụng createPortal để render modal ngoài component tree
-    return createPortal(modalContent, document.body);
   };
 
   // Render thông báo thành công
@@ -1052,7 +1500,7 @@ const HealthDeclaration = () => {
     if (!isServerError) return null;
 
     return (
-      <div className="server-warning">
+      <div className="server-error-alert">
         <div className="warning-icon">⚠️</div>
         <div className="warning-content">
           <h4>Kết nối máy chủ không ổn định</h4>
@@ -1069,16 +1517,26 @@ const HealthDeclaration = () => {
   const renderVaccineSelection = () => {
     if (isLoadingVaccines) {
       return (
-        <div className="loading-spinner">Đang tải danh sách vaccine...</div>
+        <div className="hdm-loading">
+          <div className="hdm-spinner"></div>
+          Đang tải danh sách vaccine...
+        </div>
       );
     }
 
     if (vaccinesError) {
-      return <div className="error-message">{vaccinesError}</div>;
+      return (
+        <div className="server-error-alert">
+          <div className="warning-icon">⚠️</div>
+          <div className="warning-content">
+            <p>{vaccinesError}</p>
+          </div>
+        </div>
+      );
     }
 
     return (
-      <div className="vaccine-selection-section">
+      <div className="vaccines-section">
         <h3>Thông tin tiêm chủng</h3>
         <p className="help-text">
           Chọn các loại vaccine mà học sinh đã tiêm. Phụ huynh có thể bỏ trống
@@ -1094,107 +1552,120 @@ const HealthDeclaration = () => {
             const isVaccinatedFromServer = vaccinatedFromServer.includes(
               vaccine.id
             );
+            const isFullyVaccinated = fullyVaccinatedVaccines.includes(
+              vaccine.id
+            );
             const isSelected = selectedVaccines.includes(vaccine.id);
+            const isDisabled = isVaccinatedFromServer || isFullyVaccinated;
 
             return (
               <div
                 key={vaccine.id}
-                className={`vaccine-item ${isSelected ? "selected" : ""} ${
+                className={`vaccine-card ${isSelected ? "selected" : ""} ${
                   isVaccinatedFromServer ? "vaccinated-from-server" : ""
-                }`}
+                } ${isFullyVaccinated ? "fully-vaccinated" : ""}`}
               >
-                <div className="vaccine-header">
-                  <input
-                    type="checkbox"
-                    id={`vaccine-${vaccine.id}`}
-                    checked={isSelected}
-                    onChange={() => handleVaccineChange(vaccine.id)}
-                    disabled={isVaccinatedFromServer}
-                  />
-                  <label htmlFor={`vaccine-${vaccine.id}`}>
-                    {vaccine.name}
-                    {isVaccinatedFromServer && (
-                      <span className="vaccinated-badge">✓ Đã tiêm</span>
-                    )}
-                  </label>
-                </div>
-
-                <div className="vaccine-description">{vaccine.description}</div>
-
-                <div className="vaccine-info">
-                  <span>Số liều: {vaccine.totalDoses}</span>
-                  <span>Khoảng cách: {vaccine.intervalDays} ngày</span>
-                  <span>
-                    Độ tuổi: {vaccine.minAgeMonths}-{vaccine.maxAgeMonths} tháng
-                  </span>
-                  <span
-                    className={`vaccine-status ${
-                      vaccine.isActive ? "active" : "inactive"
-                    }`}
-                  >
-                    {vaccine.isActive ? "Đang sử dụng" : "Ngừng sử dụng"}
-                  </span>
-                </div>
-
-                {isSelected && (
-                  <div className="vaccine-details">
-                    <div
-                      className="vaccine-administered-at"
-                      style={{ marginBottom: "15px" }}
+                {/* Card Header - Tên vaccine và checkbox */}
+                <div className="vaccine-card-header">
+                  <div className="vaccine-checkbox-container">
+                    <input
+                      type="checkbox"
+                      id={`vaccine-${vaccine.id}`}
+                      checked={isSelected}
+                      onChange={() => handleVaccineChange(vaccine.id)}
+                      disabled={isDisabled}
+                      className="vaccine-checkbox"
+                      title={
+                        isVaccinatedFromServer
+                          ? "Vaccine này đã được tiêm và không thể thay đổi"
+                          : isFullyVaccinated
+                          ? "Vaccine này đã tiêm đủ liều và không thể thay đổi"
+                          : "Chọn vaccine này"
+                      }
+                    />
+                    <label
+                      htmlFor={`vaccine-${vaccine.id}`}
+                      className="checkbox-label"
                     >
-                      <label htmlFor={`administered-at-${vaccine.id}`}>
-                        Địa điểm tiêm: <span className="required">*</span>
-                      </label>
-                      <select
-                        id={`administered-at-${vaccine.id}`}
-                        value={
-                          vaccineAdministeredAt[vaccine.id] || "Trường học"
-                        }
-                        onChange={(e) =>
-                          handleVaccineAdministeredAtChange(vaccine.id, e)
-                        }
-                        disabled={isVaccinatedFromServer}
-                        style={{
-                          width: "100%",
-                          padding: "8px 12px",
-                          border: "1px solid #ddd",
-                          borderRadius: "4px",
-                          fontSize: "14px",
-                        }}
-                      >
-                        <option value="Trường học">Trường học</option>
-                        <option value="Bệnh viện">Bệnh viện</option>
-                        <option value="Trạm y tế">Trạm y tế</option>
-                        <option value="Phòng khám tư">Phòng khám tư</option>
-                        <option value="Trung tâm y tế">Trung tâm y tế</option>
-                        <option value="Khác">Khác</option>
-                      </select>
-                    </div>
+                      <span className="checkmark"></span>
+                    </label>
+                  </div>
 
-                    <div className="vaccine-notes">
-                      <label htmlFor={`notes-${vaccine.id}`}>
-                        Ghi chú của phụ huynh:
-                      </label>
-                      <textarea
-                        id={`notes-${vaccine.id}`}
-                        placeholder={
-                          isVaccinatedFromServer
-                            ? "Vaccine đã tiêm - chỉ có thể xem thông tin"
-                            : "Thông tin bổ sung về tiêm chủng: ngày tiêm cụ thể, phản ứng (nếu có), bác sĩ tiêm..."
-                        }
-                        value={vaccineNotes[vaccine.id] || ""}
-                        onChange={(e) => handleVaccineNoteChange(vaccine.id, e)}
-                        disabled={isVaccinatedFromServer}
-                        style={{
-                          width: "100%",
-                          minHeight: "80px",
-                          padding: "8px 12px",
-                          border: "1px solid #ddd",
-                          borderRadius: "4px",
-                          fontSize: "14px",
-                          resize: "vertical",
-                        }}
-                      />
+                  <div className="vaccine-name-container">
+                    <h4 className="vaccine-name">{vaccine.name}</h4>
+                    {isVaccinatedFromServer && (
+                      <span
+                        className="vaccinated-badge"
+                        title="Vaccine này đã được tiêm và được ghi nhận trong hệ thống"
+                      >
+                        ✓ Đã tiêm
+                      </span>
+                    )}
+                    {isFullyVaccinated && !isVaccinatedFromServer && (
+                      <span
+                        className="fully-vaccinated-badge"
+                        title="Vaccine này đã tiêm đủ liều theo quy định"
+                      >
+                        ✓ Đã tiêm đủ
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Expanded content khi được chọn */}
+                {isSelected && (
+                  <div className="vaccine-card-expanded">
+                    {(isVaccinatedFromServer || isFullyVaccinated) && (
+                      <div className="vaccine-already-taken-notice">
+                        <p>
+                          <i className="info-icon">ℹ️</i>
+                          {isFullyVaccinated
+                            ? "Vaccine này đã tiêm đủ liều và không thể thay đổi thông tin."
+                            : "Vaccine này đã được tiêm và không thể thay đổi thông tin."}
+                        </p>
+                      </div>
+                    )}
+                    <div className="vaccine-form-section">
+                      <div className="form-group">
+                        <label htmlFor={`administered-at-${vaccine.id}`}>
+                          Địa điểm tiêm: <span className="required">*</span>
+                        </label>
+                        <select
+                          id={`administered-at-${vaccine.id}`}
+                          value={
+                            vaccineAdministeredAt[vaccine.id] || "Trường học"
+                          }
+                          onChange={(e) =>
+                            handleVaccineAdministeredAtChange(vaccine.id, e)
+                          }
+                          disabled={isDisabled}
+                          className="location-select"
+                        >
+                          <option value="Trường học">Trường học</option>
+                          <option value="Bệnh viện">Bệnh viện</option>
+                          <option value="Trạm y tế">Trạm y tế</option>
+                          <option value="Phòng khám tư">Phòng khám tư</option>
+                          <option value="Trung tâm y tế">Trung tâm y tế</option>
+                          <option value="Khác">Khác</option>
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor={`notes-${vaccine.id}`}>
+                          Ghi chú của phụ huynh:
+                        </label>
+                        <textarea
+                          id={`notes-${vaccine.id}`}
+                          placeholder=""
+                          value={vaccineNotes[vaccine.id] || ""}
+                          onChange={(e) =>
+                            handleVaccineNoteChange(vaccine.id, e)
+                          }
+                          disabled={isDisabled}
+                          className="notes-textarea"
+                          rows="3"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1217,7 +1688,7 @@ const HealthDeclaration = () => {
     if (Object.keys(formErrors).length === 0) return null;
 
     return (
-      <div className="validation-summary error-message">
+      <div className="validation-summary">
         <h3>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -1345,8 +1816,8 @@ const HealthDeclaration = () => {
     if (!tooltips[fieldName]) return null;
 
     return (
-      <span className="field-tooltip" title={tooltips[fieldName]}>
-        ℹ️
+      <span className="hdm-tooltip" data-tooltip={tooltips[fieldName]}>
+        ?
       </span>
     );
   };
@@ -1412,91 +1883,31 @@ const HealthDeclaration = () => {
   };
 
   // Tính toán progress của form
-  const calculateFormProgress = () => {
-    const { healthProfile } = formData;
-    const requiredFields = [
-      "bloodType",
-      "visionLeft",
-      "visionRight",
-      "hearingStatus",
-      "lastPhysicalExamDate",
-      "emergencyContactInfo",
-    ];
-
-    const optionalFields = [
-      "height",
-      "weight",
-      "allergies",
-      "chronicDiseases",
-      "dietaryRestrictions",
-      "specialNeeds",
-    ];
-
-    let completedRequired = 0;
-    let completedOptional = 0;
-
-    requiredFields.forEach((field) => {
-      if (
-        healthProfile[field] &&
-        healthProfile[field].toString().trim() !== ""
-      ) {
-        completedRequired++;
-      }
-    });
-
-    optionalFields.forEach((field) => {
-      if (
-        healthProfile[field] &&
-        healthProfile[field].toString().trim() !== ""
-      ) {
-        completedOptional++;
-      }
-    });
-
-    const requiredProgress = (completedRequired / requiredFields.length) * 80; // 80% for required
-    const optionalProgress = (completedOptional / optionalFields.length) * 20; // 20% for optional
-
-    return Math.round(requiredProgress + optionalProgress);
-  };
-
-  // Render progress indicator
-  const renderFormProgress = () => {
-    const progress = calculateFormProgress();
-    const isComplete = progress === 100;
-
-    return (
-      <div className="form-progress-container">
-        <div className="form-progress-header">
-          <span className="progress-label">Tiến độ hoàn thành form</span>
-          <span
-            className={`progress-percentage ${isComplete ? "complete" : ""}`}
-          >
-            {progress}%
-          </span>
-        </div>
-        <div className="form-progress">
-          <div
-            className="form-progress-bar"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-        {progress < 100 && (
-          <div className="progress-hint">
-            Vui lòng điền đầy đủ thông tin bắt buộc (có dấu{" "}
-            <span className="required">*</span>)
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="health-declaration-container">
-      <ToastContainer position="top-right" autoClose={5000} />
+      <div className="hdm-header">
+        <div className="header-spacer"></div>
+        <button
+          type="button"
+          className="reload-button"
+          onClick={reloadData}
+          title="Tải lại dữ liệu mới nhất"
+          disabled={isLoading}
+        >
+          <span className={`reload-icon ${isLoading ? "spinning" : ""}`}>
+            ⟳
+          </span>{" "}
+          Tải lại dữ liệu
+        </button>
+      </div>
 
-      {renderServerError()}
-      {renderSuccessMessage()}
-      {renderValidationSummary()}
+      {/* Hiển thị thông báo thành công */}
+      {showSuccessMessage && renderSuccessMessage()}
+
+      {/* Hiển thị thông báo lỗi server */}
+      {isServerError && renderServerError()}
+
+      {/* Hiển thị modal vaccine đã tiêm */}
       {renderVaccineAlreadyTakenModal()}
 
       <div className="page-header">
@@ -1510,11 +1921,9 @@ const HealthDeclaration = () => {
 
       {/* Form khai báo sức khỏe */}
       <form onSubmit={handleSubmit} className="health-declaration-form">
-        {/* Form Progress */}
-        {renderFormProgress()}
-
         {/* Validation Summary */}
         {renderValidationSummary()}
+
         {/* Student selector */}
         <div className="form-section">
           <h3>Thông tin học sinh</h3>
@@ -1534,7 +1943,10 @@ const HealthDeclaration = () => {
               className={formErrors.studentId ? "error" : ""}
             >
               {students.map((student) => (
-                <option key={student.id} value={student.id}>
+                <option
+                  key={student.id}
+                  value={student.studentId || student.id}
+                >
                   {student.fullName} - Lớp {student.className}
                 </option>
               ))}
@@ -1545,6 +1957,10 @@ const HealthDeclaration = () => {
         {/* Health Profile Information */}
         <div className="form-section">
           <h3>Thông tin sức khỏe cơ bản</h3>
+          <p className="help-text">
+            Thông tin này sẽ được tự động tải từ hồ sơ y tế hiện có của học
+            sinh. Phụ huynh có thể xem và chỉnh sửa thông tin nếu cần cập nhật.
+          </p>
 
           <div className="form-row">
             <div className="form-group">
@@ -1587,7 +2003,7 @@ const HealthDeclaration = () => {
                 max="300"
                 step="0.1"
                 disabled={isSubmitting}
-                placeholder="Ví dụ: 150"
+                placeholder=""
                 className={formErrors.height ? "error" : ""}
               />
             </div>
@@ -1609,7 +2025,7 @@ const HealthDeclaration = () => {
                 max="500"
                 step="0.1"
                 disabled={isSubmitting}
-                placeholder="Ví dụ: 45"
+                placeholder=""
                 className={formErrors.weight ? "error" : ""}
               />
             </div>
@@ -1687,13 +2103,20 @@ const HealthDeclaration = () => {
           </div>
         </div>
 
+        {/* Additional Health Information */}
         <div className="form-section">
           <h3>Thông tin y tế bổ sung</h3>
+          <p className="help-text">
+            Phụ huynh vui lòng nhập thêm các thông tin y tế quan trọng khác để
+            nhà trường có thể chăm sóc và hỗ trợ học sinh tốt nhất. Các trường
+            này không bắt buộc nhưng rất hữu ích cho việc theo dõi sức khỏe của
+            học sinh.
+          </p>
 
           <div className="form-row">
-            <div className="form-group full-width">
+            <div className="form-group">
               <label htmlFor="allergies">
-                Dị ứng (nếu có):
+                Dị ứng:
                 {formErrors.allergies && (
                   <span className="error-text">{formErrors.allergies}</span>
                 )}
@@ -1704,22 +2127,15 @@ const HealthDeclaration = () => {
                 value={formData.healthProfile.allergies}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                placeholder="Liệt kê các dị ứng của học sinh (tối đa 500 ký tự)"
-                maxLength="500"
+                placeholder="Nhập thông tin về các loại dị ứng của học sinh (nếu có)..."
                 className={formErrors.allergies ? "error" : ""}
-              ></textarea>
-              {renderCharacterCounter(
-                formData.healthProfile.allergies,
-                500,
-                "allergies"
-              )}
+                rows="3"
+              />
             </div>
-          </div>
 
-          <div className="form-row">
-            <div className="form-group full-width">
+            <div className="form-group">
               <label htmlFor="chronicDiseases">
-                Bệnh mãn tính (nếu có):
+                Bệnh mãn tính:
                 {formErrors.chronicDiseases && (
                   <span className="error-text">
                     {formErrors.chronicDiseases}
@@ -1732,22 +2148,17 @@ const HealthDeclaration = () => {
                 value={formData.healthProfile.chronicDiseases}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                placeholder="Thông tin về các bệnh mãn tính (tối đa 500 ký tự)"
-                maxLength="500"
+                placeholder="Nhập thông tin về các bệnh mãn tính của học sinh (nếu có)..."
                 className={formErrors.chronicDiseases ? "error" : ""}
-              ></textarea>
-              {renderCharacterCounter(
-                formData.healthProfile.chronicDiseases,
-                500,
-                "chronicDiseases"
-              )}
+                rows="3"
+              />
             </div>
           </div>
 
           <div className="form-row">
-            <div className="form-group full-width">
+            <div className="form-group">
               <label htmlFor="dietaryRestrictions">
-                Hạn chế về ăn uống:
+                Hạn chế ăn uống:
                 {formErrors.dietaryRestrictions && (
                   <span className="error-text">
                     {formErrors.dietaryRestrictions}
@@ -1760,22 +2171,36 @@ const HealthDeclaration = () => {
                 value={formData.healthProfile.dietaryRestrictions}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                placeholder="Thông tin về các hạn chế trong chế độ ăn uống của học sinh (tối đa 500 ký tự)"
-                maxLength="500"
+                placeholder="Nhập thông tin về các hạn chế ăn uống của học sinh (nếu có)..."
                 className={formErrors.dietaryRestrictions ? "error" : ""}
-              ></textarea>
-              {renderCharacterCounter(
-                formData.healthProfile.dietaryRestrictions,
-                500,
-                "dietaryRestrictions"
-              )}
+                rows="3"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="specialNeeds">
+                Nhu cầu đặc biệt:
+                {formErrors.specialNeeds && (
+                  <span className="error-text">{formErrors.specialNeeds}</span>
+                )}
+              </label>
+              <textarea
+                id="specialNeeds"
+                name="specialNeeds"
+                value={formData.healthProfile.specialNeeds}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder="Nhập thông tin về các nhu cầu đặc biệt của học sinh (nếu có)..."
+                className={formErrors.specialNeeds ? "error" : ""}
+                rows="3"
+              />
             </div>
           </div>
 
           <div className="form-row">
-            <div className="form-group full-width">
+            <div className="form-group">
               <label htmlFor="emergencyContactInfo">
-                Thông tin liên lạc khẩn cấp: <span className="required">*</span>{" "}
+                Thông tin liên lạc khẩn cấp: <span className="required">*</span>
                 {renderFieldTooltip("emergencyContactInfo")}
                 {formErrors.emergencyContactInfo && (
                   <span className="error-text">
@@ -1789,17 +2214,16 @@ const HealthDeclaration = () => {
                 value={formData.healthProfile.emergencyContactInfo}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                placeholder="Số điện thoại và thông tin liên lạc trong trường hợp khẩn cấp (bắt buộc, tối thiểu 10 ký tự)"
+                placeholder="Nhập tên và số điện thoại người liên hệ khẩn cấp (VD: Bà Nguyễn Thị A - 0987654321)..."
                 className={formErrors.emergencyContactInfo ? "error" : ""}
-              ></textarea>
+                rows="3"
+              />
             </div>
-          </div>
 
-          <div className="form-row">
             <div className="form-group">
               <label htmlFor="lastPhysicalExamDate">
                 Ngày kiểm tra sức khỏe gần nhất:{" "}
-                <span className="required">*</span>{" "}
+                <span className="required">*</span>
                 {renderFieldTooltip("lastPhysicalExamDate")}
                 {formErrors.lastPhysicalExamDate && (
                   <span className="error-text">
@@ -1814,33 +2238,8 @@ const HealthDeclaration = () => {
                 value={formData.healthProfile.lastPhysicalExamDate}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                max={new Date().toISOString().split("T")[0]}
                 className={formErrors.lastPhysicalExamDate ? "error" : ""}
               />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group full-width">
-              <label htmlFor="specialNeeds">
-                Nhu cầu đặc biệt (nếu có):
-                {formErrors.specialNeeds && (
-                  <span className="error-text">{formErrors.specialNeeds}</span>
-                )}
-              </label>
-              <textarea
-                id="specialNeeds"
-                name="specialNeeds"
-                value={formData.healthProfile.specialNeeds}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                placeholder="Thông tin về các nhu cầu đặc biệt của học sinh (tối đa 500 ký tự)"
-                maxLength="500"
-                className={formErrors.specialNeeds ? "error" : ""}
-              ></textarea>
-              <small className="char-count">
-                {formData.healthProfile.specialNeeds?.length || 0}/500 ký tự
-              </small>
             </div>
           </div>
         </div>
@@ -1921,10 +2320,22 @@ const HealthDeclaration = () => {
               : "Cập nhật khai báo sức khỏe"}
           </button>
         </div>
-
-        {/* Progress bar */}
-        {renderFormProgress()}
       </form>
+
+      {/* Sử dụng ToastContainer đơn giản nhất để tránh lỗi */}
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick={true}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={true}
+        pauseOnHover={true}
+        theme="colored"
+        limit={3}
+      />
     </div>
   );
 };

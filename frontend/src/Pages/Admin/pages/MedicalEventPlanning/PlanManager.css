@@ -105,16 +105,16 @@
 /* Section Selector */
 .section-selector {
   background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  margin-bottom: 24px;
+  border-radius: 24px;
+  padding: 48px 40px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  margin-bottom: 32px;
   border: 1px solid #f1f5f9;
 }
 
 .selector-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 48px;
 }
 
 .selector-title {
@@ -136,22 +136,28 @@
 
 .sections-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .section-card {
   background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 32px;
+  border: 2px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 48px 40px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 24px;
+  text-align: center;
+  gap: 32px;
   position: relative;
   overflow: hidden;
+  min-height: 320px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
 .section-card::before {
@@ -159,37 +165,39 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 4px;
-  height: 100%;
+  width: 100%;
+  height: 6px;
   background: var(--section-color);
-  transform: scaleY(0);
+  transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .section-card:hover::before {
-  transform: scaleY(1);
+  transform: scaleX(1);
 }
 
 .section-card:hover {
   border-color: var(--section-color);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
 .section-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  background: var(--section-color);
+  width: 96px;
+  height: 96px;
+  background: linear-gradient(135deg, var(--section-color), color-mix(in srgb, var(--section-color) 85%, #000));
   color: white;
-  border-radius: 16px;
-  font-size: 1.25rem;
+  border-radius: 24px;
+  font-size: 2rem;
   font-weight: 700;
   font-family: var(--font-heading);
   letter-spacing: 0.05em;
   flex-shrink: 0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  position: relative;
 }
 
 .section-info {
@@ -197,38 +205,53 @@
 }
 
 .section-title {
-  font-size: 1.5rem;
+  font-size: 1.875rem;
   font-weight: 700;
   font-family: var(--font-heading);
   color: #1e293b;
-  margin: 0 0 4px 0;
+  margin: 0 0 8px 0;
   letter-spacing: -0.025em;
+  line-height: 1.2;
 }
 
 .section-subtitle {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 500;
   color: #64748b;
-  margin: 0 0 8px 0;
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.875rem;
 }
 
 .section-description {
-  font-size: 0.95rem;
+  font-size: 1.125rem;
   color: #64748b;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.7;
+  max-width: 280px;
 }
 
 .section-arrow {
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: #cbd5e1;
   transition: all 0.3s ease;
   font-weight: 700;
+  margin-top: auto;
+  background: #f8fafc;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .section-card:hover .section-arrow {
   color: var(--section-color);
-  transform: translateX(4px);
+  background: white;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 /* Action Selector */
@@ -519,14 +542,28 @@
   .sections-grid,
   .actions-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 24px;
   }
 
   .section-card {
-    padding: 24px;
-    text-align: center;
-    flex-direction: column;
-    gap: 16px;
+    padding: 32px 24px;
+    min-height: 280px;
+    gap: 24px;
+  }
+
+  .section-badge {
+    width: 80px;
+    height: 80px;
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .section-description {
+    font-size: 1rem;
+    max-width: none;
   }
 
   .action-card {
@@ -534,7 +571,12 @@
     text-align: center;
   }
 
-  .section-arrow,
+  .section-arrow {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+
   .action-arrow {
     display: none;
   }
@@ -619,9 +661,21 @@
   }
 
   .section-badge {
-    width: 56px;
-    height: 56px;
-    font-size: 1.125rem;
+    width: 72px;
+    height: 72px;
+    font-size: 1.25rem;
+  }
+
+  .section-card {
+    min-height: 240px;
+    padding: 28px 20px;
+    gap: 20px;
+  }
+
+  .section-arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
   }
 
   .action-tag {
