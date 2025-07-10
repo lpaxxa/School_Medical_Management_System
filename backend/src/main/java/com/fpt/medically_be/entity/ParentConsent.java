@@ -42,6 +42,9 @@ public class ParentConsent {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "consent_given", nullable = false)
+    private Boolean consentGiven = false;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

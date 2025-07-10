@@ -3,7 +3,7 @@ package com.fpt.medically_be.controller;
 import com.fpt.medically_be.dto.PageResponse;
 import com.fpt.medically_be.dto.request.MedicationAdministrationRequestDTO;
 import com.fpt.medically_be.dto.response.MedicationAdministrationResponseDTO;
-import com.fpt.medically_be.entity.AdministrationStatus;
+
 import com.fpt.medically_be.entity.Status;
 import com.fpt.medically_be.service.MedicationAdministrationService;
 import jakarta.persistence.EntityNotFoundException;
