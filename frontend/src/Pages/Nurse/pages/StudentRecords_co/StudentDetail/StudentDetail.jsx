@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './StudentDetail.css'; // Đảm bảo import file CSS đúng đường dẫn
+import './StudentDetail.css';
 import { getStudentHealthProfile } from '../../../../../services/APINurse/studentRecordsService';
 
 const StudentDetail = ({ student, onBack, onEdit }) => {
@@ -14,13 +14,12 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
       
       try {
         setLoading(true);
-        // Sử dụng try-catch để bắt tất cả lỗi tiềm ẩn
         
         // Log ra thông tin student để debug
         console.log('Student object from props:', student);
         
-        // Kiểm tra healthProfileId tồn tại không 
-        const profileId = student.healthProfileId || student.id;
+        // Lấy healthProfileId từ thông tin học sinh
+        const profileId = student.healthProfileId;
         
         if (!profileId) {
           console.warn('Không tìm thấy ID hồ sơ y tế');
@@ -32,6 +31,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
         
         console.log('Sử dụng health profile ID:', profileId);
         
+        // Gọi API lấy thông tin health profile
         try {
           const profileData = await getStudentHealthProfile(profileId);
           console.log('Received health profile data:', profileData);
@@ -119,17 +119,6 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
       
       <div className="detail-content">
         <div className="student-info-section">
-          <div className="student-avatar">
-            <img 
-              src={student.imageUrl || defaultAvatar} 
-              alt={student.fullName || student.name}
-              className="student-image"
-              onError={(e) => {
-                e.target.onerror = null; 
-                e.target.src = defaultAvatar;
-              }}
-            />
-          </div>
           <div className="info-group basic-info">
             <h3>Thông tin cơ bản</h3>
             <p><strong>Họ và tên:</strong> {student.fullName || student.name}</p>

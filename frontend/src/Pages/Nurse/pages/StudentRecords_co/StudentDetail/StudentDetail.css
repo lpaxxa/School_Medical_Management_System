@@ -4,8 +4,6 @@
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: calc(100vh - 120px);
-  overflow-y: auto;
 }
 
 .detail-header {
@@ -56,7 +54,7 @@
 
 .detail-content {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1fr;
   gap: 30px;
 }
 
@@ -65,20 +63,7 @@
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.student-avatar {
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.student-image {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  grid-column: 1 / -1;
 }
 
 .basic-info h3 {

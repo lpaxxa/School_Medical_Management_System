@@ -111,3 +111,91 @@
   background-color: #fafafa;
   color: #757575;
 }
+
+.medical-checkup-list-container {
+  padding: 20px;
+}
+
+.medical-checkup-list-container h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.filter-container {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+/* Status badge styles */
+.badge {
+  font-size: 0.85rem;
+  padding: 6px 10px;
+}
+
+/* Table styles */
+.table th {
+  background-color: #f0f7ff;
+  font-weight: 600;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* Detail modal styles */
+.checkup-detail h5 {
+  color: #3498db;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.checkup-detail p {
+  margin-bottom: 8px;
+}
+
+.checkup-detail .table {
+  margin-bottom: 0;
+}
+
+.checkup-detail .table th {
+  width: 20%;
+  background-color: #f8f9fa;
+}
+
+/* Edit form styles */
+.edit-form .form-label {
+  font-weight: 500;
+}
+
+.edit-form .form-control:focus,
+.edit-form .form-select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+}
+
+/* Action buttons */
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .medical-checkup-list-container {
+    padding: 10px;
+  }
+  
+  .table-responsive {
+    font-size: 0.9rem;
+  }
+  
+  .btn-sm {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+  }
+}

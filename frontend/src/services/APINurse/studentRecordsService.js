@@ -107,8 +107,8 @@ const searchStudents = async (criteria) => {
       params.keyword = criteria.keyword;
     }
     
-    if (criteria.class) {
-      params.className = criteria.class;
+    if (criteria.grade) {
+      params.grade = criteria.grade;
     }
     
     if (criteria.bloodType) {
@@ -125,20 +125,21 @@ const searchStudents = async (criteria) => {
     // Nếu API search chưa hoạt động, quay lại filter từ tất cả học sinh
     console.warn('Search API failed, falling back to client-side filtering:', error);
     
-    // Sử dụng dữ liệu mẫu thay vì gọi lại API
-    let results = [...mockStudents];
+    // Sử dụng getAllStudents để filter trên toàn bộ danh sách
+    let results = await getAllStudents();
     
     if (criteria.keyword) {
       const keyword = criteria.keyword.toLowerCase();
       results = results.filter(student => 
-        student.name.toLowerCase().includes(keyword) || 
-        student.studentId.toLowerCase().includes(keyword)
+        (student.fullName && student.fullName.toLowerCase().includes(keyword)) || 
+        (student.name && student.name.toLowerCase().includes(keyword)) ||
+        (student.studentId && student.studentId.toLowerCase().includes(keyword))
       );
     }
     
-    if (criteria.class) {
+    if (criteria.grade) {
       results = results.filter(student => 
-        student.className === criteria.class || student.class === criteria.class
+        student.gradeLevel == criteria.grade
       );
     }
     
@@ -222,6 +223,25 @@ const getClassList = async () => {
   }
 };
 
+// Thêm hàm mới: Lấy danh sách các khối
+const getGradeList = async () => {
+  try {
+    const studentsData = await getAllStudents();
+    if (!Array.isArray(studentsData)) return [];
+    
+    const gradeLevels = [...new Set(studentsData
+      .map(student => student?.gradeLevel)
+      .filter(Boolean)
+    )];
+    
+    // Sắp xếp các khối học
+    return gradeLevels.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+  } catch (error) {
+    console.warn('Error generating grade list:', error);
+    return [];
+  }
+};
+
 // Lấy danh sách các nhóm máu
 const getBloodTypes = async () => {
   // Bỏ qua việc gọi API và trả về dữ liệu mẫu trực tiếp
@@ -270,27 +290,33 @@ const getStudentHealthProfile = async (healthProfileId) => {
     return {};
   }
 
+  // Thêm vào đầu hàm getStudentHealthProfile
+  console.log('Checking if health profile ID is valid:', healthProfileId);
+  if (isNaN(parseInt(healthProfileId))) {
+    console.warn('Invalid health profile ID format:', healthProfileId);
+    return getMockHealthProfile(0); // Return mặc định
+  }
+
+  // Thêm vào đầu hàm getStudentHealthProfile
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    console.warn('No authentication token available - using mock data');
+    return getMockHealthProfile(healthProfileId);
+  }
+
   try {
     console.log('===== HEALTH PROFILE API CALL =====');
     console.log('Calling API endpoint with health profile ID:', healthProfileId);
     
-    try {
-      // Sử dụng fetch API thay vì axiosInstance để đơn giản hơn
-      const response = await fetch(`${API_URL}/health-profiles/${healthProfileId}`);
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('API response successful. Response data:', data);
-      return data;
-    } catch (apiError) {
-      console.error('API call failed:', apiError.message);
-      // Nếu API lỗi, sử dụng mock data
-      console.log('Using mock data instead');
-      return getMockHealthProfile(healthProfileId);
-    }
+    // Sử dụng axiosInstance thay vì fetch để đảm bảo token được gửi đi
+    const response = await axiosInstance.get(`/health-profiles/${healthProfileId}`);
+    
+    console.log('API response successful. Response data:', response.data);
+    return response.data;
   } catch (error) {
-    console.error('Unexpected error in getStudentHealthProfile:', error);
+    console.error('Error fetching health profile:', error);
+    console.log('Error details:', error.response?.data || error.message);
+    // Sử dụng mock data khi API lỗi
     return getMockHealthProfile(healthProfileId);
   }
 };
@@ -352,6 +378,21 @@ const testBackendConnection = async () => {
   }
 };
 
+// Thêm vào file studentRecordsService.js
+const debugAuthToken = () => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    console.log('Auth token exists:', token.substring(0, 15) + '...');
+    return true;
+  } else {
+    console.warn('No authentication token found');
+    return false;
+  }
+};
+
+// Gọi hàm này khi khởi tạo service
+debugAuthToken();
+
 testBackendConnection();
 
 // Cuối file, trong export statement
@@ -362,6 +403,7 @@ export {
   updateStudentRecord,
   addStudentNote,  // Đảm bảo hàm này được export
   getClassList,
+  getGradeList, // Export hàm mới
   getBloodTypes,
   calculateBMICategory,
   getBMIStandardByAgeGender,

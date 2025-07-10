@@ -1,5 +1,6 @@
 .health-reports-container {
   padding: 20px;
+  background-color: #f8f9fa;
 }
 
 .reports-header {
@@ -71,14 +72,9 @@
 }
 
 .chart-container {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
+  position: relative;
+  height: 300px; /* Adjust height as needed */
+  width: 100%;
 }
 
 .report-summary {
@@ -227,4 +223,50 @@
     flex-direction: column;
     gap: 10px;
   }
+}
+
+.kpi-card {
+  color: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+.kpi-card:hover {
+    transform: translateY(-5px);
+}
+
+.kpi-card svg {
+  opacity: 0.8;
+}
+
+.kpi-card div {
+  text-align: right;
+}
+
+.kpi-card span {
+  display: block;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.kpi-card strong {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.kpi-card.blue { background-color: #007bff; }
+.kpi-card.green { background-color: #28a745; }
+.kpi-card.red { background-color: #dc3545; }
+.kpi-card.orange { background-color: #fd7e14; }
+.kpi-card.purple { background-color: #6f42c1; }
+
+.card-header {
+    background-color: #e9ecef;
+    font-weight: 600;
 }
