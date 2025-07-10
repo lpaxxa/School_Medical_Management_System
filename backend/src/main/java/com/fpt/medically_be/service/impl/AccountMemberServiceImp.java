@@ -48,7 +48,7 @@ public class AccountMemberServiceImp implements AccountMemberService {
     @Override
     public List<AccountAdminResponseDTO> getAllMember() {
 
-        return memberRepos.findAllByIsActiveTrue()
+        return memberRepos.findAll()
                 .stream()
                 .map(member -> {
                     AccountAdminResponseDTO dto = accountMemberMapper.memberToMemberDTO(member);
