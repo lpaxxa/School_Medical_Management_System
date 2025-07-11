@@ -8,7 +8,6 @@ import {
   FaNotesMedical, FaTasks, FaUserMd, FaPlusCircle, FaArrowRight,
   FaWalking, FaChartPie, FaUsers, FaExclamationTriangle, FaStethoscope, FaCalendarPlus
 } from 'react-icons/fa';
-import CheckupDetailModal from './CheckupDetailModal'; // Import the new modal
 import { toast } from 'react-toastify';
 
 

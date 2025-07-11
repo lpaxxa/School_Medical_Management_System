@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import * as healthCheckupService from '../../services/APINurse/healthCheckupService';
+import { getAllStudents, searchStudents } from '../../services/APINurse/studentRecordsService';
 
 export const HealthCheckupContext = createContext();
 
@@ -18,6 +19,9 @@ export const HealthCheckupProvider = ({ children }) => {
   
   // State cho API cũ
   const [healthCheckups, setHealthCheckups] = useState([]);
+  
+  // State cho student records
+  const [students, setStudents] = useState([]);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -207,19 +211,56 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   };
 
-  // Schedule consultation for student with NEED_FOLLOW_UP status
-  const scheduleConsultation = async (checkupId, consultationData) => {
+  // Batch notify parents by medical checkup IDs
+  const batchNotifyParents = async (medicalCheckupIds) => {
     try {
       setLoading(true);
-      const result = await healthCheckupService.scheduleConsultation(checkupId, consultationData);
+      const result = await healthCheckupService.batchNotifyParents(medicalCheckupIds);
       return result;
     } catch (err) {
-      console.error(`Error scheduling consultation for checkup ID ${checkupId}:`, err);
+      console.error('Error batch notifying parents:', err);
       throw err;
     } finally {
       setLoading(false);
     }
   };
+
+  // Fetch all students from student records service
+  const fetchAllStudents = useCallback(async () => {
+    try {
+      const data = await getAllStudents();
+      setStudents(data);
+      return data;
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      throw err;
+    }
+  }, []);
+
+  // Search students by name
+  const searchStudentsByName = useCallback(async (query) => {
+    try {
+      const data = await searchStudents(query);
+      return data;
+    } catch (err) {
+      console.error('Error searching students:', err);
+      throw err;
+    }
+  }, []);
+
+  // Get student ID by name
+  const getStudentIdByName = useCallback(async (studentName) => {
+    try {
+      const studentsData = await searchStudents(studentName);
+      const matchedStudent = studentsData.find(student => 
+        student.name && student.name.toLowerCase().trim() === studentName.toLowerCase().trim()
+      );
+      return matchedStudent ? matchedStudent.studentId : null;
+    } catch (err) {
+      console.error('Error getting student ID by name:', err);
+      return null;
+    }
+  }, []);
 
   // Refresh medical checkups
   const refreshMedicalCheckups = () => {
@@ -240,7 +281,13 @@ export const HealthCheckupProvider = ({ children }) => {
     refreshMedicalCheckups,
     notifyParent,
     notifyAllParents,
-    scheduleConsultation,
+    batchNotifyParents,
+    
+    // Student Records API
+    students,
+    fetchAllStudents,
+    searchStudentsByName,
+    getStudentIdByName,
     
     // API cũ
     healthCheckups,

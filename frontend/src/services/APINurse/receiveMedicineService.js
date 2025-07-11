@@ -281,7 +281,7 @@ const receiveMedicineService = {
         data: response.data
       };
     } catch (error) {
-      console.error(`Lỗi khi xử lý yêu cầu thuốc với ID ${id}:`, error);
+      console.error(`Lỗi khi xử lý yêu cầu thuốc với ID ${id}:`, error);  
       
       // Ném lỗi thay vì dùng mock data
       throw {

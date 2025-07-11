@@ -224,14 +224,14 @@ export const notifyAllParents = async (message) => {
   }
 };
 
-// Đặt lịch tư vấn cho học sinh cần theo dõi (NEED_FOLLOW_UP)
-export const scheduleConsultation = async (checkupId, consultationData) => {
+// Gửi thông báo cho phụ huynh theo danh sách ID hồ sơ khám
+export const batchNotifyParents = async (medicalCheckupIds) => {
   try {
     // Lấy token xác thực từ localStorage
     const token = localStorage.getItem('authToken');
     
-    // Gọi API với token trong header
-    const response = await axios.post(`${API_BASE_URL}/medical-checkups/${checkupId}/schedule-consultation`, consultationData, {
+    // Gọi API batch notification với danh sách ID hồ sơ khám
+    const response = await axios.post(`${API_BASE_URL}/medical-checkups/batch-notify-parents`, medicalCheckupIds, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': token ? `Bearer ${token}` : ''
@@ -240,7 +240,7 @@ export const scheduleConsultation = async (checkupId, consultationData) => {
     
     return response.data;
   } catch (error) {
-    console.error(`Error scheduling consultation for checkup ID ${checkupId}:`, error);
+    console.error('Error batch notifying parents:', error);
     
     // Hiển thị chi tiết lỗi từ API để debug
     if (error.response) {
@@ -724,7 +724,7 @@ export default {
   sendParentNotification,
   notifyParent,
   notifyAllParents,
-  scheduleConsultation,
+  batchNotifyParents,
   
   // API cũ
   getAllHealthCheckups,
