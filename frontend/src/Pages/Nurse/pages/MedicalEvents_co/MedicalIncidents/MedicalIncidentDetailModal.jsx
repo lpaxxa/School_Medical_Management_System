@@ -88,6 +88,112 @@ const MedicalIncidentDetailModal = ({
                     </div>
                   </div>
 
+                  {/* Ảnh sự cố */}
+                  {selectedEvent.imageMedicalUrl && (
+                    <div className="row mb-3">
+                      <div className="col-12">
+                        <h6 className="text-info fw-bold mb-2">
+                          <i className="fas fa-image me-2"></i>Ảnh sự cố
+                        </h6>
+                        <div className="text-center">
+                          <img 
+                            src={selectedEvent.imageMedicalUrl} 
+                            alt={`Ảnh sự cố của ${selectedEvent.studentName}`}
+                            className="img-thumbnail border border-primary"
+                            style={{ 
+                              maxWidth: '150px', 
+                              maxHeight: '150px',
+                              objectFit: 'cover',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => {
+                              if (setSelectedImageUrl && setShowImageModal) {
+                                setSelectedImageUrl(selectedEvent.imageMedicalUrl);
+                                setShowImageModal(true);
+                              }
+                            }}
+                            onError={(e) => {
+                              console.error('Lỗi tải ảnh sự cố:', selectedEvent.imageMedicalUrl);
+                              e.target.style.display = 'none';
+                              // Hiển thị thông báo lỗi thay vì ẩn hoàn toàn
+                              e.target.parentElement.innerHTML = `
+                                <div class="alert alert-warning text-center">
+                                  <i class="fas fa-exclamation-triangle"></i>
+                                  <br>Không thể tải ảnh sự cố
+                                  <br><small>URL: ${selectedEvent.imageMedicalUrl}</small>
+                                </div>
+                              `;
+                            }}
+                            onLoad={() => {
+                              console.log('Ảnh sự cố tải thành công:', selectedEvent.imageMedicalUrl);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Debug info - hiển thị URL để kiểm tra */}
+                  {(selectedEvent.imageMedicalUrl || selectedEvent.imgUrl) && (
+                    <div className="row mb-3">
+                      <div className="col-12">
+                        <div className="alert alert-info">
+                          <h6><i className="fas fa-info-circle me-2"></i>Debug - URL ảnh:</h6>
+                          {selectedEvent.imageMedicalUrl && (
+                            <p className="mb-1">
+                              <strong>Ảnh sự cố:</strong> <code>{selectedEvent.imageMedicalUrl}</code>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ảnh sự cố */}
+                  {selectedEvent.imgUrl && (
+                    <div className="row mb-3">
+                      <div className="col-12">
+                        <h6 className="text-info fw-bold mb-2">
+                          <i className="fas fa-user-circle me-2"></i>Ảnh sự cố
+                        </h6>
+                        <div className="text-center">
+                          <img 
+                            src={selectedEvent.imgUrl} 
+                            alt={`Ảnh của ${selectedEvent.studentName}`}
+                            className="img-thumbnail border border-success"
+                            style={{ 
+                              maxWidth: '150px', 
+                              maxHeight: '150px',
+                              objectFit: 'cover',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => {
+                              if (setSelectedImageUrl && setShowImageModal) {
+                                setSelectedImageUrl(selectedEvent.imgUrl);
+                                setShowImageModal(true);
+                              }
+                            }}
+                            onError={(e) => {
+                              console.error('Lỗi tải Ảnh sự cố:', selectedEvent.imgUrl);
+                              e.target.style.display = 'none';
+                              // Hiển thị thông báo lỗi thay vì ẩn hoàn toàn
+                              e.target.parentElement.innerHTML = `
+                                <div class="alert alert-warning text-center">
+                                  <i class="fas fa-exclamation-triangle"></i>
+                                  <br>Không thể tải Ảnh sự cố
+                                  <br><small>URL: ${selectedEvent.imgUrl}</small>
+                                </div>
+                              `;
+                            }}
+                            onLoad={() => {
+                              console.log('Ảnh sự cố tải thành công:', selectedEvent.imgUrl);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="row mb-3">
                     <div className="col-md-6">
                       <h6 className="text-primary fw-bold mb-2">

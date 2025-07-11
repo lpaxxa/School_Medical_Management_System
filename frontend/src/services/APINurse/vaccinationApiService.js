@@ -73,14 +73,33 @@ const vaccinationApiService = {
     }
   },
 
+  getVaccinationHistoryByStudentId: async (parentId, studentId) => {
+    try {
+      const response = await apiService.get(`/vaccinations/parents/${parentId}/students/${studentId}/vaccinations`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching vaccination history for student ${studentId}:`, error);
+      throw error;
+    }
+  },
+
   updateVaccinationNote: async (vaccinationId, notes) => {
     try {
-      // The API expects a body with vaccinationId and notes
+      // Try the existing API first
       const response = await apiService.put('/vaccinations/vaccinations/note', { vaccinationId, notes });
       return response.data;
-    } catch (error)      {
+    } catch (error) {
+      // If the above fails, try alternative endpoint or format
       console.error(`Error updating note for vaccination ${vaccinationId}:`, error);
-      throw error;
+      
+      // Alternative approach - try different endpoint structure
+      try {
+        const response = await apiService.put(`/vaccinations/${vaccinationId}/note`, { notes });
+        return response.data;
+      } catch (altError) {
+        console.error(`Alternative API also failed for vaccination ${vaccinationId}:`, altError);
+        throw error; // Throw the original error
+      }
     }
   },
 };
