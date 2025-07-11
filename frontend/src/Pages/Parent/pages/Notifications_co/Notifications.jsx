@@ -34,6 +34,10 @@ const Notifications = () => {
     method: null,
   });
 
+  // State cho error và loading từ context
+  const [error, setError] = useState(null);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+
   // State cho bộ lọc
   const [filters, setFilters] = useState({
     studentId: "", // Lọc theo học sinh
@@ -45,198 +49,132 @@ const Notifications = () => {
   const { currentUser } = useAuth();
   const { students, parentInfo } = useStudentData();
 
-  // Helper function để lấy parentId
-  const getParentId = () => {
-    console.log("🔍 Getting parentId...");
-    console.log("📊 parentInfo:", parentInfo);
-    console.log("👥 students:", students);
+  // Load data khi component mount và khi activeTab thay đổi
+  useEffect(() => {
+    const loadData = async () => {
+      const parentId = getParentId();
 
-    // Nếu đang chạy môi trường development và không tìm thấy parentId, sử dụng id cứng = 1 cho test
-    const isDevelopment =
-      process.env.NODE_ENV === "development" ||
-      window.location.hostname === "localhost";
-
-    let foundParentId = null;
-
-    if (parentInfo?.id) {
-      console.log(`✅ Found parentId from parentInfo: ${parentInfo.id}`);
-      foundParentId = parentInfo.id;
-    } else if (students?.length > 0 && students[0].parentId) {
-      console.log(`✅ Found parentId from students: ${students[0].parentId}`);
-      foundParentId = students[0].parentId;
-    } else {
-      console.log("⚠️ No parentId found in context data");
-
-      // Sử dụng giá trị cứng cho môi trường phát triển
-      if (isDevelopment) {
-        console.log(
-          "⚠️ Using hardcoded parentId=1 for development environment"
-        );
-        foundParentId = 1;
+      if (parentId) {
+        if (activeTab === "vaccination") {
+          // loadVaccinationList function doesn't exist, should call loadVaccinationNotifications
+          await loadVaccinationNotifications(parentId);
+        }
       } else {
-        console.log("⚠️ No parentId available, returning null");
-        foundParentId = null;
+        if (studentsLoading || !parentInfo) {
+          return;
+        } else {
+          setError("Không tìm thấy thông tin phụ huynh");
+        }
       }
+    };
+
+    if (activeTab === "vaccination") {
+      setConsentList([]);
     }
 
-    console.log(`🔑 Final parentId used: ${foundParentId}`);
-    return foundParentId;
+    loadData();
+  }, [activeTab, parentInfo, students, studentsLoading]);
+
+  // Helper function để lấy parentId từ context
+  const getParentId = () => {
+    if (parentInfo && parentInfo.id) {
+      return parentInfo.id;
+    }
+
+    if (students && students.length > 0 && students[0].parentId) {
+      return students[0].parentId;
+    }
+
+    return null;
   };
 
-  // Helper functions cho lọc dữ liệu
+  // Lấy danh sách học sinh duy nhất từ consentList
   const getUniqueStudents = () => {
     const uniqueStudents = [];
-    const seenIds = new Set();
+    const seenStudentIds = new Set();
 
-    console.log(
-      "🎓 Getting unique students from data:",
-      consentList.length,
-      "consents"
-    );
-
-    consentList.forEach((consent) => {
-      if (!seenIds.has(consent.studentId)) {
-        seenIds.add(consent.studentId);
-        const student = {
-          id: consent.studentId,
-          name: consent.studentName,
-          class: consent.studentClass,
-        };
-        uniqueStudents.push(student);
-        console.log("📝 Added student:", student);
+    consentList.forEach((item) => {
+      if (item.studentId && !seenStudentIds.has(item.studentId)) {
+        const student = students.find((s) => s.id === item.studentId);
+        if (student) {
+          uniqueStudents.push(student);
+          seenStudentIds.add(item.studentId);
+        }
       }
     });
 
     const sortedStudents = uniqueStudents.sort((a, b) =>
       a.name.localeCompare(b.name)
     );
-    console.log("✅ Final unique students list:", sortedStudents);
+
     return sortedStudents;
   };
 
-  // Helper function để lấy danh sách năm học từ dữ liệu
+  // Lấy danh sách năm học duy nhất từ consentList
   const getUniqueAcademicYears = () => {
-    const academicYears = [];
+    const uniqueYears = [];
     const seenYears = new Set();
 
-    console.log(
-      "📅 Getting unique academic years from data:",
-      consentList.length,
-      "consents"
+    consentList.forEach((item) => {
+      if (item.academicYear && !seenYears.has(item.academicYear)) {
+        const academicYear = {
+          id: item.academicYear,
+          name: item.academicYear,
+        };
+        uniqueYears.push(academicYear);
+        seenYears.add(item.academicYear);
+      }
+    });
+
+    const sortedYears = uniqueYears.sort((a, b) =>
+      b.name.localeCompare(a.name)
     );
-
-    consentList.forEach((consent) => {
-      let academicYear;
-
-      // Nếu data có field academicYear thì dùng
-      if (consent.academicYear) {
-        academicYear = consent.academicYear;
-      } else {
-        // Nếu không có thì tạo từ campaignStartDate
-        const startDate = new Date(consent.campaignStartDate);
-        const year = startDate.getFullYear();
-        const month = startDate.getMonth() + 1; // getMonth() trả về 0-11
-
-        // Năm học thường bắt đầu từ tháng 8-9
-        if (month >= 8) {
-          academicYear = `${year}-${year + 1}`;
-        } else {
-          academicYear = `${year - 1}-${year}`;
-        }
-      }
-
-      if (!seenYears.has(academicYear)) {
-        seenYears.add(academicYear);
-        academicYears.push(academicYear);
-        console.log("📝 Added academic year:", academicYear);
-      }
-    });
-
-    // Sắp xếp theo thứ tự giảm dần (năm mới nhất trước)
-    const sortedYears = academicYears.sort((a, b) => {
-      const yearA = parseInt(a.split("-")[0]);
-      const yearB = parseInt(b.split("-")[0]);
-      return yearB - yearA;
-    });
-
-    console.log("✅ Final unique academic years list:", sortedYears);
     return sortedYears;
   };
 
-  // Function để lọc dữ liệu theo các điều kiện
-  const filterConsentList = () => {
+  // Lọc dữ liệu theo các bộ lọc
+  const getFilteredData = () => {
     let filtered = [...consentList];
-
-    // Debug logging
-    console.log("🔍 Filtering data...");
-    console.log("📊 Original list:", consentList.length, "items");
-    console.log("🎯 Current filters:", filters);
 
     // Lọc theo học sinh
     if (filters.studentId) {
-      console.log("👨‍🎓 Filtering by studentId:", filters.studentId);
-      console.log(
-        "📋 Available studentIds in data:",
-        consentList.map((c) => ({
-          id: c.studentId,
-          name: c.studentName,
-          type: typeof c.studentId,
-        }))
-      );
-
-      filtered = filtered.filter((consent) => {
-        // So sánh cả string và number để tránh lỗi type mismatch
-        const match = String(consent.studentId) === String(filters.studentId);
-        if (match) {
-          console.log(
-            "✅ Found match:",
-            consent.studentName,
-            consent.studentId
-          );
-        }
-        return match;
+      filtered = filtered.filter((item) => {
+        const student = students.find((s) => s.id === item.studentId);
+        return (
+          student && student.id.toString() === filters.studentId.toString()
+        );
       });
-
-      console.log("🎯 After student filter:", filtered.length, "items");
     }
 
-    // Lọc theo trạng thái phản hồi
+    // Lọc theo trạng thái
     if (filters.consentStatus) {
-      console.log("✅ Filtering by consentStatus:", filters.consentStatus);
       filtered = filtered.filter(
-        (consent) => consent.consentStatus === filters.consentStatus
+        (item) => item.consentStatus === filters.consentStatus
       );
-      console.log("🎯 After status filter:", filtered.length, "items");
     }
 
     // Lọc theo năm học
     if (filters.academicYear) {
-      console.log("📅 Filtering by academic year:", filters.academicYear);
-      filtered = filtered.filter((consent) => {
-        let consentAcademicYear;
+      // Kiểm tra nhiều định dạng của năm học
+      filtered = filtered.filter((item) => {
+        const itemYear = item.academicYear;
+        const filterYear = filters.academicYear;
 
-        // Nếu data có field academicYear thì dùng
-        if (consent.academicYear) {
-          consentAcademicYear = consent.academicYear;
-        } else {
-          // Nếu không có thì tạo từ campaignStartDate
-          const startDate = new Date(consent.campaignStartDate);
-          const year = startDate.getFullYear();
-          const month = startDate.getMonth() + 1;
+        // So sánh chính xác
+        if (itemYear === filterYear) return true;
 
-          if (month >= 8) {
-            consentAcademicYear = `${year}-${year + 1}`;
-          } else {
-            consentAcademicYear = `${year - 1}-${year}`;
-          }
-        }
+        // Xử lý các định dạng khác nhau
+        if (
+          itemYear &&
+          filterYear &&
+          itemYear.replace(/\s+/g, "") === filterYear.replace(/\s+/g, "")
+        )
+          return true;
 
-        return consentAcademicYear === filters.academicYear;
+        return false;
       });
-      console.log("🎯 After academic year filter:", filtered.length, "items");
     }
 
-    console.log("🎉 Final filtered result:", filtered.length, "items");
     return filtered;
   };
 
@@ -262,38 +200,26 @@ const Notifications = () => {
 
   // Load dữ liệu kiểm tra sức khỏe khi component mount hoặc khi có parentId
   useEffect(() => {
-    console.log("🔄 useEffect triggered with activeTab:", activeTab);
-    console.log("📊 parentInfo:", parentInfo);
-    console.log("👥 students:", students);
-
     if (activeTab === "health-checkup") {
       const parentId = getParentId();
       if (parentId) {
-        console.log(`🚀 Parent ID available: ${parentId}, loading data...`);
         loadHealthCheckupList();
       } else {
-        console.log("⏳ Waiting for parent ID to be available...");
         // Set a fallback data while waiting
         if (parentInfo === null && students.length === 0) {
           // Still loading contexts
-          console.log("📱 Context still loading, wait a bit more...");
         } else {
           // Context loaded but no parentId found
-          console.log("⚠️ Context loaded but no parentId found");
           setConsentList([]);
           setFilteredConsentList([]);
         }
       }
     } else if (activeTab === "vaccination") {
       const parentId = getParentId();
-      console.log(`💉 Vaccination tab selected, parentId: ${parentId}`);
       if (parentId) {
-        console.log(
-          `🚀 Parent ID available: ${parentId}, loading vaccination notifications...`
-        );
         loadVaccinationNotifications(parentId);
       } else {
-        console.log("❌ No parentId for vaccination, setting empty array");
+        // No parentId for vaccination, setting empty array
         setVaccinationNotifications([]);
       }
     }
@@ -301,9 +227,9 @@ const Notifications = () => {
 
   // Cập nhật danh sách đã lọc khi consentList hoặc filters thay đổi
   useEffect(() => {
-    const filtered = filterConsentList();
+    const filtered = getFilteredData();
     setFilteredConsentList(filtered);
-  }, [consentList, filters]);
+  }, [consentList, filters, students]);
 
   // Load danh sách consent kiểm tra sức khỏe
   const loadHealthCheckupList = async () => {
@@ -311,12 +237,7 @@ const Notifications = () => {
     try {
       const parentId = getParentId();
 
-      console.log("🔍 Parent ID from context:", parentId);
-      console.log("📊 Parent Info:", parentInfo);
-      console.log("👥 Students:", students);
-
       if (!parentId) {
-        console.warn("❌ No parent ID found");
         toast.error(
           "Không tìm thấy thông tin phụ huynh. Vui lòng đăng nhập lại.",
           {
@@ -330,24 +251,15 @@ const Notifications = () => {
       }
 
       // Gọi API thực
-      console.log(`🚀 Calling API with parentId: ${parentId}`);
       const response = await healthCheckupConsentService.getAllConsents(
         parentId
       );
 
       // Transform data từ API response thành format cho UI
       const transformedData = [];
-      console.log("🔄 Transforming API response:", response);
 
       if (response?.childrenNotifications) {
         response.childrenNotifications.forEach((child) => {
-          console.log("👶 Processing child:", {
-            studentId: child.studentId,
-            studentName: child.studentName,
-            studentClass: child.studentClass,
-            type: typeof child.studentId,
-          });
-
           child.notifications.forEach((notification) => {
             const consentItem = {
               id: notification.consentId,
@@ -366,20 +278,12 @@ const Notifications = () => {
               updatedAt: notification.updatedAt,
             };
             transformedData.push(consentItem);
-            console.log("📋 Added consent:", consentItem);
           });
         });
       }
 
-      console.log("✅ Final transformed data:", transformedData);
-
       setConsentList(transformedData);
       setFilteredConsentList(transformedData); // Set initial filtered data
-      console.log(
-        "✅ API call successful, loaded",
-        transformedData.length,
-        "notifications"
-      );
 
       if (transformedData.length === 0) {
         // Add test data for development/debugging
@@ -437,7 +341,6 @@ const Notifications = () => {
           },
         ];
 
-        console.log("⚠️ No API data, using test data:", testData);
         setConsentList(testData);
         setFilteredConsentList(testData);
 
@@ -452,7 +355,6 @@ const Notifications = () => {
         return;
       }
     } catch (error) {
-      console.error("❌ Error loading health checkup list:", error);
       toast.error("Lỗi khi tải danh sách thông báo: " + error.message, {
         position: "top-center",
         autoClose: 5000,
@@ -475,9 +377,6 @@ const Notifications = () => {
         method: "proxy",
       });
 
-      console.log(
-        `🔍 Đang gọi API lấy thông báo tiêm chủng với parentId=${parentId}`
-      );
       let response;
 
       try {
@@ -485,7 +384,6 @@ const Notifications = () => {
         response = await notificationService.getVaccinationNotifications(
           parentId
         );
-        console.log("✅ API proxy hoạt động tốt:", response);
 
         setApiStatus({
           lastCall: new Date().toLocaleTimeString(),
@@ -510,7 +408,6 @@ const Notifications = () => {
         response = await notificationService.direct.getVaccinationNotifications(
           parentId
         );
-        console.log("✅ API trực tiếp hoạt động tốt:", response);
 
         setApiStatus({
           lastCall: new Date().toLocaleTimeString(),
@@ -524,7 +421,6 @@ const Notifications = () => {
 
       // Kiểm tra dữ liệu từ API
       if (response && response.data && response.data.length > 0) {
-        console.log("📋 Vaccination notifications data:", response.data);
         const notificationsData = [...response.data];
 
         // Cập nhật state với dữ liệu từ API
@@ -538,7 +434,6 @@ const Notifications = () => {
         });
       } else {
         // Không có dữ liệu từ API, sử dụng dữ liệu mẫu
-        console.log("📋 Không có dữ liệu từ API, sử dụng dữ liệu mẫu");
         const sampleData = [
           {
             id: 4,
@@ -568,12 +463,6 @@ const Notifications = () => {
         });
       }
     } catch (error) {
-      console.error("❌ Error loading vaccination notifications:", error);
-      console.error("Chi tiết lỗi:", error.message);
-      if (error.response) {
-        console.error("Response status:", error.response.status);
-        console.error("Response data:", error.response.data);
-      }
       toast.error("Không thể tải danh sách thông báo tiêm chủng");
       // Set empty array to ensure the UI shows "no data" message
       setVaccinationNotifications([]);
@@ -593,9 +482,6 @@ const Notifications = () => {
   const loadVaccinationDetail = async (notificationId, parentId) => {
     try {
       setLoadingVaccination(true);
-      console.log(
-        `🔍 Đang gọi API chi tiết thông báo tiêm chủng với notificationId=${notificationId}, parentId=${parentId}`
-      );
       let response;
 
       try {
@@ -604,10 +490,8 @@ const Notifications = () => {
           notificationId,
           parentId
         );
-        console.log("✅ API chi tiết proxy hoạt động tốt:", response);
       } catch (proxyError) {
-        console.error("❌ Lỗi khi gọi chi tiết qua proxy:", proxyError);
-        console.log("🔄 Thử gọi API chi tiết trực tiếp...");
+        // Thử gọi API chi tiết trực tiếp...
 
         // Nếu lỗi, thử gọi trực tiếp
         response =
@@ -615,18 +499,12 @@ const Notifications = () => {
             notificationId,
             parentId
           );
-        console.log("✅ API chi tiết trực tiếp hoạt động tốt:", response);
       }
 
       if (response && response.data) {
-        console.log("📋 Vaccination notification detail data:", response.data);
         setVaccinationDetail(response.data);
         setShowVaccinationDetail(true);
       } else {
-        console.log(
-          "❌ Không có dữ liệu chi tiết trả về từ API, sử dụng dữ liệu mẫu"
-        );
-
         // Tạo dữ liệu mẫu cho chi tiết thông báo
         const sampleDetail = {
           id: notificationId,
@@ -648,9 +526,6 @@ const Notifications = () => {
         });
       }
     } catch (error) {
-      console.error("❌ Error loading vaccination notification detail:", error);
-      console.error("Chi tiết lỗi:", error.message);
-
       // Tạo dữ liệu mẫu khi có lỗi
       const sampleDetail = {
         id: notificationId,
@@ -713,7 +588,6 @@ const Notifications = () => {
         // Reload the list after response
         await loadVaccinationNotifications(parentId);
       } catch (error) {
-        console.error("❌ Error responding to vaccination:", error);
         toast.error("Không thể gửi phản hồi");
       } finally {
         setLoadingVaccination(false);
@@ -825,8 +699,8 @@ const Notifications = () => {
             >
               <option value="">Tất cả năm học</option>
               {uniqueAcademicYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}
+                <option key={year.id} value={year.name}>
+                  {year.name}
                 </option>
               ))}
             </select>
@@ -885,15 +759,6 @@ const Notifications = () => {
           <button
             className="debug-btn"
             onClick={() => {
-              console.log("🐛 DEBUG INFO:");
-              console.log("📊 Current filters:", filters);
-              console.log("📋 Original data:", consentList);
-              console.log("🎯 Filtered data:", filteredConsentList);
-              console.log("👥 Unique students:", getUniqueStudents());
-              console.log(
-                "📅 Unique academic years:",
-                getUniqueAcademicYears()
-              );
               alert("Debug info printed to console. Check F12 -> Console tab");
             }}
             style={{
@@ -915,17 +780,14 @@ const Notifications = () => {
 
   // Handler cho việc chọn tab
   const handleTabClick = (tabName) => {
-    console.log(`🔄 Tab changed to ${tabName}`);
     setActiveTab(tabName);
 
     // Khi chuyển tab, cần reload dữ liệu tương ứng
     const parentId = getParentId();
     if (parentId) {
       if (tabName === "health-checkup") {
-        console.log("🔄 Loading health checkup data after tab change");
         loadHealthCheckupList();
       } else if (tabName === "vaccination") {
-        console.log("🔄 Loading vaccination notifications after tab change");
         loadVaccinationNotifications(parentId);
       }
     }
@@ -1025,15 +887,8 @@ const Notifications = () => {
   // Render nội dung tab tiêm chủng
   const renderVaccinationContent = () => {
     try {
-      console.log("🔄 renderVaccinationContent called");
-      console.log("🔍 activeTab:", activeTab);
-      console.log("📊 vaccinationNotifications:", vaccinationNotifications);
-      console.log("🔄 loadingVaccination:", loadingVaccination);
-      console.log("📱 showVaccinationDetail:", showVaccinationDetail);
-
       // Chọn dữ liệu hiển thị dựa trên trạng thái hiện tại
       const displayData = vaccinationNotifications || [];
-      console.log("📊 Display data for vaccination tab:", displayData);
 
       // Nếu đang hiển thị chi tiết một thông báo
       if (showVaccinationDetail) {
@@ -1082,7 +937,6 @@ const Notifications = () => {
 
       // Hiển thị danh sách thông báo
       if (loadingVaccination) {
-        console.log("🔄 Showing loading spinner");
         return (
           <div className="vaccination-content">
             <div className="debug-controls">
@@ -1092,11 +946,6 @@ const Notifications = () => {
           </div>
         );
       }
-
-      console.log(
-        "🎯 Rendering vaccination list, data length:",
-        displayData.length
-      );
 
       // Hiển thị danh sách thông báo (hoặc thông báo không có dữ liệu)
       return (
@@ -1141,9 +990,6 @@ const Notifications = () => {
               className="debug-btn"
               onClick={() => {
                 const parentId = getParentId();
-                console.log("🔄 Tải lại dữ liệu tiêm chủng...");
-                console.log("🔑 Current parentId:", parentId);
-                console.log("📊 Current data:", vaccinationNotifications);
                 if (parentId) {
                   loadVaccinationNotifications(parentId);
                 } else {
@@ -1169,7 +1015,6 @@ const Notifications = () => {
             <button
               className="debug-btn"
               onClick={() => {
-                console.log("🚀 Force setting sample data...");
                 const sampleData = [
                   {
                     id: 101,
@@ -1272,16 +1117,11 @@ const Notifications = () => {
               }}
             >
               {displayData.map((notification, index) => {
-                console.log(
-                  `🎯 Rendering notification ${index}:`,
-                  notification
-                );
                 return (
                   <div
                     key={notification.id || index}
                     className="vaccination-item"
                     onClick={() => {
-                      console.log("🖱️ Clicked notification:", notification.id);
                       handleVaccinationClick(notification.id);
                     }}
                     style={{
@@ -1359,7 +1199,6 @@ const Notifications = () => {
         </div>
       );
     } catch (error) {
-      console.error("❌ Error in renderVaccinationContent:", error);
       return (
         <div
           className="vaccination-content"
@@ -1458,12 +1297,7 @@ const Notifications = () => {
   };
 
   // Effect để debug và kiểm tra state khi thay đổi
-  useEffect(() => {
-    console.log(
-      "👀 vaccinationNotifications state changed:",
-      vaccinationNotifications
-    );
-  }, [vaccinationNotifications]);
+  useEffect(() => {}, [vaccinationNotifications]);
 
   // Effect để tự động tải dữ liệu mẫu nếu không có dữ liệu sau khi API trả về
   useEffect(() => {
@@ -1472,10 +1306,6 @@ const Notifications = () => {
       activeTab === "vaccination" &&
       (!vaccinationNotifications || vaccinationNotifications.length === 0)
     ) {
-      console.log(
-        "🚫 Không có dữ liệu sau khi API trả về, tự động tải dữ liệu mẫu"
-      );
-
       // Đợi một chút để đảm bảo UI đã render trạng thái không có dữ liệu
       const timeoutId = setTimeout(() => {
         const sampleData = [
@@ -1496,7 +1326,6 @@ const Notifications = () => {
           },
         ];
 
-        console.log("🔄 Tự động tải dữ liệu mẫu:", sampleData);
         setVaccinationNotifications(sampleData);
 
         setApiStatus({
@@ -1513,16 +1342,12 @@ const Notifications = () => {
 
   // Render nội dung tab hiện tại
   const renderTabContent = () => {
-    console.log("🎯 renderTabContent called with activeTab:", activeTab);
     switch (activeTab) {
       case "health-checkup":
-        console.log("🏥 Rendering health-checkup content");
         return renderHealthCheckupContent();
       case "vaccination":
-        console.log("💉 Rendering vaccination content");
         return renderVaccinationContent();
       case "others":
-        console.log("📝 Rendering others content");
         return (
           <div className="coming-soon-content">
             <i className="fas fa-bell"></i>
@@ -1531,35 +1356,36 @@ const Notifications = () => {
           </div>
         );
       default:
-        console.log("❓ Unknown tab, returning null");
         return null;
     }
   };
 
   return (
-    <div className="notifications-container">
-      <div className="notifications-header">
-        <div className="header-title">
-          <h1>
-            <i className="fas fa-bell"></i>
-            Thông báo
-          </h1>
-          <p>Quản lý các thông báo và yêu cầu từ nhà trường</p>
+    <div className="parent-content-wrapper">
+      <div className="notifications-container">
+        <div className="notifications-header">
+          <div className="header-title">
+            <h1>
+              <i className="fas fa-bell"></i>
+              Thông báo
+            </h1>
+            <p>Quản lý các thông báo và yêu cầu từ nhà trường</p>
+          </div>
         </div>
-      </div>
 
-      <div className="notifications-content">
-        {renderTabButtons()}
-        <div className="tab-content">{renderTabContent()}</div>
-      </div>
+        <div className="notifications-content">
+          {renderTabButtons()}
+          <div className="tab-content">{renderTabContent()}</div>
+        </div>
 
-      {/* Modal chi tiết consent */}
-      <ConsentDetailModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        consentId={selectedConsentId}
-        onConsentUpdated={handleConsentUpdated}
-      />
+        {/* Modal chi tiết consent */}
+        <ConsentDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          consentId={selectedConsentId}
+          onConsentUpdated={handleConsentUpdated}
+        />
+      </div>
     </div>
   );
 };

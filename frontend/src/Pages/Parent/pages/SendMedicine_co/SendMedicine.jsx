@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// Import only our consolidated CSS file
-import "./styles/SendMedicine.css";
+// Import fixed CSS file with prefixed classes
+import "./styles/SendMedicineFixed.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import { useAuth } from "../../../../context/AuthContext";
 import medicationRequestService from "../../../../services/medicationRequestService";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+// Removed toast imports - using notification modal instead
 
 //http://localhost:8080/api/parent-medication-requests/my-requests
 //lịch sử gửi thuốc của phụ huynh
@@ -23,6 +22,13 @@ const SendMedicine = () => {
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState(null);
   const [selectedStudentFilter, setSelectedStudentFilter] = useState("");
+  const [successTimer, setSuccessTimer] = useState(null);
+  const [notificationModal, setNotificationModal] = useState({
+    show: false,
+    type: "success", // 'success' | 'error'
+    title: "",
+    message: "",
+  });
 
   const [formData, setFormData] = useState({
     studentId: "",
@@ -57,6 +63,55 @@ const SendMedicine = () => {
     }
   }, [activeTab]);
 
+  // Auto redirect after successful submission
+  useEffect(() => {
+    if (formSubmitted) {
+      const timer = setTimeout(() => {
+        setFormSubmitted(false);
+        setActiveTab("form");
+      }, 5000);
+      setSuccessTimer(timer);
+
+      return () => {
+        if (timer) {
+          clearTimeout(timer);
+        }
+      };
+    }
+  }, [formSubmitted]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimer) {
+        clearTimeout(successTimer);
+      }
+    };
+  }, [successTimer]);
+
+  // Removed duplicate useEffect - will be added later after state declarations
+
+  // Auto close notification modal after 5 seconds
+  useEffect(() => {
+    if (notificationModal.show) {
+      const timer = setTimeout(() => {
+        setNotificationModal({ ...notificationModal, show: false });
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [notificationModal.show]);
+
+  // Function to show notification modal
+  const showNotification = (type, title, message) => {
+    setNotificationModal({
+      show: true,
+      type,
+      title,
+      message,
+    });
+  };
+
   // Fetch lịch sử gửi thuốc - Updated to use the service
   const fetchMedicationHistory = async () => {
     setIsHistoryLoading(true);
@@ -66,13 +121,11 @@ const SendMedicine = () => {
       // Use the medication request service instead of axios
       const medicationHistory =
         await medicationRequestService.fetchMedicationHistory();
-      console.log("Medication history:", medicationHistory);
       setMedicationHistory(medicationHistory || []);
 
-      // Cuộn lên đầu trang sau khi tải xong dữ liệu
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // Remove scroll to top to prevent conflicts
+      // Data loading doesn't require automatic scroll
     } catch (error) {
-      console.error("Error fetching medication history:", error);
       setHistoryError(
         error.response?.data?.message ||
           "Không thể tải lịch sử yêu cầu thuốc. Vui lòng thử lại sau."
@@ -85,12 +138,58 @@ const SendMedicine = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Validation cho tần suất - chỉ cho phép số và một số ký tự đặc biệt
+    if (name === "frequency") {
+      // Chỉ cho phép chuỗi toàn số
+      const frequencyPattern = /^[0-9]+$/;
+      if (value && !frequencyPattern.test(value)) {
+        setErrors({
+          ...errors,
+          frequency: "Tần suất chỉ được nhập số, không chứa chữ hay ký tự đặc biệt",
+        });
+        return; // Không cập nhật giá trị nếu không hợp lệ
+      }
+    }
+    
+
+    // Validation cho liều lượng - chỉ cho phép số và đơn vị
+    if (name === "dosage") {
+      // Chỉ cho phép số, dấu cách, dấu chấm, và một số từ đơn vị
+      const dosagePattern =
+        /^[0-9\s\.\,mlviêngiọttablettabletsmlmgmcgviênggamicrogram]+$/i;
+      if (value && !dosagePattern.test(value)) {
+        setErrors({
+          ...errors,
+          dosage:
+            "Liều lượng chỉ được chứa số và đơn vị như: ml, viên, giọt, mg",
+        });
+        return; // Không cập nhật giá trị nếu không hợp lệ
+      }
+    }
+
+    // Validation cho ngày bắt đầu
+    if (name === "startDate") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set về đầu ngày
+      const selectedDate = new Date(value);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        setErrors({
+          ...errors,
+          startDate: "Ngày bắt đầu phải là từ hôm nay trở đi",
+        });
+        return;
+      }
+    }
+
     setFormData({
       ...formData,
       [name]: value,
     });
 
-    // Xóa lỗi khi người dùng nhập
+    // Xóa lỗi khi người dùng nhập hợp lệ
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -209,7 +308,7 @@ const SendMedicine = () => {
       // Lấy token xác thực
       const token = localStorage.getItem("authToken");
       if (!token) {
-        toast.error("Vui lòng đăng nhập lại");
+        showNotification("error", "Lỗi xác thực", "Vui lòng đăng nhập lại");
         setLoading(false);
         return;
       }
@@ -227,10 +326,9 @@ const SendMedicine = () => {
         prescriptionImage: formData.prescriptionImage,
       });
 
-      console.log("API Response:", response);
       setFormSubmitted(true);
 
-      // Cuộn lên đầu trang
+      // Scroll to top to show success message
       window.scrollTo({ top: 0, behavior: "smooth" });
 
       // Refresh lịch sử yêu cầu thuốc nếu cần
@@ -251,17 +349,19 @@ const SendMedicine = () => {
         prescriptionImage: null,
       });
 
-      toast.success("Gửi yêu cầu dùng thuốc thành công!");
+      // Show success notification modal instead of toast
+      showNotification(
+        "success",
+        "Gửi yêu cầu thành công!",
+        "Yêu cầu dùng thuốc đã được gửi thành công."
+      );
     } catch (error) {
-      console.error("Lỗi khi gửi:", error);
-      console.error("Response data:", error.response?.data);
-      console.error("Response status:", error.response?.status);
-
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.error ||
         "Có lỗi xảy ra, vui lòng thử lại sau.";
-      toast.error(errorMessage);
+      // Show error notification modal instead of toast
+      showNotification("error", "Gửi yêu cầu thất bại!", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -320,7 +420,6 @@ const SendMedicine = () => {
       // Thử parse JSON nếu là chuỗi JSON hợp lệ
       return JSON.parse(timeOfDayString);
     } catch (error) {
-      console.error("Error parsing timeOfDay:", error);
       return [];
     }
   };
@@ -374,13 +473,17 @@ const SendMedicine = () => {
     );
 
     if (!requestToUpdate) {
-      toast.error("Không tìm thấy yêu cầu thuốc!");
+      showNotification("error", "Lỗi", "Không tìm thấy yêu cầu thuốc!");
       return;
     }
 
     // Chỉ cho phép cập nhật yêu cầu đang chờ duyệt
     if (requestToUpdate.status !== "PENDING_APPROVAL") {
-      toast.warning("Chỉ có thể cập nhật các yêu cầu đang chờ duyệt");
+      showNotification(
+        "error",
+        "Không thể cập nhật",
+        "Chỉ có thể cập nhật các yêu cầu đang chờ duyệt"
+      );
       return;
     }
 
@@ -404,17 +507,41 @@ const SendMedicine = () => {
       studentClass: requestToUpdate.studentClass,
       studentId: requestToUpdate.studentId,
       prescriptionImage: null,
+      prescriptionImageUrl: requestToUpdate.prescriptionImageUrl || null, // Thêm URL hình ảnh có sẵn
     });
 
-    // Reset modal image state
+    // Set up existing image if available
     setModalPrescriptionImage(null);
-    setModalImagePreview(null);
+    console.log("Request to update:", requestToUpdate); // Debug log
+    console.log(
+      "Prescription image URL:",
+      requestToUpdate.prescriptionImageUrl
+    ); // Debug log
+
+    if (
+      requestToUpdate.prescriptionImageUrl &&
+      requestToUpdate.prescriptionImageUrl.trim() !== ""
+    ) {
+      // Ensure the URL is properly formatted
+      let imageUrl = requestToUpdate.prescriptionImageUrl;
+      // If it's a relative path, make it absolute
+      if (!imageUrl.startsWith("http")) {
+        imageUrl = `http://localhost:8080${
+          imageUrl.startsWith("/") ? "" : "/"
+        }${imageUrl}`;
+      }
+      setModalImagePreview(imageUrl); // Hiển thị hình ảnh có sẵn
+      console.log("Set modal image preview to:", imageUrl); // Debug log
+    } else {
+      setModalImagePreview(null);
+      console.log("No prescription image URL found"); // Debug log
+    }
 
     // Mở modal
     setIsModalOpen(true);
   };
 
-  // Thêm hàm handleDeleteRequest - Updated to use service
+  // Thêm hàm handleDeleteRequest - Updated to use notification modal
   const handleDeleteRequest = async (requestId) => {
     // Confirm before cancellation
     if (!window.confirm("Bạn có chắc chắn muốn hủy yêu cầu này không?")) {
@@ -429,10 +556,18 @@ const SendMedicine = () => {
 
       // Cập nhật lại danh sách yêu cầu thuốc
       fetchMedicationHistory();
-      toast.success("Yêu cầu đã được hủy thành công");
+
+      // Show success notification modal
+      showNotification(
+        "success",
+        "Hủy yêu cầu thành công!",
+        "Yêu cầu gửi thuốc đã được hủy thành công."
+      );
     } catch (error) {
-      console.error("Error canceling medication request:", error);
-      toast.error(
+      // Show error notification modal
+      showNotification(
+        "error",
+        "Hủy yêu cầu thất bại!",
         error.response?.data?.message ||
           "Không thể hủy yêu cầu. Vui lòng thử lại."
       );
@@ -488,7 +623,10 @@ const SendMedicine = () => {
       setConfirmationData(confirmationData);
       setIsConfirmationModalOpen(true);
     } catch (error) {
-      toast.error(
+      // Show error notification modal instead of toast
+      showNotification(
+        "error",
+        "Lỗi tải thông tin",
         error.response?.data?.message ||
           error.message ||
           "Không thể tải thông tin xác nhận. Vui lòng thử lại."
@@ -577,12 +715,18 @@ const SendMedicine = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("File không được vượt quá 5MB");
+        setModalErrors({
+          ...modalErrors,
+          prescriptionImage: "File không được vượt quá 5MB",
+        });
         return;
       }
 
       if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
-        toast.error("Chỉ chấp nhận file ảnh (JPEG, PNG, JPG)");
+        setModalErrors({
+          ...modalErrors,
+          prescriptionImage: "Chỉ chấp nhận file ảnh (JPEG, PNG, JPG)",
+        });
         return;
       }
 
@@ -638,7 +782,11 @@ const SendMedicine = () => {
     e.preventDefault();
 
     if (!validateModalForm()) {
-      toast.error("Vui lòng điền đầy đủ thông tin");
+      showNotification(
+        "error",
+        "Thông tin không hợp lệ",
+        "Vui lòng điền đầy đủ thông tin"
+      );
       return;
     }
 
@@ -670,7 +818,11 @@ const SendMedicine = () => {
       // Lấy token xác thực
       const token = localStorage.getItem("authToken");
       if (!token) {
-        toast.error("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại");
+        showNotification(
+          "error",
+          "Lỗi xác thực",
+          "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại"
+        );
         setLoading(false);
         return;
       }
@@ -707,15 +859,18 @@ const SendMedicine = () => {
         prescriptionImageBase64: imageBase64,
       };
 
-      console.log("Updating medication request with data:", updateData);
-
       // Sử dụng service để cập nhật yêu cầu
       await medicationRequestService.updateMedicationRequest(
         editFormData.id,
         updateData
       );
 
-      toast.success("Cập nhật yêu cầu thuốc thành công!");
+      // Show success notification modal
+      showNotification(
+        "success",
+        "Cập nhật thành công!",
+        "Yêu cầu gửi thuốc đã được cập nhật thành công."
+      );
       setIsModalOpen(false);
       fetchMedicationHistory();
     } catch (error) {
@@ -737,7 +892,8 @@ const SendMedicine = () => {
           "Không thể cập nhật yêu cầu thuốc. Vui lòng thử lại sau.";
       }
 
-      toast.error(errorMessage);
+      // Show error notification modal
+      showNotification("error", "Cập nhật thất bại!", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -766,21 +922,62 @@ const SendMedicine = () => {
     }
   };
 
-  useEffect(() => {
-    // Cuộn lên đầu trang khi component được load
-    window.scrollTo(0, 0);
-  }, []);
-
-  // Đảm bảo trang luôn cuộn về đầu khi hiển thị thông báo thành công
-  useEffect(() => {
-    // Cuộn lên đầu trang khi formSubmitted thay đổi
-    if (formSubmitted) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, [formSubmitted]);
+  // Remove all scroll effects to prevent conflicts with layout
+  // Layout will handle scroll positioning automatically
 
   // State for image zoom functionality
   const [zoomedImage, setZoomedImage] = useState(null);
+
+  // Hide header when modals are open - Added after all state declarations
+  useEffect(() => {
+    const shouldHideHeader =
+      isModalOpen ||
+      isConfirmationModalOpen ||
+      notificationModal.show ||
+      zoomedImage;
+
+    if (shouldHideHeader) {
+      document.body.classList.add("modal-open");
+      // Try multiple selectors to hide header
+      const headers = document.querySelectorAll(
+        ".parent-header, .fix-parent-header, header"
+      );
+      headers.forEach((header) => {
+        header.style.zIndex = "-999999";
+        header.style.visibility = "hidden";
+        header.style.opacity = "0";
+      });
+    } else {
+      document.body.classList.remove("modal-open");
+      // Restore header visibility
+      const headers = document.querySelectorAll(
+        ".parent-header, .fix-parent-header, header"
+      );
+      headers.forEach((header) => {
+        header.style.zIndex = "";
+        header.style.visibility = "";
+        header.style.opacity = "";
+      });
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove("modal-open");
+      const headers = document.querySelectorAll(
+        ".parent-header, .fix-parent-header, header"
+      );
+      headers.forEach((header) => {
+        header.style.zIndex = "";
+        header.style.visibility = "";
+        header.style.opacity = "";
+      });
+    };
+  }, [
+    isModalOpen,
+    isConfirmationModalOpen,
+    notificationModal.show,
+    zoomedImage,
+  ]);
 
   // Function to handle image click for zooming
   const handleImageClick = (imageUrl) => {
@@ -793,953 +990,1080 @@ const SendMedicine = () => {
   };
 
   return (
-    <div className="send-medicine-container">
-      <div className="send-medicine-header">
-        <h1>Yêu cầu dùng thuốc cho học sinh</h1>
-        <p>
-          Phụ huynh có thể gửi yêu cầu cho con uống thuốc tại trường và theo dõi
-          trạng thái các yêu cầu đã gửi
-        </p>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button
-          className={`tab-button ${activeTab === "form" ? "active" : ""}`}
-          onClick={() => {
-            setActiveTab("form");
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        >
-          Gửi yêu cầu thuốc
-        </button>
-        <button
-          className={`tab-button ${activeTab === "history" ? "active" : ""}`}
-          onClick={() => {
-            setActiveTab("history");
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        >
-          Lịch sử yêu cầu
-        </button>
-      </div>
-
-      {activeTab === "form" ? (
-        // Form gửi thuốc
-        formSubmitted ? (
-          <div className="form-container">
-            {" "}
-            {/* Thêm container này để kiểm soát chiều rộng */}
-            <div className="success-message">
-              <div className="success-icon"></div>
-              <h2>Gửi yêu cầu thành công!</h2>
-              <p>
-                Yêu cầu của bạn đã được ghi nhận. Nhà trường sẽ liên hệ nếu cần
-                thêm thông tin.
-              </p>
-              <div className="success-actions">
-                <button
-                  className="btn-primary"
-                  onClick={() => {
-                    setFormSubmitted(false);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                >
-                  Gửi yêu cầu mới
-                </button>
-                <button
-                  className="btn-secondary"
-                  onClick={() => {
-                    setActiveTab("history");
-                    fetchMedicationHistory();
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                >
-                  Xem lịch sử yêu cầu
-                </button>
-              </div>
-            </div>
+    <div className="parent-content-wrapper">
+      <div className="fix-send-medicine-container">
+        {/* Loading spinner */}
+        {loading && (
+          <div className="send-medicine-loading">
+            <div className="loading-spinner"></div>
+            <p>Đang xử lý...</p>
           </div>
-        ) : (
-          <form className="send-medicine-form" onSubmit={handleSubmit}>
-            <div className="form-section">
-              <h3>Thông tin học sinh</h3>
-              <div className="form-group-horizontal">
-                <label htmlFor="studentId">Chọn học sinh:</label>
-                <div>
-                  <select
-                    id="studentId"
-                    name="studentId"
-                    value={formData.studentId}
-                    onChange={handleChange}
-                    className={errors.studentId ? "error" : ""}
+        )}
+
+        {/* Removed ToastContainer - using notification modal instead */}
+
+        {/* Header */}
+        <div className="fix-send-medicine-header">
+          <h1>
+            <i className="fas fa-pills"></i>
+            Yêu cầu gửi thuốc
+          </h1>
+          <p>Gửi yêu cầu cho y tá trường để hỗ trợ uống thuốc cho học sinh</p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="fix-tab-navigation">
+          <button
+            className={`fix-tab-button ${activeTab === "form" ? "active" : ""}`}
+            onClick={() => {
+              setActiveTab("form");
+            }}
+          >
+            Gửi yêu cầu thuốc
+          </button>
+          <button
+            className={`fix-tab-button ${
+              activeTab === "history" ? "active" : ""
+            }`}
+            onClick={() => {
+              setActiveTab("history");
+            }}
+          >
+            Lịch sử yêu cầu
+          </button>
+        </div>
+
+        {activeTab === "form" ? (
+          // Form gửi thuốc
+          formSubmitted ? (
+            <div className="fix-form-container">
+              {" "}
+              {/* Thêm container này để kiểm soát chiều rộng */}
+              <div className="fix-success-message">
+                <div className="fix-success-icon"></div>
+                <h2>Gửi yêu cầu thành công!</h2>
+                <p>
+                  Yêu cầu của bạn đã được ghi nhận. Nhà trường sẽ liên hệ nếu
+                  cần thêm thông tin.
+                </p>
+                <div className="fix-success-actions">
+                  <button
+                    className="fix-btn-primary"
+                    onClick={() => {
+                      setFormSubmitted(false);
+                    }}
                   >
-                    <option value="">-- Chọn học sinh --</option>
-                    {students.map((student) => (
-                      <option key={student.id} value={student.id}>
-                        {student.name} - Lớp {student.class}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.studentId && (
-                    <span className="error-text">{errors.studentId}</span>
-                  )}
+                    Gửi yêu cầu mới
+                  </button>
+                  <button
+                    className="fix-btn-secondary"
+                    onClick={() => {
+                      setActiveTab("history");
+                      fetchMedicationHistory();
+                    }}
+                  >
+                    Xem lịch sử yêu cầu
+                  </button>
                 </div>
               </div>
-            </div>
-
-            <div className="form-section">
-              <h3>Thông tin thuốc</h3>
-              <div className="form-group-horizontal">
-                <label htmlFor="medicineName">Tên thuốc:</label>
-                <div>
-                  <input
-                    type="text"
-                    id="medicineName"
-                    name="medicineName"
-                    value={formData.medicineName}
-                    onChange={handleChange}
-                    placeholder="Nhập tên thuốc"
-                    className={errors.medicineName ? "error" : ""}
-                  />
-                  {errors.medicineName && (
-                    <span className="error-text">{errors.medicineName}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-group-horizontal">
-                <label htmlFor="dosage">Liều lượng:</label>
-                <div>
-                  <input
-                    type="text"
-                    id="dosage"
-                    name="dosage"
-                    value={formData.dosage}
-                    onChange={handleChange}
-                    placeholder="VD: 1 viên, 5ml, ..."
-                    className={errors.dosage ? "error" : ""}
-                  />
-                  {errors.dosage && (
-                    <span className="error-text">{errors.dosage}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-group-horizontal">
-                <label htmlFor="frequency">Tần suất:</label>
-                <div>
-                  <input
-                    type="text"
-                    id="frequency"
-                    name="frequency"
-                    value={formData.frequency}
-                    onChange={handleChange}
-                    placeholder="VD: 2 lần/ngày, 8 tiếng/lần, ..."
-                    className={errors.frequency ? "error" : ""}
-                  />
-                  {errors.frequency && (
-                    <span className="error-text">{errors.frequency}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="startDate">Ngày bắt đầu:</label>
-                  <input
-                    type="date"
-                    id="startDate"
-                    name="startDate"
-                    value={formData.startDate}
-                    onChange={handleChange}
-                    className={errors.startDate ? "error" : ""}
-                  />
-                  {errors.startDate && (
-                    <span className="error-text">{errors.startDate}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="endDate">Ngày kết thúc:</label>
-                  <input
-                    type="date"
-                    id="endDate"
-                    name="endDate"
-                    value={formData.endDate}
-                    onChange={handleChange}
-                    className={errors.endDate ? "error" : ""}
-                  />
-                  {errors.endDate && (
-                    <span className="error-text">{errors.endDate}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-group-horizontal">
-                <label>Thời điểm uống thuốc:</label>
-                <div>
-                  <div className="checkbox-group">
-                    {timeOptions.map((option) => (
-                      <div className="checkbox-item" key={option.value}>
-                        <input
-                          type="checkbox"
-                          id={option.value}
-                          name="timeToTake"
-                          value={option.value}
-                          checked={formData.timeToTake.includes(option.value)}
-                          onChange={handleTimeChange}
-                        />
-                        <label htmlFor={option.value}>{option.label}</label>
-                      </div>
-                    ))}
-                  </div>
-                  {errors.timeToTake && (
-                    <span className="error-text">{errors.timeToTake}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="form-section">
-              <h3>Thông tin bổ sung</h3>
-              {/* Thêm trường hình ảnh đơn thuốc */}
-              <div className="form-group">
-                <label htmlFor="prescriptionImage">Hình ảnh đơn thuốc:</label>
-                <div className="image-upload-container">
-                  <input
-                    type="file"
-                    id="prescriptionImage"
-                    name="prescriptionImage"
-                    accept="image/jpeg,image/png,image/jpg"
-                    onChange={handleImageChange}
-                    className="image-input"
-                  />
-                  <label htmlFor="prescriptionImage" className="upload-button">
-                    Chọn ảnh
-                  </label>
-                  {formData.prescriptionImage && (
-                    <span className="file-name">
-                      {formData.prescriptionImage.name}
-                    </span>
-                  )}
-                  {errors.prescriptionImage && (
-                    <div className="error-text">{errors.prescriptionImage}</div>
-                  )}
-                  {formData.prescriptionImagePreview && (
-                    <div className="image-preview-container">
-                      <img
-                        src={formData.prescriptionImagePreview}
-                        alt="Đơn thuốc"
-                        className="image-preview"
-                        onClick={() =>
-                          handleImageClick(formData.prescriptionImagePreview)
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-                <span className="help-text">
-                  Tối đa 5MB. Định dạng: JPG, PNG.
-                </span>
-              </div>
-
-              <div className="form-row-large">
-                <label htmlFor="notes">Ghi chú:</label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleChange}
-                  placeholder="Các lưu ý đặc biệt về việc dùng thuốc (nếu có)"
-                  rows="4"
-                ></textarea>
-              </div>
-            </div>
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  if (isUpdating) {
-                    // Nếu đang cập nhật thì hủy và reset form
-                    setIsUpdating(false);
-                    setUpdateRequestId(null);
-                    setFormData({
-                      studentId: "",
-                      medicineName: "",
-                      dosage: "",
-                      frequency: "",
-                      startDate: "",
-                      endDate: "",
-                      timeToTake: [],
-                      notes: "",
-                      prescriptionImage: null,
-                    });
-                  } else {
-                    // Nếu đang tạo mới thì quay lại trang chủ
-                    navigate("/parent");
-                  }
-                }}
-              >
-                {isUpdating ? "Hủy cập nhật" : "Hủy bỏ"}
-              </button>
-
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={loading}
-                onClick={isUpdating ? handleModalFormSubmit : handleSubmit}
-              >
-                {loading ? (
-                  <span className="spinner"></span>
-                ) : isUpdating ? (
-                  "Cập nhật yêu cầu"
-                ) : (
-                  "Gửi yêu cầu"
-                )}
-              </button>
-            </div>
-          </form>
-        )
-      ) : (
-        // Tab lịch sử
-        <div className="medication-history-container">
-          <div className="history-header">
-            <h2>Lịch sử yêu cầu dùng thuốc</h2>
-
-            {students && students.length > 0 && (
-              <div className="history-filter">
-                <label htmlFor="studentFilter">Lọc theo học sinh:</label>
-                <select
-                  id="studentFilter"
-                  value={selectedStudentFilter}
-                  onChange={(e) => setSelectedStudentFilter(e.target.value)}
-                >
-                  <option value="">Tất cả học sinh</option>
-                  {students.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-
-          {historyError && <div className="error-message">{historyError}</div>}
-
-          {isHistoryLoading ? (
-            <div className="loading-container">
-              <div className="spinner"></div>
-              <p>Đang tải lịch sử yêu cầu...</p>
-            </div>
-          ) : medicationHistory.length === 0 ? (
-            <div className="empty-history">
-              <p>Bạn chưa có yêu cầu dùng thuốc nào</p>
-              <button
-                className="btn-primary"
-                onClick={() => setActiveTab("form")}
-              >
-                Tạo yêu cầu mới
-              </button>
             </div>
           ) : (
-            <div className="medication-request-list">
-              {getFilteredHistory().map((request) => (
-                <div className="medication-request-card" key={request.id}>
-                  <div className="med-request-header">
-                    <div className="med-request-title">
-                      <h3>{request.medicationName}</h3>
-                      <p className="med-request-student">
-                        {request.studentName} - Lớp {request.studentClass}
-                      </p>
-                      <p className="med-request-date">
-                        Ngày yêu cầu: {formatDate(request.submittedAt)}
-                      </p>
-                    </div>
-                    <div className="med-request-actions">
-                      {request.status === "PENDING_APPROVAL" && (
-                        <>
-                          <button
-                            className="med-btn med-btn-primary"
-                            onClick={() => handleUpdateRequest(request.id)}
-                          >
-                            Cập nhật
-                          </button>
-                          <button
-                            className="med-btn med-btn-danger"
-                            onClick={() => handleDeleteRequest(request.id)}
-                          >
-                            Xóa
-                          </button>
-                        </>
-                      )}
-                      {request.status === "APPROVED" && (
-                        <button
-                          className="med-btn med-btn-success"
-                          onClick={() => fetchConfirmationData(request.id)}
-                          disabled={confirmationLoading}
-                        >
-                          {confirmationLoading ? "Đang tải..." : "Xem xác nhận"}
-                        </button>
-                      )}
-                      <div
-                        className={`med-status med-status-${request.status
-                          .toLowerCase()
-                          .replace("_", "-")}`}
-                      >
-                        {getStatusLabel(request.status)}
-                      </div>
-                    </div>
+            <form className="fix-send-medicine-form" onSubmit={handleSubmit}>
+              <div className="fix-form-section">
+                <h3>Thông tin học sinh</h3>
+                <div className="fix-form-group-horizontal">
+                  <label htmlFor="studentId">Chọn học sinh:</label>
+                  <div>
+                    <select
+                      id="studentId"
+                      name="studentId"
+                      value={formData.studentId}
+                      onChange={handleChange}
+                      className={errors.studentId ? "error" : ""}
+                    >
+                      <option value="">-- Chọn học sinh --</option>
+                      {students.map((student) => (
+                        <option key={student.id} value={student.id}>
+                          {student.name} - Lớp {student.class}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.studentId && (
+                      <span className="fix-error-text">{errors.studentId}</span>
+                    )}
                   </div>
-
-                  <div className="request-details">
-                    <div className="med-info-container">
-                      <div className="med-info-row">
-                        <div className="med-info-item">
-                          <span className="med-info-label">Liều lượng:</span>
-                          <div className="med-info-value">
-                            {request.dosageInstructions}
-                          </div>
-                        </div>
-
-                        <div className="med-info-item">
-                          <span className="med-info-label">Tần suất:</span>
-                          <div className="med-info-value">
-                            <strong>{request.frequencyPerDay} lần/ngày</strong>
-                            <div className="med-date-range">
-                              <span>
-                                {formatDate(request.startDate)} -{" "}
-                                {formatDate(request.endDate)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="med-info-row">
-                        <div className="med-info-full">
-                          <span className="med-info-label">
-                            Thời điểm uống:
-                          </span>
-                          <div className="time-tags">
-                            {parseTimeOfDay(request.timeOfDay).map(
-                              (time, index) => (
-                                <span className="time-tag" key={index}>
-                                  {getTimeOfDayLabel(time)}
-                                </span>
-                              )
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {request.specialInstructions && (
-                        <div className="med-info-row">
-                          <div className="med-info-full">
-                            <span className="med-info-label">
-                              Hướng dẫn đặc biệt:
-                            </span>
-                            <div className="med-info-note">
-                              {request.specialInstructions}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {request.status === "REJECTED" &&
-                        request.rejectionReason && (
-                          <div className="rejection-reason">
-                            <span className="detail-label">Lý do từ chối:</span>
-                            <span className="detail-value">
-                              {request.rejectionReason}
-                            </span>
-                          </div>
-                        )}
-                    </div>
-                  </div>
-
-                  {request.approvedBy && (
-                    <div className="request-footer">
-                      <div className="approval-info">
-                        <span>Duyệt bởi: {request.approvedBy}</span>
-                        {request.responseDate && (
-                          <span>
-                            Ngày phản hồi:{" "}
-                            {formatTimestamp(request.responseDate)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+              </div>
 
-      {/* Modal cập nhật */}
-      {isModalOpen && (
-        <div className="med-modal-overlay">
-          <div className="med-modal">
-            <div className="med-modal-header">
-              <h3>Cập nhật yêu cầu thuốc</h3>
-              <button
-                className="med-modal-close"
-                onClick={() => setIsModalOpen(false)}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6 6L18 18M6 18L18 6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div className="med-modal-content">
-              <form onSubmit={handleModalFormSubmit}>
-                {/* Student info */}
-                <div className="form-group">
-                  <label htmlFor="modal-studentId">Học sinh:</label>
-                  <input
-                    type="text"
-                    id="modal-studentName"
-                    value={`${editFormData.studentName || ""} - Lớp ${
-                      editFormData.studentClass || ""
-                    }`}
-                    disabled
-                  />
-                </div>
-
-                {/* Medicine info */}
-                <div className="form-group">
-                  <label htmlFor="modal-medicationName">Tên thuốc:</label>
-                  <input
-                    type="text"
-                    id="modal-medicationName"
-                    name="medicationName"
-                    value={editFormData.medicationName || ""}
-                    onChange={handleModalInputChange}
-                    placeholder="Nhập tên thuốc"
-                    className={modalErrors.medicationName ? "error" : ""}
-                    required
-                  />
-                  {modalErrors.medicationName && (
-                    <span className="error-text">
-                      {modalErrors.medicationName}
-                    </span>
-                  )}
-                </div>
-
-                {/* Form rows for better layout */}
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="modal-dosageInstructions">
-                      Liều lượng:
-                    </label>
+              <div className="fix-form-section">
+                <h3>Thông tin thuốc</h3>
+                <div className="fix-form-group-horizontal">
+                  <label htmlFor="medicineName">Tên thuốc:</label>
+                  <div>
                     <input
                       type="text"
-                      id="modal-dosageInstructions"
-                      name="dosageInstructions"
-                      value={editFormData.dosageInstructions || ""}
-                      onChange={handleModalInputChange}
-                      placeholder="Ví dụ: 1 viên mỗi lần"
-                      className={modalErrors.dosageInstructions ? "error" : ""}
-                      required
+                      id="medicineName"
+                      name="medicineName"
+                      value={formData.medicineName}
+                      onChange={handleChange}
+                      placeholder="Nhập tên thuốc"
+                      className={errors.medicineName ? "error" : ""}
                     />
-                    {modalErrors.dosageInstructions && (
-                      <span className="error-text">
-                        {modalErrors.dosageInstructions}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="modal-frequencyPerDay">
-                      Số lần dùng mỗi ngày:
-                    </label>
-                    <input
-                      type="number"
-                      id="modal-frequencyPerDay"
-                      name="frequencyPerDay"
-                      value={editFormData.frequencyPerDay || ""}
-                      onChange={handleModalInputChange}
-                      min="1"
-                      max="10"
-                      placeholder="Số lần dùng thuốc trong ngày"
-                      className={modalErrors.frequencyPerDay ? "error" : ""}
-                      required
-                    />
-                    {modalErrors.frequencyPerDay && (
-                      <span className="error-text">
-                        {modalErrors.frequencyPerDay}
+                    {errors.medicineName && (
+                      <span className="fix-error-text">
+                        {errors.medicineName}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="modal-startDate">Ngày bắt đầu:</label>
+                <div className="fix-form-group-horizontal">
+                  <label htmlFor="dosage">Liều lượng:</label>
+                  <div>
+                    <input
+                      type="text"
+                      id="dosage"
+                      name="dosage"
+                      value={formData.dosage}
+                      onChange={handleChange}
+                      placeholder="VD: 1 viên, 5ml, ..."
+                      className={errors.dosage ? "error" : ""}
+                    />
+                    {errors.dosage && (
+                      <span className="fix-error-text">{errors.dosage}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="fix-form-group-horizontal">
+                  <label htmlFor="frequency">Tần suất:</label>
+                  <div>
+                    <input
+                      type="text"
+                      id="frequency"
+                      name="frequency"
+                      value={formData.frequency}
+                      onChange={handleChange}
+                      placeholder="VD: 2 lần/ngày, 8 tiếng/lần, ..."
+                      className={errors.frequency ? "error" : ""}
+                    />
+                    {errors.frequency && (
+                      <span className="fix-error-text">{errors.frequency}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="fix-form-row">
+                  <div className="fix-form-group">
+                    <label htmlFor="startDate">Ngày bắt đầu:</label>
                     <input
                       type="date"
-                      id="modal-startDate"
+                      id="startDate"
                       name="startDate"
-                      value={editFormData.startDate || ""}
-                      onChange={handleModalInputChange}
-                      className={modalErrors.startDate ? "error" : ""}
-                      required
+                      value={formData.startDate}
+                      onChange={handleChange}
+                      className={errors.startDate ? "error" : ""}
                     />
-                    {modalErrors.startDate && (
-                      <span className="error-text">
-                        {modalErrors.startDate}
+                    {errors.startDate && (
+                      <span className="fix-error-text">{errors.startDate}</span>
+                    )}
+                  </div>
+
+                  <div className="fix-form-group">
+                    <label htmlFor="endDate">Ngày kết thúc:</label>
+                    <input
+                      type="date"
+                      id="endDate"
+                      name="endDate"
+                      value={formData.endDate}
+                      onChange={handleChange}
+                      className={errors.endDate ? "error" : ""}
+                    />
+                    {errors.endDate && (
+                      <span className="fix-error-text">{errors.endDate}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="fix-form-group-horizontal">
+                  <label>Thời điểm uống thuốc:</label>
+                  <div>
+                    <div className="fix-checkbox-group">
+                      {timeOptions.map((option) => (
+                        <div className="fix-checkbox-item" key={option.value}>
+                          <input
+                            type="checkbox"
+                            id={option.value}
+                            name="timeToTake"
+                            value={option.value}
+                            checked={formData.timeToTake.includes(option.value)}
+                            onChange={handleTimeChange}
+                          />
+                          <label htmlFor={option.value}>{option.label}</label>
+                        </div>
+                      ))}
+                    </div>
+                    {errors.timeToTake && (
+                      <span className="fix-error-text">
+                        {errors.timeToTake}
                       </span>
                     )}
                   </div>
-
-                  <div className="form-group">
-                    <label htmlFor="modal-endDate">Ngày kết thúc:</label>
-                    <input
-                      type="date"
-                      id="modal-endDate"
-                      name="endDate"
-                      value={editFormData.endDate || ""}
-                      onChange={handleModalInputChange}
-                      className={modalErrors.endDate ? "error" : ""}
-                      required
-                    />
-                    {modalErrors.endDate && (
-                      <span className="error-text">{modalErrors.endDate}</span>
-                    )}
-                  </div>
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label htmlFor="time-options">Thời gian uống thuốc:</label>
-                  <div className="checkbox-group">
-                    {timeOptions.map((option) => (
-                      <div className="checkbox-item" key={option.value}>
-                        <input
-                          type="checkbox"
-                          id={`modal-${option.value}`}
-                          name="timeToTake"
-                          value={option.value}
-                          checked={editFormData.timeToTake.includes(
-                            option.value
-                          )}
-                          onChange={handleModalTimeChange}
-                        />
-                        <label htmlFor={`modal-${option.value}`}>
-                          {option.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  {editFormData.timeToTake.length === 0 && (
-                    <span className="error-text">
-                      Vui lòng chọn ít nhất một thời điểm uống thuốc
-                    </span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="modal-specialInstructions">
-                    Hướng dẫn đặc biệt:
-                  </label>
-                  <textarea
-                    id="modal-specialInstructions"
-                    name="specialInstructions"
-                    value={editFormData.specialInstructions || ""}
-                    onChange={handleModalInputChange}
-                    placeholder="Nhập hướng dẫn đặc biệt (nếu có)"
-                    rows="3"
-                  ></textarea>
-                </div>
-
-                {/* Image Upload Section */}
-                <div className="form-group">
-                  <label htmlFor="modal-prescriptionImage">
-                    Hình ảnh đơn thuốc:
-                  </label>
-                  <div className="image-upload-container">
+              <div className="fix-form-section">
+                <h3>Thông tin bổ sung</h3>
+                {/* Thêm trường hình ảnh đơn thuốc */}
+                <div className="fix-form-group">
+                  <label htmlFor="prescriptionImage">Hình ảnh đơn thuốc:</label>
+                  <div className="fix-image-upload-container">
                     <input
                       type="file"
-                      id="modal-prescriptionImage"
+                      id="prescriptionImage"
                       name="prescriptionImage"
                       accept="image/jpeg,image/png,image/jpg"
-                      onChange={handleModalImageChange}
-                      className="image-input"
+                      onChange={handleImageChange}
+                      className="fix-image-input"
                     />
                     <label
-                      htmlFor="modal-prescriptionImage"
-                      className="upload-button"
+                      htmlFor="prescriptionImage"
+                      className="fix-upload-button"
                     >
                       Chọn ảnh
                     </label>
-                    {modalPrescriptionImage && (
-                      <span className="file-name">
-                        {modalPrescriptionImage.name}
+                    {formData.prescriptionImage && (
+                      <span className="fix-file-name">
+                        {formData.prescriptionImage.name}
                       </span>
                     )}
-                    <span className="help-text">
-                      Tối đa 5MB. Định dạng: JPG, PNG.
-                    </span>
-                    {modalImagePreview && (
-                      <div className="image-preview-container">
+                    {errors.prescriptionImage && (
+                      <div className="fix-error-text">
+                        {errors.prescriptionImage}
+                      </div>
+                    )}
+                    {formData.prescriptionImagePreview && (
+                      <div className="fix-image-preview-container">
                         <img
-                          src={modalImagePreview}
+                          src={formData.prescriptionImagePreview}
                           alt="Đơn thuốc"
-                          className="image-preview"
-                          onClick={() => handleImageClick(modalImagePreview)}
+                          className="fix-image-preview"
+                          onClick={() =>
+                            handleImageClick(formData.prescriptionImagePreview)
+                          }
                         />
                       </div>
                     )}
                   </div>
+                  <span className="fix-help-text">
+                    Tối đa 5MB. Định dạng: JPG, PNG.
+                  </span>
                 </div>
 
-                <div className="form-actions">
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                    disabled={loading}
-                  >
-                    {loading ? "Đang cập nhật..." : "Cập nhật"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirmation Modal - Updated with image zoom */}
-      {isConfirmationModalOpen && confirmationData && (
-        <div className="med-modal-overlay">
-          <div className="med-modal confirmation-modal">
-            <div className="med-modal-header">
-              <h3>Thông tin xác nhận cho thuốc</h3>
-              <button
-                className="med-modal-close"
-                onClick={() => {
-                  setIsConfirmationModalOpen(false);
-                  setConfirmationData(null);
-                }}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6 6L18 18M6 18L18 6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="med-modal-content">
-              <div className="confirmation-details">
-                {/* Thông tin cơ bản */}
-                <div className="confirmation-section">
-                  <h4>Thông tin thuốc</h4>
-                  <div className="confirmation-row">
-                    <div className="confirmation-item">
-                      <span className="confirmation-label">Tên thuốc:</span>
-                      <span className="confirmation-value">
-                        {confirmationData.medicationName}
-                      </span>
-                    </div>
-                    <div className="confirmation-item">
-                      <span className="confirmation-label">Học sinh:</span>
-                      <span className="confirmation-value">
-                        {confirmationData.studentName}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="confirmation-row">
-                    <div className="confirmation-item">
-                      <span className="confirmation-label">
-                        Mã yêu cầu thuốc:
-                      </span>
-                      <span className="confirmation-value">
-                        #{confirmationData.medicationInstructionId || "N/A"}
-                      </span>
-                    </div>
-                    <div className="confirmation-item">
-                      <span className="confirmation-label">Mã xác nhận:</span>
-                      <span className="confirmation-value">
-                        #{confirmationData.id || "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="confirmation-row">
-                    <div className="confirmation-item">
-                      <span className="confirmation-label">
-                        Số lần dùng mỗi ngày:
-                      </span>
-                      <span className="confirmation-value">
-                        {confirmationData.frequencyPerDay || "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Thông tin thực hiện */}
-                <div className="confirmation-section">
-                  <h4>Thông tin thực hiện</h4>
-                  <div className="confirmation-row">
-                    <div className="confirmation-item">
-                      <span className="confirmation-label">
-                        Thời gian cho thuốc:
-                      </span>
-                      <span className="confirmation-value">
-                        {formatConfirmationTimestamp(
-                          confirmationData.administeredAt
-                        )}
-                      </span>
-                    </div>
-                    <div className="confirmation-item">
-                      <span className="confirmation-label">
-                        Người thực hiện:
-                      </span>
-                      <span className="confirmation-value">
-                        {confirmationData.administeredBy}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Trạng thái */}
-                <div className="confirmation-section">
-                  <h4>Trạng thái</h4>
-                  <div className="confirmation-row">
-                    <div className="confirmation-item">
-                      <span className="confirmation-label">
-                        Trạng thái thực hiện:
-                      </span>
-                      <span
-                        className={`confirmation-status ${
-                          getAdministrationStatusInfo(
-                            confirmationData.administrationStatus
-                          ).class
-                        }`}
-                      >
-                        {
-                          getAdministrationStatusInfo(
-                            confirmationData.administrationStatus
-                          ).label
-                        }
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Ghi chú */}
-                {confirmationData.notes && (
-                  <div className="confirmation-section">
-                    <h4>Ghi chú</h4>
-                    <div className="confirmation-notes">
-                      {confirmationData.notes}
-                    </div>
-                  </div>
-                )}
-
-                {/* Hình ảnh xác nhận */}
-                <div className="confirmation-section">
-                  <h4>Hình ảnh xác nhận</h4>
-                  <div className="confirmation-image">
-                    {confirmationData.confirmationImageUrl ? (
-                      <img
-                        src={confirmationData.confirmationImageUrl}
-                        alt="Hình ảnh xác nhận cho thuốc"
-                        className="confirmation-img"
-                        onClick={() =>
-                          handleImageClick(
-                            confirmationData.confirmationImageUrl
-                          )
-                        }
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                          e.target.nextSibling.style.display = "block";
-                        }}
-                      />
-                    ) : (
-                      <div className="no-image-placeholder">
-                        <p>Không có hình ảnh xác nhận</p>
-                      </div>
-                    )}
-                  </div>
+                <div className="fix-form-row-large">
+                  <label htmlFor="notes">Ghi chú:</label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    placeholder="Các lưu ý đặc biệt về việc dùng thuốc (nếu có)"
+                    rows="4"
+                  ></textarea>
                 </div>
               </div>
 
-              <div className="med-modal-actions">
+              <div className="fix-form-actions">
                 <button
-                  className="btn-primary"
+                  type="button"
+                  className="fix-btn-secondary"
+                  onClick={() => {
+                    if (isUpdating) {
+                      // Nếu đang cập nhật thì hủy và reset form
+                      setIsUpdating(false);
+                      setUpdateRequestId(null);
+                      setFormData({
+                        studentId: "",
+                        medicineName: "",
+                        dosage: "",
+                        frequency: "",
+                        startDate: "",
+                        endDate: "",
+                        timeToTake: [],
+                        notes: "",
+                        prescriptionImage: null,
+                      });
+                    } else {
+                      // Nếu đang tạo mới thì quay lại trang chủ
+                      navigate("/parent");
+                    }
+                  }}
+                >
+                  {isUpdating ? "Hủy cập nhật" : "Hủy bỏ"}
+                </button>
+
+                <button
+                  type="submit"
+                  className="fix-btn-primary"
+                  disabled={loading}
+                  onClick={isUpdating ? handleModalFormSubmit : handleSubmit}
+                >
+                  {loading ? (
+                    <span className="fix-spinner"></span>
+                  ) : isUpdating ? (
+                    "Cập nhật yêu cầu"
+                  ) : (
+                    "Gửi yêu cầu"
+                  )}
+                </button>
+              </div>
+            </form>
+          )
+        ) : (
+          // Tab lịch sử
+          <div className="fix-medication-history-container">
+            <div className="fix-history-header">
+              <h2>Lịch sử yêu cầu dùng thuốc</h2>
+
+              {students && students.length > 0 && (
+                <div className="fix-history-filter">
+                  <label htmlFor="studentFilter">Lọc theo học sinh:</label>
+                  <select
+                    id="studentFilter"
+                    value={selectedStudentFilter}
+                    onChange={(e) => setSelectedStudentFilter(e.target.value)}
+                  >
+                    <option value="">Tất cả học sinh</option>
+                    {students.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {historyError && (
+              <div className="error-message">{historyError}</div>
+            )}
+
+            {isHistoryLoading ? (
+              <div className="fix-loading-container">
+                <div className="fix-spinner"></div>
+                <p>Đang tải lịch sử yêu cầu...</p>
+              </div>
+            ) : medicationHistory.length === 0 ? (
+              <div className="fix-empty-history">
+                <p>Bạn chưa có yêu cầu dùng thuốc nào</p>
+                <button
+                  className="fix-btn-primary"
+                  onClick={() => setActiveTab("form")}
+                >
+                  Tạo yêu cầu mới
+                </button>
+              </div>
+            ) : (
+              <div className="fix-medication-request-list">
+                {getFilteredHistory().map((request) => (
+                  <div className="fix-medication-request-card" key={request.id}>
+                    <div className="fix-med-request-header">
+                      <div className="fix-med-request-title">
+                        <h3>{request.medicationName}</h3>
+                        <p className="fix-med-request-student">
+                          {request.studentName} - Lớp {request.studentClass}
+                        </p>
+                        <p className="fix-med-request-date">
+                          Ngày yêu cầu: {formatDate(request.submittedAt)}
+                        </p>
+                      </div>
+                      <div className="fix-med-request-actions">
+                        {request.status === "PENDING_APPROVAL" && (
+                          <>
+                            <button
+                              className="fix-med-btn fix-med-btn-primary"
+                              onClick={() => handleUpdateRequest(request.id)}
+                            >
+                              Cập nhật
+                            </button>
+                            <button
+                              className="fix-med-btn fix-med-btn-danger"
+                              onClick={() => handleDeleteRequest(request.id)}
+                            >
+                              Xóa
+                            </button>
+                          </>
+                        )}
+                        {request.status === "APPROVED" && (
+                          <button
+                            className="fix-med-btn fix-med-btn-success"
+                            onClick={() => fetchConfirmationData(request.id)}
+                            disabled={confirmationLoading}
+                          >
+                            {confirmationLoading
+                              ? "Đang tải..."
+                              : "Xem xác nhận"}
+                          </button>
+                        )}
+                        <div
+                          className={`fix-med-status fix-med-status-${request.status
+                            .toLowerCase()
+                            .replace("_", "-")}`}
+                        >
+                          {getStatusLabel(request.status)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="fix-request-details">
+                      <div className="fix-med-info-container">
+                        <div className="fix-med-info-row">
+                          <div className="fix-med-info-item">
+                            <span className="fix-med-info-label">
+                              Liều lượng:
+                            </span>
+                            <div className="med-info-value">
+                              {request.dosageInstructions}
+                            </div>
+                          </div>
+
+                          <div className="fix-med-info-item">
+                            <span className="fix-med-info-label">
+                              Tần suất:
+                            </span>
+                            <div className="med-info-value">
+                              <strong>
+                                {request.frequencyPerDay} lần/ngày
+                              </strong>
+                              <div className="med-date-range">
+                                <span>
+                                  {formatDate(request.startDate)} -{" "}
+                                  {formatDate(request.endDate)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="fix-med-info-row">
+                          <div className="fix-med-info-full">
+                            <span className="fix-med-info-label">
+                              Thời điểm uống:
+                            </span>
+                            <div className="fix-time-tags">
+                              {parseTimeOfDay(request.timeOfDay).map(
+                                (time, index) => (
+                                  <span className="fix-time-tag" key={index}>
+                                    {getTimeOfDayLabel(time)}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {request.specialInstructions && (
+                          <div className="fix-med-info-row">
+                            <div className="fix-med-info-full">
+                              <span className="fix-med-info-label">
+                                Hướng dẫn đặc biệt:
+                              </span>
+                              <div className="fix-med-info-note">
+                                {request.specialInstructions}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {request.status === "REJECTED" &&
+                          request.rejectionReason && (
+                            <div className="rejection-reason">
+                              <span className="detail-label">
+                                Lý do từ chối:
+                              </span>
+                              <span className="detail-value">
+                                {request.rejectionReason}
+                              </span>
+                            </div>
+                          )}
+                      </div>
+                    </div>
+
+                    {request.approvedBy && (
+                      <div className="request-footer">
+                        <div className="approval-info">
+                          <span>Duyệt bởi: {request.approvedBy}</span>
+                          {request.responseDate && (
+                            <span>
+                              Ngày phản hồi:{" "}
+                              {formatTimestamp(request.responseDate)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Modal cập nhật */}
+        {isModalOpen && (
+          <div className="fix-med-modal-overlay">
+            <div className="fix-med-modal">
+              <div className="fix-med-modal-header">
+                <h3>Cập nhật yêu cầu thuốc</h3>
+                <button
+                  className="fix-med-modal-close"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6 6L18 18M6 18L18 6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div className="fix-med-modal-content">
+                <form onSubmit={handleModalFormSubmit}>
+                  {/* Student info */}
+                  <div className="fix-form-group">
+                    <label htmlFor="modal-studentId">Học sinh:</label>
+                    <input
+                      type="text"
+                      id="modal-studentName"
+                      value={`${editFormData.studentName || ""} - Lớp ${
+                        editFormData.studentClass || ""
+                      }`}
+                      disabled
+                    />
+                  </div>
+
+                  {/* Medicine info */}
+                  <div className="fix-form-group">
+                    <label htmlFor="modal-medicationName">Tên thuốc:</label>
+                    <input
+                      type="text"
+                      id="modal-medicationName"
+                      name="medicationName"
+                      value={editFormData.medicationName || ""}
+                      onChange={handleModalInputChange}
+                      placeholder="Nhập tên thuốc"
+                      className={modalErrors.medicationName ? "error" : ""}
+                      required
+                    />
+                    {modalErrors.medicationName && (
+                      <span className="fix-error-text">
+                        {modalErrors.medicationName}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Form rows for better layout */}
+                  <div className="fix-form-row">
+                    <div className="fix-form-group">
+                      <label htmlFor="modal-dosageInstructions">
+                        Liều lượng:
+                      </label>
+                      <input
+                        type="text"
+                        id="modal-dosageInstructions"
+                        name="dosageInstructions"
+                        value={editFormData.dosageInstructions || ""}
+                        onChange={handleModalInputChange}
+                        placeholder="Ví dụ: 1 viên mỗi lần"
+                        className={
+                          modalErrors.dosageInstructions ? "error" : ""
+                        }
+                        required
+                      />
+                      {modalErrors.dosageInstructions && (
+                        <span className="fix-error-text">
+                          {modalErrors.dosageInstructions}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="fix-form-group">
+                      <label htmlFor="modal-frequencyPerDay">
+                        Số lần dùng mỗi ngày:
+                      </label>
+                      <input
+                        type="number"
+                        id="modal-frequencyPerDay"
+                        name="frequencyPerDay"
+                        value={editFormData.frequencyPerDay || ""}
+                        onChange={handleModalInputChange}
+                        min="1"
+                        max="10"
+                        placeholder="Số lần dùng thuốc trong ngày"
+                        className={modalErrors.frequencyPerDay ? "error" : ""}
+                        required
+                      />
+                      {modalErrors.frequencyPerDay && (
+                        <span className="fix-error-text">
+                          {modalErrors.frequencyPerDay}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="fix-form-row">
+                    <div className="fix-form-group">
+                      <label htmlFor="modal-startDate">Ngày bắt đầu:</label>
+                      <input
+                        type="date"
+                        id="modal-startDate"
+                        name="startDate"
+                        value={editFormData.startDate || ""}
+                        onChange={handleModalInputChange}
+                        className={modalErrors.startDate ? "error" : ""}
+                        required
+                      />
+                      {modalErrors.startDate && (
+                        <span className="fix-error-text">
+                          {modalErrors.startDate}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="fix-form-group">
+                      <label htmlFor="modal-endDate">Ngày kết thúc:</label>
+                      <input
+                        type="date"
+                        id="modal-endDate"
+                        name="endDate"
+                        value={editFormData.endDate || ""}
+                        onChange={handleModalInputChange}
+                        className={modalErrors.endDate ? "error" : ""}
+                        required
+                      />
+                      {modalErrors.endDate && (
+                        <span className="fix-error-text">
+                          {modalErrors.endDate}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="fix-form-group">
+                    <label htmlFor="time-options">Thời gian uống thuốc:</label>
+                    <div className="fix-checkbox-group">
+                      {timeOptions.map((option) => (
+                        <div className="fix-checkbox-item" key={option.value}>
+                          <input
+                            type="checkbox"
+                            id={`modal-${option.value}`}
+                            name="timeToTake"
+                            value={option.value}
+                            checked={editFormData.timeToTake.includes(
+                              option.value
+                            )}
+                            onChange={handleModalTimeChange}
+                          />
+                          <label htmlFor={`modal-${option.value}`}>
+                            {option.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    {editFormData.timeToTake.length === 0 && (
+                      <span className="fix-error-text">
+                        Vui lòng chọn ít nhất một thời điểm uống thuốc
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="fix-form-group">
+                    <label htmlFor="modal-specialInstructions">
+                      Hướng dẫn đặc biệt:
+                    </label>
+                    <textarea
+                      id="modal-specialInstructions"
+                      name="specialInstructions"
+                      value={editFormData.specialInstructions || ""}
+                      onChange={handleModalInputChange}
+                      placeholder="Nhập hướng dẫn đặc biệt (nếu có)"
+                      rows="3"
+                    ></textarea>
+                  </div>
+
+                  {/* Image Upload Section */}
+                  <div className="fix-form-group">
+                    <label htmlFor="modal-prescriptionImage">
+                      Hình ảnh đơn thuốc:
+                    </label>
+                    <div className="fix-image-upload-container">
+                      {/* Show existing image info if available */}
+                      {editFormData.prescriptionImageUrl &&
+                        !modalPrescriptionImage && (
+                          <div className="fix-existing-image-info">
+                            <p className="fix-existing-image-label">
+                              <strong>Hình ảnh hiện tại:</strong>
+                            </p>
+                            <div className="fix-existing-image-preview">
+                              <img
+                                src={modalImagePreview}
+                                alt="Đơn thuốc hiện tại"
+                                className="fix-image-preview"
+                                onClick={() =>
+                                  handleImageClick(modalImagePreview)
+                                }
+                              />
+                              <p className="fix-image-note">
+                                Nhấn vào hình để xem chi tiết
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                      <input
+                        type="file"
+                        id="modal-prescriptionImage"
+                        name="prescriptionImage"
+                        accept="image/jpeg,image/png,image/jpg"
+                        onChange={handleModalImageChange}
+                        className="fix-image-input"
+                      />
+                      <label
+                        htmlFor="modal-prescriptionImage"
+                        className="fix-upload-button"
+                      >
+                        {editFormData.prescriptionImageUrl
+                          ? "Thay đổi hình ảnh"
+                          : "Chọn ảnh"}
+                      </label>
+
+                      {modalPrescriptionImage && (
+                        <span className="fix-file-name">
+                          <strong>Hình mới:</strong>{" "}
+                          {modalPrescriptionImage.name}
+                        </span>
+                      )}
+
+                      <span className="fix-help-text">
+                        {editFormData.prescriptionImageUrl
+                          ? "Chọn hình ảnh mới để thay thế hình hiện tại. Tối đa 5MB. Định dạng: JPG, PNG."
+                          : "Tối đa 5MB. Định dạng: JPG, PNG."}
+                      </span>
+
+                      {/* Show new image preview if selected */}
+                      {modalPrescriptionImage && modalImagePreview && (
+                        <div className="fix-new-image-preview">
+                          <p className="fix-new-image-label">
+                            <strong>Hình ảnh mới:</strong>
+                          </p>
+                          <div className="fix-image-preview-container">
+                            <img
+                              src={modalImagePreview}
+                              alt="Đơn thuốc mới"
+                              className="fix-image-preview"
+                              onClick={() =>
+                                handleImageClick(modalImagePreview)
+                              }
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="fix-form-actions">
+                    <button
+                      type="button"
+                      className="fix-btn-secondary"
+                      onClick={() => setIsModalOpen(false)}
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      type="submit"
+                      className="fix-btn-primary"
+                      disabled={loading}
+                    >
+                      {loading ? "Đang cập nhật..." : "Cập nhật"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Modal - Updated with consistent styling */}
+        {isConfirmationModalOpen && confirmationData && (
+          <div className="fix-med-modal-overlay">
+            <div className="fix-med-modal">
+              <div className="fix-med-modal-header">
+                <h3>Thông tin xác nhận cho thuốc</h3>
+                <button
+                  className="fix-med-modal-close"
                   onClick={() => {
                     setIsConfirmationModalOpen(false);
                     setConfirmationData(null);
                   }}
                 >
-                  Đóng
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6 6L18 18M6 18L18 6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
                 </button>
+              </div>
+
+              <div className="fix-med-modal-content">
+                <div className="confirmation-details">
+                  {/* Thông tin cơ bản */}
+                  <div className="confirmation-section">
+                    <h4>Thông tin thuốc</h4>
+                    <div className="confirmation-row">
+                      <div className="confirmation-item">
+                        <span className="confirmation-label">Tên thuốc:</span>
+                        <span className="confirmation-value">
+                          {confirmationData.medicationName}
+                        </span>
+                      </div>
+                      <div className="confirmation-item">
+                        <span className="confirmation-label">Học sinh:</span>
+                        <span className="confirmation-value">
+                          {confirmationData.studentName}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="confirmation-row">
+                      <div className="confirmation-item">
+                        <span className="confirmation-label">
+                          Mã yêu cầu thuốc:
+                        </span>
+                        <span className="confirmation-value">
+                          #{confirmationData.medicationInstructionId || "N/A"}
+                        </span>
+                      </div>
+                      <div className="confirmation-item">
+                        <span className="confirmation-label">Mã xác nhận:</span>
+                        <span className="confirmation-value">
+                          #{confirmationData.id || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="confirmation-row">
+                      <div className="confirmation-item">
+                        <span className="confirmation-label">
+                          Số lần dùng mỗi ngày:
+                        </span>
+                        <span className="confirmation-value">
+                          {confirmationData.frequencyPerDay || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Thông tin thực hiện */}
+                  <div className="confirmation-section">
+                    <h4>Thông tin thực hiện</h4>
+                    <div className="confirmation-row">
+                      <div className="confirmation-item">
+                        <span className="confirmation-label">
+                          Thời gian cho thuốc:
+                        </span>
+                        <span className="confirmation-value">
+                          {formatConfirmationTimestamp(
+                            confirmationData.administeredAt
+                          )}
+                        </span>
+                      </div>
+                      <div className="confirmation-item">
+                        <span className="confirmation-label">
+                          Người thực hiện:
+                        </span>
+                        <span className="confirmation-value">
+                          {confirmationData.administeredBy}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Trạng thái */}
+                  <div className="confirmation-section">
+                    <h4>Trạng thái</h4>
+                    <div className="confirmation-row">
+                      <div className="confirmation-item">
+                        <span className="confirmation-label">
+                          Trạng thái thực hiện:
+                        </span>
+                        <span
+                          className={`confirmation-status ${
+                            getAdministrationStatusInfo(
+                              confirmationData.administrationStatus
+                            ).class
+                          }`}
+                        >
+                          {
+                            getAdministrationStatusInfo(
+                              confirmationData.administrationStatus
+                            ).label
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ghi chú */}
+                  {confirmationData.notes && (
+                    <div className="confirmation-section">
+                      <h4>Ghi chú</h4>
+                      <div className="confirmation-notes">
+                        {confirmationData.notes}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hình ảnh xác nhận */}
+                  <div className="confirmation-section">
+                    <h4>Hình ảnh xác nhận</h4>
+                    <div className="confirmation-image">
+                      {confirmationData.confirmationImageUrl ? (
+                        <img
+                          src={confirmationData.confirmationImageUrl}
+                          alt="Hình ảnh xác nhận cho thuốc"
+                          className="confirmation-img"
+                          onClick={() =>
+                            handleImageClick(
+                              confirmationData.confirmationImageUrl
+                            )
+                          }
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                            e.target.nextSibling.style.display = "block";
+                          }}
+                        />
+                      ) : (
+                        <div className="no-image-placeholder">
+                          <p>Không có hình ảnh xác nhận</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="fix-med-modal-actions">
+                  <button
+                    className="fix-btn-primary"
+                    onClick={() => {
+                      setIsConfirmationModalOpen(false);
+                      setConfirmationData(null);
+                    }}
+                  >
+                    Đóng
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Image Zoom Overlay */}
-      {zoomedImage && (
-        <div className="zoom-overlay" onClick={handleCloseZoom}>
-          <img
-            src={zoomedImage}
-            alt="Hình ảnh chi tiết"
-            className="zoomed-image"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <button className="zoom-close-btn" onClick={handleCloseZoom}>
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+        {/* Notification Modal */}
+        {notificationModal.show && (
+          <div className="fix-notification-modal-overlay">
+            <div
+              className={`fix-notification-modal fix-notification-${notificationModal.type}`}
             >
-              <path
-                d="M6 6L18 18M6 18L18 6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-      )}
+              <div className="fix-notification-icon">
+                {notificationModal.type === "success" ? (
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M20 6L9 17L4 12"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M18 6L6 18M6 6L18 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+              <div className="fix-notification-content">
+                <h3>{notificationModal.title}</h3>
+                <p>{notificationModal.message}</p>
+              </div>
+              <div className="fix-notification-progress"></div>
+              <button
+                className="fix-notification-close"
+                onClick={() =>
+                  setNotificationModal({ ...notificationModal, show: false })
+                }
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
 
-      <ToastContainer />
+        {/* Image Zoom Overlay */}
+        {zoomedImage && (
+          <div className="zoom-overlay" onClick={handleCloseZoom}>
+            <img
+              src={zoomedImage}
+              alt="Hình ảnh chi tiết"
+              className="zoomed-image"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button className="zoom-close-btn" onClick={handleCloseZoom}>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 6L18 18M6 18L18 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

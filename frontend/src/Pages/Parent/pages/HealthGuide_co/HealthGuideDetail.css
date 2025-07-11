@@ -5,6 +5,8 @@
   font-family: 'Roboto', 'Segoe UI', sans-serif;
 }
 
+/* Override handled by global.css */
+
 /* Demo banner với animation nhẹ nhàng */
 .demo-banner {
   background-color: #fff3cd;

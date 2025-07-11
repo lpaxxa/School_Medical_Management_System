@@ -30,80 +30,7 @@ import {
 import { formatDateTime } from "../../utils/formatters";
 // Remove import of SendMedicine.css
 
-// Add custom styles for the modal image and zoom overlay - renamed to avoid conflicts
-const modalImageStyles = {
-  modalImageContainer: {
-    position: "relative",
-    marginTop: "10px",
-    borderRadius: "8px",
-    overflow: "hidden",
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-  },
-  modalImage: {
-    width: "100%",
-    maxHeight: "400px",
-    objectFit: "contain",
-    cursor: "zoom-in",
-    backgroundColor: "#f8f9fa",
-    transition: "transform 0.3s ease",
-    display: "block",
-    borderRadius: "8px",
-  },
-  imageZoomHint: {
-    position: "absolute",
-    bottom: "10px",
-    right: "10px",
-    background: "rgba(0, 0, 0, 0.5)",
-    color: "white",
-    padding: "5px 10px",
-    borderRadius: "4px",
-    fontSize: "12px",
-    display: "flex",
-    alignItems: "center",
-    gap: "5px",
-  },
-  // Renamed to avoid conflicts with SendMedicine component
-  incidentZoomOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.85)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-    padding: "20px",
-  },
-  // Renamed to avoid conflicts with SendMedicine component
-  incidentZoomedImage: {
-    width: "650px",
-    height: "600px",
-    objectFit: "contain",
-    borderRadius: "8px",
-    backgroundColor: "#fff",
-    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.25)",
-  },
-  // Renamed to avoid conflicts with SendMedicine component
-  incidentZoomCloseBtn: {
-    position: "absolute",
-    top: "20px",
-    right: "20px",
-    background: "white",
-    color: "#333",
-    border: "none",
-    borderRadius: "50%",
-    width: "40px",
-    height: "40px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    cursor: "pointer",
-    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
-    fontSize: "20px",
-  },
-};
+// Removed inline styles - now using CSS classes from components.css
 
 const IncidentModal = ({ isOpen, onClose, incident }) => {
   // State for image zoom functionality
@@ -363,14 +290,14 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
                 <FaCamera />
                 Hình ảnh sự cố
               </h3>
-              <div style={modalImageStyles.modalImageContainer}>
+              <div className="modal-image-container">
                 <img
                   src={incident.imageMedicalUrl}
                   alt="Hình ảnh sự cố y tế"
-                  style={modalImageStyles.modalImage}
+                  className="modal-image"
                   onClick={() => handleImageClick(incident.imageMedicalUrl)}
                 />
-                <div style={modalImageStyles.imageZoomHint}>
+                <div className="incident-image-zoom-hint">
                   <FaExpand /> Nhấp vào ảnh để phóng to
                 </div>
               </div>
@@ -462,21 +389,27 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
         </div>
       </div>
 
-      {/* Image Zoom Overlay - Class names changed to avoid conflicts */}
+      {/* Image Zoom Overlay - Fixed to prevent modal closing */}
       {zoomedImage && (
-        <div
-          style={modalImageStyles.incidentZoomOverlay}
-          onClick={handleCloseZoom}
+        <div 
+          className="incident-zoom-overlay" 
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent event bubbling to modal
+            handleCloseZoom();
+          }}
         >
           <img
             src={zoomedImage}
             alt="Zoomed image"
-            style={modalImageStyles.incidentZoomedImage}
+            className="incident-zoomed-image"
             onClick={(e) => e.stopPropagation()}
           />
-          <button
-            style={modalImageStyles.incidentZoomCloseBtn}
-            onClick={handleCloseZoom}
+          <button 
+            className="incident-zoom-close-btn" 
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent event bubbling to modal
+              handleCloseZoom();
+            }}
           >
             <FaTimes />
           </button>

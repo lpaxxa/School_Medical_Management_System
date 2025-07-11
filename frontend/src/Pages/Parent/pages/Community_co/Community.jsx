@@ -536,7 +536,7 @@ const Community = () => {
     setActiveTab(topicCategory);
 
     // Cuộn lên đầu trang để hiển thị kết quả lọc
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Remove scroll to prevent conflicts with layout
   };
 
   if (loading) {
@@ -544,443 +544,456 @@ const Community = () => {
   }
 
   return (
-    <div className="community-container">
-      <div className="community-header">
-        <div className="community-title">
-          <h1>Cộng đồng sức khỏe học đường</h1>
-          <p>Chia sẻ, trao đổi và học hỏi cùng phụ huynh và đội ngũ y tế</p>
-        </div>
-
-        <div className="community-actions">
-          <button
-            className="create-post-btn"
-            onClick={() => setShowCreatePostForm(true)}
-          >
-            <i className="fas fa-plus-circle"></i> Tạo bài viết mới
-          </button>
-        </div>
-      </div>
-
-      <div className="community-filter-bar">
-        <div className="filter-tabs">
-          <button
-            className={`filter-tab ${activeTab === "all" ? "active" : ""}`}
-            onClick={() => setActiveTab("all")}
-          >
-            <i className="fas fa-th-large"></i> Tất cả
-          </button>
-
-          {/* Thêm tab bài viết đã ghim */}
-          <button
-            className={`filter-tab ${
-              activeTab === "bookmarked" ? "active" : ""
-            }`}
-            onClick={() => setActiveTab("bookmarked")}
-          >
-            <i className="fas fa-bookmark"></i> Đã ghim
-          </button>
-
-          {/* Các tab khác */}
-          <button
-            className={`filter-tab ${activeTab === "nurse" ? "active" : ""}`}
-            onClick={() => setActiveTab("nurse")}
-          >
-            <i className="fas fa-user-nurse"></i> Từ y tá
-          </button>
-          <button
-            className={`filter-tab ${activeTab === "parent" ? "active" : ""}`}
-            onClick={() => setActiveTab("parent")}
-          >
-            <i className="fas fa-user-friends"></i> Từ phụ huynh
-          </button>
-          <button
-            className={`filter-tab ${activeTab === "question" ? "active" : ""}`}
-            onClick={() => setActiveTab("question")}
-          >
-            <i className="fas fa-question-circle"></i> Câu hỏi
-          </button>
-          <button
-            className={`filter-tab ${
-              activeTab === "announcement" ? "active" : ""
-            }`}
-            onClick={() => setActiveTab("announcement")}
-          >
-            <i className="fas fa-bullhorn"></i> Thông báo
-          </button>
-        </div>
-
-        <div className="search-bar">
-          <SearchBox
-            placeholder="Tìm kiếm bài viết..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onSearch={() => {}} // Search tự động xử lý qua onChange
-            className="community-search"
-          />
-        </div>
-      </div>
-
-      {showCreatePostForm && (
-        <div className="create-post-modal">
-          <div className="create-post-container">
-            <div className="modal-header">
-              <h2>Tạo bài viết mới</h2>
-              <button
-                className="close-modal-btn"
-                onClick={() => setShowCreatePostForm(false)}
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-
-            <form className="create-post-form" onSubmit={handleCreatePost}>
-              <div className="form-group">
-                <label htmlFor="post-title">Tiêu đề</label>
-                <input
-                  type="text"
-                  id="post-title"
-                  name="title"
-                  value={newPost.title}
-                  onChange={handleNewPostChange}
-                  placeholder="Nhập tiêu đề bài viết"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="post-category">Danh mục</label>
-                <select
-                  id="post-category"
-                  name="category"
-                  value={newPost.category}
-                  onChange={handleNewPostChange}
-                  required
-                >
-                  <option value="Hỏi đáp">Câu hỏi</option>
-                  <option value="Chia sẻ">Chia sẻ kinh nghiệm</option>
-                  <option value="COVID-19 và trẻ em">COVID-19 và trẻ em</option>
-                  <option value="Dinh dưỡng học đường">
-                    Dinh dưỡng học đường
-                  </option>
-                  <option value="Sức khỏe tâm thần">Sức khỏe tâm thần</option>
-                  <option value="Tuổi dậy thì">Tuổi dậy thì</option>
-                  <option value="Vắc-xin cho học sinh">
-                    Vắc-xin cho học sinh
-                  </option>
-                  {currentUser?.role === "NURSE" && (
-                    <>
-                      <option value="Thông báo">Thông báo</option>
-                      <option value="Hướng dẫn sức khỏe">
-                        Hướng dẫn sức khỏe
-                      </option>
-                    </>
-                  )}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="post-content">Nội dung</label>
-                <textarea
-                  id="post-content"
-                  name="content"
-                  value={newPost.content}
-                  onChange={handleNewPostChange}
-                  placeholder="Nhập nội dung bài viết..."
-                  rows="10"
-                  required
-                ></textarea>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="post-attachments">
-                  Đính kèm file (tùy chọn)
-                </label>
-                <div className="file-upload-container">
-                  <input
-                    type="file"
-                    id="post-attachments"
-                    onChange={handleFileUpload}
-                    multiple
-                  />
-                  <label htmlFor="post-attachments" className="file-upload-btn">
-                    <i className="fas fa-paperclip"></i> Chọn file
-                  </label>
-                </div>
-                <span className="help-text">
-                  Cho phép file: jpg, png, pdf, doc, docx. Tối đa 5MB/file
-                </span>
-              </div>
-
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => setShowCreatePostForm(false)}
-                >
-                  Hủy bỏ
-                </button>
-                <button type="submit" className="submit-btn">
-                  <i className="fas fa-paper-plane"></i> Đăng bài
-                </button>
-              </div>
-            </form>
+    <div className="parent-content-wrapper">
+      <div className="community-container">
+        <div className="community-header">
+          <div className="community-title">
+            <h1>Cộng đồng sức khỏe học đường</h1>
+            <p>Chia sẻ, trao đổi và học hỏi cùng phụ huynh và đội ngũ y tế</p>
           </div>
-        </div>
-      )}
 
-      <div className="posts-section">
-        {sortedPosts.length === 0 ? (
-          <div className="empty-posts">
-            <i className="fas fa-search"></i>
-            <p>Không tìm thấy bài viết nào phù hợp</p>
+          <div className="community-actions">
             <button
-              onClick={() => {
-                setActiveTab("all");
-                setSearchQuery("");
-              }}
-              className="reset-filters-btn"
+              className="create-post-btn"
+              onClick={() => setShowCreatePostForm(true)}
             >
-              <i className="fas fa-sync"></i> Xóa bộ lọc
+              <i className="fas fa-plus-circle"></i> Tạo bài viết mới
             </button>
           </div>
-        ) : (
-          <div className="posts-list">
-            {sortedPosts.map((post) => (
-              <div
-                key={post.id}
-                className={`post-card ${post.pinned ? "pinned" : ""}`}
-              >
-                {post.pinned && (
-                  <div className="pin-indicator">
-                    <i className="fas fa-thumbtack"></i> Ghim
-                  </div>
-                )}
+        </div>
 
-                <div className="post-header">
-                  <div className="post-author">
-                    {post.author.role === "PARENT" ? (
-                      // Icon cho phụ huynh
-                      <div className="author-icon parent-icon">
-                        <i className="fas fa-user-friends"></i>
-                      </div>
-                    ) : post.author.role === "NURSE" ? (
-                      // Icon cho y tá
-                      <div className="author-icon nurse-icon">
-                        <i className="fas fa-user-nurse"></i>
-                      </div>
-                    ) : (
-                      // Icon mặc định cho các vai trò khác
-                      <div className="author-icon default-icon">
-                        <i className="fas fa-user"></i>
-                      </div>
+        <div className="community-filter-bar">
+          <div className="filter-tabs">
+            <button
+              className={`filter-tab ${activeTab === "all" ? "active" : ""}`}
+              onClick={() => setActiveTab("all")}
+            >
+              <i className="fas fa-th-large"></i> Tất cả
+            </button>
+
+            {/* Thêm tab bài viết đã ghim */}
+            <button
+              className={`filter-tab ${
+                activeTab === "bookmarked" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("bookmarked")}
+            >
+              <i className="fas fa-bookmark"></i> Đã ghim
+            </button>
+
+            {/* Các tab khác */}
+            <button
+              className={`filter-tab ${activeTab === "nurse" ? "active" : ""}`}
+              onClick={() => setActiveTab("nurse")}
+            >
+              <i className="fas fa-user-nurse"></i> Từ y tá
+            </button>
+            <button
+              className={`filter-tab ${activeTab === "parent" ? "active" : ""}`}
+              onClick={() => setActiveTab("parent")}
+            >
+              <i className="fas fa-user-friends"></i> Từ phụ huynh
+            </button>
+            <button
+              className={`filter-tab ${
+                activeTab === "question" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("question")}
+            >
+              <i className="fas fa-question-circle"></i> Câu hỏi
+            </button>
+            <button
+              className={`filter-tab ${
+                activeTab === "announcement" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("announcement")}
+            >
+              <i className="fas fa-bullhorn"></i> Thông báo
+            </button>
+          </div>
+
+          <div className="search-bar">
+            <SearchBox
+              placeholder="Tìm kiếm bài viết..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onSearch={() => {}} // Search tự động xử lý qua onChange
+              className="community-search"
+            />
+          </div>
+        </div>
+
+        {showCreatePostForm && (
+          <div className="create-post-modal">
+            <div className="create-post-container">
+              <div className="modal-header">
+                <h2>Tạo bài viết mới</h2>
+                <button
+                  className="close-modal-btn"
+                  onClick={() => setShowCreatePostForm(false)}
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+
+              <form className="create-post-form" onSubmit={handleCreatePost}>
+                <div className="form-group">
+                  <label htmlFor="post-title">Tiêu đề</label>
+                  <input
+                    type="text"
+                    id="post-title"
+                    name="title"
+                    value={newPost.title}
+                    onChange={handleNewPostChange}
+                    placeholder="Nhập tiêu đề bài viết"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="post-category">Danh mục</label>
+                  <select
+                    id="post-category"
+                    name="category"
+                    value={newPost.category}
+                    onChange={handleNewPostChange}
+                    required
+                  >
+                    <option value="Hỏi đáp">Câu hỏi</option>
+                    <option value="Chia sẻ">Chia sẻ kinh nghiệm</option>
+                    <option value="COVID-19 và trẻ em">
+                      COVID-19 và trẻ em
+                    </option>
+                    <option value="Dinh dưỡng học đường">
+                      Dinh dưỡng học đường
+                    </option>
+                    <option value="Sức khỏe tâm thần">Sức khỏe tâm thần</option>
+                    <option value="Tuổi dậy thì">Tuổi dậy thì</option>
+                    <option value="Vắc-xin cho học sinh">
+                      Vắc-xin cho học sinh
+                    </option>
+                    {currentUser?.role === "NURSE" && (
+                      <>
+                        <option value="Thông báo">Thông báo</option>
+                        <option value="Hướng dẫn sức khỏe">
+                          Hướng dẫn sức khỏe
+                        </option>
+                      </>
                     )}
-                    <div className="author-info">
-                      <div className="author-name">
-                        {post.author.name}
-                        {post.author.role === "NURSE" && (
-                          <span className="author-badge nurse">
-                            <i className="fas fa-user-nurse"></i> Y tá
-                          </span>
-                        )}
-                        {post.author.role === "PARENT" && (
-                          <span className="author-badge parent">
-                            <i className="fas fa-users"></i> Phụ huynh
-                          </span>
-                        )}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="post-content">Nội dung</label>
+                  <textarea
+                    id="post-content"
+                    name="content"
+                    value={newPost.content}
+                    onChange={handleNewPostChange}
+                    placeholder="Nhập nội dung bài viết..."
+                    rows="10"
+                    required
+                  ></textarea>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="post-attachments">
+                    Đính kèm file (tùy chọn)
+                  </label>
+                  <div className="file-upload-container">
+                    <input
+                      type="file"
+                      id="post-attachments"
+                      onChange={handleFileUpload}
+                      multiple
+                    />
+                    <label
+                      htmlFor="post-attachments"
+                      className="file-upload-btn"
+                    >
+                      <i className="fas fa-paperclip"></i> Chọn file
+                    </label>
+                  </div>
+                  <span className="help-text">
+                    Cho phép file: jpg, png, pdf, doc, docx. Tối đa 5MB/file
+                  </span>
+                </div>
+
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    onClick={() => setShowCreatePostForm(false)}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button type="submit" className="submit-btn">
+                    <i className="fas fa-paper-plane"></i> Đăng bài
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        <div className="posts-section">
+          {sortedPosts.length === 0 ? (
+            <div className="empty-posts">
+              <i className="fas fa-search"></i>
+              <p>Không tìm thấy bài viết nào phù hợp</p>
+              <button
+                onClick={() => {
+                  setActiveTab("all");
+                  setSearchQuery("");
+                }}
+                className="reset-filters-btn"
+              >
+                <i className="fas fa-sync"></i> Xóa bộ lọc
+              </button>
+            </div>
+          ) : (
+            <div className="posts-list">
+              {sortedPosts.map((post) => (
+                <div
+                  key={post.id}
+                  className={`post-card ${post.pinned ? "pinned" : ""}`}
+                >
+                  {post.pinned && (
+                    <div className="pin-indicator">
+                      <i className="fas fa-thumbtack"></i> Ghim
+                    </div>
+                  )}
+
+                  <div className="post-header">
+                    <div className="post-author">
+                      {post.author.role === "PARENT" ? (
+                        // Icon cho phụ huynh
+                        <div className="author-icon parent-icon">
+                          <i className="fas fa-user-friends"></i>
+                        </div>
+                      ) : post.author.role === "NURSE" ? (
+                        // Icon cho y tá
+                        <div className="author-icon nurse-icon">
+                          <i className="fas fa-user-nurse"></i>
+                        </div>
+                      ) : (
+                        // Icon mặc định cho các vai trò khác
+                        <div className="author-icon default-icon">
+                          <i className="fas fa-user"></i>
+                        </div>
+                      )}
+                      <div className="author-info">
+                        <div className="author-name">
+                          {post.author.name}
+                          {post.author.role === "NURSE" && (
+                            <span className="author-badge nurse">
+                              <i className="fas fa-user-nurse"></i> Y tá
+                            </span>
+                          )}
+                          {post.author.role === "PARENT" && (
+                            <span className="author-badge parent">
+                              <i className="fas fa-users"></i> Phụ huynh
+                            </span>
+                          )}
+                        </div>
+                        <div className="post-time">
+                          {formatDate(post.createdAt)}
+                        </div>
                       </div>
-                      <div className="post-time">
-                        {formatDate(post.createdAt)}
-                      </div>
+                    </div>
+
+                    <div className="post-category">
+                      <i
+                        className={`fas ${getCategoryIcon(post.category)}`}
+                      ></i>
+                      {getCategoryName(post.category)}
                     </div>
                   </div>
 
-                  <div className="post-category">
-                    <i className={`fas ${getCategoryIcon(post.category)}`}></i>
-                    {getCategoryName(post.category)}
+                  <div className="post-content">
+                    <h3 className="post-title">
+                      <Link to={`/parent/community/post/${post.id}`}>
+                        {post.title}
+                      </Link>
+                    </h3>
+                    <p className="post-excerpt">
+                      {post.excerpt || post.content.substring(0, 250) + "..."}
+                    </p>
                   </div>
-                </div>
 
-                <div className="post-content">
-                  <h3 className="post-title">
-                    <Link to={`/parent/community/post/${post.id}`}>
-                      {post.title}
-                    </Link>
-                  </h3>
-                  <p className="post-excerpt">
-                    {post.excerpt || post.content.substring(0, 250) + "..."}
-                  </p>
-                </div>
+                  <div className="post-footer">
+                    <div className="post-stats">
+                      <button
+                        className={`like-btn ${
+                          likedPosts.includes(parseInt(post.id)) ? "liked" : ""
+                        }`}
+                        onClick={(e) => handlePostLike(post.id, e)}
+                      >
+                        <i
+                          className={`${
+                            likedPosts.includes(parseInt(post.id))
+                              ? "fas"
+                              : "far"
+                          } fa-heart`}
+                        ></i>{" "}
+                        {post.likes}
+                      </button>
+                      <Link
+                        to={`/parent/community/post/${post.id}`}
+                        className="comments-btn"
+                      >
+                        <i className="fas fa-comment"></i> {post.commentsCount}
+                      </Link>
 
-                <div className="post-footer">
-                  <div className="post-stats">
-                    <button
-                      className={`like-btn ${
-                        likedPosts.includes(parseInt(post.id)) ? "liked" : ""
-                      }`}
-                      onClick={(e) => handlePostLike(post.id, e)}
-                    >
-                      <i
-                        className={`${
-                          likedPosts.includes(parseInt(post.id)) ? "fas" : "far"
-                        } fa-heart`}
-                      ></i>{" "}
-                      {post.likes}
-                    </button>
+                      {/* Thêm nút bookmark */}
+                      <button
+                        className={`bookmark-btn ${
+                          bookmarkedPosts.includes(parseInt(post.id))
+                            ? "bookmarked"
+                            : ""
+                        }`}
+                        onClick={(e) => handleBookmark(post.id, e)}
+                        title={
+                          bookmarkedPosts.includes(parseInt(post.id))
+                            ? "Bỏ ghim"
+                            : "Ghim bài viết"
+                        }
+                      >
+                        <i
+                          className={`${
+                            bookmarkedPosts.includes(parseInt(post.id))
+                              ? "fas"
+                              : "far"
+                          } fa-bookmark`}
+                        ></i>
+                      </button>
+                    </div>
+
                     <Link
                       to={`/parent/community/post/${post.id}`}
-                      className="comments-btn"
+                      className="read-more-btn"
                     >
-                      <i className="fas fa-comment"></i> {post.commentsCount}
+                      Đọc tiếp <i className="fas fa-arrow-right"></i>
                     </Link>
-
-                    {/* Thêm nút bookmark */}
-                    <button
-                      className={`bookmark-btn ${
-                        bookmarkedPosts.includes(parseInt(post.id))
-                          ? "bookmarked"
-                          : ""
-                      }`}
-                      onClick={(e) => handleBookmark(post.id, e)}
-                      title={
-                        bookmarkedPosts.includes(parseInt(post.id))
-                          ? "Bỏ ghim"
-                          : "Ghim bài viết"
-                      }
-                    >
-                      <i
-                        className={`${
-                          bookmarkedPosts.includes(parseInt(post.id))
-                            ? "fas"
-                            : "far"
-                        } fa-bookmark`}
-                      ></i>
-                    </button>
                   </div>
-
-                  <Link
-                    to={`/parent/community/post/${post.id}`}
-                    className="read-more-btn"
-                  >
-                    Đọc tiếp <i className="fas fa-arrow-right"></i>
-                  </Link>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="pagination-controls">
+            <button
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page <= 1}
+              className="pagination-btn prev-btn"
+            >
+              <i className="fas fa-chevron-left"></i> Trang trước
+            </button>
+
+            <span className="pagination-info">
+              Trang {page} / {totalPages}
+            </span>
+
+            <button
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={page >= totalPages}
+              className="pagination-btn next-btn"
+            >
+              Trang sau <i className="fas fa-chevron-right"></i>
+            </button>
           </div>
         )}
-      </div>
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="pagination-controls">
-          <button
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            disabled={page <= 1}
-            className="pagination-btn prev-btn"
-          >
-            <i className="fas fa-chevron-left"></i> Trang trước
-          </button>
+        <div className="community-sidebar">
+          <div className="sidebar-section popular-topics">
+            <h3>Chủ đề phổ biến</h3>
+            <ul className="topic-list">
+              <li>
+                <button
+                  className={`topic-link ${
+                    activeTab === "COVID-19 và trẻ em" ? "active" : ""
+                  }`}
+                  onClick={() => handleTopicFilter("COVID-19 và trẻ em")}
+                >
+                  <i className="fas fa-virus"></i> COVID-19 và trẻ em
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`topic-link ${
+                    activeTab === "Dinh dưỡng học đường" ? "active" : ""
+                  }`}
+                  onClick={() => handleTopicFilter("Dinh dưỡng học đường")}
+                >
+                  <i className="fas fa-apple-alt"></i> Dinh dưỡng học đường
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`topic-link ${
+                    activeTab === "Sức khỏe tâm thần" ? "active" : ""
+                  }`}
+                  onClick={() => handleTopicFilter("Sức khỏe tâm thần")}
+                >
+                  <i className="fas fa-brain"></i> Sức khỏe tâm thần
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`topic-link ${
+                    activeTab === "Tuổi dậy thì" ? "active" : ""
+                  }`}
+                  onClick={() => handleTopicFilter("Tuổi dậy thì")}
+                >
+                  <i className="fas fa-child"></i> Tuổi dậy thì
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`topic-link ${
+                    activeTab === "Vắc-xin cho học sinh" ? "active" : ""
+                  }`}
+                  onClick={() => handleTopicFilter("Vắc-xin cho học sinh")}
+                >
+                  <i className="fas fa-syringe"></i> Vắc-xin cho học sinh
+                </button>
+              </li>
+            </ul>
+          </div>
 
-          <span className="pagination-info">
-            Trang {page} / {totalPages}
-          </span>
+          <div className="sidebar-section community-rules">
+            <h3>Quy định cộng đồng</h3>
+            <ul className="rules-list">
+              <li>Tôn trọng mọi thành viên trong cộng đồng</li>
+              <li>Không chia sẻ thông tin cá nhân của học sinh</li>
+              <li>Không đăng nội dung quảng cáo, spam</li>
+              <li>Kiểm tra thông tin trước khi chia sẻ</li>
+              <li>Báo cáo những nội dung không phù hợp</li>
+            </ul>
+          </div>
 
-          <button
-            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-            disabled={page >= totalPages}
-            className="pagination-btn next-btn"
-          >
-            Trang sau <i className="fas fa-chevron-right"></i>
-          </button>
-        </div>
-      )}
-
-      <div className="community-sidebar">
-        <div className="sidebar-section popular-topics">
-          <h3>Chủ đề phổ biến</h3>
-          <ul className="topic-list">
-            <li>
-              <button
-                className={`topic-link ${
-                  activeTab === "COVID-19 và trẻ em" ? "active" : ""
-                }`}
-                onClick={() => handleTopicFilter("COVID-19 và trẻ em")}
-              >
-                <i className="fas fa-virus"></i> COVID-19 và trẻ em
-              </button>
-            </li>
-            <li>
-              <button
-                className={`topic-link ${
-                  activeTab === "Dinh dưỡng học đường" ? "active" : ""
-                }`}
-                onClick={() => handleTopicFilter("Dinh dưỡng học đường")}
-              >
-                <i className="fas fa-apple-alt"></i> Dinh dưỡng học đường
-              </button>
-            </li>
-            <li>
-              <button
-                className={`topic-link ${
-                  activeTab === "Sức khỏe tâm thần" ? "active" : ""
-                }`}
-                onClick={() => handleTopicFilter("Sức khỏe tâm thần")}
-              >
-                <i className="fas fa-brain"></i> Sức khỏe tâm thần
-              </button>
-            </li>
-            <li>
-              <button
-                className={`topic-link ${
-                  activeTab === "Tuổi dậy thì" ? "active" : ""
-                }`}
-                onClick={() => handleTopicFilter("Tuổi dậy thì")}
-              >
-                <i className="fas fa-child"></i> Tuổi dậy thì
-              </button>
-            </li>
-            <li>
-              <button
-                className={`topic-link ${
-                  activeTab === "Vắc-xin cho học sinh" ? "active" : ""
-                }`}
-                onClick={() => handleTopicFilter("Vắc-xin cho học sinh")}
-              >
-                <i className="fas fa-syringe"></i> Vắc-xin cho học sinh
-              </button>
-            </li>
-          </ul>
-        </div>
-
-        <div className="sidebar-section community-rules">
-          <h3>Quy định cộng đồng</h3>
-          <ul className="rules-list">
-            <li>Tôn trọng mọi thành viên trong cộng đồng</li>
-            <li>Không chia sẻ thông tin cá nhân của học sinh</li>
-            <li>Không đăng nội dung quảng cáo, spam</li>
-            <li>Kiểm tra thông tin trước khi chia sẻ</li>
-            <li>Báo cáo những nội dung không phù hợp</li>
-          </ul>
-        </div>
-
-        <div className="sidebar-section contact-nurse">
-          <h3>Liên hệ y tá trường học</h3>
-          <div className="nurse-contact">
-            <div className="nurse-info">
-              <div className="nurse-avatar-container">
-                <i className="fas fa-user-nurse"></i>
+          <div className="sidebar-section contact-nurse">
+            <h3>Liên hệ y tá trường học</h3>
+            <div className="nurse-contact">
+              <div className="nurse-info">
+                <div className="nurse-avatar-container">
+                  <i className="fas fa-user-nurse"></i>
+                </div>
+                <div className="nurse-details">
+                  <div className="nurse-name">Y tá Nguyễn Thị Hương</div>
+                  <div className="nurse-title">Y tá trưởng</div>
+                </div>
               </div>
-              <div className="nurse-details">
-                <div className="nurse-name">Y tá Nguyễn Thị Hương</div>
-                <div className="nurse-title">Y tá trưởng</div>
-              </div>
+              <a href="tel:+84912345678" className="contact-btn">
+                <i className="fas fa-phone"></i> Gọi điện
+              </a>
+              <Link to="/parent/contact" className="contact-btn message">
+                <i className="fas fa-envelope"></i> Nhắn tin
+              </Link>
             </div>
-            <a href="tel:+84912345678" className="contact-btn">
-              <i className="fas fa-phone"></i> Gọi điện
-            </a>
-            <Link to="/parent/contact" className="contact-btn message">
-              <i className="fas fa-envelope"></i> Nhắn tin
-            </Link>
           </div>
         </div>
       </div>
