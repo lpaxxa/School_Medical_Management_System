@@ -168,10 +168,19 @@ body {
   }
 }
 
+.parent-content-wrapper .health-guide-container,
+.parent-content-wrapper .community-container {
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+}
+
+
+
 /* Override specific containers that should be smaller - FORCE OVERRIDE */
 .parent-content-wrapper .send-medicine-container,
-.parent-content-wrapper .health-guide-container,
-.parent-content-wrapper .community-container,
+/* .parent-content-wrapper .health-guide-container, */
+/* .parent-content-wrapper .community-container, */
 .parent-content-wrapper .introduction-page,
 .parent-content-wrapper .sp-container,
 .parent-content-wrapper .health-declaration-container,

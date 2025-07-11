@@ -188,6 +188,17 @@ const Notifications = () => {
       });
     }
 
+    // Sắp xếp theo ngày mới nhất từ trên xuống
+    filtered.sort((a, b) => {
+      const dateA = new Date(
+        a.createdAt || a.campaignStartDate || a.updatedAt || 0
+      );
+      const dateB = new Date(
+        b.createdAt || b.campaignStartDate || b.updatedAt || 0
+      );
+      return dateB - dateA; // Ngày mới nhất trước
+    });
+
     return filtered;
   };
 
@@ -338,6 +349,13 @@ const Notifications = () => {
         });
       }
     }
+
+    // Sắp xếp theo ngày mới nhất từ trên xuống
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.receivedDate || a.createdAt || 0);
+      const dateB = new Date(b.receivedDate || b.createdAt || 0);
+      return dateB - dateA; // Ngày mới nhất trước
+    });
 
     return filtered;
   };

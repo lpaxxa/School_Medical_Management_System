@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import "../shared/header-fix.css"; // Import header-fix TRƯỚC Community.css
 import "./Community.css";
@@ -9,7 +9,7 @@ import communityService from "../../../../services/communityService"; // Import 
 
 const Community = () => {
   const { currentUser } = useAuth();
-  const [posts, setPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]); // Store all posts từ API
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,7 +25,8 @@ const Community = () => {
   const [likedPosts, setLikedPosts] = useState([]);
   // Thêm state để quản lý bài viết đã được ghim
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
-  const [page, setPage] = useState(1); // Thêm state để quản lý phân trang
+  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại cho pagination client-side
+  const postsPerPage = 10; // Số bài viết mỗi trang
   const [totalPages, setTotalPages] = useState(1);
 
   // API URL
@@ -154,33 +155,23 @@ const Community = () => {
     },
   ];
 
+  // Load tất cả posts một lần duy nhất khi component mount
   useEffect(() => {
-    // Gọi API để lấy danh sách bài đăng
-    const fetchPosts = async () => {
+    const fetchAllPosts = async () => {
       setLoading(true);
-      console.log("🔄 Fetching posts with params:", {
-        page,
-        activeTab,
-        searchQuery,
-      });
+      console.log("🔄 Fetching all posts once...");
 
       // Check authentication first
       if (!checkAuthentication()) {
         console.log("🔄 Using mock data due to authentication issues");
-        setPosts(MOCK_POSTS);
-        setTotalPages(1);
+        setAllPosts(MOCK_POSTS);
         setLoading(false);
         return;
       }
 
       try {
-        const result = await communityService.getPosts(
-          page,
-          10,
-          activeTab !== "all" ? activeTab : null,
-          searchQuery || null
-        );
-
+        // Fetch all posts without pagination (or with a large page size)
+        const result = await communityService.getPosts(1, 1000, null, null);
         console.log("📝 API response:", result);
 
         if (
@@ -210,54 +201,30 @@ const Community = () => {
 
           setLikedPosts(likedPostIds);
           setBookmarkedPosts(bookmarkedPostIds);
-          setPosts(result.data.content);
-          setTotalPages(result.data.totalPages || 1);
-
-          // Log pagination info
-          console.log("📄 Pagination info:", {
-            page: result.data.page,
-            totalPages: result.data.totalPages,
-            totalElements: result.data.totalElements,
-            first: result.data.first,
-            last: result.data.last,
-          });
+          setAllPosts(result.data.content);
         } else {
           console.warn("⚠️ API response invalid, using mock data:", result);
-          setPosts(MOCK_POSTS);
-          setTotalPages(1);
+          setAllPosts(MOCK_POSTS);
         }
       } catch (error) {
         console.error("❌ Error fetching posts:", error);
-        console.error("❌ Error details:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
-
-        // Fallback to mock data
         console.log("🔄 Falling back to mock data");
-        setPosts(MOCK_POSTS);
-        setTotalPages(1);
+        setAllPosts(MOCK_POSTS);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPosts();
-  }, [page, activeTab, searchQuery]); // Dependency array: khi page, activeTab hoặc searchQuery thay đổi, sẽ gọi lại API
+    fetchAllPosts();
+  }, []); // Chỉ chạy một lần khi component mount
 
-  // Lọc bài viết theo tab và tìm kiếm - thêm protection để đảm bảo posts là array
-  const filteredPosts = Array.isArray(posts)
-    ? posts.filter((post) => {
+  // Lọc và tìm kiếm bài viết trên client-side
+  const filteredPosts = Array.isArray(allPosts)
+    ? allPosts.filter((post) => {
         // Đảm bảo post và các thuộc tính cần thiết tồn tại
         if (!post || !post.author) return false;
 
-        // Debug log để kiểm tra data
-        if (activeTab === "nurse" || activeTab === "parent") {
-          console.log("Post author role:", post.author.role);
-          console.log("ActiveTab:", activeTab);
-        }
-
+        // Lọc theo tab
         const matchesTab =
           activeTab === "all" ||
           (activeTab === "nurse" && matchRole(post.author.role, "nurse")) ||
@@ -266,16 +233,25 @@ const Community = () => {
             bookmarkedPosts.includes(parseInt(post.id))) ||
           activeTab === post.category;
 
+        // Cải thiện tìm kiếm: tìm trong tiêu đề, nội dung, excerpt và tên tác giả
         const matchesSearch =
           searchQuery === "" ||
           (post.title &&
             post.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
           (post.content &&
-            post.content.toLowerCase().includes(searchQuery.toLowerCase()));
+            post.content.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (post.excerpt &&
+            post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (post.author?.name &&
+            post.author.name
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())) ||
+          (post.category &&
+            post.category.toLowerCase().includes(searchQuery.toLowerCase()));
 
         return matchesTab && matchesSearch;
       })
-    : []; // Trả về array rỗng nếu posts không phải array
+    : [];
 
   // Sắp xếp bài viết: ghim lên đầu, sau đó sắp xếp theo thời gian
   const sortedPosts = [...filteredPosts].sort((a, b) => {
@@ -283,6 +259,17 @@ const Community = () => {
     if (!a.pinned && b.pinned) return 1;
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
+
+  // Pagination trên client-side
+  const totalFilteredPages = Math.ceil(sortedPosts.length / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const endIndex = startIndex + postsPerPage;
+  const currentPosts = sortedPosts.slice(startIndex, endIndex);
+
+  // Reset về trang đầu khi thay đổi filter hoặc search
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery]);
 
   const handleNewPostChange = (e) => {
     const { name, value } = e.target;
@@ -332,8 +319,8 @@ const Community = () => {
       console.log("📝 Create post result:", result);
 
       if (result && result.status === "success") {
-        // Thêm bài viết mới vào danh sách hiện có
-        setPosts((prev) => [result.data, ...prev]);
+        // Thêm bài viết mới vào đầu danh sách allPosts
+        setAllPosts((prev) => [result.data, ...prev]);
 
         // Reset form và đóng modal
         setShowCreatePostForm(false);
@@ -410,7 +397,7 @@ const Community = () => {
         }
 
         // Cập nhật số lượt like trong danh sách bài viết
-        setPosts((prev) =>
+        setAllPosts((prev) =>
           prev.map((post) =>
             parseInt(post.id) === numericPostId
               ? { ...post, likes: likesCount }
@@ -474,7 +461,7 @@ const Community = () => {
         }
 
         // Cập nhật trong posts list
-        setPosts((prev) =>
+        setAllPosts((prev) =>
           prev.map((post) =>
             parseInt(post.id) === numericPostId ? { ...post, bookmarked } : post
           )
@@ -532,11 +519,18 @@ const Community = () => {
   };
 
   const handleTopicFilter = (topicCategory) => {
-    // Cập nhật activeTab để lọc theo category đã chọn
-    setActiveTab(topicCategory);
+    // Sử dụng handleTabChange để đảm bảo consistency
+    handleTabChange(topicCategory);
 
     // Cuộn lên đầu trang để hiển thị kết quả lọc
     // Remove scroll to prevent conflicts with layout
+  };
+
+  // Helper function để xử lý chuyển tab
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    // Reset về trang đầu khi chuyển tab
+    setCurrentPage(1);
   };
 
   if (loading) {
@@ -566,7 +560,7 @@ const Community = () => {
           <div className="filter-tabs">
             <button
               className={`filter-tab ${activeTab === "all" ? "active" : ""}`}
-              onClick={() => setActiveTab("all")}
+              onClick={() => handleTabChange("all")}
             >
               <i className="fas fa-th-large"></i> Tất cả
             </button>
@@ -576,7 +570,7 @@ const Community = () => {
               className={`filter-tab ${
                 activeTab === "bookmarked" ? "active" : ""
               }`}
-              onClick={() => setActiveTab("bookmarked")}
+              onClick={() => handleTabChange("bookmarked")}
             >
               <i className="fas fa-bookmark"></i> Đã ghim
             </button>
@@ -584,13 +578,13 @@ const Community = () => {
             {/* Các tab khác */}
             <button
               className={`filter-tab ${activeTab === "nurse" ? "active" : ""}`}
-              onClick={() => setActiveTab("nurse")}
+              onClick={() => handleTabChange("nurse")}
             >
               <i className="fas fa-user-nurse"></i> Từ y tá
             </button>
             <button
               className={`filter-tab ${activeTab === "parent" ? "active" : ""}`}
-              onClick={() => setActiveTab("parent")}
+              onClick={() => handleTabChange("parent")}
             >
               <i className="fas fa-user-friends"></i> Từ phụ huynh
             </button>
@@ -598,7 +592,7 @@ const Community = () => {
               className={`filter-tab ${
                 activeTab === "question" ? "active" : ""
               }`}
-              onClick={() => setActiveTab("question")}
+              onClick={() => handleTabChange("question")}
             >
               <i className="fas fa-question-circle"></i> Câu hỏi
             </button>
@@ -606,7 +600,7 @@ const Community = () => {
               className={`filter-tab ${
                 activeTab === "announcement" ? "active" : ""
               }`}
-              onClick={() => setActiveTab("announcement")}
+              onClick={() => handleTabChange("announcement")}
             >
               <i className="fas fa-bullhorn"></i> Thông báo
             </button>
@@ -614,7 +608,7 @@ const Community = () => {
 
           <div className="search-bar">
             <SearchBox
-              placeholder="Tìm kiếm bài viết..."
+              placeholder="Tìm kiếm bài viết (tiêu đề, nội dung, tác giả...)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onSearch={() => {}} // Search tự động xử lý qua onChange
@@ -737,13 +731,17 @@ const Community = () => {
         )}
 
         <div className="posts-section">
-          {sortedPosts.length === 0 ? (
+          {currentPosts.length === 0 ? (
             <div className="empty-posts">
               <i className="fas fa-search"></i>
-              <p>Không tìm thấy bài viết nào phù hợp</p>
+              <p>
+                {searchQuery
+                  ? `Không tìm thấy bài viết nào chứa "${searchQuery}"`
+                  : "Không tìm thấy bài viết nào phù hợp"}
+              </p>
               <button
                 onClick={() => {
-                  setActiveTab("all");
+                  handleTabChange("all");
                   setSearchQuery("");
                 }}
                 className="reset-filters-btn"
@@ -752,154 +750,182 @@ const Community = () => {
               </button>
             </div>
           ) : (
-            <div className="posts-list">
-              {sortedPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className={`post-card ${post.pinned ? "pinned" : ""}`}
-                >
-                  {post.pinned && (
-                    <div className="pin-indicator">
-                      <i className="fas fa-thumbtack"></i> Ghim
-                    </div>
-                  )}
+            <>
+              {/* Hiển thị thông tin tìm kiếm */}
+              {(searchQuery || activeTab !== "all") && (
+                <div className="search-results-info">
+                  <p>
+                    Tìm thấy <strong>{sortedPosts.length}</strong> bài viết
+                    {searchQuery && (
+                      <span>
+                        {" "}
+                        cho từ khóa "<strong>{searchQuery}</strong>"
+                      </span>
+                    )}
+                    {activeTab !== "all" && (
+                      <span>
+                        {" "}
+                        trong danh mục "<strong>{activeTab}</strong>"
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
 
-                  <div className="post-header">
-                    <div className="post-author">
-                      {post.author.role === "PARENT" ? (
-                        // Icon cho phụ huynh
-                        <div className="author-icon parent-icon">
-                          <i className="fas fa-user-friends"></i>
+              <div className="posts-list">
+                {currentPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className={`post-card ${post.pinned ? "pinned" : ""}`}
+                  >
+                    {post.pinned && (
+                      <div className="pin-indicator">
+                        <i className="fas fa-thumbtack"></i> Ghim
+                      </div>
+                    )}
+
+                    <div className="post-header">
+                      <div className="post-author">
+                        {post.author.role === "PARENT" ? (
+                          // Icon cho phụ huynh
+                          <div className="author-icon parent-icon">
+                            <i className="fas fa-user-friends"></i>
+                          </div>
+                        ) : post.author.role === "NURSE" ? (
+                          // Icon cho y tá
+                          <div className="author-icon nurse-icon">
+                            <i className="fas fa-user-nurse"></i>
+                          </div>
+                        ) : (
+                          // Icon mặc định cho các vai trò khác
+                          <div className="author-icon default-icon">
+                            <i className="fas fa-user"></i>
+                          </div>
+                        )}
+                        <div className="author-info">
+                          <div className="author-name">
+                            {post.author.name}
+                            {post.author.role === "NURSE" && (
+                              <span className="author-badge nurse">
+                                <i className="fas fa-user-nurse"></i> Y tá
+                              </span>
+                            )}
+                            {post.author.role === "PARENT" && (
+                              <span className="author-badge parent">
+                                <i className="fas fa-users"></i> Phụ huynh
+                              </span>
+                            )}
+                          </div>
+                          <div className="post-time">
+                            {formatDate(post.createdAt)}
+                          </div>
                         </div>
-                      ) : post.author.role === "NURSE" ? (
-                        // Icon cho y tá
-                        <div className="author-icon nurse-icon">
-                          <i className="fas fa-user-nurse"></i>
-                        </div>
-                      ) : (
-                        // Icon mặc định cho các vai trò khác
-                        <div className="author-icon default-icon">
-                          <i className="fas fa-user"></i>
-                        </div>
-                      )}
-                      <div className="author-info">
-                        <div className="author-name">
-                          {post.author.name}
-                          {post.author.role === "NURSE" && (
-                            <span className="author-badge nurse">
-                              <i className="fas fa-user-nurse"></i> Y tá
-                            </span>
-                          )}
-                          {post.author.role === "PARENT" && (
-                            <span className="author-badge parent">
-                              <i className="fas fa-users"></i> Phụ huynh
-                            </span>
-                          )}
-                        </div>
-                        <div className="post-time">
-                          {formatDate(post.createdAt)}
-                        </div>
+                      </div>
+
+                      <div className="post-category">
+                        <i
+                          className={`fas ${getCategoryIcon(post.category)}`}
+                        ></i>
+                        {getCategoryName(post.category)}
                       </div>
                     </div>
 
-                    <div className="post-category">
-                      <i
-                        className={`fas ${getCategoryIcon(post.category)}`}
-                      ></i>
-                      {getCategoryName(post.category)}
+                    <div className="post-content">
+                      <h3 className="post-title">
+                        <Link to={`/parent/community/post/${post.id}`}>
+                          {post.title}
+                        </Link>
+                      </h3>
+                      <p className="post-excerpt">
+                        {post.excerpt || post.content.substring(0, 250) + "..."}
+                      </p>
                     </div>
-                  </div>
 
-                  <div className="post-content">
-                    <h3 className="post-title">
-                      <Link to={`/parent/community/post/${post.id}`}>
-                        {post.title}
-                      </Link>
-                    </h3>
-                    <p className="post-excerpt">
-                      {post.excerpt || post.content.substring(0, 250) + "..."}
-                    </p>
-                  </div>
-
-                  <div className="post-footer">
-                    <div className="post-stats">
-                      <button
-                        className={`like-btn ${
-                          likedPosts.includes(parseInt(post.id)) ? "liked" : ""
-                        }`}
-                        onClick={(e) => handlePostLike(post.id, e)}
-                      >
-                        <i
-                          className={`${
+                    <div className="post-footer">
+                      <div className="post-stats">
+                        <button
+                          className={`like-btn ${
                             likedPosts.includes(parseInt(post.id))
-                              ? "fas"
-                              : "far"
-                          } fa-heart`}
-                        ></i>{" "}
-                        {post.likes}
-                      </button>
+                              ? "liked"
+                              : ""
+                          }`}
+                          onClick={(e) => handlePostLike(post.id, e)}
+                        >
+                          <i
+                            className={`${
+                              likedPosts.includes(parseInt(post.id))
+                                ? "fas"
+                                : "far"
+                            } fa-heart`}
+                          ></i>{" "}
+                          {post.likes}
+                        </button>
+                        <Link
+                          to={`/parent/community/post/${post.id}`}
+                          className="comments-btn"
+                        >
+                          <i className="fas fa-comment"></i>{" "}
+                          {post.commentsCount}
+                        </Link>
+
+                        {/* Thêm nút bookmark */}
+                        <button
+                          className={`bookmark-btn ${
+                            bookmarkedPosts.includes(parseInt(post.id))
+                              ? "bookmarked"
+                              : ""
+                          }`}
+                          onClick={(e) => handleBookmark(post.id, e)}
+                          title={
+                            bookmarkedPosts.includes(parseInt(post.id))
+                              ? "Bỏ ghim"
+                              : "Ghim bài viết"
+                          }
+                        >
+                          <i
+                            className={`${
+                              bookmarkedPosts.includes(parseInt(post.id))
+                                ? "fas"
+                                : "far"
+                            } fa-bookmark`}
+                          ></i>
+                        </button>
+                      </div>
+
                       <Link
                         to={`/parent/community/post/${post.id}`}
-                        className="comments-btn"
+                        className="read-more-btn"
                       >
-                        <i className="fas fa-comment"></i> {post.commentsCount}
+                        Đọc tiếp <i className="fas fa-arrow-right"></i>
                       </Link>
-
-                      {/* Thêm nút bookmark */}
-                      <button
-                        className={`bookmark-btn ${
-                          bookmarkedPosts.includes(parseInt(post.id))
-                            ? "bookmarked"
-                            : ""
-                        }`}
-                        onClick={(e) => handleBookmark(post.id, e)}
-                        title={
-                          bookmarkedPosts.includes(parseInt(post.id))
-                            ? "Bỏ ghim"
-                            : "Ghim bài viết"
-                        }
-                      >
-                        <i
-                          className={`${
-                            bookmarkedPosts.includes(parseInt(post.id))
-                              ? "fas"
-                              : "far"
-                          } fa-bookmark`}
-                        ></i>
-                      </button>
                     </div>
-
-                    <Link
-                      to={`/parent/community/post/${post.id}`}
-                      className="read-more-btn"
-                    >
-                      Đọc tiếp <i className="fas fa-arrow-right"></i>
-                    </Link>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
+        {totalFilteredPages > 1 && (
           <div className="pagination-controls">
             <button
-              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-              disabled={page <= 1}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage <= 1}
               className="pagination-btn prev-btn"
             >
               <i className="fas fa-chevron-left"></i> Trang trước
             </button>
 
             <span className="pagination-info">
-              Trang {page} / {totalPages}
+              Trang {currentPage} / {totalFilteredPages}
             </span>
 
             <button
-              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={page >= totalPages}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalFilteredPages, prev + 1))
+              }
+              disabled={currentPage >= totalFilteredPages}
               className="pagination-btn next-btn"
             >
               Trang sau <i className="fas fa-chevron-right"></i>

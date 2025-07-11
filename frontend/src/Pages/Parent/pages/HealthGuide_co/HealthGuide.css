@@ -552,6 +552,7 @@
   border-radius: var(--border-radius);
   padding: 10px 16px;
   display: flex;
+  width: 150px;
   align-items: center;
   gap: 8px;
   font-size: 0.95rem;
