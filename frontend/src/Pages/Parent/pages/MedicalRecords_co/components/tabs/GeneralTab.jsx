@@ -15,6 +15,8 @@ import {
   FaShieldVirus,
   FaWheelchair,
   FaPhoneVolume,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import { formatDate, formatDateTime } from "../../utils/formatters";
 import { getBMIStatus } from "../../utils/helpers";
@@ -58,6 +60,10 @@ const GeneralTab = ({
 }) => {
   const [mergedHealthData, setMergedHealthData] = useState(null);
   const [checkupsData, setCheckupsData] = useState([]);
+
+  // Pagination states for vaccination history
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
 
   // Function to merge health profile with latest checkup data
   const mergeHealthDataWithCheckups = useCallback((profileData, checkups) => {
@@ -151,6 +157,34 @@ const GeneralTab = ({
   const displayHealthData =
     mergedHealthData || healthProfileData?.healthProfile;
   const vaccinationsData = healthProfileData?.vaccinations || [];
+
+  // Pagination logic for vaccinations
+  const totalPages = Math.ceil(vaccinationsData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentVaccinations = vaccinationsData.slice(startIndex, endIndex);
+
+  // Pagination handlers
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Reset to first page when data changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [vaccinationsData.length]);
 
   return (
     <div>
@@ -370,52 +404,82 @@ const GeneralTab = ({
             <div className="vaccination-section">
               <h3>Lịch sử tiêm chủng</h3>
               <div className="vaccination-list">
-                {vaccinationsData.map((vaccination) => (
+                {currentVaccinations.map((vaccination) => (
                   <div key={vaccination.id} className="vaccination-item">
                     <div className="vaccination-header">
-                      <span className="dose-number">
-                        Mũi {vaccination.doseNumber}
+                      <span className="vaccine-name-primary">
+                        {vaccination.vaccineName || "Chưa xác định"}
                       </span>
-                      <span className="vaccination-type">
-                        {vaccination.vaccinationType}
+                      <span className="dose-info">
+                        Mũi {vaccination.doseNumber || "N/A"}
                       </span>
                     </div>
                     <div className="vaccination-details">
                       {vaccination.vaccinationDate ? (
                         <>
-                          <p>
-                            <strong>Ngày tiêm:</strong>{" "}
-                            {formatDate(vaccination.vaccinationDate)}
-                          </p>
-                          <p>
+                          <div className="vaccination-status">
+                            <span className="status-completed">✅ Đã tiêm</span>
+                            <span className="vaccination-date">
+                              {formatDate(vaccination.vaccinationDate)}
+                            </span>
+                          </div>
+                          <div className="vaccination-location">
                             <strong>Nơi tiêm:</strong>{" "}
                             {vaccination.administeredAt}
-                          </p>
+                          </div>
                           {vaccination.notes && (
-                            <p>
+                            <div className="vaccination-notes">
                               <strong>Ghi chú:</strong> {vaccination.notes}
-                            </p>
+                            </div>
                           )}
-                          {vaccination.parentNotes && (
-                            <p>
-                              <strong>Ghi chú phụ huynh:</strong>{" "}
-                              {vaccination.parentNotes}
-                            </p>
+                          {vaccination.nextDoseDate && (
+                            <div className="next-dose">
+                              <strong>Mũi tiếp theo:</strong>{" "}
+                              {formatDate(vaccination.nextDoseDate)}
+                            </div>
                           )}
                         </>
                       ) : (
-                        <p className="not-administered">Chưa tiêm</p>
+                        <div className="vaccination-status">
+                          <span className="status-pending">⏳ Chưa tiêm</span>
+                          {vaccination.nextDoseDate && (
+                            <span className="next-dose-date">
+                              Dự kiến: {formatDate(vaccination.nextDoseDate)}
+                            </span>
+                          )}
+                        </div>
                       )}
-                      {vaccination.nextDoseDate && (
-                        <p>
-                          <strong>Mũi tiếp theo:</strong>{" "}
-                          {formatDate(vaccination.nextDoseDate)}
-                        </p>
-                      )}
+                      <div className="vaccination-type-badge">
+                        <span
+                          className={`type-${vaccination.vaccinationType?.toLowerCase()}`}
+                        >
+                          {vaccination.vaccinationType === "SCHOOL_PLAN"
+                            ? "Kế hoạch trường"
+                            : vaccination.vaccinationType === "PARENT_DECLARED"
+                            ? "Phụ huynh khai báo"
+                            : vaccination.vaccinationType || "Không rõ"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
+              {totalPages > 1 && (
+                <div className="pagination-controls">
+                  <button onClick={goToPrevPage} disabled={currentPage === 1}>
+                    <FaChevronLeft /> Trước
+                  </button>
+                  <span>
+                    Trang {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                  >
+                    Tiếp <FaChevronRight />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </>
