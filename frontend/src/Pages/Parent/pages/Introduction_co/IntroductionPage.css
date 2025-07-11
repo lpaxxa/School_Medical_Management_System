@@ -21,11 +21,18 @@
   margin: 0;
 }
 
-.introduction-content {
+.intro-banner-container,
+.intro-content-container {
   max-width: 1000px;
   margin: 0 auto;
+  padding: 20px 15px;
+}
+
+.intro-content-container {
   padding: 20px 15px 80px;
 }
+
+/* Override handled by global.css */
 
 .intro-section {
   margin-bottom: 50px;

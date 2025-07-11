@@ -491,455 +491,462 @@ const CommunityPost = () => {
   }
 
   return (
-    <div className="community-post-container">
-      <div className="post-navigation">
-        <Link to="/parent/community" className="back-link">
-          <i className="fas fa-arrow-left"></i> Quay lại cộng đồng
-        </Link>
-      </div>
-
-      <article className="post-content-container">
-        <header className="post-header">
-          <div className="post-meta">
-            <div className="post-category">
-              <i className={`fas ${getCategoryIcon(post.category)}`}></i>
-              {getCategoryName(post.category)}
-            </div>
-            <div className="post-time">{formatDate(post.createdAt)}</div>
-          </div>
-
-          <h1 className="post-title">{post.title}</h1>
-
-          <div className="post-author">
-            {post.author.role === "PARENT" ? (
-              // Icon cho phụ huynh
-              <div className="author-icon parent-icon">
-                <i className="fas fa-user-friends"></i>
-              </div>
-            ) : post.author.role === "NURSE" ? (
-              // Icon cho y tá
-              <div className="author-icon nurse-icon">
-                <i className="fas fa-user-nurse"></i>
-              </div>
-            ) : (
-              // Icon mặc định cho các vai trò khác
-              <div className="author-icon default-icon">
-                <i className="fas fa-user"></i>
-              </div>
-            )}
-            <div className="author-info">
-              <div className="author-name">
-                {post.author.name}
-                {post.author.role === "NURSE" && (
-                  <span className="author-badge nurse">
-                    <i className="fas fa-user-nurse"></i> Y tá
-                  </span>
-                )}
-                {post.author.role === "PARENT" && (
-                  <span className="author-badge parent">
-                    <i className="fas fa-users"></i> Phụ huynh
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {post.tags && post.tags.length > 0 && (
-          <div className="post-tags">
-            {post.tags.map((tag, index) => (
-              <span key={index} className="post-tag">
-                <i className="fas fa-tag"></i> {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div
-          className="post-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        ></div>
-
-        <div className="post-actions">
-          <button
-            className={`like-button ${liked ? "liked" : ""}`}
-            onClick={handleLike}
-          >
-            <i className={`${liked ? "fas" : "far"} fa-heart`}></i>
-            <span>{post.likes} thích</span>
-          </button>
-
-          <button className="share-button">
-            <i className="fas fa-share-alt"></i>
-            <span>Chia sẻ</span>
-          </button>
-
-          <button className="report-button">
-            <i className="fas fa-flag"></i>
-            <span>Báo cáo</span>
-          </button>
-        </div>
-      </article>
-
-      {/* Phần bình luận */}
-      <div className="comments-section">
-        <div className="comments-header">
-          <h3>Bình luận ({post.commentsCount || 0})</h3>
-          <div className="comments-filter">
-            <label>Sắp xếp:</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="latest">Mới nhất</option>
-              <option value="oldest">Cũ nhất</option>
-            </select>
-          </div>
+    <div className="parent-content-wrapper">
+      <div className="community-post-container">
+        <div className="post-navigation">
+          <Link to="/parent/community" className="back-link">
+            <i className="fas fa-arrow-left"></i> Quay lại cộng đồng
+          </Link>
         </div>
 
-        {/* Form thêm bình luận mới */}
-        <form className="comment-form" onSubmit={handleCommentSubmit}>
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Viết bình luận của bạn..."
-            disabled={submittingComment}
-            required
-          ></textarea>
-          <button
-            type="submit"
-            disabled={submittingComment || !newComment.trim()}
-            className="comment-submit-btn"
-          >
-            {submittingComment ? (
-              <>
-                <i className="fas fa-spinner fa-spin"></i> Đang gửi...
-              </>
-            ) : (
-              <>
-                <i className="fas fa-paper-plane"></i> Gửi bình luận
-              </>
-            )}
-          </button>
-        </form>
+        <article className="post-content-container">
+          <header className="post-header">
+            <div className="post-meta">
+              <div className="post-category">
+                <i className={`fas ${getCategoryIcon(post.category)}`}></i>
+                {getCategoryName(post.category)}
+              </div>
+              <div className="post-time">{formatDate(post.createdAt)}</div>
+            </div>
 
-        {/* Danh sách bình luận */}
-        {loadingComments ? (
-          <div className="loading-comments">
-            <LoadingSpinner text="Đang tải bình luận..." />
-          </div>
-        ) : comments.length === 0 ? (
-          <div className="no-comments">
-            <i className="fas fa-comment-slash"></i>
-            <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
-          </div>
-        ) : (
-          <div className="comments-list">
-            {sortedComments.map((comment) => (
-              <div key={comment.id} className="comment-item">
-                <div className="comment-header">
-                  <div className="comment-author">
-                    {comment.author.role === "PARENT" ? (
-                      <div className="comment-author-icon parent-icon">
-                        <i className="fas fa-user-friends"></i>
-                      </div>
-                    ) : comment.author.role === "NURSE" ? (
-                      <div className="comment-author-icon nurse-icon">
-                        <i className="fas fa-user-nurse"></i>
-                      </div>
-                    ) : (
-                      <div className="comment-author-icon default-icon">
-                        <i className="fas fa-user"></i>
-                      </div>
-                    )}
-                    <div className="comment-author-info">
-                      <span className="comment-author-name">
-                        {comment.author.name}
-                        {comment.author.role === "NURSE" && (
-                          <span className="author-badge nurse">
-                            <i className="fas fa-user-nurse"></i> Y tá
-                          </span>
-                        )}
-                      </span>
-                      <span className="comment-time">
-                        {formatDate(comment.createdAt)}
-                        {comment.updatedAt !== comment.createdAt && (
-                          <span className="edited-indicator">
-                            {" "}
-                            • đã chỉnh sửa
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
+            <h1 className="post-title">{post.title}</h1>
 
-                  {/* Actions menu cho comment của current user */}
-                  {currentUser && currentUser.id === comment.author.id && (
-                    <div className="comment-actions-menu">
-                      <button
-                        onClick={() => {
-                          setEditingCommentId(comment.id);
-                          setEditCommentContent(comment.content);
-                        }}
-                        className="edit-comment-btn"
-                        title="Chỉnh sửa"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button
-                        onClick={() => handleDeleteComment(comment.id)}
-                        className="delete-comment-btn"
-                        title="Xóa"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
-                    </div>
+            <div className="post-author">
+              {post.author.role === "PARENT" ? (
+                // Icon cho phụ huynh
+                <div className="author-icon parent-icon">
+                  <i className="fas fa-user-friends"></i>
+                </div>
+              ) : post.author.role === "NURSE" ? (
+                // Icon cho y tá
+                <div className="author-icon nurse-icon">
+                  <i className="fas fa-user-nurse"></i>
+                </div>
+              ) : (
+                // Icon mặc định cho các vai trò khác
+                <div className="author-icon default-icon">
+                  <i className="fas fa-user"></i>
+                </div>
+              )}
+              <div className="author-info">
+                <div className="author-name">
+                  {post.author.name}
+                  {post.author.role === "NURSE" && (
+                    <span className="author-badge nurse">
+                      <i className="fas fa-user-nurse"></i> Y tá
+                    </span>
+                  )}
+                  {post.author.role === "PARENT" && (
+                    <span className="author-badge parent">
+                      <i className="fas fa-users"></i> Phụ huynh
+                    </span>
                   )}
                 </div>
+              </div>
+            </div>
+          </header>
 
-                <div className="comment-content">
-                  {editingCommentId === comment.id ? (
-                    <div className="edit-comment-form">
-                      <textarea
-                        value={editCommentContent}
-                        onChange={(e) => setEditCommentContent(e.target.value)}
-                        className="edit-comment-textarea"
-                        rows="3"
-                      />
-                      <div className="edit-comment-actions">
+          {post.tags && post.tags.length > 0 && (
+            <div className="post-tags">
+              {post.tags.map((tag, index) => (
+                <span key={index} className="post-tag">
+                  <i className="fas fa-tag"></i> {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div
+            className="post-content"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          ></div>
+
+          <div className="post-actions">
+            <button
+              className={`like-button ${liked ? "liked" : ""}`}
+              onClick={handleLike}
+            >
+              <i className={`${liked ? "fas" : "far"} fa-heart`}></i>
+              <span>{post.likes} thích</span>
+            </button>
+
+            <button className="share-button">
+              <i className="fas fa-share-alt"></i>
+              <span>Chia sẻ</span>
+            </button>
+
+            <button className="report-button">
+              <i className="fas fa-flag"></i>
+              <span>Báo cáo</span>
+            </button>
+          </div>
+        </article>
+
+        {/* Phần bình luận */}
+        <div className="comments-section">
+          <div className="comments-header">
+            <h3>Bình luận ({post.commentsCount || 0})</h3>
+            <div className="comments-filter">
+              <label>Sắp xếp:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="latest">Mới nhất</option>
+                <option value="oldest">Cũ nhất</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Form thêm bình luận mới */}
+          <form className="comment-form" onSubmit={handleCommentSubmit}>
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Viết bình luận của bạn..."
+              disabled={submittingComment}
+              required
+            ></textarea>
+            <button
+              type="submit"
+              disabled={submittingComment || !newComment.trim()}
+              className="comment-submit-btn"
+            >
+              {submittingComment ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i> Đang gửi...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-paper-plane"></i> Gửi bình luận
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Danh sách bình luận */}
+          {loadingComments ? (
+            <div className="loading-comments">
+              <LoadingSpinner text="Đang tải bình luận..." />
+            </div>
+          ) : comments.length === 0 ? (
+            <div className="no-comments">
+              <i className="fas fa-comment-slash"></i>
+              <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+            </div>
+          ) : (
+            <div className="comments-list">
+              {sortedComments.map((comment) => (
+                <div key={comment.id} className="comment-item">
+                  <div className="comment-header">
+                    <div className="comment-author">
+                      {comment.author.role === "PARENT" ? (
+                        <div className="comment-author-icon parent-icon">
+                          <i className="fas fa-user-friends"></i>
+                        </div>
+                      ) : comment.author.role === "NURSE" ? (
+                        <div className="comment-author-icon nurse-icon">
+                          <i className="fas fa-user-nurse"></i>
+                        </div>
+                      ) : (
+                        <div className="comment-author-icon default-icon">
+                          <i className="fas fa-user"></i>
+                        </div>
+                      )}
+                      <div className="comment-author-info">
+                        <span className="comment-author-name">
+                          {comment.author.name}
+                          {comment.author.role === "NURSE" && (
+                            <span className="author-badge nurse">
+                              <i className="fas fa-user-nurse"></i> Y tá
+                            </span>
+                          )}
+                        </span>
+                        <span className="comment-time">
+                          {formatDate(comment.createdAt)}
+                          {comment.updatedAt !== comment.createdAt && (
+                            <span className="edited-indicator">
+                              {" "}
+                              • đã chỉnh sửa
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions menu cho comment của current user */}
+                    {currentUser && currentUser.id === comment.author.id && (
+                      <div className="comment-actions-menu">
                         <button
-                          onClick={() => handleEditComment(comment.id)}
-                          className="save-edit-btn"
+                          onClick={() => {
+                            setEditingCommentId(comment.id);
+                            setEditCommentContent(comment.content);
+                          }}
+                          className="edit-comment-btn"
+                          title="Chỉnh sửa"
                         >
-                          Lưu
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="delete-comment-btn"
+                          title="Xóa"
+                        >
+                          <i className="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="comment-content">
+                    {editingCommentId === comment.id ? (
+                      <div className="edit-comment-form">
+                        <textarea
+                          value={editCommentContent}
+                          onChange={(e) =>
+                            setEditCommentContent(e.target.value)
+                          }
+                          className="edit-comment-textarea"
+                          rows="3"
+                        />
+                        <div className="edit-comment-actions">
+                          <button
+                            onClick={() => handleEditComment(comment.id)}
+                            className="save-edit-btn"
+                          >
+                            Lưu
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingCommentId(null);
+                              setEditCommentContent("");
+                            }}
+                            className="cancel-edit-btn"
+                          >
+                            Hủy
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p>{comment.content}</p>
+                    )}
+                  </div>
+
+                  <div className="comment-actions">
+                    <button
+                      className={`comment-like-btn ${
+                        comment.liked ? "liked" : ""
+                      }`}
+                      onClick={() => handleCommentLike(comment.id)}
+                    >
+                      <i
+                        className={`${comment.liked ? "fas" : "far"} fa-heart`}
+                      ></i>
+                      <span>{comment.likesCount || 0}</span>
+                    </button>
+
+                    <button
+                      className="reply-btn"
+                      onClick={() =>
+                        setReplyingToComment(
+                          replyingToComment === comment.id ? null : comment.id
+                        )
+                      }
+                    >
+                      <i className="fas fa-reply"></i>
+                      Phản hồi
+                    </button>
+
+                    {comment.repliesCount > 0 && (
+                      <button
+                        className="show-replies-btn"
+                        onClick={() => toggleReplies(comment.id)}
+                      >
+                        <i
+                          className={`fas fa-chevron-${
+                            showReplies[comment.id] ? "up" : "down"
+                          }`}
+                        ></i>
+                        {showReplies[comment.id] ? "Ẩn" : "Hiện"}{" "}
+                        {comment.repliesCount} phản hồi
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Reply form */}
+                  {replyingToComment === comment.id && (
+                    <div className="reply-form">
+                      <textarea
+                        value={newReply}
+                        onChange={(e) => setNewReply(e.target.value)}
+                        placeholder="Viết phản hồi..."
+                        rows="3"
+                        className="reply-textarea"
+                      />
+                      <div className="reply-actions">
+                        <button
+                          onClick={() => handleReplySubmit(comment.id)}
+                          disabled={submittingReply}
+                          className="submit-reply-btn"
+                        >
+                          {submittingReply ? "Đang gửi..." : "Gửi phản hồi"}
                         </button>
                         <button
                           onClick={() => {
-                            setEditingCommentId(null);
-                            setEditCommentContent("");
+                            setReplyingToComment(null);
+                            setNewReply("");
                           }}
-                          className="cancel-edit-btn"
+                          className="cancel-reply-btn"
                         >
                           Hủy
                         </button>
                       </div>
                     </div>
-                  ) : (
-                    <p>{comment.content}</p>
                   )}
-                </div>
 
-                <div className="comment-actions">
-                  <button
-                    className={`comment-like-btn ${
-                      comment.liked ? "liked" : ""
-                    }`}
-                    onClick={() => handleCommentLike(comment.id)}
-                  >
-                    <i
-                      className={`${comment.liked ? "fas" : "far"} fa-heart`}
-                    ></i>
-                    <span>{comment.likesCount || 0}</span>
-                  </button>
-
-                  <button
-                    className="reply-btn"
-                    onClick={() =>
-                      setReplyingToComment(
-                        replyingToComment === comment.id ? null : comment.id
-                      )
-                    }
-                  >
-                    <i className="fas fa-reply"></i>
-                    Phản hồi
-                  </button>
-
-                  {comment.repliesCount > 0 && (
-                    <button
-                      className="show-replies-btn"
-                      onClick={() => toggleReplies(comment.id)}
-                    >
-                      <i
-                        className={`fas fa-chevron-${
-                          showReplies[comment.id] ? "up" : "down"
-                        }`}
-                      ></i>
-                      {showReplies[comment.id] ? "Ẩn" : "Hiện"}{" "}
-                      {comment.repliesCount} phản hồi
-                    </button>
-                  )}
-                </div>
-
-                {/* Reply form */}
-                {replyingToComment === comment.id && (
-                  <div className="reply-form">
-                    <textarea
-                      value={newReply}
-                      onChange={(e) => setNewReply(e.target.value)}
-                      placeholder="Viết phản hồi..."
-                      rows="3"
-                      className="reply-textarea"
-                    />
-                    <div className="reply-actions">
-                      <button
-                        onClick={() => handleReplySubmit(comment.id)}
-                        disabled={submittingReply}
-                        className="submit-reply-btn"
-                      >
-                        {submittingReply ? "Đang gửi..." : "Gửi phản hồi"}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setReplyingToComment(null);
-                          setNewReply("");
-                        }}
-                        className="cancel-reply-btn"
-                      >
-                        Hủy
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Replies list */}
-                {showReplies[comment.id] && commentReplies[comment.id] && (
-                  <div className="replies-list">
-                    {commentReplies[comment.id].map((reply) => (
-                      <div key={reply.id} className="reply-item">
-                        <div className="reply-header">
-                          <div className="reply-author">
-                            {reply.author.role === "PARENT" ? (
-                              <div className="reply-author-icon parent-icon">
-                                <i className="fas fa-user-friends"></i>
+                  {/* Replies list */}
+                  {showReplies[comment.id] && commentReplies[comment.id] && (
+                    <div className="replies-list">
+                      {commentReplies[comment.id].map((reply) => (
+                        <div key={reply.id} className="reply-item">
+                          <div className="reply-header">
+                            <div className="reply-author">
+                              {reply.author.role === "PARENT" ? (
+                                <div className="reply-author-icon parent-icon">
+                                  <i className="fas fa-user-friends"></i>
+                                </div>
+                              ) : reply.author.role === "NURSE" ? (
+                                <div className="reply-author-icon nurse-icon">
+                                  <i className="fas fa-user-nurse"></i>
+                                </div>
+                              ) : (
+                                <div className="reply-author-icon default-icon">
+                                  <i className="fas fa-user"></i>
+                                </div>
+                              )}
+                              <div className="reply-author-info">
+                                <span className="reply-author-name">
+                                  {reply.author.name}
+                                  {reply.author.role === "NURSE" && (
+                                    <span className="author-badge nurse">
+                                      <i className="fas fa-user-nurse"></i> Y tá
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="reply-time">
+                                  {formatDate(reply.createdAt)}
+                                </span>
                               </div>
-                            ) : reply.author.role === "NURSE" ? (
-                              <div className="reply-author-icon nurse-icon">
-                                <i className="fas fa-user-nurse"></i>
-                              </div>
-                            ) : (
-                              <div className="reply-author-icon default-icon">
-                                <i className="fas fa-user"></i>
-                              </div>
-                            )}
-                            <div className="reply-author-info">
-                              <span className="reply-author-name">
-                                {reply.author.name}
-                                {reply.author.role === "NURSE" && (
-                                  <span className="author-badge nurse">
-                                    <i className="fas fa-user-nurse"></i> Y tá
-                                  </span>
-                                )}
-                              </span>
-                              <span className="reply-time">
-                                {formatDate(reply.createdAt)}
-                              </span>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="reply-content">
-                          <p>{reply.content}</p>
-                        </div>
+                          <div className="reply-content">
+                            <p>{reply.content}</p>
+                          </div>
 
-                        <div className="reply-actions">
-                          <button
-                            className={`reply-like-btn ${
-                              reply.liked ? "liked" : ""
-                            }`}
-                            onClick={() =>
-                              handleReplyLike(reply.id, comment.id)
-                            }
-                          >
-                            <i
-                              className={`${
-                                reply.liked ? "fas" : "far"
-                              } fa-heart`}
-                            ></i>
-                            <span>{reply.likesCount || 0}</span>
-                          </button>
+                          <div className="reply-actions">
+                            <button
+                              className={`reply-like-btn ${
+                                reply.liked ? "liked" : ""
+                              }`}
+                              onClick={() =>
+                                handleReplyLike(reply.id, comment.id)
+                              }
+                            >
+                              <i
+                                className={`${
+                                  reply.liked ? "fas" : "far"
+                                } fa-heart`}
+                              ></i>
+                              <span>{reply.likesCount || 0}</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Phân trang cho bình luận */}
+          {commentTotalPages > 1 && (
+            <div className="comment-pagination">
+              <button
+                disabled={commentPage === 1}
+                onClick={() => setCommentPage((prev) => prev - 1)}
+                className="pagination-btn"
+              >
+                <i className="fas fa-chevron-left"></i> Trước
+              </button>
+              <span className="page-info">
+                Trang {commentPage}/{commentTotalPages}
+              </span>
+              <button
+                disabled={commentPage === commentTotalPages}
+                onClick={() => setCommentPage((prev) => prev + 1)}
+                className="pagination-btn"
+              >
+                Tiếp <i className="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Bài viết liên quan */}
+        {relatedPosts.length > 0 && (
+          <div className="related-posts-section">
+            <h3>Bài viết liên quan</h3>
+            <div className="related-posts">
+              {relatedPosts.map((relatedPost) => (
+                <div key={relatedPost.id} className="related-post-card">
+                  <div className="related-post-category">
+                    <i
+                      className={`fas ${getCategoryIcon(relatedPost.category)}`}
+                    ></i>
+                    {getCategoryName(relatedPost.category)}
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* Phân trang cho bình luận */}
-        {commentTotalPages > 1 && (
-          <div className="comment-pagination">
-            <button
-              disabled={commentPage === 1}
-              onClick={() => setCommentPage((prev) => prev - 1)}
-              className="pagination-btn"
-            >
-              <i className="fas fa-chevron-left"></i> Trước
-            </button>
-            <span className="page-info">
-              Trang {commentPage}/{commentTotalPages}
-            </span>
-            <button
-              disabled={commentPage === commentTotalPages}
-              onClick={() => setCommentPage((prev) => prev + 1)}
-              className="pagination-btn"
-            >
-              Tiếp <i className="fas fa-chevron-right"></i>
-            </button>
+                  <h4>
+                    <Link to={`/parent/community/post/${relatedPost.id}`}>
+                      {relatedPost.title}
+                    </Link>
+                  </h4>
+
+                  <div className="related-post-meta">
+                    <div className="related-post-author">
+                      {relatedPost.author.role === "PARENT" ? (
+                        <div className="related-author-icon parent-icon">
+                          <i className="fas fa-user-friends"></i>
+                        </div>
+                      ) : relatedPost.author.role === "NURSE" ? (
+                        <div className="related-author-icon nurse-icon">
+                          <i className="fas fa-user-nurse"></i>
+                        </div>
+                      ) : (
+                        <div className="related-author-icon default-icon">
+                          <i className="fas fa-user"></i>
+                        </div>
+                      )}
+                      <span>{relatedPost.author.name}</span>
+                    </div>
+                    <div className="related-post-stats">
+                      <span>
+                        <i className="fas fa-heart"></i> {relatedPost.likes}
+                      </span>
+                      <span>
+                        <i className="fas fa-comment"></i>{" "}
+                        {relatedPost.commentsCount}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
-
-      {/* Bài viết liên quan */}
-      {relatedPosts.length > 0 && (
-        <div className="related-posts-section">
-          <h3>Bài viết liên quan</h3>
-          <div className="related-posts">
-            {relatedPosts.map((relatedPost) => (
-              <div key={relatedPost.id} className="related-post-card">
-                <div className="related-post-category">
-                  <i
-                    className={`fas ${getCategoryIcon(relatedPost.category)}`}
-                  ></i>
-                  {getCategoryName(relatedPost.category)}
-                </div>
-
-                <h4>
-                  <Link to={`/parent/community/post/${relatedPost.id}`}>
-                    {relatedPost.title}
-                  </Link>
-                </h4>
-
-                <div className="related-post-meta">
-                  <div className="related-post-author">
-                    {relatedPost.author.role === "PARENT" ? (
-                      <div className="related-author-icon parent-icon">
-                        <i className="fas fa-user-friends"></i>
-                      </div>
-                    ) : relatedPost.author.role === "NURSE" ? (
-                      <div className="related-author-icon nurse-icon">
-                        <i className="fas fa-user-nurse"></i>
-                      </div>
-                    ) : (
-                      <div className="related-author-icon default-icon">
-                        <i className="fas fa-user"></i>
-                      </div>
-                    )}
-                    <span>{relatedPost.author.name}</span>
-                  </div>
-                  <div className="related-post-stats">
-                    <span>
-                      <i className="fas fa-heart"></i> {relatedPost.likes}
-                    </span>
-                    <span>
-                      <i className="fas fa-comment"></i>{" "}
-                      {relatedPost.commentsCount}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

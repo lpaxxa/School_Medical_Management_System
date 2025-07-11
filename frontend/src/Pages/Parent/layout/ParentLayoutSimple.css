@@ -1,0 +1,88 @@
+/* Simple Parent Layout - Fixed Issues */
+
+.simple-parent-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f8fa;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Main content area - simple approach */
+.simple-parent-main {
+  flex: 1;
+  width: 100%;
+  /* Fixed margin-top based on actual header height: 70px top + 60px navigation = 130px */
+  margin-top: 130px; /* Exact header height */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+/* Content wrapper with proper constraints */
+.simple-parent-content {
+  width: 100%;
+  max-width: 1520px; /* Updated to match user requirement */
+  margin: 0 auto;
+  padding: 20px;
+  min-height: calc(100vh - 200px); /* Account for header + footer */
+  box-sizing: border-box;
+  /* Ensure content is visible and not hidden */
+  position: relative;
+  z-index: 1; /* Reduced to prevent interference with modals */
+  background: transparent;
+}
+
+/* Remove all complex scroll behavior - let browser handle naturally */
+html, body {
+  scroll-behavior: auto;
+  overflow-x: hidden;
+}
+
+/* Simple responsive adjustments */
+@media (max-width: 992px) {
+  .simple-parent-main {
+    margin-top: 130px; /* Keep same height on tablet */
+  }
+  
+  .simple-parent-content {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 640px) { /* Changed from 768px to match header */
+  .simple-parent-main {
+    margin-top: 70px; /* Mobile: only top header (60px navigation hidden) */
+  }
+  
+  .simple-parent-content {
+    padding: 12px;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .simple-parent-main {
+    margin-top: 100px; /* Minimal on small mobile */
+  }
+  
+  .simple-parent-content {
+    padding: 8px;
+  }
+}
+
+/* Override any global smooth scrolling */
+.simple-parent-layout * {
+  scroll-behavior: auto !important;
+}
+
+/* Ensure no layout shifts */
+.simple-parent-layout,
+.simple-parent-main,
+.simple-parent-content {
+  will-change: auto;
+  transform: none;
+  transition: none;
+} 

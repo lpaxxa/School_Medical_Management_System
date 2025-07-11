@@ -5,6 +5,8 @@
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 
+/* Override handled by global.css */
+
 /* Navigation */
 .post-navigation {
   margin-bottom: 24px;

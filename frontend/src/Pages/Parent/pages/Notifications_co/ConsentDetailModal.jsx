@@ -127,7 +127,6 @@ const ConsentDetailModal = ({
 
       onClose();
     } catch (error) {
-      console.error("❌ Error submitting consent:", error);
       toast.error("Có lỗi xảy ra khi gửi xác nhận: " + error.message, {
         position: "top-center",
         autoClose: 5000,
@@ -184,7 +183,6 @@ const ConsentDetailModal = ({
 
       onClose();
     } catch (error) {
-      console.error("❌ Error rejecting consent:", error);
       toast.error("Có lỗi xảy ra khi từ chối: " + error.message, {
         position: "top-center",
         autoClose: 5000,

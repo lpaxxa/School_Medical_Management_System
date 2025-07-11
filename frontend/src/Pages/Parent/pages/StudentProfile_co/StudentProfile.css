@@ -41,6 +41,8 @@
   padding: 2rem 1rem;
 }
 
+/* Override handled by global.css */
+
 /* ------- Header Styles ------- */
 .sp-header {
   display: flex;

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
 import "./Header.css";
 
 const Header = () => {
   const { currentUser, logout } = useAuth();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(
@@ -88,6 +89,16 @@ const Header = () => {
     );
   };
 
+  // Check if current path matches the link
+  const isActiveLink = (path) => {
+    return location.pathname === path;
+  };
+
+  // Check if current path matches the main nav link
+  const isActiveMainNav = (path) => {
+    return location.pathname === path;
+  };
+
   return (
     <header className={`parent-header ${isScrolled ? "scrolled" : ""}`}>
       <div className="parent-header-top">
@@ -109,7 +120,9 @@ const Header = () => {
                 <li>
                   <Link
                     to="/parent"
-                    className="parent-nav-link active"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent") ? "active" : ""
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Trang chủ
@@ -117,8 +130,21 @@ const Header = () => {
                 </li>
                 <li>
                   <Link
+                    to="/parent/introduction"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent/introduction") ? "active" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Giới thiệu
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/parent/health-guide"
-                    className="parent-nav-link"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent/health-guide") ? "active" : ""
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Cẩm nang
@@ -127,7 +153,9 @@ const Header = () => {
                 <li>
                   <Link
                     to="/parent/community"
-                    className="parent-nav-link"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent/community") ? "active" : ""
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Cộng đồng
@@ -136,7 +164,9 @@ const Header = () => {
                 <li>
                   <Link
                     to="/parent/contact"
-                    className="parent-nav-link"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent/contact") ? "active" : ""
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Liên hệ
@@ -192,7 +222,11 @@ const Header = () => {
               <li className="parent-main-nav-item">
                 <Link
                   to="/parent/health-declaration"
-                  className="parent-main-nav-link"
+                  className={`parent-main-nav-link ${
+                    isActiveMainNav("/parent/health-declaration")
+                      ? "active"
+                      : ""
+                  }`}
                 >
                   Khai báo sức khỏe
                 </Link>
@@ -200,7 +234,9 @@ const Header = () => {
               <li className="parent-main-nav-item">
                 <Link
                   to="/parent/student-profile"
-                  className="parent-main-nav-link"
+                  className={`parent-main-nav-link ${
+                    isActiveMainNav("/parent/student-profile") ? "active" : ""
+                  }`}
                 >
                   Hồ sơ học sinh
                 </Link>
@@ -208,7 +244,9 @@ const Header = () => {
               <li className="parent-main-nav-item">
                 <Link
                   to="/parent/medical-records"
-                  className="parent-main-nav-link"
+                  className={`parent-main-nav-link ${
+                    isActiveMainNav("/parent/medical-records") ? "active" : ""
+                  }`}
                 >
                   Hồ sơ bệnh án
                 </Link>
@@ -216,7 +254,9 @@ const Header = () => {
               <li className="parent-main-nav-item">
                 <Link
                   to="/parent/send-medicine"
-                  className="parent-main-nav-link"
+                  className={`parent-main-nav-link ${
+                    isActiveMainNav("/parent/send-medicine") ? "active" : ""
+                  }`}
                 >
                   Gửi thuốc
                 </Link>

@@ -82,9 +82,13 @@
   line-height: 1.6;
 }
 
+/* Override handled by global.css */
+
+/* Override handled by global.css */
+
 /* ============= PAGE HEADER ============= */
 .health-declaration-container .page-header {
-  background: linear-gradient(135deg, var(--hdm-primary-blue) 0%, var(--hdm-primary-blue-light) 100%);
+  background: linear-gradient(135deg, #015c92 0%, #2d82b5 50%, #428cd4 100%);
   color: var(--hdm-white);
   padding: var(--hdm-space-10) var(--hdm-space-6);
   border-radius: var(--hdm-radius-xl);

@@ -43,12 +43,19 @@ export const StudentDataProvider = ({ children }) => {
           throw new Error("Authentication token not found");
         }
 
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Request timeout")), 10000)
+        );
+
         // Call the exact API URL with the JWT token
-        const response = await axios.get(STUDENTS_API_URL, {
+        const responsePromise = axios.get(STUDENTS_API_URL, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+
+        const response = await Promise.race([responsePromise, timeoutPromise]);
 
         console.log("Student data received:", response.data);
         const studentsData = response.data || [];
@@ -66,7 +73,18 @@ export const StudentDataProvider = ({ children }) => {
       }
     };
 
-    fetchStudentData();
+    // Add a safety timeout to ensure loading doesn't hang forever
+    const safetyTimeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 15000);
+
+    fetchStudentData().finally(() => {
+      clearTimeout(safetyTimeout);
+    });
+
+    return () => {
+      clearTimeout(safetyTimeout);
+    };
   }, [currentUser]);
 
   // Function to fetch parent information

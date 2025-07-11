@@ -21,13 +21,15 @@
 }
 
 .health-guide-container {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px 15px;
   font-family: 'Be Vietnam Pro', sans-serif;
   background-color: #ffffff;
   min-height: 100vh;
 }
+
+/* Override handled by global.css */
 
 /* Header styling - Professional Blue gradient theme */
 .health-guide-header {

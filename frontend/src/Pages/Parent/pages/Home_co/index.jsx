@@ -9,7 +9,7 @@ import CallToAction from "../../components/CallToAction/CallToAction";
 export default function Main() {
   // Đảm bảo scroll về đầu trang khi component được mount
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Remove scroll to prevent conflicts with layout
   }, []);
 
   return (

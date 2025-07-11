@@ -10,10 +10,24 @@
   --ns-shared: "shared";  /* Namespace cho shared components */
 }
 
-/* Thêm phần này vào global.css để đảm bảo các ảnh hưởng đến position: fixed */
+/* Ensure no scroll conflicts with Parent layout */
 body {
   position: relative !important;
   overflow-x: hidden;
+  /* Remove any global scroll behavior that might conflict */
+  scroll-behavior: auto;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure simple parent layout works correctly */
+.simple-parent-layout {
+  scroll-behavior: auto !important;
+}
+
+/* Remove any layout padding conflicts */
+.simple-parent-layout body {
+  padding-top: 0 !important;
 }
 
 /* Đảm bảo các biến CSS chính toàn cục - Dark Blue Theme for Parent Pages */
@@ -107,17 +121,183 @@ body {
   flex-direction: column;
 }
 
+/* Global Styles */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* Parent content wrapper for consistent container sizing - HIGH PRIORITY */
+.parent-content-wrapper {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 20px !important;
+}
+
+/* Responsive adjustments for parent wrapper - HIGH PRIORITY */
+@media (max-width: 1280px) {
+  .parent-content-wrapper {
+    max-width: 1100px !important;
+    padding: 0 16px !important;
+  }
+  
+  /* Medical Records responsive */
+  .parent-content-wrapper .medical-container,
+  .parent-content-wrapper .medical-main,
+  .parent-content-wrapper .header-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: var(--space-4) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .parent-content-wrapper {
+    max-width: 100% !important;
+    padding: 0 12px !important;
+  }
+  
+  /* Medical Records responsive */
+  .parent-content-wrapper .medical-container,
+  .parent-content-wrapper .medical-main,
+  .parent-content-wrapper .header-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: var(--space-3) !important;
+  }
+}
+
+/* Override specific containers that should be smaller - FORCE OVERRIDE */
+.parent-content-wrapper .send-medicine-container,
+.parent-content-wrapper .health-guide-container,
+.parent-content-wrapper .community-container,
+.parent-content-wrapper .introduction-page,
+.parent-content-wrapper .sp-container,
+.parent-content-wrapper .health-declaration-container,
+.parent-content-wrapper .notifications-container,
+.parent-content-wrapper .article-detail-container,
+.parent-content-wrapper .community-post-container,
+.parent-content-wrapper .contact-container,
+.parent-content-wrapper .intro-banner-container,
+.parent-content-wrapper .intro-content-container {
+  max-width: 80% !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+}
+
+/* Medical Records specific overrides - Allow full width */
+.parent-content-wrapper .medical-main {
+  max-width: 1200px !important;
+  width: 1200px !important;
+  margin: 0 auto !important;
+  padding: var(--space-4) 0 !important;
+}
+
+.parent-content-wrapper .header-content {
+  max-width: 1200px !important;
+  width: 1200px !important;
+  margin: var(--space-4) auto 0 auto !important;
+}
+
+.parent-content-wrapper .medical-container {
+  max-width: 1200px !important;
+  width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* Specific smaller containers */
+.parent-content-wrapper .contact-header-content {
+  max-width: 70% !important;
+  margin: 0 auto !important;
+}
+
+/* Modals and special elements */
+.parent-content-wrapper .modal-content,
+.parent-content-wrapper .med-modal,
+.parent-content-wrapper .hdm-modal-content {
+  max-width: 90% !important;
+}
+
+/* MedicalRecords modal sizing fixes */
+.parent-content-wrapper .modern-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1000 !important;
+}
+
+.parent-content-wrapper .modern-modal-content {
+  max-width: 800px !important;
+  width: 90% !important;
+  max-height: 90vh !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Ensure SendMedicine modal overlays have proper z-index hierarchy */
+.parent-content-wrapper .send-medicine-container .zoom-overlay {
+  z-index: 2100 !important;
+}
+
+.parent-content-wrapper .incident-zoom-overlay {
+  z-index: 2000 !important;
+}
+
+/* Toast notifications should appear above header */
+.Toastify__toast-container {
+  z-index: 9999 !important;
+  top: 20px !important; /* Position relative to viewport */
+  margin-top: 0 !important;
+}
+
+/* Ensure toasts are visible on simple parent layout */
+.simple-parent-layout .Toastify__toast-container {
+  position: fixed !important;
+  top: 150px !important; /* Below simple header */
+  z-index: 9999 !important;
+}
+
+/* Modal overlays should appear above header */
+.med-modal-overlay,
+.hdm-modal-overlay,
+.modern-modal-overlay {
+  z-index: 1050 !important;
+}
+
+/* Ensure header doesn't interfere with scrolling content */
+body.parent-page {
+  padding-top: 0 !important;
+}
+
+/* Fix z-index conflicts for parent pages */
+.parent-header {
+  z-index: 1000 !important;
+}
+
+/* Ensure content is properly spaced below header - handled dynamically in ParentLayout.jsx */
+
+/* Health guide content and community content specific */
+.parent-content-wrapper .health-guide-content {
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+.parent-content-wrapper .community-container .container {
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
 body {
-  font-family: var(--font-body);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
-  color: var(--text-dark);
-  background: var(--bg-white);
+  color: #333;
+  background-color: #f8fafc;
+  font-size: 14px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -301,5 +481,22 @@ footer {
   
   .section-title {
     font-size: 28px;
+  }
+  
+  /* Mobile responsive for modals */
+  .parent-content-wrapper .modern-modal-content {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 10px !important;
+    top: 0 !important;
+    transform: none !important;
+    max-height: 95vh !important;
+  }
+  
+  .parent-content-wrapper .send-medicine-container .zoomed-image,
+  .parent-content-wrapper .incident-zoomed-image {
+    width: 90% !important;
+    height: auto !important;
+    max-height: 80vh !important;
   }
 }

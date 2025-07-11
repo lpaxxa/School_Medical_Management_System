@@ -1,14 +1,14 @@
 import React from "react";
-import ParentLayout from "../../Pages/Parent/layout/ParentLayout";
+import ParentLayoutSimple from "../../Pages/Parent/layout/ParentLayoutSimple";
 
-// Layout for parent pages - sử dụng ParentLayout thay vì duplicate
+// Layout for parent pages - sử dụng ParentLayoutSimple để fix scroll issues
 export const MainLayout = ({ children }) => (
-  <ParentLayout>{children}</ParentLayout>
+  <ParentLayoutSimple>{children}</ParentLayoutSimple>
 );
 
-// Layout for home page - cũng sử dụng ParentLayout
+// Layout for home page - cũng sử dụng ParentLayoutSimple
 export const HomeLayout = ({ children }) => (
-  <ParentLayout>{children}</ParentLayout>
+  <ParentLayoutSimple>{children}</ParentLayoutSimple>
 );
 
 // Layout for admin/nurse pages - doesn't include header, navigation, or footer

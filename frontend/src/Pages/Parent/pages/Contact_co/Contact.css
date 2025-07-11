@@ -46,6 +46,8 @@
   z-index: 1;
 }
 
+/* Override handled by global.css */
+
 .contact-header h1 {
   font-size: 36px;
   font-weight: 800;
@@ -69,6 +71,8 @@
   gap: 40px;
   position: relative;
 }
+
+/* Override handled by global.css */
 
 /* Information cards */
 .contact-info {

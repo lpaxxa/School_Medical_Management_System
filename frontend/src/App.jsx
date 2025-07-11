@@ -16,10 +16,8 @@ import "./App.css";
 const AppContent = () => {
   const { currentUser } = useAuth();
 
-  // Đảm bảo scroll về đầu trang khi component được mount
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  // Remove scroll effect to prevent conflicts with layout
+  // Layout components will handle scroll positioning
 
   return (
     <div className="app">

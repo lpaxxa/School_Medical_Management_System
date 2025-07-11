@@ -53,6 +53,15 @@ const HEARING_OPTIONS = [
 const HealthDeclaration = () => {
   const { currentUser } = useAuth();
 
+  // Lấy thông tin học sinh từ context
+  const {
+    students,
+    parentInfo,
+    isLoading: studentsLoading,
+    error: studentsError,
+    fetchHealthProfile,
+  } = useStudentData();
+
   // Helper function để xử lý dữ liệu từ API
   const processFormData = (data) => {
     const processedData = { ...data };
@@ -108,15 +117,6 @@ const HealthDeclaration = () => {
 
     return processedData;
   };
-
-  // Lấy thông tin học sinh từ context
-  const {
-    students,
-    parentInfo,
-    isLoading: studentsLoading,
-    error: studentsError,
-    fetchHealthProfile,
-  } = useStudentData();
 
   // State quản lý trạng thái
   const [isLoading, setIsLoading] = useState(false);
@@ -196,7 +196,7 @@ const HealthDeclaration = () => {
     try {
       toast.success(message, toastOptions);
     } catch (error) {
-      console.error("Error showing toast:", error);
+      // Silent error handling
     }
   };
 
@@ -287,8 +287,6 @@ const HealthDeclaration = () => {
           setVaccines(response.data);
         }
       } catch (error) {
-        console.error("Không thể tải danh sách vaccine:", error);
-
         if (!isMounted.current) return;
 
         // Better error handling for vaccine fetching
@@ -331,8 +329,6 @@ const HealthDeclaration = () => {
       try {
         // Lấy thông tin hồ sơ sức khỏe đầy đủ từ API
         // studentId đã có định dạng đúng từ context (HS001, HS002, etc.)
-        console.log(`Fetching health profile for student: ${studentId}`);
-
         const response = await axios.get(
           `http://localhost:8080/api/v1/health-profiles/getStudentProfileByID/${studentId}`,
           {
@@ -345,42 +341,13 @@ const HealthDeclaration = () => {
         if (!isMounted.current) return;
 
         if (response.data && response.data.healthProfile) {
-          // Debug: Log dữ liệu gốc từ API
-          console.log("=== RAW API DATA ===");
-          console.log(`Student ID: ${studentId}`);
-          console.log("Original API response:", response.data);
-          console.log("Health Profile data:", response.data.healthProfile); // Lấy dữ liệu từ healthProfile object
           const healthProfileData = response.data.healthProfile;
 
           // Lưu ID số từ API để sử dụng khi submit
           setStudentNumericId(healthProfileData.id);
-          console.log(
-            `Numeric ID from API: ${healthProfileData.id} (for submit)`
-          );
 
           // Lọc và xử lý dữ liệu từ API
           const processedData = processFormData(healthProfileData);
-
-          // Debug: Log dữ liệu sau khi xử lý
-          console.log("=== PROCESSED DATA ===");
-          console.log("Processed data:", processedData);
-
-          // Debug: So sánh từng trường cơ bản
-          const basicFields = [
-            "height",
-            "weight",
-            "bloodType",
-            "visionLeft",
-            "visionRight",
-            "hearingStatus",
-            "lastPhysicalExamDate",
-          ];
-          console.log("=== BASIC FIELDS COMPARISON ===");
-          basicFields.forEach((field) => {
-            console.log(
-              `${field}: "${healthProfileData[field]}" -> "${processedData[field]}"`
-            );
-          });
 
           // Cập nhật form data với thông tin đã được xử lý
           setFormData((prevState) => ({
@@ -397,14 +364,10 @@ const HealthDeclaration = () => {
             response.data.vaccinations &&
             response.data.vaccinations.length > 0
           ) {
-            console.log("=== PROCESSING VACCINATIONS FROM API ===");
-            console.log("Vaccinations data:", response.data.vaccinations);
-
             // Tạo danh sách tên vaccine đã tiêm
             const vaccinatedNames = response.data.vaccinations.map(
               (v) => v.vaccineName
             );
-            console.log("Vaccinated Names:", vaccinatedNames);
 
             // Phân loại vaccine: đã tiêm vs đã tiêm đủ liều
             const vaccinatedIds = [];
@@ -421,19 +384,10 @@ const HealthDeclaration = () => {
               vaccines.forEach((vaccine) => {
                 if (vaccinatedNameMap[vaccine.name]) {
                   // Nếu tên vaccine có trong danh sách đã tiêm
-                  console.log(
-                    `Found matching vaccine: ${vaccine.name} (ID: ${vaccine.id})`
-                  );
                   vaccinatedIds.push(vaccine.id);
                 }
               });
             }
-
-            console.log(
-              "Vaccinated IDs based on name matching:",
-              vaccinatedIds
-            );
-            console.log("Fully vaccinated IDs:", fullyVaccinatedIds);
 
             // Cập nhật states
             setSelectedVaccines([...vaccinatedIds, ...fullyVaccinatedIds]);
@@ -495,11 +449,6 @@ const HealthDeclaration = () => {
         initialDataLoaded.current = true;
       } catch (error) {
         if (!isMounted.current) return;
-
-        console.error(
-          `Không thể tải thông tin sức khỏe cho học sinh ${studentId}:`,
-          error
-        );
 
         // Better error handling for different scenarios
         if (error.response?.status === 500) {
@@ -1882,445 +1831,428 @@ const HealthDeclaration = () => {
     setFormErrors(errors);
   };
 
-  // Tính toán progress của form
+  // Loading state với thông báo chi tiết
+  if (isLoading || studentsLoading) {
+    return (
+      <div className="parent-content-wrapper">
+        <div className="health-declaration-container">
+          <div className="hdm-loading">
+            <div className="hdm-spinner"></div>
+            <h3>Đang tải thông tin học sinh...</h3>
+            <p>Vui lòng chờ trong giây lát</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state với thông báo lỗi thân thiện
+  if (fetchError || studentsError) {
+    return (
+      <div className="parent-content-wrapper">
+        <div className="health-declaration-container">
+          <div className="server-error-alert">
+            <div className="warning-icon">
+              <i className="fas fa-exclamation-triangle"></i>
+            </div>
+            <div className="warning-content">
+              <h4>Có lỗi xảy ra</h4>
+              <p>{fetchError || studentsError}</p>
+              <button onClick={reloadData} className="hdm-button primary">
+                <i className="fas fa-redo"></i> Thử lại
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Server error state
+  if (isServerError) {
+    return renderServerError();
+  }
+
+  // No students state
+  if (!students || students.length === 0) {
+    return (
+      <div className="parent-content-wrapper">
+        <div className="health-declaration-container">
+          <div className="server-error-alert">
+            <div className="warning-icon">
+              <i className="fas fa-user-graduate"></i>
+            </div>
+            <div className="warning-content">
+              <h4>Không tìm thấy học sinh</h4>
+              <p>Tài khoản của bạn chưa được liên kết với học sinh nào.</p>
+              <p>Vui lòng liên hệ nhà trường để được hỗ trợ.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main form UI
   return (
-    <div className="health-declaration-container">
-      <div className="hdm-header">
-        <div className="header-spacer"></div>
-        <button
-          type="button"
-          className="reload-button"
-          onClick={reloadData}
-          title="Tải lại dữ liệu mới nhất"
-          disabled={isLoading}
-        >
-          <span className={`reload-icon ${isLoading ? "spinning" : ""}`}>
-            ⟳
-          </span>{" "}
-          Tải lại dữ liệu
-        </button>
-      </div>
+    <div className="parent-content-wrapper">
+      <div className="health-declaration-container">
+        {/* Header */}
+        <div className="page-header">
+          <h1>Khai báo sức khỏe</h1>
+          <p>Cập nhật thông tin sức khỏe cho học sinh</p>
+        </div>
 
-      {/* Hiển thị thông báo thành công */}
-      {showSuccessMessage && renderSuccessMessage()}
+        {/* Form khai báo sức khỏe */}
+        <form onSubmit={handleSubmit} className="health-declaration-form">
+          {/* Validation Summary */}
+          {renderValidationSummary()}
 
-      {/* Hiển thị thông báo lỗi server */}
-      {isServerError && renderServerError()}
+          {/* Student selector */}
+          <div className="form-section">
+            <h3>Thông tin học sinh</h3>
 
-      {/* Hiển thị modal vaccine đã tiêm */}
-      {renderVaccineAlreadyTakenModal()}
+            <div className="student-selector">
+              <label htmlFor="studentId">
+                Chọn học sinh: <span className="required">*</span>
+                {formErrors.studentId && (
+                  <span className="error-text">{formErrors.studentId}</span>
+                )}
+              </label>
+              <select
+                id="studentId"
+                value={formData.healthProfile.id}
+                onChange={handleStudentChange}
+                disabled={isSubmitting || studentsLoading}
+                className={formErrors.studentId ? "error" : ""}
+              >
+                {students.map((student) => (
+                  <option
+                    key={student.id}
+                    value={student.studentId || student.id}
+                  >
+                    {student.fullName} - Lớp {student.className}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      <div className="page-header">
-        <h1>Khai báo sức khỏe học sinh</h1>
-        <p>
-          Cập nhật thông tin sức khỏe và tiêm chủng của học sinh để nhà trường
-          có thể chăm sóc tốt nhất. Phụ huynh có thể bỏ trống phần vaccine hoặc
-          chọn những vaccine đã tiêm.
-        </p>
-      </div>
+          {/* Health Profile Information */}
+          <div className="form-section">
+            <h3>Thông tin sức khỏe cơ bản</h3>
+            <p className="help-text">
+              Thông tin này sẽ được tự động tải từ hồ sơ y tế hiện có của học
+              sinh. Phụ huynh có thể xem và chỉnh sửa thông tin nếu cần cập
+              nhật.
+            </p>
 
-      {/* Form khai báo sức khỏe */}
-      <form onSubmit={handleSubmit} className="health-declaration-form">
-        {/* Validation Summary */}
-        {renderValidationSummary()}
-
-        {/* Student selector */}
-        <div className="form-section">
-          <h3>Thông tin học sinh</h3>
-
-          <div className="student-selector">
-            <label htmlFor="studentId">
-              Chọn học sinh: <span className="required">*</span>
-              {formErrors.studentId && (
-                <span className="error-text">{formErrors.studentId}</span>
-              )}
-            </label>
-            <select
-              id="studentId"
-              value={formData.healthProfile.id}
-              onChange={handleStudentChange}
-              disabled={isSubmitting || studentsLoading}
-              className={formErrors.studentId ? "error" : ""}
-            >
-              {students.map((student) => (
-                <option
-                  key={student.id}
-                  value={student.studentId || student.id}
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="bloodType">
+                  Nhóm máu: <span className="required">*</span>
+                  {formErrors.bloodType && (
+                    <span className="error-text">{formErrors.bloodType}</span>
+                  )}
+                </label>
+                <select
+                  id="bloodType"
+                  name="bloodType"
+                  value={formData.healthProfile.bloodType}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className={formErrors.bloodType ? "error" : ""}
                 >
-                  {student.fullName} - Lớp {student.className}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+                  {BLOOD_TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        {/* Health Profile Information */}
-        <div className="form-section">
-          <h3>Thông tin sức khỏe cơ bản</h3>
-          <p className="help-text">
-            Thông tin này sẽ được tự động tải từ hồ sơ y tế hiện có của học
-            sinh. Phụ huynh có thể xem và chỉnh sửa thông tin nếu cần cập nhật.
-          </p>
+              <div className="form-group">
+                <label htmlFor="height">
+                  Chiều cao (cm): {renderFieldTooltip("height")}
+                  {formErrors.height && (
+                    <span className="error-text">{formErrors.height}</span>
+                  )}
+                </label>
+                <input
+                  type="number"
+                  id="height"
+                  name="height"
+                  value={formData.healthProfile.height}
+                  onChange={handleInputChange}
+                  min="30"
+                  max="300"
+                  step="0.1"
+                  disabled={isSubmitting}
+                  placeholder=""
+                  className={formErrors.height ? "error" : ""}
+                />
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="bloodType">
-                Nhóm máu: <span className="required">*</span>
-                {formErrors.bloodType && (
-                  <span className="error-text">{formErrors.bloodType}</span>
-                )}
-              </label>
-              <select
-                id="bloodType"
-                name="bloodType"
-                value={formData.healthProfile.bloodType}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                className={formErrors.bloodType ? "error" : ""}
-              >
-                {BLOOD_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <div className="form-group">
+                <label htmlFor="weight">
+                  Cân nặng (kg): {renderFieldTooltip("weight")}
+                  {formErrors.weight && (
+                    <span className="error-text">{formErrors.weight}</span>
+                  )}
+                </label>
+                <input
+                  type="number"
+                  id="weight"
+                  name="weight"
+                  value={formData.healthProfile.weight}
+                  onChange={handleInputChange}
+                  min="5"
+                  max="500"
+                  step="0.1"
+                  disabled={isSubmitting}
+                  placeholder=""
+                  className={formErrors.weight ? "error" : ""}
+                />
+              </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="height">
-                Chiều cao (cm): {renderFieldTooltip("height")}
-                {formErrors.height && (
-                  <span className="error-text">{formErrors.height}</span>
-                )}
-              </label>
-              <input
-                type="number"
-                id="height"
-                name="height"
-                value={formData.healthProfile.height}
-                onChange={handleInputChange}
-                min="30"
-                max="300"
-                step="0.1"
-                disabled={isSubmitting}
-                placeholder=""
-                className={formErrors.height ? "error" : ""}
-              />
-            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="visionLeft">
+                  Thị lực mắt trái: <span className="required">*</span>
+                  {formErrors.visionLeft && (
+                    <span className="error-text">{formErrors.visionLeft}</span>
+                  )}
+                </label>
+                <select
+                  id="visionLeft"
+                  name="visionLeft"
+                  value={formData.healthProfile.visionLeft}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className={formErrors.visionLeft ? "error" : ""}
+                >
+                  {VISION_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="weight">
-                Cân nặng (kg): {renderFieldTooltip("weight")}
-                {formErrors.weight && (
-                  <span className="error-text">{formErrors.weight}</span>
-                )}
-              </label>
-              <input
-                type="number"
-                id="weight"
-                name="weight"
-                value={formData.healthProfile.weight}
-                onChange={handleInputChange}
-                min="5"
-                max="500"
-                step="0.1"
-                disabled={isSubmitting}
-                placeholder=""
-                className={formErrors.weight ? "error" : ""}
-              />
-            </div>
-          </div>
+              <div className="form-group">
+                <label htmlFor="visionRight">
+                  Thị lực mắt phải: <span className="required">*</span>
+                  {formErrors.visionRight && (
+                    <span className="error-text">{formErrors.visionRight}</span>
+                  )}
+                </label>
+                <select
+                  id="visionRight"
+                  name="visionRight"
+                  value={formData.healthProfile.visionRight}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className={formErrors.visionRight ? "error" : ""}
+                >
+                  {VISION_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="visionLeft">
-                Thị lực mắt trái: <span className="required">*</span>
-                {formErrors.visionLeft && (
-                  <span className="error-text">{formErrors.visionLeft}</span>
-                )}
-              </label>
-              <select
-                id="visionLeft"
-                name="visionLeft"
-                value={formData.healthProfile.visionLeft}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                className={formErrors.visionLeft ? "error" : ""}
-              >
-                {VISION_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="visionRight">
-                Thị lực mắt phải: <span className="required">*</span>
-                {formErrors.visionRight && (
-                  <span className="error-text">{formErrors.visionRight}</span>
-                )}
-              </label>
-              <select
-                id="visionRight"
-                name="visionRight"
-                value={formData.healthProfile.visionRight}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                className={formErrors.visionRight ? "error" : ""}
-              >
-                {VISION_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="hearingStatus">
-                Tình trạng thính lực: <span className="required">*</span>
-                {formErrors.hearingStatus && (
-                  <span className="error-text">{formErrors.hearingStatus}</span>
-                )}
-              </label>
-              <select
-                id="hearingStatus"
-                name="hearingStatus"
-                value={formData.healthProfile.hearingStatus}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                className={formErrors.hearingStatus ? "error" : ""}
-              >
-                {HEARING_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Health Information */}
-        <div className="form-section">
-          <h3>Thông tin y tế bổ sung</h3>
-          <p className="help-text">
-            Phụ huynh vui lòng nhập thêm các thông tin y tế quan trọng khác để
-            nhà trường có thể chăm sóc và hỗ trợ học sinh tốt nhất. Các trường
-            này không bắt buộc nhưng rất hữu ích cho việc theo dõi sức khỏe của
-            học sinh.
-          </p>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="allergies">
-                Dị ứng:
-                {formErrors.allergies && (
-                  <span className="error-text">{formErrors.allergies}</span>
-                )}
-              </label>
-              <textarea
-                id="allergies"
-                name="allergies"
-                value={formData.healthProfile.allergies}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                placeholder="Nhập thông tin về các loại dị ứng của học sinh (nếu có)..."
-                className={formErrors.allergies ? "error" : ""}
-                rows="3"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="chronicDiseases">
-                Bệnh mãn tính:
-                {formErrors.chronicDiseases && (
-                  <span className="error-text">
-                    {formErrors.chronicDiseases}
-                  </span>
-                )}
-              </label>
-              <textarea
-                id="chronicDiseases"
-                name="chronicDiseases"
-                value={formData.healthProfile.chronicDiseases}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                placeholder="Nhập thông tin về các bệnh mãn tính của học sinh (nếu có)..."
-                className={formErrors.chronicDiseases ? "error" : ""}
-                rows="3"
-              />
+              <div className="form-group">
+                <label htmlFor="hearingStatus">
+                  Tình trạng thính lực: <span className="required">*</span>
+                  {formErrors.hearingStatus && (
+                    <span className="error-text">
+                      {formErrors.hearingStatus}
+                    </span>
+                  )}
+                </label>
+                <select
+                  id="hearingStatus"
+                  name="hearingStatus"
+                  value={formData.healthProfile.hearingStatus}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className={formErrors.hearingStatus ? "error" : ""}
+                >
+                  {HEARING_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="dietaryRestrictions">
-                Hạn chế ăn uống:
-                {formErrors.dietaryRestrictions && (
-                  <span className="error-text">
-                    {formErrors.dietaryRestrictions}
-                  </span>
-                )}
-              </label>
-              <textarea
-                id="dietaryRestrictions"
-                name="dietaryRestrictions"
-                value={formData.healthProfile.dietaryRestrictions}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                placeholder="Nhập thông tin về các hạn chế ăn uống của học sinh (nếu có)..."
-                className={formErrors.dietaryRestrictions ? "error" : ""}
-                rows="3"
-              />
+          {/* Additional Health Information */}
+          <div className="form-section">
+            <h3>Thông tin y tế bổ sung</h3>
+            <p className="help-text">
+              Phụ huynh vui lòng nhập thêm các thông tin y tế quan trọng khác để
+              nhà trường có thể chăm sóc và hỗ trợ học sinh tốt nhất. Các trường
+              này không bắt buộc nhưng rất hữu ích cho việc theo dõi sức khỏe
+              của học sinh.
+            </p>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="allergies">
+                  Dị ứng:
+                  {formErrors.allergies && (
+                    <span className="error-text">{formErrors.allergies}</span>
+                  )}
+                </label>
+                <textarea
+                  id="allergies"
+                  name="allergies"
+                  value={formData.healthProfile.allergies}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  placeholder="Nhập thông tin về các loại dị ứng của học sinh (nếu có)..."
+                  className={formErrors.allergies ? "error" : ""}
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="chronicDiseases">
+                  Bệnh mãn tính:
+                  {formErrors.chronicDiseases && (
+                    <span className="error-text">
+                      {formErrors.chronicDiseases}
+                    </span>
+                  )}
+                </label>
+                <textarea
+                  id="chronicDiseases"
+                  name="chronicDiseases"
+                  value={formData.healthProfile.chronicDiseases}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  placeholder="Nhập thông tin về các bệnh mãn tính của học sinh (nếu có)..."
+                  className={formErrors.chronicDiseases ? "error" : ""}
+                  rows="3"
+                />
+              </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="specialNeeds">
-                Nhu cầu đặc biệt:
-                {formErrors.specialNeeds && (
-                  <span className="error-text">{formErrors.specialNeeds}</span>
-                )}
-              </label>
-              <textarea
-                id="specialNeeds"
-                name="specialNeeds"
-                value={formData.healthProfile.specialNeeds}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                placeholder="Nhập thông tin về các nhu cầu đặc biệt của học sinh (nếu có)..."
-                className={formErrors.specialNeeds ? "error" : ""}
-                rows="3"
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="dietaryRestrictions">
+                  Hạn chế ăn uống:
+                  {formErrors.dietaryRestrictions && (
+                    <span className="error-text">
+                      {formErrors.dietaryRestrictions}
+                    </span>
+                  )}
+                </label>
+                <textarea
+                  id="dietaryRestrictions"
+                  name="dietaryRestrictions"
+                  value={formData.healthProfile.dietaryRestrictions}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  placeholder="Nhập thông tin về các hạn chế ăn uống của học sinh (nếu có)..."
+                  className={formErrors.dietaryRestrictions ? "error" : ""}
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="specialNeeds">
+                  Nhu cầu đặc biệt:
+                  {formErrors.specialNeeds && (
+                    <span className="error-text">
+                      {formErrors.specialNeeds}
+                    </span>
+                  )}
+                </label>
+                <textarea
+                  id="specialNeeds"
+                  name="specialNeeds"
+                  value={formData.healthProfile.specialNeeds}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  placeholder="Nhập thông tin về các nhu cầu đặc biệt của học sinh (nếu có)..."
+                  className={formErrors.specialNeeds ? "error" : ""}
+                  rows="3"
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="emergencyContactInfo">
+                  Thông tin liên lạc khẩn cấp:{" "}
+                  <span className="required">*</span>
+                  {renderFieldTooltip("emergencyContactInfo")}
+                  {formErrors.emergencyContactInfo && (
+                    <span className="error-text">
+                      {formErrors.emergencyContactInfo}
+                    </span>
+                  )}
+                </label>
+                <textarea
+                  id="emergencyContactInfo"
+                  name="emergencyContactInfo"
+                  value={formData.healthProfile.emergencyContactInfo}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  placeholder="Nhập tên và số điện thoại người liên hệ khẩn cấp (VD: Bà Nguyễn Thị A - 0987654321)..."
+                  className={formErrors.emergencyContactInfo ? "error" : ""}
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="lastPhysicalExamDate">
+                  Ngày kiểm tra sức khỏe gần nhất:{" "}
+                  <span className="required">*</span>
+                  {renderFieldTooltip("lastPhysicalExamDate")}
+                  {formErrors.lastPhysicalExamDate && (
+                    <span className="error-text">
+                      {formErrors.lastPhysicalExamDate}
+                    </span>
+                  )}
+                </label>
+                <input
+                  type="date"
+                  id="lastPhysicalExamDate"
+                  name="lastPhysicalExamDate"
+                  value={formData.healthProfile.lastPhysicalExamDate}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className={formErrors.lastPhysicalExamDate ? "error" : ""}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="emergencyContactInfo">
-                Thông tin liên lạc khẩn cấp: <span className="required">*</span>
-                {renderFieldTooltip("emergencyContactInfo")}
-                {formErrors.emergencyContactInfo && (
-                  <span className="error-text">
-                    {formErrors.emergencyContactInfo}
-                  </span>
-                )}
-              </label>
-              <textarea
-                id="emergencyContactInfo"
-                name="emergencyContactInfo"
-                value={formData.healthProfile.emergencyContactInfo}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                placeholder="Nhập tên và số điện thoại người liên hệ khẩn cấp (VD: Bà Nguyễn Thị A - 0987654321)..."
-                className={formErrors.emergencyContactInfo ? "error" : ""}
-                rows="3"
-              />
-            </div>
+          {/* Vaccine selection section */}
+          {renderVaccineSelection()}
 
-            <div className="form-group">
-              <label htmlFor="lastPhysicalExamDate">
-                Ngày kiểm tra sức khỏe gần nhất:{" "}
-                <span className="required">*</span>
-                {renderFieldTooltip("lastPhysicalExamDate")}
-                {formErrors.lastPhysicalExamDate && (
-                  <span className="error-text">
-                    {formErrors.lastPhysicalExamDate}
-                  </span>
-                )}
-              </label>
-              <input
-                type="date"
-                id="lastPhysicalExamDate"
-                name="lastPhysicalExamDate"
-                value={formData.healthProfile.lastPhysicalExamDate}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                className={formErrors.lastPhysicalExamDate ? "error" : ""}
-              />
-            </div>
+          {/* Submit button */}
+          <div className="form-actions">
+            {/* Debug button - chỉ hiển thị khi đang develop */}
+
+            <button
+              type="submit"
+              className="submit-button"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? "Đang gửi dữ liệu..."
+                : "Cập nhật khai báo sức khỏe"}
+            </button>
           </div>
-        </div>
-
-        {/* Vaccine selection section */}
-        {renderVaccineSelection()}
-
-        {/* Submit button */}
-        <div className="form-actions">
-          {/* Debug button - chỉ hiển thị khi đang develop */}
-          {process.env.NODE_ENV === "development" && (
-            <>
-              <button
-                type="button"
-                onClick={() => {
-                  console.log("=== DEBUG FORM DATA ===");
-                  console.log("Form Data:", formData);
-                  console.log("Selected Vaccines:", selectedVaccines);
-                  console.log("Vaccine Notes:", vaccineNotes);
-                  console.log(
-                    "Vaccine Administered At:",
-                    vaccineAdministeredAt
-                  );
-                  console.log("Vaccinated From Server:", vaccinatedFromServer);
-                  console.log("Form Errors:", formErrors);
-                  console.log("Is Submitting:", isSubmitting);
-                  console.log("Auth Token:", localStorage.getItem("authToken"));
-                }}
-                style={{
-                  backgroundColor: "#f0f0f0",
-                  border: "1px solid #ccc",
-                  padding: "8px 16px",
-                  marginRight: "10px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                🐛 Debug Data
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  console.log("=== TESTING MODAL ===");
-                  const testVaccine = {
-                    id: 999,
-                    name: "Test Vaccine Modal",
-                    description: "Đây là test để kiểm tra modal hiển thị",
-                    totalDoses: 2,
-                    intervalDays: 30,
-                    minAgeMonths: 6,
-                    maxAgeMonths: 60,
-                  };
-                  showVaccineAlreadyTakenNotification(testVaccine);
-                }}
-                style={{
-                  backgroundColor: "#ff6b6b",
-                  color: "white",
-                  border: "none",
-                  padding: "8px 16px",
-                  marginRight: "10px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                🧪 Test Modal
-              </button>
-            </>
-          )}
-
-          <button
-            type="submit"
-            className="submit-button"
-            disabled={isSubmitting}
-          >
-            {isSubmitting
-              ? "Đang gửi dữ liệu..."
-              : "Cập nhật khai báo sức khỏe"}
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
 
       {/* Sử dụng ToastContainer đơn giản nhất để tránh lỗi */}
       <ToastContainer
