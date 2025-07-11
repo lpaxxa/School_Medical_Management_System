@@ -109,12 +109,36 @@ export const updateUser = async (userId, userData) => {
     console.log('Update data:', userData);
     console.log('Using auth token:', getAuthToken() ? 'Yes' : 'No');
     
-    // Chuẩn bị data theo format API yêu cầu
+    // Chuẩn bị data theo format API yêu cầu - include role-specific fields
     const updatePayload = {
       email: userData.email,
-      password: userData.password,
       phoneNumber: userData.phoneNumber
     };
+
+    // Only include password if it exists
+    if (userData.password && userData.password.trim() !== "") {
+      updatePayload.password = userData.password;
+    }
+
+    // Add role-specific fields based on what's provided
+    if (userData.fullName !== undefined) {
+      updatePayload.fullName = userData.fullName;
+    }
+    if (userData.address !== undefined) {
+      updatePayload.address = userData.address;
+    }
+    if (userData.relationshipType !== undefined) {
+      updatePayload.relationshipType = userData.relationshipType;
+    }
+    if (userData.occupation !== undefined) {
+      updatePayload.occupation = userData.occupation;
+    }
+    if (userData.qualification !== undefined) {
+      updatePayload.qualification = userData.qualification;
+    }
+    if (userData.students !== undefined) {
+      updatePayload.students = userData.students;
+    }
     
     console.log('Update payload:', updatePayload);
     console.log('API endpoint:', `${API_BASE_URL}/update/${userId}`);
@@ -378,6 +402,7 @@ export const transformUserFromAPI = (apiUser) => {
     relationshipType: apiUser.relationshipType,
     occupation: apiUser.occupation,
     qualification: apiUser.qualification,
+    students: apiUser.students || [], // Include students data from API
   };
 };
 

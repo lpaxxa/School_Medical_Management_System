@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.Map;
 
 @RestController
@@ -26,7 +27,7 @@ public class AccountMemberController {
 
     // pa
     @PostMapping("/addNewMember")
-     // @PreAuthorize("hasRole('ADMIN')")
+     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> register(@RequestBody Map<String, Object> requestData) {
         try {
             return ResponseEntity.ok(authService.registerMember(requestData));
@@ -101,6 +102,8 @@ public class AccountMemberController {
 
 
     }
+
+
 
 
 

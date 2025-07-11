@@ -1,9 +1,11 @@
 package com.fpt.medically_be.dto.request;
 
+import com.fpt.medically_be.dto.StudentDTO;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class AccountUpdateRequestDTO {
@@ -30,6 +32,7 @@ public class AccountUpdateRequestDTO {
     private String relationshipType;
     @Size(max = 100, message = "Occupation cannot exceed 100 characters")
     private String occupation;
+    private List<StudentDTO> students; // List of students to update for parents
     
     // Nurse-specific fields
     @Size(max = 200, message = "Qualification cannot exceed 200 characters")

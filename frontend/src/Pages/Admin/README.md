@@ -5,8 +5,8 @@
 ### 1. **Import/Export Issues**
 
 - ✅ Fixed AdminLayout import MedicalEventPlanning cũ → VaccinationPlanManager mới
-- ✅ Fixed pages/index.js exports để match với actual files
-- ✅ Fixed Reports import path từ index.jsx thay vì index.js
+- ✅ Fixed pages/index.jsx exports để match với actual files
+- ✅ Fixed Reports import path từ index.jsx thay vì index.jsx
 - ✅ Cleaned up tất cả unused imports
 
 ### 2. **Component Integration**
@@ -27,12 +27,12 @@ src/Pages/Admin/
 │   ├── Sidebar/ ✅ (Working correctly)
 │   └── AdminHome/
 ├── pages/
-│   ├── index.js ✅ (Fixed exports)
+│   ├── index.jsx ✅ (Fixed exports)
 │   ├── Dashboard_co/ ✅
 │   ├── UserManagement/ ✅
 │   ├── Reports_co/ ✅
 │   └── MedicalEventPlanning/ ✅ (All new components)
-├── index.js ✅ (New main export)
+├── index.jsx ✅ (New main export)
 └── README.md ✅ (This file)
 ```
 

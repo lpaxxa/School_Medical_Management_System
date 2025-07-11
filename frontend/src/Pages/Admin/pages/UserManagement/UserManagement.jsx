@@ -446,8 +446,11 @@ const UserManagement = () => {
 
   const handleSaveUser = async (userData) => {
     try {
-      console.log("HandleSaveUser called with:", userData);
-      console.log("Current modal mode:", modalMode);
+      // console.log("=== HANDLE SAVE USER DEBUG ===");
+      // console.log("HandleSaveUser called with:", userData);
+      // console.log("Current modal mode:", modalMode);
+      // console.log("User role:", userData.role);
+      // console.log("=== END SAVE DEBUG ===");
 
       if (modalMode === "add") {
         const apiData = transformUserToAPI(userData);
@@ -460,21 +463,38 @@ const UserManagement = () => {
             userData.role
           )}" đã được thêm.`
         );
-      } else if (modalMode === "edit") {
-        console.log("Edit mode - updating user with ID:", userData.id);
-        // Cho edit mode, chỉ gửi những fields cần thiết
-        const editData = {
-          email: userData.email,
-          phoneNumber: userData.phoneNumber,
-        };
-        
-        // Chỉ gửi password nếu người dùng thực sự muốn đổi mật khẩu
-        if (userData.password && userData.password.trim() !== "") {
-          editData.password = userData.password;
+          } else if (modalMode === "edit") {
+      console.log("Edit mode - updating user with ID:", userData.id);
+      // Prepare edit data with all fields from the form
+      const editData = {
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+      };
+      
+      // Add role-specific fields based on user role
+      if (userData.role === "PARENT") {
+        editData.fullName = userData.fullName;
+        editData.address = userData.address;
+        editData.relationshipType = userData.relationshipType;
+        editData.occupation = userData.occupation;
+        // Include students data for parent updates
+        if (userData.students) {
+          editData.students = userData.students;
         }
-        
-        console.log("Edit mode - sending data:", editData);
-        await updateUser(userData.id, editData);
+      } else if (userData.role === "NURSE") {
+        editData.fullName = userData.fullName;
+        editData.qualification = userData.qualification;
+      } else if (userData.role === "ADMIN") {
+        editData.fullName = userData.fullName;
+      }
+      
+      // Only include password if user wants to change it
+      if (userData.password && userData.password.trim() !== "") {
+        editData.password = userData.password;
+      }
+      
+      console.log("Edit mode - sending data:", editData);
+      await updateUser(userData.id, editData);
         showSuccess(
           "Cập nhật người dùng thành công!",
           "Thông tin người dùng đã được cập nhật.",

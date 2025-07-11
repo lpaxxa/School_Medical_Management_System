@@ -8,7 +8,7 @@
 
 /* Header Section */
 .form-header {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   color: white;
   padding: 30px;
   border-radius: 15px;
@@ -26,6 +26,7 @@
   margin: 0 0 10px 0;
   font-size: 2rem;
   font-weight: 600;
+  color: white;
 }
 
 .header-content p {
@@ -385,91 +386,281 @@
 }
 
 /* Class Management Styles */
-.class-input-section {
+.class-selection-section {
   background: #f8f9fa;
   border-radius: 8px;
   padding: 20px;
 }
 
-.add-class-input {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.add-class-input input {
-  flex: 1;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
-
-.add-class-btn {
+.loading-classes {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #4CAF50;
-  color: white;
+  gap: 10px;
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  justify-content: center;
+}
+
+.class-selector-container {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.dropdown-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 1rem;
+}
+
+/* Search Input Container */
+.class-search-container {
+  position: relative;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #4CAF50;
+}
+
+.class-search-input {
+  flex: 1;
+  padding: 12px 15px;
   border: none;
-  padding: 12px 20px;
-  border-radius: 6px;
+  outline: none;
+  font-size: 1rem;
+  background: transparent;
+}
+
+.class-search-input::placeholder {
+  color: #888;
+}
+
+.dropdown-toggle-btn {
+  padding: 12px 15px;
+  background: none;
+  border: none;
+  color: #666;
   cursor: pointer;
-  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-toggle-btn:hover {
+  color: #4CAF50;
+}
+
+.dropdown-toggle-btn .rotated {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Content */
+.class-dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 5px;
+}
+
+/* Grade Groups */
+.grade-group {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.grade-group:last-child {
+  border-bottom: none;
+}
+
+.grade-header {
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.grade-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: #333;
+  user-select: none;
+}
+
+.grade-checkbox input[type="checkbox"] {
+  margin-right: 10px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.grade-name {
+  flex: 1;
+  font-size: 1rem;
+}
+
+.grade-count {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: normal;
+}
+
+/* Class Items */
+.grade-classes {
+  padding: 5px 0;
+}
+
+.class-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 35px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.class-item:hover {
+  background: #f0f8ff;
+}
+
+.class-item input[type="checkbox"] {
+  margin-right: 10px;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.class-item input[type="checkbox"]:checked + .class-name {
+  color: #4CAF50;
   font-weight: 500;
-  transition: background 0.3s ease;
 }
 
-.add-class-btn:hover:not(:disabled) {
-  background: #45a049;
+.class-name {
+  font-size: 0.9rem;
+  color: #333;
 }
 
-.add-class-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
+.no-classes,
+.no-search-results {
+  text-align: center;
+  color: #999;
+  padding: 30px;
+  font-style: italic;
+}
+
+.selected-classes {
+  margin-top: 20px;
+  padding: 15px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
 }
 
 .selected-classes h4 {
   margin: 0 0 15px 0;
   color: #333;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .class-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .class-tag {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 0.9rem;
+  gap: 6px;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
   font-weight: 500;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+  transition: all 0.3s ease;
+}
+
+.class-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
 }
 
 .remove-class-btn {
   background: none;
   border: none;
-  color: #f44336;
+  color: white;
   cursor: pointer;
   padding: 2px;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  font-size: 0.7rem;
 }
 
 .remove-class-btn:hover {
-  background: rgba(244, 67, 54, 0.1);
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.class-selection-summary {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #e0e0e0;
+  font-size: 0.85rem;
+  color: #666;
+  font-style: italic;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clear-all-btn {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.clear-all-btn:hover {
+  background: linear-gradient(135deg, #d32f2f, #c62828);
+  transform: translateY(-1px);
 }
 
 /* Selected Vaccines Summary */
@@ -541,13 +732,30 @@
     max-height: 250px;
   }
   
-  .add-class-input {
+  .class-dropdown-content {
+    max-height: 300px;
+    position: relative;
+    margin-top: 10px;
+  }
+  
+  .grade-header {
+    padding: 10px 12px;
+  }
+  
+  .class-item {
+    padding: 6px 25px;
+  }
+  
+  .search-input-wrapper {
     flex-direction: column;
   }
   
-  .add-class-btn {
-    width: 100%;
-    justify-content: center;
+  .class-search-input {
+    padding: 10px 12px;
+  }
+  
+  .dropdown-toggle-btn {
+    padding: 8px 12px;
   }
   
   .class-tags {

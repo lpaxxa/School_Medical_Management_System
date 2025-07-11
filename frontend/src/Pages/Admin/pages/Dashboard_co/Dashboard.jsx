@@ -13,10 +13,16 @@ import {
   UserRoleChart,
   HealthStatusChart,
   VaccinationProgressChart,
+  VaccinationPlansStatusChart,
   HealthCheckupResponseChart,
   MedicalEventsSeverityChart,
   ConsultationTypesChart,
   BMIByGradeChart,
+  HealthCampaignStatusChart,
+  StudentsByGradeChart,
+  MedicationApprovalStatusChart,
+  MedicationConsumptionStatusChart,
+  VaccinationTypeChart,
 } from "./components/ChartComponents";
 
 const Dashboard = () => {
@@ -28,7 +34,12 @@ const Dashboard = () => {
     medicalEventsStats: null,
     consultationStats: null,
     bmiStats: null,
-    vaccinationProgress: null,
+    healthCampaignStats: null,
+    recentEvents: null,
+    recentVaccinationPlans: null,
+    studentsGradeData: null,
+    medicationStats: null,
+    vaccinationTypeStats: null,
   });
 
   const [loading, setLoading] = useState(true);
@@ -42,28 +53,28 @@ const Dashboard = () => {
     pendingReports: 8,
   });
 
-  // Dữ liệu sự kiện gần đây
-  const recentEvents = [
+  // Get recentEvents from dashboardData or use fallback
+  const recentEvents = dashboardData.recentEvents || [
     {
       id: 1,
-      title: "Kiểm tra sức khỏe định kỳ Lớp 1A",
+      title: "Kiểm tra sức khỏe định kỳ K1-K5",
       date: "20/06/2025",
-      type: "health-check",
-      status: "completed",
+      type: "health-campaign",
+      status: "ongoing",
     },
     {
       id: 2,
-      title: "Tiêm chủng vắc-xin HPV",
+      title: "Chiến dịch tiêm chủng mùa hè",
       date: "15/06/2025",
-      type: "vaccination",
+      type: "health-campaign",
       status: "completed",
     },
     {
       id: 3,
       title: "Khám sàng lọc răng miệng",
       date: "10/06/2025",
-      type: "screening",
-      status: "completed",
+      type: "health-campaign",
+      status: "upcoming",
     },
   ];
 
@@ -108,7 +119,12 @@ const Dashboard = () => {
         medicalEventsStats,
         consultationStats,
         bmiStats,
-        vaccinationProgress,
+        healthCampaignStats,
+        recentEvents,
+        recentVaccinationPlans,
+        studentsGradeData,
+        medicationStats,
+        vaccinationTypeStats,
       ] = await Promise.all([
         dashboardService.getUserStatistics(),
         dashboardService.getHealthCheckupReport(),
@@ -116,7 +132,12 @@ const Dashboard = () => {
         dashboardService.getMedicalEventsStatistics(),
         dashboardService.getConsultationStatistics(),
         dashboardService.getBMIStatisticsByGrade(),
-        dashboardService.getVaccinationProgress(),
+        dashboardService.getHealthCampaignStatistics(),
+        dashboardService.getRecentHealthCampaigns(5), // Limit to 5 recent campaigns
+        dashboardService.getRecentVaccinationPlans(5), // Limit to 5 recent vaccination plans
+        dashboardService.getStudentsByGradeLevel(),
+        dashboardService.getMedicationInstructionStatistics(),
+        dashboardService.getVaccinationTypeStatistics(),
       ]);
 
       setDashboardData({
@@ -126,7 +147,12 @@ const Dashboard = () => {
         medicalEventsStats,
         consultationStats,
         bmiStats,
-        vaccinationProgress,
+        healthCampaignStats,
+        recentEvents,
+        recentVaccinationPlans,
+        studentsGradeData,
+        medicationStats,
+        vaccinationTypeStats,
       });
 
       // Cập nhật stats cơ bản
@@ -134,6 +160,7 @@ const Dashboard = () => {
         ...prev,
         totalStudents: healthCheckupReport.total || prev.totalStudents,
         totalMedicalEvents: medicalEventsStats.total || prev.totalMedicalEvents,
+        upcomingEvents: vaccinationReport.pending || prev.upcomingEvents,
         pendingReports: consultationStats.stats.unread || prev.pendingReports,
       }));
     } catch (err) {
@@ -161,16 +188,8 @@ const Dashboard = () => {
         <div className="header-content">
           <div>
             <h1>Tổng quan Y tế học đường</h1>
-            <p>Xin chào! Đây là tổng quan hoạt động y tế của trường.</p>
+        
           </div>
-          <button
-            className={`refresh-btn ${loading ? "loading" : ""}`}
-            onClick={handleRefresh}
-            disabled={loading}
-          >
-            <FaSync className={loading ? "spin" : ""} />
-            {loading ? "Đang tải..." : "Làm mới"}
-          </button>
         </div>
       </div>
 
@@ -181,8 +200,26 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Hiển thị thông báo fallback data */}
+      {!loading && (
+        dashboardData.userStats?.usingFallback ||
+        dashboardData.studentsGradeData?.usingFallback ||
+        dashboardData.medicationStats?.usingFallback ||
+        dashboardData.vaccinationTypeStats?.usingFallback ||
+        dashboardData.healthCampaignStats?.usingFallback ||
+        dashboardData.medicalEventsStats?.usingFallback ||
+        dashboardData.bmiStats?._metadata?.usingFallback
+      ) && (
+        <div className="info-banner">
+          <span>
+            📊 Đang hiển thị dữ liệu mẫu do cơ sở dữ liệu chưa có dữ liệu thực tế. 
+            Dữ liệu sẽ tự động cập nhật khi có thông tin mới.
+          </span>
+        </div>
+      )}
+
       {/* Thống kê tổng quan */}
-      <div className="stats-container">
+      {/* <div className="stats-container">
         <div className="stat-card">
           <div className="stat-icon students">
             <FaChild />
@@ -208,7 +245,7 @@ const Dashboard = () => {
             <FaUserMd />
           </div>
           <div className="stat-details">
-            <h3>Sự kiện sắp tới</h3>
+            <h3>Kế hoạch tiêm chủng đang chờ</h3>
             <p className="stat-value">{stats.upcomingEvents}</p>
           </div>
         </div>
@@ -222,17 +259,17 @@ const Dashboard = () => {
             <p className="stat-value">{stats.pendingReports}</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Section biểu đồ */}
       <div className="charts-section">
-        <div className="section-header">
+        {/* <div className="section-header">
           <h2>
             <FaChartBar /> Thống kê và Biểu đồ
           </h2>
-        </div>
+        </div> */}
 
-        {/* Hàng 1: User Role Chart & Health Status Chart */}
+        {/* Hàng 1: User Role Chart & Students by Grade Chart */}
         <div className="charts-row">
           <div className="chart-card">
             <div className="chart-header">
@@ -240,6 +277,7 @@ const Dashboard = () => {
               {dashboardData.userStats && (
                 <span className="chart-subtitle">
                   Tổng: {dashboardData.userStats.total} người dùng
+                
                 </span>
               )}
             </div>
@@ -256,6 +294,37 @@ const Dashboard = () => {
 
           <div className="chart-card">
             <div className="chart-header">
+              <h3>Số lượng học sinh theo khối lớp</h3>
+              {dashboardData.studentsGradeData && (
+                <span className="chart-subtitle">
+                  Tổng: {dashboardData.studentsGradeData.total} học sinh
+                </span>
+              )}
+            </div>
+            <div className="chart-content">
+              {loading ? (
+                <div className="chart-loading">Đang tải...</div>
+              ) : dashboardData.studentsGradeData ? (
+                <StudentsByGradeChart data={dashboardData.studentsGradeData} />
+              ) : (
+                <div className="chart-error">
+                  <p>Không có dữ liệu học sinh theo khối lớp</p>
+                  <button 
+                    onClick={() => window.dashboardService?.testStudentsAPI?.()}
+                    style={{fontSize: '12px', padding: '4px 8px', marginTop: '8px'}}
+                  >
+                    Test API
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Hàng 2: Health Status Chart & Health Campaign Status Chart */}
+        <div className="charts-row">
+          <div className="chart-card">
+            <div className="chart-header">
               <h3>Phân loại sức khỏe học sinh</h3>
               <span className="chart-subtitle">
                 Dựa trên kết quả khám gần nhất
@@ -265,24 +334,66 @@ const Dashboard = () => {
               <HealthStatusChart />
             </div>
           </div>
-        </div>
 
-        {/* Hàng 2: Vaccination Progress & Health Checkup Response */}
-        <div className="charts-row">
           <div className="chart-card">
             <div className="chart-header">
-              <h3>Tiến độ tiêm chủng 6 tháng qua</h3>
-              <span className="chart-subtitle">Số lượng học sinh đã tiêm</span>
+              <h3>Trạng thái chiến dịch sức khỏe</h3>
+              {dashboardData.healthCampaignStats && (
+                <span className="chart-subtitle">
+                  Tổng: {dashboardData.healthCampaignStats.total} chiến dịch
+                </span>
+              )}
             </div>
             <div className="chart-content">
               {loading ? (
                 <div className="chart-loading">Đang tải...</div>
-              ) : dashboardData.vaccinationProgress ? (
-                <VaccinationProgressChart
-                  data={dashboardData.vaccinationProgress}
+              ) : dashboardData.healthCampaignStats ? (
+                <HealthCampaignStatusChart
+                  data={dashboardData.healthCampaignStats}
                 />
               ) : (
-                <div className="chart-error">Không có dữ liệu</div>
+                <div className="chart-error">
+                  <p>Không có dữ liệu chiến dịch sức khỏe</p>
+                  <button 
+                    onClick={() => window.dashboardService?.testHealthCampaignsAPI?.()}
+                    style={{fontSize: '12px', padding: '4px 8px', marginTop: '8px'}}
+                  >
+                    Test API
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Hàng 3: Vaccination Progress & Health Checkup Response
+        <div className="charts-row">
+          <div className="chart-card">
+            <div className="chart-header">
+              <h3>Thống kê kế hoạch tiêm chủng</h3>
+              {dashboardData.vaccinationReport && (
+                <span className="chart-subtitle">
+                  Tổng: {dashboardData.vaccinationReport.total} kế hoạch
+                </span>
+              )}
+            </div>
+            <div className="chart-content">
+              {loading ? (
+                <div className="chart-loading">Đang tải...</div>
+              ) : dashboardData.vaccinationReport ? (
+                <VaccinationPlansStatusChart
+                  data={dashboardData.vaccinationReport}
+                />
+              ) : (
+                <div className="chart-error">
+                  <p>Không có dữ liệu kế hoạch tiêm chủng</p>
+                  <button 
+                    onClick={() => window.dashboardService?.testVaccinationPlansAPI?.()}
+                    style={{fontSize: '12px', padding: '4px 8px', marginTop: '8px'}}
+                  >
+                    Test API
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -308,9 +419,9 @@ const Dashboard = () => {
               )}
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* Hàng 3: Medical Events & Consultation Types */}
+        {/* Hàng 4: Medical Events Severity & Vaccination Type Chart */}
         <div className="charts-row">
           <div className="chart-card">
             <div className="chart-header">
@@ -329,42 +440,124 @@ const Dashboard = () => {
                   data={dashboardData.medicalEventsStats}
                 />
               ) : (
-                <div className="chart-error">Không có dữ liệu</div>
+                <div className="chart-error">
+                  <p>Không có dữ liệu sự cố y tế</p>
+                  <button 
+                    onClick={() => window.dashboardService?.testMedicalIncidentsAPI?.()}
+                    style={{fontSize: '12px', padding: '4px 8px', marginTop: '8px'}}
+                  >
+                    Test API
+                  </button>
+                </div>
               )}
             </div>
           </div>
 
           <div className="chart-card">
             <div className="chart-header">
-              <h3>Các loại tư vấn y tế</h3>
-              {dashboardData.consultationStats && (
+              <h3>Phân loại tiêm chủng theo nguồn</h3>
+              {dashboardData.vaccinationTypeStats && (
                 <span className="chart-subtitle">
-                  Tổng: {dashboardData.consultationStats.total} tư vấn
+                  Tổng: {dashboardData.vaccinationTypeStats.total} mũi tiêm
                 </span>
               )}
             </div>
             <div className="chart-content">
               {loading ? (
                 <div className="chart-loading">Đang tải...</div>
-              ) : dashboardData.consultationStats ? (
-                <ConsultationTypesChart
-                  data={dashboardData.consultationStats}
+              ) : dashboardData.vaccinationTypeStats ? (
+                <VaccinationTypeChart
+                  data={dashboardData.vaccinationTypeStats}
                 />
               ) : (
-                <div className="chart-error">Không có dữ liệu</div>
+                <div className="chart-error">
+                  <p>Không có dữ liệu phân loại tiêm chủng</p>
+                  <button 
+                    onClick={() => window.dashboardService?.testVaccinationsAPI?.()}
+                    style={{fontSize: '12px', padding: '4px 8px', marginTop: '8px'}}
+                  >
+                    Test API
+                  </button>
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Hàng 4: BMI Chart (full width) */}
+        {/* Hàng 5: Medication Status Charts */}
+        <div className="charts-row">
+          <div className="chart-card">
+            <div className="chart-header">
+              <h3>Trạng thái phê duyệt thuốc</h3>
+              {dashboardData.medicationStats && (
+                <span className="chart-subtitle">
+                  Tổng: {dashboardData.medicationStats.approvalStats.total} yêu cầu
+                </span>
+              )}
+            </div>
+            <div className="chart-content">
+              {loading ? (
+                <div className="chart-loading">Đang tải...</div>
+              ) : dashboardData.medicationStats ? (
+                <MedicationApprovalStatusChart
+                  data={dashboardData.medicationStats.approvalStats}
+                />
+              ) : (
+                <div className="chart-error">
+                  <p>Không có dữ liệu phê duyệt thuốc</p>
+                  <button 
+                    onClick={() => window.dashboardService?.testMedicationInstructionsAPI?.()}
+                    style={{fontSize: '12px', padding: '4px 8px', marginTop: '8px'}}
+                  >
+                    Test API
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="chart-card">
+            <div className="chart-header">
+              <h3>Trạng thái sử dụng thuốc</h3>
+              {dashboardData.medicationStats && (
+                <span className="chart-subtitle">
+                  Tổng: {dashboardData.medicationStats.consumptionStats.total} thuốc
+                </span>
+              )}
+            </div>
+            <div className="chart-content">
+              {loading ? (
+                <div className="chart-loading">Đang tải...</div>
+              ) : dashboardData.medicationStats?.consumptionStats?.total > 0 ? (
+                <MedicationConsumptionStatusChart
+                  data={dashboardData.medicationStats.consumptionStats}
+                />
+              ) : (
+                <div className="chart-error">
+                  <p>Không có dữ liệu sử dụng thuốc</p>
+                  <span style={{fontSize: '10px', color: '#666'}}>
+                    (Chỉ hiển thị khi có thuốc đã được sử dụng)
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Hàng 6: BMI Chart (full width) */}
         <div className="charts-row">
           <div className="chart-card full-width">
             <div className="chart-header">
               <h3>Phân bố BMI theo khối lớp</h3>
-              <span className="chart-subtitle">
-                Thống kê chỉ số BMI học sinh từng khối
-              </span>
+              {dashboardData.bmiStats?._metadata ? (
+                <span className="chart-subtitle">
+                  {/* {dashboardData.bmiStats._metadata.totalWithBMI} học sinh có dữ liệu BMI / {dashboardData.bmiStats._metadata.totalCheckups} lần khám */}
+                </span>
+              ) : (
+                <span className="chart-subtitle">
+                  Thống kê chỉ số BMI từ kết quả khám sức khỏe định kỳ
+                </span>
+              )}
             </div>
             <div className="chart-content large">
               {loading ? (
@@ -372,7 +565,15 @@ const Dashboard = () => {
               ) : dashboardData.bmiStats ? (
                 <BMIByGradeChart data={dashboardData.bmiStats} />
               ) : (
-                <div className="chart-error">Không có dữ liệu</div>
+                <div className="chart-error">
+                  <p>Không có dữ liệu BMI theo khối lớp</p>
+                  <button 
+                    onClick={() => window.dashboardService?.testMedicalCheckupsAPI?.()}
+                    style={{fontSize: '12px', padding: '4px 8px', marginTop: '8px'}}
+                  >
+                    Test API
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -385,7 +586,7 @@ const Dashboard = () => {
         <div className="dashboard-card events-list">
           <div className="card-header">
             <h2>Sự kiện y tế gần đây</h2>
-            <button className="view-all-btn">Xem tất cả</button>
+            {/* <button className="view-all-btn">Xem tất cả</button> */}
           </div>
           <div className="card-content">
             <table className="events-table">
@@ -419,24 +620,43 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Health Alerts */}
-        <div className="dashboard-card alerts-list">
+        {/* Recent Vaccination Plans */}
+        <div className="dashboard-card events-list">
           <div className="card-header">
-            <h2>Cảnh báo y tế</h2>
-            <button className="view-all-btn">Xem tất cả</button>
+            <h2>Kế hoạch tiêm chủng gần đây</h2>
+            {/* <button className="view-all-btn">Xem tất cả</button> */}
           </div>
           <div className="card-content">
-            <div className="alerts">
-              {healthAlerts.map((alert) => (
-                <div key={alert.id} className={`alert-item ${alert.severity}`}>
-                  <div className="alert-header">
-                    <h3>{alert.title}</h3>
-                    <span className="alert-date">{alert.date}</span>
-                  </div>
-                  <p className="alert-description">{alert.description}</p>
-                </div>
-              ))}
-            </div>
+            <table className="events-table">
+              <thead>
+                <tr>
+                  <th>Tên kế hoạch</th>
+                  <th>Ngày tiêm</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(dashboardData.recentVaccinationPlans || []).map((plan) => (
+                  <tr key={plan.id}>
+                    <td>{plan.name}</td>
+                    <td>{plan.date}</td>
+                    <td>
+                      <span className={`status-badge ${plan.status}`}>
+                        {plan.status === "completed"
+                          ? "Hoàn thành"
+                          : plan.status === "upcoming"
+                          ? "Sắp diễn ra"
+                          : plan.status === "in-progress"
+                          ? "Đang tiến hành"
+                          : plan.status === "cancelled"
+                          ? "Đã hủy"
+                          : "Chờ xử lý"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

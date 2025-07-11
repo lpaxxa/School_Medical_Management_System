@@ -27,6 +27,7 @@ public class Notification2 {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "createdBy")
     private Nurse createdBy;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)
     private NotificationType type;

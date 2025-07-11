@@ -188,6 +188,73 @@ export const VaccinationProgressChart = ({ data }) => {
   return <Line data={data} options={options} />;
 };
 
+// 3b. Bar Chart - Thống kê trạng thái kế hoạch tiêm chủng
+export const VaccinationPlansStatusChart = ({ data }) => {
+  const chartData = {
+    labels: ["Chờ phụ huynh", "Đang thực hiện", "Hoàn thành", "Đã hủy"],
+    datasets: [
+      {
+        label: "Số kế hoạch",
+        data: [
+          data.statusBreakdown?.waitingParent || 0,
+          data.statusBreakdown?.inProgress || 0,
+          data.statusBreakdown?.completed || 0,
+          data.statusBreakdown?.canceled || 0,
+        ],
+        backgroundColor: ["#f59e0b", "#3b82f6", "#10b981", "#ef4444"],
+        borderColor: ["#f59e0b", "#3b82f6", "#10b981", "#ef4444"],
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleColor: "#fff",
+        bodyColor: "#fff",
+        callbacks: {
+          label: function (context) {
+            const total = data.total || 0;
+            const percentage = total > 0 ? ((context.parsed.y * 100) / total).toFixed(1) : 0;
+            return `${context.label}: ${context.parsed.y} (${percentage}%)`;
+          },
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: "#f3f4f6",
+        },
+        ticks: {
+          color: "#6b7280",
+          stepSize: 1,
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          color: "#6b7280",
+        },
+      },
+    },
+  };
+
+  return <Bar data={chartData} options={options} />;
+};
+
 // 4. Doughnut Chart - Tỷ lệ phản hồi khám sức khỏe
 export const HealthCheckupResponseChart = ({ data }) => {
   const chartData = {
@@ -386,7 +453,8 @@ export const ConsultationTypesChart = ({ data }) => {
 
 // 7. Bar Chart - BMI học sinh theo khối
 export const BMIByGradeChart = ({ data }) => {
-  const grades = Object.keys(data);
+  // Filter out metadata and only get actual grade keys
+  const grades = Object.keys(data).filter(key => !key.startsWith('_'));
 
   const chartData = {
     labels: grades,
@@ -450,15 +518,42 @@ export const BMIByGradeChart = ({ data }) => {
         ticks: {
           color: "#6b7280",
         },
+        title: {
+          display: true,
+          text: "Khối lớp",
+          color: "#374151",
+          font: {
+            size: 12,
+            weight: "bold",
+          },
+        },
       },
       y: {
         stacked: true,
         beginAtZero: true,
+        max: 20,
         grid: {
           color: "#f3f4f6",
         },
         ticks: {
           color: "#6b7280",
+          stepSize: 5,
+          callback: function(value) {
+            // Only show values: 0, 5, 10, 15, 20
+            if ([0, 5, 10, 15, 20].includes(value)) {
+              return value;
+            }
+            return '';
+          },
+        },
+        title: {
+          display: true,
+          text: "Số lượng học sinh",
+          color: "#374151",
+          font: {
+            size: 12,
+            weight: "bold",
+          },
         },
       },
     },
@@ -470,4 +565,267 @@ export const BMIByGradeChart = ({ data }) => {
   };
 
   return <Bar data={chartData} options={options} />;
+};
+
+// 8. Pie Chart - Trạng thái chiến dịch sức khỏe
+export const HealthCampaignStatusChart = ({ data }) => {
+  const chartData = {
+    labels: ["Đang chuẩn bị", "Đang diễn ra", "Hoàn thành", "Đã hủy"],
+    datasets: [
+      {
+        data: [data.preparing, data.ongoing, data.completed, data.cancelled],
+        backgroundColor: ["#fbbf24", "#3b82f6", "#10b981", "#ef4444"],
+        borderColor: ["#fbbf24", "#3b82f6", "#10b981", "#ef4444"],
+        borderWidth: 2,
+        hoverOffset: 8,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 12,
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = total > 0 ? ((context.parsed * 100) / total).toFixed(1) : 0;
+            return `${context.label}: ${context.parsed} (${percentage}%)`;
+          },
+        },
+      },
+    },
+  };
+
+  return <Pie data={chartData} options={options} />;
+};
+
+// 9. Pie Chart - Số lượng học sinh theo khối lớp
+export const StudentsByGradeChart = ({ data }) => {
+  // Extract grade stats, filtering out non-grade keys
+  const gradeStats = data.gradeStats || {};
+  const grades = Object.keys(gradeStats).filter(key => !key.startsWith('_'));
+  const values = grades.map(grade => gradeStats[grade]);
+  
+  // Generate distinct colors for each grade
+  const colors = [
+    "#ef4444", // red
+    "#f97316", // orange
+    "#f59e0b", // amber
+    "#eab308", // yellow
+    "#84cc16", // lime
+    "#22c55e", // green
+    "#10b981", // emerald
+    "#06b6d4", // cyan
+    "#0ea5e9", // sky
+    "#3b82f6", // blue
+    "#6366f1", // indigo
+    "#8b5cf6", // violet
+    "#a855f7", // purple
+    "#d946ef", // fuchsia
+    "#ec4899", // pink
+  ];
+
+  const chartData = {
+    labels: grades,
+    datasets: [
+      {
+        data: values,
+        backgroundColor: colors.slice(0, grades.length),
+        borderColor: colors.slice(0, grades.length),
+        borderWidth: 2,
+        hoverOffset: 8,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 11,
+          },
+          generateLabels: function (chart) {
+            const data = chart.data;
+            if (data.labels.length && data.datasets.length) {
+              return data.labels.map((label, i) => {
+                const value = data.datasets[0].data[i];
+                const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? ((value * 100) / total).toFixed(1) : 0;
+                return {
+                  text: `${label}: ${value} (${percentage}%)`,
+                  fillStyle: data.datasets[0].backgroundColor[i],
+                  strokeStyle: data.datasets[0].backgroundColor[i],
+                  lineWidth: 0,
+                  pointStyle: "circle",
+                  index: i,
+                };
+              });
+            }
+            return [];
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = total > 0 ? ((context.parsed * 100) / total).toFixed(1) : 0;
+            return `${context.label}: ${context.parsed} học sinh (${percentage}%)`;
+          },
+        },
+      },
+    },
+  };
+
+  return <Pie data={chartData} options={options} />;
+};
+
+// 10. Pie Chart - Trạng thái phê duyệt thuốc
+export const MedicationApprovalStatusChart = ({ data }) => {
+  const chartData = {
+    labels: ["Đã phê duyệt", "Bị từ chối", "Đang chờ"],
+    datasets: [
+      {
+        data: [data.approved, data.rejected, data.pending],
+        backgroundColor: ["#10b981", "#ef4444", "#f59e0b"],
+        borderColor: ["#10b981", "#ef4444", "#f59e0b"],
+        borderWidth: 2,
+        hoverOffset: 8,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 12,
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = total > 0 ? ((context.parsed * 100) / total).toFixed(1) : 0;
+            return `${context.label}: ${context.parsed} (${percentage}%)`;
+          },
+        },
+      },
+    },
+  };
+
+  return <Pie data={chartData} options={options} />;
+};
+
+// 11. Pie Chart - Trạng thái sử dụng thuốc
+export const MedicationConsumptionStatusChart = ({ data }) => {
+  const chartData = {
+    labels: ["Đã uống hết", "Uống một phần", "Hết hạn"],
+    datasets: [
+      {
+        data: [data.fullyTaken, data.partiallyTaken, data.expired],
+        backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
+        borderColor: ["#10b981", "#f59e0b", "#ef4444"],
+        borderWidth: 2,
+        hoverOffset: 8,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 12,
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = total > 0 ? ((context.parsed * 100) / total).toFixed(1) : 0;
+            return `${context.label}: ${context.parsed} (${percentage}%)`;
+          },
+        },
+      },
+    },
+  };
+
+  return <Pie data={chartData} options={options} />;
+};
+
+// 12. Pie Chart - Phân loại tiêm chủng theo nguồn
+export const VaccinationTypeChart = ({ data }) => {
+  const chartData = {
+    labels: ["Kế hoạch trường", "Phụ huynh khai báo", "Tiêm bù"],
+    datasets: [
+      {
+        data: [data.schoolPlan, data.parentDeclared, data.catchUp],
+        backgroundColor: ["#3b82f6", "#10b981", "#f59e0b"],
+        borderColor: ["#3b82f6", "#10b981", "#f59e0b"],
+        borderWidth: 2,
+        hoverOffset: 8,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 12,
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = total > 0 ? ((context.parsed * 100) / total).toFixed(1) : 0;
+            return `${context.label}: ${context.parsed} mũi tiêm (${percentage}%)`;
+          },
+        },
+      },
+    },
+  };
+
+  return <Pie data={chartData} options={options} />;
 };

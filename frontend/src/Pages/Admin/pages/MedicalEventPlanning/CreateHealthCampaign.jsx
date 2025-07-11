@@ -50,6 +50,18 @@ const CreateHealthCampaign = () => {
       setErrorMessage("Vui lòng nhập ghi chú");
       return false;
     }
+    
+    // Validate end date is on or after start date
+    if (formData.endDate && formData.startDate) {
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+      
+      if (endDate < startDate) {
+        setErrorMessage("Ngày kết thúc phải bằng hoặc sau ngày bắt đầu");
+        return false;
+      }
+    }
+    
     return true;
   };
 

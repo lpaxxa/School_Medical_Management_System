@@ -59,7 +59,7 @@ public class NurseMedicationApprovalController {
     }
 
     @GetMapping("/all-requests")
-    @PreAuthorize("hasRole('NURSE')")
+    @PreAuthorize("hasRole('NURSE') or hasRole('ADMIN')")
     @Operation(summary = "Lấy danh sách tất cả yêu cầu thuốc (đã phê duyệt, từ chối, đang chờ)")
     public ResponseEntity<List<MedicationInstructionDTO>> getAllMedicationRequests() {
         List<MedicationInstructionDTO> allRequests = medicationInstructionService.getAllMedicationRequests();

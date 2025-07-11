@@ -342,19 +342,31 @@
 /* Action Buttons */
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .action-btn {
-  padding: 8px 10px;
+  padding: 12px 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 1rem;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.action-btn svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.action-btn:hover svg {
+  transform: scale(1.1);
 }
 
 .action-btn.view {
@@ -507,6 +519,7 @@
 }
 
 .modal-header h2 {
+
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;

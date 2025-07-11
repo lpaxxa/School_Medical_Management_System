@@ -1,15 +1,19 @@
 package com.fpt.medically_be.service.impl;
 
+import com.fpt.medically_be.dto.StudentDTO;
 import com.fpt.medically_be.dto.request.AccountUpdateRequestDTO;
 import com.fpt.medically_be.dto.response.AccountAdminResponseDTO;
 import com.fpt.medically_be.entity.AccountMember;
 import com.fpt.medically_be.entity.Nurse;
 import com.fpt.medically_be.entity.Parent;
+import com.fpt.medically_be.entity.Student;
 import com.fpt.medically_be.mapper.AccountMemberMapper;
 import com.fpt.medically_be.repos.AccountMemberRepos;
 import com.fpt.medically_be.repos.NurseRepository;
 import com.fpt.medically_be.repos.ParentRepository;
+import com.fpt.medically_be.repos.StudentRepository;
 import com.fpt.medically_be.service.AccountMemberService;
+import com.fpt.medically_be.service.StudentService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,10 @@ public class AccountMemberServiceImp implements AccountMemberService {
     NurseRepository nurseRepository;
     @Autowired
     ParentRepository parentRepository;
+    @Autowired
+    StudentRepository studentRepository;
+    @Autowired
+    StudentService studentService;
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -66,6 +74,18 @@ public class AccountMemberServiceImp implements AccountMemberService {
     @Transactional
     @Override
     public AccountAdminResponseDTO updateMember(String id, AccountUpdateRequestDTO obj) {
+        
+        // System.out.println("=== BACKEND UPDATE MEMBER DEBUG ===");
+        // System.out.println("Updating member with ID: " + id);
+        // System.out.println("Update request data: " + obj);
+        // System.out.println("Email: " + obj.getEmail());
+        // System.out.println("Phone: " + obj.getPhoneNumber());
+        // System.out.println("FullName: " + obj.getFullName());
+        // System.out.println("Qualification: " + obj.getQualification());
+        // System.out.println("Address: " + obj.getAddress());
+        // System.out.println("Occupation: " + obj.getOccupation());
+        // System.out.println("RelationshipType: " + obj.getRelationshipType());
+        // System.out.println("=== END BACKEND DEBUG ===");
 
         AccountMember member = memberRepos.findAccountMemberByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
@@ -113,7 +133,14 @@ public class AccountMemberServiceImp implements AccountMemberService {
                 if (obj.getOccupation() != null) {
                     parent.setOccupation(obj.getOccupation());
                 }
+                
                 parentRepository.save(parent);
+                
+                // Update students if provided
+                if (obj.getStudents() != null && !obj.getStudents().isEmpty()) {
+                    updateStudentsForParent(parent, obj.getStudents());
+                }
+                
                 break;
 
             case NURSE:
@@ -133,6 +160,7 @@ public class AccountMemberServiceImp implements AccountMemberService {
                 if (obj.getQualification() != null) {
                     nurse.setQualification(obj.getQualification());
                 }
+                
                 nurseRepository.save(nurse);
                 break;
 
@@ -216,6 +244,13 @@ public class AccountMemberServiceImp implements AccountMemberService {
                     dto.setAddress(parent.getAddress());
                     dto.setRelationshipType(parent.getRelationshipType());
                     dto.setOccupation(parent.getOccupation());
+                    
+                    // Load students for this parent
+                    List<Student> students = studentRepository.findByParentId(parent.getId());
+                    List<StudentDTO> studentDTOs = students.stream()
+                            .map(this::convertToStudentDTO)
+                            .toList();
+                    dto.setStudents(studentDTOs);
                 });
                 break;
                 
@@ -234,6 +269,100 @@ public class AccountMemberServiceImp implements AccountMemberService {
                 // Handle other roles if needed
                 break;
         }
+    }
+    
+    // Helper method to convert Student entity to StudentDTO
+    private StudentDTO convertToStudentDTO(Student student) {
+        return StudentDTO.builder()
+                .id(student.getId())
+                .fullName(student.getFullName())
+                .dateOfBirth(student.getDateOfBirth())
+                .gender(student.getGender())
+                .studentId(student.getStudentId())
+                .className(student.getClassName())
+                .gradeLevel(student.getGradeLevel())
+                .schoolYear(student.getSchoolYear())
+                .imageUrl(student.getImageUrl())
+                .healthProfileId(student.getHealthProfile() != null ? student.getHealthProfile().getId() : null)
+                .parentId(student.getParent() != null ? student.getParent().getId() : null)
+                .build();
+    }
+    
+    // Helper method to update students for a parent
+    private void updateStudentsForParent(Parent parent, List<StudentDTO> studentDTOs) {
+        System.out.println("=== UPDATE STUDENTS DEBUG ===");
+        System.out.println("Parent ID: " + parent.getId());
+        System.out.println("Number of students to process: " + studentDTOs.size());
+        
+        for (StudentDTO studentDTO : studentDTOs) {
+            if (studentDTO.getId() != null) {
+                // Update existing student
+                System.out.println("Updating existing student with ID: " + studentDTO.getId());
+                try {
+                    studentService.updateStudent(studentDTO.getId(), studentDTO);
+                    System.out.println("Successfully updated student: " + studentDTO.getFullName());
+                } catch (Exception e) {
+                    System.err.println("Error updating student with ID " + studentDTO.getId() + ": " + e.getMessage());
+                    // Continue processing other students even if one fails
+                }
+            } else {
+                // Create new student
+                System.out.println("Creating new student: " + studentDTO.getFullName());
+                try {
+                    // Set parent ID for new student
+                    studentDTO.setParentId(parent.getId());
+                    
+                    // Generate student ID if not provided
+                    if (studentDTO.getStudentId() == null || studentDTO.getStudentId().trim().isEmpty()) {
+                        String newStudentId = generateStudentId();
+                        // Ensure uniqueness
+                        while (studentRepository.findByStudentId(newStudentId).isPresent()) {
+                            newStudentId = generateStudentId();
+                        }
+                        studentDTO.setStudentId(newStudentId);
+                        System.out.println("Generated student ID: " + newStudentId);
+                    }
+                    
+                    // Generate grade level from class name if not provided
+                    if (studentDTO.getGradeLevel() == null || studentDTO.getGradeLevel().trim().isEmpty()) {
+                        studentDTO.setGradeLevel(generateGradeLevelFromClassName(studentDTO.getClassName()));
+                    }
+                    
+                    // Create the student using StudentService
+                    StudentDTO createdStudent = studentService.createStudent(studentDTO);
+                    System.out.println("Successfully created new student with ID: " + createdStudent.getId());
+                } catch (Exception e) {
+                    System.err.println("Error creating new student " + studentDTO.getFullName() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+        System.out.println("=== END UPDATE STUDENTS DEBUG ===");
+    }
+    
+    // Helper method to generate student ID
+    private String generateStudentId() {
+        // Generate student ID in HSxxxx format (where x is random number)
+        int randomNumber = (int)(Math.random() * 10000); // Generate 4-digit random number
+        return String.format("HS%04d", randomNumber);
+    }
+    
+    // Helper method to generate grade level from class name
+    private String generateGradeLevelFromClassName(String className) {
+        if (className == null || className.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Extract number from class name (e.g., "3B" -> "3", "10A" -> "10")
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\d+");
+        java.util.regex.Matcher matcher = pattern.matcher(className);
+        
+        if (matcher.find()) {
+            String gradeNumber = matcher.group();
+            return "Lớp " + gradeNumber;
+        }
+        
+        return "";
     }
 
     // Removed duplicate registration methods - use AuthService.registerMember() instead

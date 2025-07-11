@@ -96,7 +96,19 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponseDTO registerParent(ParentRegistrationRequestDTO parentRegistrationRequestDTO) {
         if(accountMemberRepos.findByEmail(parentRegistrationRequestDTO.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
-        } else if (accountMemberRepos.findByPhoneNumber(parentRegistrationRequestDTO.getEmergencyPhoneNumber()).isPresent()) {
+        } else if (accountMemberRepos.findByPhoneNumber(parentRegistrationRequestDTO.getPhoneNumber()).isPresent()) {
+            // Debug logging to show existing phone numbers
+            System.out.println("=== PHONE NUMBER CONFLICT DEBUG ===" );
+            System.out.println("Trying to register phone: " + parentRegistrationRequestDTO.getPhoneNumber());
+            
+            // Show all existing phone numbers
+            List<AccountMember> allMembers = accountMemberRepos.findAll();
+            System.out.println("Existing phone numbers in database:");
+            for (AccountMember member : allMembers) {
+                System.out.println("- ID: " + member.getId() + ", Phone: " + member.getPhoneNumber() + ", Role: " + member.getRole());
+            }
+            System.out.println("=== END PHONE DEBUG ===");
+            
             throw new RuntimeException("Phone number already exists");
         }
         
@@ -104,10 +116,10 @@ public class AuthServiceImpl implements AuthService {
         AccountMember member = new AccountMember();
         member.setId(generateCustomId(PARENT));
         member.setEmail(parentRegistrationRequestDTO.getEmail());
-        member.setPhoneNumber(parentRegistrationRequestDTO.getEmergencyPhoneNumber());
+        member.setPhoneNumber(parentRegistrationRequestDTO.getPhoneNumber()); // Use phoneNumber instead of emergencyPhoneNumber
         member.setUsername(generateUsername(parentRegistrationRequestDTO.getFullName()));
-       // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
-        member.setPassword(parentRegistrationRequestDTO.getPassword());
+        member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
+       // member.setPassword(parentRegistrationRequestDTO.getPassword());
         member.setRole(PARENT);
         member.setIsActive(true);
         member.setEmailSent(false);
@@ -118,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
         parent.setFullName(parentRegistrationRequestDTO.getFullName());
         parent.setEmail(parentRegistrationRequestDTO.getEmail());
         parent.setOccupation(parentRegistrationRequestDTO.getOccupation());
-        parent.setPhoneNumber(parentRegistrationRequestDTO.getEmergencyPhoneNumber());
+        parent.setPhoneNumber(parentRegistrationRequestDTO.getPhoneNumber()); // Use phoneNumber instead of emergencyPhoneNumber
         parent.setAddress(parentRegistrationRequestDTO.getAddress());
         parent.setRelationshipType(parentRegistrationRequestDTO.getRelationshipType());
         parent.setAccount(member);
@@ -149,6 +161,18 @@ public class AuthServiceImpl implements AuthService {
         if(accountMemberRepos.findByEmail(nurseRegistrationRequestDTO.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
         } else if (accountMemberRepos.findByPhoneNumber(nurseRegistrationRequestDTO.getPhoneNumber()).isPresent()) {
+            // Debug logging to show existing phone numbers
+            System.out.println("=== PHONE NUMBER CONFLICT DEBUG (NURSE) ===");
+            System.out.println("Trying to register phone: " + nurseRegistrationRequestDTO.getPhoneNumber());
+            
+            // Show all existing phone numbers
+            List<AccountMember> allMembers = accountMemberRepos.findAll();
+            System.out.println("Existing phone numbers in database:");
+            for (AccountMember member : allMembers) {
+                System.out.println("- ID: " + member.getId() + ", Phone: " + member.getPhoneNumber() + ", Role: " + member.getRole());
+            }
+            System.out.println("=== END NURSE PHONE DEBUG ===");
+            
             throw new RuntimeException("Phone number already exists");
         }
         
@@ -158,8 +182,8 @@ public class AuthServiceImpl implements AuthService {
         member.setEmail(nurseRegistrationRequestDTO.getEmail());
         member.setPhoneNumber(nurseRegistrationRequestDTO.getPhoneNumber());
         member.setUsername(generateUsername(nurseRegistrationRequestDTO.getFullName()));
-        // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
-        member.setPassword(nurseRegistrationRequestDTO.getPassword());
+         member.setPassword(passwordEncoder.encode(nurseRegistrationRequestDTO.getPassword()));
+       // member.setPassword(nurseRegistrationRequestDTO.getPassword());
         member.setRole(NURSE);
         member.setIsActive(true);
         member.setEmailSent(false);
@@ -194,6 +218,18 @@ public class AuthServiceImpl implements AuthService {
         if(accountMemberRepos.findByEmail(registrationDTO.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
         } else if (accountMemberRepos.findByPhoneNumber(registrationDTO.getPhoneNumber()).isPresent()) {
+            // Debug logging to show existing phone numbers
+            System.out.println("=== PHONE NUMBER CONFLICT DEBUG (ADMIN) ===");
+            System.out.println("Trying to register phone: " + registrationDTO.getPhoneNumber());
+            
+            // Show all existing phone numbers
+            List<AccountMember> allMembers = accountMemberRepos.findAll();
+            System.out.println("Existing phone numbers in database:");
+            for (AccountMember member : allMembers) {
+                System.out.println("- ID: " + member.getId() + ", Phone: " + member.getPhoneNumber() + ", Role: " + member.getRole());
+            }
+            System.out.println("=== END ADMIN PHONE DEBUG ===");
+            
             throw new RuntimeException("Phone number already exists");
         }
         AccountMember member = new AccountMember();
@@ -201,8 +237,8 @@ public class AuthServiceImpl implements AuthService {
         member.setEmail(registrationDTO.getEmail());
         member.setPhoneNumber(registrationDTO.getPhoneNumber());
         member.setUsername(generateUsername(registrationDTO.getFullName()));
-        // member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
-        member.setPassword(registrationDTO.getPassword());
+         member.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
+       // member.setPassword(registrationDTO.getPassword());
         member.setRole(ADMIN);
         member.setIsActive(true);
         member.setEmailSent(false);
@@ -277,6 +313,29 @@ public class AuthServiceImpl implements AuthService {
         return String.format("%s%02d%01d", prefix, timestampPart, randomPart);
     }
     
+    private String generateStudentId() {
+        // Generate student ID in HSxxxx format (where x is random number)
+        int randomNumber = (int)(Math.random() * 10000); // Generate 4-digit random number
+        return String.format("HS%04d", randomNumber);
+    }
+    
+    private String generateGradeLevelFromClassName(String className) {
+        if (className == null || className.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Extract number from class name (e.g., "3B" -> "3", "10A" -> "10")
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\d+");
+        java.util.regex.Matcher matcher = pattern.matcher(className);
+        
+        if (matcher.find()) {
+            String gradeNumber = matcher.group();
+            return "Lớp " + gradeNumber;
+        }
+        
+        return "";
+    }
+    
     private void createStudentsForParent(Parent parent, List<ParentRegistrationRequestDTO.StudentRegistrationInfo> studentInfos) {
         for (ParentRegistrationRequestDTO.StudentRegistrationInfo studentInfo : studentInfos) {
             // Create HealthProfile first
@@ -288,9 +347,27 @@ public class AuthServiceImpl implements AuthService {
             student.setFullName(studentInfo.getFullName());
             student.setDateOfBirth(studentInfo.getDateOfBirth());
             student.setGender(studentInfo.getGender());
-            student.setStudentId(studentInfo.getStudentId());
+            
+            // Auto-generate studentId if not provided
+            String studentId = studentInfo.getStudentId();
+            if (studentId == null || studentId.trim().isEmpty()) {
+                studentId = generateStudentId();
+                // Ensure uniqueness by checking if it already exists
+                while (studentRepository.findByStudentId(studentId).isPresent()) {
+                    studentId = generateStudentId();
+                }
+            }
+            student.setStudentId(studentId);
+            
             student.setClassName(studentInfo.getClassName());
-            student.setGradeLevel(studentInfo.getGradeLevel());
+            
+            // Auto-generate gradeLevel from className if not provided
+            String gradeLevel = studentInfo.getGradeLevel();
+            if (gradeLevel == null || gradeLevel.trim().isEmpty()) {
+                gradeLevel = generateGradeLevelFromClassName(studentInfo.getClassName());
+            }
+            student.setGradeLevel(gradeLevel);
+            
             student.setSchoolYear(studentInfo.getSchoolYear());
             student.setParent(parent);
             student.setHealthProfile(healthProfile);
