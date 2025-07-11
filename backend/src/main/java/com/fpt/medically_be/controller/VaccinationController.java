@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -56,8 +58,9 @@ public class VaccinationController {
 
     @Operation(summary = "ghi nhận tiêm chủng", description = "Ghi nhận thông tin tiêm chủng cho học sinh")
     @PostMapping("/record")
-    public ResponseEntity<String> recordVaccination(@RequestBody VaccinationCreateDTO request) {
-        vaccinationService.recordVaccination(request);
+    @PreAuthorize("hasRole('NURSE') or hasRole('ADMIN')")
+    public ResponseEntity<String> recordVaccination(@RequestBody VaccinationCreateDTO request, Authentication authentication) {
+        vaccinationService.recordVaccination(request,authentication);
         return ResponseEntity.ok("Vaccination recorded successfully");
     }
 
