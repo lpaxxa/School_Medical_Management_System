@@ -266,6 +266,7 @@
   border: none;
   gap: 6px;
   white-space: nowrap;
+  margin-left: 20px;
 }
 
 .sp-btn i {
@@ -377,4 +378,47 @@
 .sp-full-width .sp-info-value {
   word-break: break-all; /* Ngắt từ nếu cần thiết */
   max-width: 100%; /* Đảm bảo không vượt quá chiều rộng container */
+}
+
+/* ------- Student Selection Styles (chonhocsinhtabparent) ------- */
+.chonhocsinhtabparent {
+  background: var(--sp-white);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  margin-bottom: 20px;
+  box-shadow: var(--sp-shadow);
+}
+
+.chonhocsinhtabparent-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--sp-border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: var(--sp-white);
+  color: var(--sp-text-primary);
+  transition: all 0.3s ease;
+}
+
+.chonhocsinhtabparent-select:focus {
+  outline: none;
+  border-color: var(--sp-primary);
+  box-shadow: 0 0 0 3px rgba(1, 92, 146, 0.1);
+}
+
+.chonhocsinhtabparent-select:hover {
+  border-color: var(--sp-primary-light);
+}
+
+/* Responsive styles for student selection */
+@media (max-width: 768px) {
+  .chonhocsinhtabparent {
+    margin-bottom: 16px;
+  }
+  
+  .chonhocsinhtabparent-select {
+    padding: 10px 12px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
 }

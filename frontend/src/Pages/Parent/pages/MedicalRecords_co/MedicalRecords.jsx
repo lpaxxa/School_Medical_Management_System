@@ -355,7 +355,7 @@ const MedicalRecord = () => {
           <main className="medical-main">
             {/* Student Selector */}
             <section className="student-section">
-              <div className="student-selector">
+              <div className="chonhocsinhtabparent">
                 <div className="selector-header">
                   <h2>Chọn học sinh</h2>
                   <p>Xem hồ sơ y tế của học sinh</p>
@@ -364,7 +364,7 @@ const MedicalRecord = () => {
                 <div className="selector-content">
                   <div className="select-wrapper">
                     <select
-                      className="student-select"
+                      className="chonhocsinhtabparent-select"
                       value={selectedStudentId || ""}
                       onChange={handleStudentChange}
                       disabled={isLoading}

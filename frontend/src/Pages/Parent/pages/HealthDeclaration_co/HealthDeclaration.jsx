@@ -704,8 +704,8 @@ const HealthDeclaration = () => {
               vaccineId: vaccineId,
               vaccinationDate: new Date().toISOString(),
               administeredAt: "Trường học", // Mặc định "Trường học"
-              notes: "string",
-              parentNotes: "string",
+              notes: "",
+              parentNotes: "", // Khởi tạo ghi chú trống
             },
           ],
         }));
@@ -714,6 +714,12 @@ const HealthDeclaration = () => {
         setVaccineAdministeredAt((prev) => ({
           ...prev,
           [vaccineId]: "Trường học",
+        }));
+
+        // Khởi tạo ghi chú trống cho vaccine mới
+        setVaccineNotes((prev) => ({
+          ...prev,
+          [vaccineId]: "",
         }));
 
         // Hiển thị thông báo thành công ngay lập tức
@@ -776,12 +782,12 @@ const HealthDeclaration = () => {
     const { value } = e.target;
 
     // Cập nhật state ghi chú
-    setVaccineNotes({
-      ...vaccineNotes,
+    setVaccineNotes((prev) => ({
+      ...prev,
       [vaccineId]: value,
-    });
+    }));
 
-    // Cập nhật formData
+    // Cập nhật formData với ghi chú mới
     setFormData((prevState) => ({
       ...prevState,
       vaccinations: prevState.vaccinations.map((v) => {
@@ -794,6 +800,9 @@ const HealthDeclaration = () => {
         return v;
       }),
     }));
+
+    // Debug log để kiểm tra
+    console.log(`Updated vaccine note for ${vaccineId}:`, value);
   };
 
   // Xử lý khi thay đổi địa điểm tiêm vaccine
@@ -801,12 +810,12 @@ const HealthDeclaration = () => {
     const { value } = e.target;
 
     // Cập nhật state địa điểm tiêm
-    setVaccineAdministeredAt({
-      ...vaccineAdministeredAt,
+    setVaccineAdministeredAt((prev) => ({
+      ...prev,
       [vaccineId]: value,
-    });
+    }));
 
-    // Cập nhật formData
+    // Cập nhật formData với địa điểm tiêm mới
     setFormData((prevState) => ({
       ...prevState,
       vaccinations: prevState.vaccinations.map((v) => {
@@ -819,6 +828,9 @@ const HealthDeclaration = () => {
         return v;
       }),
     }));
+
+    // Debug log để kiểm tra
+    console.log(`Updated vaccine location for ${vaccineId}:`, value);
   };
 
   // Validate form
@@ -1081,9 +1093,15 @@ const HealthDeclaration = () => {
         vaccinations: filteredVaccinations.map((vaccination) => ({
           vaccineId: vaccination.vaccineId,
           vaccinationDate: new Date(vaccination.vaccinationDate).toISOString(),
-          administeredAt: vaccination.administeredAt || "string",
+          administeredAt:
+            vaccineAdministeredAt[vaccination.vaccineId] ||
+            vaccination.administeredAt ||
+            "Trường học",
           notes: vaccination.notes || "string",
-          parentNotes: vaccination.parentNotes || "string",
+          parentNotes:
+            vaccineNotes[vaccination.vaccineId] ||
+            vaccination.parentNotes ||
+            "",
         })),
       };
 
@@ -1098,6 +1116,29 @@ const HealthDeclaration = () => {
       );
       console.log(`Vaccinated from server: ${vaccinatedFromServer.length}`);
       console.log(`Fully vaccinated: ${fullyVaccinatedVaccines.length}`);
+      console.log("=== VACCINE NOTES DEBUG ===");
+      console.log("Current vaccineNotes state:", vaccineNotes);
+      console.log(
+        "Current vaccineAdministeredAt state:",
+        vaccineAdministeredAt
+      );
+      filteredVaccinations.forEach((vaccination) => {
+        console.log(`Vaccine ${vaccination.vaccineId}:`);
+        console.log(
+          `  - parentNotes from state: "${vaccineNotes[vaccination.vaccineId]}"`
+        );
+        console.log(
+          `  - administeredAt from state: "${
+            vaccineAdministeredAt[vaccination.vaccineId]
+          }"`
+        );
+        console.log(
+          `  - parentNotes in submission: "${
+            vaccineNotes[vaccination.vaccineId] || vaccination.parentNotes || ""
+          }"`
+        );
+      });
+      console.log("================================");
 
       // Gọi API thực tế để cập nhật hồ sơ sức khỏe
       try {
@@ -1296,39 +1337,70 @@ const HealthDeclaration = () => {
       }
     }
   };
-
-  // Thêm hàm để reload dữ liệu
-  const reloadData = () => {
+  // Thêm hàm để reload dữ liệu của học sinh hiện tại
+  const reloadData = async () => {
     if (!isMounted.current) return;
 
     // Lấy ID học sinh hiện tại
     const currentStudentId = formData.healthProfile.id;
     if (!currentStudentId) {
       console.warn("No student ID available for reload");
+      showWarningToast("⚠️ Chưa chọn học sinh để làm mới dữ liệu");
       return;
     }
 
-    console.log("Manually reloading data for student:", currentStudentId);
-
-    // Set loading state
-    setIsLoading(true);
+    console.log("🔄 Manually reloading data for student:", currentStudentId);
 
     // Hiển thị thông báo đang tải
     try {
-      toast.info("Đang tải lại dữ liệu...", {
-        position: "top-center",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      showInfoToast("🔄 Đang tải lại thông tin mới nhất của học sinh...");
     } catch (error) {
       console.error("Error showing toast:", error);
     }
 
-    // Reload dữ liệu hồ sơ sức khỏe
-    fetchStudentHealthProfile(currentStudentId);
+    // Set loading state
+    setIsLoading(true);
+    setFetchError(null);
+    setIsServerError(false);
+
+    // IMPORTANT: Reset tất cả states liên quan đến vaccine và form
+    setSelectedVaccines([]);
+    setVaccineNotes({});
+    setVaccineAdministeredAt({});
+    setVaccinatedFromServer([]);
+    setFullyVaccinatedVaccines([]);
+
+    // Reset validation errors
+    setFormErrors({});
+
+    // Reset form data vaccinations
+    setFormData((prevState) => ({
+      ...prevState,
+      vaccinations: [],
+    }));
+
+    try {
+      // Gọi trực tiếp API để tải lại dữ liệu
+      console.log("🔄 Direct API call for reload data");
+
+      // Gọi hàm fetchStudentHealthProfile để tải lại dữ liệu
+      await fetchStudentHealthProfile(currentStudentId);
+
+      // Đảm bảo initialDataLoaded được set lại
+      initialDataLoaded.current = true;
+
+      // Hiển thị thông báo thành công
+      if (isMounted.current) {
+        showSuccessToast("✅ Đã tải lại thông tin mới nhất của học sinh!");
+        console.log("🎉 Reload completed successfully");
+      }
+    } catch (error) {
+      console.error("❌ Error reloading student data:", error);
+      if (isMounted.current) {
+        showErrorToast("❌ Có lỗi khi tải lại dữ liệu. Vui lòng thử lại!");
+        initialDataLoaded.current = false;
+      }
+    }
   };
 
   // Hiển thị thông báo vaccine đã tiêm
@@ -1898,9 +1970,39 @@ const HealthDeclaration = () => {
     <div className="parent-content-wrapper">
       <div className="health-declaration-container">
         {/* Header */}
-        <div className="page-header">
-          <h1>Khai báo sức khỏe</h1>
-          <p>Cập nhật thông tin sức khỏe cho học sinh</p>
+        <div className="headerofhealthdeclaration">
+          <div className="headerofhealthdeclaration__content">
+            <div className="headerofhealthdeclaration__text">
+              <h1>Khai báo sức khỏe</h1>
+              <p>Cập nhật thông tin sức khỏe cho học sinh</p>
+            </div>
+            <div className="headerofhealthdeclaration__actions">
+              <button
+                type="button"
+                onClick={reloadData}
+                className="headerofhealthdeclaration__reload-button"
+                disabled={isLoading || isSubmitting}
+                title="Tải lại thông tin mới nhất của học sinh hiện tại"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                {isLoading ? "Đang tải..." : "Tải lại"}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Form khai báo sức khỏe */}

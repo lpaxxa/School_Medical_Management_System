@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
+import logoImage from "../../../../assets/A1.jpg";
 import "./Header.css";
 
 const Header = () => {
@@ -128,7 +129,7 @@ const Header = () => {
         <div className="parent-container">
           <div className="parent-header-nav">
             <Link to="/parent" className="parent-header-logo">
-              <img src="/logo.svg" alt="School Medical" />
+              <img src={logoImage} alt="School Medical" />
               <div className="parent-logo-text">
                 School <span>Medical</span>
               </div>
