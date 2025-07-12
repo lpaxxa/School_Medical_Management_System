@@ -46,7 +46,6 @@ axiosInstance.interceptors.response.use(
 );
 
 // Dữ liệu mẫu để sử dụng khi API không hoạt động
-// Kiểm tra mockStudents đã được định nghĩa chưa, nếu chưa thì định nghĩa
 const mockStudents = [
   {
     id: 1,
@@ -61,7 +60,19 @@ const mockStudents = [
     healthProfileId: 'HP001',
     parentId: 'P001'
   },
-  // Thêm các student mẫu khác nếu cần
+  {
+    id: 2,
+    fullName: 'Trần Thị B',
+    studentId: 'SV002',
+    dateOfBirth: '2010-03-22',
+    gender: 'Nữ',
+    className: '6A2',
+    gradeLevel: '6',
+    schoolYear: '2023-2024',
+    imageUrl: 'https://via.placeholder.com/150?text=TTB',
+    healthProfileId: 'HP002',
+    parentId: 'P002'
+  }
 ];
 
 // Lấy danh sách tất cả học sinh
@@ -107,6 +118,10 @@ const searchStudents = async (criteria) => {
       params.keyword = criteria.keyword;
     }
     
+    if (criteria.class) {
+      params.class = criteria.class;
+    }
+    
     if (criteria.grade) {
       params.grade = criteria.grade;
     }
@@ -137,10 +152,21 @@ const searchStudents = async (criteria) => {
       );
     }
     
+    if (criteria.class) {
+      const className = criteria.class.toLowerCase();
+      results = results.filter(student => {
+        const studentClass = (student.className || student.class || '').toLowerCase();
+        return studentClass.includes(className);
+      });
+    }
+    
     if (criteria.grade) {
-      results = results.filter(student => 
-        student.gradeLevel == criteria.grade
-      );
+      results = results.filter(student => {
+        const className = student.className || student.class || '';
+        // Lấy số khối từ tên lớp (ví dụ: 12A1 -> 12, 3B2 -> 3)
+        const classGrade = className.match(/^(\d+)/);
+        return classGrade && classGrade[1] === criteria.grade;
+      });
     }
     
     return results;
@@ -283,33 +309,21 @@ const getBMIStandardByAgeGender = (age, gender) => {
   }
 };
 
-// Cải thiện hàm lấy health profile
-const getStudentHealthProfile = async (healthProfileId) => {
-  if (!healthProfileId) {
-    console.warn('Không có ID hồ sơ y tế');
+// Cải thiện hàm lấy health profile với API mới
+const getStudentHealthProfile = async (studentId) => {
+  if (!studentId) {
+    console.warn('Không có ID học sinh');
     return {};
   }
 
-  // Thêm vào đầu hàm getStudentHealthProfile
-  console.log('Checking if health profile ID is valid:', healthProfileId);
-  if (isNaN(parseInt(healthProfileId))) {
-    console.warn('Invalid health profile ID format:', healthProfileId);
-    return getMockHealthProfile(0); // Return mặc định
-  }
-
-  // Thêm vào đầu hàm getStudentHealthProfile
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    console.warn('No authentication token available - using mock data');
-    return getMockHealthProfile(healthProfileId);
-  }
+  console.log('Fetching health profile for student ID:', studentId);
 
   try {
     console.log('===== HEALTH PROFILE API CALL =====');
-    console.log('Calling API endpoint with health profile ID:', healthProfileId);
+    console.log('Calling new API endpoint with student ID:', studentId);
     
-    // Sử dụng axiosInstance thay vì fetch để đảm bảo token được gửi đi
-    const response = await axiosInstance.get(`/health-profiles/${healthProfileId}`);
+    // Sử dụng API mới
+    const response = await axiosInstance.get(`/health-profiles/getStudentProfileByID/${studentId}`);
     
     console.log('API response successful. Response data:', response.data);
     return response.data;
@@ -317,52 +331,78 @@ const getStudentHealthProfile = async (healthProfileId) => {
     console.error('Error fetching health profile:', error);
     console.log('Error details:', error.response?.data || error.message);
     // Sử dụng mock data khi API lỗi
-    return getMockHealthProfile(healthProfileId);
+    return getMockHealthProfile(studentId);
   }
 };
 
 // Tách riêng logic mock data để dễ quản lý
-const getMockHealthProfile = (healthProfileId) => {
-  const profileId = parseInt(healthProfileId);
-  
-  if (profileId === 1) {
-    return {
+const getMockHealthProfile = (studentId) => {
+  return {
+    healthProfile: {
       id: 1,
       bloodType: "O+",
-      height: 130.5,
-      bmi: 16.7,
-      weight: 28.5,
-      allergies: "Dị ứng tôm cua",
+      height: 120.5,
+      bmi: 17.3,
+      weight: 25.2,
+      allergies: "Không có",
       chronicDiseases: "Không có",
       visionLeft: "10/10",
       visionRight: "10/10",
       hearingStatus: "Bình thường",
-      dietaryRestrictions: "Không ăn hải sản",
-      emergencyContactInfo: "Nguyễn Văn Hùng - 0945678901",
-      immunizationStatus: "Đã tiêm đủ vắc xin theo lịch",
+      dietaryRestrictions: "Không có",
+      emergencyContactInfo: "Liên hệ: 0901234572",
+      immunizationStatus: "Đầy đủ",
       lastPhysicalExamDate: "2024-01-15",
       specialNeeds: "Không có",
-      lastUpdated: "2024-01-15T10:30:00"
-    };
-  }
-  // Mock data cho các hồ sơ khác dựa trên ID
-  return {
-    id: profileId,
-    bloodType: profileId % 4 === 0 ? "A+" : profileId % 3 === 0 ? "B+" : profileId % 2 === 0 ? "AB+" : "O+",
-    height: 120 + (profileId * 2) % 30,
-    bmi: 15 + (profileId * 0.5) % 10,
-    weight: 25 + (profileId * 1.5) % 30,
-    allergies: profileId % 2 === 0 ? "Dị ứng phấn hoa" : "Không có dị ứng",
-    chronicDiseases: profileId % 3 === 0 ? "Hen suyễn nhẹ" : "Không có",
-    visionLeft: "10/10",
-    visionRight: "10/10",
-    hearingStatus: "Bình thường",
-    dietaryRestrictions: "Không có",
-    emergencyContactInfo: `Liên hệ khẩn cấp ${profileId}`,
-    immunizationStatus: "Đã tiêm đủ vắc xin",
-    lastPhysicalExamDate: "2024-01-01",
-    specialNeeds: "Không có",
-    lastUpdated: "2024-01-01T10:00:00"
+      lastUpdated: "2024-01-20T10:30:00",
+      checkupStatus: null
+    },
+    vaccinations: [
+      {
+        id: 1,
+        doseNumber: 1,
+        vaccineName: "Vaccine Sởi - Quai bị - Rubella (MMR)",
+        vaccinationDate: "2024-03-15",
+        administeredAt: "Phòng y tế trường",
+        notes: "không có phản ứng phụ",
+        parentNotes: "Học sinh tiêm bình thường, không có phản ứng phụ",
+        nextDoseDate: "2025-03-15",
+        vaccinationType: "SCHOOL_PLAN"
+      },
+      {
+        id: 11,
+        doseNumber: 2,
+        vaccineName: "Vaccine Sởi - Quai bị - Rubella (MMR)",
+        vaccinationDate: "2025-07-08",
+        administeredAt: "lukat",
+        notes: "chet roi",
+        parentNotes: null,
+        nextDoseDate: null,
+        vaccinationType: "SCHOOL_PLAN"
+      },
+      {
+        id: 12,
+        doseNumber: 1,
+        vaccineName: "Vaccine Bại liệt (OPV)",
+        vaccinationDate: "2025-07-08",
+        administeredAt: "Phòng y tế trường",
+        notes: "gần đi rồi ",
+        parentNotes: null,
+        nextDoseDate: "2025-09-06",
+        vaccinationType: "SCHOOL_PLAN"
+      },
+      {
+        id: 20,
+        doseNumber: 1,
+        vaccineName: "Vaccine HPV",
+        vaccinationDate: "2025-07-08",
+        administeredAt: "Phòng y tế trường",
+        notes: "không có phản ứng phụ",
+        parentNotes: null,
+        nextDoseDate: "2026-01-04",
+        vaccinationType: "SCHOOL_PLAN"
+      }
+    ]
   };
 };
 

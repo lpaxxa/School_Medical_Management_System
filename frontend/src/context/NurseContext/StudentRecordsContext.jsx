@@ -32,6 +32,7 @@ export const StudentRecordsProvider = ({ children }) => {
   // Search criteria
   const [searchCriteria, setSearchCriteria] = useState({
     keyword: '',
+    class: '',
     grade: '',
     bloodType: '',
     healthIssue: ''
@@ -145,16 +146,47 @@ export const StudentRecordsProvider = ({ children }) => {
     }
   };
   
-  // Search and filter
+  // Search and filter - thực hiện lọc ở frontend
   const handleSearch = async (criteria) => {
     try {
       setLoading(true);
       setSearchCriteria(criteria);
       
-      const results = await searchStudents(criteria);
-      setFilteredStudents(results);
+      // Lấy tất cả học sinh từ API hoặc dữ liệu hiện có
+      let allStudents = students.length > 0 ? students : await getAllStudents();
+      
+      // Lọc theo từ khóa
+      if (criteria.keyword) {
+        const keyword = criteria.keyword.toLowerCase();
+        allStudents = allStudents.filter(student => 
+          (student.fullName && student.fullName.toLowerCase().includes(keyword)) || 
+          (student.name && student.name.toLowerCase().includes(keyword)) ||
+          (student.studentId && student.studentId.toLowerCase().includes(keyword))
+        );
+      }
+      
+      // Lọc theo lớp
+      if (criteria.class) {
+        const className = criteria.class.toLowerCase();
+        allStudents = allStudents.filter(student => {
+          const studentClass = (student.className || student.class || '').toLowerCase();
+          return studentClass.includes(className);
+        });
+      }
+      
+      // Lọc theo khối
+      if (criteria.grade) {
+        allStudents = allStudents.filter(student => {
+          const className = student.className || student.class || '';
+          // Lấy số khối từ tên lớp (ví dụ: 12A1 -> 12, 3B2 -> 3)
+          const classGrade = className.match(/^(\d+)/);
+          return classGrade && classGrade[1] === criteria.grade;
+        });
+      }
+      
+      setFilteredStudents(allStudents);
       setLoading(false);
-      return results;
+      return allStudents;
     } catch (err) {
       setError(`Lỗi khi tìm kiếm: ${err.message}`);
       setLoading(false);
@@ -166,6 +198,7 @@ export const StudentRecordsProvider = ({ children }) => {
   const resetFilters = async () => {
     setSearchCriteria({
       keyword: '',
+      class: '',
       grade: '',
       bloodType: '',
       healthIssue: ''

@@ -18,22 +18,22 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
         // Log ra thông tin student để debug
         console.log('Student object from props:', student);
         
-        // Lấy healthProfileId từ thông tin học sinh
-        const profileId = student.healthProfileId;
+        // Sử dụng studentId thay vì healthProfileId
+        const studentId = student.studentId;
         
-        if (!profileId) {
-          console.warn('Không tìm thấy ID hồ sơ y tế');
-          setError('Học sinh này chưa có hồ sơ y tế');
+        if (!studentId) {
+          console.warn('Không tìm thấy ID học sinh');
+          setError('Không tìm thấy ID học sinh');
           setHealthProfile({});
           setLoading(false);
           return;
         }
         
-        console.log('Sử dụng health profile ID:', profileId);
+        console.log('Sử dụng student ID:', studentId);
         
-        // Gọi API lấy thông tin health profile
+        // Gọi API lấy thông tin health profile với studentId
         try {
-          const profileData = await getStudentHealthProfile(profileId);
+          const profileData = await getStudentHealthProfile(studentId);
           console.log('Received health profile data:', profileData);
           
           if (profileData && Object.keys(profileData).length > 0) {
@@ -60,9 +60,6 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
     fetchHealthProfile();
   }, [student]);
 
-  // Để debug trong render
-  console.log('Current health profile state:', healthProfile);
-
   if (!student) {
     return (
       <div className="student-detail-container">
@@ -76,8 +73,14 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
     );
   }
   
-  // Thêm xử lý an toàn để tránh lỗi undefined
-  const healthData = healthProfile || {};
+  // Xử lý dữ liệu từ API response mới
+  const healthData = healthProfile?.healthProfile || {};
+  const vaccinations = healthProfile?.vaccinations || [];
+
+  // Để debug trong render
+  console.log('Current health profile state:', healthProfile);
+  console.log('Vaccinations data:', vaccinations);
+  console.log('Vaccinations length:', vaccinations.length);
 
   // Xác định màu sắc cho BMI
   const getBmiColor = (bmi) => {
@@ -111,10 +114,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
         <button onClick={onBack} className="back-button">
           <i className="fas fa-arrow-left"></i> Quay lại
         </button>
-        <h2>Thông tin chi tiết học sinh</h2>
-        <button onClick={onEdit} className="edit-button">
-          <i className="fas fa-edit"></i> Chỉnh sửa
-        </button>
+        <h2 className="detail-title">Thông tin chi tiết học sinh</h2>
       </div>
       
       <div className="detail-content">
@@ -269,23 +269,78 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
                 </div>
               </div>
 
-              <div className="info-group vaccination">
+              <div className="info-group vaccination-info">
                 <h4>Thông tin tiêm chủng</h4>
-                <div className="vaccination-info">
-                  <div className="vaccination-icon">
+                <div className="health-history-item">
+                  <div className="health-history-icon">
                     <i className="fas fa-syringe" style={{ color: '#4caf50' }}></i>
                   </div>
-                  <div className="vaccination-content">
-                    <p>{healthData.immunizationStatus || 'Chưa có thông tin tiêm chủng'}</p>
-                    {healthData.lastPhysicalExamDate && (
-                      <p className="last-exam-date">
-                        <i className="far fa-calendar-alt"></i> 
-                        Khám sức khỏe gần nhất: {new Date(healthData.lastPhysicalExamDate).toLocaleDateString('vi-VN')}
-                      </p>
-                    )}
+                  <div className="health-history-content">
+                    <p className="health-history-label">Trạng thái tiêm chủng:</p>
+                    <p className="health-history-value">{healthData.immunizationStatus || 'Chưa có thông tin'}</p>
                   </div>
                 </div>
+                
+                <div className="health-history-item">
+                  <div className="health-history-icon">
+                    <i className="far fa-calendar-alt" style={{ color: '#2196f3' }}></i>
+                  </div>
+                  <div className="health-history-content">
+                    <p className="health-history-label">Khám sức khỏe gần nhất:</p>
+                    <p className="health-history-value">
+                      {healthData.lastPhysicalExamDate 
+                        ? new Date(healthData.lastPhysicalExamDate).toLocaleDateString('vi-VN')
+                        : 'Chưa có thông tin'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {healthData.checkupStatus && (
+                  <div className="health-history-item">
+                    <div className="health-history-icon">
+                      <i className="fas fa-clipboard-check" style={{ color: '#ff9800' }}></i>
+                    </div>
+                    <div className="health-history-content">
+                      <p className="health-history-label">Trạng thái khám:</p>
+                      <p className="health-history-value">{healthData.checkupStatus}</p>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Thêm phần hiển thị lịch sử tiêm chủng chi tiết */}
+              {vaccinations.length > 0 && (
+                <div className="info-group vaccination-history">
+                  <h4>Lịch sử tiêm chủng</h4>
+                  <div className="vaccination-list">
+                    {vaccinations.map((vaccine, index) => (
+                      <div key={vaccine.id || index} className="vaccination-item">
+                        <div className="vaccination-item-icon">
+                          <i className="fas fa-check-circle" style={{ color: '#4caf50' }}></i>
+                        </div>
+                        <div className="vaccination-item-content">
+                          <h5>{vaccine.vaccineName} (Mũi {vaccine.doseNumber})</h5>
+                          <div className="vaccination-details">
+                            <p><strong>Ngày tiêm:</strong> {new Date(vaccine.vaccinationDate).toLocaleDateString('vi-VN')}</p>
+                            <p><strong>Nơi tiêm:</strong> {vaccine.administeredAt}</p>
+                            <p><strong>Loại:</strong> {vaccine.vaccinationType}</p>
+                            {vaccine.notes && (
+                              <p><strong>Ghi chú:</strong> {vaccine.notes}</p>
+                            )}
+                            {vaccine.parentNotes && (
+                              <p><strong>Ghi chú của phụ huynh:</strong> {vaccine.parentNotes}</p>
+                            )}
+                            {vaccine.nextDoseDate && (
+                              <p><strong>Ngày tiêm tiếp theo:</strong> {new Date(vaccine.nextDoseDate).toLocaleDateString('vi-VN')}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="info-group emergency-contact">
                 <h4>Thông tin liên hệ khẩn cấp</h4>
@@ -301,7 +356,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
                 {healthData.lastUpdated && (
                   <p className="last-updated">
                     <i className="far fa-clock"></i> 
-                    Cập nhật lần cuối: {new Date(healthData.lastUpdated).toLocaleString('vi-VN')}
+                    <strong>Cập nhật lần cuối:</strong> {new Date(healthData.lastUpdated).toLocaleString('vi-VN')}
                   </p>
                 )}
               </div>

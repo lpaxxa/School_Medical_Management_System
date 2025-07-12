@@ -1,6 +1,104 @@
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import * as blogService from '../../services/APINurse/blogService';
 
+// Utility functions for Health Articles permissions (moved from healthArticlePermissions.js)
+
+/**
+ * Check if current user has permission to edit/delete a health article
+ * @param {Object} currentUser - Current logged in user from AuthContext
+ * @param {Object} article - Article object to check permissions for
+ * @returns {boolean} - True if user can edit/delete, false otherwise
+ */
+export const canUserEditHealthArticle = (currentUser, article) => {
+  // No user or article
+  if (!currentUser || !article) {
+    return false;
+  }
+  
+  // Chỉ tác giả mới có thể chỉnh sửa bài viết (không phân biệt role)
+  // Kiểm tra nghiêm ngặt: chỉ so sánh khi cả hai giá trị đều không rỗng
+  const isAuthor = 
+    (article.memberId && currentUser.memberId && article.memberId === currentUser.memberId) ||
+    (article.memberId && currentUser.id && article.memberId === currentUser.id) ||
+    (article.authorId && currentUser.memberId && article.authorId === currentUser.memberId) ||
+    (article.authorId && currentUser.id && article.authorId === currentUser.id);
+  
+  return isAuthor;
+};
+
+/**
+ * Check if current user has permission to create health articles
+ * @param {Object} currentUser - Current logged in user from AuthContext
+ * @returns {boolean} - True if user can create articles, false otherwise
+ */
+export const canUserCreateHealthArticle = (currentUser) => {
+  if (!currentUser) {
+    return false;
+  }
+  
+  // Only admin and nurse can create health articles
+  return currentUser.role === 'admin' || currentUser.role === 'nurse';
+};
+
+/**
+ * Get author display name from article or current user
+ * @param {Object} article - Article object
+ * @param {Object} currentUser - Current user for fallback
+ * @returns {string} - Display name for author
+ */
+export const getAuthorDisplayName = (article, currentUser = null) => {
+  // Ưu tiên hiển thị author từ API response
+  if (article.author && typeof article.author === 'string') {
+    return article.author;
+  }
+  
+  if (article.author && article.author.name) {
+    return article.author.name;
+  }
+  
+  // Sau đó hiển thị memberName nếu có
+  if (article.memberName) {
+    return article.memberName;
+  }
+  
+  // Nếu là user hiện tại thì hiển thị tên của user
+  if (currentUser && (
+    article.authorId === currentUser.id ||
+    article.authorId === currentUser.memberId ||
+    article.memberId === currentUser.id ||
+    article.memberId === currentUser.memberId
+  )) {
+    return currentUser.fullName || currentUser.name || currentUser.email;
+  }
+  
+  // Fallback hiển thị memberId nếu có
+  if (article.memberId) {
+    return `User ${article.memberId}`;
+  }
+  
+  return 'Không có tác giả';
+};
+
+/**
+ * Prepare article data for API submission
+ * @param {Object} formData - Form data from component
+ * @param {Object} currentUser - Current logged in user
+ * @returns {Object} - Formatted data for API
+ */
+export const prepareHealthArticleData = (formData, currentUser) => {
+  return {
+    title: formData.title?.trim(),
+    summary: formData.summary?.trim(),
+    content: formData.content?.trim(),
+    category: formData.category,
+    imageUrl: formData.imageUrl || '',
+    tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : [],
+    authorId: currentUser?.id || currentUser?.memberId,
+    author: currentUser?.fullName || currentUser?.name || currentUser?.email,
+    memberId: currentUser?.memberId || currentUser?.id
+  };
+};
+
 // Tạo context
 export const BlogContext = createContext();
 
@@ -50,7 +148,7 @@ const mockPosts = [
     title: "Ảnh hưởng của ô nhiễm không khí",
     excerpt: "Ô nhiễm không khí và sức khỏe học sinh",
     content: "Nội dung đầy đủ về tác động của ô nhiễm không khí đến học sinh.",
-    category: "Y tế học đường",
+    category: "Sức khỏe tâm thần",
     author: {
       id: "NURSE001",
       name: "yta_nguyen",
@@ -72,7 +170,7 @@ const mockPosts = [
     title: "Hướng dẫn phòng ngừa cảm cúm mùa đông",
     excerpt: "Mùa đông là thời điểm cảm cúm dễ bùng phát",
     content: "Mùa đông là thời điểm cảm cúm dễ bùng phát. Để phòng ngừa hiệu quả, chúng ta cần thực hiện các biện pháp như: rửa tay thường xuyên, đeo khẩu trang khi ra ngoài, tăng cường sức đề kháng bằng cách ăn uống đầy đủ chất dinh dưỡng và tập thể dục đều đặn...",
-    category: "Phòng bệnh",
+    category: "COVID-19 và trẻ em",
     author: {
       id: "NURSE002",
       name: "yta_tran",
@@ -112,10 +210,13 @@ export const BlogProvider = ({ children }) => {
   const [postsError, setPostsError] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [postCategories] = useState([
+    "COVID-19 và trẻ em",
+    "Dinh dưỡng học đường",
+    "Sức khỏe tâm thần",
+    "Tuổi dậy thì",
+    "Vắc-xin cho học sinh",
     "Y tế học đường",
     "Phòng bệnh",
-    "Dinh dưỡng",
-    "Sức khỏe tinh thần",
     "Sơ cứu",
     "Hoạt động thể chất",
     "Khác"
@@ -199,49 +300,6 @@ export const BlogProvider = ({ children }) => {
         setSelectedBlog(localBlog);
         return localBlog;
       }
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Thêm bài viết mới
-  const addBlog = async (blogData) => {
-    try {
-      setLoading(true);
-      console.log("BlogContext - Dữ liệu gửi đi:", blogData);
-      
-      // Thêm log mới để kiểm tra memberId
-      console.log("BlogContext - memberId được gửi đi:", blogData.memberId);
-      
-      const result = await blogService.createBlog(blogData);
-      console.log("BlogContext - Kết quả trả về:", result);
-      
-      // Cập nhật state blogs với bài viết mới
-      setBlogs(prevBlogs => [result, ...prevBlogs]);
-      return result;
-    } catch (err) {
-      console.error('BlogContext - Lỗi khi thêm bài viết:', err.response || err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Cập nhật bài viết
-  const updateBlog = async (blogData) => {
-    try {
-      setLoading(true);
-      const result = await blogService.updateBlog(blogData.id, blogData);
-      
-      // Cập nhật state blogs với bài viết đã sửa
-      setBlogs(prevBlogs => 
-        prevBlogs.map(blog => blog.id === blogData.id ? result : blog)
-      );
-      
-      return result;
-    } catch (err) {
-      console.error(`Lỗi khi cập nhật bài viết:`, err);
       throw err;
     } finally {
       setLoading(false);
@@ -446,63 +504,6 @@ export const BlogProvider = ({ children }) => {
     }
   };
   
-  // Thêm bài post mới
-  const addPost = async (postData) => {
-    try {
-      setPostsLoading(true);
-      
-      // Chuẩn bị dữ liệu gửi đi
-      const formattedData = {
-        title: postData.title,
-        excerpt: postData.excerpt || '',
-        content: postData.content,
-        category: postData.category || 'Khác',
-        tags: Array.isArray(postData.tags) ? postData.tags : 
-              typeof postData.tags === 'string' ? postData.tags.split(',').map(tag => tag.trim()) : []
-      };
-      
-      const response = await blogService.createPost(formattedData);
-      
-      if (response && response.data) {
-        // Cập nhật state posts với bài viết mới
-        setPosts(prevPosts => [response.data, ...prevPosts]);
-        return response.data;
-      } else {
-        throw new Error('API không trả về dữ liệu post hợp lệ');
-      }
-    } catch (err) {
-      console.error('Lỗi khi thêm post:', err.response || err);
-      throw err;
-    } finally {
-      setPostsLoading(false);
-    }
-  };
-  
-  // Cập nhật bài post
-  const updatePost = async (id, postData) => {
-    try {
-      setPostsLoading(true);
-      
-      const response = await blogService.updatePost(id, postData);
-      
-      if (response && response.data) {
-        // Cập nhật state posts với bài viết đã sửa
-        setPosts(prevPosts => 
-          prevPosts.map(post => post.id === id ? response.data : post)
-        );
-        
-        return response.data;
-      } else {
-        throw new Error('API không trả về dữ liệu post hợp lệ');
-      }
-    } catch (err) {
-      console.error(`Lỗi khi cập nhật post:`, err);
-      throw err;
-    } finally {
-      setPostsLoading(false);
-    }
-  };
-  
   // Xóa bài post
   const removePost = async (id) => {
     try {
@@ -647,8 +648,6 @@ export const BlogProvider = ({ children }) => {
     setSelectedBlog,
     fetchBlogs,
     getBlogById,
-    addBlog,
-    updateBlog,
     removeBlog,
     uploadImage,
     filterBlogs,
@@ -665,8 +664,6 @@ export const BlogProvider = ({ children }) => {
     pageSize,
     fetchPosts,
     getPostById,
-    addPost,
-    updatePost,
     removePost,
     likePost,
     unlikePost,

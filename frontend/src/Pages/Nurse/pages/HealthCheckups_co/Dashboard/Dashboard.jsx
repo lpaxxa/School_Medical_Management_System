@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
+import CheckupDetailModal from '../ScheduleConsultation/CheckupDetailModal';
 import './Dashboard.css';
 import { Button, Card, Row, Col, Spinner, Alert, Table } from 'react-bootstrap';
 import {
