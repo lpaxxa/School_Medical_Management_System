@@ -2026,7 +2026,9 @@ const HealthDeclaration = () => {
                 value={formData.healthProfile.id}
                 onChange={handleStudentChange}
                 disabled={isSubmitting || studentsLoading}
-                className={formErrors.studentId ? "error" : ""}
+                className={`selectstudentfix ${
+                  formErrors.studentId ? "error" : ""
+                }`}
               >
                 {students.map((student) => (
                   <option

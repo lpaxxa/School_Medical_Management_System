@@ -375,7 +375,8 @@
   font-size: var(--pn-text-sm);
 }
 
-.pn-filter-select {
+.pn-filter-select,
+.pn-filter-group .selectstudentfix {
   padding: var(--pn-space-3) var(--pn-space-4);
   border: 2px solid var(--pn-gray-300);
   border-radius: var(--pn-radius);
@@ -386,7 +387,8 @@
   transition: var(--pn-transition);
 }
 
-.pn-filter-select:focus {
+.pn-filter-select:focus,
+.pn-filter-group .selectstudentfix:focus {
   border-color: var(--pn-primary);
   outline: none;
   box-shadow: 0 0 0 3px rgba(1, 92, 146, 0.1);
@@ -1059,7 +1061,7 @@
 /* Ensure text content is visible */
 .pn-root .pn-tabs .pn-tab.pn-tab--active {
   -webkit-text-fill-color: #ffffff !important;
-  text-fill-color: #ffffff !important;
+  color: #ffffff !important;
 }
 
 /* ================================================

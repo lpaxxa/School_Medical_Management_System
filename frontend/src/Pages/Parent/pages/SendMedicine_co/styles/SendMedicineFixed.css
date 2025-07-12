@@ -42,6 +42,7 @@ body {
 .fix-send-medicine-header {
   margin-bottom: 24px;
   /* background: linear-gradient(135deg, #015c92 0%, #2d82b5 50%, #428cd4 100%); */
+  background-color: #015c92;
   padding: 24px;
   border-radius: var(--fix-radius);
   text-align: center;
@@ -261,6 +262,52 @@ body {
   margin-top: 12px;
 }
 
+/* New two-column layout for checkboxes */
+.fix-checkbox-group-two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+  /* margin-left: 70px; */
+}
+
+/* Date picker styling */
+.chonngayguithuoc {
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: var(--fix-radius);
+  border: 1px solid #e9ecef;
+}
+
+.chonngayguithuoc .fix-form-group {
+  background-color: white;
+  padding: 12px;
+  border-radius: var(--fix-radius);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chonngayguithuoc label {
+  font-weight: 600;
+  color: var(--fix-primary-color);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.chonngayguithuoc input[type="date"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #dee2e6;
+  border-radius: var(--fix-radius);
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.chonngayguithuoc input[type="date"]:focus {
+  outline: none;
+  border-color: var(--fix-primary-color);
+  box-shadow: 0 0 0 3px rgba(1, 92, 146, 0.1);
+}
+
 .fix-checkbox-item {
   display: flex;
   align-items: center;
@@ -269,8 +316,10 @@ body {
   border-radius: var(--fix-radius);
 }
 
-.fix-checkbox-item input[type="checkbox"] {
-  margin-right: 10px;
+.fix-checkbox-item label {
+  margin-left: 8px;
+  font-size: 14px;
+  color: var(--fix-text-color);
 }
 
 /* Image Upload */
@@ -1152,7 +1201,8 @@ body:has(.fix-med-modal-overlay) .parent-header,
   color: var(--fix-text-color);
 }
 
-.fix-history-filter select {
+.fix-history-filter select,
+.fix-history-filter .selectstudentfix {
   padding: 8px 12px;
   border: 1px solid var(--fix-border-color);
   border-radius: 6px;
@@ -1571,6 +1621,7 @@ body:has(.fix-med-modal-overlay) .parent-header,
   .fix-form-group-horizontal {
     flex-direction: column;
     align-items: flex-start;
+    
   }
 
   .fix-form-group-horizontal label {

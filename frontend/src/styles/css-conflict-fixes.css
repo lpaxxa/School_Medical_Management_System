@@ -1,0 +1,318 @@
+/**
+ * css-conflict-fixes.css
+ * 
+ * File này chứa các fix CSS để giải quyết xung đột giữa các module
+ * Import file này sau các CSS khác để override các xung đột
+ */
+
+/* 
+ * FIX 1: Container Class Conflicts
+ * Tránh xung đột giữa global .container và MedicalRecords .container
+ */
+.parent-content-wrapper .container {
+  /* Đảm bảo container trong Parent pages sử dụng local style */
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 var(--space-4, 1rem) !important;
+}
+
+/* 
+ * FIX 2: Button Class Conflicts
+ * Tránh xung đột giữa global .btn và module-specific .btn
+ */
+.parent-content-wrapper .btn:not(.global-btn):not(.modern-search-button) {
+  /* Giữ nguyên style của Parent module */
+  all: unset;
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* 
+ * FIX 3: Card Class Conflicts
+ * Tránh xung đột giữa global .card và module-specific .card
+ */
+.parent-content-wrapper .card:not(.global-card) {
+  /* Giữ nguyên style của Parent module */
+  all: unset;
+  display: block;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 
+ * FIX 4: Text Utility Conflicts
+ * Đảm bảo text utilities chỉ áp dụng cho global components
+ */
+.global-text-primary,
+.global-text-secondary,
+.global-text-dark,
+.global-text-medium,
+.global-text-light {
+  /* Các utility text classes chỉ dùng cho global components */
+  font-family: var(--font-body);
+}
+
+/* 
+ * FIX 5: Background Utility Conflicts
+ */
+.global-bg-primary,
+.global-bg-primary-light,
+.global-bg-gradient {
+  /* Các utility background classes chỉ dùng cho global components */
+  transition: background-color 0.3s ease;
+}
+
+/* 
+ * FIX 6: Border Utility Conflicts
+ */
+.global-border-primary,
+.global-border-light {
+  /* Các utility border classes chỉ dùng cho global components */
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* 
+ * FIX 7: SearchBox Conflicts
+ * Đảm bảo SearchBox không bị ảnh hưởng bởi CSS khác
+ */
+.modern-search-container {
+  /* Reset để tránh kế thừa style không mong muốn */
+  all: unset;
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.modern-search-input {
+  /* Đảm bảo style consistent */
+  all: unset;
+  width: 100%;
+  padding: 14px 50px 14px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 50px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  transition: all 0.3s ease;
+}
+
+.modern-search-button {
+  /* Đảm bảo style consistent */
+  all: unset;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+/* 
+ * FIX 8: Loading Spinner Conflicts
+ */
+.loading-container {
+  /* Đảm bảo LoadingSpinner không bị ảnh hưởng */
+  all: unset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  margin: 20px auto;
+  max-width: 1000px;
+  padding: 40px;
+}
+
+/* 
+ * FIX 9: Modal Z-index Hierarchy
+ * Đảm bảo modals hiển thị đúng thứ tự
+ */
+.parent-content-wrapper .modal-overlay,
+.parent-content-wrapper .med-modal-overlay,
+.parent-content-wrapper .hdm-modal-overlay,
+.parent-content-wrapper .modern-modal-overlay {
+  z-index: 1050 !important;
+}
+
+.parent-content-wrapper .incident-zoom-overlay {
+  z-index: 2000 !important;
+}
+
+.parent-content-wrapper .send-medicine-container .zoom-overlay {
+  z-index: 2100 !important;
+}
+
+/* Toasts should be above everything */
+.Toastify__toast-container {
+  z-index: 9999 !important;
+}
+
+/* 
+ * FIX 10: Responsive Container Fixes
+ */
+@media (max-width: 1280px) {
+  .parent-content-wrapper {
+    max-width: 1100px !important;
+    padding: 0 16px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .parent-content-wrapper {
+    max-width: 100% !important;
+    padding: 0 12px !important;
+  }
+  
+  .parent-content-wrapper .container {
+    padding: 0 12px !important;
+  }
+}
+
+/* 
+ * FIX 11: Header Conflicts
+ */
+.parent-header {
+  /* Đảm bảo header có z-index phù hợp */
+  z-index: 1000 !important;
+}
+
+/* 
+ * FIX 12: Layout Overflow Fixes
+ */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+}
+
+.app {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* 
+ * FIX 13: Student Selection Dropdown Conflicts
+ * Tạo class riêng cho dropdown chọn học sinh để tránh xung đột
+ */
+.selectstudentfix {
+  /* Reset all inherited styles */
+  all: unset;
+  
+  /* Apply consistent styling */
+  width: 100% !important;
+  padding: 12px 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  background-color: #ffffff !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  
+  /* Add dropdown arrow */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
+  
+  /* Transitions */
+  transition: all 0.3s ease !important;
+}
+
+.selectstudentfix:focus {
+  outline: none !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.selectstudentfix:hover {
+  border-color: #60a5fa !important;
+}
+
+.selectstudentfix:disabled {
+  background-color: #f3f4f6 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .selectstudentfix {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    padding: 10px 12px !important;
+    padding-right: 36px !important;
+    background-size: 14px !important;
+    background-position: right 10px center !important;
+  }
+}
+
+/* Parent layout specific adjustments */
+.parent-content-wrapper .selectstudentfix {
+  /* Ensure consistent styling within parent layout */
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Medical Records specific */
+.medical-main .selectstudentfix {
+  max-width: 500px !important;
+  margin: 0 auto !important;
+}
+
+/* SendMedicine specific */
+.fix-history-filter .selectstudentfix {
+  min-width: 180px !important;
+  max-width: 250px !important;
+  padding: 8px 12px !important;
+  padding-right: 32px !important;
+  font-size: 14px !important;
+}
+
+/* HealthDeclaration specific */
+.health-declaration-form .selectstudentfix {
+  max-width: 100% !important;
+  margin-bottom: 8px !important;
+}
+
+.health-declaration-form .selectstudentfix.error {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Notifications specific */
+.pn-filter-group .selectstudentfix {
+  max-width: 200px !important;
+  font-size: 14px !important;
+  padding: 8px 12px !important;
+  padding-right: 32px !important;
+  background-size: 14px !important;
+  background-position: right 8px center !important;
+}
+
+.parent-layout {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}

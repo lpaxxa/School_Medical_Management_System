@@ -389,7 +389,8 @@
   box-shadow: var(--sp-shadow);
 }
 
-.chonhocsinhtabparent-select {
+.chonhocsinhtabparent-select,
+.selectstudentfix {
   width: 100%;
   padding: 12px 16px;
   border: 1px solid var(--sp-border);
@@ -401,13 +402,15 @@
   transition: all 0.3s ease;
 }
 
-.chonhocsinhtabparent-select:focus {
+.chonhocsinhtabparent-select:focus,
+.selectstudentfix:focus {
   outline: none;
   border-color: var(--sp-primary);
   box-shadow: 0 0 0 3px rgba(1, 92, 146, 0.1);
 }
 
-.chonhocsinhtabparent-select:hover {
+.chonhocsinhtabparent-select:hover,
+.selectstudentfix:hover {
   border-color: var(--sp-primary-light);
 }
 
@@ -417,7 +420,8 @@
     margin-bottom: 16px;
   }
   
-  .chonhocsinhtabparent-select {
+  .chonhocsinhtabparent-select,
+  .selectstudentfix {
     padding: 10px 12px;
     font-size: 16px; /* Prevents zoom on iOS */
   }
