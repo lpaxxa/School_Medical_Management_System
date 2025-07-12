@@ -485,14 +485,14 @@ textarea {
 }
 
 /* Student selection styles */
-.student-selection {
+.chonhocsinhtabparent {
   display: flex;
   flex-direction: column;
   gap: 15px;
   width: 250px;
 }
 
-.student-selection select {
+.chonhocsinhtabparent select {
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -503,7 +503,7 @@ textarea {
   transition: all 0.3s ease;
 }
 
-.student-selection select:focus {
+.chonhocsinhtabparent select:focus {
   border-color: #4a6cf7;
   box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
   outline: none;

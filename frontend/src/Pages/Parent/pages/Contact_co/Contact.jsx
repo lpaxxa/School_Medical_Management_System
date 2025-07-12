@@ -451,11 +451,12 @@ const ParentContact = () => {
                       <i className="fas fa-spinner fa-spin"></i> Đang tải...
                     </div>
                   ) : students.length > 0 ? (
-                    <div className="student-selection">
+                    <div className="chonhocsinhtabparent">
                       <select
                         name="studentId"
                         value={formData.studentId}
                         onChange={(e) => handleStudentSelect(e.target.value)}
+                        className="chonhocsinhtabparent-select"
                         required
                       >
                         <option value="">-- Chọn học sinh --</option>

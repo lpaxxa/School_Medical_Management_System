@@ -42,6 +42,20 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
   const [selectedVaccination, setSelectedVaccination] = useState(null);
   const [isVaccinationModalOpen, setIsVaccinationModalOpen] = useState(false);
 
+  // State for notification modal
+  const [notificationModal, setNotificationModal] = useState({
+    show: false,
+    type: "success", // 'success' or 'error'
+    title: "",
+    message: "",
+  });
+
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5); // Số items mỗi trang cho kế hoạch tiêm chủng
+  const [historyCurrentPage, setHistoryCurrentPage] = useState(1);
+  const [historyItemsPerPage] = useState(8); // Số items mỗi trang cho lịch sử tiêm chủng
+
   // Refs for managing intervals and component state
   const refreshIntervalRef = useRef(null);
   const componentMountedRef = useRef(true);
@@ -160,6 +174,26 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
     setSelectedVaccination(null);
   };
 
+  // Show notification modal
+  const showNotification = (type, title, message) => {
+    setNotificationModal({
+      show: true,
+      type,
+      title,
+      message,
+    });
+
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      setNotificationModal((prev) => ({ ...prev, show: false }));
+    }, 3000);
+  };
+
+  // Close notification modal
+  const closeNotification = () => {
+    setNotificationModal((prev) => ({ ...prev, show: false }));
+  };
+
   // Handle radio button change for batch confirmation
   const handleConfirmationChange = (vaccineId, response) => {
     setConfirmations((prev) => ({
@@ -259,8 +293,11 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
       const result = await medicalService.confirmVaccination(requestData);
       console.log("Confirmation result:", result);
 
-      alert(
-        `Xác nhận tiêm chủng đã được gửi thành công!\nĐã xác nhận ${confirmationsToSend.length} vaccine.`
+      // Show success notification modal
+      showNotification(
+        "success",
+        "Xác nhận tiêm chủng đã được gửi thành công!",
+        `Đã xác nhận ${confirmationsToSend.length} vaccine.`
       );
 
       // Clear confirmations for this plan's vaccines
@@ -301,7 +338,13 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
         error.response?.data?.message ||
         error.message ||
         "Có lỗi xảy ra khi gửi xác nhận";
-      alert(`Lỗi: ${errorMessage}. Vui lòng thử lại.`);
+
+      // Show error notification modal
+      showNotification(
+        "error",
+        "Gửi xác nhận thất bại!",
+        `Lỗi: ${errorMessage}. Vui lòng thử lại.`
+      );
     } finally {
       setIsSubmittingConfirmation(false);
     }
@@ -336,6 +379,47 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
     },
     [confirmations]
   );
+
+  // Pagination helper functions
+  const getPaginatedPlans = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return vaccinationPlans.slice(startIndex, endIndex);
+  };
+
+  const getPaginatedHistory = () => {
+    const startIndex = (historyCurrentPage - 1) * historyItemsPerPage;
+    const endIndex = startIndex + historyItemsPerPage;
+    return vaccinationHistory.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    return Math.ceil(vaccinationPlans.length / itemsPerPage);
+  };
+
+  const getHistoryTotalPages = () => {
+    return Math.ceil(vaccinationHistory.length / historyItemsPerPage);
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    // Scroll to top of the list when changing page
+    const plansContainer = document.querySelector(".vaccination-plans-list");
+    if (plansContainer) {
+      plansContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const goToHistoryPage = (pageNumber) => {
+    setHistoryCurrentPage(pageNumber);
+    // Scroll to top of the history list when changing page
+    const historyContainer = document.querySelector(
+      ".vaccination-history-list"
+    );
+    if (historyContainer) {
+      historyContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   useEffect(() => {
     componentMountedRef.current = true;
@@ -379,7 +463,10 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
           className={`sub-tab-btn ${
             activeSubTab === "confirmation" ? "active" : ""
           }`}
-          onClick={() => setActiveSubTab("confirmation")}
+          onClick={() => {
+            setActiveSubTab("confirmation");
+            setCurrentPage(1); // Reset trang về 1 khi chuyển tab
+          }}
         >
           <FaClipboardList />
           <span>Xác nhận tiêm chủng</span>
@@ -388,7 +475,10 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
           className={`sub-tab-btn ${
             activeSubTab === "history" ? "active" : ""
           }`}
-          onClick={() => setActiveSubTab("history")}
+          onClick={() => {
+            setActiveSubTab("history");
+            setHistoryCurrentPage(1); // Reset trang về 1 khi chuyển tab
+          }}
         >
           <FaHistory />
           <span>Lịch sử tiêm chủng</span>
@@ -424,7 +514,7 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
             </div>
           ) : (
             <div className="vaccination-plans-list">
-              {vaccinationPlans.map((plan) => (
+              {getPaginatedPlans().map((plan) => (
                 <div className="vaccination-plan-card" key={plan.id}>
                   <div className="plan-header">
                     <div className="plan-title">
@@ -702,6 +792,61 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
                   )}
                 </div>
               ))}
+
+              {/* Pagination for vaccination plans */}
+              {vaccinationPlans.length > itemsPerPage && (
+                <div className="pagination-container">
+                  <div className="pagination-info">
+                    <span>
+                      Hiển thị{" "}
+                      {Math.min(
+                        (currentPage - 1) * itemsPerPage + 1,
+                        vaccinationPlans.length
+                      )}{" "}
+                      -{" "}
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        vaccinationPlans.length
+                      )}{" "}
+                      trong tổng số {vaccinationPlans.length} kế hoạch
+                    </span>
+                  </div>
+                  <div className="pagination-controls">
+                    <button
+                      className="pagination-btn prev-btn"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      title="Trang trước"
+                    >
+                      ←
+                    </button>
+
+                    <div className="pagination-pages">
+                      {Array.from({ length: getTotalPages() }, (_, index) => (
+                        <button
+                          key={index + 1}
+                          className={`pagination-page ${
+                            index + 1 === currentPage ? "active" : ""
+                          }`}
+                          onClick={() => goToPage(index + 1)}
+                          title={`Trang ${index + 1}`}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      className="pagination-btn next-btn"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === getTotalPages()}
+                      title="Trang sau"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -764,7 +909,7 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
                   </div>
                 ) : (
                   <div className="vaccination-history-rows">
-                    {vaccinationHistory.map((vaccination, index) => (
+                    {getPaginatedHistory().map((vaccination, index) => (
                       <div
                         className="vaccination-row"
                         key={index}
@@ -812,6 +957,77 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
                         <FaChevronRight className="arrow-icon" />
                       </div>
                     ))}
+
+                    {/* Pagination for vaccination history */}
+                    {vaccinationHistory.length > historyItemsPerPage && (
+                      <div className="pagination-container">
+                        <div className="pagination-info">
+                          <span>
+                            Hiển thị{" "}
+                            <strong>
+                              {Math.min(
+                                (historyCurrentPage - 1) * historyItemsPerPage +
+                                  1,
+                                vaccinationHistory.length
+                              )}{" "}
+                              -{" "}
+                              {Math.min(
+                                historyCurrentPage * historyItemsPerPage,
+                                vaccinationHistory.length
+                              )}
+                            </strong>{" "}
+                            trong tổng số{" "}
+                            <strong>{vaccinationHistory.length}</strong> mũi
+                            tiêm
+                          </span>
+                        </div>
+                        <div className="pagination-controls">
+                          <button
+                            className="pagination-btn prev-btn"
+                            onClick={() =>
+                              goToHistoryPage(historyCurrentPage - 1)
+                            }
+                            disabled={historyCurrentPage === 1}
+                            title="Trang trước"
+                          >
+                            ←
+                          </button>
+
+                          <div className="pagination-pages">
+                            {Array.from(
+                              { length: getHistoryTotalPages() },
+                              (_, index) => (
+                                <button
+                                  key={index + 1}
+                                  className={`pagination-page ${
+                                    index + 1 === historyCurrentPage
+                                      ? "active"
+                                      : ""
+                                  }`}
+                                  onClick={() => goToHistoryPage(index + 1)}
+                                  title={`Trang ${index + 1}`}
+                                >
+                                  {index + 1}
+                                </button>
+                              )
+                            )}
+                          </div>
+
+                          <button
+                            className="pagination-btn next-btn"
+                            onClick={() =>
+                              goToHistoryPage(historyCurrentPage + 1)
+                            }
+                            disabled={
+                              historyCurrentPage === getHistoryTotalPages()
+                            }
+                            title="Trang sau"
+                          >
+                            →
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -827,6 +1043,58 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
           onClose={closeVaccinationModal}
           vaccination={selectedVaccination}
         />
+      )}
+
+      {/* Notification Modal */}
+      {notificationModal.show && (
+        <div className="vaccination-notification-modal-overlay">
+          <div
+            className={`vaccination-notification-modal vaccination-notification-${notificationModal.type}`}
+          >
+            <div className="vaccination-notification-icon">
+              {notificationModal.type === "success" ? (
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M20 6L9 17L4 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </div>
+            <div className="vaccination-notification-content">
+              <h3>{notificationModal.title}</h3>
+              <p>{notificationModal.message}</p>
+            </div>
+            <div className="vaccination-notification-progress"></div>
+            <button
+              className="vaccination-notification-close"
+              onClick={closeNotification}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

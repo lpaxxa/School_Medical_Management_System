@@ -1,7 +1,7 @@
 import React from "react";
 import { Route, Navigate } from "react-router-dom";
 import Login from "../Pages/Login";
-import AdminRoutes from "./AdminRoutes";
+// import AdminRoutes from "./AdminRoutes"; // TODO: Temporarily disabled Admin routes
 import NurseRoutes from "./NurseRoutes";
 import ParentRoutes from "./ParentRoutes";
 import OAuthCallback from "../components/OAuthCallback";
@@ -14,7 +14,11 @@ const AppRoutes = ({ currentUser }) => {
 
     switch (currentUser.role) {
       case "admin":
-        return <Navigate to="/admin" replace />;
+        // TODO: Temporarily redirect admin to nurse dashboard while Admin module is disabled
+        console.warn(
+          "Admin module is temporarily disabled. Redirecting to nurse dashboard."
+        );
+        return <Navigate to="/nurse" replace />;
       case "nurse":
         return <Navigate to="/nurse" replace />;
       case "parent":
@@ -42,7 +46,7 @@ const AppRoutes = ({ currentUser }) => {
     <Route key="root" path="/" element={redirectBasedOnRole()} />,
 
     // Include role-based routes
-    ...AdminRoutes(),
+    // ...AdminRoutes(), // TODO: Temporarily disabled Admin routes
     ...NurseRoutes(),
     ...ParentRoutes(),
 

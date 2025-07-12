@@ -427,11 +427,11 @@ const GeneralTab = ({
                             <strong>Nơi tiêm:</strong>{" "}
                             {vaccination.administeredAt}
                           </div>
-                          {vaccination.notes && (
+                          {/* {vaccination.notes && (
                             <div className="vaccination-notes">
                               <strong>Ghi chú:</strong> {vaccination.notes}
                             </div>
-                          )}
+                          )} */}
                           {vaccination.nextDoseDate && (
                             <div className="next-dose">
                               <strong>Mũi tiếp theo:</strong>{" "}

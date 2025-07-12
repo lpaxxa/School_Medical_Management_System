@@ -3515,108 +3515,224 @@ body.modal-open header,
    PAGINATION CONTROLS FOR VACCINATION SECTION
    ================================================ */
 
-.pagination-controls {
+.pagination-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  margin-top: var(--space-6);
-  padding: var(--space-4);
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding: var(--space-3);
   background: var(--color-gray-50);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-gray-200);
 }
 
-.pagination-controls button {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-white);
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
-  color: var(--color-gray-700);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--transition);
-  min-width: 80px;
-  justify-content: center;
-}
-
-.pagination-controls button:hover:not(:disabled) {
-  background: var(--color-primary);
-  color: var(--color-white);
-  border-color: var(--color-primary);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.pagination-controls button:disabled {
-  background: var(--color-gray-100);
-  color: var(--color-gray-400);
-  border-color: var(--color-gray-200);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.pagination-controls span {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-gray-700);
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-primary-light);
-  color: var(--color-white);
-  border-radius: var(--radius-md);
-  min-width: 100px;
+.pagination-info {
+  color: var(--color-gray-600);
+  font-size: 0.875rem;
   text-align: center;
 }
 
-/* Page dots pagination (alternative style) */
-.pagination-dots {
+.pagination-controls {
   display: flex;
-  justify-content: center;
   align-items: center;
   gap: var(--space-2);
-  margin-top: var(--space-4);
-  padding: var(--space-3);
 }
 
-.pagination-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--color-gray-300);
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-gray-300);
+  background: white;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
 }
 
-.pagination-dot.active {
-  background: var(--color-primary);
-  transform: scale(1.2);
-}
-
-.pagination-dot:hover {
+.pagination-btn:hover:not(:disabled) {
   background: var(--color-primary-light);
-  transform: scale(1.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-1px);
 }
 
-/* Responsive Design for Pagination */
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-gray-100);
+  color: var(--color-gray-400);
+}
+
+.pagination-pages {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.pagination-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-gray-300);
+  background: white;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.pagination-page:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.pagination-page.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
+}
+
+.pagination-page.active:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+  .pagination-container {
+    padding: var(--space-2);
+  }
+  
+  .pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .pagination-pages {
+    max-width: 100%;
+    overflow-x: auto;
+    padding: var(--space-1);
+  }
+  
+  .pagination-btn,
+  .pagination-page {
+    width: 36px;
+    height: 36px;
+    font-size: 0.8rem;
+  }
+}
+
 @media (max-width: 480px) {
+  .pagination-info {
+    font-size: 0.8rem;
+    margin-bottom: var(--space-2);
+  }
+  
   .pagination-controls {
     flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-3);
+    gap: var(--space-2);
   }
+  
+  .pagination-pages {
+    justify-content: center;
+    gap: 6px;
+  }
+}
 
-  .pagination-controls button {
-    min-width: 120px;
-    padding: var(--space-2) var(--space-3);
-  }
+/* Vaccination Notification Modal */
+.vaccination-notification-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.15);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .pagination-controls span {
-    order: -1;
-    min-width: 80px;
-  }
+.vaccination-notification-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+  padding: 32px 28px 24px 28px;
+  min-width: 320px;
+  max-width: 90vw;
+  text-align: center;
+  position: relative;
+  animation: fadeIn 0.2s;
+}
+
+.vaccination-notification-success {
+  border-left: 6px solid #4caf50;
+}
+
+.vaccination-notification-error {
+  border-left: 6px solid #f44336;
+}
+
+.vaccination-notification-icon {
+  margin-bottom: 12px;
+}
+
+.vaccination-notification-content h3 {
+  font-size: 1.25rem;
+  margin-bottom: 8px;
+  color: #222;
+}
+
+.vaccination-notification-content p {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 0;
+}
+
+.vaccination-notification-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.vaccination-notification-close:hover {
+  background: #f2f2f2;
+}
+
+.vaccination-notification-progress {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, #4caf50 0%, #f44336 100%);
+  border-radius: 2px;
+  margin: 16px 0 0 0;
+  animation: notificationProgress 3s linear forwards;
+}
+
+@keyframes notificationProgress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }

@@ -86,59 +86,163 @@
 
 /* Override handled by global.css */
 
-/* ============= PAGE HEADER ============= */
-.health-declaration-container .page-header {
+/* ============= HEADER HEALTH DECLARATION - Specific Classes ============= */
+.health-declaration-container .headerofhealthdeclaration {
   background: linear-gradient(135deg, #015c92 0%, #2d82b5 50%, #428cd4 100%);
   color: var(--hdm-white);
-  padding: var(--hdm-space-10) var(--hdm-space-6);
+  padding: var(--hdm-space-8) var(--hdm-space-6);
   border-radius: var(--hdm-radius-xl);
   margin-bottom: var(--hdm-space-8);
-  text-align: center;
   box-shadow: var(--hdm-shadow-lg);
   position: relative;
   overflow: hidden;
+  isolation: isolate; /* Tạo stacking context riêng */
+}
+
+.health-declaration-container .headerofhealthdeclaration__content {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: var(--hdm-space-6);
+  position: relative;
+  z-index: 2;
 }
 
-.health-declaration-container .page-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
-  pointer-events: none;
+.health-declaration-container .headerofhealthdeclaration__text {
+  text-align: left;
+  flex: 1;
 }
 
-.health-declaration-container .page-header h1 {
+.health-declaration-container .headerofhealthdeclaration__text h1 {
+  margin: 0 0 var(--hdm-space-2) 0;
   font-size: 2.5rem;
   font-weight: 700;
-  margin: 0 0 var(--hdm-space-4) 0;
-  letter-spacing: -0.025em;
-  position: relative;
-  z-index: 1;
+  line-height: 1.2;
   color: var(--hdm-white);
-  text-align: center;
-  order: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.health-declaration-container .page-header p {
-  font-size: 1.125rem;
-  opacity: 0.95;
+.health-declaration-container .headerofhealthdeclaration__text p {
   margin: 0;
-  font-weight: 400;
-  max-width: 700px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
+  font-size: 1.125rem;
+  opacity: 0.9;
   color: var(--hdm-white);
-  text-align: center;
-  order: 2;
-  line-height: 1.7;
+}
+
+.health-declaration-container .headerofhealthdeclaration__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--hdm-space-4);
+  flex-shrink: 0;
+}
+
+/* Nút làm mới - Specific styling */
+.health-declaration-container .headerofhealthdeclaration__reload-button {
+  display: flex;
+  align-items: center;
+  gap: var(--hdm-space-2);
+  padding: var(--hdm-space-3) var(--hdm-space-5);
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--hdm-white);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--hdm-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--hdm-transition);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  white-space: nowrap;
+  min-height: 44px;
+  min-width: 120px;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hover effect */
+.health-declaration-container .headerofhealthdeclaration__reload-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Active effect */
+.health-declaration-container .headerofhealthdeclaration__reload-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Disabled state */
+.health-declaration-container .headerofhealthdeclaration__reload-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: none;
+}
+
+/* Loading animation cho khi disabled */
+.health-declaration-container .headerofhealthdeclaration__reload-button:disabled svg {
+  animation: spin 1s linear infinite;
+}
+
+/* SVG icon styling */
+.health-declaration-container .headerofhealthdeclaration__reload-button svg {
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+/* Hover rotate effect */
+.health-declaration-container .headerofhealthdeclaration__reload-button:hover:not(:disabled) svg {
+  transform: rotate(180deg);
+}
+
+/* Keyframe cho spin animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive design cho header */
+@media (max-width: 768px) {
+  .health-declaration-container .headerofhealthdeclaration {
+    padding: var(--hdm-space-6) var(--hdm-space-4);
+  }
+  
+  .health-declaration-container .headerofhealthdeclaration__content {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--hdm-space-4);
+  }
+  
+  .health-declaration-container .headerofhealthdeclaration__text {
+    text-align: center;
+  }
+  
+  .health-declaration-container .headerofhealthdeclaration__text h1 {
+    font-size: 2rem;
+  }
+  
+  .health-declaration-container .headerofhealthdeclaration__reload-button {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .health-declaration-container .headerofhealthdeclaration__text h1 {
+    font-size: 1.75rem;
+  }
+  
+  .health-declaration-container .headerofhealthdeclaration__text p {
+    font-size: 1rem;
+  }
 }
 
 /* ============= FORM CONTAINER ============= */
