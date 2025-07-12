@@ -1,16 +1,27 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Modal, Button, Form, FloatingLabel } from 'react-bootstrap';
 import { VaccinationContext } from '../../../../../context/NurseContext/VaccinationContext';
 
 const CreateRecordModal = ({ show, handleClose, student, plan }) => {
     const { handleCreateRecord, vaccineForRecord } = useContext(VaccinationContext);
     const [formData, setFormData] = useState({
-        nurseId: '',
+        nurseId: '1', // Default nurse ID to 1
         vaccinationDate: new Date().toISOString(),
         administeredAt: '',
         notes: '',
     });
     const [validated, setValidated] = useState(false);
+
+    // Set vaccination date from student when modal opens
+    useEffect(() => {
+        if (student && student.vaccinationDate) {
+            setFormData(prev => ({
+                ...prev,
+                vaccinationDate: new Date(student.vaccinationDate).toISOString(),
+                nurseId: '1' // Ensure nurse ID remains 1
+            }));
+        }
+    }, [student]);
 
     const handleSubmit = (event) => {
         const form = event.currentTarget;
@@ -25,8 +36,8 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
         handleCreateRecord(formData);
         // Reset form for next time, though the modal will close anyway
         setFormData({
-            nurseId: '',
-            vaccinationDate: new Date().toISOString(),
+            nurseId: '1', // Keep nurse ID as 1
+            vaccinationDate: student?.vaccinationDate ? new Date(student.vaccinationDate).toISOString() : new Date().toISOString(),
             administeredAt: '',
             notes: '',
         });
@@ -35,7 +46,13 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === 'vaccinationDate') {
+            // Convert datetime-local value to ISO string
+            const date = new Date(value);
+            setFormData(prev => ({ ...prev, [name]: date.toISOString() }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     if (!student || !plan || !vaccineForRecord) return null;
@@ -55,18 +72,17 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
                     <h6>Vaccine đang tạo: <span className="fw-normal text-primary">{vaccineForRecord.vaccineName}</span></h6>
                     <hr />
 
-                    <Form.Group className="mb-3" controlId="formNurseId">
-                        <FloatingLabel label="ID Y tá">
+                    <Form.Group className="mb-3" controlId="formVaccinationDate">
+                        <FloatingLabel label="Ngày tiêm">
                             <Form.Control
-                                type="text"
-                                name="nurseId"
-                                placeholder="Nhập ID của y tá"
-                                value={formData.nurseId}
+                                type="datetime-local"
+                                name="vaccinationDate"
+                                value={formData.vaccinationDate ? new Date(formData.vaccinationDate).toISOString().slice(0, 16) : ''}
                                 onChange={handleChange}
                                 required
                             />
                             <Form.Control.Feedback type="invalid">
-                                Vui lòng nhập ID của y tá.
+                                Vui lòng chọn ngày tiêm.
                             </Form.Control.Feedback>
                         </FloatingLabel>
                     </Form.Group>

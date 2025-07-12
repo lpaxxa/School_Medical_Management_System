@@ -122,7 +122,10 @@ export const VaccinationProvider = ({ children }) => {
 
   // Handlers for Create Record Modal
   const handleShowCreateRecordModal = (student, vaccine) => {
-    setStudentForRecord(student);
+    setStudentForRecord({
+      ...student,
+      vaccinationDate: selectedPlanDetails?.vaccinationDate || null
+    });
     setVaccineForRecord(vaccine); // Set the specific vaccine
     setShowCreateRecordModal(true);
     // We close the details modal to avoid stacking modals
@@ -152,13 +155,16 @@ export const VaccinationProvider = ({ children }) => {
         vaccineId: vaccineForRecord.vaccineId, // Use the stored vaccine ID
       };
       await vaccinationApiService.createVaccinationRecord(newRecord);
-      // Optional: Add success notification/handling here
+      // Show success notification
       toast.success('Tạo hồ sơ tiêm chủng thành công!', { autoClose: 2500 });
       handleCloseCreateRecordModal();
-      // Optional: Refresh plan details to show updated status
-      fetchPlanDetails(selectedPlanDetails.id);
+      
+      // Reload the page after successful creation
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000); // Wait 2 seconds for user to see the success message
     } catch (error) {
-      // Optional: Add error notification/handling here
+      // Show error notification
       toast.error('Tạo hồ sơ thất bại. Vui lòng thử lại.', { autoClose: 2500 });
       console.error("Failed to create record", error);
     }
@@ -275,6 +281,10 @@ export const VaccinationProvider = ({ children }) => {
       studentInfo: null,
       vaccinationDate: null 
     });
+    // Reload the page when closing history modal
+    setTimeout(() => {
+      window.location.reload();
+    }, 100); // Small delay to ensure modal closes first
   };
 
   // 3. Update Note Modal

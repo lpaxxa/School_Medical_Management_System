@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Container, Row, Col, Card, Table, Form, Button,
-  Spinner, Alert, Modal, InputGroup, Badge
+  Spinner, Alert, Modal, InputGroup, Badge, Pagination
 } from 'react-bootstrap';
-import {
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { 
   FaSearch, FaEye, FaImage,
   FaCheckCircle, FaTimesCircle, FaExclamationTriangle, 
-  FaExclamationCircle, FaAngleLeft, FaAngleRight,
-  FaAngleDoubleLeft, FaAngleDoubleRight
+  FaExclamationCircle 
 } from 'react-icons/fa';
 import './MedicationHistory.css';
 import { useMedicationAdministration } from '../../../../../context/NurseContext/MedicineApprovalContext';
@@ -37,18 +37,6 @@ const MedicationHistory = () => {
     error
   });
 
-  // Helper function to normalize Vietnamese text by removing diacritics
-  const removeVietnameseDiacritics = (text) => {
-    if (!text) return '';
-    return text
-      .toLowerCase()
-      .normalize('NFD') // Decompose characters
-      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-      // Additional Vietnamese-specific replacements
-      .replace(/đ/g, 'd')
-      .replace(/Đ/g, 'd');
-  };
-
   // Add useEffect to fetch data on mount
   useEffect(() => {
     console.log('🚀 MedicationHistory - useEffect triggered, calling fetchMedicationAdministrations');
@@ -72,8 +60,6 @@ const MedicationHistory = () => {
   
   // State for search and filters only (read-only view)
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
   
   // State for viewing image modal
   const [showImageModal, setShowImageModal] = useState(false);
@@ -233,52 +219,6 @@ const MedicationHistory = () => {
     }));
   };
 
-  // Handle search - fetch all data when searching, use paginated data when not searching
-  const handleSearch = async (searchValue) => {
-    setSearchTerm(searchValue);
-    
-    if (searchValue.trim() === '') {
-      // Clear search - go back to paginated view
-      setSearchResults([]);
-      setIsSearching(false);
-      fetchMedicationAdministrations(currentPage, pageSize);
-    } else {
-      // Search mode - fetch all data to search through
-      setIsSearching(true);
-      try {
-        // Fetch a large number of records to get all data
-        // Note: You may want to create a specific search endpoint instead of fetching all records
-        await fetchMedicationAdministrations(1, 1000);
-        
-        // Wait a bit for the state to update, then filter
-        setTimeout(() => {
-          if (administrations && administrations.length > 0) {
-            // Use the same normalization logic for search
-            const normalizedSearchTerm = removeVietnameseDiacritics(searchValue);
-            
-            const filtered = administrations.filter(medication => {
-              return (
-                (medication.studentName && removeVietnameseDiacritics(medication.studentName).includes(normalizedSearchTerm)) ||
-                (medication.medicationName && removeVietnameseDiacritics(medication.medicationName).includes(normalizedSearchTerm)) ||
-                (medication.administeredBy && removeVietnameseDiacritics(medication.administeredBy).includes(normalizedSearchTerm))
-              );
-            });
-            
-            setSearchResults(filtered);
-          } else {
-            setSearchResults([]);
-          }
-          setIsSearching(false);
-        }, 100);
-        
-      } catch (error) {
-        console.error('Search error:', error);
-        setSearchResults([]);
-        setIsSearching(false);
-      }
-    }
-  };
-
   // Handle viewing image
   const handleViewImage = (imageUrl) => {
     if (imageUrl) {
@@ -293,17 +233,87 @@ const MedicationHistory = () => {
     }
   };
 
+  // Generate pagination items
+  const renderPaginationItems = () => {
+    let items = [];
+    
+    // Previous button
+    items.push(
+      <Pagination.Prev 
+        key="prev" 
+        disabled={currentPage === 1} 
+        onClick={() => handlePageChange(currentPage - 1)} 
+      />
+    );
+    
+    // First page
+    if (currentPage > 2) {
+      items.push(
+        <Pagination.Item key={1} onClick={() => handlePageChange(1)}>
+          1
+        </Pagination.Item>
+      );
+      
+      if (currentPage > 3) {
+        items.push(<Pagination.Ellipsis key="ellipsis-1" />);
+      }
+    }
+    
+    // Current page and neighbors
+    for (let page = Math.max(1, currentPage - 1); 
+         page <= Math.min(totalPages, currentPage + 1); 
+         page++) {
+      items.push(
+        <Pagination.Item 
+          key={page} 
+          active={page === currentPage}
+          onClick={() => handlePageChange(page)}
+        >
+          {page}
+        </Pagination.Item>
+      );
+    }
+    
+    // Last page
+    if (currentPage < totalPages - 1) {
+      if (currentPage < totalPages - 2) {
+        items.push(<Pagination.Ellipsis key="ellipsis-2" />);
+      }
+      
+      items.push(
+        <Pagination.Item 
+          key={totalPages} 
+          onClick={() => handlePageChange(totalPages)}
+        >
+          {totalPages}
+        </Pagination.Item>
+      );
+    }
+    
+    // Next button
+    items.push(
+      <Pagination.Next 
+        key="next" 
+        disabled={currentPage === totalPages} 
+        onClick={() => handlePageChange(currentPage + 1)} 
+      />
+    );
+    
+    return items;
+  };
+  // Filter by search term with null check
+  const filteredAdministrations = administrations && administrations.length > 0 ? 
+    administrations.filter(medication => 
+      searchTerm === '' || 
+      (medication.studentName && medication.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (medication.medicationName && medication.medicationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (medication.administeredBy && medication.administeredBy.toLowerCase().includes(searchTerm.toLowerCase()))
+    ) : [];
 
-  // Use either search results or normal paginated data
-  const displayedAdministrations = searchTerm === '' ? 
-    (administrations || []) : 
-    searchResults;
-
-  console.log('🔍 MedicationHistory - Displayed data:', {
+  console.log('🔍 MedicationHistory - Filtered data:', {
     originalCount: administrations?.length || 0,
-    displayedCount: displayedAdministrations.length,
+    filteredCount: filteredAdministrations.length,
     searchTerm,
-    isSearching,
     hasData: !!administrations
   });
 
@@ -331,7 +341,7 @@ const MedicationHistory = () => {
                   type="text"
                   placeholder="Tìm kiếm theo tên học sinh, tên thuốc..."
                   value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </InputGroup>
             </Col>
@@ -353,14 +363,14 @@ const MedicationHistory = () => {
           )}
 
           {/* Medication history table */}
-          {loading || isSearching ? (
+          {loading ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
-              <p className="mt-3">{isSearching ? 'Đang tìm kiếm...' : 'Đang tải dữ liệu...'}</p>
+              <p className="mt-3">Đang tải dữ liệu...</p>
             </div>
           ) : (
             <div className="table-responsive">
-              {!displayedAdministrations || displayedAdministrations.length === 0 ? (
+              {!filteredAdministrations || filteredAdministrations.length === 0 ? (
                 <Alert variant="info" className="text-center">
                   <h6>Không có dữ liệu lịch sử dùng thuốc</h6>
                   <p className="mb-0">
@@ -382,8 +392,7 @@ const MedicationHistory = () => {
                       <th className="text-center image-column">Ảnh xác nhận</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {displayedAdministrations.map((medication) => (
+                  <tbody>                    {filteredAdministrations.map((medication) => (
                       <tr key={medication.id || Math.random()}>
                         <td className="ps-4 fw-bold">{medication.id || 'N/A'}</td>
                         <td>{medication.studentName || 'N/A'}</td>
@@ -430,70 +439,11 @@ const MedicationHistory = () => {
                 </Table>
               )}
 
-              {/* Arrow Navigation Pagination */}
-              {searchTerm === '' ? (
-                // Show backend pagination when no search filter is applied
-                totalPages > 1 && (
-                  <div className="pagination-container">
-                    <div className="pagination-info">
-                      Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} entries
-                    </div>
-                    
-                    <div className="pagination-controls">
-                      <div className="pagination-nav">
-                        <button
-                          className="pagination-arrow first-last"
-                          disabled={currentPage === 1}
-                          onClick={() => handlePageChange(1)}
-                          title="First page"
-                        >
-                          <FaAngleDoubleLeft />
-                        </button>
-                        
-                        <button
-                          className="pagination-arrow"
-                          disabled={currentPage === 1}
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          title="Previous page"
-                        >
-                          <FaAngleLeft />
-                        </button>
-                        
-                        <div className="current-page-indicator">
-                          {currentPage} / {totalPages || 1}
-                        </div>
-                        
-                        <button
-                          className="pagination-arrow"
-                          disabled={currentPage === totalPages || totalPages <= 1}
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          title="Next page"
-                        >
-                          <FaAngleRight />
-                        </button>
-                        
-                        <button
-                          className="pagination-arrow first-last"
-                          disabled={currentPage === totalPages || totalPages <= 1}
-                          onClick={() => handlePageChange(totalPages)}
-                          title="Last page"
-                        >
-                          <FaAngleDoubleRight />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              ) : (
-                // Show filtered results info when search is active
-                displayedAdministrations.length > 0 && (
-                  <div className="pagination-container">
-                    <div className="pagination-info">
-                      {displayedAdministrations.length} results found 
-                      {searchTerm && ` for "${searchTerm}"`}
-                    </div>
-                  </div>
-                )
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-4">
+                  <Pagination>{renderPaginationItems()}</Pagination>
+                </div>
               )}
             </div>
           )}
@@ -505,7 +455,8 @@ const MedicationHistory = () => {
         show={showImageModal} 
         onHide={() => setShowImageModal(false)} 
         centered 
-        dialogClassName="medication-history-image-modal-dialog"
+        size="lg"
+        className="image-modal"
       >
         <Modal.Header closeButton>
           <Modal.Title>Ảnh xác nhận dùng thuốc</Modal.Title>
@@ -516,7 +467,8 @@ const MedicationHistory = () => {
               <img 
                 src={selectedImage} 
                 alt="Ảnh xác nhận dùng thuốc" 
-                className="img-fluid"
+                className="img-fluid rounded"
+                style={{ maxHeight: '500px', maxWidth: '100%' }}
                 onError={(e) => {
                   e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2Yjc0ODMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5LaG9uZyB0aGUgdGFpIGFuaDwvdGV4dD4KPC9zdmc+';
                   e.target.alt = 'Không thể tải ảnh';

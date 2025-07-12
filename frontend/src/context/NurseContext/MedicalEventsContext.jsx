@@ -79,14 +79,33 @@ export const MedicalEventsProvider = ({ children }) => {  // States
     setLoading(true);
     try {
       const response = await medicalEventsService.addEvent(event);
-      const newEvent = response.event || response; // Handle both response formats
-      setEvents(prevEvents => [...prevEvents, newEvent]);
-      setError(null);
-      return newEvent;
+      console.log('Service response:', response);
+      
+      // Check if response is successful
+      if (response && response.success && response.event) {
+        const newEvent = response.event;
+        setEvents(prevEvents => [...prevEvents, newEvent]);
+        setError(null);
+        return newEvent;
+      } else if (response && response.event) {
+        // Handle case where response doesn't have success flag but has event
+        const newEvent = response.event;
+        setEvents(prevEvents => [...prevEvents, newEvent]);
+        setError(null);
+        return newEvent;
+      } else if (response) {
+        // Handle case where response is the event itself
+        const newEvent = response;
+        setEvents(prevEvents => [...prevEvents, newEvent]);
+        setError(null);
+        return newEvent;
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (err) {
       console.error('Error adding new event:', err);
       setError('Không thể thêm sự kiện y tế mới');
-      return null;
+      throw err; // Re-throw error to be handled by the calling function
     } finally {
       setLoading(false);
     }
@@ -207,50 +226,6 @@ export const MedicalEventsProvider = ({ children }) => {  // States
     }
   };
 
-  // Thêm phương thức tìm kiếm theo tên học sinh
-  const searchByStudentName = async (name) => {
-    console.log("=== CONTEXT: searchByStudentName ===");
-    console.log("Input name:", name);
-    setLoading(true);
-    try {
-      const results = await medicalEventsService.searchByStudentName(name);
-      console.log("Results from service:", results);
-      setEvents(results);
-      setError(null);
-      console.log("Updated events state with results");
-      return results;
-    } catch (err) {
-      console.error('Error searching events by student name:', err);
-      setError('Không thể tìm kiếm sự kiện y tế theo tên học sinh');
-      return [];
-    } finally {
-      setLoading(false);
-      console.log("=== END CONTEXT: searchByStudentName ===");
-    }
-  };
-
-  // Thêm phương thức tìm kiếm theo trạng thái follow-up
-  const searchByFollowUpStatus = async (requiresFollowUp) => {
-    console.log("=== CONTEXT: searchByFollowUpStatus ===");
-    console.log("Input requiresFollowUp:", requiresFollowUp);
-    setLoading(true);
-    try {
-      const results = await medicalEventsService.searchByFollowUpStatus(requiresFollowUp);
-      console.log("Results from service:", results);
-      setEvents(results);
-      setError(null);
-      console.log("Updated events state with results");
-      return results;
-    } catch (err) {
-      console.error('Error searching events by follow-up status:', err);
-      setError('Không thể tìm kiếm sự kiện y tế theo trạng thái theo dõi');
-      return [];
-    } finally {
-      setLoading(false);
-      console.log("=== END CONTEXT: searchByFollowUpStatus ===");
-    }
-  };
-
   // Reset error
   const resetError = () => {
     setError(null);
@@ -277,8 +252,6 @@ export const MedicalEventsProvider = ({ children }) => {  // States
     deleteEvent,
     searchEvents,
     searchByType,
-    searchByStudentName, // Thêm phương thức tìm kiếm theo tên học sinh
-    searchByFollowUpStatus, // Thêm phương thức tìm kiếm theo follow-up
     resetError,
     setSelectedEvent
   };

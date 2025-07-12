@@ -2,62 +2,6 @@
 // Sử dụng axios thông qua api.js instance để tận dụng cấu hình chung
 import api from './../api.js';
 
-// Mock data cho trường hợp API fail
-const mockMedicalEvents = [
-  {
-    incidentId: 1,
-    studentId: 'STU2024001',
-    studentName: 'Nguyễn Văn A',
-    dateTime: '2025-06-15T10:30:00',
-    incidentType: 'ILLNESS',
-    description: 'Sốt nhẹ 38 độ C, đau đầu',
-    severityLevel: 'MILD',
-    parentNotified: true,
-    requiresFollowUp: false,
-    followUpNotes: '',
-    treatment: 'Cho uống thuốc hạ sốt và nghỉ ngơi tại phòng y tế'
-  },
-  {
-    incidentId: 2,
-    studentId: 'STU2024002',
-    studentName: 'Trần Thị B',
-    dateTime: '2025-06-16T14:15:00',
-    incidentType: 'INJURY',
-    description: 'Té ngã trên sân trường, bị trầy xước đầu gối',
-    severityLevel: 'MODERATE',
-    parentNotified: true,
-    requiresFollowUp: true,
-    followUpNotes: 'Kiểm tra vết thương sau 2 ngày',
-    treatment: 'Làm sạch vết thương, băng bó và theo dõi'
-  },
-  {
-    incidentId: 3,
-    studentId: 'STU2024003', 
-    studentName: 'Lê Hoàng Minh',
-    dateTime: '2025-06-17T11:45:00',
-    incidentType: 'ALLERGY',
-    description: 'Phản ứng dị ứng với thức ăn',
-    severityLevel: 'MILD',
-    parentNotified: true,
-    requiresFollowUp: false,
-    followUpNotes: '',
-    treatment: 'Uống thuốc chống dị ứng'
-  },
-  {
-    incidentId: 4,
-    studentId: 'STU2024004',
-    studentName: 'Hoàng Văn Đức',
-    dateTime: '2025-06-18T09:20:00',
-    incidentType: 'INJURY',
-    description: 'Bị thương ở chân khi chơi bóng đá',
-    severityLevel: 'MODERATE',
-    parentNotified: true,
-    requiresFollowUp: true,
-    followUpNotes: 'Cần kiểm tra lại sau 1 tuần',
-    treatment: 'Băng bó và nghỉ ngơi'
-  }
-];
-
 const medicalEventsService = {
   // Lấy tất cả sự kiện y tế  
   getAllEvents: async () => {
@@ -77,9 +21,7 @@ const medicalEventsService = {
         });
       }
       
-      // Fallback về mock data để không làm crash ứng dụng
-      console.warn("Trả về mock data do lỗi API");
-      return [...mockMedicalEvents];
+      throw error;
     }
   },
   
@@ -90,7 +32,7 @@ const medicalEventsService = {
       const response = await api.get(`/medical-incidents/${id}`);
       console.log('Kết quả API chi tiết:', response.data);
       
-      // Đảm bảo trả về đúng format dữ liệu như API
+      // Trả về dữ liệu theo format mới
       if (response.data) {
         return response.data;
       } else {
@@ -105,36 +47,9 @@ const medicalEventsService = {
           headers: error.response.headers,
           data: error.response.data
         });
-        
-        // Luôn luôn trả về mock data thay vì throw error
-        console.warn("API lỗi, trả về mock data");
-      } else {
-        console.warn("Không có response từ server, trả về mock data");
       }
       
-      // Luôn trả về mock data khi có lỗi
-      console.warn("Trả về mock data do API không hoạt động");
-      const mockEvent = {
-        incidentId: parseInt(id) || 1,
-        incidentType: "Té ngã sân chơi",
-        dateTime: "2024-03-18T10:30:00",
-        description: "Học sinh té ngã khi chơi xích đu, trầy xước đầu gối",
-        symptoms: "Đau đầu gối, chảy máu nhẹ",
-        severityLevel: "Nhẹ",
-        treatment: "Rửa vết thương, băng gạc, dán băng keo",
-        parentNotified: true,
-        requiresFollowUp: false,
-        followUpNotes: "",
-        staffId: 1,
-        staffName: "Nguyễn Thị Lan Anh",
-        parentID: 1,
-        imgUrl: "/images/students/nguyen_minh_an.jpg",
-        studentId: "HS001",
-        studentName: "Nguyễn Minh An",
-        medicationsUsed: "Betadine 10% (1), Băng gạc y tế (2)"
-      };
-      
-      return mockEvent;
+      throw error;
     }
   },
   
@@ -156,15 +71,7 @@ const medicalEventsService = {
         });
       }
       
-      // Return mock data khi có lỗi
-      return mockMedicalEvents.filter(event => {
-        let match = true;
-        // Lọc theo tất cả các trường filter nếu chúng được cung cấp
-        if (filters.studentId && event.studentId !== filters.studentId) match = false;
-        if (filters.incidentType && !event.incidentType.toLowerCase().includes(filters.incidentType.toLowerCase())) match = false;
-        if (filters.severityLevel && !event.severityLevel.toLowerCase().includes(filters.severityLevel.toLowerCase())) match = false;
-        return match;
-      });
+      throw error;
     }
   },
   
@@ -186,8 +93,7 @@ const medicalEventsService = {
         });
       }
       
-      // Return empty array on error
-      return [];
+      throw error;
     }
   },
   
@@ -224,6 +130,7 @@ const medicalEventsService = {
         followUpNotes: eventData.followUpNotes || '',
         handledById: parseInt(eventData.handledById) || 1,
         studentId: eventData.studentId || '',
+        imageMedicalUrl: eventData.imageMedicalUrl || '',
         medicationsUsed: medicationsUsed  // Send as array: [{itemID, quantityUsed}]
       };
       
@@ -308,9 +215,8 @@ const medicalEventsService = {
       }
       
       throw error;
-    }
-  },
-  
+    }  },
+
   // Xóa sự kiện
   deleteEvent: async (id) => {
     try {
@@ -330,88 +236,6 @@ const medicalEventsService = {
       }
       
       throw error;
-    }
-  },
-
-  // Thêm mới: Tìm kiếm sự kiện theo tên học sinh
-  searchByStudentName: async (name) => {
-    console.log("=== SERVICE: searchByStudentName ===");
-    console.log("Input name:", name);
-    console.log("API URL will be:", `/medical-incidents/student/name/${encodeURIComponent(name)}`);
-    
-    try {
-      console.log('Gọi API tìm kiếm sự kiện y tế theo tên học sinh:', name);
-      const response = await api.get(`/medical-incidents/student/name/${encodeURIComponent(name)}`);
-      console.log('Kết quả tìm kiếm theo tên học sinh:', response.data);
-      console.log("=== END SERVICE: searchByStudentName SUCCESS ===");
-      
-      // Đảm bảo trả về array
-      if (Array.isArray(response.data)) {
-        return response.data;
-      } else if (response.data && response.data.content && Array.isArray(response.data.content)) {
-        return response.data.content;
-      } else {
-        return [response.data].filter(Boolean);
-      }
-    } catch (error) {
-      console.error("=== SERVICE ERROR: searchByStudentName ===");
-      console.error("Lỗi khi tìm kiếm sự kiện y tế theo tên học sinh:", error);
-      console.error("Error details:", {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-      
-      // Filter mock data nếu API lỗi
-      console.warn("API lỗi, trả về mock data filtered");
-      const filteredMockData = mockMedicalEvents.filter(event => 
-        event.studentName && event.studentName.toLowerCase().includes(name.toLowerCase())
-      );
-      console.log("Filtered mock data:", filteredMockData);
-      console.log("=== END SERVICE: searchByStudentName ERROR ===");
-      return filteredMockData;
-    }
-  },
-
-  // Thêm mới: Tìm kiếm sự kiện theo trạng thái follow-up
-  searchByFollowUpStatus: async (requiresFollowUp) => {
-    console.log("=== SERVICE: searchByFollowUpStatus ===");
-    console.log("Input requiresFollowUp:", requiresFollowUp);
-    console.log("API URL will be:", `/medical-incidents/follow-up-notes/${requiresFollowUp}`);
-    
-    try {
-      console.log('Gọi API tìm kiếm sự kiện y tế theo trạng thái follow-up:', requiresFollowUp);
-      const response = await api.get(`/medical-incidents/follow-up-notes/${requiresFollowUp}`);
-      console.log('Kết quả tìm kiếm theo follow-up:', response.data);
-      console.log("=== END SERVICE: searchByFollowUpStatus SUCCESS ===");
-      
-      // Đảm bảo trả về array
-      if (Array.isArray(response.data)) {
-        return response.data;
-      } else if (response.data && response.data.content && Array.isArray(response.data.content)) {
-        return response.data.content;
-      } else {
-        return [response.data].filter(Boolean);
-      }
-    } catch (error) {
-      console.error("=== SERVICE ERROR: searchByFollowUpStatus ===");
-      console.error("Lỗi khi tìm kiếm sự kiện y tế theo follow-up:", error);
-      console.error("Error details:", {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-      
-      // Filter mock data nếu API lỗi
-      console.warn("API lỗi, trả về mock data filtered");
-      const needsFollowUp = requiresFollowUp === true || requiresFollowUp === 'true';
-      const filteredMockData = mockMedicalEvents.filter(event => 
-        event.requiresFollowUp === needsFollowUp
-      );
-      console.log("Follow-up filter value:", needsFollowUp);
-      console.log("Filtered mock data:", filteredMockData);
-      console.log("=== END SERVICE: searchByFollowUpStatus ERROR ===");
-      return filteredMockData;
     }
   }
 };

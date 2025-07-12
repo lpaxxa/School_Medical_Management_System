@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Nav, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Nav, Tab, Alert, Spinner } from 'react-bootstrap';
 import './ReceiveMedicine.css';
 import MedicineReceipts from './MedicineReceipts/MedicineReceipts';
 import MedicationHistory from './MedicationHistory/MedicationHistory';
 import { MedicineApprovalProvider } from '../../../../context/NurseContext/MedicineApprovalContext';
 
-// Component ReceiveMedicineMain with state-based tab switching
+// Component ReceiveMedicineMain (đã gộp từ file ReceiveMedicineMain.jsx và áp dụng Bootstrap)
 const ReceiveMedicineMain = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("receipts"); // State-based tab switching
+  
+  // Giả lập hiệu ứng loading
+  useEffect(() => {
+    // Thiết lập timeout để hiện loading indicator
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500); // 1.5 giây để giả lập loading
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isLoading) {
     return (
@@ -33,7 +42,7 @@ const ReceiveMedicineMain = () => {
 
   return (
     <Container fluid className="py-4">
-      {/* Page header */}
+      {/* Page header with Bootstrap styling */}
       <Row className="mb-4">
         <Col>
           <h2 className="text-primary fw-bold mb-2">Quản lý nhận thuốc</h2>
@@ -41,50 +50,43 @@ const ReceiveMedicineMain = () => {
         </Col>
       </Row>
       
-      {/* State-based tab navigation */}
-      <Card className="border-0 shadow-sm">
-        <Card.Header className="bg-white border-0">
-          <Nav variant="tabs" className="nav-pills-custom">
-            <Nav.Item>
-              <Nav.Link 
-                active={activeTab === "receipts"}
-                onClick={() => setActiveTab("receipts")}
-                className="d-flex align-items-center"
-                style={{ cursor: 'pointer' }}
-              >
-                <i className="fas fa-prescription-bottle-alt me-2"></i>
-                Đơn nhận thuốc
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link 
-                active={activeTab === "history"}
-                onClick={() => setActiveTab("history")}
-                className="d-flex align-items-center"
-                style={{ cursor: 'pointer' }}
-              >
-                <i className="fas fa-history me-2"></i>
-                Lịch sử dùng thuốc
-              </Nav.Link>
-            </Nav.Item>
-          </Nav>
-        </Card.Header>
-        
-        <Card.Body className="p-0">
-          {/* Conditionally render content without unmounting */}
-          <div style={{ display: activeTab === "receipts" ? "block" : "none" }}>
-            <MedicineReceipts />
-          </div>
-          <div style={{ display: activeTab === "history" ? "block" : "none" }}>
-            <MedicationHistory />
-          </div>
-        </Card.Body>
-      </Card>
+      {/* Bootstrap Tab navigation */}
+      <Tab.Container defaultActiveKey="receipts">
+        <Card className="border-0 shadow-sm">
+          <Card.Header className="bg-white border-0">
+            <Nav variant="tabs" className="nav-pills-custom">
+              <Nav.Item>
+                <Nav.Link eventKey="receipts" className="d-flex align-items-center">
+                  <i className="fas fa-prescription-bottle-alt me-2"></i>
+                  Đơn nhận thuốc
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="history" className="d-flex align-items-center">
+                  <i className="fas fa-history me-2"></i>
+                  Lịch sử dùng thuốc
+                </Nav.Link>
+              </Nav.Item>
+            </Nav>
+          </Card.Header>
+          
+          <Card.Body className="p-0">
+            <Tab.Content>
+              <Tab.Pane eventKey="receipts">
+                <MedicineReceipts />
+              </Tab.Pane>
+              <Tab.Pane eventKey="history">
+                <MedicationHistory />
+              </Tab.Pane>
+            </Tab.Content>
+          </Card.Body>
+        </Card>
+      </Tab.Container>
     </Container>
   );
 };
 
-// Main component
+// Component chính ReceiveMedicine
 const ReceiveMedicine = () => {
   return (
     <MedicineApprovalProvider>
@@ -95,5 +97,8 @@ const ReceiveMedicine = () => {
   );
 };
 
+// Xuất component riêng để có thể tái sử dụng ở nơi khác nếu cần
 export { ReceiveMedicineMain };
+
+// Export component chính
 export default ReceiveMedicine;
