@@ -259,27 +259,30 @@ const ConsentDetailModal = ({
               {/* Form nếu chưa consent */}
               {data.consentStatus === "PENDING" && (
                 <div className="consent-form-modal">
-                  <h4>Các mục kiểm tra sức khỏe đặc biệt</h4>
-                  <p className="form-description-modal">
+                  <h4 className="pn-form-title">
+                    Các mục kiểm tra sức khỏe đặc biệt
+                  </h4>
+                  <p className="pn-form-description">
                     Vui lòng chọn các mục kiểm tra sức khỏe đặc biệt:
                   </p>
 
-                  <div className="checkup-items-modal">
+                  <div className="pn-checkup-items">
                     {data.availableSpecialCheckupItems?.map((item, index) => (
-                      <label key={index} className="checkup-item-modal">
+                      <label key={index} className="pn-checkup-item">
                         <input
                           type="checkbox"
                           checked={selectedItems.includes(item)}
                           onChange={() => handleItemToggle(item)}
+                          className="pn-checkbox"
                         />
-                        <span className="checkmark-modal"></span>
-                        <span className="item-text-modal">{item}</span>
+                        <span className="pn-checkmark"></span>
+                        <span className="pn-item-text">{item}</span>
                       </label>
                     ))}
                   </div>
 
-                  <div className="parent-notes-modal">
-                    <label htmlFor="modal-notes">
+                  <div className="pn-parent-notes">
+                    <label htmlFor="modal-notes" className="pn-notes-label">
                       Ghi chú từ phụ huynh (tùy chọn):
                     </label>
                     <textarea
@@ -288,6 +291,7 @@ const ConsentDetailModal = ({
                       onChange={(e) => setParentNotes(e.target.value)}
                       placeholder="Ví dụ: Con tôi bị dị ứng nhẹ..."
                       rows={3}
+                      className="pn-notes-textarea"
                     />
                   </div>
                 </div>

@@ -101,6 +101,12 @@ const ParentContact = () => {
     }, 1000);
   };
 
+  // Function để refresh tất cả dữ liệu
+  const refreshData = () => {
+    fetchUserData();
+    fetchContactHistory();
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -277,288 +283,301 @@ const ParentContact = () => {
   return (
     <div className="parent-content-wrapper">
       <div className="parent-contact-page">
-      <div className="contact-header">
-        <div className="contact-header-content">
-          <h1>Liên hệ với nhà trường</h1>
-          <p>Gửi thắc mắc và nhận hỗ trợ về sức khỏe của con em bạn</p>
-        </div>
-      </div>
-
-      <div className="contact-container">
-        <div className="contact-info">
-          <div className="info-card">
-            <div className="info-icon">
-              <i className="fas fa-map-marker-alt"></i>
-            </div>
-            <h3>Địa chỉ</h3>
-            <p>
-              Lô E2a-7, Đường D1, Đ. D1, Long Thạnh Mỹ, Thành Phố Thủ Đức, Thành
-              phố Hồ Chí Minh
-            </p>
+        <div className="contact-header">
+          <div className="contact-header-content">
+            <h1>Liên hệ với nhà trường</h1>
+            <p>Gửi thắc mắc và nhận hỗ trợ về sức khỏe của con em bạn</p>
           </div>
-
-          <div className="info-card">
-            <div className="info-icon">
-              <i className="fas fa-phone-alt"></i>
-            </div>
-            <h3>Số điện thoại</h3>
-            <p>+84 28 7300 5588</p>
-            <p>+84 28 7300 5599</p>
-          </div>
-
-          <div className="info-card">
-            <div className="info-icon">
-              <i className="fas fa-envelope"></i>
-            </div>
-            <h3>Email</h3>
-            <p>health@school.edu.vn</p>
-            <p>support@school.edu.vn</p>
-          </div>
-
-          <div className="info-card">
-            <div className="info-icon">
-              <i className="fas fa-clock"></i>
-            </div>
-            <h3>Giờ làm việc</h3>
-            <p>Thứ Hai - Thứ Sáu: 8:00 - 17:00</p>
-            <p>Thứ Bảy: 8:00 - 12:00</p>
-          </div>
-
-          {contactHistory.length > 0 && (
-            <div className="previous-contacts">
-              <h3>Tin nhắn gần đây</h3>
-              <div className="contact-history">
-                {contactHistory.map((item) => (
-                  <div key={item.id} className="history-item">
-                    <div
-                      className={`history-status ${getStatusClass(
-                        item.status
-                      )}`}
-                    >
-                      <i className={getStatusIcon(item.status)}></i>
-                    </div>
-                    <div className="history-content">
-                      <h4>{item.title}</h4>
-                      {item.respondedBy ? (
-                        <p>Đã trả lời bởi: {item.respondedBy}</p>
-                      ) : (
-                        <p>Đang xử lý</p>
-                      )}
-                      <span className="history-date">{item.date}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="contact-form-container">
-          <h2>Gửi tin nhắn cho nhà trường</h2>
-
-          {formStatus.submitted && (
-            <div
-              className={`form-message ${
-                formStatus.success ? "success" : "error"
-              }`}
+          <div className="contact-header-actions">
+            <button
+              onClick={refreshData}
+              className="refresh-btn"
+              title="Tải lại dữ liệu"
+              disabled={isLoading}
             >
-              {formStatus.message}
-              {formStatus.ticketId && (
-                <div className="ticket-info">
-                  Mã yêu cầu của bạn: <strong>{formStatus.ticketId}</strong>
+              <i
+                className={`fas fa-sync-alt ${isLoading ? "fa-spin" : ""}`}
+              ></i>
+              Làm mới
+            </button>
+          </div>
+        </div>
+
+        <div className="contact-container">
+          <div className="contact-info">
+            <div className="info-card">
+              <div className="info-icon">
+                <i className="fas fa-map-marker-alt"></i>
+              </div>
+              <h3>Địa chỉ</h3>
+              <p>
+                Lô E2a-7, Đường D1, Đ. D1, Long Thạnh Mỹ, Thành Phố Thủ Đức,
+                Thành phố Hồ Chí Minh
+              </p>
+            </div>
+
+            <div className="info-card">
+              <div className="info-icon">
+                <i className="fas fa-phone-alt"></i>
+              </div>
+              <h3>Số điện thoại</h3>
+              <p>+84 28 7300 5588</p>
+              <p>+84 28 7300 5599</p>
+            </div>
+
+            <div className="info-card">
+              <div className="info-icon">
+                <i className="fas fa-envelope"></i>
+              </div>
+              <h3>Email</h3>
+              <p>health@school.edu.vn</p>
+              <p>support@school.edu.vn</p>
+            </div>
+
+            <div className="info-card">
+              <div className="info-icon">
+                <i className="fas fa-clock"></i>
+              </div>
+              <h3>Giờ làm việc</h3>
+              <p>Thứ Hai - Thứ Sáu: 8:00 - 17:00</p>
+              <p>Thứ Bảy: 8:00 - 12:00</p>
+            </div>
+
+            {contactHistory.length > 0 && (
+              <div className="previous-contacts">
+                <h3>Tin nhắn gần đây</h3>
+                <div className="contact-history">
+                  {contactHistory.map((item) => (
+                    <div key={item.id} className="history-item">
+                      <div
+                        className={`history-status ${getStatusClass(
+                          item.status
+                        )}`}
+                      >
+                        <i className={getStatusIcon(item.status)}></i>
+                      </div>
+                      <div className="history-content">
+                        <h4>{item.title}</h4>
+                        {item.respondedBy ? (
+                          <p>Đã trả lời bởi: {item.respondedBy}</p>
+                        ) : (
+                          <p>Đang xử lý</p>
+                        )}
+                        <span className="history-date">{item.date}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          )}
-
-          <form className="contact-form" onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="name">
-                  Họ và tên phụ huynh <span className="required">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Nguyễn Văn A"
-                  required
-                  readOnly={!!currentUser?.fullName}
-                  className={currentUser?.fullName ? "filled" : ""}
-                />
               </div>
+            )}
+          </div>
 
-              <div className="form-group">
-                <label htmlFor="email">
-                  Email <span className="required">*</span>
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="example@email.com"
-                  required
-                  readOnly={!!currentUser?.email}
-                  className={currentUser?.email ? "filled" : ""}
-                />
-              </div>
-            </div>
+          <div className="contact-form-container">
+            <h2>Gửi tin nhắn cho nhà trường</h2>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="phone">Số điện thoại</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="0912345678"
-                  readOnly={!!currentUser?.phone}
-                  className={currentUser?.phone ? "filled" : ""}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>
-                  Học sinh <span className="required">*</span>
-                </label>
-                {studentsLoading ? (
-                  <div className="loading-indicator">
-                    <i className="fas fa-spinner fa-spin"></i> Đang tải...
-                  </div>
-                ) : students.length > 0 ? (
-                  <div className="student-selection">
-                    <select
-                      name="studentId"
-                      value={formData.studentId}
-                      onChange={(e) => handleStudentSelect(e.target.value)}
-                      required
-                    >
-                      <option value="">-- Chọn học sinh --</option>
-                      {students.map((student) => (
-                        <option key={student.id} value={student.id}>
-                          {student.name} - Lớp {student.class}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  <div className="no-student-info">
-                    Không tìm thấy thông tin học sinh. Vui lòng liên hệ với nhà
-                    trường.
+            {formStatus.submitted && (
+              <div
+                className={`form-message ${
+                  formStatus.success ? "success" : "error"
+                }`}
+              >
+                {formStatus.message}
+                {formStatus.ticketId && (
+                  <div className="ticket-info">
+                    Mã yêu cầu của bạn: <strong>{formStatus.ticketId}</strong>
                   </div>
                 )}
               </div>
-            </div>
+            )}
 
-            <div className="form-group">
-              <label htmlFor="subject">Chủ đề</label>
-              <select
-                id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-              >
-                <option value="">Chọn chủ đề</option>
-                <option value="health_report">Báo cáo sức khỏe</option>
-                <option value="medication">Thông tin thuốc</option>
-                <option value="vaccination">Lịch tiêm chủng</option>
-                <option value="emergency">Tình huống khẩn cấp</option>
-                <option value="other">Khác</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="message">
-                Nội dung tin nhắn <span className="required">*</span>
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                rows="6"
-                value={formData.message}
-                onChange={handleChange}
-                placeholder="Nội dung tin nhắn của bạn..."
-                required
-              ></textarea>
-            </div>
-
-            <div className="form-group file-upload">
-              <label>Tài liệu đính kèm (nếu có)</label>
-              <div className="upload-box">
-                <i className="fas fa-cloud-upload-alt"></i>
-                <p>Kéo thả file vào đây hoặc nhấn để chọn</p>
-                <input
-                  type="file"
-                  className="file-input"
-                  multiple
-                  onChange={handleFileChange}
-                  accept=".jpg,.jpeg,.png,.pdf"
-                />
-              </div>
-              <p className="file-info">
-                Hỗ trợ: JPG, PNG, PDF. Kích thước tối đa: 5MB
-              </p>
-
-              {/* Hiển thị các file đã upload */}
-              {uploadedFiles.length > 0 && (
-                <div className="uploaded-files">
-                  <h4>File đã tải lên:</h4>
-                  <ul>
-                    {uploadedFiles.map((file, index) => (
-                      <li key={index}>
-                        <div className="file-preview">
-                          <i
-                            className={`fas ${
-                              file.type.includes("image")
-                                ? "fa-file-image"
-                                : "fa-file-pdf"
-                            }`}
-                          ></i>
-                          <span>{file.name}</span>
-                          <span className="file-size">
-                            ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          className="remove-file"
-                          onClick={() => removeFile(index)}
-                        >
-                          <i className="fas fa-times"></i>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+            <form className="contact-form" onSubmit={handleSubmit}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="name">
+                    Họ và tên phụ huynh <span className="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Nguyễn Văn A"
+                    required
+                    readOnly={!!currentUser?.fullName}
+                    className={currentUser?.fullName ? "filled" : ""}
+                  />
                 </div>
-              )}
-            </div>
 
-            <button
-              type="submit"
-              className={`submit-btn ${isLoading ? "loading" : ""}`}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <span>Đang gửi...</span>
-                  <i className="fas fa-spinner fa-spin"></i>
-                </>
-              ) : (
-                <>
-                  <span>Gửi tin nhắn</span>
-                  <i className="fas fa-paper-plane"></i>
-                </>
-              )}
-            </button>
-          </form>
+                <div className="form-group">
+                  <label htmlFor="email">
+                    Email <span className="required">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="example@email.com"
+                    required
+                    readOnly={!!currentUser?.email}
+                    className={currentUser?.email ? "filled" : ""}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="phone">Số điện thoại</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="0912345678"
+                    readOnly={!!currentUser?.phone}
+                    className={currentUser?.phone ? "filled" : ""}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>
+                    Học sinh <span className="required">*</span>
+                  </label>
+                  {studentsLoading ? (
+                    <div className="loading-indicator">
+                      <i className="fas fa-spinner fa-spin"></i> Đang tải...
+                    </div>
+                  ) : students.length > 0 ? (
+                    <div className="student-selection">
+                      <select
+                        name="studentId"
+                        value={formData.studentId}
+                        onChange={(e) => handleStudentSelect(e.target.value)}
+                        required
+                      >
+                        <option value="">-- Chọn học sinh --</option>
+                        {students.map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {student.name} - Lớp {student.class}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="no-student-info">
+                      Không tìm thấy thông tin học sinh. Vui lòng liên hệ với
+                      nhà trường.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="subject">Chủ đề</label>
+                <select
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                >
+                  <option value="">Chọn chủ đề</option>
+                  <option value="health_report">Báo cáo sức khỏe</option>
+                  <option value="medication">Thông tin thuốc</option>
+                  <option value="vaccination">Lịch tiêm chủng</option>
+                  <option value="emergency">Tình huống khẩn cấp</option>
+                  <option value="other">Khác</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="message">
+                  Nội dung tin nhắn <span className="required">*</span>
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows="6"
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Nội dung tin nhắn của bạn..."
+                  required
+                ></textarea>
+              </div>
+
+              <div className="form-group file-upload">
+                <label>Tài liệu đính kèm (nếu có)</label>
+                <div className="upload-box">
+                  <i className="fas fa-cloud-upload-alt"></i>
+                  <p>Kéo thả file vào đây hoặc nhấn để chọn</p>
+                  <input
+                    type="file"
+                    className="file-input"
+                    multiple
+                    onChange={handleFileChange}
+                    accept=".jpg,.jpeg,.png,.pdf"
+                  />
+                </div>
+                <p className="file-info">
+                  Hỗ trợ: JPG, PNG, PDF. Kích thước tối đa: 5MB
+                </p>
+
+                {/* Hiển thị các file đã upload */}
+                {uploadedFiles.length > 0 && (
+                  <div className="uploaded-files">
+                    <h4>File đã tải lên:</h4>
+                    <ul>
+                      {uploadedFiles.map((file, index) => (
+                        <li key={index}>
+                          <div className="file-preview">
+                            <i
+                              className={`fas ${
+                                file.type.includes("image")
+                                  ? "fa-file-image"
+                                  : "fa-file-pdf"
+                              }`}
+                            ></i>
+                            <span>{file.name}</span>
+                            <span className="file-size">
+                              ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            className="remove-file"
+                            onClick={() => removeFile(index)}
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className={`submit-btn ${isLoading ? "loading" : ""}`}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <span>Đang gửi...</span>
+                    <i className="fas fa-spinner fa-spin"></i>
+                  </>
+                ) : (
+                  <>
+                    <span>Gửi tin nhắn</span>
+                    <i className="fas fa-paper-plane"></i>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );

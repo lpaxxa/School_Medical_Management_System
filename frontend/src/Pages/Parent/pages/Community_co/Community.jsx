@@ -218,6 +218,11 @@ const Community = () => {
     fetchAllPosts();
   }, []); // Chỉ chạy một lần khi component mount
 
+  // Function để refresh lại dữ liệu
+  const refreshPosts = () => {
+    fetchAllPosts();
+  };
+
   // Lọc và tìm kiếm bài viết trên client-side
   const filteredPosts = Array.isArray(allPosts)
     ? allPosts.filter((post) => {
@@ -552,6 +557,15 @@ const Community = () => {
               onClick={() => setShowCreatePostForm(true)}
             >
               <i className="fas fa-plus-circle"></i> Tạo bài viết mới
+            </button>
+            <button
+              className="refresh-posts-btn"
+              onClick={refreshPosts}
+              disabled={loading}
+              title="Tải lại bài viết"
+            >
+              <i className={`fas fa-sync-alt ${loading ? "fa-spin" : ""}`}></i>
+              Làm mới
             </button>
           </div>
         </div>

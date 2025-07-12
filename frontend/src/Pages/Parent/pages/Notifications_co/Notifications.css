@@ -1065,3 +1065,423 @@
 /* ================================================
    END CRITICAL OVERRIDES
    ================================================ */ 
+
+/* ================================================
+   VACCINATION MODAL STYLES
+   ================================================ */
+
+.pn-vaccination-detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pn-space-4);
+  margin-bottom: var(--pn-space-6);
+  padding: var(--pn-space-6);
+  background: var(--pn-gray-50);
+  border-radius: var(--pn-radius-lg);
+  border: 1px solid var(--pn-gray-200);
+}
+
+.pn-info-row {
+  display: flex;
+  align-items: center;
+  gap: var(--pn-space-4);
+}
+
+.pn-info-label {
+  display: flex;
+  align-items: center;
+  gap: var(--pn-space-2);
+  min-width: 150px;
+  font-weight: 600;
+  color: var(--pn-gray-700);
+  font-size: var(--pn-text-sm);
+}
+
+.pn-info-label i {
+  color: var(--pn-primary);
+  font-size: var(--pn-text-base);
+}
+
+.pn-info-value {
+  flex: 1;
+  color: var(--pn-gray-900);
+  font-size: var(--pn-text-base);
+}
+
+.pn-vaccination-message {
+  margin-bottom: var(--pn-space-6);
+}
+
+.pn-vaccination-message h4 {
+  font-size: var(--pn-text-lg);
+  font-weight: 600;
+  color: var(--pn-gray-800);
+  margin-bottom: var(--pn-space-3);
+}
+
+.pn-message-content {
+  padding: var(--pn-space-5);
+  background: var(--pn-white);
+  border: 1px solid var(--pn-gray-200);
+  border-radius: var(--pn-radius);
+  line-height: 1.6;
+  color: var(--pn-gray-700);
+  white-space: pre-wrap;
+}
+
+.pn-vaccination-response-buttons {
+  display: flex;
+  gap: var(--pn-space-4);
+  justify-content: center;
+  padding-top: var(--pn-space-4);
+  border-top: 1px solid var(--pn-gray-200);
+}
+
+.pn-vaccination-response-buttons button {
+  padding: var(--pn-space-3) var(--pn-space-6);
+  border: none;
+  border-radius: var(--pn-radius);
+  font-size: var(--pn-text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--pn-transition);
+  display: flex;
+  align-items: center;
+  gap: var(--pn-space-2);
+  font-family: var(--pn-font);
+}
+
+.pn-vaccination-response-buttons .accept-btn {
+  background: var(--pn-success);
+  color: var(--pn-white);
+}
+
+.pn-vaccination-response-buttons .accept-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: var(--pn-shadow-md);
+}
+
+.pn-vaccination-response-buttons .reject-btn {
+  background: var(--pn-danger);
+  color: var(--pn-white);
+}
+
+.pn-vaccination-response-buttons .reject-btn:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: var(--pn-shadow-md);
+}
+
+.pn-vaccination-response-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pn-vaccination-response-info {
+  text-align: center;
+  padding: var(--pn-space-6);
+}
+
+.pn-response-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pn-space-2);
+  padding: var(--pn-space-3) var(--pn-space-5);
+  border-radius: var(--pn-radius-xl);
+  font-size: var(--pn-text-base);
+  font-weight: 600;
+  margin-bottom: var(--pn-space-3);
+}
+
+.pn-response-badge.accepted {
+  background: linear-gradient(135deg, var(--pn-success) 0%, #34d399 100%);
+  color: var(--pn-white);
+}
+
+.pn-response-badge.rejected {
+  background: linear-gradient(135deg, var(--pn-danger) 0%, #f87171 100%);
+  color: var(--pn-white);
+}
+
+.pn-response-time {
+  color: var(--pn-gray-600);
+  font-size: var(--pn-text-sm);
+}
+
+.pn-vaccination-info-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pn-space-2);
+  padding: var(--pn-space-4);
+  background: var(--pn-gray-50);
+  border-radius: var(--pn-radius);
+  color: var(--pn-gray-600);
+  font-size: var(--pn-text-sm);
+  margin-top: var(--pn-space-4);
+}
+
+.pn-vaccination-info-message i {
+  color: var(--pn-info);
+  font-size: var(--pn-text-base);
+}
+
+/* ================================================
+   MODAL FORM ELEMENTS
+   ================================================ */
+
+.pn-form-title {
+  font-size: var(--pn-text-lg);
+  font-weight: 600;
+  color: var(--pn-gray-800);
+  margin-bottom: var(--pn-space-3);
+}
+
+.pn-form-description {
+  color: var(--pn-gray-600);
+  font-size: var(--pn-text-sm);
+  margin-bottom: var(--pn-space-4);
+}
+
+.pn-checkup-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pn-space-3);
+  margin-bottom: var(--pn-space-6);
+}
+
+.pn-checkup-item {
+  display: flex;
+  align-items: center;
+  padding: var(--pn-space-3) var(--pn-space-4);
+  background: var(--pn-gray-50);
+  border: 1px solid var(--pn-gray-200);
+  border-radius: var(--pn-radius);
+  cursor: pointer;
+  transition: var(--pn-transition);
+  position: relative;
+}
+
+.pn-checkup-item:hover {
+  background: var(--pn-gray-100);
+  border-color: var(--pn-primary-light);
+}
+
+.pn-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.pn-checkmark {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--pn-gray-400);
+  border-radius: var(--pn-radius-sm);
+  margin-right: var(--pn-space-3);
+  position: relative;
+  transition: var(--pn-transition);
+}
+
+.pn-checkbox:checked ~ .pn-checkmark {
+  background: var(--pn-primary);
+  border-color: var(--pn-primary);
+}
+
+.pn-checkbox:checked ~ .pn-checkmark::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.pn-item-text {
+  color: var(--pn-gray-700);
+  font-size: var(--pn-text-base);
+}
+
+.pn-parent-notes {
+  margin-bottom: var(--pn-space-6);
+}
+
+.pn-notes-label {
+  display: block;
+  font-weight: 500;
+  color: var(--pn-gray-700);
+  margin-bottom: var(--pn-space-2);
+  font-size: var(--pn-text-sm);
+}
+
+.pn-notes-textarea {
+  width: 100%;
+  padding: var(--pn-space-3);
+  border: 2px solid var(--pn-gray-300);
+  border-radius: var(--pn-radius);
+  font-size: var(--pn-text-base);
+  font-family: var(--pn-font);
+  resize: vertical;
+  transition: var(--pn-transition);
+}
+
+.pn-notes-textarea:focus {
+  outline: none;
+  border-color: var(--pn-primary);
+  box-shadow: 0 0 0 3px rgba(1, 92, 146, 0.1);
+}
+
+/* Modal footer buttons */
+.modal-footer {
+  display: flex;
+  gap: var(--pn-space-3);
+  justify-content: flex-end;
+  padding: var(--pn-space-5);
+  border-top: 1px solid var(--pn-gray-200);
+  background: var(--pn-gray-50);
+}
+
+.modal-footer button {
+  padding: var(--pn-space-3) var(--pn-space-5);
+  border: none;
+  border-radius: var(--pn-radius);
+  font-size: var(--pn-text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--pn-transition);
+  display: flex;
+  align-items: center;
+  gap: var(--pn-space-2);
+  font-family: var(--pn-font);
+}
+
+.btn-cancel {
+  background: var(--pn-gray-200);
+  color: var(--pn-gray-700);
+}
+
+.btn-cancel:hover {
+  background: var(--pn-gray-300);
+}
+
+.btn-reject {
+  background: var(--pn-danger);
+  color: var(--pn-white);
+}
+
+.btn-reject:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: var(--pn-shadow-md);
+}
+
+.btn-confirm {
+  background: var(--pn-primary);
+  color: var(--pn-white);
+}
+
+.btn-confirm:hover {
+  background: var(--pn-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--pn-shadow-md);
+}
+
+/* Modal info sections */
+.campaign-info-modal {
+  padding: var(--pn-space-5);
+  background: var(--pn-gray-50);
+  border-radius: var(--pn-radius-lg);
+  margin-bottom: var(--pn-space-5);
+}
+
+.campaign-info-modal h3 {
+  font-size: var(--pn-text-xl);
+  color: var(--pn-gray-900);
+  margin-bottom: var(--pn-space-3);
+}
+
+.student-info-modal {
+  display: flex;
+  align-items: center;
+  gap: var(--pn-space-2);
+  color: var(--pn-gray-600);
+  margin-bottom: var(--pn-space-3);
+}
+
+.campaign-description-modal {
+  color: var(--pn-gray-700);
+  line-height: 1.6;
+  margin-bottom: var(--pn-space-4);
+}
+
+.consent-status-modal {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pn-space-2);
+  padding: var(--pn-space-2) var(--pn-space-4);
+  border-radius: var(--pn-radius-xl);
+  font-size: var(--pn-text-sm);
+  font-weight: 600;
+}
+
+.consent-status-modal.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--pn-warning);
+}
+
+.consent-status-modal.confirmed {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--pn-success);
+}
+
+.consent-status-modal.rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--pn-danger);
+}
+
+.confirmed-info-modal,
+.rejected-info-modal {
+  padding: var(--pn-space-5);
+  border-radius: var(--pn-radius-lg);
+  margin-top: var(--pn-space-5);
+}
+
+.selected-items-modal {
+  list-style: none;
+  padding: 0;
+  margin: var(--pn-space-3) 0;
+}
+
+.selected-items-modal li {
+  display: flex;
+  align-items: center;
+  gap: var(--pn-space-2);
+  padding: var(--pn-space-2) 0;
+  color: var(--pn-gray-700);
+}
+
+.selected-items-modal li i {
+  color: var(--pn-success);
+}
+
+/* ================================================
+   MODAL OPEN STATE
+   ================================================ */
+
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Ensure modal overlay has highest z-index */
+.pn-modal-overlay {
+  z-index: 999999 !important;
+}
+
+/* ================================================
+   END CRITICAL OVERRIDES
+   ================================================ */ 

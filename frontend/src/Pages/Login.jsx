@@ -115,20 +115,8 @@ const Login = () => {
             <p>Vui lòng đăng nhập để tiếp tục</p>
           </div>
 
-          {/* Test accounts information */}
-          <div className="test-accounts">
-            <strong>Tài khoản thử nghiệm:</strong>
-            <br />
-            <span>
-              <strong>Admin:</strong> admin | <strong>Y tá:</strong> nurse |{" "}
-              <strong>Phụ huynh:</strong> parent
-            </span>
-            <p>
-              <small>
-                Mật khẩu mặc định: <strong>123456</strong>
-              </small>
-            </p>
-          </div>
+          {/* Test accounts information (deleted)*/}
+
 
           {/* Thông báo lỗi */}
           {(error || authError) && (

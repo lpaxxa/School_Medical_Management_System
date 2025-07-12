@@ -116,21 +116,53 @@
   overflow: hidden;
   text-overflow: ellipsis;
   height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.parent-main-nav-link-ripple {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: scale(0);
+  animation: parent-main-nav-ripple 0.6s linear;
+  z-index: 2;
+}
+
+@keyframes parent-main-nav-ripple {
+  to {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
 .parent-main-nav-link:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   color: white;
   transform: translateY(-1px);
+  border-radius: 16px;
+  padding: 0.5rem 1.1rem;
+  height: 38px;
+  font-size: 0.93rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s cubic-bezier(0.21, 0.6, 0.35, 1);
 }
 
 .parent-main-nav-link.active {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   color: white;
   font-weight: 600;
   position: relative;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  border-radius: 16px;
+  padding: 0.5rem 1.1rem;
+  height: 38px;
+  font-size: 0.93rem;
+  transition: all 0.2s cubic-bezier(0.21, 0.6, 0.35, 1);
 }
 
 .parent-main-nav-link.active::after {
