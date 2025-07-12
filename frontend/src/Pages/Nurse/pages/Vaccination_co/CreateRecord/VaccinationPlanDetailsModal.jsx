@@ -1,6 +1,12 @@
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import { Spinner, Alert, Table, Badge } from 'react-bootstrap';
 import { VaccinationContext } from '../../../../../context/NurseContext/VaccinationContext';
+import { 
+    calculateStudentsMonitoringStatus, 
+    canCreateVaccinationRecord, 
+    getVaccinationRecordStatusText, 
+    getVaccinationRecordStatusColor 
+} from './monitoringStatusUtils';
 
 const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, error }) => {
     const { handleShowCreateRecordModal } = useContext(VaccinationContext);
@@ -9,6 +15,10 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
     const [filterName, setFilterName] = useState('');
     const [filterClass, setFilterClass] = useState('');
     const [filterResponse, setFilterResponse] = useState('');
+
+    // Monitoring status states
+    const [monitoringStatuses, setMonitoringStatuses] = useState({});
+    const [monitoringStatusLoading, setMonitoringStatusLoading] = useState(false);
 
     const getResponseBadge = (response) => {
         switch (response) {
@@ -28,6 +38,28 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
         const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
         return new Date(dateString).toLocaleDateString('vi-VN', options);
     };
+
+    // Load monitoring statuses for all students when planDetails change
+    useEffect(() => {
+        const loadMonitoringStatuses = async () => {
+            if (!planDetails?.students || !planDetails?.vaccinationDate) return;
+            
+            setMonitoringStatusLoading(true);
+            try {
+                const statuses = await calculateStudentsMonitoringStatus(
+                    planDetails.students, 
+                    planDetails.vaccinationDate
+                );
+                setMonitoringStatuses(statuses);
+            } catch (error) {
+                console.error('Error loading monitoring statuses:', error);
+            } finally {
+                setMonitoringStatusLoading(false);
+            }
+        };
+
+        loadMonitoringStatuses();
+    }, [planDetails?.students, planDetails?.vaccinationDate]);
 
     // Filtered students based on filter criteria
     const filteredStudents = useMemo(() => {
@@ -89,6 +121,24 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                         }
                     }
                     
+                    .filter-row {
+                        display: flex;
+                        align-items: flex-end;
+                        gap: 12px;
+                        flex-wrap: nowrap;
+                    }
+                    
+                    .filter-col {
+                        flex: 1;
+                        min-width: 0;
+                    }
+                    
+                    .filter-col:last-child {
+                        flex-shrink: 0;
+                        width: auto;
+                        min-width: 120px;
+                    }
+                    
                     @media (max-width: 768px) {
                         .details-section {
                             margin: 10px 0;
@@ -96,13 +146,51 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                         }
                         
                         .filter-row {
-                            flex-direction: column;
-                            gap: 12px;
+                            gap: 8px;
                         }
                         
-                        .filter-col {
-                            width: 100% !important;
-                            margin-bottom: 12px;
+                        .filter-col input,
+                        .filter-col select {
+                            padding: 8px !important;
+                            font-size: 14px !important;
+                        }
+                        
+                        .filter-col button {
+                            height: 40px !important;
+                            font-size: 12px !important;
+                            padding: 8px 12px !important;
+                        }
+                        
+                        .filter-col label {
+                            font-size: 11px !important;
+                            margin-bottom: 4px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 576px) {
+                        .filter-row {
+                            gap: 6px;
+                        }
+                        
+                        .filter-col input,
+                        .filter-col select {
+                            padding: 6px 8px !important;
+                            font-size: 12px !important;
+                        }
+                        
+                        .filter-col button {
+                            height: 36px !important;
+                            font-size: 11px !important;
+                            padding: 6px 10px !important;
+                        }
+                        
+                        .filter-col label {
+                            font-size: 10px !important;
+                            margin-bottom: 2px !important;
+                        }
+                        
+                        .filter-col:last-child {
+                            min-width: 80px;
                         }
                     }
                 `}
@@ -215,21 +303,33 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                 {/* Filter Section */}
                                 <div style={{
                                     backgroundColor: '#f8fafc',
-                                    padding: '16px',
-                                    borderRadius: '8px',
-                                    marginBottom: '16px',
-                                    border: '1px solid #e2e8f0'
+                                    padding: '20px',
+                                    borderRadius: '12px',
+                                    marginBottom: '20px',
+                                    border: '1px solid #e2e8f0',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
                                 }}>
-                                    <div className="row g-3 filter-row">
-                                        <div className="col-md-3 filter-col">
+                                    <h4 style={{
+                                        fontSize: '16px',
+                                        fontWeight: '600',
+                                        color: '#1f2937',
+                                        marginBottom: '16px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px'
+                                    }}>
+                                        🔍 Bộ lọc tìm kiếm
+                                    </h4>
+                                    <div className="filter-row">
+                                        <div className="filter-col">
                                             <label style={{
-                                                fontSize: '12px',
-                                                fontWeight: '500',
+                                                fontSize: '13px',
+                                                fontWeight: '600',
                                                 color: '#374151',
-                                                marginBottom: '4px',
+                                                marginBottom: '8px',
                                                 display: 'block'
                                             }}>
-                                                Tìm theo tên:
+                                                👤 Tên:
                                             </label>
                                             <input
                                                 type="text"
@@ -238,26 +338,34 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                 onChange={(e) => setFilterName(e.target.value)}
                                                 style={{
                                                     width: '100%',
-                                                    padding: '8px 12px',
+                                                    padding: '10px 12px',
                                                     border: '1px solid #d1d5db',
-                                                    borderRadius: '6px',
+                                                    borderRadius: '8px',
                                                     fontSize: '14px',
                                                     outline: 'none',
-                                                    transition: 'border-color 0.2s ease'
+                                                    transition: 'all 0.2s ease',
+                                                    backgroundColor: 'white',
+                                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
                                                 }}
-                                                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = '#3b82f6';
+                                                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = '#d1d5db';
+                                                    e.target.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                                                }}
                                             />
                                         </div>
-                                        <div className="col-md-3 filter-col">
+                                        <div className="filter-col">
                                             <label style={{
-                                                fontSize: '12px',
-                                                fontWeight: '500',
+                                                fontSize: '13px',
+                                                fontWeight: '600',
                                                 color: '#374151',
-                                                marginBottom: '4px',
+                                                marginBottom: '8px',
                                                 display: 'block'
                                             }}>
-                                                Tìm theo lớp:
+                                                🏫 Lớp:
                                             </label>
                                             <input
                                                 type="text"
@@ -266,71 +374,95 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                 onChange={(e) => setFilterClass(e.target.value)}
                                                 style={{
                                                     width: '100%',
-                                                    padding: '8px 12px',
+                                                    padding: '10px 12px',
                                                     border: '1px solid #d1d5db',
-                                                    borderRadius: '6px',
+                                                    borderRadius: '8px',
                                                     fontSize: '14px',
                                                     outline: 'none',
-                                                    transition: 'border-color 0.2s ease'
+                                                    transition: 'all 0.2s ease',
+                                                    backgroundColor: 'white',
+                                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
                                                 }}
-                                                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = '#3b82f6';
+                                                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = '#d1d5db';
+                                                    e.target.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                                                }}
                                             />
                                         </div>
-                                        <div className="col-md-3 filter-col">
+                                        <div className="filter-col">
                                             <label style={{
-                                                fontSize: '12px',
-                                                fontWeight: '500',
+                                                fontSize: '13px',
+                                                fontWeight: '600',
                                                 color: '#374151',
-                                                marginBottom: '4px',
+                                                marginBottom: '8px',
                                                 display: 'block'
                                             }}>
-                                                Phản hồi PH:
+                                                👨‍👩‍👧‍👦 Phản hồi:
                                             </label>
                                             <select
                                                 value={filterResponse}
                                                 onChange={(e) => setFilterResponse(e.target.value)}
                                                 style={{
                                                     width: '100%',
-                                                    padding: '8px 12px',
+                                                    padding: '10px 12px',
                                                     border: '1px solid #d1d5db',
-                                                    borderRadius: '6px',
+                                                    borderRadius: '8px',
                                                     fontSize: '14px',
                                                     outline: 'none',
                                                     backgroundColor: 'white',
-                                                    transition: 'border-color 0.2s ease'
+                                                    transition: 'all 0.2s ease',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
                                                 }}
-                                                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = '#3b82f6';
+                                                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = '#d1d5db';
+                                                    e.target.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                                                }}
                                             >
                                                 <option value="">Tất cả</option>
-                                                <option value="ACCEPTED">Đồng ý</option>
-                                                <option value="REJECTED">Từ chối</option>
-                                                <option value="PENDING">Chờ phản hồi</option>
+                                                <option value="ACCEPTED">✅ Đồng ý</option>
+                                                <option value="REJECTED">❌ Từ chối</option>
+                                                <option value="PENDING">⏳ Chờ phản hồi</option>
                                             </select>
                                         </div>
-                                        <div className="col-md-3 d-flex align-items-end filter-col">
+                                        <div className="filter-col">
                                             <button
                                                 onClick={resetFilters}
                                                 style={{
-                                                    padding: '8px 16px',
-                                                    background: 'linear-gradient(to right, #6b7280, #4b5563)',
+                                                    padding: '10px 20px',
+                                                    background: 'linear-gradient(135deg, #6b7280, #4b5563)',
                                                     border: 'none',
-                                                    borderRadius: '6px',
+                                                    borderRadius: '8px',
                                                     color: 'white',
                                                     fontSize: '14px',
                                                     cursor: 'pointer',
-                                                    fontWeight: '500',
+                                                    fontWeight: '600',
                                                     transition: 'all 0.2s ease',
-                                                    width: '100%'
+                                                    width: '100%',
+                                                    height: '42px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '8px',
+                                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                                                 }}
                                                 onMouseEnter={(e) => {
-                                                    e.target.style.transform = 'translateY(-1px)';
-                                                    e.target.style.boxShadow = '0 4px 12px rgba(107, 114, 128, 0.3)';
+                                                    e.target.style.background = 'linear-gradient(135deg, #4b5563, #374151)';
+                                                    e.target.style.transform = 'translateY(-2px)';
+                                                    e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
                                                 }}
                                                 onMouseLeave={(e) => {
+                                                    e.target.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
                                                     e.target.style.transform = 'translateY(0)';
-                                                    e.target.style.boxShadow = 'none';
+                                                    e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
                                                 }}
                                             >
                                                 🔄 Đặt lại
@@ -384,42 +516,42 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                     padding: '8px',
                                                     textAlign: 'left',
                                                     fontWeight: 'bold',
-                                                    minWidth: '150px'
+                                                    width: '120px'
                                                 }}>Họ và tên</th>
                                                 <th style={{
                                                     border: '1px solid #e5e7eb',
                                                     padding: '8px',
                                                     textAlign: 'left',
                                                     fontWeight: 'bold',
-                                                    width: '80px'
+                                                    width: '60px'
                                                 }}>Lớp</th>
                                                 <th style={{
                                                     border: '1px solid #e5e7eb',
                                                     padding: '8px',
                                                     textAlign: 'left',
                                                     fontWeight: 'bold',
-                                                    minWidth: '200px'
+                                                    width: '120px'
                                                 }}>Tên Vaccine</th>
                                                 <th style={{
                                                     border: '1px solid #e5e7eb',
                                                     padding: '8px',
                                                     textAlign: 'left',
                                                     fontWeight: 'bold',
-                                                    width: '100px'
+                                                    width: '80px'
                                                 }}>Phản hồi PH</th>
                                                 <th style={{
                                                     border: '1px solid #e5e7eb',
                                                     padding: '8px',
                                                     textAlign: 'left',
                                                     fontWeight: 'bold',
-                                                    width: '120px'
+                                                    width: '100px'
                                                 }}>Ghi chú PH</th>
                                                 <th style={{
                                                     border: '1px solid #e5e7eb',
                                                     padding: '8px',
                                                     textAlign: 'left',
                                                     fontWeight: 'bold',
-                                                    width: '90px'
+                                                    width: '180px'
                                                 }}>Hành động</th>
                                             </tr>
                                         </thead>
@@ -478,37 +610,63 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                         padding: '8px',
                                                         textAlign: 'left'
                                                     }}>
-                                                        {student.vaccineResponses?.map(response => (
-                                                            <div key={response.vaccineId} className="mb-1">
-                                                                {response.response === 'ACCEPTED' ? (
-                                                                    <button
-                                                                        onClick={() => handleShowCreateRecordModal(student, response)}
-                                                                        style={{
-                                                                            background: 'none',
-                                                                            border: '1px solid #059669',
-                                                                            color: '#059669',
-                                                                            padding: '4px 8px',
-                                                                            borderRadius: '4px',
-                                                                            cursor: 'pointer',
-                                                                            fontSize: '12px',
-                                                                            marginBottom: '2px'
-                                                                        }}
-                                                                        onMouseEnter={(e) => {
-                                                                            e.target.style.backgroundColor = '#059669';
-                                                                            e.target.style.color = 'white';
-                                                                        }}
-                                                                        onMouseLeave={(e) => {
-                                                                            e.target.style.backgroundColor = 'transparent';
-                                                                            e.target.style.color = '#059669';
-                                                                        }}
-                                                                    >
-                                                                        Tạo HS
-                                                                    </button>
-                                                                ) : (
-                                                                    <span style={{ color: '#6b7280' }}>—</span>
-                                                                )}
-                                                            </div>
-                                                        ))}
+                                                        {monitoringStatusLoading ? (
+                                                            <Spinner animation="border" size="sm" />
+                                                        ) : (
+                                                            student.vaccineResponses?.map(response => (
+                                                                <div key={response.vaccineId} className="mb-1">
+                                                                    {response.response === 'ACCEPTED' ? (
+                                                                        (() => {
+                                                                            const monitoringStatus = monitoringStatuses[student.healthProfileId];
+                                                                            const canCreate = canCreateVaccinationRecord(monitoringStatus);
+                                                                            
+                                                                            return canCreate ? (
+                                                                                <button
+                                                                                    onClick={() => handleShowCreateRecordModal(student, response)}
+                                                                                    style={{
+                                                                                        background: 'none',
+                                                                                        border: '1px solid #059669',
+                                                                                        color: '#059669',
+                                                                                        padding: '4px 8px',
+                                                                                        borderRadius: '4px',
+                                                                                        cursor: 'pointer',
+                                                                                        fontSize: '12px',
+                                                                                        marginBottom: '2px'
+                                                                                    }}
+                                                                                    onMouseEnter={(e) => {
+                                                                                        e.target.style.backgroundColor = '#059669';
+                                                                                        e.target.style.color = 'white';
+                                                                                    }}
+                                                                                    onMouseLeave={(e) => {
+                                                                                        e.target.style.backgroundColor = 'transparent';
+                                                                                        e.target.style.color = '#059669';
+                                                                                    }}
+                                                                                >
+                                                                                    Tạo HS
+                                                                                </button>
+                                                                            ) : (
+                                                                                <span style={{
+                                                                                    color: '#059669',
+                                                                                    fontWeight: 'bold',
+                                                                                    fontSize: '11px',
+                                                                                    padding: '3px 6px',
+                                                                                    borderRadius: '4px',
+                                                                                    backgroundColor: '#f0f9ff',
+                                                                                    border: '1px solid #059669',
+                                                                                    display: 'inline-block',
+                                                                                    lineHeight: '1.2',
+                                                                                    whiteSpace: 'nowrap'
+                                                                                }}>
+                                                                                    {getVaccinationRecordStatusText(monitoringStatus)}
+                                                                                </span>
+                                                                            );
+                                                                        })()
+                                                                    ) : (
+                                                                        <span style={{ color: '#6b7280' }}>—</span>
+                                                                    )}
+                                                                </div>
+                                                            ))
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -524,4 +682,4 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
     );
 };
 
-export default VaccinationPlanDetailsModal; 
+export default VaccinationPlanDetailsModal;

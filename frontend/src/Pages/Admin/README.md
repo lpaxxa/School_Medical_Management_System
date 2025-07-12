@@ -1,98 +1,95 @@
-# Admin Module - Fixed & Optimized
+# Hướng Dẫn Module Admin
 
-## 🔧 **Lỗi đã sửa:**
+## Quy Tắc CSS
 
-### 1. **Import/Export Issues**
+1. **Luôn sử dụng tiền tố `admin-` cho mọi class CSS**
 
-- ✅ Fixed AdminLayout import MedicalEventPlanning cũ → VaccinationPlanManager mới
-- ✅ Fixed pages/index.jsx exports để match với actual files
-- ✅ Fixed Reports import path từ index.jsx thay vì index.jsx
-- ✅ Cleaned up tất cả unused imports
 
-### 2. **Component Integration**
+   ```css
+   .admin-header {
+     ...;
+   }
+   .admin-sidebar {
+     ...;
+   }
+   .admin-content {
+     ...;
+   }
+   ```
 
-- ✅ AdminLayout bây giờ sử dụng VaccinationPlanManager cho "medical-planning"
-- ✅ VaccinationPlanManager có 2 tabs: History (API real) + Create (API demo)
-- ✅ All navigation trong Sidebar hoạt động đúng
 
-### 3. **File Structure**
+2. **Sử dụng namespace-manager.js để tạo class name**
+
+   ```jsx
+   import { adminNS } from '../../styles/namespace-manager';
+
+   <div className={adminNS.cls('header')}>...</div>
+   <button className={adminNS.clsWithState('button', 'active')}>...</button>
+   ```
+
+
+3. **Tổ chức file CSS theo cấu trúc**
+
+
+   - Mỗi component nên có file CSS riêng
+   - Đặt trong thư mục cùng tên với component
+   - Ví dụ: `Admin/components/Dashboard/Dashboard.css`
+
+4. **Khi sử dụng thư viện bên ngoài**
+
+   - Wrap component trong container có tiền tố admin-
+
+   ```jsx
+   <div className="admin-antd-wrapper">
+     <AntdComponent />
+   </div>
+   ```
+
+5. **Sử dụng CSS Variables từ global.css**
+   ```css
+   .admin-button {
+     color: var(--primary-color);
+     border-radius: var(--border-radius-small);
+   }
+   ```
+
+## Cấu Trúc Module
 
 ```
-src/Pages/Admin/
-├── Layout/
-│   ├── AdminLayout.jsx ✅ (Updated)
-│   └── AdminLayout.css
-├── components/
-│   ├── Header/
-│   ├── Sidebar/ ✅ (Working correctly)
-│   └── AdminHome/
-├── pages/
-│   ├── index.jsx ✅ (Fixed exports)
-│   ├── Dashboard_co/ ✅
-│   ├── UserManagement/ ✅
-│   ├── Reports_co/ ✅
-│   └── MedicalEventPlanning/ ✅ (All new components)
-├── index.jsx ✅ (New main export)
-└── README.md ✅ (This file)
+Admin/
+  ├── components/     # Các components dùng chung trong admin
+  │   ├── Header/
+  │   │   ├── Header.jsx
+  │   │   └── Header.css  # Sử dụng prefix .admin-header-*
+  │   ├── Sidebar/
+  │   │   ├── Sidebar.jsx
+  │   │   └── Sidebar.css # Sử dụng prefix .admin-sidebar-*
+  │   └── ...
+  ├── Layout/
+  │   ├── AdminLayout.jsx
+  │   └── AdminLayout.css # Sử dụng prefix .admin-layout-*
+  ├── pages/          # Các trang cụ thể của admin
+  │   ├── Dashboard/
+  │   │   ├── Dashboard.jsx
+  │   │   └── Dashboard.css # Sử dụng prefix .admin-dashboard-*
+  │   └── ...
+  └── index.js        # Export entry point
 ```
 
-## 🚀 **Cách sử dụng:**
+## Checklist Trước Khi Merge Code
 
-### **Option 1: AdminLayout (Recommended)**
+1. ✅ Tất cả các class CSS đều có tiền tố `admin-`
+2. ✅ Không sử dụng các class name chung như `.container`, `.header`, etc.
+3. ✅ CSS chỉ ảnh hưởng đến elements trong module Admin
+4. ✅ Không có hardcoded values - sử dụng CSS variables
+5. ✅ Kiểm tra xem layout có hiển thị đúng trên các kích thước màn hình
 
-```jsx
-import AdminLayout from "./src/Pages/Admin/Layout/AdminLayout";
+## Lưu Ý Khi Làm Việc Với Các Module Khác
 
-// Full admin interface với navigation
-<AdminLayout />;
-```
+- Module Admin không nên override CSS của Parent hoặc Nurse
+- Nếu cần tái sử dụng component, hãy wrap trong container có tiền tố admin-
+- Khi cần xử lý conflicts, update file `layout-fixes.css` và thêm comment giải thích
 
-### **Option 2: VaccinationPlanManager trực tiếp**
+## Liên Hệ
 
-```jsx
-import { VaccinationPlanManager } from "./src/Pages/Admin/pages/MedicalEventPlanning";
-
-// Chỉ vaccination planning module
-<VaccinationPlanManager />;
-```
-
-## 🎯 **Navigation Flow:**
-
-1. **AdminLayout loads** → Sidebar hiển thị menu
-2. **Click "Kế hoạch y tế"** → VaccinationPlanManager loads
-3. **VaccinationPlanManager có 2 tabs:**
-   - **"Lịch Sử Kế Hoạch"** → VaccinationPlanHistory (API real data)
-   - **"Tạo Kế Hoạch Mới"** → CreateVaccinationPlan (API demo)
-
-## 📊 **API Integration:**
-
-### **VaccinationPlanHistory:**
-
-- Gọi `GET http://localhost:8080/api/v1/vaccination-plans`
-- Hiển thị 5 plans từ API response JSON
-- Debug panel với test buttons
-- Real-time data without mock fallback
-
-### **CreateVaccinationPlan:**
-
-- Demo `POST http://localhost:8080/api/v1/vaccination-plans`
-- 2 buttons: Axios service + Direct fetch
-- Console logging để debug
-
-## 🔍 **Debug & Testing:**
-
-1. **API Test**: Buttons trong VaccinationPlanHistory
-2. **Console Logs**: F12 để xem API calls
-3. **Debug Panel**: Real-time data information
-4. **Navigation Test**: Click through Sidebar menu items
-
-## 💡 **Best Practices:**
-
-- Sử dụng AdminLayout cho full experience
-- Check Console logs khi test API
-- VaccinationPlanHistory chỉ hiển thị API data (no mock)
-- Sidebar navigation hoạt động với state management
-
----
-
-**All imports và exports đã được fix và tested!** ✅
+Nếu có thắc mắc hoặc phát hiện xung đột CSS, vui lòng liên hệ team leader hoặc xem thêm tài liệu tại `src/styles/CSS_GUIDE.md`

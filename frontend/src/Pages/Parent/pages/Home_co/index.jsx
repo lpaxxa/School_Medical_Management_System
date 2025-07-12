@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./index.css";
 import Hero from "../../components/Hero/Hero";
 import Features from "../../components/Features/Features";
@@ -7,24 +7,32 @@ import Vision from "../../components/Vision/Vision";
 import CallToAction from "../../components/CallToAction/CallToAction";
 
 export default function Main() {
+  // Đảm bảo scroll về đầu trang khi component được mount
+  useEffect(() => {
+    // Remove scroll to prevent conflicts with layout
+  }, []);
+
   return (
-    <>
-      <div className="home-page">
-        <div className="home-container">
-          <Hero />
-          <Features />
-          <About />
-        </div>
-      </div>
+    <div className="parent-home">
+      <section className="parent-home-section">
+        <Hero />
+      </section>
 
-      {/* Tách Vision ra khỏi container chung để tránh xung đột style */}
-      <Vision />
+      <section className="parent-home-section">
+        <Features />
+      </section>
 
-      <div className="home-page">
-        <div className="home-container">
-          <CallToAction />
-        </div>
-      </div>
-    </>
+      <section className="parent-home-section">
+        <About />
+      </section>
+
+      <section className="parent-home-section parent-home-section-vision">
+        <Vision />
+      </section>
+
+      <section className="parent-home-section">
+        <CallToAction />
+      </section>
+    </div>
   );
 }

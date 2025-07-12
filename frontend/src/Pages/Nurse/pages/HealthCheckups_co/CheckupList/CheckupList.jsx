@@ -8,7 +8,7 @@ import {
   FaFileMedical, FaEye, FaInfoCircle, FaSearch, FaNotesMedical, FaListOl,
 } from 'react-icons/fa';
 import CreateCheckupFormModal from './CreateCheckupFormModal';
-import './CheckupList.css'; // Sẽ tạo style mới cho component này
+import './CheckupList.css';
 
 const CheckupList = () => {
   const { getHealthCampaigns, getCampaignStudents, getConsentDetails, addHealthCheckup } = useHealthCheckup();
@@ -32,8 +32,24 @@ const CheckupList = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [studentForCheckup, setStudentForCheckup] = useState(null);
   
+  // Details view states
+  const [showDetailsSection, setShowDetailsSection] = useState(false);
+  const [detailsRef, setDetailsRef] = useState(null);
+  
   // Search state
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Status filter state
+  const [statusFilter, setStatusFilter] = useState('');
+  
+  // Filter states for student details
+  const [nameFilter, setNameFilter] = useState('');
+  const [responseFilter, setResponseFilter] = useState('');
+  const [classFilter, setClassFilter] = useState('');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6; // 2 hàng x 3 thẻ
 
   // Fetch campaigns on component mount
   useEffect(() => {
@@ -55,11 +71,12 @@ const CheckupList = () => {
     loadCampaigns();
   }, [getHealthCampaigns]);
 
-  // Handle opening the campaign details modal
+  // Handle opening the campaign details section
   const handleViewDetails = async (campaign) => {
     setSelectedCampaign(campaign);
-    setShowDetailsModal(true);
+    setShowDetailsSection(true);
     setDetailsLoading(true);
+    
     try {
       const studentsData = await getCampaignStudents(campaign.id);
       setCampaignStudents(studentsData);
@@ -69,6 +86,33 @@ const CheckupList = () => {
     } finally {
       setDetailsLoading(false);
     }
+
+    // Auto-scroll to details section after a short delay
+    setTimeout(() => {
+      if (detailsRef) {
+        detailsRef.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
+  // Handle closing the details section
+  const handleCloseDetails = () => {
+    setShowDetailsSection(false);
+    setSelectedCampaign(null);
+    setCampaignStudents([]);
+  };
+
+  // Handle reset filters
+  const handleResetFilters = () => {
+    setNameFilter('');
+    setClassFilter('');
+    setResponseFilter('');
+  };
+
+  // Handle reset main filters
+  const handleResetMainFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('');
   };
 
   // Handle opening the consent details modal
@@ -130,13 +174,31 @@ const CheckupList = () => {
   const renderCampaignStatus = (status) => {
     switch (status) {
       case 'PREPARING':
-        return <Badge bg="info"><FaClock /> Sắp diễn ra</Badge>;
+        return <Badge bg="info" className="status-badge">Đang chuẩn bị</Badge>;
       case 'ONGOING':
-        return <Badge bg="success"><FaStethoscope /> Đang diễn ra</Badge>;
+        return <Badge bg="success" className="status-badge">Đang tiến hành</Badge>;
       case 'COMPLETED':
-        return <Badge bg="secondary"><FaCheckCircle /> Đã hoàn thành</Badge>;
+        return <Badge bg="secondary" className="status-badge">Đã hoàn thành</Badge>;
+      case 'CANCELLED':
+        return <Badge bg="danger" className="status-badge">Đã hủy</Badge>;
       default:
-        return <Badge bg="light text-dark">{status}</Badge>;
+        return <Badge bg="light" className="status-badge">{status}</Badge>;
+    }
+  };
+  
+  // Helper to get campaign card class based on status
+  const getCampaignCardClass = (status) => {
+    switch (status) {
+      case 'PREPARING':
+        return 'campaign-card campaign-card-preparing h-100';
+      case 'ONGOING':
+        return 'campaign-card campaign-card-ongoing h-100';
+      case 'COMPLETED':
+        return 'campaign-card campaign-card-completed h-100';
+      case 'CANCELLED':
+        return 'campaign-card campaign-card-cancelled h-100';
+      default:
+        return 'campaign-card h-100';
     }
   };
   
@@ -153,133 +215,391 @@ const CheckupList = () => {
     }
   };
 
+  // Helper to render checkup status and actions
+  const renderCheckupActions = (student) => {
+    const { consentStatus, checkupStatus } = student;
+    
+    if (consentStatus !== 'APPROVED') {
+      return null;
+    }
+    
+    // Logic theo yêu cầu
+    if (checkupStatus === null || checkupStatus === undefined) {
+      // Chưa có checkup - hiển thị nút tạo hồ sơ
+      return (
+        <Button variant="outline-success" size="sm" onClick={() => handleCreateHealthProfile(student)}>
+          <FaStethoscope /> Tạo HS
+        </Button>
+      );
+    } else if (checkupStatus === 'NEED_FOLLOW_UP') {
+      // Đã tạo HS và cần theo dõi
+      return (
+        <Badge bg="warning" className="checkup-status-badge">
+          <FaStethoscope className="me-1" />
+          Đã tạo HS (cần theo dõi thêm)
+        </Badge>
+      );
+    } else if (checkupStatus === 'COMPLETED') {
+      // Đã tạo HS và hoàn thành
+      return (
+        <Badge bg="success" className="checkup-status-badge">
+          <FaCheckCircle className="me-1" />
+          Đã tạo HS (Hoàn thành)
+        </Badge>
+      );
+    }
+    
+    return null;
+  };
+
   const filteredCampaigns = campaigns.filter(campaign => 
     campaign.totalStudents > 0 &&
     (campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    campaign.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+    campaign.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (statusFilter === '' || campaign.status === statusFilter)
+  ).sort((a, b) => {
+    // Sắp xếp theo ngày khám từ mới nhất về trước
+    const dateA = new Date(a.startDate);
+    const dateB = new Date(b.startDate);
+    return dateB - dateA; // Ngày mới nhất trước
+  });
+
+  // Filter students based on search criteria
+  const filteredStudents = campaignStudents.filter(student => {
+    const matchesName = student.studentName.toLowerCase().includes(nameFilter.toLowerCase());
+    const matchesClass = student.studentClass.toLowerCase().includes(classFilter.toLowerCase());
+    const matchesResponse = responseFilter === '' || 
+      (responseFilter === 'APPROVED' && student.consentStatus === 'APPROVED') ||
+      (responseFilter === 'REJECTED' && student.consentStatus === 'REJECTED') ||
+      (responseFilter === 'PENDING' && student.consentStatus === 'PENDING');
+    
+    return matchesName && matchesClass && matchesResponse;
+  });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentCampaigns = filteredCampaigns.slice(startIndex, endIndex);
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(
+        <button
+          key={i}
+          className={`pagination-button ${currentPage === i ? 'active' : ''}`}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    return (
+      <div className="pagination-container">
+        <div className="pagination-info">
+          Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredCampaigns.length)} trong {filteredCampaigns.length} chiến dịch
+        </div>
+        <div className="pagination-controls">
+          <button
+            className="pagination-button"
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            ← Trước
+          </button>
+          {pages}
+          <button
+            className="pagination-button"
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            Tiếp →
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
-      <div className="text-center mt-5">
+      <div className="loading-container">
         <Spinner animation="border" role="status">
           <span className="visually-hidden">Loading...</span>
         </Spinner>
-        <p>Đang tải dữ liệu chiến dịch...</p>
+        <p>Đang tải danh sách chiến dịch khám sức khỏe...</p>
       </div>
     );
   }
 
   return (
-    <div className="checkup-list-container-new">
+    <div className="checkup-list-container">
       {error && <Alert variant="danger">{error}</Alert>}
       
       <div className="page-header">
-        <h2><FaCalendarAlt className="mr-2" /> Quản lý Chiến dịch Khám sức khỏe</h2>
-          <div className="search-container">
-              <FaSearch className="search-icon" />
+        <div className="header-title-section">
+          <h2><FaCalendarAlt className="me-2" /> Quản lý Chiến dịch Khám sức khỏe</h2>
+          <div className="header-reset-action">
+            <Button variant="primary" size="sm" onClick={handleResetMainFilters}>
+              Đặt lại
+            </Button>
+          </div>
+        </div>
+        <div className="header-filters">
+          <div className="filter-row">
+            <div className="status-filter" style={{ backgroundColor: '#fff', borderColor: '#ced4da' }}>
+              <Form.Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="status-filter-select"
+              >
+                <option value="">Tất cả trạng thái</option>
+                <option value="PREPARING">Đang chuẩn bị</option>
+                <option value="ONGOING">Đang tiến hành</option>
+                <option value="COMPLETED">Đã hoàn thành</option>
+                <option value="CANCELLED">Đã hủy</option>
+              </Form.Select>
+            </div>
+            <div className="search-container">
               <Form.Control
                 type="text"
-            placeholder="Tìm kiếm chiến dịch..."
+                placeholder="Tìm kiếm chiến dịch..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
               />
+            </div>
+          </div>
         </div>
       </div>
       
-      <Row xs={1} md={2} className="g-4">
-        {filteredCampaigns.map((campaign) => (
-          <Col key={campaign.id}>
-            <Card className="campaign-card-new">
-              <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
-                <span><FaNotesMedical /> {campaign.title}</span>
-                <div>
-                  <Badge pill bg="primary" className="me-2">
-                    ID: {campaign.id}
-                  </Badge>
-                {renderCampaignStatus(campaign.status)}
+      <div className="campaign-grid">
+        {currentCampaigns.map((campaign) => (
+          <Card key={campaign.id} className={getCampaignCardClass(campaign.status)}>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">{campaign.title}</h5>
+              <Badge className="id-badge">
+                ID: {campaign.id}
+              </Badge>
+            </Card.Header>
+            <Card.Body>
+              {/* Container cho phần mô tả và ghi chú */}
+              <div className="campaign-content-top">
+                <p className="campaign-description">{campaign.description}</p>
+
+                {campaign.notes && (
+                  <div className="campaign-notes mb-3">
+                    <small className="text-muted">
+                      <FaInfoCircle className="me-1" />
+                      {campaign.notes}
+                    </small>
+                  </div>
+                )}
+              </div>
+
+              {/* Container cho các phần stats - cố định ở dưới */}
+              <div className="campaign-stats-container">
+                {/* Phần thống kê số liệu */}
+                <div className="campaign-stats-numbers">
+                  <div className="stat-box">
+                    <span className="stat-number">{campaign.totalStudents}</span>
+                    <div className="stat-label">Tổng số HS</div>
+                  </div>
+                  <div className="stat-box success">
+                    <span className="stat-number">{campaign.consentedStudents}</span>
+                    <div className="stat-label">Đã đồng ý</div>
+                  </div>
+                  <div className="stat-box info">
+                    <span className="stat-number">{campaign.completedCheckups}</span>
+                    <div className="stat-label">Đã khám</div>
+                  </div>
+                  <div className="stat-box follow-up">
+                    <span className="stat-number">{campaign.followUpCheckups || 0}</span>
+                    <div className="stat-label">Theo dõi</div>
+                  </div>
                 </div>
-              </Card.Header>
-              <Card.Body>
-                <Card.Text>{campaign.description}</Card.Text>
-                <div className="campaign-stats">
-                  <div className="stat-item">
-                    <FaUsers size={20} />
-                    <div>
-                      <span>Tổng số</span>
-                      <strong>{campaign.totalStudents}</strong>
-                    </div>
+
+                {/* Phần thông tin thời gian */}
+                <div className="campaign-stats-dates">
+                  <div className="stat-box date">
+                    <span className="stat-number">{formatDate(campaign.startDate)}</span>
+                    <div className="stat-label">Ngày khám</div>
                   </div>
-                  <div className="stat-item">
-                    <FaCheckCircle size={20} className="text-success"/>
-                    <div>
-                      <span>Đồng ý</span>
-                      <strong>{campaign.consentedStudents}</strong>
-                    </div>
-                  </div>
-                   <div className="stat-item">
-                    <FaFileMedical size={20} className="text-primary"/>
-                    <div>
-                      <span>Đã khám</span>
-                      <strong>{campaign.completedCheckups}</strong>
-                </div>
-                  </div>
-                  <div className="stat-item">
-                    <FaClock size={20} className="text-warning"/>
-                    <div>
-                      <span>Chờ khám</span>
-                      <strong>{campaign.pendingCheckups}</strong>
-                    </div>
+                  <div className="stat-box deadline">
+                    <span className="stat-number">{formatDate(campaign.endDate)}</span>
+                    <div className="stat-label">Hạn chót ĐK</div>
                   </div>
                 </div>
-                <ProgressBar className="mt-3 progress-container-custom">
-                  <ProgressBar
-                    variant="success"
-                    now={campaign.totalStudents > 0 ? (campaign.consentedStudents / campaign.totalStudents) * 100 : 0}
-                    key={1}
-                    label={`Đồng ý: ${campaign.consentedStudents}`}
-                  />
-                  <ProgressBar
-                    variant="primary"
-                    now={campaign.totalStudents > 0 ? (campaign.completedCheckups / campaign.totalStudents) * 100 : 0}
-                    key={2}
-                    label={`Đã khám: ${campaign.completedCheckups}`}
-                  />
-                </ProgressBar>
-              </Card.Body>
-              <Card.Footer className="text-muted d-flex justify-content-between align-items-center">
-                <span>Bắt đầu: {formatDate(campaign.startDate)}</span>
-                <Button variant="primary" onClick={() => handleViewDetails(campaign)}>
-                  <FaEye /> Xem chi tiết
-                </Button>
-              </Card.Footer>
-            </Card>
-          </Col>
+
+                <div className="campaign-bottom">
+                  <div className="campaign-status-info">
+                    <FaNotesMedical className="status-icon" />
+                    <span className="status-label">Trạng thái:</span>
+                    <span className="status-value">{renderCampaignStatus(campaign.status)}</span>
+                  </div>
+
+                  <Button 
+                    className="action-button"
+                    onClick={() => handleViewDetails(campaign)}
+                  >
+                    <FaEye className="me-2" />
+                    Xem chi tiết
+                  </Button>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
         ))}
-      </Row>
+      </div>
       
-      {/* Campaign Details Modal */}
+      {renderPagination()}
+      
+      {/* Campaign Details Section */}
+      {showDetailsSection && selectedCampaign && (
+        <div 
+          className="campaign-details-section"
+          ref={(el) => setDetailsRef(el)}
+        >
+          <div className="details-header">
+            <h3>
+              <FaCalendarAlt className="me-2" />
+              Chi tiết chiến dịch: {selectedCampaign.title}
+            </h3>
+            <Button variant="outline-secondary" onClick={handleCloseDetails}>
+              <FaTimesCircle className="me-2" />
+              Đóng
+            </Button>
+          </div>
+          
+          <div className="details-content">
+            {detailsLoading ? (
+              <div className="loading-container">
+                <Spinner animation="border" />
+                <p>Đang tải danh sách học sinh...</p>
+              </div>
+            ) : (
+              <div className="students-table-container">
+                {/* Student Filter Section */}
+                <div className="student-filters mb-3">
+                  <Row>
+                    <Col md={4}>
+                      <Form.Group>
+                        <Form.Label>Tìm theo tên học sinh:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nhập tên học sinh..."
+                          value={nameFilter}
+                          onChange={(e) => setNameFilter(e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={4}>
+                      <Form.Group>
+                        <Form.Label>Tìm theo lớp:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nhập lớp..."
+                          value={classFilter}
+                          onChange={(e) => setClassFilter(e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={4}>
+                      <Form.Group>
+                        <Form.Label>Tìm theo phản hồi:</Form.Label>
+                        <Form.Select
+                          value={responseFilter}
+                          onChange={(e) => setResponseFilter(e.target.value)}
+                        >
+                          <option value="">Tất cả</option>
+                          <option value="APPROVED">Đã đồng ý</option>
+                          <option value="REJECTED">Đã từ chối</option>
+                          <option value="PENDING">Chờ phản hồi</option>
+                        </Form.Select>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row className="mt-2">
+                    <Col md={12} className="text-end">
+                      <Button variant="outline-secondary" size="sm" onClick={handleResetFilters}>
+                        Đặt lại bộ lọc
+                      </Button>
+                    </Col>
+                  </Row>
+                </div>
+
+                <Table striped bordered hover responsive>
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Tên học sinh</th>
+                      <th>Lớp</th>
+                      <th>Tên phụ huynh</th>
+                      <th>Phản hồi</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStudents.map((student, index) => (
+                      <tr key={student.studentId}>
+                        <td>{index + 1}</td>
+                        <td>{student.studentName}</td>
+                        <td>{student.studentClass}</td>
+                        <td>{student.parentName}</td>
+                        <td>{getConsentStatus(student.consentStatus)}</td>
+                        <td>
+                          <Button variant="outline-info" size="sm" className="me-2" onClick={() => handleViewConsent(student.parentConsentId)}>
+                            <FaInfoCircle /> Xem
+                          </Button>
+                          {renderCheckupActions(student)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Campaign Details Modal - Keep for other uses */}
       <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)} size="xl">
         <Modal.Header closeButton>
           <Modal.Title>Chi tiết chiến dịch: {selectedCampaign?.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {detailsLoading ? (
-            <div className="text-center"><Spinner animation="border" /></div>
+            <div className="loading-container">
+              <Spinner animation="border" />
+              <p>Đang tải danh sách học sinh...</p>
+            </div>
           ) : (
             <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
+              <thead>
+                <tr>
                   <th>STT</th>
                   <th>Tên học sinh</th>
                   <th>Lớp</th>
                   <th>Tên phụ huynh</th>
                   <th>Phản hồi</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
                 {campaignStudents.map((student, index) => (
                   <tr key={student.studentId}>
                     <td>{index + 1}</td>
@@ -291,16 +611,12 @@ const CheckupList = () => {
                       <Button variant="outline-info" size="sm" className="me-2" onClick={() => handleViewConsent(student.parentConsentId)}>
                         <FaInfoCircle /> Xem
                       </Button>
-                      {student.consentStatus === 'APPROVED' && (
-                        <Button variant="outline-success" size="sm" onClick={() => handleCreateHealthProfile(student)}>
-                          <FaStethoscope /> Tạo HS
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
+                      {renderCheckupActions(student)}
+                    </td>
+                  </tr>
                 ))}
-                  </tbody>
-                </Table>
+              </tbody>
+            </Table>
           )}
         </Modal.Body>
       </Modal>
@@ -308,37 +624,40 @@ const CheckupList = () => {
       {/* Consent Details Modal */}
       <Modal show={showConsentModal} onHide={() => setShowConsentModal(false)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Chi tiết Phản hồi của Phụ huynh</Modal.Title>
+          <Modal.Title style={{color:'red'}}>Chi tiết Phản hồi của Phụ huynh</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {consentLoading ? (
-            <div className="text-center"><Spinner animation="border" /></div>
+            <div className="loading-container">
+              <Spinner animation="border" />
+              <p>Đang tải chi tiết phản hồi...</p>
+            </div>
           ) : !selectedConsent ? (
             <Alert variant="warning">Không tìm thấy thông tin.</Alert>
           ) : (
             <div>
-            <Row>
-              <Col md={6}>
-                        <p><strong>Học sinh:</strong> {selectedConsent.studentName}</p>
-              </Col>
-              <Col md={6}>
-                        <p><strong>Trạng thái:</strong> {getConsentStatus(selectedConsent.consentStatus)}</p>
-              </Col>
-            </Row>
-                 <p><strong>Chiến dịch:</strong> {selectedConsent.campaignTitle}</p>
-                 <hr/>
-                 <h5><FaListOl/> Các mục khám đặc biệt đã chọn:</h5>
-                 {selectedConsent.selectedSpecialCheckupItems?.length > 0 ? (
-                    <ListGroup variant="flush">
-                        {selectedConsent.selectedSpecialCheckupItems.map((item, index) => (
-                            <ListGroup.Item key={index}>{item}</ListGroup.Item>
-                        ))}
-                    </ListGroup>
-                 ) : (
-                    <p className="text-muted">Không có mục khám đặc biệt nào được chọn.</p>
-                 )}
-                 <h5 className="mt-3"><FaNotesMedical/> Ghi chú của phụ huynh:</h5>
-                 <p className="text-muted">{selectedConsent.consent?.parentNotes || 'Không có ghi chú.'}</p>
+              <Row>
+                <Col md={6}>
+                  <p><strong>Học sinh:</strong> {selectedConsent.studentName}</p>
+                </Col>
+                <Col md={6}>
+                  <p><strong>Trạng thái:</strong> {getConsentStatus(selectedConsent.consentStatus)}</p>
+                </Col>
+              </Row>
+              <p><strong>Chiến dịch:</strong> {selectedConsent.campaignTitle}</p>
+              <hr/>
+              <h5><FaListOl className="me-2"/>Các mục khám đặc biệt đã chọn:</h5>
+              {selectedConsent.selectedSpecialCheckupItems?.length > 0 ? (
+                <ListGroup variant="flush">
+                  {selectedConsent.selectedSpecialCheckupItems.map((item, index) => (
+                    <ListGroup.Item key={index}>{item}</ListGroup.Item>
+                  ))}
+                </ListGroup>
+              ) : (
+                <p className="text-muted">Không có mục khám đặc biệt nào được chọn.</p>
+              )}
+              <h5 className="mt-3"><FaNotesMedical className="me-2"/>Ghi chú của phụ huynh:</h5>
+              <p className="text-muted">{selectedConsent.consent?.parentNotes || 'Không có ghi chú.'}</p>
             </div>
           )}
         </Modal.Body>
@@ -352,11 +671,11 @@ const CheckupList = () => {
       {/* Create Checkup Form Modal */}
       {studentForCheckup && (
         <CreateCheckupFormModal
-            show={showCreateModal}
-            onClose={() => setShowCreateModal(false)}
-            student={studentForCheckup}
-            campaign={selectedCampaign}
-            onSubmit={handleCreateCheckupSubmit}
+          show={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          student={studentForCheckup}
+          campaign={selectedCampaign}
+          onSubmit={handleCreateCheckupSubmit}
         />
       )}
     </div>

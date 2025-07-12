@@ -13,6 +13,7 @@ import com.fpt.medically_be.mapper.VaccinationMapper;
 import com.fpt.medically_be.repos.*;
 import com.fpt.medically_be.service.VaccinationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,14 +107,18 @@ public class VaccinationServiceImpl implements VaccinationService {
 
     @Override
     @Transactional
-    public void recordVaccination(VaccinationCreateDTO req) {
+    public void recordVaccination(VaccinationCreateDTO req, Authentication authentication) {
+
+        String nurseId = authentication.getName(); // -> NURSE03
+
+        Nurse nurseIDString = nurseRepository.findByAccount_Id(nurseId).orElseThrow(()-> new RuntimeException("Nurse Id not found !!!"));
 
         // 1. Tìm entity liên quan
         HealthProfile profile = healthProfileRepository.findById(req.getHealthProfileId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy health profile"));
         Vaccine vaccine = vaccineRepository.findById(req.getVaccineId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy vaccine"));
-        Nurse nurse   = nurseRepository.findById(req.getNurseId())
+        Nurse nurse   = nurseRepository.findById(nurseIDString.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse"));
 
         VaccinationPlan plan = null;
@@ -163,6 +168,7 @@ public class VaccinationServiceImpl implements VaccinationService {
 
         vaccinationRepository.save(v);
     }
+
 
     @Transactional
     @Override

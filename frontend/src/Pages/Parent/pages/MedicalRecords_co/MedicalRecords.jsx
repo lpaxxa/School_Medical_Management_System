@@ -179,6 +179,69 @@ const MedicalRecord = () => {
     }
   }, [activeTab, selectedStudent?.studentId, fetchHealthProfile]);
 
+  // Hide header when modals are open - Simple interval checking
+  useEffect(() => {
+    let intervalId;
+
+    const checkAndHideHeader = () => {
+      // Check for any modal present in DOM
+      const hasModals = document.querySelector(
+        ".image-modal, .modern-modal-overlay, .vaccination-modal-overlay, .incident-zoom-overlay"
+      );
+      const shouldHideHeader = isModalOpen || modalImage || hasModals;
+
+      if (shouldHideHeader) {
+        document.body.classList.add("modal-open");
+        // Try multiple selectors to hide header
+        const headers = document.querySelectorAll(
+          ".parent-header, .fix-parent-header, header"
+        );
+        headers.forEach((header) => {
+          header.style.zIndex = "-999999";
+          header.style.visibility = "hidden";
+          header.style.opacity = "0";
+          header.style.pointerEvents = "none";
+          header.style.transform = "translateY(-200px)";
+        });
+      } else {
+        document.body.classList.remove("modal-open");
+        // Restore header visibility
+        const headers = document.querySelectorAll(
+          ".parent-header, .fix-parent-header, header"
+        );
+        headers.forEach((header) => {
+          header.style.zIndex = "";
+          header.style.visibility = "";
+          header.style.opacity = "";
+          header.style.pointerEvents = "";
+          header.style.transform = "";
+        });
+      }
+    };
+
+    // Check immediately
+    checkAndHideHeader();
+
+    // Set up interval to check every 100ms
+    intervalId = setInterval(checkAndHideHeader, 100);
+
+    // Cleanup on unmount
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      document.body.classList.remove("modal-open");
+      const headers = document.querySelectorAll(
+        ".parent-header, .fix-parent-header, header"
+      );
+      headers.forEach((header) => {
+        header.style.zIndex = "";
+        header.style.visibility = "";
+        header.style.opacity = "";
+        header.style.pointerEvents = "";
+        header.style.transform = "";
+      });
+    };
+  }, [isModalOpen, modalImage]);
+
   // Cleanup effect when component unmounts
   useEffect(() => {
     return () => {
@@ -215,10 +278,12 @@ const MedicalRecord = () => {
   // Loading state
   if (!students) {
     return (
-      <div className="medical-loading">
-        <div className="loading-content">
-          <FaSpinner className="loading-spinner" />
-          <p>Đang tải danh sách học sinh...</p>
+      <div className="parent-content-wrapper">
+        <div className="medical-loading">
+          <div className="loading-content">
+            <FaSpinner className="loading-spinner" />
+            <p>Đang tải danh sách học sinh...</p>
+          </div>
         </div>
       </div>
     );
@@ -227,15 +292,17 @@ const MedicalRecord = () => {
   // No students state
   if (students.length === 0 || !selectedStudent) {
     return (
-      <div className="medical-error">
-        <div className="error-content">
-          <FaExclamationTriangle className="error-icon" />
-          <h2>Không tìm thấy thông tin học sinh</h2>
-          <p>Vui lòng kiểm tra lại thông tin hoặc liên hệ nhà trường.</p>
-          <Link to="/parent/student-profile" className="btn-primary">
-            <FaArrowLeft />
-            Quay lại hồ sơ
-          </Link>
+      <div className="parent-content-wrapper">
+        <div className="medical-error">
+          <div className="error-content">
+            <FaExclamationTriangle className="error-icon" />
+            <h2>Không tìm thấy thông tin học sinh</h2>
+            <p>Vui lòng kiểm tra lại thông tin hoặc liên hệ nhà trường.</p>
+            <Link to="/parent/student-profile" className="btn-primary">
+              <FaArrowLeft />
+              Quay lại hồ sơ
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -243,176 +310,204 @@ const MedicalRecord = () => {
 
   return (
     <ErrorBoundary>
-      <div className="medical-container">
-        {/* Header */}
-        <header className="medical-header">
-          <div className="header-content">
-            <div className="header-left">
-              <div className="header-icon">
-                <FaHeartbeat />
-              </div>
-              <div className="header-info">
-                <h1>Hồ Sơ Y Tế</h1>
-                <p>Theo dõi sức khỏe học sinh toàn diện</p>
-              </div>
-            </div>
-
-            <div className="header-actions">
-              {selectedStudent?.studentId && (
-                <button
-                  className={`refresh-btn ${isRefreshing ? "refreshing" : ""}`}
-                  onClick={handleManualRefresh}
-                  disabled={isRefreshing}
-                  title="Làm mới dữ liệu hồ sơ y tế"
-                >
-                  <FaSync className={isRefreshing ? "spin" : ""} />
-                  <span>{isRefreshing ? "Đang tải..." : "Làm mới"}</span>
-                </button>
-              )}
-
-              <Link to="/parent/student-profile" className="back-btn">
-                <FaArrowLeft />
-                <span>Trở về</span>
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="medical-main">
-          {/* Student Selector */}
-          <section className="student-section">
-            <div className="student-selector">
-              <div className="selector-header">
-                <h2>Chọn học sinh</h2>
-                <p>Xem hồ sơ y tế của học sinh</p>
+      <div className="parent-content-wrapper">
+        <div className="medical-container">
+          {/* Header */}
+          <header className="medical-header">
+            <div className="header-content">
+              <div className="header-left">
+                <div className="header-icon">
+                  <FaHeartbeat />
+                </div>
+                <div className="header-info">
+                  <h1>Hồ Sơ Y Tế</h1>
+                  <p>Theo dõi sức khỏe học sinh toàn diện</p>
+                </div>
               </div>
 
-              <div className="selector-content">
-                <div className="select-wrapper">
-                  <select
-                    className="student-select"
-                    value={selectedStudentId || ""}
-                    onChange={handleStudentChange}
-                    disabled={isLoading}
+              {/* Split header actions to prevent overlap */}
+              <div className="header-actions1">
+                <Link to="/parent/student-profile" className="back-btn">
+                  <FaArrowLeft />
+                  <span>Trở về</span>
+                </Link>
+              </div>
+
+              <div className="header-actions2">
+                {selectedStudent?.studentId && (
+                  <button
+                    className={`refresh-btn ${
+                      isRefreshing ? "refreshing" : ""
+                    }`}
+                    onClick={handleManualRefresh}
+                    disabled={isRefreshing}
+                    title="Làm mới dữ liệu hồ sơ y tế"
                   >
-                    <option value="">-- Chọn học sinh --</option>
-                    {students.map((student) => (
-                      <option key={student.id} value={student.id}>
-                        {student.fullName} - {student.studentId} (
-                        {student.className})
-                      </option>
-                    ))}
-                  </select>
-                  <FaChevronDown className="select-arrow" />
-                </div>
+                    <FaSync className={isRefreshing ? "spin" : ""} />
+                    <span>{isRefreshing ? "Đang tải..." : "Làm mới"}</span>
+                  </button>
+                )}
               </div>
             </div>
+          </header>
 
-            {/* Selected Student Info */}
-            {selectedStudent && (
-              <div className="student-info">
-                <div className="student-avatar">
-                  <FaUser />
+          {/* Main Content */}
+          <main className="medical-main">
+            {/* Student Selector */}
+            <section className="student-section">
+              <div className="student-selector">
+                <div className="selector-header">
+                  <h2>Chọn học sinh</h2>
+                  <p>Xem hồ sơ y tế của học sinh</p>
                 </div>
-                <div className="student-details">
-                  <h3>{selectedStudent.fullName}</h3>
-                  <div className="student-meta">
-                    <span className="meta-item">
-                      Mã HS: {selectedStudent.studentId}
-                    </span>
-                    <span className="meta-item">
-                      Lớp: {selectedStudent.className}
-                    </span>
+
+                <div className="selector-content">
+                  <div className="select-wrapper">
+                    <select
+                      className="student-select"
+                      value={selectedStudentId || ""}
+                      onChange={handleStudentChange}
+                      disabled={isLoading}
+                    >
+                      <option value="">-- Chọn học sinh --</option>
+                      {students.map((student) => (
+                        <option key={student.id} value={student.id}>
+                          {student.fullName} - {student.studentId} (
+                          {student.className})
+                        </option>
+                      ))}
+                    </select>
+                    <FaChevronDown className="select-arrow" />
                   </div>
                 </div>
               </div>
-            )}
-          </section>
 
-          {/* Content */}
-          <section className="content-section">
-            <div className="content-header">
-              <h2>
-                {activeTab === "general" && "Thông tin sức khỏe tổng quát"}
-                {activeTab === "checkups" && "Kiểm tra sức khỏe định kỳ"}
-                {activeTab === "vaccinations" && "Tiêm chủng"}
-                {activeTab === "incidents" && "Sự cố y tế"}
-                {activeTab === "growth" && "Biểu đồ tăng trưởng"}
-              </h2>
+              {/* Selected Student Info */}
+              {selectedStudent && (
+                <div className="student-info">
+                  <div className="student-avatar">
+                    <FaUser />
+                  </div>
+                  <div className="student-details">
+                    <h3>{selectedStudent.fullName}</h3>
+                    <div className="student-meta">
+                      <span className="meta-item">
+                        Mã HS: {selectedStudent.studentId}
+                      </span>
+                      <span className="meta-item">
+                        Lớp: {selectedStudent.className}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </section>
 
-              {/* Tab Navigation trong content header */}
-              <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-            </div>
+            {/* Content */}
+            <section className="content-section">
+              <div className="content-header">
+                <h2>
+                  {activeTab === "general" && "Thông tin sức khỏe tổng quát"}
+                  {activeTab === "checkups" && "Kiểm tra sức khỏe định kỳ"}
+                  {activeTab === "vaccinations" && "Tiêm chủng"}
+                  {activeTab === "incidents" && "Sự cố y tế"}
+                  {activeTab === "growth" && "Biểu đồ tăng trưởng"}
+                </h2>
 
-            <div className="content-body">
-              {activeTab === "general" && (
-                <GeneralTab
-                  healthProfileData={healthProfileData}
-                  isLoading={isLoading}
-                  error={error}
-                  studentId={selectedStudent?.studentId}
-                  onRefresh={fetchHealthProfile}
+                {/* Tab Navigation trong content header */}
+                <TabNavigation
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
                 />
-              )}
+              </div>
 
-              {activeTab === "checkups" && (
-                <CheckupsTab studentId={selectedStudentId} />
-              )}
+              <div className="content-body">
+                {activeTab === "general" && (
+                  <GeneralTab
+                    healthProfileData={healthProfileData}
+                    isLoading={isLoading}
+                    error={error}
+                    studentId={selectedStudent?.studentId}
+                    onRefresh={fetchHealthProfile}
+                  />
+                )}
 
-              {activeTab === "vaccinations" && (
-                <VaccinationsTab
-                  studentId={selectedStudentId}
-                  parentInfo={parentInfo}
-                  studentCode={selectedStudent?.studentId}
-                />
-              )}
+                {activeTab === "checkups" && (
+                  <CheckupsTab studentId={selectedStudentId} />
+                )}
 
-              {activeTab === "incidents" && (
-                <IncidentsTab studentId={selectedStudentId} />
-              )}
+                {activeTab === "vaccinations" && (
+                  <VaccinationsTab
+                    studentId={selectedStudentId}
+                    parentInfo={parentInfo}
+                    studentCode={selectedStudent?.studentId}
+                  />
+                )}
 
-              {activeTab === "growth" && (
-                <GrowthTab studentId={selectedStudentId} />
-              )}
-            </div>
-          </section>
+                {activeTab === "incidents" && (
+                  <IncidentsTab studentId={selectedStudentId} />
+                )}
 
-          {/* Print Button */}
-          <div className="print-section">
-            <button className="print-btn" onClick={() => window.print()}>
-              <FaPrint />
-              <span>In hồ sơ y tế</span>
-            </button>
-          </div>
-        </main>
+                {activeTab === "growth" && (
+                  <GrowthTab studentId={selectedStudentId} />
+                )}
+              </div>
+            </section>
 
-        {/* Image Modal */}
-        {isModalOpen && (
-          <div className="image-modal" onClick={closeImageModal}>
-            <div className="modal-backdrop"></div>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <button className="modal-close" onClick={closeImageModal}>
-                <FaTimes />
+            {/* Print Button */}
+            <div className="print-section">
+              <button className="print-btn" onClick={() => window.print()}>
+                <FaPrint />
+                <span>In hồ sơ y tế</span>
               </button>
-              {modalImage ? (
-                <img
-                  src={modalImage}
-                  alt="Hình ảnh y tế"
-                  className="modal-image"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "flex";
+            </div>
+          </main>
+
+          {/* Image Modal - Fixed click handling */}
+          {isModalOpen && (
+            <div
+              className="image-modal"
+              onClick={(e) => {
+                // Only close if clicked on the overlay background, not on the image or close button
+                if (e.target.classList.contains("image-modal")) {
+                  closeImageModal();
+                }
+              }}
+            >
+              <div className="modal-backdrop"></div>
+              <div
+                className="modal-content"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  className="modal-close"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeImageModal();
                   }}
-                />
-              ) : null}
-              <div className="image-error" style={{ display: "none" }}>
-                <FaImage />
-                <p>Không thể tải hình ảnh</p>
+                >
+                  <FaTimes />
+                </button>
+                {modalImage ? (
+                  <img
+                    src={modalImage}
+                    alt="Hình ảnh y tế"
+                    className="modal-image"
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on image
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <div className="image-error" style={{ display: "none" }}>
+                  <FaImage />
+                  <p>Không thể tải hình ảnh</p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </ErrorBoundary>
   );

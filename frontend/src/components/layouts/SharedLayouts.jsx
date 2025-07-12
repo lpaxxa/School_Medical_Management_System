@@ -1,49 +1,36 @@
 import React from "react";
-import Header from "../../Pages/Parent/components/Header/Header";
-import Navigation from "../../Pages/Parent/components/Navigation/Navigation";
-import Footer from "../../Pages/Parent/components/Footer/Footer";
+import ParentLayoutSimple from "../../Pages/Parent/layout/ParentLayoutSimple";
 
-// Layout for parent pages - only include structural elements
+// Layout for parent pages - sử dụng ParentLayoutSimple để fix scroll issues
 export const MainLayout = ({ children }) => (
-  <>
-    <Header />
-    <Navigation />
-    <main className="main-content">{children}</main>
-    <Footer />
-  </>
+  <ParentLayoutSimple>{children}</ParentLayoutSimple>
+);
+
+// Layout for home page - cũng sử dụng ParentLayoutSimple
+export const HomeLayout = ({ children }) => (
+  <ParentLayoutSimple>{children}</ParentLayoutSimple>
 );
 
 // Layout for admin/nurse pages - doesn't include header, navigation, or footer
-// as these components are usually customized within admin/nurse dashboards
 export const AdminLayout = ({ children }) => (
-  <div className="admin-layout">{children}</div>
-);
-
-// For home page that needs additional components
-export const HomeLayout = ({ children }) => (
-  <>
-    <Header />
-    <Navigation />
-    <main className="parent-content">{children}</main>
-    <Footer />
-  </>
+  <div className="shared-admin-layout">{children}</div>
 );
 
 // Layout cho các trang cơ bản không thuộc Admin hay Parent
 export const BasicLayout = ({ children }) => (
-  <main className="basic-content">{children}</main>
+  <main className="shared-basic-content">{children}</main>
 );
 
 // Layout cho trang lỗi
 export const ErrorLayout = ({ children }) => (
-  <div className="error-layout">
-    <div className="error-content">{children}</div>
+  <div className="shared-error-layout">
+    <div className="shared-error-content">{children}</div>
   </div>
 );
 
 // Layout cho trang đăng nhập/đăng ký
 export const AuthLayout = ({ children }) => (
-  <div className="auth-layout">
-    <div className="auth-content">{children}</div>
+  <div className="shared-auth-layout">
+    <div className="shared-auth-content">{children}</div>
   </div>
 );

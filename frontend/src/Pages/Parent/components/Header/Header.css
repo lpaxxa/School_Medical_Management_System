@@ -1,46 +1,54 @@
 /* Modern Header Design - Dark Blue Theme for Parent Pages */
 
-.header {
+.parent-header {
   padding: 0;
   height: auto;
-  min-height: 130px;
+  min-height: 70px;
   background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 85%, #BCE6FF 100%);
   color: #fff;
   box-shadow: 0 4px 20px rgba(1, 92, 146, 0.35);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   z-index: 1000;
-  transition: all 0.35s cubic-bezier(0.21, 0.6, 0.35, 1);
+  transition: all 0.3s cubic-bezier(0.21, 0.6, 0.35, 1);
   border-bottom: none;
   display: flex;
   flex-direction: column;
+  will-change: transform, opacity; /* Optimize for animation */
 }
 
-.header.scrolled {
+.parent-header.scrolled {
   min-height: 70px;
   background: linear-gradient(135deg, rgba(1, 92, 146, 0.95) 0%, rgba(45, 130, 181, 0.95) 30%, rgba(66, 140, 212, 0.95) 60%, rgba(136, 205, 246, 0.95) 85%, rgba(188, 230, 255, 0.95) 100%);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 6px 24px rgba(1, 92, 146, 0.4);
   border-bottom: none;
 }
 
-.header.scrolled .header-navigation {
+.parent-header.scrolled .parent-header-navigation {
   display: none;
+  height: 0;
+  overflow: hidden;
 }
 
-.header.scrolled .header-top {
+.parent-header.scrolled .parent-header-top {
   height: 70px;
 }
 
 /* Top Header Row - Logo and Actions */
-.header-top {
+.parent-header-top {
   height: 70px;
   width: 100%;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
-.header .container {
+.parent-header .parent-container {
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
@@ -52,23 +60,26 @@
 }
 
 /* Bottom Header Row - Navigation */
-.header-navigation {
+.parent-header-navigation {
   width: 100%;
+  height: 60px;
   padding: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05); /* Subtle overlay để tạo depth */
+  transition: all 0.3s ease;
 }
 
-.nav-wrapper {
+.parent-nav-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
   max-width: 1400px;
+  height: 100%;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
-.main-nav-list {
+.parent-main-nav-list {
   display: flex;
   list-style: none;
   gap: 0;
@@ -77,20 +88,26 @@
   padding: 0;
   flex: 1;
   justify-content: flex-start;
+  height: 100%;
 }
 
-.main-nav-item {
+.parent-main-nav-item {
   flex: 0 0 auto;
   max-width: 280px;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
-.main-nav-link {
-  display: block;
+.parent-main-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
-  padding: 1rem 1.5rem;
+  padding: 0 1.5rem;
   text-align: center;
   transition: all 0.3s ease;
   border-radius: 0;
@@ -98,24 +115,25 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  height: 100%;
 }
 
-.main-nav-link:hover {
+.parent-main-nav-link:hover {
   background: rgba(255, 255, 255, 0.15);
   color: white;
   transform: translateY(-1px);
-  border-radius: 12px;
 }
 
-.main-nav-link.active {
+.parent-main-nav-link.active {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   font-weight: 600;
   position: relative;
-  border-radius: 12px;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.main-nav-link.active::after {
+.parent-main-nav-link.active::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -123,17 +141,28 @@
   width: 100%;
   height: 3px;
   background: linear-gradient(90deg, #FBBF24, #F59E0B);
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* Enhanced active state animation */
+@keyframes slideInFromLeft {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
 }
 
 /* Quick Info Panel - Right side */
-.nav-quick-info {
+.parent-nav-quick-info {
   display: flex;
   align-items: center;
   gap: 1.5rem;
   padding: 0.75rem 0;
 }
 
-.quick-info-item {
+.parent-quick-info-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -148,40 +177,40 @@
   backdrop-filter: blur(10px);
 }
 
-.quick-info-item:hover {
+.parent-quick-info-item:hover {
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
   color: white;
 }
 
-.quick-info-item i {
+.parent-quick-info-item i {
   font-size: 0.9rem;
   opacity: 0.8;
 }
 
-.quick-info-item.health-status {
+.parent-quick-info-item.health-status {
   background: rgba(34, 197, 94, 0.15);
   border-color: rgba(34, 197, 94, 0.3);
   color: #86efac;
 }
 
-.quick-info-item.health-status:hover {
+.parent-quick-info-item.health-status:hover {
   background: rgba(34, 197, 94, 0.25);
   color: #bbf7d0;
 }
 
-.quick-info-item.health-status i {
+.parent-quick-info-item.health-status i {
   color: #22c55e;
-  animation: heartbeat 2s ease-in-out infinite;
+  animation: parent-heartbeat 2s ease-in-out infinite;
 }
 
-@keyframes heartbeat {
+@keyframes parent-heartbeat {
   0% { transform: scale(1); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
 
-.header-nav {
+.parent-header-nav {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -190,7 +219,7 @@
 }
 
 /* Logo - Modern fintech style */
-.header-logo {
+.parent-header-logo {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -201,11 +230,11 @@
   transition: transform 0.3s ease;
 }
 
-.header-logo:hover {
+.parent-header-logo:hover {
   transform: scale(1.02);
 }
 
-.header-logo img {
+.parent-header-logo img {
   height: 35px;
   width: 35px;
   border-radius: 8px;
@@ -214,7 +243,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.logo-text {
+.parent-logo-text {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
@@ -223,387 +252,428 @@
   white-space: nowrap;
 }
 
-.logo-text span {
+.parent-logo-text span {
   color: #BFDBFE;
   font-weight: 600;
 }
 
-/* Navigation Links - Clean modern style */
-.nav-list {
+/* Navigation Links - Enhanced with better active states */
+.parent-nav-list {
   display: flex;
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 2rem;
-  flex: 1;
-  justify-content: center;
+  gap: 1rem;
   height: 100%;
   align-items: center;
 }
 
-.nav-link {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1.5rem;
+.parent-nav-link {
   color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
-  letter-spacing: 0.2px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   transition: all 0.3s ease;
-  border-radius: 25px;
   position: relative;
-  overflow: hidden;
-}
-
-.nav-link:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
-}
-
-.nav-link.active {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Header Actions - Perfect center alignment */
-.header .header-actions {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.75rem;
-  flex: 0 0 auto;
-  height: 100% !important;
-  margin: 0;
-  padding: 0;
-}
-
-/* User Menu - Perfect center alignment */
-.header .user-menu {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.75rem;
-  height: 100% !important;
-  margin: 0;
-}
-
-/* All buttons in header-actions - Perfect center */
-.header .header-actions .notification-btn {
-  position: relative;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 38px;
-  height: 38px;
-  border-radius: 19px;
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  font-size: 15px;
-  margin: auto 0; /* Thêm để đảm bảo center theo chiều dọc */
-}
-
-.header .header-actions .user-greeting {
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 0 0.75rem;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  height: 38px;
-  transition: all 0.3s ease;
-  font-size: 0.85rem;
-  font-weight: 500;
-  backdrop-filter: blur(10px);
-  margin: auto 0; /* Thêm để đảm bảo center theo chiều dọc */
-}
-
-.header .header-actions .login-btn, 
-.header .header-actions .logout-btn {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  height: 38px;
-  padding: 0 1.25rem;
-  border-radius: 20px;
-  transition: all 0.3s ease;
-  font-size: 0.85rem;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  margin: auto 0; /* Thêm để đảm bảo center theo chiều dọc */
-}
-
-/* Modern notification button */
-.notification-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.notification-btn i {
-  font-size: 1rem;
-  color: white;
-}
-
-/* Notification badge */
-.notification-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: linear-gradient(135deg, #ff4757, #ff6b7c);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid white;
-  box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4);
-  animation: pulse-badge 2s infinite;
-  z-index: 10;
+  height: 40px;
 }
 
-@keyframes pulse-badge {
-  0% { 
-    box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4), 0 0 0 0 rgba(255, 71, 87, 0.6); 
+.parent-nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.parent-nav-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.parent-nav-link.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border-radius: 8px;
+  animation: activeGlow 0.3s ease-out;
+}
+
+@keyframes activeGlow {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
   }
-  70% { 
-    box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4), 0 0 0 8px rgba(255, 71, 87, 0); 
-  }
-  100% { 
-    box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4), 0 0 0 0 rgba(255, 71, 87, 0); 
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-/* User greeting icon styles */
-.header .header-actions .user-greeting i {
-  color: #BFDBFE;
-  font-size: 1rem;
+.parent-header .parent-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 0 0 auto;
+  height: 100%;
 }
 
-/* Button background colors */
-.header .header-actions .login-btn {
-  background: rgba(255, 255, 255, 0.9) !important;
-  color: #015C92 !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+.parent-header .parent-user-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.header .header-actions .logout-btn {
-  background: rgba(239, 68, 68, 0.9) !important;
-  color: white !important;
-}
-
-/* Mobile menu toggle */
-.mobile-menu-toggle {
-  display: none;
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.5rem;
+.parent-header .parent-header-actions .parent-notification-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 15px;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  text-decoration: none;
 }
 
-.mobile-menu-toggle:hover {
+.parent-header .parent-header-actions .parent-user-greeting {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.parent-header .parent-header-actions .parent-login-btn, 
+.parent-header .parent-header-actions .parent-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
   background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  backdrop-filter: blur(10px);
 }
 
-/* Responsive Design */
+.parent-notification-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.parent-notification-btn i {
+  font-size: 1rem;
+  color: white;
+  position: relative;
+}
+
+.parent-notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  background: #FF6B7C;
+  border-radius: 50%;
+  border: 2px solid #015C92;
+  animation: parent-pulse-badge 2s infinite;
+}
+
+@keyframes parent-pulse-badge {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 107, 124, 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(255, 107, 124, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 107, 124, 0);
+  }
+}
+
+.parent-header .parent-header-actions .parent-user-greeting i {
+  font-size: 1.2rem;
+  color: #BFDBFE;
+}
+
+.parent-header .parent-header-actions .parent-login-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.parent-header .parent-header-actions .parent-logout-btn {
+  background: rgba(255, 107, 124, 0.2);
+  border-color: rgba(255, 107, 124, 0.4);
+}
+
+/* Mobile Menu Toggle - Hidden by default */
+.parent-mobile-menu-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+.parent-mobile-menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 @media (max-width: 1200px) {
-  .header .container {
+  .parent-header .parent-container {
     padding: 0 1.5rem;
   }
   
-  .nav-wrapper {
+  .parent-nav-wrapper {
     padding: 0 1.5rem;
   }
   
-  .main-nav-link {
-    padding: 0.9rem 1.2rem;
-    font-size: 0.9rem;
+  .parent-main-nav-link {
+    padding: 0 1rem;
   }
   
-  .nav-list {
-    gap: 1.5rem;
+  .parent-nav-list {
+    gap: 0.75rem;
   }
   
-  .nav-link {
-    padding: 0.6rem 1.2rem;
+  .parent-nav-link {
     font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
   }
-}
-
-@media (max-width: 1200px) {
-  .nav-quick-info {
+  
+  .parent-nav-quick-info {
     gap: 1rem;
   }
   
-  .quick-info-item {
+  .parent-quick-info-item {
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
   }
 }
 
 @media (max-width: 1024px) {
-  .quick-info-item span {
+  .parent-quick-info-item span {
     display: none;
   }
   
-  .quick-info-item {
-    padding: 0.5rem;
-    min-width: 40px;
+  .parent-quick-info-item {
+    width: 36px;
+    height: 36px;
     justify-content: center;
+    padding: 0;
   }
 }
 
+/* Desktop Navigation - Hide mobile menu toggle on desktop */
+@media (min-width: 993px) {
+  .parent-mobile-menu-toggle {
+    display: none !important;
+  }
+  
+  .parent-nav-list {
+    display: flex !important;
+    position: static !important;
+    background: none !important;
+    flex-direction: row !important;
+    padding: 0 !important;
+    transform: none !important;
+    visibility: visible !important;
+  }
+}
+
+/* Mobile and Tablet Navigation */
 @media (max-width: 992px) {
-  .header {
+  .parent-header {
     min-height: 70px;
   }
   
-  .header-navigation {
+  .parent-header-navigation {
     display: none;
   }
   
-  .header-logo {
-    flex: 0 0 auto;
+  .parent-header-logo {
     margin-right: 1rem;
   }
   
-  .mobile-menu-toggle {
-    display: block;
+  .parent-header-logo .parent-logo-text {
+    display: none;
   }
   
-  .nav-list {
-    display: none;
-    position: absolute;
-    top: 100%;
+  .parent-mobile-menu-toggle {
+    display: flex !important;
+  }
+  
+  .parent-nav-list {
+    position: fixed;
+    top: 70px;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%);
+    background: linear-gradient(135deg, rgba(1, 92, 146, 0.95) 0%, rgba(45, 130, 181, 0.95) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     flex-direction: column;
     padding: 1rem 0;
-    box-shadow: 0 8px 16px rgba(1, 92, 146, 0.45);
-    height: auto;
-    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-100%);
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 999;
+    gap: 0;
   }
   
-  .nav-list.active {
-    display: flex;
+  .parent-nav-list.active {
+    transform: translateY(0);
+    visibility: visible;
+    opacity: 1;
   }
   
-  .nav-list li {
+  .parent-nav-list li {
     width: 100%;
   }
   
-  .nav-link {
+  .parent-nav-link {
+    display: block;
+    width: 100%;
     padding: 1rem 2rem;
+    text-align: left;
     border-radius: 0;
-    width: 100%;
-    justify-content: flex-start;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
-  
-  .user-greeting {
-    display: none;
+
+  .parent-nav-link.active {
+    background: rgba(255, 255, 255, 0.25);
+    border-left: 4px solid #FBBF24;
   }
 }
 
 @media (max-width: 768px) {
-  .header .container {
+  .parent-header .parent-container {
     padding: 0 1rem;
   }
   
-  .nav-wrapper {
+  .parent-nav-wrapper {
     padding: 0 1rem;
   }
   
-  .main-nav-link {
-    padding: 0.75rem 1rem;
-    font-size: 0.85rem;
+  .parent-main-nav-link {
+    padding: 0 0.75rem;
+    font-size: 0.9rem;
   }
   
-  .header-logo img {
-    height: 32px;
-    width: 32px;
+  .parent-header-logo img {
+    height: 30px;
+    width: 30px;
   }
   
-  .logo-text {
-    font-size: 1.3rem;
+  .parent-logo-text {
+    font-size: 1.2rem;
   }
   
-  .logo-text span {
+  .parent-logo-text span {
     display: none;
   }
   
-  .header .header-actions {
-    gap: 0.5rem !important;
+  .parent-header .parent-header-actions {
+    gap: 0.5rem;
   }
   
-  .header .header-actions .login-btn, 
-  .header .header-actions .logout-btn {
-    padding: 0 1rem !important;
-    font-size: 0.85rem !important;
+  .parent-header .parent-header-actions .parent-login-btn, 
+  .parent-header .parent-header-actions .parent-logout-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
-  .header .container {
+  .parent-header .parent-container {
     padding: 0 0.75rem;
   }
   
-  .header .header-actions .notification-btn {
-    width: 36px !important;
-    height: 36px !important;
+  .parent-header .parent-header-actions .parent-notification-btn {
+    width: 36px;
+    height: 36px;
   }
   
-  .login-btn span, .logout-btn span {
+  .parent-login-btn span, .parent-logout-btn span {
     display: none;
   }
   
-  .login-btn i, .logout-btn i {
-    font-size: 1rem;
+  .parent-login-btn i, .parent-logout-btn i {
+    margin-right: 0;
+  }
+  
+  .parent-header .parent-header-actions .parent-user-greeting span {
+    display: none;
   }
 }
 
-/* Hover effects for header-actions elements */
-.header .header-actions .notification-btn:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
+/* Hover Effects */
+.parent-header .parent-header-actions .parent-notification-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.header .header-actions .user-greeting:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
+.parent-header .parent-header-actions .parent-user-greeting:hover {
+  background: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
 }
 
-.header .header-actions .login-btn:hover {
-  background: #fff !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  color: #015C92 !important;
+.parent-header .parent-header-actions .parent-login-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
 }
 
-.header .header-actions .logout-btn:hover {
-  background: #EF4444 !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+.parent-header .parent-header-actions .parent-logout-btn:hover {
+  background: rgba(255, 107, 124, 0.3);
+  transform: translateY(-1px);
 }

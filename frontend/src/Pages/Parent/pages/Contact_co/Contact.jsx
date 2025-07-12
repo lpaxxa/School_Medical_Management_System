@@ -275,7 +275,8 @@ const ParentContact = () => {
   };
 
   return (
-    <div className="parent-contact-page">
+    <div className="parent-content-wrapper">
+      <div className="parent-contact-page">
       <div className="contact-header">
         <div className="contact-header-content">
           <h1>Liên hệ với nhà trường</h1>
@@ -557,6 +558,7 @@ const ParentContact = () => {
             </button>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );

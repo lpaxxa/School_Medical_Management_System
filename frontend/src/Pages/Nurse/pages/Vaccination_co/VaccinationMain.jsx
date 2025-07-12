@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Nav, Tab, Card } from 'react-bootstrap';
 import VaccinationDashboard from './Dashboard/VaccinationDashboard';
 import CreateVaccinationRecord from './CreateRecord/CreateVaccinationRecord';
@@ -7,6 +7,22 @@ import './VaccinationMain.css';
 import { VaccinationProvider } from '../../../../context/NurseContext/VaccinationContext';
 
 const VaccinationPage = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Restore active tab from sessionStorage on mount
+  useEffect(() => {
+    const savedTab = sessionStorage.getItem('vaccinationActiveTab');
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+  }, []);
+
+  // Save active tab to sessionStorage when it changes
+  const handleTabSelect = (selectedTab) => {
+    setActiveTab(selectedTab);
+    sessionStorage.setItem('vaccinationActiveTab', selectedTab);
+  };
+
   return (
     <VaccinationProvider>
       <Container fluid className="p-4 bg-light">
@@ -16,7 +32,7 @@ const VaccinationPage = () => {
           </Card.Body>
         </Card>
         
-        <Tab.Container defaultActiveKey="dashboard">
+        <Tab.Container activeKey={activeTab} onSelect={handleTabSelect}>
           <Card className="border-0 shadow-sm">
             <Card.Header className="bg-white border-bottom-0 pt-3 pb-0">
               <Nav variant="tabs" className="nav-tabs-custom">

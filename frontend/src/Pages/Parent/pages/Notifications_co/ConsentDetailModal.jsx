@@ -127,7 +127,6 @@ const ConsentDetailModal = ({
 
       onClose();
     } catch (error) {
-      console.error("❌ Error submitting consent:", error);
       toast.error("Có lỗi xảy ra khi gửi xác nhận: " + error.message, {
         position: "top-center",
         autoClose: 5000,
@@ -184,7 +183,6 @@ const ConsentDetailModal = ({
 
       onClose();
     } catch (error) {
-      console.error("❌ Error rejecting consent:", error);
       toast.error("Có lỗi xảy ra khi từ chối: " + error.message, {
         position: "top-center",
         autoClose: 5000,
@@ -197,19 +195,21 @@ const ConsentDetailModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Chi tiết thông báo kiểm tra sức khỏe</h2>
-          <button className="modal-close" onClick={onClose}>
+    <div className="pn-modal-overlay" onClick={onClose}>
+      <div className="pn-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="pn-modal-header">
+          <h2 className="pn-modal-title">
+            Chi tiết thông báo kiểm tra sức khỏe
+          </h2>
+          <button className="pn-modal-close" onClick={onClose}>
             <i className="fas fa-times"></i>
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="pn-modal-body">
           {loading ? (
-            <div className="modal-loading">
-              <i className="fas fa-spinner fa-spin"></i>
+            <div className="pn-loading">
+              <div className="pn-spinner"></div>
               <p>Đang tải thông tin...</p>
             </div>
           ) : data ? (

@@ -57,7 +57,7 @@ const HealthGuideDetail = () => {
       } finally {
         setIsLoading(false);
         // Scroll to top when article changes
-        window.scrollTo(0, 0);
+        // Remove scroll to prevent conflicts with layout
         console.log("🏥 Fetch article completed");
       }
     };
@@ -230,132 +230,134 @@ const HealthGuideDetail = () => {
   const readingTime = article ? estimateReadingTime(article.content) : 1;
 
   return (
-    <div className="article-detail-container">
-      {/* Debug Info */}
-      {debugInfo}
+    <div className="parent-content-wrapper">
+      <div className="article-detail-container">
+        {/* Debug Info */}
+        {debugInfo}
 
-      {isLoading ? (
-        <div className="loading-container article-loading">
-          <div className="spinner-container">
-            <div className="spinner-border"></div>
+        {isLoading ? (
+          <div className="loading-container article-loading">
+            <div className="spinner-container">
+              <div className="spinner-border"></div>
+            </div>
+            <p>Đang tải bài viết...</p>
           </div>
-          <p>Đang tải bài viết...</p>
-        </div>
-      ) : error || !article ? (
-        <div className="article-not-found">
-          <i className="fas fa-exclamation-triangle"></i>
-          <h2>Không tìm thấy bài viết</h2>
-          <p>
-            {error ||
-              "Bài viết bạn đang tìm kiếm không tồn tại hoặc đã bị xóa."}
-          </p>
-          <div style={{ margin: "20px 0" }}>
+        ) : error || !article ? (
+          <div className="article-not-found">
+            <i className="fas fa-exclamation-triangle"></i>
+            <h2>Không tìm thấy bài viết</h2>
             <p>
-              <strong>Debug Info:</strong>
+              {error ||
+                "Bài viết bạn đang tìm kiếm không tồn tại hoặc đã bị xóa."}
             </p>
-            <ul style={{ textAlign: "left", display: "inline-block" }}>
-              <li>Article ID: {articleId}</li>
-              <li>Error: {error || "No specific error"}</li>
-              <li>URL: {window.location.href}</li>
-            </ul>
-          </div>
-          <Link to="/parent/health-guide" className="btn-back">
-            <i className="fas fa-arrow-left"></i> Quay lại trang Cẩm nang
-          </Link>
-        </div>
-      ) : (
-        // Render article content normally
-        <>
-          <div className="article-detail-header">
+            <div style={{ margin: "20px 0" }}>
+              <p>
+                <strong>Debug Info:</strong>
+              </p>
+              <ul style={{ textAlign: "left", display: "inline-block" }}>
+                <li>Article ID: {articleId}</li>
+                <li>Error: {error || "No specific error"}</li>
+                <li>URL: {window.location.href}</li>
+              </ul>
+            </div>
             <Link to="/parent/health-guide" className="btn-back">
-              <i className="fas fa-arrow-left"></i> Quay lại danh sách
+              <i className="fas fa-arrow-left"></i> Quay lại trang Cẩm nang
             </Link>
-            <div className="article-meta">
-              <span className="article-category">
-                <i className="fas fa-folder"></i>
-                {article.category || "Chưa phân loại"}
-              </span>
-              <span className="article-date">
-                <i className="far fa-calendar-alt"></i>
-                {formatDate(article.publishDate)}
-              </span>
-              <span className="article-reading-time">
-                <i className="far fa-clock"></i>
-                {readingTime} phút đọc
-              </span>
-            </div>
-            <h1 className="article-title">{article.title}</h1>
-            <div className="article-author">
-              <i className="fas fa-user-md"></i>
-              <span>Tác giả: {article.author}</span>
-            </div>
           </div>
-
-          <div className="article-detail-content">
-            <div className="article-main-image">
-              <img src={article.imageUrl} alt={article.title} />
-            </div>
-
-            <div className="article-summary">
-              <p>{article.summary}</p>
-            </div>
-
-            <div
-              className="article-body"
-              dangerouslySetInnerHTML={{ __html: article.content }}
-            ></div>
-
-            <div className="article-tags">
-              <h4>Từ khóa:</h4>
-              <div className="tags-list">
-                {article.tags.map((tag, index) => (
-                  <span key={index} className="tag">
-                    #{tag}
-                  </span>
-                ))}
+        ) : (
+          // Render article content normally
+          <>
+            <div className="article-detail-header">
+              <Link to="/parent/health-guide" className="btn-back">
+                <i className="fas fa-arrow-left"></i> Quay lại danh sách
+              </Link>
+              <div className="article-meta">
+                <span className="article-category">
+                  <i className="fas fa-folder"></i>
+                  {article.category || "Chưa phân loại"}
+                </span>
+                <span className="article-date">
+                  <i className="far fa-calendar-alt"></i>
+                  {formatDate(article.publishDate)}
+                </span>
+                <span className="article-reading-time">
+                  <i className="far fa-clock"></i>
+                  {readingTime} phút đọc
+                </span>
+              </div>
+              <h1 className="article-title">{article.title}</h1>
+              <div className="article-author">
+                <i className="fas fa-user-md"></i>
+                <span>Tác giả: {article.author}</span>
               </div>
             </div>
 
-            {relatedArticles.length > 0 && (
-              <div className="related-articles">
-                <h3>Bài viết liên quan</h3>
-                <div className="related-articles-grid">
-                  {relatedArticles.map((relatedArticle) => (
-                    <div
-                      key={relatedArticle.id}
-                      className="related-article-card"
-                    >
-                      <Link to={`/parent/health-guide/${relatedArticle.id}`}>
-                        <div className="related-article-image">
-                          <img
-                            src={relatedArticle.imageUrl}
-                            alt={relatedArticle.title}
-                          />
-                        </div>
-                        <div className="related-article-content">
-                          <h4>{relatedArticle.title}</h4>
-                          <p className="related-summary">
-                            {relatedArticle.summary.substring(0, 80)}...
-                          </p>
-                          <div className="related-meta">
-                            <span className="related-article-date">
-                              <i className="far fa-calendar-alt"></i>
-                              {formatDate(relatedArticle.publishDate)}
-                            </span>
-                            <span className="related-article-category">
-                              {relatedArticle.category}
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
+            <div className="article-detail-content">
+              <div className="article-main-image">
+                <img src={article.imageUrl} alt={article.title} />
+              </div>
+
+              <div className="article-summary">
+                <p>{article.summary}</p>
+              </div>
+
+              <div
+                className="article-body"
+                dangerouslySetInnerHTML={{ __html: article.content }}
+              ></div>
+
+              <div className="article-tags">
+                <h4>Từ khóa:</h4>
+                <div className="tags-list">
+                  {article.tags.map((tag, index) => (
+                    <span key={index} className="tag">
+                      #{tag}
+                    </span>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-        </>
-      )}
+
+              {relatedArticles.length > 0 && (
+                <div className="related-articles">
+                  <h3>Bài viết liên quan</h3>
+                  <div className="related-articles-grid">
+                    {relatedArticles.map((relatedArticle) => (
+                      <div
+                        key={relatedArticle.id}
+                        className="related-article-card"
+                      >
+                        <Link to={`/parent/health-guide/${relatedArticle.id}`}>
+                          <div className="related-article-image">
+                            <img
+                              src={relatedArticle.imageUrl}
+                              alt={relatedArticle.title}
+                            />
+                          </div>
+                          <div className="related-article-content">
+                            <h4>{relatedArticle.title}</h4>
+                            <p className="related-summary">
+                              {relatedArticle.summary.substring(0, 80)}...
+                            </p>
+                            <div className="related-meta">
+                              <span className="related-article-date">
+                                <i className="far fa-calendar-alt"></i>
+                                {formatDate(relatedArticle.publishDate)}
+                              </span>
+                              <span className="related-article-category">
+                                {relatedArticle.category}
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };

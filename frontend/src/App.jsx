@@ -1,63 +1,45 @@
 import React, { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import AOS from "aos";
-import "aos/dist/aos.css";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { StudentDataProvider } from "./context/StudentDataContext";
-import { NotificationProvider } from "./context/NotificationContext";
-import "./styles/global.css";
-
-// Import routes from the route files
+import { BrowserRouter as Router, Routes } from "react-router-dom";
 import AppRoutes from "./routes";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { StudentDataProvider } from "./context/StudentDataContext";
 
-function AppRoutesContainer() {
+// Import CSS theo thứ tự: reset -> global -> layout-fixes
+import "./styles/reset.css";
+import "./styles/global.css";
+import "./styles/layout-fixes.css";
+import "./App.css";
+
+// Component con để có thể sử dụng useAuth hook
+const AppContent = () => {
   const { currentUser } = useAuth();
 
-  useEffect(() => {
-    AOS.init({
-      duration: 1000,
-      once: true,
-      easing: "ease",
-    });
-  }, []);
+  // Remove scroll effect to prevent conflicts with layout
+  // Layout components will handle scroll positioning
 
-  return <Routes>{AppRoutes({ currentUser })}</Routes>;
-}
-
-export default function App() {
   return (
-    <AuthProvider>
-      <StudentDataProvider>
-        <NotificationProvider>
-          <Router>
-            <div className="app">
-              <ErrorBoundary>
-                <AppRoutesContainer />
-              </ErrorBoundary>
-              <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-              />
-            </div>
-          </Router>
-        </NotificationProvider>
-      </StudentDataProvider>
-    </AuthProvider>
+    <div className="app">
+      <Routes>{AppRoutes({ currentUser })}</Routes>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
+        <StudentDataProvider>
+          <NotificationProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </NotificationProvider>
+        </StudentDataProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
+
+export default App;

@@ -6,13 +6,14 @@ import com.fpt.medically_be.dto.request.VaccinationRequestDTO;
 import com.fpt.medically_be.dto.request.VaccinationUpdateNoteRequest;
 import com.fpt.medically_be.dto.response.StudentVaccinationHistoryResponse;
 import com.fpt.medically_be.dto.response.VaccinationCreateWithHeathResponse;
-import com.fpt.medically_be.dto.response.VaccineResponse;
+import org.springframework.security.core.Authentication;
+
 
 import java.util.List;
 
 public interface VaccinationService {
 
-    void recordVaccination(VaccinationCreateDTO request);
+    void recordVaccination(VaccinationCreateDTO request, Authentication authentication);
     List<VaccinationCreateWithHeathResponse> addParentDeclaredVaccination(Long healthProfileId, List<VaccinationRequestDTO> dto);
     StudentVaccinationHistoryResponse getVaccinationHistoryForStudent(Long parentId, Long studentId);
     void updateVaccinationNote(VaccinationUpdateNoteRequest dto);

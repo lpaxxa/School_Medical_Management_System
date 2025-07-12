@@ -1,259 +1,281 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
-import { useStudentData } from "../../../../context/StudentDataContext";
-import { useNotification } from "../../../../context/NotificationContext";
-import logoImage from "../../../../assets/A1.jpg";
 import "./Header.css";
 
 const Header = () => {
   const { currentUser, logout } = useAuth();
-  const { parentInfo } = useStudentData();
-  const { unreadCount } = useNotification() || { unreadCount: 0 };
-  const navigate = useNavigate();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(
+    new Date().toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+  );
 
-  // Xử lý scroll để thêm class .scrolled và điều chỉnh navigation
+  // Handle scroll for header animation with throttle
   useEffect(() => {
     const handleScroll = () => {
-      const header = document.querySelector(".header");
-      const navigation = document.querySelector(".main-navigation");
-
-      if (window.scrollY > 50) {
-        header?.classList.add("scrolled");
-        // Điều chỉnh navigation để stick sát với header khi scroll
-        if (navigation) {
-          navigation.style.top = "60px"; // Header height khi scroll
-        }
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
       } else {
-        header?.classList.remove("scrolled");
-        // Khôi phục position ban đầu của navigation
-        if (navigation) {
-          navigation.style.top = "70px"; // Header height ban đầu
-        }
+        setIsScrolled(false);
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    // Add throttling to improve performance
+    let timeoutId = null;
+    const throttledHandleScroll = () => {
+      if (timeoutId === null) {
+        timeoutId = setTimeout(() => {
+          handleScroll();
+          timeoutId = null;
+        }, 100);
+      }
+    };
+
+    window.addEventListener("scroll", throttledHandleScroll);
+
+    // Update current date every minute
+    const dateInterval = setInterval(() => {
+      setCurrentDate(
+        new Date().toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })
+      );
+    }, 60000);
+
+    return () => {
+      window.removeEventListener("scroll", throttledHandleScroll);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      clearInterval(dateInterval);
+    };
   }, []);
 
-  // Update thời gian thực
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
+  // Toggle mobile menu
   const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const toggleDropdown = () => {
-    setDropdownOpen(!dropdownOpen);
-    setNotificationsOpen(false);
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMobileMenuOpen && !event.target.closest(".parent-header")) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isMobileMenuOpen]);
+
+  // Get user display name from context
+  const getDisplayName = () => {
+    if (!currentUser) return "Phụ huynh";
+
+    // Try different name fields from AuthContext
+    return (
+      currentUser.fullName ||
+      currentUser.name ||
+      currentUser.username ||
+      "Phụ huynh"
+    );
   };
 
-  const toggleNotifications = () => {
-    setNotificationsOpen(!notificationsOpen);
-    setDropdownOpen(false);
+  // Check if current path matches the link
+  const isActiveLink = (path) => {
+    return location.pathname === path;
   };
 
-  // Kiểm tra path hiện tại để áp dụng class active
-  const isActive = (path) => {
-    if (path === "/parent") {
-      return location.pathname === "/parent" ? "active" : "";
-    }
-    return location.pathname === path ? "active" : "";
+  // Check if current path matches the main nav link
+  const isActiveMainNav = (path) => {
+    return location.pathname === path;
   };
-
-  // Xác định tên hiển thị ưu tiên sử dụng từ parentInfo
-  const displayName = parentInfo?.fullName || currentUser?.email || "Phụ huynh";
 
   return (
-    <header className="header">
-      {/* Top Header Row - Logo and Actions */}
-      <div className="header-top">
-        <div className="container">
-          <nav className="header-nav">
-            {/* Logo area - Sử dụng logo được import */}
-            <Link to="/parent" className="header-logo">
-              <img src={logoImage} alt="School Medical System Logo" />
-              <div className="logo-text">
+    <header className={`parent-header ${isScrolled ? "scrolled" : ""}`}>
+      <div className="parent-header-top">
+        <div className="parent-container">
+          <div className="parent-header-nav">
+            <Link to="/parent" className="parent-header-logo">
+              <img src="/logo.svg" alt="School Medical" />
+              <div className="parent-logo-text">
                 School <span>Medical</span>
               </div>
             </Link>
 
-            {/* Mobile toggle */}
-            <button className="mobile-menu-toggle" onClick={toggleMobileMenu}>
-              <i
-                className={`fas ${mobileMenuOpen ? "fa-times" : "fa-bars"}`}
-              ></i>
-            </button>
+            <nav>
+              <ul
+                className={`parent-nav-list ${
+                  isMobileMenuOpen ? "active" : ""
+                }`}
+              >
+                <li>
+                  <Link
+                    to="/parent"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent") ? "active" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Trang chủ
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/parent/introduction"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent/introduction") ? "active" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Giới thiệu
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/parent/health-guide"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent/health-guide") ? "active" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Cẩm nang
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/parent/community"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent/community") ? "active" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Cộng đồng
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/parent/contact"
+                    className={`parent-nav-link ${
+                      isActiveLink("/parent/contact") ? "active" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Liên hệ
+                  </Link>
+                </li>
+              </ul>
 
-            {/* Nav list - giữ nguyên các mục ban đầu của header */}
-            <ul className={`nav-list ${mobileMenuOpen ? "active" : ""}`}>
-              <li>
-                <Link
-                  to="/parent"
-                  className={`nav-link ${isActive("/parent")}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Trang chủ
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/parent/introduction"
-                  className={`nav-link ${
-                    location.pathname.includes("/introduction") ? "active" : ""
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Giới thiệu
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/parent/health-guide"
-                  className={`nav-link ${
-                    location.pathname.includes("/health-guide") ? "active" : ""
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Cẩm nang
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/parent/community"
-                  className={`nav-link ${
-                    location.pathname.includes("/community") ? "active" : ""
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Cộng đồng
-                </Link>
-              </li>
-            </ul>
+              <button
+                className="parent-mobile-menu-toggle"
+                onClick={toggleMobileMenu}
+                aria-label="Toggle mobile menu"
+              >
+                <i
+                  className={`fas ${isMobileMenuOpen ? "fa-times" : "fa-bars"}`}
+                ></i>
+              </button>
+            </nav>
 
-            {/* Actions area - Cập nhật phần thông báo với badge */}
-            <div className="header-actions">
-              <Link to="/parent/notifications" className="notification-btn">
+            <div className="parent-header-actions">
+              <Link
+                to="/parent/notifications"
+                className="parent-notification-btn"
+              >
                 <i className="fas fa-bell"></i>
-                {unreadCount > 0 && (
-                  <span className="notification-badge">{unreadCount}</span>
-                )}
               </Link>
 
               {currentUser ? (
-                <div className="user-menu">
-                  <span className="user-greeting">
+                <>
+                  <div className="parent-user-greeting">
                     <i className="fas fa-user-circle"></i>
-                    Xin chào, {displayName}
-                  </span>
-                  <button className="logout-btn" onClick={handleLogout}>
-                    <i className="fas fa-sign-out-alt"></i>{" "}
+                    <span>{getDisplayName()}</span>
+                  </div>
+                  <button className="parent-logout-btn" onClick={logout}>
+                    <i className="fas fa-sign-out-alt"></i>
                     <span>Đăng xuất</span>
                   </button>
-                </div>
+                </>
               ) : (
-                <Link to="/login" className="login-btn">
-                  <i className="fas fa-sign-in-alt"></i> <span>Đăng nhập</span>
+                <Link to="/login" className="parent-login-btn">
+                  <i className="fas fa-sign-in-alt"></i>
+                  <span>Đăng nhập</span>
                 </Link>
               )}
-            </div>
-          </nav>
-        </div>
-      </div>
-
-      {/* Bottom Header Row - Main Navigation */}
-      <div className="header-navigation">
-        <div className="nav-wrapper">
-          <ul className="main-nav-list">
-            <li className="main-nav-item">
-              <Link
-                to="/parent/medical-records"
-                className={`main-nav-link ${
-                  location.pathname.includes("/medical-records") ? "active" : ""
-                }`}
-              >
-                Hồ sơ bệnh án học sinh
-              </Link>
-            </li>
-            <li className="main-nav-item">
-              <Link
-                to="/parent/student-profile"
-                className={`main-nav-link ${
-                  location.pathname.includes("/student-profile") ? "active" : ""
-                }`}
-              >
-                Hồ sơ học sinh
-              </Link>
-            </li>
-            <li className="main-nav-item">
-              <Link
-                to="/parent/send-medicine"
-                className={`main-nav-link ${
-                  location.pathname.includes("/send-medicine") ? "active" : ""
-                }`}
-              >
-                Gửi thuốc
-              </Link>
-            </li>
-            <li className="main-nav-item">
-              <Link
-                to="/parent/health-declaration"
-                className={`main-nav-link ${
-                  location.pathname.includes("/health-declaration")
-                    ? "active"
-                    : ""
-                }`}
-              >
-                Khai báo sức khỏe học sinh
-              </Link>
-            </li>
-          </ul>
-
-          {/* Quick Info Panel */}
-          <div className="nav-quick-info">
-            <div className="quick-info-item">
-              <i className="fas fa-calendar-day"></i>
-              <span>
-                {currentTime.toLocaleDateString("vi-VN", {
-                  weekday: "short",
-                  day: "2-digit",
-                  month: "2-digit",
-                })}
-              </span>
-            </div>
-            <div className="quick-info-item">
-              <i className="fas fa-clock"></i>
-              <span>
-                {currentTime.toLocaleTimeString("vi-VN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-            <div className="quick-info-item health-status">
-              <i className="fas fa-heart"></i>
-              <span>Khỏe mạnh</span>
             </div>
           </div>
         </div>
       </div>
+
+      {!isScrolled && (
+        <div className="parent-header-navigation">
+          <div className="parent-nav-wrapper">
+            <ul className="parent-main-nav-list">
+              <li className="parent-main-nav-item">
+                <Link
+                  to="/parent/health-declaration"
+                  className={`parent-main-nav-link ${
+                    isActiveMainNav("/parent/health-declaration")
+                      ? "active"
+                      : ""
+                  }`}
+                >
+                  Khai báo sức khỏe
+                </Link>
+              </li>
+              <li className="parent-main-nav-item">
+                <Link
+                  to="/parent/student-profile"
+                  className={`parent-main-nav-link ${
+                    isActiveMainNav("/parent/student-profile") ? "active" : ""
+                  }`}
+                >
+                  Hồ sơ học sinh
+                </Link>
+              </li>
+              <li className="parent-main-nav-item">
+                <Link
+                  to="/parent/medical-records"
+                  className={`parent-main-nav-link ${
+                    isActiveMainNav("/parent/medical-records") ? "active" : ""
+                  }`}
+                >
+                  Hồ sơ bệnh án
+                </Link>
+              </li>
+              <li className="parent-main-nav-item">
+                <Link
+                  to="/parent/send-medicine"
+                  className={`parent-main-nav-link ${
+                    isActiveMainNav("/parent/send-medicine") ? "active" : ""
+                  }`}
+                >
+                  Gửi thuốc
+                </Link>
+              </li>
+            </ul>
+
+            <div className="parent-nav-quick-info">
+              <div className="parent-quick-info-item health-status">
+                <i className="fas fa-heartbeat"></i>
+                <span>Tình trạng: Bình thường</span>
+              </div>
+              <div className="parent-quick-info-item">
+                <i className="fas fa-calendar"></i>
+                <span>{currentDate}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

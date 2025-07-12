@@ -42,7 +42,12 @@ export const VaccinationProvider = ({ children }) => {
   // 2. Student History Modal
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [selectedStudentHistory, setSelectedStudentHistory] = useState({ student: null, history: [] });
+  const [selectedStudentHistory, setSelectedStudentHistory] = useState({ 
+    student: null, 
+    history: [],
+    studentInfo: null,
+    vaccinationDate: null 
+  });
 
   // 3. Update Note Modal
   const [showUpdateNoteModal, setShowUpdateNoteModal] = useState(false);
@@ -198,17 +203,53 @@ export const VaccinationProvider = ({ children }) => {
   };
 
   // 2. Student History Modal
-  const handleShowHistoryModal = useCallback(async (student) => {
+  const handleShowHistoryModal = useCallback(async (student, vaccinationDate = null) => {
     setShowHistoryModal(true);
     setHistoryLoading(true);
     setShowStudentListModal(false); // Hide student list modal
 
     try {
-        const historyData = await vaccinationApiService.getAllVaccinationByHealthProfileId(student.healthProfileId);
-        setSelectedStudentHistory({ student, history: historyData });
+        // Use existing API that works with healthProfileId
+        const healthProfileId = student.healthProfileId || student.id;
+        const historyData = await vaccinationApiService.getAllVaccinationByHealthProfileId(healthProfileId);
+        
+        // Filter by vaccinationDate if provided
+        let filteredVaccinations = historyData || [];
+        if (vaccinationDate) {
+          const planDate = new Date(vaccinationDate).toDateString();
+          filteredVaccinations = filteredVaccinations.filter(vaccination => {
+            const vaccDate = new Date(vaccination.vaccinationDate).toDateString();
+            return vaccDate === planDate;
+          });
+        }
+        
+        setSelectedStudentHistory({ 
+          student: {
+            ...student,
+            studentName: student.fullName || student.studentName,
+            className: student.className
+          }, 
+          history: filteredVaccinations,
+          studentInfo: {
+            studentId: student.id || student.healthProfileId,
+            studentName: student.fullName || student.studentName,
+            className: student.className
+          },
+          vaccinationDate: vaccinationDate
+        });
     } catch (error) {
-        toast.error(`Không thể tải lịch sử tiêm của ${student.fullName}.`);
-        setSelectedStudentHistory({ student, history: [] });
+        console.error('Error fetching vaccination history:', error);
+        toast.error(`Không thể tải lịch sử tiêm của ${student.fullName || student.studentName}.`);
+        setSelectedStudentHistory({ 
+          student, 
+          history: [],
+          studentInfo: {
+            studentId: student.id || student.healthProfileId,
+            studentName: student.fullName || student.studentName,
+            className: student.className
+          },
+          vaccinationDate: vaccinationDate
+        });
     } finally {
         setHistoryLoading(false);
     }
@@ -216,8 +257,24 @@ export const VaccinationProvider = ({ children }) => {
 
   const handleCloseHistoryModal = () => {
     setShowHistoryModal(false);
-    setSelectedStudentHistory({ student: null, history: [] });
+    setSelectedStudentHistory({ 
+      student: null, 
+      history: [],
+      studentInfo: null,
+      vaccinationDate: null 
+    });
     setShowStudentListModal(true); // Re-show student list modal
+  };
+
+  // For PostVaccinationMonitoring - just close without opening StudentListModal
+  const handleCloseHistoryModalOnly = () => {
+    setShowHistoryModal(false);
+    setSelectedStudentHistory({ 
+      student: null, 
+      history: [],
+      studentInfo: null,
+      vaccinationDate: null 
+    });
   };
 
   // 3. Update Note Modal
@@ -236,12 +293,20 @@ export const VaccinationProvider = ({ children }) => {
   const handleUpdateNote = async (notes) => {
     if (!recordToUpdate) return;
     try {
-        await vaccinationApiService.updateVaccinationNote(recordToUpdate.id, notes);
+        // For the new API structure, we need to find the vaccination record ID
+        // The record from new API might not have direct ID for update
+        // We need to use the vaccination record ID from the history
+        const vaccinationId = recordToUpdate.id || recordToUpdate.vaccinationId;
+        
+        await vaccinationApiService.updateVaccinationNote(vaccinationId, notes);
         toast.success('Cập nhật ghi chú thành công!');
         handleCloseUpdateNoteModal();
+        
         // Refresh history data after update
         if (selectedStudentHistory.student) {
-            handleShowHistoryModal(selectedStudentHistory.student);
+            const studentData = selectedStudentHistory.student;
+            const vaccinationDate = selectedStudentHistory.vaccinationDate;
+            handleShowHistoryModal(studentData, vaccinationDate);
         }
     } catch (err) {
         toast.error('Cập nhật ghi chú thất bại.');
@@ -283,6 +348,7 @@ export const VaccinationProvider = ({ children }) => {
     selectedStudentHistory,
     handleShowHistoryModal,
     handleCloseHistoryModal,
+    handleCloseHistoryModalOnly,
     
     showUpdateNoteModal,
     recordToUpdate,
