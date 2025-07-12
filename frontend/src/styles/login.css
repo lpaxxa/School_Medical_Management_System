@@ -20,7 +20,8 @@ body {
 
 /* Phần banner trái */
 .login-banner {
-  display: none; /* Ẩn trên mobile */
+  display: block !important;
+  flex: 1;
   position: relative;
   background-color: #0c4ca3;
   overflow: hidden;
@@ -96,6 +97,7 @@ body {
   animation: fadeInUp 1.2s ease;
   transform: translateY(0);
   letter-spacing: 1px;
+  color: #fff;
 }
 
 .login-banner-content h2 {
@@ -106,6 +108,7 @@ body {
   letter-spacing: 2px;
   animation: fadeInUp 1s ease;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  color: #fff;
 }
 
 .login-banner-content p {
@@ -115,6 +118,7 @@ body {
   animation: fadeInUp 1.4s ease;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   letter-spacing: 0.5px;
+  color: #fff;
 }
 
 @keyframes fadeInUp {
@@ -220,31 +224,48 @@ body {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .input-control i {
   position: absolute;
-  left: 12px;
+  left: 14px;
   color: #6B7280;
-  font-size: 16px;
+  font-size: 18px;
   z-index: 10;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .input-control input {
-  padding-left: 40px !important;
+  padding-left: 44px !important;
   width: 100%;
-  height: 46px;
-  border: 1px solid #D1D5DB;
+  height: 44px;
+  border: 1.5px solid #D1D5DB;
   border-radius: 8px;
   font-size: 16px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   background-color: #F9FAFB;
+  box-sizing: border-box;
+  display: block;
 }
 
 .input-control input:focus {
   border-color: var(--primary-color);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.10);
+}
+
+.input-control input:not(:placeholder-shown):valid {
+  border-color: #28a745;
+  background-color: #f8fff8;
+  box-shadow: 0 0 0 1.5px #28a74533;
+}
+
+.input-control input:not(:placeholder-shown):invalid {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 1.5px #dc354533;
 }
 
 /* Form actions (remember me & forgot password) */

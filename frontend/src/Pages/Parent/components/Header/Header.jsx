@@ -76,6 +76,29 @@ const Header = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [isMobileMenuOpen]);
 
+  // Thêm ripple effect cho parent-main-nav-link
+  useEffect(() => {
+    const handleRipple = (e) => {
+      const link = e.currentTarget;
+      const ripple = document.createElement("span");
+      ripple.className = "parent-main-nav-link-ripple";
+      const rect = link.getBoundingClientRect();
+      ripple.style.left = `${e.clientX - rect.left}px`;
+      ripple.style.top = `${e.clientY - rect.top}px`;
+      link.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    };
+    const navLinks = document.querySelectorAll(".parent-main-nav-link");
+    navLinks.forEach((link) => {
+      link.addEventListener("click", handleRipple);
+    });
+    return () => {
+      navLinks.forEach((link) => {
+        link.removeEventListener("click", handleRipple);
+      });
+    };
+  }, []);
+
   // Get user display name from context
   const getDisplayName = () => {
     if (!currentUser) return "Phụ huynh";

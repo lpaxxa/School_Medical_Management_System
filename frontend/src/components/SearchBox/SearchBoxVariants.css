@@ -1,9 +1,7 @@
 /* SearchBox Variants - Specific styles for different pages */
 
 /* Health Guide Search Variant - Sky Blue Theme */
-.health-guide-search-variant {
-  /* Container specific overrides */
-}
+
 
 .health-guide-search-variant .modern-search-input {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
@@ -27,13 +25,12 @@
 }
 
 /* Community Search Variant - Amber/Orange Theme */
-.community-search-variant {
-  /* Container specific overrides */
-}
+
 
 .community-search-variant .modern-search-input {
   background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%) !important;
   border-color: #fdba74 !important;
+  margin-top: 15px;
 }
 
 .community-search-variant .modern-search-input:focus {
@@ -45,6 +42,7 @@
 .community-search-variant .modern-search-button {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
   box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3) !important;
+  margin-top: 8px;
 }
 
 .community-search-variant .modern-search-button:hover {
@@ -53,9 +51,7 @@
 }
 
 /* Default Search Variant - Blue Theme */
-.default-search-variant {
-  /* Container specific overrides */
-}
+
 
 .default-search-variant .modern-search-input {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;

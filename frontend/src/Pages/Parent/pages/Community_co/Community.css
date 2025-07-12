@@ -98,6 +98,39 @@
   font-size: 1.1rem;
 }
 
+.community-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.refresh-posts-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  gap: 8px;
+}
+
+.refresh-posts-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.refresh-posts-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Filter bar */
 .community-filter-bar {
   grid-area: filter;
@@ -175,6 +208,26 @@
   min-width: 200px;
   flex: 1;
   max-width: 400px;
+}
+
+/* Search results info */
+.search-results-info {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  color: #495057;
+  font-size: 14px;
+}
+
+.search-results-info p {
+  margin: 0;
+}
+
+.search-results-info strong {
+  color: #015C92;
+  font-weight: 600;
 }
 
 /* Search styling is handled by SearchBox component with community-search variant */
@@ -958,6 +1011,7 @@
   }
 
   .search-bar {
+    margin-top: 10px;
     max-width: none;
     width: 100%;
   }

@@ -42,6 +42,16 @@ const SendMedicine = () => {
     prescriptionImage: null,
   });
 
+  // State for temporary image upload
+  const [tempImageUpload, setTempImageUpload] = useState({
+    file: null,
+    preview: null,
+    uploadedImageBase64: null, // Base64 string from upload API
+    isUploading: false,
+    uploadError: null,
+    tempRequestId: null, // ID của yêu cầu tạm thời để upload ảnh
+  });
+
   const [errors, setErrors] = useState({});
 
   const { students, isLoading: studentsLoading } = useStudentData();
@@ -128,11 +138,34 @@ const SendMedicine = () => {
     } catch (error) {
       setHistoryError(
         error.response?.data?.message ||
-          "Không thể tải lịch sử yêu cầu thuốc. Vui lòng thử lại sau."
+          error.message ||
+          "Không thể tải lịch sử yêu cầu thuốc"
       );
-      setMedicationHistory([]);
+      console.error("Error fetching medication history:", error);
     } finally {
       setIsHistoryLoading(false);
+    }
+  };
+
+  // Function để refresh dữ liệu
+  const refreshData = () => {
+    if (activeTab === "history") {
+      fetchMedicationHistory();
+    }
+    // Reset form nếu đang ở tab form
+    if (activeTab === "form") {
+      setFormData({
+        studentId: "",
+        medicineName: "",
+        dosage: "",
+        frequency: "",
+        startDate: "",
+        endDate: "",
+        timeToTake: [],
+        notes: "",
+        prescriptionImage: null,
+      });
+      setErrors({});
     }
   };
 
@@ -146,12 +179,12 @@ const SendMedicine = () => {
       if (value && !frequencyPattern.test(value)) {
         setErrors({
           ...errors,
-          frequency: "Tần suất chỉ được nhập số, không chứa chữ hay ký tự đặc biệt",
+          frequency:
+            "Tần suất chỉ được nhập số, không chứa chữ hay ký tự đặc biệt",
         });
         return; // Không cập nhật giá trị nếu không hợp lệ
       }
     }
-    
 
     // Validation cho liều lượng - chỉ cho phép số và đơn vị
     if (name === "dosage") {
@@ -225,33 +258,35 @@ const SendMedicine = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setErrors({
-          ...errors,
-          prescriptionImage: "File không được vượt quá 5MB",
+        setTempImageUpload({
+          ...tempImageUpload,
+          uploadError: "File không được vượt quá 5MB",
         });
         return;
       }
 
       if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
-        setErrors({
-          ...errors,
-          prescriptionImage: "Chỉ chấp nhận file ảnh (JPEG, PNG, JPG)",
+        setTempImageUpload({
+          ...tempImageUpload,
+          uploadError: "Chỉ chấp nhận file ảnh (JPEG, PNG, JPG)",
         });
         return;
       }
 
-      setFormData({
-        ...formData,
-        prescriptionImage: file,
+      // Clear any previous errors
+      setTempImageUpload({
+        ...tempImageUpload,
+        uploadError: null,
       });
 
       // Create image preview
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({
-          ...formData,
-          prescriptionImage: file,
-          prescriptionImagePreview: reader.result,
+        setTempImageUpload({
+          ...tempImageUpload,
+          file: file,
+          preview: reader.result,
+          uploadError: null,
         });
       };
       reader.readAsDataURL(file);
@@ -265,6 +300,35 @@ const SendMedicine = () => {
       }
     }
   };
+
+  // Function to upload image temporarily - REMOVED temp request creation
+  const uploadImageTemporary = async () => {
+    if (!tempImageUpload.file) {
+      setTempImageUpload({
+        ...tempImageUpload,
+        uploadError: "Vui lòng chọn file ảnh trước",
+      });
+      return;
+    }
+
+    // Chỉ lưu file và tạo preview, không upload ngay
+    // Upload sẽ được thực hiện sau khi tạo request thật
+    console.log("� Image file prepared for upload:", tempImageUpload.file.name);
+
+    setTempImageUpload((prev) => ({
+      ...prev,
+      isUploading: false,
+      uploadError: null,
+    }));
+
+    showNotification(
+      "success",
+      "Ảnh đã sẵn sàng!",
+      "Ảnh sẽ được upload khi bạn gửi yêu cầu thuốc."
+    );
+  };
+
+  // Function to create temporary request ID - REMOVED (không cần nữa)
 
   const validateForm = () => {
     const newErrors = {};
@@ -290,53 +354,153 @@ const SendMedicine = () => {
       newErrors.timeToTake = "Vui lòng chọn thời gian uống thuốc";
     }
 
+    // Validation cho ảnh: chỉ warning, không chặn submit
+    if (
+      tempImageUpload.file &&
+      !tempImageUpload.uploadedImageBase64 &&
+      !tempImageUpload.isUploading
+    ) {
+      // Chỉ hiển thị warning, không chặn submit
+      console.warn(
+        "⚠️ Ảnh đã chọn nhưng chưa upload, sẽ gửi yêu cầu không có ảnh"
+      );
+    }
+
+    console.log("Form validation result:", {
+      hasErrors: Object.keys(newErrors).length > 0,
+      errors: newErrors,
+      formData: {
+        ...formData,
+        prescriptionImage: formData.prescriptionImage ? "[FILE]" : null,
+      },
+      tempImageUpload: {
+        hasFile: !!tempImageUpload.file,
+        hasUploadedBase64: !!tempImageUpload.uploadedImageBase64,
+        isUploading: tempImageUpload.isUploading,
+      },
+    });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Cập nhật handleSubmit để xử lý hình ảnh và đúng format API
+  // Cập nhật handleSubmit để tạo request trước rồi upload ảnh sau
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("🚀 Form submit started...");
 
     if (!validateForm()) {
+      console.log("❌ Form validation failed, stopping submission");
       return;
     }
 
+    console.log("✅ Form validation passed, proceeding with submission");
     setLoading(true);
 
     try {
       // Lấy token xác thực
       const token = localStorage.getItem("authToken");
       if (!token) {
+        console.error("❌ No auth token found");
         showNotification("error", "Lỗi xác thực", "Vui lòng đăng nhập lại");
         setLoading(false);
         return;
       }
 
-      // Use the medication request service instead of direct API call
-      const response = await medicationRequestService.submitMedicationRequest({
-        studentId: formData.studentId,
+      // Bước 1: Tạo medication request trước (không có ảnh)
+      const requestData = {
+        studentId: parseInt(formData.studentId),
         medicineName: formData.medicineName,
         dosage: formData.dosage,
-        frequency: formData.frequency,
+        frequency: parseInt(formData.frequency),
         startDate: formData.startDate,
         endDate: formData.endDate,
         timeToTake: formData.timeToTake,
         notes: formData.notes || "",
-        prescriptionImage: formData.prescriptionImage,
+        prescriptionImageBase64: null, // Tạm thời null, sẽ upload ảnh sau
+      };
+
+      console.log("📝 Creating medication request with data:", {
+        ...requestData,
+        prescriptionImageBase64: null,
       });
 
-      setFormSubmitted(true);
+      // Tạo yêu cầu thuốc
+      const apiUrl =
+        "http://localhost:8080/api/v1/parent-medication-requests/submit-request";
+      console.log("📡 Calling API:", apiUrl);
 
-      // Scroll to top to show success message
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      console.log("📨 API Response status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ API Error:", response.status, errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+
+      const responseData = await response.json();
+      console.log("✅ Submit response:", responseData);
+
+      // Lấy ID của request vừa tạo
+      let requestId = null;
+      if (responseData && responseData.data && responseData.data.id) {
+        requestId = responseData.data.id;
+      } else if (responseData && responseData.id) {
+        requestId = responseData.id;
+      }
+
+      if (!requestId) {
+        throw new Error("Không thể lấy ID của yêu cầu vừa tạo");
+      }
+
+      console.log("✅ Created request with ID:", requestId);
+
+      // Bước 2: Upload ảnh nếu có
+      if (tempImageUpload.file) {
+        console.log("📤 Uploading image to request ID:", requestId);
+
+        const uploadFormData = new FormData();
+        uploadFormData.append("image", tempImageUpload.file);
+
+        const uploadEndpoint = `http://localhost:8080/api/v1/parent-medication-requests/${requestId}/upload-confirmation-image`;
+        console.log("📡 Uploading to endpoint:", uploadEndpoint);
+
+        const uploadResponse = await fetch(uploadEndpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: uploadFormData,
+        });
+
+        if (uploadResponse.ok) {
+          console.log("✅ Image uploaded successfully to request:", requestId);
+        } else {
+          console.warn(
+            "⚠️ Image upload failed, but request was created successfully"
+          );
+          const uploadError = await uploadResponse.text();
+          console.warn("Upload error:", uploadError);
+        }
+      } else {
+        console.log("ℹ️ No image to upload");
+      }
 
       // Refresh lịch sử yêu cầu thuốc nếu cần
       if (activeTab === "history") {
         fetchMedicationHistory();
       }
 
-      // Reset form sau khi gửi thành công
+      // Reset form và temp image data sau khi gửi thành công
       setFormData({
         studentId: "",
         medicineName: "",
@@ -349,20 +513,47 @@ const SendMedicine = () => {
         prescriptionImage: null,
       });
 
-      // Show success notification modal instead of toast
+      // Reset temp image upload state
+      setTempImageUpload({
+        file: null,
+        preview: null,
+        uploadedImageBase64: null,
+        isUploading: false,
+        uploadError: null,
+        tempRequestId: null,
+      });
+
+      // Show success notification modal
       showNotification(
         "success",
         "Gửi yêu cầu thành công!",
-        "Yêu cầu dùng thuốc đã được gửi thành công."
+        tempImageUpload.file
+          ? "Yêu cầu dùng thuốc và ảnh đã được gửi thành công."
+          : "Yêu cầu dùng thuốc đã được gửi thành công."
       );
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Có lỗi xảy ra, vui lòng thử lại sau.";
-      // Show error notification modal instead of toast
+      console.error("❌ Submit error:", error);
+
+      let errorMessage = "Có lỗi xảy ra, vui lòng thử lại sau.";
+
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      // Show error notification modal
       showNotification("error", "Gửi yêu cầu thất bại!", errorMessage);
     } finally {
+      console.log("🔄 Setting loading to false");
       setLoading(false);
     }
   };
@@ -599,42 +790,163 @@ const SendMedicine = () => {
   const [confirmationData, setConfirmationData] = useState(null);
   const [confirmationLoading, setConfirmationLoading] = useState(false);
 
+  // State cho pagination trong confirmation modal
+  const [confirmationList, setConfirmationList] = useState([]);
+  const [currentConfirmationIndex, setCurrentConfirmationIndex] = useState(0);
+
   const [modalErrors, setModalErrors] = useState({});
 
   // Function để fetch confirmation data
   const fetchConfirmationData = async (requestId) => {
     setConfirmationLoading(true);
     try {
-      // Use the service to get medication administration details
-      const response =
-        await medicationRequestService.getMedicationAdministrationDetails(
-          requestId,
-          API_ENDPOINTS
-        );
+      // Sử dụng API mới
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        showNotification("error", "Lỗi xác thực", "Vui lòng đăng nhập lại");
+        setConfirmationLoading(false);
+        return;
+      }
 
-      // Check if response has the new JSON format structure
-      const confirmationData =
-        response.data &&
-        response.data.content &&
-        response.data.content.length > 0
-          ? response.data.content[0]
-          : response;
-
-      setConfirmationData(confirmationData);
-      setIsConfirmationModalOpen(true);
-    } catch (error) {
-      // Show error notification modal instead of toast
-      showNotification(
-        "error",
-        "Lỗi tải thông tin",
-        error.response?.data?.message ||
-          error.message ||
-          "Không thể tải thông tin xác nhận. Vui lòng thử lại."
+      const response = await fetch(
+        `http://localhost:8080/api/v1/medication-administrations/all/medication-instruction/${requestId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const responseData = await response.json(); // Debug log để kiểm tra dữ liệu nhận được
+      console.log("Confirmation API Response:", responseData);
+      console.log("Response status:", responseData.status);
+      console.log("Response data length:", responseData.data?.length || 0);
+
+      // Kiểm tra cấu trúc response mới
+      if (
+        responseData.status === "success" &&
+        responseData.data &&
+        responseData.data.length > 0
+      ) {
+        console.log(`Found ${responseData.data.length} confirmation records`);
+        setConfirmationList(responseData.data);
+        setCurrentConfirmationIndex(0); // Bắt đầu từ trang đầu tiên
+        setConfirmationData(responseData.data[0]); // Hiển thị item đầu tiên
+        setIsConfirmationModalOpen(true);
+      } else {
+        showNotification(
+          "error",
+          "Không có dữ liệu",
+          "Không tìm thấy thông tin xác nhận cho yêu cầu này."
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching confirmation data:", error);
+
+      // Show error notification modal instead of toast
+      let errorMessage = "Không thể tải thông tin xác nhận. Vui lòng thử lại.";
+
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+
+        switch (error.response.status) {
+          case 404:
+            errorMessage = "Không tìm thấy thông tin xác nhận cho yêu cầu này.";
+            break;
+          case 403:
+            errorMessage = "Bạn không có quyền xem thông tin này.";
+            break;
+          case 500:
+            errorMessage = "Lỗi server. Vui lòng thử lại sau.";
+            break;
+          default:
+            errorMessage =
+              error.response.data?.message || error.message || errorMessage;
+        }
+      }
+
+      showNotification("error", "Lỗi tải thông tin", errorMessage);
     } finally {
       setConfirmationLoading(false);
     }
   };
+
+  // Functions cho pagination trong confirmation modal
+  const goToNextConfirmation = () => {
+    if (currentConfirmationIndex < confirmationList.length - 1) {
+      const nextIndex = currentConfirmationIndex + 1;
+      setCurrentConfirmationIndex(nextIndex);
+      setConfirmationData(confirmationList[nextIndex]);
+    }
+  };
+
+  const goToPreviousConfirmation = () => {
+    if (currentConfirmationIndex > 0) {
+      const prevIndex = currentConfirmationIndex - 1;
+      setCurrentConfirmationIndex(prevIndex);
+      setConfirmationData(confirmationList[prevIndex]);
+    }
+  };
+
+  const goToConfirmationPage = (index) => {
+    if (index >= 0 && index < confirmationList.length) {
+      setCurrentConfirmationIndex(index);
+      setConfirmationData(confirmationList[index]);
+    }
+  };
+
+  // Keyboard navigation for confirmation modal
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (isConfirmationModalOpen && confirmationList.length >= 1) {
+        switch (event.key) {
+          case "ArrowLeft":
+            event.preventDefault();
+            goToPreviousConfirmation();
+            break;
+          case "ArrowRight":
+            event.preventDefault();
+            goToNextConfirmation();
+            break;
+          case "Home":
+            event.preventDefault();
+            goToConfirmationPage(0);
+            break;
+          case "End":
+            event.preventDefault();
+            goToConfirmationPage(confirmationList.length - 1);
+            break;
+          default:
+            // Check for number keys (1-9)
+            const num = parseInt(event.key);
+            if (!isNaN(num) && num >= 1 && num <= confirmationList.length) {
+              event.preventDefault();
+              goToConfirmationPage(num - 1);
+            }
+            break;
+        }
+      }
+    };
+
+    if (isConfirmationModalOpen) {
+      document.addEventListener("keydown", handleKeyPress);
+      return () => document.removeEventListener("keydown", handleKeyPress);
+    }
+  }, [
+    isConfirmationModalOpen,
+    confirmationList.length,
+    currentConfirmationIndex,
+    goToPreviousConfirmation,
+    goToNextConfirmation,
+    goToConfirmationPage,
+  ]);
 
   // Function để format timestamp cho confirmation
   const formatConfirmationTimestamp = (timestamp) => {
@@ -1004,11 +1316,26 @@ const SendMedicine = () => {
 
         {/* Header */}
         <div className="fix-send-medicine-header">
-          <h1>
-            <i className="fas fa-pills"></i>
-            Yêu cầu gửi thuốc
-          </h1>
-          <p>Gửi yêu cầu cho y tá trường để hỗ trợ uống thuốc cho học sinh</p>
+          <div className="header-content">
+            <h1>
+              <i className="fas fa-pills"></i>
+              Yêu cầu gửi thuốc
+            </h1>
+            <p>Gửi yêu cầu cho y tá trường để hỗ trợ uống thuốc cho học sinh</p>
+            <button
+              onClick={refreshData}
+              className="refresh-btn"
+              title="Tải lại dữ liệu"
+              disabled={loading || isHistoryLoading}
+            >
+              <i
+                className={`fas fa-sync-alt ${
+                  loading || isHistoryLoading ? "fa-spin" : ""
+                }`}
+              ></i>
+              Làm mới
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -1214,9 +1541,13 @@ const SendMedicine = () => {
 
               <div className="fix-form-section">
                 <h3>Thông tin bổ sung</h3>
-                {/* Thêm trường hình ảnh đơn thuốc */}
+                {/* Thêm trường hình ảnh đơn thuốc với upload riêng biệt */}
                 <div className="fix-form-group">
                   <label htmlFor="prescriptionImage">Hình ảnh đơn thuốc:</label>
+                  <div className="fix-help-text">
+                    📋 Bước 1: Chọn ảnh → Bước 2: Nhấn "Tải ảnh lên" → Bước 3:
+                    Điền form và gửi yêu cầu
+                  </div>
                   <div className="fix-image-upload-container">
                     <input
                       type="file"
@@ -1225,31 +1556,70 @@ const SendMedicine = () => {
                       accept="image/jpeg,image/png,image/jpg"
                       onChange={handleImageChange}
                       className="fix-image-input"
+                      disabled={tempImageUpload.isUploading}
                     />
                     <label
                       htmlFor="prescriptionImage"
-                      className="fix-upload-button"
+                      className={`fix-upload-button ${
+                        tempImageUpload.isUploading ? "disabled" : ""
+                      }`}
                     >
-                      Chọn ảnh
+                      {tempImageUpload.isUploading ? "Đang tải..." : "Chọn ảnh"}
                     </label>
-                    {formData.prescriptionImage && (
+
+                    {/* Show selected file name */}
+                    {tempImageUpload.file && (
                       <span className="fix-file-name">
-                        {formData.prescriptionImage.name}
+                        {tempImageUpload.file.name}
                       </span>
                     )}
-                    {errors.prescriptionImage && (
-                      <div className="fix-error-text">
-                        {errors.prescriptionImage}
+
+                    {/* Upload button - only show when file is selected and not uploaded yet */}
+                    {tempImageUpload.file &&
+                      !tempImageUpload.uploadedImageBase64 &&
+                      !tempImageUpload.isUploading && (
+                        <button
+                          type="button"
+                          onClick={uploadImageTemporary}
+                          className="fix-upload-image-btn"
+                          disabled={tempImageUpload.isUploading}
+                        >
+                          Tải ảnh lên
+                        </button>
+                      )}
+
+                    {/* Loading indicator */}
+                    {tempImageUpload.isUploading && (
+                      <div className="fix-upload-loading">
+                        <span>Đang tải ảnh lên...</span>
                       </div>
                     )}
-                    {formData.prescriptionImagePreview && (
+
+                    {/* Success indicator */}
+                    {tempImageUpload.uploadedImageBase64 && (
+                      <div className="fix-upload-success">
+                        <span>✓ Ảnh đã được tải lên thành công</span>
+                      </div>
+                    )}
+
+                    {/* Error display */}
+                    {(tempImageUpload.uploadError ||
+                      errors.prescriptionImage) && (
+                      <div className="fix-error-text">
+                        {tempImageUpload.uploadError ||
+                          errors.prescriptionImage}
+                      </div>
+                    )}
+
+                    {/* Image preview */}
+                    {tempImageUpload.preview && (
                       <div className="fix-image-preview-container">
                         <img
-                          src={formData.prescriptionImagePreview}
+                          src={tempImageUpload.preview}
                           alt="Đơn thuốc"
                           className="fix-image-preview"
                           onClick={() =>
-                            handleImageClick(formData.prescriptionImagePreview)
+                            handleImageClick(tempImageUpload.preview)
                           }
                         />
                       </div>
@@ -1306,12 +1676,9 @@ const SendMedicine = () => {
                   type="submit"
                   className="fix-btn-primary"
                   disabled={loading}
-                  onClick={isUpdating ? handleModalFormSubmit : handleSubmit}
                 >
                   {loading ? (
                     <span className="fix-spinner"></span>
-                  ) : isUpdating ? (
-                    "Cập nhật yêu cầu"
                   ) : (
                     "Gửi yêu cầu"
                   )}
@@ -1801,17 +2168,36 @@ const SendMedicine = () => {
           </div>
         )}
 
-        {/* Confirmation Modal - Updated with consistent styling */}
+        {/* Confirmation Modal - Updated with pagination */}
         {isConfirmationModalOpen && confirmationData && (
           <div className="fix-med-modal-overlay">
             <div className="fix-med-modal">
               <div className="fix-med-modal-header">
-                <h3>Thông tin xác nhận cho thuốc</h3>
+                <h3>
+                  Thông tin xác nhận cho thuốc
+                  {confirmationList.length > 1 && (
+                    <span className="confirmation-pagination-info">
+                      (Trang {currentConfirmationIndex + 1}/
+                      {confirmationList.length})
+                    </span>
+                  )}
+                </h3>
+                {confirmationList.length > 1 && (
+                  <div className="confirmation-header-info">
+                    <small>
+                      Tìm thấy {confirmationList.length} lần xác nhận • Dùng
+                      phím ← → hoặc số 1-{confirmationList.length} để chuyển
+                      trang
+                    </small>
+                  </div>
+                )}
                 <button
                   className="fix-med-modal-close"
                   onClick={() => {
                     setIsConfirmationModalOpen(false);
                     setConfirmationData(null);
+                    setConfirmationList([]);
+                    setCurrentConfirmationIndex(0);
                   }}
                 >
                   <svg
@@ -1966,12 +2352,66 @@ const SendMedicine = () => {
                   </div>
                 </div>
 
+                {/* Pagination controls */}
+                {confirmationList.length > 1 && (
+                  <div className="confirmation-pagination">
+                    <div className="pagination-info">
+                      <span>
+                        Xác nhận {currentConfirmationIndex + 1} /{" "}
+                        {confirmationList.length}
+                      </span>
+                    </div>
+
+                    <div className="pagination-controls">
+                      <button
+                        className="pagination-btn prev-btn"
+                        onClick={goToPreviousConfirmation}
+                        disabled={currentConfirmationIndex === 0}
+                        title="Xem xác nhận trước"
+                      >
+                        <i className="fas fa-chevron-left"></i>
+                        Trước
+                      </button>
+
+                      <div className="pagination-pages">
+                        {confirmationList.map((_, index) => (
+                          <button
+                            key={index}
+                            className={`pagination-page ${
+                              index === currentConfirmationIndex ? "active" : ""
+                            }`}
+                            onClick={() => goToConfirmationPage(index)}
+                            title={`Xem xác nhận ${index + 1}`}
+                          >
+                            {index + 1}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        className="pagination-btn next-btn"
+                        onClick={goToNextConfirmation}
+                        disabled={
+                          currentConfirmationIndex ===
+                          confirmationList.length - 1
+                        }
+                        title="Xem xác nhận tiếp theo"
+                      >
+                        Sau
+                        <i className="fas fa-chevron-right"></i>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="fix-med-modal-actions">
                   <button
                     className="fix-btn-primary"
                     onClick={() => {
                       setIsConfirmationModalOpen(false);
                       setConfirmationData(null);
+                      setConfirmationList([]);
+                      setCurrentConfirmationIndex(0);
                     }}
                   >
                     Đóng

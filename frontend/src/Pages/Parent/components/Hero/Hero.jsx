@@ -60,7 +60,7 @@ export default function Hero() {
                     <div className="welcome-section">
                       <div className="user-avatar">
                         <img
-                          src="https://images.unsplash.com/photo-1494790108755-2616b612b830?w=50&h=50&fit=crop&crop=face"
+                          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFa_lfgSFH7RGAW8kEVkzK2HWNXOmp7w8pxQ&s"
                           alt="User Avatar"
                         />
                       </div>
@@ -74,9 +74,11 @@ export default function Hero() {
                     </div>
 
                     <div className="balance-card">
-                      <div className="balance-icon">₫</div>
-                      <div className="balance-amount">850,000₫</div>
-                      <div className="balance-label">Tổng chi phí y tế</div>
+                      <div className="balance-icon">SM</div>
+                      {/* <div className="balance-amount">850,000₫</div> */}
+                      <div className="balance-amount">schoool medical</div>
+
+                      {/* <div className="balance-label">Tổng chi phí y tế</div> */}
                     </div>
 
                     <div className="quick-actions">
@@ -144,16 +146,16 @@ export default function Hero() {
 
                     <div className="transaction-card">
                       <div className="transaction-header">
-                        <span>Giao dịch</span>
-                        <span className="transaction-amount">₫ 286,500</span>
+                        <span>Thông báo</span>
+                        <span className="transaction-amount">Tin tức từ y tá</span>
                       </div>
                       <div className="transaction-detail">
                         <img
                           src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=30&h=30&fit=crop&crop=face"
                           alt="Doctor"
                         />
-                        <span className="transaction-name">BS. Minh Tuấn</span>
-                        <span className="transaction-growth">↗ 10%</span>
+                        <span className="transaction-name">Y tá. Minh Tuấn</span>
+                        <span className="transaction-growth">↗ 10 tin</span>
                       </div>
                     </div>
                   </div>

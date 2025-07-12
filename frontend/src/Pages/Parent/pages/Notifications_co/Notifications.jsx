@@ -7,6 +7,7 @@ import healthCheckupConsentService from "../../../../services/healthCheckupConse
 import notificationService from "../../../../services/notificationService";
 import { toast } from "react-toastify";
 import ConsentDetailModal from "./ConsentDetailModal";
+import VaccinationDetailModal from "./VaccinationDetailModal";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const Notifications = () => {
@@ -28,9 +29,8 @@ const Notifications = () => {
   // State cho thông báo tiêm chủng
   const [vaccinationNotifications, setVaccinationNotifications] = useState([]);
   const [selectedVaccinationId, setSelectedVaccinationId] = useState(null);
-  const [vaccinationDetail, setVaccinationDetail] = useState(null);
   const [loadingVaccination, setLoadingVaccination] = useState(false);
-  const [showVaccinationDetail, setShowVaccinationDetail] = useState(false);
+  const [showVaccinationModal, setShowVaccinationModal] = useState(false);
 
   // State cho debug hiển thị
   const [apiStatus, setApiStatus] = useState({
@@ -188,6 +188,17 @@ const Notifications = () => {
       });
     }
 
+    // Sắp xếp theo ngày mới nhất từ trên xuống
+    filtered.sort((a, b) => {
+      const dateA = new Date(
+        a.createdAt || a.campaignStartDate || a.updatedAt || 0
+      );
+      const dateB = new Date(
+        b.createdAt || b.campaignStartDate || b.updatedAt || 0
+      );
+      return dateB - dateA; // Ngày mới nhất trước
+    });
+
     return filtered;
   };
 
@@ -338,6 +349,13 @@ const Notifications = () => {
         });
       }
     }
+
+    // Sắp xếp theo ngày mới nhất từ trên xuống
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.receivedDate || a.createdAt || 0);
+      const dateB = new Date(b.receivedDate || b.createdAt || 0);
+      return dateB - dateA; // Ngày mới nhất trước
+    });
 
     return filtered;
   };
@@ -712,120 +730,38 @@ const Notifications = () => {
     }
   };
 
-  // Load vaccination notification detail
-  const loadVaccinationDetail = async (notificationId, parentId) => {
-    try {
-      setLoadingVaccination(true);
-      let response;
-
-      try {
-        // Thử gọi API thông qua proxy trước
-        response = await notificationService.getVaccinationNotificationDetail(
-          notificationId,
-          parentId
-        );
-      } catch (proxyError) {
-        // Thử gọi API chi tiết trực tiếp...
-
-        // Nếu lỗi, thử gọi trực tiếp
-        response =
-          await notificationService.direct.getVaccinationNotificationDetail(
-            notificationId,
-            parentId
-          );
-      }
-
-      if (response && response.data) {
-        setVaccinationDetail(response.data);
-        setShowVaccinationDetail(true);
-      } else {
-        // Tạo dữ liệu mẫu cho chi tiết thông báo
-        const sampleDetail = {
-          id: notificationId,
-          title: "Thông báo tiêm chủng đợt tháng 7/2025",
-          message:
-            "Kính gửi Quý phụ huynh,\n\nNhà trường tổ chức tiêm chủng đợt tiêm vắc xin định kỳ cho học sinh vào ngày 15/7/2025.\n\nThông tin chi tiết:\n- Thời gian: 8h00 - 11h30 ngày 15/7/2025\n- Địa điểm: Phòng y tế trường học\n- Loại vắc xin: MMR (Sởi, Quai bị, Rubella)\n\nVui lòng xác nhận tham gia hoặc từ chối bằng cách nhấn vào nút bên dưới.",
-          senderName: "Y tá trường học",
-          createdAt: "2025-07-07T09:00:00",
-          isRequest: true,
-          type: "VACCINATION",
-        };
-
-        setVaccinationDetail(sampleDetail);
-        setShowVaccinationDetail(true);
-
-        toast.info("Hiển thị dữ liệu mẫu chi tiết thông báo tiêm chủng", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      // Tạo dữ liệu mẫu khi có lỗi
-      const sampleDetail = {
-        id: notificationId,
-        title: "Thông báo tiêm chủng đợt tháng 7/2025",
-        message:
-          "Kính gửi Quý phụ huynh,\n\nNhà trường tổ chức tiêm chủng đợt tiêm vắc xin định kỳ cho học sinh vào ngày 15/7/2025.\n\nThông tin chi tiết:\n- Thời gian: 8h00 - 11h30 ngày 15/7/2025\n- Địa điểm: Phòng y tế trường học\n- Loại vắc xin: MMR (Sởi, Quai bị, Rubella)\n\nVui lòng xác nhận tham gia hoặc từ chối bằng cách nhấn vào nút bên dưới.",
-        senderName: "Y tá trường học",
-        createdAt: "2025-07-07T09:00:00",
-        isRequest: true,
-        type: "VACCINATION",
-      };
-
-      setVaccinationDetail(sampleDetail);
-      setShowVaccinationDetail(true);
-
-      toast.warning("Đang hiển thị dữ liệu mẫu do không thể kết nối máy chủ", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    } finally {
-      setLoadingVaccination(false);
-    }
-  };
-
   // Handler for vaccination notification click
   const handleVaccinationClick = (notificationId) => {
+    console.log("handleVaccinationClick called with ID:", notificationId);
+
+    if (!notificationId) {
+      toast.error("ID thông báo không hợp lệ");
+      return;
+    }
+
     const parentId = getParentId();
+    console.log("Parent ID:", parentId);
+
     if (parentId) {
       setSelectedVaccinationId(notificationId);
-      loadVaccinationDetail(notificationId, parentId);
+      setShowVaccinationModal(true);
+    } else {
+      toast.error("Không tìm thấy thông tin phụ huynh");
     }
   };
 
   // Handler to close vaccination detail
-  const handleCloseVaccinationDetail = () => {
-    setShowVaccinationDetail(false);
-    setVaccinationDetail(null);
+  const handleCloseVaccinationModal = () => {
+    setShowVaccinationModal(false);
+    setSelectedVaccinationId(null);
   };
 
-  // Handler for vaccination notification response
-  const handleVaccinationResponse = async (response) => {
+  // Handler for vaccination notification response update
+  const handleVaccinationResponseUpdated = () => {
+    // Reload vaccination notifications to get updated data
     const parentId = getParentId();
-    if (parentId && selectedVaccinationId) {
-      try {
-        setLoadingVaccination(true);
-        await notificationService.respondToNotification(
-          selectedVaccinationId,
-          parentId,
-          response
-        );
-        toast.success(
-          response === "ACCEPTED"
-            ? "Đã xác nhận tham gia"
-            : "Đã từ chối tham gia"
-        );
-
-        // Reload detail with updated response
-        await loadVaccinationDetail(selectedVaccinationId, parentId);
-
-        // Reload the list after response
-        await loadVaccinationNotifications(parentId);
-      } catch (error) {
-        toast.error("Không thể gửi phản hồi");
-      } finally {
-        setLoadingVaccination(false);
-      }
+    if (parentId) {
+      loadVaccinationNotifications(parentId);
     }
   };
 
@@ -1257,307 +1193,73 @@ const Notifications = () => {
   // Render nội dung tab tiêm chủng
   const renderVaccinationContent = () => {
     try {
-      // Chọn dữ liệu hiển thị dựa trên trạng thái hiện tại
-      const displayData = vaccinationNotifications || [];
-
-      // Nếu đang hiển thị chi tiết một thông báo
-      if (showVaccinationDetail) {
-        return (
-          <div className="vaccination-detail">
-            {loadingVaccination ? (
-              <LoadingSpinner />
-            ) : (
-              <>
-                <div className="detail-header">
-                  <button
-                    className="back-btn"
-                    onClick={handleCloseVaccinationDetail}
-                  >
-                    <i className="fas fa-arrow-left"></i> Quay lại
-                  </button>
-                  <h2>{vaccinationDetail?.title}</h2>
-                </div>
-                <div className="detail-info">
-                  <div className="info-item">
-                    <span className="label">Người gửi:</span>
-                    <span className="value">
-                      {vaccinationDetail?.senderName || "Không có thông tin"}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="label">Ngày nhận:</span>
-                    <span className="value">
-                      {vaccinationDetail?.createdAt
-                        ? new Date(vaccinationDetail.createdAt).toLocaleString(
-                            "vi-VN"
-                          )
-                        : "Không có thông tin"}
-                    </span>
-                  </div>
-                </div>
-                <div className="detail-message">
-                  {vaccinationDetail?.message || "Không có nội dung"}
-                </div>
-                {renderVaccinationResponseButtons()}
-              </>
-            )}
-          </div>
-        );
-      }
-
       // Hiển thị danh sách thông báo
-      if (loadingVaccination) {
-        return (
-          <div className="vaccination-content">
-            <div className="debug-controls">
-              <div className="debug-status">Đang tải dữ liệu...</div>
-            </div>
-            <LoadingSpinner />
-          </div>
-        );
-      }
-
-      // Hiển thị danh sách thông báo (hoặc thông báo không có dữ liệu)
       return (
-        <div
-          className="vaccination-content"
-          style={{
-            display: "block",
-            width: "100%",
-            minHeight: "400px",
-            backgroundColor: "#f8fafc",
-            padding: "20px",
-            position: "relative",
-            visibility: "visible",
-          }}
-        >
-          <div className="debug-controls">
-            <div
-              className={`api-status ${
-                apiStatus.success ? "success" : "error"
-              }`}
-              style={{
-                padding: "8px 12px",
-                background: apiStatus.success ? "#10b981" : "#ef4444",
-                color: "white",
-                borderRadius: "4px",
-                fontSize: "0.8rem",
-                marginRight: "10px",
-                marginBottom: "10px",
-              }}
-            >
-              <div>
-                API: {apiStatus.method || "N/A"} - {apiStatus.message}
-              </div>
-              <div style={{ fontSize: "0.7rem", opacity: 0.8 }}>
-                {apiStatus.lastCall
-                  ? `Lần gọi cuối: ${apiStatus.lastCall}`
-                  : "Chưa gọi API"}
-              </div>
+        <div className="pn-vaccination-content">
+          {/* Hiển thị bộ lọc nếu có dữ liệu */}
+          {vaccinationNotifications.length > 0 &&
+            renderVaccinationFilterControls()}
+
+          {/* Loading */}
+          {loadingVaccination && (
+            <div className="pn-loading">
+              <div className="pn-spinner"></div>
             </div>
+          )}
 
-            <button
-              className="debug-btn"
-              onClick={() => {
-                const parentId = getParentId();
-                if (parentId) {
-                  loadVaccinationNotifications(parentId);
-                } else {
-                  toast.error(
-                    "Không thể tải dữ liệu: Không tìm thấy ID phụ huynh"
-                  );
-                }
-              }}
-              style={{
-                padding: "6px 12px",
-                background: "#6366f1",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                fontSize: "0.8rem",
-                cursor: "pointer",
-                marginBottom: "10px",
-              }}
-            >
-              🔄 Tải lại dữ liệu
-            </button>
-
-            <button
-              className="debug-btn"
-              onClick={() => {
-                const sampleData = [
-                  {
-                    id: 101,
-                    title: "Thông báo tiêm vaccine MMR - TEST",
-                    receivedDate: "2025-07-08T10:00:00",
-                  },
-                  {
-                    id: 102,
-                    title: "Thông báo tiêm chủng COVID-19 - TEST",
-                    receivedDate: "2025-07-08T11:00:00",
-                  },
-                  {
-                    id: 103,
-                    title: "Thông báo kế hoạch tiêm chủng định kỳ - TEST",
-                    receivedDate: "2025-07-08T12:00:00",
-                  },
-                ];
-                setVaccinationNotifications(sampleData);
-                toast.success("Đã thiết lập dữ liệu mẫu!", {
-                  position: "top-right",
-                  autoClose: 2000,
-                });
-              }}
-              style={{
-                padding: "6px 12px",
-                background: "#f59e0b",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                fontSize: "0.8rem",
-                cursor: "pointer",
-                marginLeft: "8px",
-                marginBottom: "10px",
-              }}
-            >
-              📝 Dữ liệu mẫu
-            </button>
-          </div>
-
-          <div
-            style={{
-              background: "#f3f4f6",
-              padding: "10px",
-              borderRadius: "4px",
-              marginBottom: "10px",
-              fontSize: "0.8rem",
-            }}
-          >
-            <strong>Debug Info:</strong>
-            <br />- Data length: {displayData.length}
-            <br />- Loading: {loadingVaccination ? "Yes" : "No"}
-            <br />- Show detail: {showVaccinationDetail ? "Yes" : "No"}
-            <br />- Active tab: {activeTab}
-            <br />- Data: {JSON.stringify(displayData, null, 2).slice(0, 200)}
-            ...
-          </div>
-
-          {displayData.length === 0 ? (
-            <div
-              className="no-data"
-              style={{
-                textAlign: "center",
-                padding: "40px 20px",
-                background: "#f9fafb",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-              }}
-            >
-              <i
-                className="fas fa-info-circle"
-                style={{
-                  fontSize: "2rem",
-                  color: "#6b7280",
-                  marginBottom: "10px",
-                }}
-              ></i>
-              <p style={{ margin: "0", color: "#374151", fontSize: "1rem" }}>
-                Không có thông báo tiêm chủng nào
+          {vaccinationNotifications.length === 0 ? (
+            <div className="pn-no-data">
+              <i className="fas fa-inbox pn-no-data-icon"></i>
+              <p className="pn-no-data-text">Không có thông báo tiêm chủng</p>
+            </div>
+          ) : filteredVaccinationData.length === 0 ? (
+            <div className="pn-no-data">
+              <i className="fas fa-search pn-no-data-icon"></i>
+              <p className="pn-no-data-text">
+                Không tìm thấy thông báo nào phù hợp với bộ lọc hiện tại
               </p>
-              <p
-                style={{
-                  margin: "10px 0 0 0",
-                  color: "#6b7280",
-                  fontSize: "0.875rem",
-                }}
+              <button
+                className="pn-clear-filters"
+                onClick={clearAllVaccinationFilters}
               >
-                Nhấn nút "Dữ liệu mẫu" để xem demo
-              </p>
+                <i className="fas fa-refresh"></i>
+                Đặt lại bộ lọc
+              </button>
             </div>
           ) : (
-            <div
-              className="vaccination-list"
-              style={{
-                display: "block",
-                width: "100%",
-                visibility: "visible",
-                opacity: 1,
-                zIndex: 1,
-                position: "relative",
-              }}
-            >
+            <div className="pn-vaccination-list">
               {currentVaccinationData.map((notification, index) => {
                 return (
                   <div
                     key={notification.id || index}
-                    className="vaccination-item"
-                    onClick={() => {
+                    className="pn-vaccination-item"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log("Clicking vaccination item:", notification);
                       handleVaccinationClick(notification.id);
                     }}
-                    style={{
-                      display: "block",
-                      padding: "15px",
-                      margin: "10px 0",
-                      border: "2px solid #3b82f6",
-                      borderRadius: "8px",
-                      backgroundColor: "#ffffff",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      minHeight: "60px",
-                      width: "100%",
-                      boxSizing: "border-box",
-                      position: "relative",
-                      zIndex: 2,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = "#dbeafe";
-                      e.target.style.borderColor = "#1d4ed8";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = "#ffffff";
-                      e.target.style.borderColor = "#3b82f6";
-                    }}
+                    style={{ cursor: "pointer" }}
                   >
                     <div
-                      className="vaccination-item-content"
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
+                      className="pn-vaccination-content-inner"
+                      style={{ pointerEvents: "none" }}
                     >
-                      <div>
-                        <div
-                          className="vaccination-item-title"
-                          style={{
-                            fontWeight: "600",
-                            fontSize: "1rem",
-                            color: "#374151",
-                            marginBottom: "5px",
-                          }}
-                        >
-                          {notification.title || "Không có tiêu đề"}
-                        </div>
-                        <div
-                          className="vaccination-item-date"
-                          style={{
-                            fontSize: "0.875rem",
-                            color: "#6b7280",
-                          }}
-                        >
+                      <div className="pn-vaccination-info">
+                        <h4 className="pn-vaccination-title">
+                          {notification.title || "Thông báo tiêm chủng"}
+                        </h4>
+                        <p className="pn-vaccination-date">
                           Ngày nhận:{" "}
                           {notification.receivedDate || notification.createdAt
                             ? new Date(
                                 notification.receivedDate ||
                                   notification.createdAt
                               ).toLocaleDateString("vi-VN")
-                            : "Không có thông tin"}
-                        </div>
+                            : "N/A"}
+                        </p>
                       </div>
-                      <div
-                        className="vaccination-item-icon"
-                        style={{ color: "#9ca3af" }}
-                      >
+                      <div className="pn-vaccination-arrow">
                         <i className="fas fa-chevron-right"></i>
                       </div>
                     </div>
@@ -1566,108 +1268,112 @@ const Notifications = () => {
               })}
             </div>
           )}
+
+          <PaginationControls
+            currentPage={vaccinationPage}
+            totalPages={getTotalPages(filteredVaccinationData.length)}
+            onPrevPage={goToPrevVaccinationPage}
+            onNextPage={goToNextVaccinationPage}
+            onGoToPage={goToVaccinationPage}
+            dataLength={filteredVaccinationData.length}
+          />
         </div>
       );
     } catch (error) {
+      console.error("Error in renderVaccinationContent:", error);
       return (
-        <div
-          className="vaccination-content"
-          style={{
-            padding: "20px",
-            backgroundColor: "#fee2e2",
-            border: "1px solid #fca5a5",
-            borderRadius: "8px",
-          }}
-        >
-          <h3 style={{ color: "#dc2626" }}>Lỗi hiển thị</h3>
-          <p>Có lỗi xảy ra khi hiển thị thông báo tiêm chủng.</p>
-          <p>Chi tiết lỗi: {error.message}</p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#dc2626",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Tải lại trang
-          </button>
-        </div>
-      );
-    }
-  };
-
-  // Render vaccination notification response buttons
-  const renderVaccinationResponseButtons = () => {
-    // If the user has already responded, show the response instead of buttons
-    if (vaccinationDetail?.response) {
-      return (
-        <div className="vaccination-response-info">
-          <div
-            className={`response-badge ${vaccinationDetail.response.toLowerCase()}`}
-          >
-            {vaccinationDetail.response === "ACCEPTED"
-              ? "Đã xác nhận tham gia"
-              : "Đã từ chối tham gia"}
-          </div>
-          <div className="response-time">
-            Phản hồi lúc:{" "}
-            {new Date(vaccinationDetail.responseAt).toLocaleString("vi-VN")}
+        <div className="pn-vaccination-content">
+          <div className="pn-no-data">
+            <i className="fas fa-exclamation-circle pn-no-data-icon"></i>
+            <p className="pn-no-data-text">
+              Có lỗi xảy ra khi hiển thị thông báo
+            </p>
+            <p
+              className="pn-no-data-text"
+              style={{ fontSize: "0.875rem", color: "#6b7280" }}
+            >
+              {error.message}
+            </p>
+            <button
+              className="pn-clear-filters"
+              onClick={() => window.location.reload()}
+            >
+              <i className="fas fa-refresh"></i>
+              Tải lại trang
+            </button>
           </div>
         </div>
       );
     }
-
-    // If no response yet and it's a request requiring response, show buttons
-    if (vaccinationDetail?.isRequest) {
-      return (
-        <div className="vaccination-response-buttons">
-          <button
-            className="accept-btn"
-            onClick={() => handleVaccinationResponse("ACCEPTED")}
-            disabled={loadingVaccination}
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "#10b981",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              marginRight: "10px",
-            }}
-          >
-            <i className="fas fa-check"></i>
-            Xác nhận tham gia
-          </button>
-          <button
-            className="reject-btn"
-            onClick={() => handleVaccinationResponse("REJECTED")}
-            disabled={loadingVaccination}
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "#ef4444",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            <i className="fas fa-times"></i>
-            Từ chối tham gia
-          </button>
-        </div>
-      );
-    }
-
-    // If it's not a request requiring response, don't show buttons
-    return null;
   };
 
   // Effect để debug và kiểm tra state khi thay đổi
   useEffect(() => {}, [vaccinationNotifications]);
+
+  // Effect để ẩn header khi modal mở
+  useEffect(() => {
+    const shouldHideHeader = isModalOpen || showVaccinationModal;
+
+    if (shouldHideHeader) {
+      document.body.classList.add("modal-open");
+      // Try multiple selectors to hide header
+      const headers = document.querySelectorAll(
+        ".parent-header, .header, header, .pn-header"
+      );
+      headers.forEach((header) => {
+        header.style.zIndex = "-999999";
+        header.style.visibility = "hidden";
+        header.style.opacity = "0";
+      });
+
+      // Also hide navigation if it exists
+      const navigations = document.querySelectorAll(".navigation, .nav, nav");
+      navigations.forEach((nav) => {
+        nav.style.zIndex = "-999999";
+        nav.style.visibility = "hidden";
+        nav.style.opacity = "0";
+      });
+    } else {
+      document.body.classList.remove("modal-open");
+      // Restore header visibility
+      const headers = document.querySelectorAll(
+        ".parent-header, .header, header, .pn-header"
+      );
+      headers.forEach((header) => {
+        header.style.zIndex = "";
+        header.style.visibility = "";
+        header.style.opacity = "";
+      });
+
+      // Restore navigation
+      const navigations = document.querySelectorAll(".navigation, .nav, nav");
+      navigations.forEach((nav) => {
+        nav.style.zIndex = "";
+        nav.style.visibility = "";
+        nav.style.opacity = "";
+      });
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove("modal-open");
+      const headers = document.querySelectorAll(
+        ".parent-header, .header, header, .pn-header"
+      );
+      headers.forEach((header) => {
+        header.style.zIndex = "";
+        header.style.visibility = "";
+        header.style.opacity = "";
+      });
+
+      const navigations = document.querySelectorAll(".navigation, .nav, nav");
+      navigations.forEach((nav) => {
+        nav.style.zIndex = "";
+        nav.style.visibility = "";
+        nav.style.opacity = "";
+      });
+    };
+  }, [isModalOpen, showVaccinationModal]);
 
   // Effect để tự động tải dữ liệu mẫu nếu không có dữ liệu sau khi API trả về
   useEffect(() => {
@@ -1715,83 +1421,8 @@ const Notifications = () => {
     if (activeTab === "health-checkup") {
       return renderHealthCheckupContent();
     } else if (activeTab === "vaccination") {
-      return (
-        <div className="pn-vaccination-content">
-          {/* Hiển thị bộ lọc nếu có dữ liệu */}
-          {vaccinationNotifications.length > 0 &&
-            renderVaccinationFilterControls()}
-
-          {/* Debug controls (nếu cần) */}
-          {loading && (
-            <div className="pn-loading">
-              <div className="pn-spinner"></div>
-            </div>
-          )}
-
-          {vaccinationNotifications.length === 0 ? (
-            <div className="pn-no-data">
-              <i className="fas fa-inbox pn-no-data-icon"></i>
-              <p className="pn-no-data-text">Không có thông báo tiêm chủng</p>
-            </div>
-          ) : filteredVaccinationData.length === 0 ? (
-            <div className="pn-no-data">
-              <i className="fas fa-search pn-no-data-icon"></i>
-              <p className="pn-no-data-text">
-                Không tìm thấy thông báo nào phù hợp với bộ lọc hiện tại
-              </p>
-              <button
-                className="pn-clear-filters"
-                onClick={clearAllVaccinationFilters}
-              >
-                <i className="fas fa-refresh"></i>
-                Đặt lại bộ lọc
-              </button>
-            </div>
-          ) : (
-            <div className="pn-vaccination-list">
-              {currentVaccinationData.map((notification, index) => {
-                return (
-                  <div
-                    key={notification.id || index}
-                    className="pn-vaccination-item"
-                    onClick={() => {
-                      handleVaccinationClick(notification.id);
-                    }}
-                  >
-                    <div className="pn-vaccination-content-inner">
-                      <div className="pn-vaccination-info">
-                        <h4 className="pn-vaccination-title">
-                          {notification.title || "Thông báo tiêm chủng"}
-                        </h4>
-                        <p className="pn-vaccination-date">
-                          Ngày nhận:{" "}
-                          {notification.receivedDate
-                            ? new Date(
-                                notification.receivedDate
-                              ).toLocaleDateString("vi-VN")
-                            : "N/A"}
-                        </p>
-                      </div>
-                      <div className="pn-vaccination-arrow">
-                        <i className="fas fa-chevron-right"></i>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <PaginationControls
-            currentPage={vaccinationPage}
-            totalPages={getTotalPages(filteredVaccinationData.length)}
-            onPrevPage={goToPrevVaccinationPage}
-            onNextPage={goToNextVaccinationPage}
-            onGoToPage={goToVaccinationPage}
-            dataLength={filteredVaccinationData.length}
-          />
-        </div>
-      );
+      // Chỉ gọi renderVaccinationContent() mà không render thêm gì
+      return renderVaccinationContent();
     }
 
     return null;
@@ -1847,6 +1478,15 @@ const Notifications = () => {
             onClose={handleCloseModal}
             consentId={selectedConsentId}
             onConsentUpdated={handleConsentUpdated}
+          />
+
+          {/* Modal chi tiết thông báo tiêm chủng */}
+          <VaccinationDetailModal
+            isOpen={showVaccinationModal}
+            onClose={handleCloseVaccinationModal}
+            notificationId={selectedVaccinationId}
+            parentId={getParentId()}
+            onResponseUpdated={handleVaccinationResponseUpdated}
           />
         </div>
       </div>
