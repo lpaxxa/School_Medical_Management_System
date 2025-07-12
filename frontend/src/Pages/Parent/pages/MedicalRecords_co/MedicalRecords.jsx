@@ -364,7 +364,7 @@ const MedicalRecord = () => {
                 <div className="selector-content">
                   <div className="select-wrapper">
                     <select
-                      className="chonhocsinhtabparent-select"
+                      className="selectstudentfix"
                       value={selectedStudentId || ""}
                       onChange={handleStudentChange}
                       disabled={isLoading}

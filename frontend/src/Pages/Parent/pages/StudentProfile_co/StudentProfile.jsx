@@ -159,7 +159,7 @@ export default function StudentProfile() {
                 id="student-select"
                 value={selectedStudentId || ""}
                 onChange={(e) => setSelectedStudentId(Number(e.target.value))}
-                className="chonhocsinhtabparent-select"
+                className="selectstudentfix"
                 style={{
                   width: "100%",
                   padding: "10px",

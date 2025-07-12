@@ -1406,7 +1406,9 @@ const SendMedicine = () => {
                       name="studentId"
                       value={formData.studentId}
                       onChange={handleChange}
-                      className={errors.studentId ? "error" : ""}
+                      className={`selectstudentfix ${
+                        errors.studentId ? "error" : ""
+                      }`}
                     >
                       <option value="">-- Chọn học sinh --</option>
                       {students.map((student) => (
@@ -1480,7 +1482,7 @@ const SendMedicine = () => {
                   </div>
                 </div>
 
-                <div className="fix-form-row">
+                <div className="fix-form-row chonngayguithuoc">
                   <div className="fix-form-group">
                     <label htmlFor="startDate">Ngày bắt đầu:</label>
                     <input
@@ -1515,20 +1517,24 @@ const SendMedicine = () => {
                 <div className="fix-form-group-horizontal">
                   <label>Thời điểm uống thuốc:</label>
                   <div>
-                    <div className="fix-checkbox-group">
-                      {timeOptions.map((option) => (
-                        <div className="fix-checkbox-item" key={option.value}>
-                          <input
-                            type="checkbox"
-                            id={option.value}
-                            name="timeToTake"
-                            value={option.value}
-                            checked={formData.timeToTake.includes(option.value)}
-                            onChange={handleTimeChange}
-                          />
-                          <label htmlFor={option.value}>{option.label}</label>
-                        </div>
-                      ))}
+                    <div className="fix-checkbox-group-two-columns">
+                      {timeOptions
+                        .filter((option) => option.value !== "bedtime")
+                        .map((option, index) => (
+                          <div className="fix-checkbox-item" key={option.value}>
+                            <input
+                              type="checkbox"
+                              id={option.value}
+                              name="timeToTake"
+                              value={option.value}
+                              checked={formData.timeToTake.includes(
+                                option.value
+                              )}
+                              onChange={handleTimeChange}
+                            />
+                            <label htmlFor={option.value}>{option.label}</label>
+                          </div>
+                        ))}
                     </div>
                     {errors.timeToTake && (
                       <span className="fix-error-text">
@@ -1697,6 +1703,7 @@ const SendMedicine = () => {
                   <label htmlFor="studentFilter">Lọc theo học sinh:</label>
                   <select
                     id="studentFilter"
+                    className="selectstudentfix"
                     value={selectedStudentFilter}
                     onChange={(e) => setSelectedStudentFilter(e.target.value)}
                   >

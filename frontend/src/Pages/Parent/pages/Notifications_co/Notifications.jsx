@@ -885,7 +885,7 @@ const Notifications = () => {
             <select
               value={filters.studentId}
               onChange={(e) => handleFilterChange("studentId", e.target.value)}
-              className="pn-filter-select"
+              className="selectstudentfix"
             >
               <option value="">Tất cả học sinh</option>
               {uniqueStudents.map((student) => (
@@ -999,7 +999,7 @@ const Notifications = () => {
               onChange={(e) =>
                 handleVaccinationFilterChange("studentId", e.target.value)
               }
-              className="pn-filter-select"
+              className="selectstudentfix"
             >
               <option value="">Tất cả học sinh</option>
               {uniqueStudents.map((student) => (
