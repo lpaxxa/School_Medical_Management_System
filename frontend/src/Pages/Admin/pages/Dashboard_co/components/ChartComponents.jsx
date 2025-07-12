@@ -178,7 +178,7 @@ export const VaccinationProgressChart = ({ data }) => {
       point: {
         radius: 6,
         hoverRadius: 8,
-        backgroundColor: "#059669",
+        backgroundColor: "#64748b",
         borderColor: "#fff",
         borderWidth: 2,
       },
@@ -388,14 +388,7 @@ export const ConsultationTypesChart = ({ data }) => {
     datasets: [
       {
         data: values,
-        backgroundColor: [
-          "#ef4444",
-          "#10b981",
-          "#3b82f6",
-          "#f59e0b",
-          "#8b5cf6",
-          "#06b6d4",
-        ],
+        backgroundColor: ["#ef4444", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#06b6d4"],
         borderColor: "#fff",
         borderWidth: 2,
         hoverOffset: 8,
@@ -618,23 +611,23 @@ export const StudentsByGradeChart = ({ data }) => {
   const grades = Object.keys(gradeStats).filter(key => !key.startsWith('_'));
   const values = grades.map(grade => gradeStats[grade]);
   
-  // Generate distinct colors for each grade
+  // Generate distinct neutral colors for each grade
   const colors = [
-    "#ef4444", // red
-    "#f97316", // orange
-    "#f59e0b", // amber
-    "#eab308", // yellow
-    "#84cc16", // lime
-    "#22c55e", // green
-    "#10b981", // emerald
-    "#06b6d4", // cyan
-    "#0ea5e9", // sky
-    "#3b82f6", // blue
-    "#6366f1", // indigo
-    "#8b5cf6", // violet
-    "#a855f7", // purple
-    "#d946ef", // fuchsia
-    "#ec4899", // pink
+    "#ef4444", // red-500
+    "#f97316", // orange-500
+    "#f59e0b", // amber-500
+    "#eab308", // yellow-500
+    "#84cc16", // lime-500
+    "#22c55e", // green-500
+    "#10b981", // emerald-500
+    "#06b6d4", // cyan-500
+    "#0ea5e9", // sky-500
+    "#3b82f6", // blue-500
+    "#6366f1", // indigo-500
+    "#8b5cf6", // violet-500
+    "#a855f7", // purple-500
+    "#d946ef", // fuchsia-500
+    "#ec4899", // pink-500
   ];
 
   const chartData = {

@@ -22,24 +22,24 @@ const Sidebar = ({ activeSection, onSectionChange, userRole }) => {
       icon: "fas fa-calendar-alt",
       roles: ["admin", "nurse"],
     },
-    {
-      id: "notifications", // Thêm mục gửi thông báo
-      label: "Gửi thông báo",
-      icon: "fas fa-bell",
-      roles: ["admin", "nurse"],
-    },
+    // {
+    //   id: "notifications", // Thêm mục gửi thông báo
+    //   label: "Gửi thông báo",
+    //   icon: "fas fa-bell",
+    //   roles: ["admin", "nurse"],
+    // },
     {
       id: "reports", // Đã khớp với AdminLayout
       label: "Quản lý hồ sơ & Thống kê",
       icon: "fas fa-chart-bar",
       roles: ["admin", "manager"],
     },
-    {
-      id: "settings",
-      label: "Cài đặt hệ thống",
-      icon: "fas fa-cogs",
-      roles: ["admin"],
-    },
+    // {
+    //   id: "settings",
+    //   label: "Cài đặt hệ thống",
+    //   icon: "fas fa-cogs",
+    //   roles: ["admin"],
+    // },
   ];
 
   // Filter menu items based on user role
