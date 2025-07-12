@@ -60,3 +60,58 @@
 .posts-wrapper .fa-search {
   opacity: 0.3;
 }
+
+/* Comments Section Styling */
+.comments-section {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.comment-item {
+  border-left: 3px solid #007bff;
+  transition: all 0.2s ease;
+}
+
+.comment-item:hover {
+  background-color: #f8f9fa !important;
+  border-left-color: #0056b3;
+}
+
+.comment-avatar img {
+  border: 2px solid #dee2e6;
+}
+
+.comment-content {
+  line-height: 1.5;
+}
+
+.comment-actions span {
+  transition: color 0.2s ease;
+}
+
+.comment-actions span:hover {
+  color: #007bff !important;
+}
+
+.comments-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.comments-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comments-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

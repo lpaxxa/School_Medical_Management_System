@@ -13,12 +13,23 @@
   margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
+  position: relative;
 }
 
 .detail-header h2 {
   margin: 0;
   font-size: 24px;
   color: #333;
+}
+
+.detail-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+  font-weight: 600;
 }
 
 .back-button,
@@ -246,6 +257,7 @@
   display: flex;
   align-items: flex-start;
   gap: 15px;
+  margin-top: 15px;
 }
 
 .vaccination-icon {
@@ -266,6 +278,13 @@
 
 .vaccination-content {
   flex: 1;
+}
+
+.vaccination-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
 }
 
 .last-exam-date {
@@ -349,7 +368,66 @@
   border-left: 4px solid #ffc107;
 }
 
-/* Responsive styling */
+/* Vaccination history styles */
+.vaccination-history {
+  margin-top: 20px;
+}
+
+.vaccination-history .vaccination-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.vaccination-history .vaccination-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+}
+
+.vaccination-item-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e8f5e8;
+  border-radius: 50%;
+}
+
+.vaccination-item-content {
+  flex: 1;
+}
+
+.vaccination-item-content h5 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.vaccination-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vaccination-details p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.vaccination-details p strong {
+  color: #333;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .detail-content {
     grid-template-columns: 1fr;
@@ -357,6 +435,15 @@
   
   .metrics-container {
     grid-template-columns: 1fr 1fr;
+  }
+  
+  .vaccination-history .vaccination-item {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .vaccination-item-icon {
+    align-self: flex-start;
   }
 }
 
@@ -382,5 +469,15 @@
   .vaccination-icon,
   .emergency-icon {
     margin-bottom: 5px;
+  }
+  
+  .vaccination-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .vaccination-icon {
+    align-self: flex-start;
   }
 }

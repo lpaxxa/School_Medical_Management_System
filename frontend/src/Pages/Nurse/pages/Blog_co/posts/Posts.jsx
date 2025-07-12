@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Form, InputGroup, Modal, Spinner, Pagination } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Badge, Form, InputGroup, Modal, Spinner, Pagination, Nav } from 'react-bootstrap';
+import { useNavigate, Link } from 'react-router-dom';
 import { useBlog } from '../../../../../context/NurseContext/BlogContext';
 import { useAuth } from '../../../../../context/AuthContext';
+import * as blogService from '../../../../../services/APINurse/blogService';
 import './Posts.css';
+
+// Avatar mặc định cho người dùng
+const DEFAULT_AVATAR = 'https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg';
 
 const Posts = () => {
   const { 
@@ -11,41 +16,69 @@ const Posts = () => {
     postsError, 
     postCategories,
     currentPage,
-    totalPages,
     pageSize,
     fetchPosts,
     getPostById,
-    addPost,
-    updatePost,
     removePost,
     likePost,
     unlikePost
   } = useBlog();
   
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-    category: '',
-    imageUrl: '',
-    tags: ''
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
+  const [currentLocalPage, setCurrentLocalPage] = useState(1);
+  const [postsWithLikeStatus, setPostsWithLikeStatus] = useState([]);
 
   // Fetch posts when component mounts
   useEffect(() => {
     fetchPosts(1, 10);
   }, [fetchPosts]);
+
+  // Load like status for posts
+  useEffect(() => {
+    const loadLikeAndBookmarkStatus = async () => {
+      if (posts && posts.length > 0) {
+        try {
+          const postsWithStatusData = await Promise.all(
+            posts.map(async (post) => {
+              try {
+                const [likeResponse, bookmarkResponse] = await Promise.all([
+                  blogService.getPostLikeStatus(post.id),
+                  blogService.getPostBookmarkStatus(post.id)
+                ]);
+                
+                return {
+                  ...post,
+                  liked: likeResponse?.data?.liked || false,
+                  likesCount: likeResponse?.data?.likesCount || 0,
+                  bookmarked: bookmarkResponse?.data?.bookmarked || false
+                };
+              } catch (error) {
+                console.error(`Error loading status for post ${post.id}:`, error);
+                return {
+                  ...post,
+                  liked: false,
+                  likesCount: 0,
+                  bookmarked: false
+                };
+              }
+            })
+          );
+          
+          setPostsWithLikeStatus(postsWithStatusData);
+        } catch (error) {
+          console.error('Error loading post statuses:', error);
+        }
+      }
+    };
+
+    loadLikeAndBookmarkStatus();
+  }, [posts]);
 
   // Format date
   const formatDate = (dateString) => {
@@ -61,7 +94,7 @@ const Posts = () => {
   };
 
   // Filter posts based on search term and category
-  const filteredPosts = posts.filter(post => {
+  const filteredPosts = (postsWithLikeStatus.length > 0 ? postsWithLikeStatus : posts).filter(post => {
     const matchesSearch = 
       post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.excerpt?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,111 +105,50 @@ const Posts = () => {
     const matchesCategory = selectedCategory === '' || post.category === selectedCategory;
     
     return matchesSearch && matchesCategory;
+  }).sort((a, b) => {
+    // Sắp xếp theo bookmark trước (bài ghim lên đầu), sau đó theo createdAt (mới nhất trước)
+    if (a.bookmarked && !b.bookmarked) return -1;
+    if (!a.bookmarked && b.bookmarked) return 1;
+    return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
+  // Pagination logic
+  const postsPerPage = 6;
+  const totalPosts = filteredPosts.length;
+  const totalPagesLocal = Math.ceil(totalPosts / postsPerPage);
+  
+  // Calculate posts for current page
+  const startIndex = (currentLocalPage - 1) * postsPerPage;
+  const endIndex = startIndex + postsPerPage;
+  const currentPagePosts = filteredPosts.slice(startIndex, endIndex);
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    try {
-      // Format tags as array
-      const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
-      
-      const postData = {
-        ...formData,
-        tags: tagsArray,
-        author: {
-          id: currentUser?.id || 'NURSE001',
-          name: currentUser?.name || 'Y tá trường',
-          role: 'NURSE'
-        }
-      };
-
-      if (isEditing && selectedPost) {
-        await updatePost(selectedPost.id, postData);
-      } else {
-        await addPost(postData);
-      }
-
-      // Reset form and close modal
-      setFormData({
-        title: '',
-        excerpt: '',
-        content: '',
-        category: '',
-        imageUrl: '',
-        tags: ''
-      });
-      setShowModal(false);
-      
-      // Refresh posts list
-      fetchPosts(currentPage, pageSize);
-    } catch (error) {
-      console.error('Error submitting post:', error);
-      alert('Có lỗi xảy ra khi lưu bài viết. Vui lòng thử lại sau.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentLocalPage(1);
+  }, [searchTerm, selectedCategory]);
 
   // Handle view post detail
-  const handleViewPostDetail = async (post) => {
-    try {
-      setDetailLoading(true);
-      setSelectedPost(null);
-      
-      // Get the latest post data
-      const postDetail = await getPostById(post.id);
-      
-      setSelectedPost(postDetail);
-      setShowDetailModal(true);
-    } catch (error) {
-      console.error('Error fetching post details:', error);
-      alert('Không thể tải thông tin chi tiết bài viết. Vui lòng thử lại sau.');
-    } finally {
-      setDetailLoading(false);
-    }
+  const handleViewPostDetail = (post) => {
+    navigate(`/nurse/blog/posts/${post.id}`);
   };
 
   // Handle edit post
-  const handleEditPost = async (post) => {
-    try {
-      setDetailLoading(true);
-      
-      // Get the latest post data
-      const postDetail = await getPostById(post.id);
-      
-      setSelectedPost(postDetail);
-      setIsEditing(true);
-      setFormData({
-        title: postDetail.title || '',
-        excerpt: postDetail.excerpt || '',
-        content: postDetail.content || '',
-        category: postDetail.category || '',
-        imageUrl: postDetail.imageUrl || '',
-        tags: Array.isArray(postDetail.tags) ? postDetail.tags.join(', ') : ''
-      });
-      setShowModal(true);
-    } catch (error) {
-      console.error('Error fetching post details:', error);
-      alert('Không thể tải thông tin bài viết. Vui lòng thử lại sau.');
-    } finally {
-      setDetailLoading(false);
+  const handleEditPost = (post) => {
+    // Check if user is author
+    if (currentUser?.id !== post.author?.id) {
+      alert('Bạn không có quyền chỉnh sửa bài viết này');
+      return;
     }
+    navigate(`/nurse/blog/posts/edit/${post.id}`);
   };
 
   // Handle delete post
   const handleDeletePost = (post) => {
+    // Check if user is author
+    if (currentUser?.id !== post.author?.id) {
+      alert('Bạn không có quyền xóa bài viết này');
+      return;
+    }
     setSelectedPost(post);
     setShowDeleteModal(true);
   };
@@ -186,9 +158,10 @@ const Posts = () => {
     if (!selectedPost) return;
     
     try {
-      await removePost(selectedPost.id);
+      await blogService.deletePost(selectedPost.id);
       setShowDeleteModal(false);
       setSelectedPost(null);
+      setCurrentLocalPage(1);
       
       // Refresh posts list
       fetchPosts(currentPage, pageSize);
@@ -200,29 +173,53 @@ const Posts = () => {
 
   // Handle add new post
   const handleAddPost = () => {
-    setIsEditing(false);
-    setSelectedPost(null);
-    setFormData({
-      title: '',
-      excerpt: '',
-      content: '',
-      category: '',
-      imageUrl: '',
-      tags: ''
-    });
-    setShowModal(true);
+    navigate('/nurse/blog/posts/add');
   };
 
   // Handle like/unlike post
   const handleToggleLike = async (post) => {
     try {
-      if (post.liked) {
-        await unlikePost(post.id);
-      } else {
-        await likePost(post.id);
+      const response = await blogService.togglePostLike(post.id);
+      
+      // Update local state
+      if (response && response.data) {
+        setPostsWithLikeStatus(prev => 
+          prev.map(p => 
+            p.id === post.id 
+              ? { ...p, liked: response.data.liked, likesCount: response.data.likesCount }
+              : p
+          )
+        );
       }
     } catch (error) {
       console.error('Error toggling like:', error);
+      alert('Có lỗi xảy ra khi thích/hủy thích bài viết. Vui lòng thử lại sau.');
+    }
+  };
+
+  // Handle bookmark/unbookmark post
+  const handleToggleBookmark = async (post) => {
+    try {
+      const response = await blogService.togglePostBookmark(post.id);
+      
+      // Update local state
+      if (response && response.data) {
+        setPostsWithLikeStatus(prev => 
+          prev.map(p => 
+            p.id === post.id 
+              ? { ...p, bookmarked: response.data.bookmarked }
+              : p
+          )
+        );
+        
+        // Reload posts to refresh the sorting
+        setTimeout(() => {
+          fetchPosts(currentPage, pageSize);
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      alert('Có lỗi xảy ra khi ghim/bỏ ghim bài viết. Vui lòng thử lại sau.');
     }
   };
 
@@ -231,21 +228,59 @@ const Posts = () => {
     fetchPosts(page, pageSize);
   };
 
-  // Close modal and reset form
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setIsEditing(false);
-    setSelectedPost(null);
-  };
-
   return (
     <Container fluid className="py-4">
+      {/* Header */}
+      <Row className="mb-4">
+        <Col>
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h3 className="text-primary fw-bold mb-2">
+                <i className="fas fa-blog me-2"></i>
+                Quản lý Blog
+              </h3>
+              <p className="text-muted mb-0">
+                Quản lý bài viết và nội dung sức khỏe cho cộng đồng
+              </p>
+            </div>
+          </div>
+        </Col>
+      </Row>
+
+      {/* Navigation */}
+      <Row className="mb-4">
+        <Col>
+          <Nav variant="tabs" className="mb-4">
+            <Nav.Item>
+              <Nav.Link as={Link} to="/nurse/blog/posts" className="fw-semibold" active>
+                <i className="fas fa-file-alt me-2"></i>
+                Cẩm nang y tế
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link as={Link} to="/nurse/blog/health-articles" className="fw-semibold">
+                <i className="fas fa-heartbeat me-2"></i>
+                Cộng đồng
+              </Nav.Link>
+            </Nav.Item>
+          </Nav>
+        </Col>
+      </Row>
+
+      {/* Posts Header */}
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h4 className="text-primary fw-bold mb-2">Bài viết chung</h4>
-              <p className="text-muted mb-0">Quản lý các bài viết và tin tức chung</p>
+              <p className="text-muted mb-0">
+                Quản lý các bài viết và tin tức chung
+                {!postsLoading && !postsError && (
+                  <span className="ms-2">
+                    ({filteredPosts.length} bài viết {filteredPosts.length !== (postsWithLikeStatus.length > 0 ? postsWithLikeStatus.length : posts.length) ? `được lọc từ ${postsWithLikeStatus.length > 0 ? postsWithLikeStatus.length : posts.length} bài` : ''})
+                  </span>
+                )}
+              </p>
             </div>
             <Button variant="primary" className="btn-sm" onClick={handleAddPost}>
               <i className="fas fa-plus me-2"></i>
@@ -312,7 +347,7 @@ const Posts = () => {
       {/* Posts list */}
       {!postsLoading && !postsError && (
         <Row>
-          {filteredPosts.map(post => (
+          {currentPagePosts.map(post => (
             <Col md={6} lg={4} key={post.id} className="mb-4">
               <Card className="h-100 shadow-sm">
                 {post.imageUrl && (
@@ -327,12 +362,17 @@ const Posts = () => {
                 )}
                 <Card.Body className="d-flex flex-column">
                   <div className="d-flex justify-content-between align-items-start mb-2">
-                    <Badge bg="info" className="mb-2">{post.category || 'Chưa phân loại'}</Badge>
-                    {post.pinned && (
-                      <Badge bg="warning" className="ms-1">
-                        <i className="fas fa-thumbtack me-1"></i> Ghim
+                    <div className="d-flex flex-wrap gap-1">
+                      <Badge bg="light" text="dark" className="mb-2">
+                        ID: {post.id}
                       </Badge>
-                    )}
+                      <Badge bg="info" className="mb-2">{post.category || 'Chưa phân loại'}</Badge>
+                      {post.bookmarked && (
+                        <Badge bg="warning" className="mb-2">
+                          <i className="fas fa-bookmark me-1"></i> Ghim
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   
                   <Card.Title className="h6 mb-2">{post.title}</Card.Title>
@@ -365,10 +405,26 @@ const Posts = () => {
                       <i className="fas fa-eye me-1"></i>
                       {post.viewCount || 0} lượt xem
                     </span>
-                    <span className={post.liked ? 'text-danger' : ''} style={{ cursor: 'pointer' }} onClick={() => handleToggleLike(post)}>
-                      <i className={`${post.liked ? 'fas' : 'far'} fa-heart me-1`}></i>
-                      {post.likes || 0} thích
-                    </span>
+                    <div className="d-flex gap-3">
+                      <span 
+                        className={post.liked ? 'text-danger' : ''} 
+                        style={{ cursor: 'pointer' }} 
+                        onClick={() => handleToggleLike(post)}
+                        title={post.liked ? 'Bỏ thích bài viết' : 'Thích bài viết'}
+                      >
+                        <i className={`${post.liked ? 'fas' : 'far'} fa-heart me-1`}></i>
+                        {post.likesCount || 0} thích
+                      </span>
+                      <span 
+                        className={post.bookmarked ? 'text-warning' : ''} 
+                        style={{ cursor: 'pointer' }} 
+                        onClick={() => handleToggleBookmark(post)}
+                        title={post.bookmarked ? 'Bỏ ghim bài viết' : 'Ghim bài viết'}
+                      >
+                        <i className={`${post.bookmarked ? 'fas' : 'far'} fa-bookmark me-1`}></i>
+                        {post.bookmarked ? 'Đã ghim' : 'Ghim'}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="d-flex gap-2">
@@ -381,22 +437,27 @@ const Posts = () => {
                       <i className="fas fa-eye me-1"></i>
                       Xem
                     </Button>
-                    <Button 
-                      variant="outline-warning" 
-                      size="sm" 
-                      className="flex-fill"
-                      onClick={() => handleEditPost(post)}
-                    >
-                      <i className="fas fa-edit me-1"></i>
-                      Sửa
-                    </Button>
-                    <Button 
-                      variant="outline-danger" 
-                      size="sm"
-                      onClick={() => handleDeletePost(post)}
-                    >
-                      <i className="fas fa-trash"></i>
-                    </Button>
+                    {/* Only show edit and delete buttons if user is the author */}
+                    {currentUser?.id === post.author?.id && (
+                      <>
+                        <Button 
+                          variant="outline-warning" 
+                          size="sm" 
+                          className="flex-fill"
+                          onClick={() => handleEditPost(post)}
+                        >
+                          <i className="fas fa-edit me-1"></i>
+                          Sửa
+                        </Button>
+                        <Button 
+                          variant="outline-danger" 
+                          size="sm"
+                          onClick={() => handleDeletePost(post)}
+                        >
+                          <i className="fas fa-trash"></i>
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </Card.Body>
               </Card>
@@ -417,296 +478,46 @@ const Posts = () => {
       )}
 
       {/* Pagination */}
-      {!postsLoading && !postsError && totalPages > 1 && (
+      {!postsLoading && !postsError && totalPagesLocal > 1 && (
         <Row className="mt-4">
-          <Col className="d-flex justify-content-center">
-            <Pagination>
-              <Pagination.First 
-                onClick={() => handlePageChange(1)} 
-                disabled={currentPage === 1}
-              />
-              <Pagination.Prev 
-                onClick={() => handlePageChange(currentPage - 1)} 
-                disabled={currentPage === 1}
-              />
-              
-              {[...Array(totalPages).keys()].map(number => (
-                <Pagination.Item 
-                  key={number + 1} 
-                  active={number + 1 === currentPage}
-                  onClick={() => handlePageChange(number + 1)}
-                >
-                  {number + 1}
-                </Pagination.Item>
-              ))}
-              
-              <Pagination.Next 
-                onClick={() => handlePageChange(currentPage + 1)} 
-                disabled={currentPage === totalPages}
-              />
-              <Pagination.Last 
-                onClick={() => handlePageChange(totalPages)} 
-                disabled={currentPage === totalPages}
-              />
-            </Pagination>
+          <Col className="d-flex justify-content-center align-items-center">
+            <div className="d-flex align-items-center gap-3">
+              <span className="text-muted small">
+                Hiển thị {startIndex + 1} - {Math.min(endIndex, totalPosts)} của {totalPosts} bài viết
+              </span>
+              <Pagination>
+                <Pagination.First 
+                  onClick={() => setCurrentLocalPage(1)} 
+                  disabled={currentLocalPage === 1}
+                />
+                <Pagination.Prev 
+                  onClick={() => setCurrentLocalPage(currentLocalPage - 1)} 
+                  disabled={currentLocalPage === 1}
+                />
+                
+                {[...Array(totalPagesLocal).keys()].map(number => (
+                  <Pagination.Item 
+                    key={number + 1} 
+                    active={number + 1 === currentLocalPage}
+                    onClick={() => setCurrentLocalPage(number + 1)}
+                  >
+                    {number + 1}
+                  </Pagination.Item>
+                ))}
+                
+                <Pagination.Next 
+                  onClick={() => setCurrentLocalPage(currentLocalPage + 1)} 
+                  disabled={currentLocalPage === totalPagesLocal}
+                />
+                <Pagination.Last 
+                  onClick={() => setCurrentLocalPage(totalPagesLocal)} 
+                  disabled={currentLocalPage === totalPagesLocal}
+                />
+              </Pagination>
+            </div>
           </Col>
         </Row>
       )}
-
-      {/* Add/Edit Post Modal */}
-      <Modal show={showModal} onHide={handleCloseModal} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>{isEditing ? 'Chỉnh sửa bài viết' : 'Thêm bài viết mới'}</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleSubmit}>
-          <Modal.Body>
-            <Form.Group className="mb-3">
-              <Form.Label>Tiêu đề <span className="text-danger">*</span></Form.Label>
-              <Form.Control
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Tóm tắt</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={2}
-                name="excerpt"
-                value={formData.excerpt}
-                onChange={handleInputChange}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Nội dung <span className="text-danger">*</span></Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={6}
-                name="content"
-                value={formData.content}
-                onChange={handleInputChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Danh mục <span className="text-danger">*</span></Form.Label>
-              <Form.Select
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Chọn danh mục</option>
-                {postCategories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Hình ảnh</Form.Label>
-              <Form.Control
-                type="text"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleInputChange}
-                placeholder="https://example.com/image.jpg"
-              />
-              {formData.imageUrl && (
-                <div className="mt-2">
-                  <img 
-                    src={formData.imageUrl} 
-                    alt="Xem trước" 
-                    style={{ maxHeight: '100px', maxWidth: '100%' }}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'block';
-                    }}
-                  />
-                  <p className="text-muted small mt-1" style={{ display: 'none' }}>
-                    Không thể hiển thị hình ảnh. Vui lòng kiểm tra lại đường dẫn.
-                  </p>
-                </div>
-              )}
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Thẻ (phân cách bằng dấu phẩy)</Form.Label>
-              <Form.Control
-                type="text"
-                name="tags"
-                value={formData.tags}
-                onChange={handleInputChange}
-                placeholder="sức khỏe, học sinh, ..."
-              />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseModal}>
-              Hủy
-            </Button>
-            <Button 
-              variant="primary" 
-              type="submit" 
-              disabled={submitting}
-            >
-              {submitting ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                    className="me-2"
-                  />
-                  Đang lưu...
-                </>
-              ) : (
-                isEditing ? 'Cập nhật' : 'Thêm bài viết'
-              )}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
-
-      {/* Post Detail Modal */}
-      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Chi tiết bài viết</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {detailLoading ? (
-            <div className="text-center py-4">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-2 text-muted">Đang tải chi tiết bài viết...</p>
-            </div>
-          ) : selectedPost ? (
-            <div className="post-detail">
-              <h4 className="mb-3">{selectedPost.title}</h4>
-              
-              <div className="d-flex justify-content-between text-muted small mb-3">
-                <span>
-                  <i className="fas fa-user me-1"></i>
-                  {selectedPost.author?.name || 'Không có tác giả'}
-                </span>
-                <span>
-                  <i className="fas fa-calendar me-1"></i>
-                  {formatDate(selectedPost.createdAt)}
-                </span>
-              </div>
-              
-              <Badge bg="info" className="mb-3">
-                {selectedPost.category || 'Chưa phân loại'}
-              </Badge>
-              
-              {selectedPost.excerpt && (
-                <div className="summary mb-3 p-3 bg-light rounded">
-                  <strong>Tóm tắt:</strong> {selectedPost.excerpt}
-                </div>
-              )}
-              
-              <div className="content mb-4">
-                <h6>Nội dung:</h6>
-                <div className="p-2" style={{ whiteSpace: 'pre-wrap' }}>
-                  {selectedPost.content}
-                </div>
-              </div>
-              
-              {selectedPost.tags && selectedPost.tags.length > 0 && (
-                <div className="tags mb-3">
-                  <h6>Thẻ:</h6>
-                  <div>
-                    {selectedPost.tags.map((tag, index) => (
-                      <Badge key={index} bg="secondary" className="me-1 mb-1">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <div className="stats d-flex justify-content-between mb-3">
-                <span>
-                  <i className="fas fa-eye me-1"></i>
-                  {selectedPost.viewCount || 0} lượt xem
-                </span>
-                <span>
-                  <i className="fas fa-heart me-1"></i>
-                  {selectedPost.likes || 0} lượt thích
-                </span>
-                <span>
-                  <i className="fas fa-comment me-1"></i>
-                  {selectedPost.commentsCount || 0} bình luận
-                </span>
-              </div>
-              
-              {selectedPost.relatedPosts && selectedPost.relatedPosts.length > 0 && (
-                <div className="related-posts mt-4 pt-3 border-top">
-                  <h6>Bài viết liên quan:</h6>
-                  <ul className="list-unstyled">
-                    {selectedPost.relatedPosts.map(relatedPost => (
-                      <li key={relatedPost.id} className="mb-2">
-                        <a href="#" onClick={(e) => {
-                          e.preventDefault();
-                          setShowDetailModal(false);
-                          handleViewPostDetail({id: relatedPost.id});
-                        }}>
-                          {relatedPost.title}
-                        </a>
-                        <span className="text-muted small ms-2">
-                          ({relatedPost.category})
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              <div className="metadata mt-4 pt-3 border-top">
-                <small className="text-muted">
-                  ID bài viết: {selectedPost.id}<br />
-                  Tác giả: {selectedPost.author?.name} (ID: {selectedPost.author?.id})<br />
-                  Cập nhật lần cuối: {formatDate(selectedPost.updatedAt)}
-                </small>
-              </div>
-            </div>
-          ) : (
-            <p className="text-center text-muted">Không tìm thấy thông tin bài viết</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
-            Đóng
-          </Button>
-          {selectedPost && (
-            <>
-              <Button 
-                variant="warning" 
-                onClick={() => {
-                  setShowDetailModal(false);
-                  handleEditPost(selectedPost);
-                }}
-              >
-                <i className="fas fa-edit me-1"></i> Chỉnh sửa
-              </Button>
-              <Button 
-                variant={selectedPost.liked ? "danger" : "outline-danger"}
-                onClick={() => handleToggleLike(selectedPost)}
-              >
-                <i className={`${selectedPost.liked ? 'fas' : 'far'} fa-heart me-1`}></i>
-                {selectedPost.liked ? 'Bỏ thích' : 'Thích'}
-              </Button>
-            </>
-          )}
-        </Modal.Footer>
-      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>

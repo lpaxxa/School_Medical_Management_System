@@ -433,3 +433,120 @@
 .action-button.edit:hover {
   background-color: #d97706;
 }
+
+/* Pagination styles */
+.pagination {
+  --bs-pagination-color: #3b82f6;
+  --bs-pagination-bg: #ffffff;
+  --bs-pagination-border-color: #e5e7eb;
+  --bs-pagination-hover-color: #1d4ed8;
+  --bs-pagination-hover-bg: #f3f4f6;
+  --bs-pagination-hover-border-color: #d1d5db;
+  --bs-pagination-active-color: #ffffff;
+  --bs-pagination-active-bg: #3b82f6;
+  --bs-pagination-active-border-color: #3b82f6;
+}
+
+.pagination .page-item {
+  margin: 0 2px;
+}
+
+.pagination .page-link {
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  color: #374151;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.pagination .page-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #1d4ed8;
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.pagination .page-item.active .page-link {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.pagination .page-item.active .page-link:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Grade filter styles */
+.grade-filter-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.grade-filter-input {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.grade-filter-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+/* Student count and pagination info */
+.student-count-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 12px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.student-count-info .text-muted {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Grade badge */
+.grade-badge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .student-count-info {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .pagination {
+    justify-content: center;
+  }
+  
+  .pagination .page-item {
+    margin: 0 1px;
+  }
+  
+  .pagination .page-link {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+}
