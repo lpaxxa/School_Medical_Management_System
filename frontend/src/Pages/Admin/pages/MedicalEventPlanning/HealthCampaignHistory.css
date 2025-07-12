@@ -8,7 +8,7 @@
 
 /* Page Header */
 .page-header {
-  background: linear-gradient(135deg, #00b4d8 0%, #0077b6 50%, #023e8a 100%);
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   color: white;
   padding: 40px 35px;
   border-radius: 20px;
@@ -16,6 +16,11 @@
   box-shadow: 0 8px 32px rgba(0, 180, 216, 0.25);
   position: relative;
   overflow: hidden;
+  
+  
+}
+.page-header h1{
+  color: #ffffff !important;
 }
 
 .page-header::before {
@@ -94,15 +99,15 @@
 .stat-card.cancelled { --stat-color: #ef4444; }
 
 .stat-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  color: white;
-  background: var(--stat-color, #00b4d8);
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.2rem !important;
+  color: white !important;
+  background: var(--stat-color, #00b4d8) !important;
 }
 
 .stat-info {

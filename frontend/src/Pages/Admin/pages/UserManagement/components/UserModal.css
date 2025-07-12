@@ -92,12 +92,13 @@
 
 /* Modal Header */
 .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-4);
-  border-bottom: var(--border-width) solid var(--border-color);
-  background: var(--color-gray-50);
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 16px 24px !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  background: var(--bg-primary) !important;
+  margin-bottom: 2% !important;
 }
 
 .modal-header h2 {
@@ -171,7 +172,9 @@ form {
 }
 
 .form-group {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-3) !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
 }
 
 .form-row {
@@ -267,6 +270,7 @@ textarea.error {
 }
 
 .form-group label .required {
+  padding-top: 2% !important;
   margin-left: var(--space-1);
 }
 
@@ -372,6 +376,20 @@ input[type="checkbox"] {
   margin-top: var(--space-6);
   padding-top: var(--space-4);
   border-top: var(--border-width) solid var(--border-color);
+  padding-bottom: 2% !important;
+}
+
+.modal-footer button {
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 /* Student Management */
@@ -666,35 +684,38 @@ input[type="date"].error {
 /* Buttons */
 .btn-cancel,
 .btn-save {
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: var(--border-width) solid var(--border-color);
+  padding: 12px 24px !important;
+  margin-left: 20px !important;
+  margin-right: 12px !important;
+  border-radius: var(--radius) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  border: var(--border-width) solid var(--border-color) !important;
 }
 
 .btn-cancel {
-  background: var(--color-white);
-  color: var(--color-gray-700);
-  border-color: var(--border-color);
+  background: var(--color-white) !important;
+  color: var(--color-gray-700) !important;
+  border-color: var(--border-color) !important;
 }
 
 .btn-save {
-  background: var(--color-gray-900);
-  color: var(--color-white);
-  border-color: var(--color-gray-900);
+  background: var(--color-gray-900) !important;
+  color: var(--color-white) !important;
+  border-color: var(--color-gray-900) !important;
+  padding-right: 25px !important;
 }
 
 .btn-cancel:hover {
-  background: var(--color-gray-50);
-  border-color: var(--color-gray-300);
+  background: var(--color-gray-50) !important;
+  border-color: var(--color-gray-300) !important;
 }
 
 .btn-save:hover {
-  background: var(--color-gray-800);
-  border-color: var(--color-gray-800);
+  background: var(--color-gray-800) !important;
+  border-color: var(--color-gray-800) !important;
 }
 
 /* Placeholder Styling */
@@ -1200,65 +1221,4 @@ select:focus {
 .student-form .form-group .student-image-upload .upload-image-btn:hover,
 .student-edit-form .form-group .student-image-upload .upload-image-btn:hover {
   background: #0056b3;
-}
-
-/* New student image upload styling */
-.new-student-image-upload {
-  margin-bottom: 16px;
-}
-
-.new-student-image-upload .image-container {
-  position: relative;
-  max-width: 200px;
-  margin: 0 auto;
-}
-
-.new-student-image-upload .image-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.new-student-image-upload .image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  border-radius: 8px;
-}
-
-.new-student-image-upload .image-wrapper:hover .image-overlay {
-  opacity: 1;
-}
-
-.new-student-image-upload .image-action-btn {
-  background: white;
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.new-student-image-upload .image-action-btn:hover {
-  transform: scale(1.1);
-}
-
-.new-student-image-upload .upload-btn {
-  color: #007bff;
-}
-
-.new-student-image-upload .delete-btn {
-  color: #dc3545;
 }
