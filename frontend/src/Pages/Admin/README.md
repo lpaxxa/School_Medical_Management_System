@@ -4,6 +4,7 @@
 
 1. **Luôn sử dụng tiền tố `admin-` cho mọi class CSS**
 
+
    ```css
    .admin-header {
      ...;
@@ -16,6 +17,7 @@
    }
    ```
 
+
 2. **Sử dụng namespace-manager.js để tạo class name**
 
    ```jsx
@@ -25,7 +27,9 @@
    <button className={adminNS.clsWithState('button', 'active')}>...</button>
    ```
 
+
 3. **Tổ chức file CSS theo cấu trúc**
+
 
    - Mỗi component nên có file CSS riêng
    - Đặt trong thư mục cùng tên với component

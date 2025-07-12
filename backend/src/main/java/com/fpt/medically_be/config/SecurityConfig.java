@@ -63,7 +63,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll() // Allow actuator endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .requestMatchers("/api/v1/students/**").permitAll()
+                    // Specific bypass for student image upload due to authentication recursion issue
+                    .requestMatchers(HttpMethod.POST, "/api/v1/students/*/upload-image").permitAll()
                     .requestMatchers("/api/v1/parents/**").permitAll()
                     .requestMatchers("/api/v1/vaccinations/**").permitAll()
                     .requestMatchers("/api/v1/health-profiles/**").permitAll()

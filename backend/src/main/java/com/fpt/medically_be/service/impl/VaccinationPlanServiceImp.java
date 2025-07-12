@@ -250,6 +250,7 @@ public class VaccinationPlanServiceImp implements VaccinationPlanService {
             throw new RuntimeException("No vaccines found");
         }
 
+
         // 2. Tạo kế hoạch tiêm chủng
         VaccinationPlan plan = vaccinationPlanMapper.toEntity(dto);
         plan.setVaccines(vaccines);
@@ -273,6 +274,7 @@ public class VaccinationPlanServiceImp implements VaccinationPlanService {
         );
         notification.setIsRequest(false);
         notification.setType(NotificationType.VACCINATION);
+
         notification.setVaccinationPlan(plan);
 
         notification = notification2Repository.save(notification);

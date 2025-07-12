@@ -1,3 +1,5 @@
+
+
 import React, { useState } from "react";
 import {
   FaEye,
@@ -74,7 +76,6 @@ const UserTable = ({
           <thead>
             <tr>
               <th className="col-id">ID</th>
-              <th className="col-username">Tên đăng nhập</th>
               <th className="col-email">Email</th>
               <th className="col-phone">Số điện thoại</th>
               <th className="col-role">Vai trò</th>
@@ -92,12 +93,7 @@ const UserTable = ({
                   <span className="user-id">{user.id}</span>
                 </td>
 
-                <td className="col-username">
-                  <div className="user-info">
-                    <span className="user-name">{user.username}</span>
-                  </div>
-                </td>
-
+              
                 <td className="col-email">
                   <span className="user-email">{user.email}</span>
                 </td>

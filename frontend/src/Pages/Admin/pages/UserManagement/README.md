@@ -56,7 +56,7 @@ PATCH  /api/v1/account-members/toggle-status/{id} - Toggle trạng thái
 UserManagement/
 ├── UserManagement.jsx      # Component chính
 ├── UserManagement.css      # Styling chính
-├── index.js               # Export
+├── index.jsx               # Export
 ├── README.md              # Tài liệu này
 ├── components/
 │   ├── UserTable.jsx      # Bảng hiển thị users

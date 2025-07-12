@@ -534,15 +534,75 @@ tr.status-cancelled-row {
   min-width: 80px;
 }
 
-.medicine-image-modal .modal-body img {
-  border: 1px solid #dee2e6;
-  border-radius: 0.375rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out;
+/* Medicine Image Modal Styles */
+.modal.show .medicine-image-modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto !important;
+  pointer-events: all;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: calc(100vh - 3.5rem) !important;
+  left: 0 !important;
+  right: 0 !important;
+  transform: none !important;
 }
 
-.medicine-image-modal .modal-body img:hover {
+.medicine-image-modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto !important;
+  pointer-events: all;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: calc(100vh - 3.5rem) !important;
+}
+
+.medicine-image-modal-dialog .modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  margin: 0 auto;
+}
+
+.medicine-image-modal-dialog .modal-header {
+  border-bottom: 1px solid #e9ecef;
+  padding: 1.5rem;
+  border-radius: 16px 16px 0 0;
+}
+
+.medicine-image-modal-dialog .modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.medicine-image-modal-dialog .modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1.5rem;
+  border-radius: 0 0 16px 16px;
+}
+
+.medicine-image-modal-dialog .modal-body img {
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+  max-width: 100%;
+  height: auto;
+}
+
+.medicine-image-modal-dialog .modal-body img:hover {
   transform: scale(1.02);
 }
 
@@ -561,5 +621,210 @@ tr.status-cancelled-row {
     font-size: 0.7rem;
     padding: 0.2rem 0.4rem;
     min-width: 70px;
+  }
+  
+  /* Responsive modal centering */
+  .medicine-image-modal-dialog {
+    margin: 1rem auto !important;
+    min-height: calc(100vh - 2rem) !important;
+  }
+  
+  .medicine-image-modal-dialog .modal-content {
+    max-width: 95vw;
+    max-height: 85vh;
+  }
+}
+
+/* Medication Administration Modal Styles */
+.modal.show .medication-admin-modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto !important;
+  pointer-events: all;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: calc(100vh - 3.5rem) !important;
+  left: 0 !important;
+  right: 0 !important;
+  transform: none !important;
+}
+
+.medication-admin-modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto !important;
+  pointer-events: all;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: calc(100vh - 3.5rem) !important;
+}
+
+.medication-admin-modal-dialog .modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  margin: 0 auto;
+}
+
+.medication-admin-modal-dialog .modal-header {
+  border-bottom: 1px solid #e9ecef;
+  padding: 1.5rem;
+  border-radius: 16px 16px 0 0;
+}
+
+.medication-admin-modal-dialog .modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.medication-admin-modal-dialog .modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1.5rem;
+  border-radius: 0 0 16px 16px;
+}
+
+/* Responsive adjustments for medication admin modal */
+@media (max-width: 768px) {
+  .medication-admin-modal-dialog {
+    margin: 1rem auto !important;
+    min-height: calc(100vh - 2rem) !important;
+  }
+  
+  .medication-admin-modal-dialog .modal-content {
+    max-width: 95vw;
+    max-height: 85vh;
+  }
+}
+
+/* Image Upload Modal Styles */
+.modal.show .image-upload-modal-dialog,
+.image-upload-modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto !important;
+  pointer-events: all;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: calc(100vh - 3.5rem) !important;
+}
+
+.image-upload-modal-dialog .modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  margin: 0 auto;
+}
+
+/* Detail Modal Styles */
+.modal.show .detail-modal-dialog,
+.detail-modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto !important;
+  pointer-events: all;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: calc(100vh - 3.5rem) !important;
+}
+
+.detail-modal-dialog .modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  margin: 0 auto;
+}
+
+/* Process Modal Styles */
+.modal.show .process-modal-dialog,
+.process-modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto !important;
+  pointer-events: all;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: calc(100vh - 3.5rem) !important;
+}
+
+.process-modal-dialog .modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  margin: 0 auto;
+}
+
+/* Universal modal styling for headers, bodies, and footers */
+.image-upload-modal-dialog .modal-header,
+.detail-modal-dialog .modal-header,
+.process-modal-dialog .modal-header {
+  border-bottom: 1px solid #e9ecef;
+  padding: 1.5rem;
+  border-radius: 16px 16px 0 0;
+}
+
+.image-upload-modal-dialog .modal-body,
+.detail-modal-dialog .modal-body,
+.process-modal-dialog .modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.image-upload-modal-dialog .modal-footer,
+.detail-modal-dialog .modal-footer,
+.process-modal-dialog .modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1.5rem;
+  border-radius: 0 0 16px 16px;
+}
+
+/* Responsive adjustments for all additional modals */
+@media (max-width: 768px) {
+  .image-upload-modal-dialog,
+  .detail-modal-dialog,
+  .process-modal-dialog {
+    margin: 1rem auto !important;
+    min-height: calc(100vh - 2rem) !important;
+  }
+  
+  .image-upload-modal-dialog .modal-content,
+  .detail-modal-dialog .modal-content,
+  .process-modal-dialog .modal-content {
+    max-width: 95vw;
+    max-height: 85vh;
   }
 }

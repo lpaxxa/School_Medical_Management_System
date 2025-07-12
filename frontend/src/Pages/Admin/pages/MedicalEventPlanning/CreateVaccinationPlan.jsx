@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   FaSyringe,
@@ -11,9 +12,11 @@ import {
   FaSchool,
   FaClock,
   FaTrash,
+  FaChevronDown,
 } from "react-icons/fa";
 import vaccinationPlanService from "../../../../services/APIAdmin/vaccinationPlanService";
 import vaccineService from "../../../../services/APIAdmin/vaccineService";
+import classService from "../../../../services/APIAdmin/classService";
 import "./CreateVaccinationPlan.css";
 
 const CreateVaccinationPlan = () => {
@@ -23,6 +26,11 @@ const CreateVaccinationPlan = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [vaccines, setVaccines] = useState([]);
   const [loadingVaccines, setLoadingVaccines] = useState(true);
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [groupedClasses, setGroupedClasses] = useState({});
+  const [classSearchTerm, setClassSearchTerm] = useState("");
+  const [showClassDropdown, setShowClassDropdown] = useState(false);
 
   // Form data với giá trị mặc định theo API mới
   const [formData, setFormData] = useState({
@@ -34,12 +42,24 @@ const CreateVaccinationPlan = () => {
     className: [],
   });
 
-  // State cho việc thêm lớp học
-  const [newClassName, setNewClassName] = useState("");
-
-  // Lấy danh sách vaccine khi component mount
+  // Lấy danh sách vaccine và classes khi component mount
   useEffect(() => {
     fetchVaccines();
+    fetchClasses();
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.class-selector-container')) {
+        setShowClassDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const fetchVaccines = async () => {
@@ -56,6 +76,55 @@ const CreateVaccinationPlan = () => {
     } finally {
       setLoadingVaccines(false);
     }
+  };
+
+  const fetchClasses = async () => {
+    try {
+      setLoadingClasses(true);
+      const result = await classService.getAllClasses();
+      if (result.success) {
+        setAvailableClasses(result.data);
+        // Group classes by grade level
+        const grouped = groupClassesByGrade(result.data);
+        setGroupedClasses(grouped);
+      } else {
+        console.error("Lỗi khi lấy danh sách lớp học:", result.message);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách lớp học:", error);
+    } finally {
+      setLoadingClasses(false);
+    }
+  };
+
+  // Group classes by grade level
+  const groupClassesByGrade = (classes) => {
+    const grouped = {};
+    classes.forEach((className) => {
+      const grade = extractGradeFromClassName(className);
+      if (!grouped[grade]) {
+        grouped[grade] = [];
+      }
+      grouped[grade].push(className);
+    });
+    // Sort grades and classes within each grade
+    const sortedGrouped = {};
+    Object.keys(grouped)
+      .sort((a, b) => {
+        const numA = parseInt(a.replace("Khối ", ""));
+        const numB = parseInt(b.replace("Khối ", ""));
+        return numA - numB;
+      })
+      .forEach((grade) => {
+        sortedGrouped[grade] = grouped[grade].sort();
+      });
+    return sortedGrouped;
+  };
+
+  // Extract grade from class name (e.g., "3A" -> "Khối 3", "10B" -> "Khối 10")
+  const extractGradeFromClassName = (className) => {
+    const match = className.match(/^(\d+)/);
+    return match ? `Khối ${match[1]}` : "Khác";
   };
 
   // Validate form
@@ -218,18 +287,19 @@ const CreateVaccinationPlan = () => {
     });
   };
 
-  // Xử lý thêm lớp học
-  const handleAddClassName = () => {
-    if (
-      newClassName.trim() &&
-      !formData.className.includes(newClassName.trim())
-    ) {
-      setFormData((prev) => ({
+  // Xử lý chọn lớp học từ dropdown
+  const handleClassSelection = (className) => {
+    setFormData((prev) => {
+      const currentClasses = prev.className;
+      const newClasses = currentClasses.includes(className)
+        ? currentClasses.filter((cls) => cls !== className)
+        : [...currentClasses, className];
+
+      return {
         ...prev,
-        className: [...prev.className, newClassName.trim()],
-      }));
-      setNewClassName("");
-    }
+        className: newClasses,
+      };
+    });
   };
 
   // Xử lý xóa lớp học
@@ -240,12 +310,66 @@ const CreateVaccinationPlan = () => {
     }));
   };
 
-  // Xử lý Enter key cho input lớp học
-  const handleClassNameKeyPress = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddClassName();
-    }
+  // Filter classes based on search term
+  const getFilteredClasses = () => {
+    if (!classSearchTerm.trim()) return groupedClasses;
+    
+    const filtered = {};
+    Object.keys(groupedClasses).forEach((grade) => {
+      const filteredClassesInGrade = groupedClasses[grade].filter((className) =>
+        className.toLowerCase().includes(classSearchTerm.toLowerCase())
+      );
+      if (filteredClassesInGrade.length > 0) {
+        filtered[grade] = filteredClassesInGrade;
+      }
+    });
+    return filtered;
+  };
+
+  // Select all classes in a grade
+  const handleSelectGrade = (grade) => {
+    const classesInGrade = groupedClasses[grade] || [];
+    const allSelected = classesInGrade.every((className) =>
+      formData.className.includes(className)
+    );
+
+    setFormData((prev) => {
+      let newClasses;
+      if (allSelected) {
+        // Deselect all classes in this grade
+        newClasses = prev.className.filter(
+          (className) => !classesInGrade.includes(className)
+        );
+      } else {
+        // Select all classes in this grade
+        const toAdd = classesInGrade.filter(
+          (className) => !prev.className.includes(className)
+        );
+        newClasses = [...prev.className, ...toAdd];
+      }
+
+      return {
+        ...prev,
+        className: newClasses,
+      };
+    });
+  };
+
+  // Check if all classes in a grade are selected
+  const isGradeFullySelected = (grade) => {
+    const classesInGrade = groupedClasses[grade] || [];
+    return classesInGrade.length > 0 && classesInGrade.every((className) =>
+      formData.className.includes(className)
+    );
+  };
+
+  // Check if some classes in a grade are selected (for indeterminate state)
+  const isGradePartiallySelected = (grade) => {
+    const classesInGrade = groupedClasses[grade] || [];
+    const selectedCount = classesInGrade.filter((className) =>
+      formData.className.includes(className)
+    ).length;
+    return selectedCount > 0 && selectedCount < classesInGrade.length;
   };
 
   // Helper functions để format dữ liệu hiển thị
@@ -484,44 +608,120 @@ const CreateVaccinationPlan = () => {
             Lớp Học Tham Gia
           </h3>
 
-          <div className="class-input-section">
-            <div className="add-class-input">
-              <input
-                type="text"
-                placeholder="Nhập tên lớp (ví dụ: 1A1, 1B2)"
-                value={newClassName}
-                onChange={(e) => setNewClassName(e.target.value)}
-                onKeyPress={handleClassNameKeyPress}
-              />
-              <button
-                type="button"
-                onClick={handleAddClassName}
-                className="add-class-btn"
-                disabled={!newClassName.trim()}
-              >
-                <FaPlusCircle />
-                Thêm
-              </button>
-            </div>
-
-            {formData.className.length > 0 && (
-              <div className="selected-classes">
-                <h4>Các lớp đã chọn:</h4>
-                <div className="class-tags">
-                  {formData.className.map((className, index) => (
-                    <div key={index} className="class-tag">
-                      <span>{className}</span>
+          <div className="class-selection-section">
+            {loadingClasses ? (
+              <div className="loading-classes">
+                <FaSpinner className="spinning" />
+                <span>Đang tải danh sách lớp học...</span>
+              </div>
+            ) : (
+              <>
+                <div className="class-selector-container">
+                  <label className="dropdown-label">
+                    Chọn lớp từ danh sách có sẵn ({availableClasses.length} lớp):
+                  </label>
+                  
+                  {/* Search and dropdown trigger */}
+                  <div className="class-search-container">
+                    <div className="search-input-wrapper">
+                      <input
+                        type="text"
+                        placeholder="Tìm kiếm lớp học (VD: 3A, 10B)..."
+                        value={classSearchTerm}
+                        onChange={(e) => setClassSearchTerm(e.target.value)}
+                        onFocus={() => setShowClassDropdown(true)}
+                        className="class-search-input"
+                      />
                       <button
                         type="button"
-                        onClick={() => handleRemoveClassName(className)}
-                        className="remove-class-btn"
+                        onClick={() => setShowClassDropdown(!showClassDropdown)}
+                        className="dropdown-toggle-btn"
                       >
-                        <FaTrash />
+                        <FaChevronDown className={showClassDropdown ? "rotated" : ""} />
                       </button>
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Dropdown content */}
+                  {showClassDropdown && (
+                    <div className="class-dropdown-content">
+                      {availableClasses.length > 0 ? (
+                        Object.keys(getFilteredClasses()).length > 0 ? (
+                          Object.entries(getFilteredClasses()).map(([grade, classesInGrade]) => (
+                            <div key={grade} className="grade-group">
+                              <div className="grade-header">
+                                <label className="grade-checkbox">
+                                  <input
+                                    type="checkbox"
+                                    checked={isGradeFullySelected(grade)}
+                                    ref={(el) => {
+                                      if (el) el.indeterminate = isGradePartiallySelected(grade);
+                                    }}
+                                    onChange={() => handleSelectGrade(grade)}
+                                  />
+                                  <span className="grade-name">{grade}</span>
+                                  <span className="grade-count">({classesInGrade.length} lớp)</span>
+                                </label>
+                              </div>
+                              <div className="grade-classes">
+                                {classesInGrade.map((className) => (
+                                  <label key={className} className="class-item">
+                                    <input
+                                      type="checkbox"
+                                      checked={formData.className.includes(className)}
+                                      onChange={() => handleClassSelection(className)}
+                                    />
+                                    <span className="class-name">{className}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="no-search-results">
+                            <p>Không tìm thấy lớp nào với từ khóa "{classSearchTerm}"</p>
+                          </div>
+                        )
+                      ) : (
+                        <div className="no-classes">
+                          <p>Không có lớp học nào trong hệ thống</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
+
+                {formData.className.length > 0 && (
+                  <div className="selected-classes">
+                    <h4>Các lớp đã chọn ({formData.className.length}):</h4>
+                    <div className="class-tags">
+                      {formData.className.sort().map((className, index) => (
+                        <div key={index} className="class-tag">
+                          <span>{className}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveClassName(className)}
+                            className="remove-class-btn"
+                            title="Bỏ chọn lớp này"
+                          >
+                            <FaTimes />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="class-selection-summary">
+                      <span>Đã chọn {formData.className.length} lớp học</span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, className: [] }))}
+                        className="clear-all-btn"
+                      >
+                        Xóa tất cả
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

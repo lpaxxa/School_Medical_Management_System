@@ -263,10 +263,13 @@
 
 /* Action Buttons */
 .action-buttons {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 12px;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  min-width: 120px;
 }
 
 .action-btn {
@@ -282,6 +285,19 @@
   background: #ffffff;
   outline: none;
   position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .action-btn:focus {
@@ -300,15 +316,28 @@
   border-color: #93c5fd;
 }
 
+.action-btn.view svg {
+  color: #3b82f6;
+}
+
 .action-btn.edit {
-  color: #f59e0b;
-  border-color: #fed7aa;
-  background: #fffbeb;
+  color: #d97706 !important;
+  border-color: #fbbf24 !important;
+  background: #fef3c7 !important;
 }
 
 .action-btn.edit:hover:not(:disabled) {
-  background: #fef3c7;
-  border-color: #fcd34d;
+  background: #fde68a !important;
+  border-color: #f59e0b !important;
+  color: #b45309 !important;
+}
+
+.action-btn.edit svg {
+  color: #d97706 !important;
+}
+
+.action-btn.edit:hover:not(:disabled) svg {
+  color: #b45309 !important;
 }
 
 .action-btn:disabled {
@@ -317,6 +346,10 @@
   background: #f9fafb;
   color: #9ca3af;
   border-color: #e5e7eb;
+}
+
+.action-btn:disabled svg {
+  color: #9ca3af;
 }
 
 .action-btn:disabled:hover {
@@ -399,13 +432,12 @@
 
 /* Column Widths */
 .col-id { width: 100px; }
-.col-username { width: 180px; }
 .col-email { width: 180px; }
 .col-phone { width: 120px; }
 .col-role { width: 100px; }
 .col-status { width: 120px; }
 .col-email-sent { width: 140px; }
-.col-actions { width: 120px; }
+.col-actions { width: 140px; min-width: 140px; }
 
 /* Responsive */
 @media (max-width: 1024px) {
@@ -440,7 +472,8 @@
   }
   
   .action-buttons {
-    gap: 4px;
+    gap: 8px;
+    flex-direction: row;
   }
   
   .action-btn {

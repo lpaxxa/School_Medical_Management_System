@@ -14,15 +14,13 @@ const PlanManager = () => {
   const sections = [
     {
       id: "vaccination",
-      title: "Kế Hoạch Tiêm Chủng",
-      subtitle: "Vaccination Plans",
+      title: "Kế Hoạch Tiêm Chủng",  
       description: "Quản lý và theo dõi các kế hoạch tiêm vaccine định kỳ",
       color: "#6366f1",
     },
     {
       id: "health",
-      title: "Kiểm Tra Sức Khỏe",
-      subtitle: "Health Checkups",
+      title: "Kiểm Tra Sức Khỏe",     
       description: "Tổ chức và quản lý các chương trình kiểm tra sức khỏe",
       color: "#06b6d4",
     },

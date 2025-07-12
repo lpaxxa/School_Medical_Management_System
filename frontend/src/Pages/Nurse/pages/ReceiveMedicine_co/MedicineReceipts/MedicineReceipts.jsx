@@ -32,46 +32,72 @@ import {
 import "./MedicineReceipts.css";
 import { useMedicineApproval } from "../../../../../context/NurseContext/MedicineApprovalContext";
 import receiveMedicineService from "../../../../../services/APINurse/receiveMedicineService";
-import { toast } from "react-toastify";
 
 // Hàm chuyển đổi status thành text và style - Updated to match backend Status enum
 const getStatusInfo = (status) => {
-  // Normalize numeric status to string status
   // Xử lý trường hợp status là số (legacy support)
   if (typeof status === 'number') {
     switch (status) {
       case 0:
-        status = "PENDING_APPROVAL";
-        break;
+        return {
+          text: "Chờ phê duyệt",
+          class: "warning",
+        };
       case 1:
-        status = "APPROVED";
-        break;
+        return {
+          text: "Đã duyệt",
+          class: "info",
+        };
       case 2:
-        status = "REJECTED";
-        break;
+        return {
+          text: "Từ chối",
+          class: "danger",
+        };
       default:
-        status = "UNKNOWN";
+        return {
+          text: "Không xác định",
+          class: "secondary",
+        };
     }
   }
   
   // Xử lý trường hợp status là chuỗi - Complete Status enum support
   switch(status) {
     case "PENDING_APPROVAL":
-      return { text: "Chờ phê duyệt", color: "#FFC107", textColor: "#212529" };
+      return {
+        text: "Chờ phê duyệt",
+        class: "warning",
+      };
     case "APPROVED":
-      return { text: "Đã duyệt", color: "#28A745", textColor: "#FFFFFF" };
+      return {
+        text: "Đã duyệt",
+        class: "info",
+      };
     case "REJECTED":
-      return { text: "Từ chối", color: "#DC3545", textColor: "#FFFFFF" };
+      return {
+        text: "Từ chối",
+        class: "danger",
+      };
     case "FULLY_TAKEN":
-      return { text: "Đã dùng hết", color: "#0D6EFD", textColor: "#FFFFFF" };
+      return {
+        text: "Đã hoàn thành",
+        class: "success",
+      };
     case "PARTIALLY_TAKEN":
-      return { text: "Đang dùng", color: "#0DCAF0", textColor: "#FFFFFF" };
+      return {
+        text: "Hoàn thành một phần",
+        class: "warning",
+      };
     case "EXPIRED":
-      return { text: "Đã hết hạn", color: "#6C757D", textColor: "#FFFFFF" };
-    case "CANCELLED":
-      return { text: "Đã hủy", color: "#212529", textColor: "#FFFFFF" };
+      return {
+        text: "Đã hết hạn",
+        class: "danger",
+      };
     default:
-      return { text: "Không xác định", color: "#F8F9FA", textColor: "#212529", border: "1px solid #DEE2E6" };
+      return {
+        text: "Không xác định",
+        class: "secondary",
+      };
   }
 };
 
@@ -102,6 +128,7 @@ const MedicineReceipts = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [pendingAdministrationId, setPendingAdministrationId] = useState(null);
   const [adminLoading, setAdminLoading] = useState(false);
+  const [adminError, setAdminError] = useState(null);
   
   // State for form data
   const [formData, setFormData] = useState({
@@ -240,6 +267,7 @@ const MedicineReceipts = () => {
     });
     setSelectedImage(null);
     setImagePreview(null);
+    setAdminError(null);
   };
 
   // Handle form input changes
@@ -257,13 +285,13 @@ const MedicineReceipts = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        toast.error('Vui lòng chọn file ảnh hợp lệ');
+        setAdminError('Vui lòng chọn file ảnh hợp lệ');
         return;
       }
       
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('Kích thước file không được vượt quá 5MB');
+        setAdminError('Kích thước file không được vượt quá 5MB');
         return;
       }
       
@@ -273,6 +301,8 @@ const MedicineReceipts = () => {
       const reader = new FileReader();
       reader.onload = (e) => setImagePreview(e.target.result);
       reader.readAsDataURL(file);
+      
+      setAdminError(null);
     }
   };
 
@@ -282,15 +312,16 @@ const MedicineReceipts = () => {
     
     try {
       setAdminLoading(true);
+      setAdminError(null);
       
       // Validate required fields
       if (!formData.medicationInstructionId) {
-        toast.warn('Vui lòng chọn yêu cầu thuốc');
+        setAdminError('Vui lòng chọn yêu cầu thuốc');
         return;
       }
       
       if (!formData.administeredAt) {
-        toast.warn('Vui lòng chọn thời gian thực hiện');
+        setAdminError('Vui lòng chọn thời gian thực hiện');
         return;
       }
 
@@ -305,7 +336,7 @@ const MedicineReceipts = () => {
         
         if (selectedDateTime < startDate) {
           const formattedStartDate = startDate.toLocaleDateString('vi-VN');
-          toast.warn(`Thời gian ghi nhận không được trước ngày bắt đầu: ${formattedStartDate}`);
+          setAdminError(`Thời gian ghi nhận không được trước ngày bắt đầu: ${formattedStartDate}`);
           return;
         }
       }
@@ -317,14 +348,14 @@ const MedicineReceipts = () => {
         
         if (selectedDateTime > endDate) {
           const formattedEndDate = endDate.toLocaleDateString('vi-VN');
-          toast.warn(`Thời gian ghi nhận không được sau ngày kết thúc: ${formattedEndDate}`);
+          setAdminError(`Thời gian ghi nhận không được sau ngày kết thúc: ${formattedEndDate}`);
           return;
         }
       }
       
       // Validate against future time (but allow future dates within medication period)
       if (selectedDateTime > currentTime) {
-        toast.warn('Thời gian ghi nhận không được là thời gian tương lai');
+        setAdminError('Thời gian ghi nhận không được là thời gian tương lai');
         return;
       }
       
@@ -335,21 +366,17 @@ const MedicineReceipts = () => {
         imgUrl: formData.imgUrl || ''
       };
 
-      console.log('Submitting medication administration:', submitData);
-
       // Create medication administration record
       const result = await receiveMedicineService.createMedicationAdministration(submitData);
       
       if (result.success) {
-        console.log('✅ Medication administration created successfully:', result.data);
-        
         // If image is selected, upload it
         if (selectedImage && result.data?.id) {
           setPendingAdministrationId(result.data.id);
           setShowImageModal(true);
         } else {
           // Success without image
-          toast.success(`✅ Đã ghi nhận việc cung cấp thuốc thành công!\n\n📋 Mã bản ghi: #${result.data?.id}`);
+          alert(`✅ Đã ghi nhận việc cung cấp thuốc thành công!\n\n📋 Mã bản ghi: #${result.data?.id}`);
           setShowAdminModal(false);
           resetAdminForm();
           
@@ -359,7 +386,7 @@ const MedicineReceipts = () => {
       } else {
         // Display server error message on screen
         const errorMessage = result.message || 'Không thể ghi nhận việc cung cấp thuốc';
-        toast.error(errorMessage);
+        setAdminError(errorMessage);
       }
     } catch (err) {
       console.error('Error submitting medication administration:', err);
@@ -415,7 +442,7 @@ const MedicineReceipts = () => {
       }
       
       // Display the error message on screen
-      toast.error(errorMessage);
+      setAdminError(errorMessage);
     } finally {
       setAdminLoading(false);
     }
@@ -424,12 +451,13 @@ const MedicineReceipts = () => {
   // Handle image upload
   const handleImageUpload = async () => {
     if (!selectedImage || !pendingAdministrationId) {
-      toast.error('Thiếu thông tin để tải lên ảnh');
+      setAdminError('Thiếu thông tin để tải lên ảnh');
       return;
     }
 
     try {
       setUploadLoading(true);
+      setAdminError(null);
 
       const result = await receiveMedicineService.uploadConfirmationImage(
         pendingAdministrationId,
@@ -437,7 +465,7 @@ const MedicineReceipts = () => {
       );
 
       if (result.success) {
-        toast.success(`✅ Đã tải lên ảnh xác nhận thành công!\n\n📋 Mã bản ghi: #${pendingAdministrationId}`);
+        alert(`✅ Đã tải lên ảnh xác nhận thành công!\n\n📋 Mã bản ghi: #${pendingAdministrationId}`);
         setShowImageModal(false);
         setShowAdminModal(false);
         resetAdminForm();
@@ -446,11 +474,11 @@ const MedicineReceipts = () => {
         // Trigger a custom event to refresh history data
         window.dispatchEvent(new CustomEvent('medicationAdministrationCreated'));
       } else {
-        toast.error(result.message || 'Không thể tải lên ảnh xác nhận');
+        setAdminError(result.message || 'Không thể tải lên ảnh xác nhận');
       }
     } catch (err) {
       console.error('Error uploading image:', err);
-      toast.error('Có lỗi xảy ra khi tải lên ảnh');
+      setAdminError('Có lỗi xảy ra khi tải lên ảnh');
     } finally {
       setUploadLoading(false);
     }
@@ -458,7 +486,7 @@ const MedicineReceipts = () => {
 
   // Handle skip image upload
   const handleSkipImage = () => {
-    toast.success('Đã ghi nhận việc cung cấp thuốc thành công!');
+    alert('Đã ghi nhận việc cung cấp thuốc thành công!');
     setShowImageModal(false);
     setShowAdminModal(false);
     resetAdminForm();
@@ -496,12 +524,12 @@ const MedicineReceipts = () => {
   const handleConfirmProcess = async () => {
     try {
       if (!["APPROVED", "REJECTED"].includes(processData.decision)) {
-        toast.warn("Quyết định không hợp lệ. Chỉ có thể là APPROVED hoặc REJECTED");
+        alert("Quyết định không hợp lệ. Chỉ có thể là APPROVED hoặc REJECTED");
         return;
       }
 
       if (processData.decision === "REJECTED" && !processData.reason?.trim()) {
-        toast.warn("Vui lòng nhập lý do từ chối");
+        alert("Vui lòng nhập lý do từ chối");
         return;
       }
 
@@ -515,14 +543,14 @@ const MedicineReceipts = () => {
 
       if (result.success) {
         setShowProcessModal(false);
-        toast.success(`Đã ${processData.decision === "APPROVED" ? "phê duyệt" : "từ chối"} yêu cầu thuốc thành công!`);
+        alert(`Đã ${processData.decision === "APPROVED" ? "phê duyệt" : "từ chối"} yêu cầu thuốc thành công!`);
         fetchMedicineRequests();
       } else {
-        toast.error(`Không thể xử lý yêu cầu: ${result.message || "Đã xảy ra lỗi"}`);
+        alert(`Không thể xử lý yêu cầu: ${result.message || "Đã xảy ra lỗi"}`);
       }
     } catch (err) {
       console.error("Lỗi khi xử lý yêu cầu thuốc:", err);
-      toast.error("Có lỗi xảy ra khi xử lý yêu cầu thuốc. Vui lòng thử lại sau.");
+      alert("Có lỗi xảy ra khi xử lý yêu cầu thuốc. Vui lòng thử lại sau.");
     }
   };
 
@@ -553,21 +581,39 @@ const MedicineReceipts = () => {
       }
     }
 
-    // Filter by date range
+    // Filter by date range - check for overlap between medicine period and filter range
     let dateMatch = true;
     if (dateRange.startDate || dateRange.endDate) {
-      const medicineDate = new Date(medicine.startDate);
+      const medicineStartDate = new Date(medicine.startDate);
+      medicineStartDate.setHours(0, 0, 0, 0); // Normalize to start of day
+      
+      const medicineEndDate = medicine.endDate ? new Date(medicine.endDate) : new Date(medicine.startDate);
+      medicineEndDate.setHours(23, 59, 59, 999); // Normalize to end of day
+      
+      // Set up filter dates
+      let filterStartDate = null;
+      let filterEndDate = null;
       
       if (dateRange.startDate) {
-        const startDate = new Date(dateRange.startDate);
-        startDate.setHours(0, 0, 0, 0); // Start of day
-        dateMatch = dateMatch && medicineDate >= startDate;
+        filterStartDate = new Date(dateRange.startDate);
+        filterStartDate.setHours(0, 0, 0, 0); // Start of day
       }
       
       if (dateRange.endDate) {
-        const endDate = new Date(dateRange.endDate);
-        endDate.setHours(23, 59, 59, 999); // End of day
-        dateMatch = dateMatch && medicineDate <= endDate;
+        filterEndDate = new Date(dateRange.endDate);
+        filterEndDate.setHours(23, 59, 59, 999); // End of day
+      }
+      
+      // Check for overlap between medicine period and filter period
+      // Medicine overlaps with filter if:
+      // - Medicine end date >= filter start date (or no filter start date)
+      // - Medicine start date <= filter end date (or no filter end date)
+      if (filterStartDate && medicineEndDate < filterStartDate) {
+        dateMatch = false; // Medicine ends before filter starts
+      }
+      
+      if (filterEndDate && medicineStartDate > filterEndDate) {
+        dateMatch = false; // Medicine starts after filter ends
       }
     }
 
@@ -609,7 +655,6 @@ const MedicineReceipts = () => {
 
   // Xem chi tiết đơn nhận thuốc
   const handleViewDetail = (receipt) => {
-    console.log("Viewing receipt details:", receipt);
     setSelectedReceipt(receipt);
     setShowDetail(true);
   };
@@ -708,14 +753,9 @@ const MedicineReceipts = () => {
                     <option value="PENDING_APPROVAL">Chờ phê duyệt</option>
                     <option value="APPROVED">Đã duyệt</option>
                     <option value="REJECTED">Từ chối</option>
-                    <option value="FULLY_TAKEN">Đã dùng hết</option>
-                    <option value="PARTIALLY_TAKEN">Đang dùng</option>
-                    <option value="EXPIRED">Đã hết hạn</option>
-                    <option value="CANCELLED">Đã hủy</option>
                     <option value="FULLY_TAKEN">Đã hoàn thành</option>
                     <option value="PARTIALLY_TAKEN">Hoàn thành một phần</option>
                     <option value="EXPIRED">Đã hết hạn</option>
-
                   </Form.Select>
                 </InputGroup>
               </Form.Group>
@@ -817,12 +857,6 @@ const MedicineReceipts = () => {
                           </td>
                           <td className="text-center medicine-image-column">
                             {(() => {
-                              // Debug: Log the medicine object to console to see available fields
-                              console.log('Medicine object for ID', medicine.id, ':', medicine);
-                              console.log('prescriptionImageUrl:', medicine.prescriptionImageUrl);
-                              console.log('medicationImageUrl:', medicine.medicationImageUrl);
-                              console.log('imageUrl:', medicine.imageUrl);
-                              
                               const hasImage = medicine.prescriptionImageUrl || medicine.medicationImageUrl || medicine.imageUrl;
                               return hasImage ? (
                                 <Button
@@ -1008,14 +1042,18 @@ const MedicineReceipts = () => {
           setShowAdminModal(false);
           resetAdminForm();
         }}
-        size="lg"
         centered
+        dialogClassName="medication-admin-modal-dialog"
       >
         <Modal.Header closeButton>
           <Modal.Title>Ghi nhận cung cấp thuốc</Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleAdminSubmit}>
           <Modal.Body>
+            {adminError && (
+              <Alert variant="danger">{adminError}</Alert>
+            )}
+
             {selectedRequest && (
               <Alert variant="info" className="mb-3">
                 <strong>Yêu cầu:</strong> #{selectedRequest.id} - {selectedRequest.studentName} - {selectedRequest.medicationName}
@@ -1132,6 +1170,7 @@ const MedicineReceipts = () => {
         show={showImageModal}
         onHide={() => setShowImageModal(false)}
         centered
+        dialogClassName="image-upload-modal-dialog"
       >
         <Modal.Header closeButton>
           <Modal.Title>Tải lên ảnh xác nhận</Modal.Title>
@@ -1183,7 +1222,7 @@ const MedicineReceipts = () => {
 
       {/* Simple Detail Modal */}
       {showDetail && selectedReceipt && (
-        <Modal show={true} onHide={handleCloseDetail} size="lg" centered>
+        <Modal show={true} onHide={handleCloseDetail} centered dialogClassName="detail-modal-dialog">
           <Modal.Header closeButton>
             <Modal.Title>Chi tiết đơn nhận thuốc #{selectedReceipt?.id}</Modal.Title>
           </Modal.Header>
@@ -1277,7 +1316,7 @@ const MedicineReceipts = () => {
 
       {/* Modal xử lý yêu cầu thuốc */}
       {showProcessModal && (
-        <Modal show={true} onHide={() => setShowProcessModal(false)} centered>
+        <Modal show={true} onHide={() => setShowProcessModal(false)} centered dialogClassName="process-modal-dialog">
           <Modal.Header closeButton>
             <Modal.Title>Xử lý yêu cầu thuốc</Modal.Title>
           </Modal.Header>
@@ -1327,20 +1366,18 @@ const MedicineReceipts = () => {
         show={showMedicineImageModal} 
         onHide={() => setShowMedicineImageModal(false)} 
         centered 
-        size="lg"
-        className="medicine-image-modal"
+        dialogClassName="medicine-image-modal-dialog"
       >
         <Modal.Header closeButton>
           <Modal.Title>Ảnh thuốc từ phụ huynh</Modal.Title>
         </Modal.Header>
         <Modal.Body className="text-center">
           {selectedMedicineImage ? (
-            <div>
-              <img 
-                src={selectedMedicineImage} 
-                alt="Ảnh thuốc từ phụ huynh" 
-                className="img-fluid rounded"
-                style={{ maxHeight: '500px', maxWidth: '100%' }}
+            <div className="w-100">
+                              <img 
+                  src={selectedMedicineImage} 
+                  alt="Ảnh thuốc từ phụ huynh" 
+                  className="img-fluid"
                 onError={(e) => {
                   e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2Yjc0ODMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5LaG9uZyB0aGUgdGFpIGFuaDwvdGV4dD4KPC9zdmc+';
                   e.target.alt = 'Không thể tải ảnh';
