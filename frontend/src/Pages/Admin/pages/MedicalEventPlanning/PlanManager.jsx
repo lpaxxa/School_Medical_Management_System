@@ -84,7 +84,7 @@ const PlanManager = () => {
     <div className="plan-manager">
       {/* Main Header */}
       <div className="manager-header">
-        <div className="header-content">
+        <div className="header-content-admin">
           <div className="header-text">
             <h1>Quản Lý Kế Hoạch Y Tế</h1>
             <h2>Hệ thống quản lý sức khỏe toàn diện</h2>

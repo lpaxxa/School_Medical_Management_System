@@ -1,0 +1,501 @@
+/* Student Image Upload Component Styles */
+
+.student-image-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Image Container */
+.image-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+  transition: all 0.3s ease;
+}
+
+.image-wrapper:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.student-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: all 0.3s ease;
+}
+
+.image-wrapper:hover .student-image {
+  transform: scale(1.05);
+}
+
+/* Image Overlay */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.image-wrapper:hover .image-overlay {
+  opacity: 1;
+}
+
+.image-action-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: white;
+}
+
+.image-action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.upload-btn {
+  background: #3b82f6;
+}
+
+.upload-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: scale(1.1);
+}
+
+.delete-btn {
+  background: #ef4444;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+/* No Image State */
+.no-image {
+  width: 120px;
+  height: 120px;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #f9fafb;
+  color: #6b7280;
+  transition: all 0.3s ease;
+}
+
+.no-image:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.no-image svg {
+  font-size: 24px;
+  opacity: 0.6;
+}
+
+.no-image span {
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.upload-image-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  background: #3b82f6;
+  color: white;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.upload-image-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.upload-image-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Error Message */
+.upload-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+  max-width: 200px;
+}
+
+/* Modal Styles */
+.image-upload-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.image-upload-modal-dialog {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.modal-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+/* Image Preview */
+.image-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.image-preview img {
+  max-width: 250px;
+  max-height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* File Info */
+.file-info {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.file-info p {
+  margin: 0 0 0.5rem 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.file-info p:last-child {
+  margin-bottom: 0;
+}
+
+/* Upload Notes */
+.upload-note {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.upload-note p {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #1e40af;
+  font-size: 14px;
+}
+
+.upload-note ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.upload-note li {
+  margin-bottom: 0.25rem;
+  font-size: 13px;
+  color: #3730a3;
+}
+
+.upload-note li:last-child {
+  margin-bottom: 0;
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 16px 16px;
+}
+
+.btn-cancel,
+.btn-upload {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.btn-cancel {
+  background: white;
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn-upload {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-upload:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-cancel:disabled,
+.btn-upload:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Spinning Animation */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .image-upload-modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .image-upload-modal-dialog {
+    max-width: none;
+    margin: 0;
+    border-radius: 12px;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1rem;
+  }
+
+  .image-preview img {
+    max-width: 200px;
+    max-height: 200px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-upload {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .image-wrapper,
+  .no-image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .image-action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-image-upload {
+    gap: 0.5rem;
+  }
+
+  .upload-image-btn {
+    padding: 0.375rem 0.5rem;
+    font-size: 10px;
+  }
+
+  .upload-error {
+    font-size: 11px;
+    padding: 0.375rem 0.5rem;
+  }
+
+  .file-info,
+  .upload-note {
+    padding: 0.75rem;
+  }
+
+  .file-info p,
+  .upload-note p {
+    font-size: 13px;
+  }
+
+  .upload-note li {
+    font-size: 12px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .image-wrapper {
+    border-width: 3px;
+  }
+
+  .no-image {
+    border-width: 3px;
+  }
+
+  .upload-error {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .image-wrapper,
+  .student-image,
+  .image-overlay,
+  .image-action-btn,
+  .no-image,
+  .upload-image-btn,
+  .modal-close-btn,
+  .btn-cancel,
+  .btn-upload {
+    transition: none;
+  }
+
+  .image-upload-modal-dialog {
+    animation: none;
+  }
+
+  .spinning {
+    animation: none;
+  }
+} 

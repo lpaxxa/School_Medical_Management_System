@@ -182,10 +182,10 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="dashboard-content">
+    <div className="admin-dash-content">
       {/* Header với nút refresh */}
-      <div className="dashboard-header">
-        <div className="header-content">
+      <div className="admin-dash-header">
+        <div className="admin-dash-header-content">
           <div>
             <h1>Tổng quan Y tế học đường</h1>
         
@@ -195,7 +195,7 @@ const Dashboard = () => {
 
       {/* Hiển thị lỗi nếu có */}
       {error && (
-        <div className="error-banner">
+        <div className="admin-dash-error-banner">
           <span>{error}</span>
         </div>
       )}
@@ -210,7 +210,7 @@ const Dashboard = () => {
         dashboardData.medicalEventsStats?.usingFallback ||
         dashboardData.bmiStats?._metadata?.usingFallback
       ) && (
-        <div className="info-banner">
+        <div className="admin-dash-info-banner">
           <span>
             📊 Đang hiển thị dữ liệu mẫu do cơ sở dữ liệu chưa có dữ liệu thực tế. 
             Dữ liệu sẽ tự động cập nhật khi có thông tin mới.
@@ -219,95 +219,179 @@ const Dashboard = () => {
       )}
 
       {/* Thống kê tổng quan */}
-      {/* <div className="stats-container">
-        <div className="stat-card">
-          <div className="stat-icon students">
+      {/* <div className="admin-dash-stats-container">
+        <div className="admin-dash-stat-card">
+          <div className="admin-dash-stat-icon students">
             <FaChild />
           </div>
-          <div className="stat-details">
+          <div className="admin-dash-stat-details">
             <h3>Tổng số học sinh</h3>
-            <p className="stat-value">{stats.totalStudents}</p>
+            <p className="admin-dash-stat-value">{stats.totalStudents}</p>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon events">
+        <div className="admin-dash-stat-card">
+          <div className="admin-dash-stat-icon events">
             <FaCalendarCheck />
           </div>
-          <div className="stat-details">
+          <div className="admin-dash-stat-details">
             <h3>Sự kiện y tế năm nay</h3>
-            <p className="stat-value">{stats.totalMedicalEvents}</p>
+            <p className="admin-dash-stat-value">{stats.totalMedicalEvents}</p>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon upcoming">
+        <div className="admin-dash-stat-card">
+          <div className="admin-dash-stat-icon upcoming">
             <FaUserMd />
           </div>
-          <div className="stat-details">
+          <div className="admin-dash-stat-details">
             <h3>Kế hoạch tiêm chủng đang chờ</h3>
-            <p className="stat-value">{stats.upcomingEvents}</p>
+            <p className="admin-dash-stat-value">{stats.upcomingEvents}</p>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon reports">
+        <div className="admin-dash-stat-card">
+          <div className="admin-dash-stat-icon reports">
             <FaClipboardList />
           </div>
-          <div className="stat-details">
+          <div className="admin-dash-stat-details">
             <h3>Báo cáo chờ xử lý</h3>
-            <p className="stat-value">{stats.pendingReports}</p>
+            <p className="admin-dash-stat-value">{stats.pendingReports}</p>
           </div>
         </div>
       </div> */}
+      <div className="admin-dash-stats-container">
+
+            {/* Phần sự kiện và cảnh báo */}
+      <div className="admin-dash-content-grid">
+        {/* Recent Medical Events */}
+        <div className="admin-dash-card events-list">
+          <div className="admin-dash-card-header">
+            <h2>Sự kiện y tế gần đây</h2>
+            {/* <button className="admin-dash-view-all-btn">Xem tất cả</button> */}
+          </div>
+          <div className="admin-dash-card-content">
+            <table className="admin-dash-events-table">
+              <thead>
+                <tr>
+                  <th>Tên sự kiện</th>
+                  <th>Ngày</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentEvents.map((event) => (
+                  <tr key={event.id}>
+                    <td>{event.title}</td>
+                    <td>{event.date}</td>
+                    <td>
+                      <span className={`admin-dash-event-status-tag ${event.status}`}>
+                        {event.status === "completed"
+                          ? "Hoàn thành"
+                          : event.status === "upcoming"
+                          ? "Sắp diễn ra"
+                          : event.status === "in-progress"
+                          ? "Đang diễn ra"
+                          : "Tạm hoãn"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        
+      </div>
+      {/* Recent Vaccination Plans */}
+        <div className="admin-dash-card events-list">
+          <div className="admin-dash-card-header">
+            <h2>Kế hoạch tiêm chủng gần đây</h2>
+            {/* <button className="admin-dash-view-all-btn">Xem tất cả</button> */}
+          </div>
+          <div className="admin-dash-card-content">
+            <table className="admin-dash-events-table">
+              <thead>
+                <tr>
+                  <th>Tên kế hoạch</th>
+                  <th>Ngày tiêm</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(dashboardData.recentVaccinationPlans || []).map((plan) => (
+                  <tr key={plan.id}>
+                    <td>{plan.name}</td>
+                    <td>{plan.date}</td>
+                    <td>
+                      <span className={`admin-dash-event-status-tag ${plan.status}`}>
+                        {plan.status === "completed"
+                          ? "Hoàn thành"
+                          : plan.status === "upcoming"
+                          ? "Sắp diễn ra"
+                          : plan.status === "in-progress"
+                          ? "Đang tiến hành"
+                          : plan.status === "cancelled"
+                          ? "Đã hủy"
+                          : "Chờ xử lý"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
       {/* Section biểu đồ */}
-      <div className="charts-section">
-        {/* <div className="section-header">
+      <div className="admin-dash-charts-section">
+        {/* <div className="admin-dash-section-header">
           <h2>
             <FaChartBar /> Thống kê và Biểu đồ
           </h2>
         </div> */}
 
         {/* Hàng 1: User Role Chart & Students by Grade Chart */}
-        <div className="charts-row">
-          <div className="chart-card">
-            <div className="chart-header">
+        <div className="admin-dash-charts-row">
+          <div className="admin-dash-chart-card">
+            <div className="admin-dash-chart-header">
               <h3>Phân bổ người dùng hệ thống</h3>
               {dashboardData.userStats && (
-                <span className="chart-subtitle">
+                <span className="admin-dash-chart-subtitle">
                   Tổng: {dashboardData.userStats.total} người dùng
                 
                 </span>
               )}
             </div>
-            <div className="chart-content">
+            <div className="admin-dash-chart-content">
               {loading ? (
-                <div className="chart-loading">Đang tải...</div>
+                <div className="admin-dash-chart-loading">Đang tải...</div>
               ) : dashboardData.userStats ? (
                 <UserRoleChart data={dashboardData.userStats} />
               ) : (
-                <div className="chart-error">Không có dữ liệu</div>
+                <div className="admin-dash-chart-error">Không có dữ liệu</div>
               )}
             </div>
           </div>
 
-          <div className="chart-card">
-            <div className="chart-header">
+          <div className="admin-dash-chart-card">
+            <div className="admin-dash-chart-header">
               <h3>Số lượng học sinh theo khối lớp</h3>
               {dashboardData.studentsGradeData && (
-                <span className="chart-subtitle">
+                <span className="admin-dash-chart-subtitle">
                   Tổng: {dashboardData.studentsGradeData.total} học sinh
                 </span>
               )}
             </div>
-            <div className="chart-content">
+            <div className="admin-dash-chart-content">
               {loading ? (
-                <div className="chart-loading">Đang tải...</div>
+                <div className="admin-dash-chart-loading">Đang tải...</div>
               ) : dashboardData.studentsGradeData ? (
                 <StudentsByGradeChart data={dashboardData.studentsGradeData} />
               ) : (
-                <div className="chart-error">
+                <div className="admin-dash-chart-error">
                   <p>Không có dữ liệu học sinh theo khối lớp</p>
                   <button 
                     onClick={() => window.dashboardService?.testStudentsAPI?.()}
@@ -322,37 +406,37 @@ const Dashboard = () => {
         </div>
 
         {/* Hàng 2: Health Status Chart & Health Campaign Status Chart */}
-        <div className="charts-row">
-          <div className="chart-card">
-            <div className="chart-header">
+        <div className="admin-dash-charts-row">
+          {/* <div className="admin-dash-chart-card">
+            <div className="admin-dash-chart-header">
               <h3>Phân loại sức khỏe học sinh</h3>
-              <span className="chart-subtitle">
+              <span className="admin-dash-chart-subtitle">
                 Dựa trên kết quả khám gần nhất
               </span>
             </div>
-            <div className="chart-content">
+            <div className="admin-dash-chart-content">
               <HealthStatusChart />
             </div>
-          </div>
+          </div> */}
 
-          <div className="chart-card">
-            <div className="chart-header">
+          <div className="admin-dash-chart-card">
+            <div className="admin-dash-chart-header">
               <h3>Trạng thái chiến dịch sức khỏe</h3>
               {dashboardData.healthCampaignStats && (
-                <span className="chart-subtitle">
+                <span className="admin-dash-chart-subtitle">
                   Tổng: {dashboardData.healthCampaignStats.total} chiến dịch
                 </span>
               )}
             </div>
-            <div className="chart-content">
+            <div className="admin-dash-chart-content">
               {loading ? (
-                <div className="chart-loading">Đang tải...</div>
+                <div className="admin-dash-chart-loading">Đang tải...</div>
               ) : dashboardData.healthCampaignStats ? (
                 <HealthCampaignStatusChart
                   data={dashboardData.healthCampaignStats}
                 />
               ) : (
-                <div className="chart-error">
+                <div className="admin-dash-chart-error">
                   <p>Không có dữ liệu chiến dịch sức khỏe</p>
                   <button 
                     onClick={() => window.dashboardService?.testHealthCampaignsAPI?.()}
@@ -422,25 +506,25 @@ const Dashboard = () => {
         </div> */}
 
         {/* Hàng 4: Medical Events Severity & Vaccination Type Chart */}
-        <div className="charts-row">
-          <div className="chart-card">
-            <div className="chart-header">
+        <div className="admin-dash-charts-row">
+          <div className="admin-dash-chart-card">
+            <div className="admin-dash-chart-header">
               <h3>Sự cố y tế theo mức độ nghiêm trọng</h3>
               {dashboardData.medicalEventsStats && (
-                <span className="chart-subtitle">
+                <span className="admin-dash-chart-subtitle">
                   Tổng: {dashboardData.medicalEventsStats.total} sự cố
                 </span>
               )}
             </div>
-            <div className="chart-content">
+            <div className="admin-dash-chart-content">
               {loading ? (
-                <div className="chart-loading">Đang tải...</div>
+                <div className="admin-dash-chart-loading">Đang tải...</div>
               ) : dashboardData.medicalEventsStats ? (
                 <MedicalEventsSeverityChart
                   data={dashboardData.medicalEventsStats}
                 />
               ) : (
-                <div className="chart-error">
+                <div className="admin-dash-chart-error">
                   <p>Không có dữ liệu sự cố y tế</p>
                   <button 
                     onClick={() => window.dashboardService?.testMedicalIncidentsAPI?.()}
@@ -453,24 +537,24 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="chart-card">
-            <div className="chart-header">
+          <div className="admin-dash-chart-card">
+            <div className="admin-dash-chart-header">
               <h3>Phân loại tiêm chủng theo nguồn</h3>
               {dashboardData.vaccinationTypeStats && (
-                <span className="chart-subtitle">
+                <span className="admin-dash-chart-subtitle">
                   Tổng: {dashboardData.vaccinationTypeStats.total} mũi tiêm
                 </span>
               )}
             </div>
-            <div className="chart-content">
+            <div className="admin-dash-chart-content">
               {loading ? (
-                <div className="chart-loading">Đang tải...</div>
+                <div className="admin-dash-chart-loading">Đang tải...</div>
               ) : dashboardData.vaccinationTypeStats ? (
                 <VaccinationTypeChart
                   data={dashboardData.vaccinationTypeStats}
                 />
               ) : (
-                <div className="chart-error">
+                <div className="admin-dash-chart-error">
                   <p>Không có dữ liệu phân loại tiêm chủng</p>
                   <button 
                     onClick={() => window.dashboardService?.testVaccinationsAPI?.()}
@@ -485,25 +569,25 @@ const Dashboard = () => {
         </div>
 
         {/* Hàng 5: Medication Status Charts */}
-        <div className="charts-row">
-          <div className="chart-card">
-            <div className="chart-header">
+        <div className="admin-dash-charts-row">
+          <div className="admin-dash-chart-card">
+            <div className="admin-dash-chart-header">
               <h3>Trạng thái phê duyệt thuốc</h3>
               {dashboardData.medicationStats && (
-                <span className="chart-subtitle">
+                <span className="admin-dash-chart-subtitle">
                   Tổng: {dashboardData.medicationStats.approvalStats.total} yêu cầu
                 </span>
               )}
             </div>
-            <div className="chart-content">
+            <div className="admin-dash-chart-content">
               {loading ? (
-                <div className="chart-loading">Đang tải...</div>
+                <div className="admin-dash-chart-loading">Đang tải...</div>
               ) : dashboardData.medicationStats ? (
                 <MedicationApprovalStatusChart
                   data={dashboardData.medicationStats.approvalStats}
                 />
               ) : (
-                <div className="chart-error">
+                <div className="admin-dash-chart-error">
                   <p>Không có dữ liệu phê duyệt thuốc</p>
                   <button 
                     onClick={() => window.dashboardService?.testMedicationInstructionsAPI?.()}
@@ -516,24 +600,24 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="chart-card">
-            <div className="chart-header">
+          <div className="admin-dash-chart-card">
+            <div className="admin-dash-chart-header">
               <h3>Trạng thái sử dụng thuốc</h3>
               {dashboardData.medicationStats && (
-                <span className="chart-subtitle">
+                <span className="admin-dash-chart-subtitle">
                   Tổng: {dashboardData.medicationStats.consumptionStats.total} thuốc
                 </span>
               )}
             </div>
-            <div className="chart-content">
+            <div className="admin-dash-chart-content">
               {loading ? (
-                <div className="chart-loading">Đang tải...</div>
+                <div className="admin-dash-chart-loading">Đang tải...</div>
               ) : dashboardData.medicationStats?.consumptionStats?.total > 0 ? (
                 <MedicationConsumptionStatusChart
                   data={dashboardData.medicationStats.consumptionStats}
                 />
               ) : (
-                <div className="chart-error">
+                <div className="admin-dash-chart-error">
                   <p>Không có dữ liệu sử dụng thuốc</p>
                   <span style={{fontSize: '10px', color: '#666'}}>
                     (Chỉ hiển thị khi có thuốc đã được sử dụng)
@@ -545,27 +629,27 @@ const Dashboard = () => {
         </div>
 
         {/* Hàng 6: BMI Chart (full width) */}
-        <div className="charts-row">
-          <div className="chart-card full-width">
-            <div className="chart-header">
+        <div className="admin-dash-charts-row">
+          <div className="admin-dash-chart-card full-width">
+            <div className="admin-dash-chart-header">
               <h3>Phân bố BMI theo khối lớp</h3>
               {dashboardData.bmiStats?._metadata ? (
-                <span className="chart-subtitle">
+                <span className="admin-dash-chart-subtitle">
                   {/* {dashboardData.bmiStats._metadata.totalWithBMI} học sinh có dữ liệu BMI / {dashboardData.bmiStats._metadata.totalCheckups} lần khám */}
                 </span>
               ) : (
-                <span className="chart-subtitle">
+                <span className="admin-dash-chart-subtitle">
                   Thống kê chỉ số BMI từ kết quả khám sức khỏe định kỳ
                 </span>
               )}
             </div>
-            <div className="chart-content large">
+            <div className="admin-dash-chart-content large">
               {loading ? (
-                <div className="chart-loading">Đang tải...</div>
+                <div className="admin-dash-chart-loading">Đang tải...</div>
               ) : dashboardData.bmiStats ? (
                 <BMIByGradeChart data={dashboardData.bmiStats} />
               ) : (
-                <div className="chart-error">
+                <div className="admin-dash-chart-error">
                   <p>Không có dữ liệu BMI theo khối lớp</p>
                   <button 
                     onClick={() => window.dashboardService?.testMedicalCheckupsAPI?.()}
@@ -580,86 +664,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Phần sự kiện và cảnh báo */}
-      <div className="dashboard-row">
-        {/* Recent Medical Events */}
-        <div className="dashboard-card events-list">
-          <div className="card-header">
-            <h2>Sự kiện y tế gần đây</h2>
-            {/* <button className="view-all-btn">Xem tất cả</button> */}
-          </div>
-          <div className="card-content">
-            <table className="events-table">
-              <thead>
-                <tr>
-                  <th>Tên sự kiện</th>
-                  <th>Ngày</th>
-                  <th>Trạng thái</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentEvents.map((event) => (
-                  <tr key={event.id}>
-                    <td>{event.title}</td>
-                    <td>{event.date}</td>
-                    <td>
-                      <span className={`status-badge ${event.status}`}>
-                        {event.status === "completed"
-                          ? "Hoàn thành"
-                          : event.status === "upcoming"
-                          ? "Sắp diễn ra"
-                          : event.status === "in-progress"
-                          ? "Đang diễn ra"
-                          : "Tạm hoãn"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
 
-        {/* Recent Vaccination Plans */}
-        <div className="dashboard-card events-list">
-          <div className="card-header">
-            <h2>Kế hoạch tiêm chủng gần đây</h2>
-            {/* <button className="view-all-btn">Xem tất cả</button> */}
-          </div>
-          <div className="card-content">
-            <table className="events-table">
-              <thead>
-                <tr>
-                  <th>Tên kế hoạch</th>
-                  <th>Ngày tiêm</th>
-                  <th>Trạng thái</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(dashboardData.recentVaccinationPlans || []).map((plan) => (
-                  <tr key={plan.id}>
-                    <td>{plan.name}</td>
-                    <td>{plan.date}</td>
-                    <td>
-                      <span className={`status-badge ${plan.status}`}>
-                        {plan.status === "completed"
-                          ? "Hoàn thành"
-                          : plan.status === "upcoming"
-                          ? "Sắp diễn ra"
-                          : plan.status === "in-progress"
-                          ? "Đang tiến hành"
-                          : plan.status === "cancelled"
-                          ? "Đã hủy"
-                          : "Chờ xử lý"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
