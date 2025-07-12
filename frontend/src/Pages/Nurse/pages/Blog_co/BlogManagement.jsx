@@ -1,66 +1,28 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Nav, Tab, Badge } from 'react-bootstrap';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Posts from './posts/Posts';
+import PostDetail from './posts/PostDetail';
+import AddPost from './posts/AddPost';
+import EditPost from './posts/EditPost';
 import HealthArticles from './health_articles/HealthArticles';
+import AddHealthArticle from './health_articles/AddHealthArticle';
+import EditHealthArticle from './health_articles/EditHealthArticle';
 import './BlogManagement.css';
 
 const BlogManagement = () => {
-  const [activeTab, setActiveTab] = useState('posts');
-
   return (
-    <Container fluid className="blog-management py-4">
-      <Row className="mb-4">
-        <Col>
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h3 className="text-primary fw-bold mb-2">
-                <i className="fas fa-blog me-2"></i>
-                Quản lý Blog
-              </h3>
-              <p className="text-muted mb-0">
-                Quản lý bài viết và nội dung sức khỏe cho cộng đồng
-              </p>
-            </div>
-          </div>
-        </Col>
-      </Row>
-
-      <Tab.Container 
-        id="blog-management-tabs" 
-        activeKey={activeTab} 
-        onSelect={(k) => setActiveTab(k)}
-      >
-        <Row>
-          <Col>
-            <Nav variant="tabs" className="mb-4 custom-nav-tabs">
-              <Nav.Item>
-                <Nav.Link eventKey="posts" className="fw-semibold">
-                  <i className="fas fa-file-alt me-2"></i>
-                  Bài viết (Posts)
-                  <Badge bg="primary" className="ms-2">3</Badge>
-                </Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey="health-articles" className="fw-semibold">
-                  <i className="fas fa-heartbeat me-2"></i>
-                  Bài viết sức khỏe (Health Articles)
-                  <Badge bg="success" className="ms-2">3</Badge>
-                </Nav.Link>
-              </Nav.Item>
-            </Nav>
-
-            <Tab.Content>
-              <Tab.Pane eventKey="posts">
-                <Posts />
-              </Tab.Pane>
-              <Tab.Pane eventKey="health-articles">
-                <HealthArticles />
-              </Tab.Pane>
-            </Tab.Content>
-          </Col>
-        </Row>
-      </Tab.Container>
-    </Container>
+    <div className="blog-management">
+      <Routes>
+        <Route path="/" element={<Navigate to="posts" replace />} />
+        <Route path="/posts" element={<Posts />} />
+        <Route path="/posts/add" element={<AddPost />} />
+        <Route path="/posts/edit/:id" element={<EditPost />} />
+        <Route path="/posts/:id" element={<PostDetail />} />
+        <Route path="/health-articles" element={<HealthArticles />} />
+        <Route path="/health-articles/add" element={<AddHealthArticle />} />
+        <Route path="/health-articles/edit/:id" element={<EditHealthArticle />} />
+      </Routes>
+    </div>
   );
 };
 

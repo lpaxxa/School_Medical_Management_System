@@ -399,3 +399,45 @@
 .modal-container .form-group {
   position: relative; /* Required for absolute positioning of suggestions */
 }
+
+/* Image URL Preview Styles */
+.image-preview-container {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.image-preview-container .img-thumbnail {
+  border: 2px solid #007bff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-preview-container .alert {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.form-control[type="url"] {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control[type="url"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control[type="url"]:invalid {
+  border-color: #dc3545;
+}
+
+.form-control[type="url"]:invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}

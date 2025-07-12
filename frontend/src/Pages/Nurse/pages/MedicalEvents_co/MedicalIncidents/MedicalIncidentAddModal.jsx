@@ -22,7 +22,8 @@ const MedicalIncidentAddModal = ({
     parentNotified: false,
     requiresFollowUp: false,
     followUpNotes: '',
-    medicationsUsed: []
+    medicationsUsed: [],
+    imageMedicalUrl: ''
   });
 
   // Medication search states
@@ -55,7 +56,8 @@ const MedicalIncidentAddModal = ({
           parentNotified: selectedEvent.parentNotified || false,
           requiresFollowUp: selectedEvent.requiresFollowUp || false,
           followUpNotes: selectedEvent.followUpNotes || '',
-          medicationsUsed: selectedEvent.medicationsUsed || []
+          medicationsUsed: selectedEvent.medicationsUsed || [],
+          imageMedicalUrl: selectedEvent.imageMedicalUrl || ''
         });
       } else {
         // Add mode - reset form with current datetime
@@ -72,7 +74,8 @@ const MedicalIncidentAddModal = ({
           parentNotified: false,
           requiresFollowUp: false,
           followUpNotes: '',
-          medicationsUsed: []
+          medicationsUsed: [],
+          imageMedicalUrl: ''
         });
       }
 
@@ -261,6 +264,7 @@ const MedicalIncidentAddModal = ({
           itemID: med.itemID,
           name: med.name  // Include name for string conversion in service
         })),
+        imageMedicalUrl: formData.imageMedicalUrl, // Direct URL from input
         handledById: 1 // Default handler ID
       };
 
@@ -270,10 +274,22 @@ const MedicalIncidentAddModal = ({
       if (result) {
         toast.success(selectedEvent ? 'Cập nhật sự kiện y tế thành công!' : 'Thêm sự kiện y tế mới thành công!');
         handleClose();
+      } else {
+        toast.error('Không thể lưu sự kiện y tế - không có phản hồi từ server');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error(selectedEvent ? 'Lỗi khi cập nhật sự kiện y tế' : 'Lỗi khi thêm sự kiện y tế mới');
+      
+      // More specific error messages
+      let errorMessage = selectedEvent ? 'Lỗi khi cập nhật sự kiện y tế' : 'Lỗi khi thêm sự kiện y tế mới';
+      
+      if (error.response && error.response.data && error.response.data.message) {
+        errorMessage += ': ' + error.response.data.message;
+      } else if (error.message) {
+        errorMessage += ': ' + error.message;
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
@@ -504,6 +520,48 @@ const MedicalIncidentAddModal = ({
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+
+            {/* Image URL Section */}
+            <div className="form-group">
+              <label>Link ảnh sự cố y tế</label>
+              <input
+                type="url"
+                name="imageMedicalUrl"
+                value={formData.imageMedicalUrl}
+                onChange={handleInputChange}
+                placeholder="Nhập link ảnh sự cố y tế (http://... hoặc https://...)"
+                className="form-control"
+              />
+              {formData.imageMedicalUrl && (
+                <div className="image-preview-container mt-3">
+                  <div className="text-center">
+                    <img 
+                      src={formData.imageMedicalUrl} 
+                      alt="Preview ảnh sự cố" 
+                      className="img-thumbnail"
+                      style={{ 
+                        maxWidth: '300px', 
+                        maxHeight: '300px',
+                        objectFit: 'cover'
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                      onLoad={(e) => {
+                        e.target.style.display = 'block';
+                        e.target.nextSibling.style.display = 'none';
+                      }}
+                    />
+                    <div className="alert alert-warning mt-2" style={{ display: 'none' }}>
+                      <i className="fas fa-exclamation-triangle"></i>
+                      <br />Không thể tải ảnh từ link này
+                      <br /><small>Vui lòng kiểm tra lại link ảnh</small>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

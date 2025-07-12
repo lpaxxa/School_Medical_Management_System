@@ -123,6 +123,7 @@ const MedicalIncidentsList = () => {
         parentID: eventData.parentID || '',
         parentInfo: parentInfo,
         imgUrl: eventData.imgUrl || '',
+        imageMedicalUrl: eventData.imageMedicalUrl || eventData.imgUrl || eventData.imageUrl || '',
         studentId: eventData.studentId || '',
         studentName: eventData.studentName || 'Chưa xác định',
         medicationsUsed: eventData.medicationsUsed || 'Không có thông tin thuốc'
@@ -188,6 +189,9 @@ const MedicalIncidentsList = () => {
         setShowAddModal(false);
         
         return result; // Return success result
+      } else {
+        // Nếu không có result, vẫn coi là lỗi
+        throw new Error('Không thể thêm sự kiện y tế - không có phản hồi từ server');
       }
       
     } catch (error) {

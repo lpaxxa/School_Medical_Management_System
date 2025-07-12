@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStudentRecords } from '../../../../../context/NurseContext/StudentRecordsContext';
 import './StudentList.css';
 import StudentDetail from '../StudentDetail/StudentDetail';
-import AddEditRecord from '../AddEditRecord/AddEditRecord';
-import { Form, Container, Row, Col, Card, Table, Button, InputGroup, Badge, Spinner, Alert } from 'react-bootstrap';
+import { Form, Container, Row, Col, Card, Table, Button, InputGroup, Badge, Spinner, Alert, Pagination } from 'react-bootstrap';
 
 const StudentList = () => {
   // Sử dụng context thay vì local state và API calls
@@ -11,9 +10,6 @@ const StudentList = () => {
     filteredStudents,
     loading,
     error,
-    classes,
-    bloodTypes,
-    searchCriteria,
     handleSearch,
     resetFilters,
     setSelectedStudent
@@ -26,56 +22,71 @@ const StudentList = () => {
   // Local state cho form tìm kiếm
   const [keyword, setKeyword] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
-  const [selectedBloodType, setSelectedBloodType] = useState('');
-  const [selectedHealthIssue, setSelectedHealthIssue] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState(''); // Thêm state cho khối
+  
+  // State cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const [studentsPerPage] = useState(10);
   
   // Đồng bộ state tìm kiếm local với context khi component mount
   useEffect(() => {
-    setKeyword(searchCriteria.keyword);
-    setSelectedClass(searchCriteria.class);
-    setSelectedBloodType(searchCriteria.bloodType);
-    setSelectedHealthIssue(searchCriteria.healthIssue);
-  }, [searchCriteria]);
+    // Initialize with empty values since we removed searchCriteria
+    setKeyword('');
+    setSelectedClass('');
+    setSelectedGrade('');
+    setCurrentPage(1);
+  }, []);
 
-  // Thêm hàm xử lý cho Form.Control
+  // Thêm hàm xử lý cho Form.Control với tìm kiếm realtime
   const handleSearchInputChange = (e) => {
     const { name, value } = e.target;
     
     switch (name) {
       case 'keyword':
         setKeyword(value);
+        // Tìm kiếm realtime
+        handleSearch({
+          keyword: value,
+          class: selectedClass,
+          grade: selectedGrade
+        });
         break;
       case 'class':
         setSelectedClass(value);
+        // Tìm kiếm realtime
+        handleSearch({
+          keyword,
+          class: value,
+          grade: selectedGrade
+        });
         break;
-      case 'bloodType':
-        setSelectedBloodType(value);
-        break;
-      case 'healthIssue':
-        setSelectedHealthIssue(value);
+      case 'grade':
+        setSelectedGrade(value);
+        setCurrentPage(1); // Reset về trang 1 khi lọc theo khối
+        // Tìm kiếm realtime
+        handleSearch({
+          keyword,
+          class: selectedClass,
+          grade: value
+        });
         break;
       default:
         break;
     }
   };
 
-  // Xử lý khi nhấn nút tìm kiếm
+  // Xử lý khi nhấn nút tìm kiếm - bỏ hàm này vì không cần thiết
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    handleSearch({
-      keyword,
-      class: selectedClass,
-      bloodType: selectedBloodType,
-      healthIssue: selectedHealthIssue
-    });
+    // Không cần làm gì vì tìm kiếm đã realtime
   };
   
   // Xử lý khi nhấn nút Reset
   const handleResetFilters = () => {
     setKeyword('');
     setSelectedClass('');
-    setSelectedBloodType('');
-    setSelectedHealthIssue('');
+    setSelectedGrade('');
+    setCurrentPage(1);
     resetFilters();
   };
 
@@ -106,18 +117,29 @@ const StudentList = () => {
     setSelectedStudent(null);
   };
 
-  // Xử lý khi muốn thêm hồ sơ mới
-  const handleAddRecord = () => {
-    setViewMode('add');
-    setSelectedStudentLocal(null);
-    setSelectedStudent(null);
+  // Lọc dữ liệu theo khối
+  const filterByGrade = (students, grade) => {
+    if (!grade) return students;
+    return students.filter(student => {
+      const className = student.className || student.class || '';
+      // Lấy số khối từ tên lớp (ví dụ: 12A1 -> 12, 3B2 -> 3)
+      const classGrade = className.match(/^(\d+)/);
+      return classGrade && classGrade[1] === grade;
+    });
   };
 
-  // Xử lý khi muốn chỉnh sửa hồ sơ
-  const handleEditRecord = (student) => {
-    setSelectedStudentLocal(student);
-    setSelectedStudent(student);
-    setViewMode('edit');
+  // Áp dụng bộ lọc khối cho danh sách học sinh
+  const gradeFilteredStudents = filterByGrade(filteredStudents, selectedGrade);
+
+  // Tính toán phân trang
+  const indexOfLastStudent = currentPage * studentsPerPage;
+  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
+  const currentStudents = gradeFilteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+  const totalPages = Math.ceil(gradeFilteredStudents.length / studentsPerPage);
+
+  // Xử lý chuyển trang
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   // Hiển thị trạng thái loading
@@ -158,19 +180,7 @@ const StudentList = () => {
     return (
       <StudentDetail 
         student={selectedStudentLocal} 
-        onBack={handleBackToList} 
-        onEdit={() => handleEditRecord(selectedStudentLocal)}
-      />
-    );
-  }
-
-  // Hiển thị form thêm/sửa hồ sơ
-  if ((viewMode === 'add' || viewMode === 'edit') && (viewMode === 'add' || selectedStudentLocal)) {
-    return (
-      <AddEditRecord
-        student={viewMode === 'edit' ? selectedStudentLocal : null}
         onBack={handleBackToList}
-        mode={viewMode}
       />
     );
   }
@@ -179,13 +189,13 @@ const StudentList = () => {
   const renderStudentTable = () => {
     return (
       <div className="table-responsive">
-        {filteredStudents.length === 0 ? (
+        {currentStudents.length === 0 ? (
           <Card className="text-center p-5 my-4">
             <Card.Body>
               <i className="fas fa-search fa-3x mb-3 text-muted"></i>
               <Card.Title>Không tìm thấy kết quả</Card.Title>
               <Card.Text>Không tìm thấy học sinh nào phù hợp với tiêu chí tìm kiếm</Card.Text>
-              <Button variant="outline-primary" onClick={resetFilters}>
+              <Button variant="outline-primary" onClick={handleResetFilters}>
                 <i className="fas fa-redo me-2"></i>Xóa bộ lọc
               </Button>
             </Card.Body>
@@ -196,18 +206,19 @@ const StudentList = () => {
               <Table hover responsive className="mb-0">
                 <thead className="bg-light">
                   <tr>
+                    <th>STT</th>
                     <th>ID Hồ sơ y tế</th>
                     <th>Họ và tên</th>
                     <th>Mã học sinh</th>
                     <th>Lớp</th>
                     <th>Giới tính</th>
                     <th>Ngày sinh</th>
-                    <th className="text-center">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredStudents.map((student) => (
+                  {currentStudents.map((student, index) => (
                     <tr key={student.id} style={{ cursor: 'pointer' }} onClick={() => handleViewStudent(student)}>
+                      <td>{indexOfFirstStudent + index + 1}</td>
                       <td>
                         {student.healthProfileId ? (
                           <Badge bg="info" pill>{student.healthProfileId}</Badge>
@@ -222,30 +233,6 @@ const StudentList = () => {
                       </td>
                       <td>{student.gender}</td>
                       <td>{new Date(student.dateOfBirth).toLocaleDateString('vi-VN')}</td>
-                      <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewStudent(student);
-                            }}
-                          >
-                            <i className="fas fa-eye"></i>
-                          </Button>
-                          <Button
-                            variant="outline-success"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditRecord(student);
-                            }}
-                          >
-                            <i className="fas fa-edit"></i>
-                          </Button>
-                        </div>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -257,6 +244,83 @@ const StudentList = () => {
     );
   };
 
+  // Hàm render phân trang
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const items = [];
+    
+    // Nút Previous
+    items.push(
+      <Pagination.Prev
+        key="prev"
+        disabled={currentPage === 1}
+        onClick={() => handlePageChange(currentPage - 1)}
+      />
+    );
+
+    // Tính toán các trang hiển thị
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    // Nút đầu và dấu ...
+    if (startPage > 1) {
+      items.push(
+        <Pagination.Item key={1} onClick={() => handlePageChange(1)}>
+          1
+        </Pagination.Item>
+      );
+      if (startPage > 2) {
+        items.push(<Pagination.Ellipsis key="start-ellipsis" />);
+      }
+    }
+
+    // Các trang ở giữa
+    for (let page = startPage; page <= endPage; page++) {
+      items.push(
+        <Pagination.Item
+          key={page}
+          active={page === currentPage}
+          onClick={() => handlePageChange(page)}
+        >
+          {page}
+        </Pagination.Item>
+      );
+    }
+
+    // Nút cuối và dấu ...
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        items.push(<Pagination.Ellipsis key="end-ellipsis" />);
+      }
+      items.push(
+        <Pagination.Item key={totalPages} onClick={() => handlePageChange(totalPages)}>
+          {totalPages}
+        </Pagination.Item>
+      );
+    }
+
+    // Nút Next
+    items.push(
+      <Pagination.Next
+        key="next"
+        disabled={currentPage === totalPages}
+        onClick={() => handlePageChange(currentPage + 1)}
+      />
+    );
+
+    return (
+      <div className="d-flex justify-content-between align-items-center mt-4">
+        <div className="text-muted">
+          Hiển thị {indexOfFirstStudent + 1} - {Math.min(indexOfLastStudent, gradeFilteredStudents.length)} trong tổng số {gradeFilteredStudents.length} học sinh
+        </div>
+        <Pagination className="mb-0">
+          {items}
+        </Pagination>
+      </div>
+    );
+  };
+
   // Hiển thị danh sách học sinh
   return (
     <Container fluid className="py-4">
@@ -264,28 +328,14 @@ const StudentList = () => {
         <Card.Body>
           <Form onSubmit={handleSearchSubmit}>
             <Row className="mb-3">
-              <Col md={6} lg={8}>
-                <InputGroup>
-                  <Form.Control
-                    type="text"
-                    name="keyword"
-                    placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
-                    value={keyword}
-                    onChange={handleSearchInputChange}
-                  />
-                  <Button variant="primary" type="submit">
-                    <i className="fas fa-search me-1"></i> Tìm kiếm
-                  </Button>
-                </InputGroup>
-              </Col>
-              <Col md={6} lg={4} className="d-flex justify-content-end">
-                <Button 
-                  variant="outline-secondary" 
-                  onClick={handleResetFilters}
-                  className="w-100"
-                >
-                  <i className="fas fa-redo me-1"></i> Đặt lại bộ lọc
-                </Button>
+              <Col md={12}>
+                <Form.Control
+                  type="text"
+                  name="keyword"
+                  placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
+                  value={keyword}
+                  onChange={handleSearchInputChange}
+                />
               </Col>
             </Row>
 
@@ -293,61 +343,41 @@ const StudentList = () => {
               <Col md={4}>
                 <Form.Group className="mb-3">
                   <Form.Label>
+                    <i className="fas fa-layer-group me-1"></i> Khối
+                  </Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="grade"
+                    placeholder="Nhập khối (vd: 10, 11, 12...)"
+                    value={selectedGrade}
+                    onChange={handleSearchInputChange}
+                    min="1"
+                    max="12"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
                     <i className="fas fa-chalkboard me-1"></i> Lớp
-                  </Form.Label>
-                  <Form.Select
-                    name="class"
-                    value={selectedClass}
-                    onChange={handleSearchInputChange}
-                  >
-                    <option value="">Tất cả các lớp</option>
-                    {Array.isArray(classes) && classes.map((classItem, index) => {
-                      const classKey = typeof classItem === 'string' ? classItem : (classItem?.id || index);
-                      const classValue = typeof classItem === 'string' ? classItem : (classItem?.className || classItem?.name || '');
-                      
-                      return (
-                        <option key={classKey} value={classValue}>
-                          {classValue}
-                        </option>
-                      );
-                    })}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    <i className="fas fa-tint me-1"></i> Nhóm máu
-                  </Form.Label>
-                  <Form.Select
-                    name="bloodType"
-                    value={selectedBloodType}
-                    onChange={handleSearchInputChange}
-                  >
-                    <option value="">Tất cả</option>
-                    {bloodTypes.map((type, index) => (
-                      <option key={type || index} value={type || ''}>
-                        {type}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    <i className="fas fa-heartbeat me-1"></i> Vấn đề sức khỏe
                   </Form.Label>
                   <Form.Control
                     type="text"
-                    name="healthIssue"
-                    placeholder="Dị ứng, bệnh mãn tính..."
-                    value={selectedHealthIssue}
+                    name="class"
+                    placeholder="Nhập tên lớp (vd: 12A1, 11B2...)"
+                    value={selectedClass}
                     onChange={handleSearchInputChange}
                   />
                 </Form.Group>
+              </Col>
+              <Col md={4} className="d-flex align-items-end">
+                <Button 
+                  variant="outline-secondary" 
+                  onClick={handleResetFilters}
+                  className="w-100 mb-3"
+                >
+                  <i className="fas fa-redo me-1"></i> Đặt lại bộ lọc
+                </Button>
               </Col>
             </Row>
           </Form>
@@ -358,18 +388,22 @@ const StudentList = () => {
         <h4 className="mb-0">
           Danh sách học sinh 
           <Badge bg="primary" className="ms-2">
-            {filteredStudents.length}
+            {gradeFilteredStudents.length}
           </Badge>
+          {selectedGrade && (
+            <Badge bg="success" className="ms-2">
+              Khối {selectedGrade}
+            </Badge>
+          )}
         </h4>
-        <Button 
-          variant="success" 
-          onClick={handleAddRecord}
-        >
-          <i className="fas fa-plus me-1"></i> Thêm hồ sơ mới
-        </Button>
+        <div className="text-muted">
+          Trang {currentPage} / {totalPages}
+        </div>
       </div>
       
       {renderStudentTable()}
+      
+      {renderPagination()}
     </Container>
   );
 };

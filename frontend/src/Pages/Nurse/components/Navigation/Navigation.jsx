@@ -49,7 +49,7 @@ const Navigation = () => {
           </li>
           
           <li>
-            <Link to="/nurse/blog-management" className={isActive('/nurse/blog-management')}>
+            <Link to="/nurse/blog/posts" className={isActive('/nurse/blog')}>
               <i className="fas fa-blog"></i> Quản lý blog
             </Link>
           </li>
