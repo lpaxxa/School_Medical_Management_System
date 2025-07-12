@@ -4,6 +4,7 @@ import { InventoryContext, InventoryProvider, useInventory } from './InventoryCo
 import { MedicalEventsContext, MedicalEventsProvider, useMedicalEvents } from './MedicalEventsContext';
 import { HealthCheckupContext, HealthCheckupProvider } from './HealthCheckupContext';
 import { MedicineApprovalContext, MedicineApprovalProvider, useMedicineApproval } from './MedicineApprovalContext';
+import { BlogContext, BlogProvider, useBlog } from './BlogContext';
 
 // Create a custom hook for the health checkup context
 export const useHealthCheckup = () => {
@@ -33,4 +34,9 @@ export {
   MedicineApprovalContext,
   MedicineApprovalProvider,
   useMedicineApproval,
+
+  // Blog context exports
+  BlogContext,
+  BlogProvider,
+  useBlog,
 };
