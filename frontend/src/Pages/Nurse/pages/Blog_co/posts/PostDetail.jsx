@@ -668,12 +668,12 @@ const PostDetail = () => {
 
   // Handle back to posts
   const handleBackToPosts = () => {
-    navigate('/nurse/blog/posts');
+    navigate('/nurse/blog-management/posts');
   };
 
   // Handle edit post
   const handleEditPost = () => {
-    navigate(`/nurse/blog/posts/edit/${post.id}`);
+    navigate(`/nurse/blog-management/posts/edit/${post.id}`);
   };
 
   if (loading) {
@@ -913,7 +913,7 @@ const PostDetail = () => {
                         <Button
                           variant="link"
                           className="p-0 text-start"
-                          onClick={() => navigate(`/nurse/blog/posts/${relatedPost.id}`)}
+                          onClick={() => navigate(`/nurse/blog-management/posts/${relatedPost.id}`)}
                         >
                           <div className="fw-bold">{relatedPost.title}</div>
                           <div className="text-muted small">

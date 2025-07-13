@@ -8,6 +8,30 @@ import './MedicalIncidents.css';
 import * as studentService from '../../../../../services/APINurse/studentService';
 import { getParentById } from '../../../../../services/APINurse/healthCheckupService';
 
+// CSS để fix dropdown arrows
+const dropdownStyles = `
+  .medical-incidents-dropdown {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+    padding-right: 2.25rem !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+  }
+  
+  .medical-incidents-dropdown::-ms-expand {
+    display: none !important;
+  }
+  
+  /* Xóa bỏ tất cả các icon dropdown khác */
+  .medical-incidents-dropdown::after,
+  .medical-incidents-dropdown::before {
+    display: none !important;
+  }
+`;
+
 const MedicalIncidentsList = () => {
   // Sử dụng context để quản lý state và API  
   const { 
@@ -18,10 +42,7 @@ const MedicalIncidentsList = () => {
     fetchEventById,
     addEvent,
     updateEvent,
-    deleteEvent,
-    searchByStudentName,
-    searchByFollowUpStatus,
-    searchByClassName
+    deleteEvent
   } = useMedicalEvents();
   
   // State cục bộ
@@ -46,6 +67,10 @@ const MedicalIncidentsList = () => {
     resultCount: 0
   });
 
+  // State cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const [eventsPerPage] = useState(10);
+
   // Context đã tự động lấy dữ liệu ban đầu
   useEffect(() => {
     if (!events || events.length === 0) {
@@ -55,6 +80,7 @@ const MedicalIncidentsList = () => {
 
   useEffect(() => {
     setDisplayedEvents(events);
+    setCurrentPage(1); // Reset về trang đầu khi dữ liệu thay đổi
   }, [events]);
 
   useEffect(() => {
@@ -284,100 +310,167 @@ const MedicalIncidentsList = () => {
     setSearchType(e.target.value);
     setSearchValue('');
     setSearchStatus({ hasSearched: false, resultCount: 0 });
+    setCurrentPage(1);
+    // Reset về hiển thị tất cả khi thay đổi loại tìm kiếm
+    fetchEvents();
   };
 
-  // Xử lý thay đổi giá trị tìm kiếm
+  // Xử lý thay đổi giá trị tìm kiếm với realtime search
   const handleSearchValueChange = (e) => {
-    setSearchValue(e.target.value);
+    const value = e.target.value;
+    setSearchValue(value);
+    
+    // Tìm kiếm realtime
+    if (searchType === 'name' && value.trim()) {
+      performSearch(searchType, value.trim());
+    } else if (searchType === 'class' && value.trim()) {
+      performSearch(searchType, value.trim());
+    } else if (!value.trim()) {
+      // Nếu không có giá trị, hiển thị tất cả
+      handleReset();
+    }
+  };
+
+  // Hàm thực hiện tìm kiếm (tách riêng để dùng chung)
+  const performSearch = async (type, value) => {
+    console.log("=== BẮT ĐẦU TÌM KIẾM ===");
+    console.log("Search Type:", type);
+    console.log("Search Value:", value);
+    
+    try {
+      let results = [];
+      
+      if (type === 'class') {
+        // Client-side search for "class"
+        console.log("Thực hiện tìm kiếm theo lớp (Front-end):", value);
+        const classNameLower = value.toLowerCase();
+        
+        results = events.filter(event => {
+          const student = students.find(s => s.id == event.studentId || s.studentId == event.studentId);
+          
+          if (student) {
+            const studentClassName = (student.class || student.className || '').toLowerCase();
+            return studentClassName.includes(classNameLower);
+          }
+          
+          return false;
+        });
+        
+        setDisplayedEvents(results);
+        setSearchStatus({
+          hasSearched: true,
+          resultCount: results.length
+        });
+        setCurrentPage(1);
+        console.log("Kết quả tìm kiếm (Front-end):", results);
+      } else if (type === 'name') {
+        console.log("Tìm kiếm theo tên học sinh (Front-end):", value);
+        const studentNameLower = value.toLowerCase();
+        
+        // Tìm kiếm client-side theo tên học sinh
+        results = events.filter(event => {
+          const studentName = (event.studentName || '').toLowerCase();
+          return studentName.includes(studentNameLower);
+        });
+        
+        setDisplayedEvents(results);
+        setSearchStatus({
+          hasSearched: true,
+          resultCount: results.length
+        });
+        setCurrentPage(1);
+        console.log("Kết quả tìm kiếm theo tên (Front-end):", results);
+      }
+      
+      console.log("=== KẾT THÚC TÌM KIẾM ===");
+      
+    } catch (error) {
+      console.error("Lỗi khi tìm kiếm:", error);
+      console.log("Có lỗi xảy ra khi tìm kiếm!");
+    }
   };
 
   // Reset tìm kiếm và hiển thị tất cả
   const handleReset = () => {
     setSearchValue('');
     setSearchStatus({ hasSearched: false, resultCount: 0 });
+    setCurrentPage(1);
     fetchEvents(); // Fetches all events, and useEffect syncs it to displayedEvents
   };
 
-  // Xử lý tìm kiếm
-  const handleSearch = async () => {
-    console.log("=== BẮT ĐẦU TÌM KIẾM ===");
-    console.log("Search Type:", searchType);
-    console.log("Search Value:", searchValue);
-    
-    // Client-side search for "class"
-    if (searchType === 'class') {
-      if (!searchValue.trim()) {
-        alert("Vui lòng nhập tên lớp để tìm kiếm");
-        return;
-      }
-      console.log("Thực hiện tìm kiếm theo lớp (Front-end):", searchValue);
-      const classNameLower = searchValue.trim().toLowerCase();
-      
-      const filteredEvents = events.filter(event => {
-        // Replicate the working logic from getStudentClassName to find the student
-        const student = students.find(s => s.id == event.studentId || s.studentId == event.studentId);
-        
-        if (student) {
-          // If student is found, check if their class name matches the search
-          const studentClassName = (student.class || student.className || '').toLowerCase();
-          return studentClassName.includes(classNameLower);
-        }
-        
-        return false; // If no student found for the event, don't include it
-      });
-
-      setDisplayedEvents(filteredEvents);
-      setSearchStatus({
-        hasSearched: true,
-        resultCount: filteredEvents.length
-      });
-      console.log("Kết quả tìm kiếm (Front-end):", filteredEvents);
-      console.log("=== KẾT THÚC TÌM KIẾM ===");
-      return;
-    }
-    
-    // Kiểm tra điều kiện tìm kiếm cho API calls
-    if (searchType === 'name' && !searchValue.trim()) {
-      alert(`Vui lòng nhập tên học sinh để tìm kiếm`);
-      return;
-    }
-    
-    if (searchType === 'followUp' && !searchValue) {
-      alert("Vui lòng chọn trạng thái theo dõi");
+  // Xử lý tìm kiếm cho dropdown followUp
+  const handleFollowUpSearch = async (value) => {
+    if (!value) {
+      handleReset();
       return;
     }
     
     try {
-      let results = [];
+      console.log("Tìm kiếm theo follow-up (Front-end):", value);
+      const followUpValue = value === 'true';
       
-      if (searchType === 'name') {
-        console.log("Tìm kiếm theo tên học sinh:", searchValue);
-        results = await searchByStudentName(searchValue.trim());
-      } else if (searchType === 'followUp') {
-        console.log("Tìm kiếm theo follow-up:", searchValue);
-        const followUpValue = searchValue === 'true';
-        results = await searchByFollowUpStatus(followUpValue);
-      } else if (searchType === 'class') {
-        console.log("Tìm kiếm theo lớp:", searchValue);
-        results = await searchByClassName(searchValue.trim());
-      }
+      // Tìm kiếm client-side theo trạng thái follow-up
+      const results = events.filter(event => {
+        return event.requiresFollowUp === followUpValue;
+      });
       
+      setDisplayedEvents(results);
       setSearchStatus({
         hasSearched: true,
         resultCount: results.length
       });
+      setCurrentPage(1);
       
-      console.log("Kết quả tìm kiếm:", results);
-      console.log("=== KẾT THÚC TÌM KIẾM ===");
-      
+      console.log("Kết quả tìm kiếm follow-up (Front-end):", results);
     } catch (error) {
-      console.error("Lỗi khi tìm kiếm:", error);
-      alert("Có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại sau!");
+      console.error("Lỗi khi tìm kiếm follow-up:", error);
     }
+  };
+
+  // Tính toán dữ liệu cho phân trang
+  const indexOfLastEvent = currentPage * eventsPerPage;
+  const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
+  const currentEvents = displayedEvents.slice(indexOfFirstEvent, indexOfLastEvent);
+  const totalPages = Math.ceil(displayedEvents.length / eventsPerPage);
+
+  // Xử lý thay đổi trang
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Tạo array số trang để hiển thị
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 5; i++) {
+          pageNumbers.push(i);
+        }
+      } else if (currentPage >= totalPages - 2) {
+        for (let i = totalPages - 4; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+          pageNumbers.push(i);
+        }
+      }
+    }
+    
+    return pageNumbers;
   };
 
   return (
     <div className="container-fluid">
+      {/* Inject CSS để fix dropdown */}
+      <style dangerouslySetInnerHTML={{ __html: dropdownStyles }} />
+      
       {/* Header với Bootstrap */}
       <div className="row mb-4">
         <div className="col-12">
@@ -408,103 +501,95 @@ const MedicalIncidentsList = () => {
               </h5>
             </div>
             <div className="card-body">
-              <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
-                <div className="row g-3 align-items-end">
-                  {/* Dropdown chọn loại tìm kiếm */}
-                  <div className="col-md-3">
-                    <label htmlFor="searchType" className="form-label fw-bold">
-                      <i className="fas fa-filter me-1"></i>
-                      Loại tìm kiếm
-                    </label>
-                    <select 
-                      id="searchType"
-                      className="form-select form-select-lg"
-                      value={searchType} 
-                      onChange={handleSearchTypeChange}
-                    >
-                      <option value="name">
-                        Theo tên học sinh
-                      </option>
-                      <option value="class">
-                        Theo lớp
-                      </option>
-                      <option value="followUp">
-                        Theo trạng thái theo dõi
-                      </option>
-                    </select>
-                  </div>
-
-                  {/* Input tìm kiếm */}
-                  <div className="col-md-5">
-                    <label htmlFor="searchValue" className="form-label fw-bold">
-                      <i className="fas fa-keyboard me-1"></i>
-                      Giá trị tìm kiếm
-                    </label>
-                    {searchType === 'followUp' ? (
-                      <select 
-                        id="searchValue"
-                        className="form-select form-select-lg"
-                        value={searchValue}
-                        onChange={handleSearchValueChange}
-                      >
-                        <option value="">-- Chọn trạng thái --</option>
-                        <option value="true">
-                          Cần theo dõi
-                        </option>
-                        <option value="false">
-                          Không cần theo dõi
-                        </option>
-                      </select>
-                    ) : (
-                      <input 
-                        id="searchValue"
-                        type="text"
-                        className="form-control form-control-lg"
-                        value={searchValue}
-                        onChange={handleSearchValueChange}
-                        placeholder="Nhập tên học sinh cần tìm..."
-                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                      />
-                    )}
-                  </div>
-
-                  {/* Nút tìm kiếm */}
-                  <div className="col-md-2">
-                    <button 
-                      type="submit"
-                      className="btn btn-primary btn-lg w-100"
-                      onClick={handleSearch}
-                    >
-                      <i className="fas fa-search me-2"></i>
-                      Tìm kiếm
-                    </button>
-                  </div>
-
-                  {/* Nút reset */}
-                  <div className="col-md-2">
-                    <button 
-                      type="button"
-                      className="btn btn-outline-secondary btn-lg w-100"
-                      onClick={handleReset}
-                    >
-                      <i className="fas fa-redo me-2"></i>
-                      Đặt lại
-                    </button>
-                  </div>
+              <div className="row g-3 align-items-end">
+                {/* Dropdown chọn loại tìm kiếm */}
+                <div className="col-md-4">
+                  <label htmlFor="searchType" className="form-label fw-bold">
+                    <i className="fas fa-filter me-1"></i>
+                    Loại tìm kiếm
+                  </label>
+                  <select 
+                    id="searchType"
+                    className="form-select form-select-lg medical-incidents-dropdown"
+                    value={searchType} 
+                    onChange={handleSearchTypeChange}
+                  >
+                    <option value="name">
+                      Theo tên học sinh
+                    </option>
+                    <option value="class">
+                      Theo lớp
+                    </option>
+                    <option value="followUp">
+                      Theo trạng thái theo dõi
+                    </option>
+                  </select>
                 </div>
 
-                {/* Hiển thị trạng thái tìm kiếm */}
-                {searchStatus.hasSearched && (
-                  <div className="row mt-3">
-                    <div className="col-12">
-                      <div className="alert alert-info mb-0">
-                        <i className="fas fa-info-circle me-2"></i>
-                        Tìm thấy <strong>{searchStatus.resultCount}</strong> kết quả
-                      </div>
+                {/* Input tìm kiếm */}
+                <div className="col-md-6">
+                  <label htmlFor="searchValue" className="form-label fw-bold">
+                    <i className="fas fa-keyboard me-1"></i>
+                    Giá trị tìm kiếm
+                  </label>
+                  {searchType === 'followUp' ? (
+                    <select 
+                      id="searchValue"
+                      className="form-select form-select-lg medical-incidents-dropdown"
+                      value={searchValue}
+                      onChange={(e) => {
+                        setSearchValue(e.target.value);
+                        handleFollowUpSearch(e.target.value);
+                      }}
+                    >
+                      <option value="">-- Chọn trạng thái --</option>
+                      <option value="true">
+                        Cần theo dõi
+                      </option>
+                      <option value="false">
+                        Không cần theo dõi
+                      </option>
+                    </select>
+                  ) : (
+                    <input 
+                      id="searchValue"
+                      type="text"
+                      className="form-control form-control-lg"
+                      value={searchValue}
+                      onChange={handleSearchValueChange}
+                      placeholder={
+                        searchType === 'name' 
+                          ? "Nhập tên học sinh..." 
+                          : "Nhập tên lớp..."
+                      }
+                    />
+                  )}
+                </div>
+
+                {/* Nút reset */}
+                <div className="col-md-2">
+                  <button 
+                    type="button"
+                    className="btn btn-outline-secondary btn-lg w-100"
+                    onClick={handleReset}
+                  >
+                    <i className="fas fa-redo me-2"></i>
+                    Đặt lại
+                  </button>
+                </div>
+              </div>
+
+              {/* Hiển thị trạng thái tìm kiếm */}
+              {searchStatus.hasSearched && (
+                <div className="row mt-3">
+                  <div className="col-12">
+                    <div className="alert alert-info mb-0">
+                      <i className="fas fa-info-circle me-2"></i>
+                      Tìm thấy <strong>{searchStatus.resultCount}</strong> kết quả
                     </div>
                   </div>
-                )}
-              </form>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -522,10 +607,18 @@ const MedicalIncidentsList = () => {
           ) : (
             <div className="card shadow-sm">
               <div className="card-header bg-success text-white">
-                <h5 className="mb-0">
-                  <i className="fas fa-list me-2"></i>
-                  Danh sách sự kiện y tế ({displayedEvents.length} sự kiện)
-                </h5>
+                <div className="d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">
+                    <i className="fas fa-list me-2"></i>
+                    Danh sách sự kiện y tế ({displayedEvents.length} sự kiện)
+                  </h5>
+                  <small>
+                    Trang {currentPage} / {totalPages} 
+                    {displayedEvents.length > 0 && (
+                      <> (Hiển thị {indexOfFirstEvent + 1} - {Math.min(indexOfLastEvent, displayedEvents.length)})</>
+                    )}
+                  </small>
+                </div>
               </div>
               <div className="card-body p-0">
                 <div className="table-responsive">
@@ -574,9 +667,9 @@ const MedicalIncidentsList = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {displayedEvents.length > 0 ? displayedEvents.map((event, index) => (
+                      {currentEvents.length > 0 ? currentEvents.map((event, index) => (
                         <tr key={event.incidentId}>
-                          <td className="text-center fw-bold">{index + 1}</td>
+                          <td className="text-center fw-bold">{indexOfFirstEvent + index + 1}</td>
                           <td className="text-center">
                             <span className="badge bg-primary">{event.incidentId}</span>
                           </td>
@@ -643,15 +736,31 @@ const MedicalIncidentsList = () => {
                               </button>
                               <button
                                 className="btn btn-outline-danger btn-sm"
-                                onClick={() => handleDelete(event.incidentId)}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDelete(event.incidentId);
+                                }}
                                 title="Xóa"
+                                style={{ 
+                                  transition: 'none',
+                                  border: '1px solid #dc3545',
+                                  color: '#dc3545'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.backgroundColor = '#dc3545';
+                                  e.target.style.color = 'white';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.backgroundColor = 'transparent';
+                                  e.target.style.color = '#dc3545';
+                                }}
                               >
                                 <i className="fas fa-trash"></i>
                               </button>
                             </div>
                           </td>
-                        </tr>
-                      )) : (
+                        </tr>                        )) : (
                         <tr>
                           <td colSpan="10" className="text-center py-5">
                             <div className="text-muted">
@@ -666,6 +775,98 @@ const MedicalIncidentsList = () => {
                   </table>
                 </div>
               </div>
+              
+              {/* Phân trang */}
+              {displayedEvents.length > eventsPerPage && (
+                <div className="card-footer">
+                  <nav aria-label="Phân trang sự kiện y tế">
+                    <ul className="pagination justify-content-center mb-0">
+                      {/* Nút Previous */}
+                      <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                        <button 
+                          className="page-link"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                        >
+                          <i className="fas fa-chevron-left"></i> Trước
+                        </button>
+                      </li>
+                      
+                      {/* Nút trang đầu */}
+                      {currentPage > 3 && (
+                        <>
+                          <li className="page-item">
+                            <button 
+                              className="page-link"
+                              onClick={() => handlePageChange(1)}
+                            >
+                              1
+                            </button>
+                          </li>
+                          {currentPage > 4 && (
+                            <li className="page-item disabled">
+                              <span className="page-link">...</span>
+                            </li>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* Các số trang */}
+                      {getPageNumbers().map(number => (
+                        <li 
+                          key={number} 
+                          className={`page-item ${currentPage === number ? 'active' : ''}`}
+                        >
+                          <button 
+                            className="page-link"
+                            onClick={() => handlePageChange(number)}
+                          >
+                            {number}
+                          </button>
+                        </li>
+                      ))}
+                      
+                      {/* Nút trang cuối */}
+                      {currentPage < totalPages - 2 && (
+                        <>
+                          {currentPage < totalPages - 3 && (
+                            <li className="page-item disabled">
+                              <span className="page-link">...</span>
+                            </li>
+                          )}
+                          <li className="page-item">
+                            <button 
+                              className="page-link"
+                              onClick={() => handlePageChange(totalPages)}
+                            >
+                              {totalPages}
+                            </button>
+                          </li>
+                        </>
+                      )}
+                      
+                      {/* Nút Next */}
+                      <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                        <button 
+                          className="page-link"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          Sau <i className="fas fa-chevron-right"></i>
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                  
+                  {/* Thông tin phân trang */}
+                  <div className="text-center mt-2">
+                    <small className="text-muted">
+                      Hiển thị {indexOfFirstEvent + 1} - {Math.min(indexOfLastEvent, displayedEvents.length)} 
+                      trong tổng số {displayedEvents.length} sự kiện y tế
+                    </small>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

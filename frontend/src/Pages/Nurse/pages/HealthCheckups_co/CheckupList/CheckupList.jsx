@@ -346,45 +346,194 @@ const CheckupList = () => {
   }
 
   return (
-    <div className="checkup-list-container">
-      {error && <Alert variant="danger">{error}</Alert>}
-      
-      <div className="page-header">
-        <div className="header-title-section">
-          <h2><FaCalendarAlt className="me-2" /> Quản lý Chiến dịch Khám sức khỏe</h2>
-          <div className="header-reset-action">
-            <Button variant="primary" size="sm" onClick={handleResetMainFilters}>
-              Đặt lại
-            </Button>
-          </div>
-        </div>
-        <div className="header-filters">
-          <div className="filter-row">
-            <div className="status-filter" style={{ backgroundColor: '#fff', borderColor: '#ced4da' }}>
-              <Form.Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="status-filter-select"
+    <>
+      <style>
+        {`
+          .lukhang-checkuplist-wrapper {
+            background: #f8f9fa !important;
+            min-height: 100vh !important;
+          }
+          
+          .lukhang-checkuplist-header-section {
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%) !important;
+            border: 1px solid #e9ecef !important;
+            border-radius: 12px !important;
+            padding: 2rem !important;
+            margin-bottom: 2rem !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+          }
+          
+          .lukhang-checkuplist-title-section {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 1.5rem !important;
+          }
+          
+          .lukhang-checkuplist-main-title {
+            color: #495057 !important;
+            font-weight: 700 !important;
+            font-size: 1.75rem !important;
+            margin: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            text-shadow: none !important;
+          }
+          
+          .lukhang-checkuplist-main-title i {
+            color: #dc3545 !important;
+            margin-right: 0.75rem !important;
+            font-size: 1.5rem !important;
+          }
+          
+          .lukhang-checkuplist-reset-button {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+            border: 2px solid #007bff !important;
+            color: white !important;
+            font-weight: 600 !important;
+            padding: 0.5rem 1.5rem !important;
+            border-radius: 25px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2) !important;
+            font-size: 0.9rem !important;
+          }
+          
+          .lukhang-checkuplist-reset-button:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%) !important;
+            border-color: #0056b3 !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3) !important;
+            color: white !important;
+          }
+          
+          .lukhang-checkuplist-reset-button:focus {
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25) !important;
+            color: white !important;
+          }
+          
+          .lukhang-checkuplist-filters-row {
+            display: flex !important;
+            gap: 1rem !important;
+            align-items: end !important;
+            flex-wrap: wrap !important;
+          }
+          
+          .lukhang-checkuplist-status-filter {
+            background: white !important;
+            border: 2px solid #e9ecef !important;
+            border-radius: 8px !important;
+            padding: 0.25rem !important;
+            min-width: 200px !important;
+            transition: all 0.3s ease !important;
+          }
+          
+          .lukhang-checkuplist-status-filter:focus-within {
+            border-color: #007bff !important;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+          }
+          
+          .lukhang-checkuplist-status-select {
+            border: none !important;
+            outline: none !important;
+            background: transparent !important;
+            color: #495057 !important;
+            font-weight: 500 !important;
+          }
+          
+          .lukhang-checkuplist-search-container {
+            flex: 1 !important;
+            min-width: 250px !important;
+          }
+          
+          .lukhang-checkuplist-search-input {
+            border: 2px solid #e9ecef !important;
+            border-radius: 8px !important;
+            padding: 0.75rem 1rem !important;
+            font-size: 1rem !important;
+            transition: all 0.3s ease !important;
+            background: white !important;
+          }
+          
+          .lukhang-checkuplist-search-input:focus {
+            border-color: #007bff !important;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+            outline: none !important;
+          }
+          
+          @media (max-width: 768px) {
+            .lukhang-checkuplist-header-section {
+              padding: 1.5rem !important;
+            }
+            
+            .lukhang-checkuplist-title-section {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+              gap: 1rem !important;
+            }
+            
+            .lukhang-checkuplist-main-title {
+              font-size: 1.5rem !important;
+            }
+            
+            .lukhang-checkuplist-filters-row {
+              flex-direction: column !important;
+              gap: 1rem !important;
+            }
+            
+            .lukhang-checkuplist-status-filter,
+            .lukhang-checkuplist-search-container {
+              min-width: 100% !important;
+            }
+          }
+        `}
+      </style>
+      <div className="checkup-list-container lukhang-checkuplist-wrapper">
+        {error && <Alert variant="danger">{error}</Alert>}
+        
+        <div className="page-header lukhang-checkuplist-header-section">
+          <div className="header-title-section lukhang-checkuplist-title-section">
+            <h2 className="lukhang-checkuplist-main-title">
+              <FaCalendarAlt /> 
+              Quản lý Chiến dịch Khám sức khỏe
+            </h2>
+            <div className="header-reset-action">
+              <Button 
+                variant="primary" 
+                size="sm" 
+                onClick={handleResetMainFilters}
+                className="lukhang-checkuplist-reset-button"
               >
-                <option value="">Tất cả trạng thái</option>
-                <option value="PREPARING">Đang chuẩn bị</option>
-                <option value="ONGOING">Đang tiến hành</option>
-                <option value="COMPLETED">Đã hoàn thành</option>
-                <option value="CANCELLED">Đã hủy</option>
-              </Form.Select>
+                Đặt lại
+              </Button>
             </div>
-            <div className="search-container">
-              <Form.Control
-                type="text"
-                placeholder="Tìm kiếm chiến dịch..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
+          </div>
+          <div className="header-filters">
+            <div className="filter-row lukhang-checkuplist-filters-row">
+              <div className="status-filter lukhang-checkuplist-status-filter">
+                <Form.Select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="status-filter-select lukhang-checkuplist-status-select"
+                >
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="PREPARING">Đang chuẩn bị</option>
+                  <option value="ONGOING">Đang tiến hành</option>
+                  <option value="COMPLETED">Đã hoàn thành</option>
+                  <option value="CANCELLED">Đã hủy</option>
+                </Form.Select>
+              </div>
+              <div className="search-container lukhang-checkuplist-search-container">
+                <Form.Control
+                  type="text"
+                  placeholder="Tìm kiếm chiến dịch..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input lukhang-checkuplist-search-input"
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
       
       <div className="campaign-grid">
         {currentCampaigns.map((campaign) => (
@@ -678,7 +827,8 @@ const CheckupList = () => {
           onSubmit={handleCreateCheckupSubmit}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

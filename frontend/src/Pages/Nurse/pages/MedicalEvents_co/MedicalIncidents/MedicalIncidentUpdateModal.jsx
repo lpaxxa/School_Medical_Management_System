@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { Modal, Form, Button, Container, Row, Col, Card, Alert, Badge, Spinner } from 'react-bootstrap';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
 import { useMedicalEvents } from '../../../../../context/NurseContext/MedicalEventsContext';
 
@@ -759,382 +760,722 @@ const MedicalIncidentUpdateModal = ({
 
   return (
     <>
-      <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-        <div className="modal-dialog modal-xl">
-          <div className="modal-content">
-            <div className="modal-header bg-primary text-white">
-              <h5 className="modal-title fw-bold">
-                <i className="fas fa-edit me-2"></i>
-                Cập nhật sự kiện y tế
-              </h5>
-              <button 
-                type="button" 
-                className="btn-close btn-close-white" 
-                onClick={handleClose}
-                aria-label="Close"
-              ></button>
-            </div>
+      <style>
+        {`
+          .lukhang-medical-update-modal-wrapper {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            z-index: 1055 !important;
+          }
+          
+          .lukhang-medical-update-modal-wrapper .modal-dialog {
+            margin: 2rem auto !important;
+            width: 90vw !important;
+            max-width: 1200px !important;
+            display: flex !important;
+            align-items: center !important;
+            min-height: auto !important;
+            position: relative !important;
+          }
+          
+          .lukhang-medical-update-modal-content-custom {
+            border-radius: 1rem !important;
+            overflow: hidden !important;
+            box-shadow: 0 20px 60px rgba(255, 193, 7, 0.2) !important;
+            border: none !important;
+            width: 100% !important;
+            max-height: 90vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background: white !important;
+            position: relative !important;
+          }
+          
+          .lukhang-medical-update-header-custom {
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
+            color: #212529 !important;
+            border: none !important;
+            border-radius: 1rem 1rem 0 0 !important;
+            padding: 1.5rem 2rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            flex-shrink: 0 !important;
+            min-height: 80px !important;
+          }
+          
+          .lukhang-medical-update-title-custom {
+            color: #212529 !important;
+            font-weight: 600 !important;
+            font-size: 1.4rem !important;
+            margin: 0 !important;
+            flex: 1 !important;
+            display: flex !important;
+            align-items: center !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+          }
+          
+          .lukhang-medical-update-title-custom i {
+            color: #212529 !important;
+            margin-right: 0.75rem !important;
+            font-size: 1.2rem !important;
+          }
+          
+          .lukhang-medical-update-close-button-custom {
+            background: rgba(33, 37, 41, 0.15) !important;
+            border: 2px solid rgba(33, 37, 41, 0.4) !important;
+            color: #212529 !important;
+            border-radius: 50% !important;
+            width: 48px !important;
+            height: 48px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.3s ease !important;
+            flex-shrink: 0 !important;
+            margin-left: 1.5rem !important;
+            font-size: 1.1rem !important;
+            text-decoration: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+          }
+          
+          .lukhang-medical-update-close-button-custom:hover {
+            background: rgba(33, 37, 41, 0.3) !important;
+            border-color: rgba(33, 37, 41, 0.6) !important;
+            color: #212529 !important;
+            transform: rotate(90deg) scale(1.15) !important;
+            text-decoration: none !important;
+          }
+          
+          .lukhang-medical-update-close-button-custom:focus {
+            box-shadow: 0 0 0 4px rgba(33, 37, 41, 0.3) !important;
+            color: #212529 !important;
+            outline: none !important;
+            text-decoration: none !important;
+          }
+          
+          .lukhang-medical-update-close-button-custom:active {
+            color: #212529 !important;
+            text-decoration: none !important;
+          }
+          
+          .lukhang-medical-update-body-custom {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            max-height: calc(90vh - 240px) !important;
+            padding: 2rem !important;
+            min-height: 300px !important;
+          }
+          
+          .lukhang-medical-update-footer-custom {
+            flex-shrink: 0 !important;
+            padding: 2.5rem 2rem !important;
+            background: #f8f9fa !important;
+            border-top: 1px solid #e9ecef !important;
+            min-height: 120px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 1.5rem !important;
+            position: relative !important;
+            z-index: 10 !important;
+            margin-top: auto !important;
+          }
+          
+          @media (max-width: 992px) {
+            .lukhang-medical-update-modal-wrapper .modal-dialog {
+              width: 95vw !important;
+              margin: 1rem auto !important;
+            }
             
-            <form onSubmit={handleSubmit}>
-              <div className="modal-body">
-                <div className="card">
-                  <div className="card-body">
-                    {/* Thông tin cơ bản */}
-                    <div className="row mb-3">
-                      <div className="col-md-6">
-                        <h6 className="text-primary fw-bold mb-2">
-                          <i className="fas fa-id-badge me-2"></i>ID sự kiện
-                        </h6>
-                        <p className="text-dark"><code className="bg-light p-1 rounded">{formData.incidentId}</code></p>
-                      </div>
-                      <div className="col-md-6">
-                        <h6 className="text-primary fw-bold mb-2">
-                          <i className="fas fa-calendar-alt me-2"></i>Ngày xảy ra
-                        </h6>
-                        <p className="text-dark">{formData.dateTime ? new Date(formData.dateTime).toLocaleDateString('vi-VN') : 'N/A'}</p>
-                      </div>
-                    </div>
+            .lukhang-medical-update-header-custom {
+              padding: 1.25rem 1.5rem !important;
+              min-height: 70px !important;
+            }
+            
+            .lukhang-medical-update-title-custom {
+              font-size: 1.2rem !important;
+            }
+            
+            .lukhang-medical-update-close-button-custom {
+              width: 42px !important;
+              height: 42px !important;
+              margin-left: 1rem !important;
+            }
+            
+            .lukhang-medical-update-body-custom {
+              padding: 1.5rem !important;
+              max-height: calc(90vh - 220px) !important;
+            }
+            
+            .lukhang-medical-update-footer-custom {
+              padding: 2rem 1.5rem !important;
+              min-height: 110px !important;
+            }
+          }
+          
+          @media (max-width: 768px) {
+            .lukhang-medical-update-modal-wrapper .modal-dialog {
+              width: 98vw !important;
+              margin: 0.5rem auto !important;
+            }
+            
+            .lukhang-medical-update-header-custom {
+              padding: 1rem 1.25rem !important;
+              min-height: 65px !important;
+            }
+            
+            .lukhang-medical-update-title-custom {
+              font-size: 1.1rem !important;
+            }
+            
+            .lukhang-medical-update-close-button-custom {
+              width: 38px !important;
+              height: 38px !important;
+              margin-left: 0.75rem !important;
+              font-size: 1rem !important;
+            }
+            
+            .lukhang-medical-update-body-custom {
+              padding: 1.25rem !important;
+              max-height: calc(90vh - 200px) !important;
+            }
+            
+            .lukhang-medical-update-footer-custom {
+              padding: 1.75rem 1.25rem !important;
+              min-height: 100px !important;
+            }
+          }
+        `}
+      </style>
+      <Modal 
+        show={show} 
+        onHide={handleClose}
+        size="xl"
+        centered
+        backdrop="static"
+        className="lukhang-medical-update-modal-wrapper"
+        dialogClassName="lukhang-update-modal-dialog-custom"
+        contentClassName="lukhang-medical-update-modal-content-custom"
+        style={{
+          '--bs-modal-zindex': '1055'
+        }}
+      >
+      <Modal.Header 
+        closeButton={false}
+        className="border-0 lukhang-medical-update-header-custom"
+      >
+        <Modal.Title 
+          className="lukhang-medical-update-title-custom"
+        >
+          <i className="fas fa-edit"></i>
+          Cập nhật sự kiện y tế
+        </Modal.Title>
+        <Button
+          variant="link"
+          className="lukhang-medical-update-close-button-custom"
+          onClick={handleClose}
+          title="Đóng modal"
+        >
+          <i className="fas fa-times"></i>
+        </Button>
+      </Modal.Header>
+        
+        <Form onSubmit={handleSubmit}>
+          <Modal.Body className="lukhang-medical-update-body-custom">
+            <Container fluid>
+              {/* Thông tin cơ bản */}
+              <Row className="mb-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">
+                      <i className="fas fa-id-badge me-2 text-primary"></i>ID sự kiện
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.incidentId}
+                      disabled
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">
+                      <i className="fas fa-calendar-alt me-2 text-primary"></i>Ngày xảy ra
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.dateTime ? new Date(formData.dateTime).toLocaleDateString('vi-VN') : 'N/A'}
+                      disabled
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
 
-                    <div className="row mb-3">
-                      <div className="col-md-6">
-                        <h6 className="text-primary fw-bold mb-2">
-                          <i className="fas fa-tag me-2"></i>Loại sự kiện
-                        </h6>
-                        <input 
-                          type="text" 
-                          className="form-control" 
-                          name="incidentType" 
-                          value={formData.incidentType} 
-                          onChange={handleInputChange}
-                          required
+              <Row className="mb-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">
+                      <i className="fas fa-tag me-2 text-primary"></i>Loại sự kiện <span className="text-danger">*</span>
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="incidentType"
+                      value={formData.incidentType}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Nhập loại sự kiện"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">
+                      <i className="fas fa-exclamation-triangle me-2 text-danger"></i>Mức độ nghiêm trọng <span className="text-danger">*</span>
+                    </Form.Label>
+                    <Form.Select
+                      name="severityLevel"
+                      value={formData.severityLevel}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Chọn mức độ</option>
+                      <option value="Nhẹ">Nhẹ</option>
+                      <option value="Trung bình">Trung bình</option>
+                      <option value="Nghiêm trọng">Nghiêm trọng</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row className="mb-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">
+                      <i className="fas fa-user-graduate me-2 text-primary"></i>Tên học sinh
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.studentName || 'Chưa xác định'}
+                      disabled
+                      className="bg-light fw-bold"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">
+                      <i className="fas fa-id-card me-2 text-primary"></i>Mã học sinh
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.studentId || 'N/A'}
+                      disabled
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row className="mb-3">
+                <Col>
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">
+                      <i className="fas fa-file-alt me-2 text-info"></i>Mô tả chi tiết
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      placeholder="Mô tả chi tiết sự kiện"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row className="mb-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">
+                      <i className="fas fa-heartbeat me-2 text-warning"></i>Triệu chứng
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      name="symptoms"
+                      value={formData.symptoms}
+                      onChange={handleInputChange}
+                      placeholder="Ghi lại các triệu chứng quan sát được"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">
+                      <i className="fas fa-stethoscope me-2 text-success"></i>Điều trị
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      name="treatment"
+                      value={formData.treatment}
+                      onChange={handleInputChange}
+                      placeholder="Biện pháp điều trị đã thực hiện"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              {/* Medication Search Section */}
+              <Row className="mb-3">
+                <Col>
+                  <Card className="border-warning">
+                    <Card.Header className="bg-warning text-dark">
+                      <h6 className="mb-0">
+                        <i className="fas fa-pills me-2"></i>
+                        Thuốc sử dụng
+                      </h6>
+                    </Card.Header>
+                    <Card.Body>
+                      <div className="position-relative mb-3">
+                        <Form.Control
+                          type="text"
+                          value={medicationSearch}
+                          onChange={(e) => handleMedicationSearch(e.target.value)}
+                          placeholder="Tìm kiếm thuốc theo tên..."
                         />
-                      </div>
-                      <div className="col-md-6">
-                        <h6 className="text-danger fw-bold mb-2">
-                          <i className="fas fa-exclamation-triangle me-2"></i>Mức độ nghiêm trọng
-                        </h6>
-                        <select 
-                          className="form-select" 
-                          name="severityLevel" 
-                          value={formData.severityLevel} 
-                          onChange={handleInputChange}
-                          required
-                        >
-                          <option value="">Chọn mức độ...</option>
-                          <option value="Nhẹ">Nhẹ</option>
-                          <option value="Trung bình">Trung bình</option>
-                          <option value="Nghiêm trọng">Nghiêm trọng</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="row mb-3">
-                      <div className="col-md-6">
-                        <h6 className="text-primary fw-bold mb-2">
-                          <i className="fas fa-user-graduate me-2"></i>Tên học sinh
-                        </h6>
-                        <p className="fw-bold text-dark">{formData.studentName || 'Chưa xác định'}</p>
-                      </div>
-                      <div className="col-md-6">
-                        <h6 className="text-primary fw-bold mb-2">
-                          <i className="fas fa-id-card me-2"></i>Mã học sinh
-                        </h6>
-                        <p className="text-dark"><code className="bg-light p-1 rounded">{formData.studentId || 'N/A'}</code></p>
-                      </div>
-                    </div>
-
-                    <hr className="my-4" />
-
-                    {/* Mô tả */}
-                    <div className="mb-3">
-                      <h6 className="text-info fw-bold mb-2">
-                        <i className="fas fa-file-alt me-2"></i>Mô tả chi tiết
-                      </h6>
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        rows="3"
-                        placeholder="Mô tả chi tiết sự kiện"
-                        className="form-control"
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <h6 className="text-warning fw-bold mb-2">
-                        <i className="fas fa-heartbeat me-2"></i>Triệu chứng
-                      </h6>
-                      <textarea
-                        name="symptoms"
-                        value={formData.symptoms}
-                        onChange={handleInputChange}
-                        rows="3"
-                        placeholder="Ghi lại các triệu chứng quan sát được"
-                        className="form-control"
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <h6 className="text-success fw-bold mb-2">
-                        <i className="fas fa-stethoscope me-2"></i>Điều trị
-                      </h6>
-                      <textarea
-                        name="treatment"
-                        value={formData.treatment}
-                        onChange={handleInputChange}
-                        rows="3"
-                        placeholder="Biện pháp điều trị đã thực hiện"
-                        className="form-control"
-                      />
-                        </div>
-                    
-                    <div className="mb-3">
-                      <label className="form-label fw-bold text-muted">
-                        <i className="fas fa-image me-2"></i>URL Hình ảnh
-                      </label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        name="imageMedicalUrl" 
-                        value={formData.imageMedicalUrl} 
-                        onChange={handleInputChange}
-                        placeholder="URL hình ảnh liên quan đến sự kiện y tế"
-                      />
-                    </div>
-
-                {/* Medication Search Section */}
-                <div className="mb-4">
-                  <div className="card border-primary">
-                    <div className="card-header bg-primary text-white">
-                      <h6 className="mb-0 fw-bold">
-                        <i className="fas fa-pills me-2"></i>Thuốc sử dụng
-                      </h6>
-                    </div>
-                    <div className="card-body">
-                      <div className="position-relative">
-                        <div className="input-group">
-                          <span className="input-group-text">
-                            <i className="fas fa-search"></i>
-                          </span>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={medicationSearch}
-                            onChange={(e) => handleMedicationSearch(e.target.value)}
-                            placeholder="Tìm kiếm thuốc theo tên..."
-                          />
-                          {searchingMedications && (
-                            <span className="input-group-text">
-                              <i className="fas fa-spinner fa-spin text-primary"></i>
-                            </span>
-                          )}
-                        </div>
+                        {searchingMedications && (
+                          <div className="position-absolute top-50 end-0 translate-middle-y me-3">
+                            <Spinner size="sm" />
+                          </div>
+                        )}
                         
                         {/* Medication Search Results Dropdown */}
                         {showMedicationDropdown && medicationResults.length > 0 && (
-                          <div className="list-group shadow position-absolute w-100" style={{top: '100%', zIndex: 1000, maxHeight: '300px', overflowY: 'auto'}}>
+                          <div 
+                            className="position-absolute w-100 bg-white border border-warning rounded shadow-sm mt-1"
+                            style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}
+                          >
                             {medicationResults.map((medication, index) => (
-                              <button
+                              <div
                                 key={medication.itemID || index}
-                                type="button"
-                                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                className="p-3 border-bottom cursor-pointer"
                                 onClick={() => handleMedicationSelect(medication)}
+                                style={{ cursor: 'pointer' }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fa'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
                               >
-                                <div>
-                                  <div className="fw-bold text-primary">{medication.itemName}</div>
-                                  <small className="text-muted">
-                                    ID: {medication.itemID} | Đơn vị: {medication.unit || 'viên'}
-                                  </small>
+                                <div className="fw-semibold text-primary">
+                                  {medication.itemName}
                                 </div>
-                                <div className="ms-2">
-                                  <span className="badge bg-secondary rounded-pill me-2">
-                                    {medication.stockQuantity} {medication.unit || 'viên'}
-                                  </span>
-                                  {medication.stockQuantity === 0 && (
-                                    <span className="badge bg-danger">Hết hàng</span>
-                                  )}
-                                  {medication.stockQuantity > 0 && medication.stockQuantity <= 5 && (
-                                    <span className="badge bg-warning">Sắp hết</span>
-                                  )}
-                                  {medication.stockQuantity > 5 && (
-                                    <span className="badge bg-success">Còn hàng</span>
-                                  )}
-                                </div>
-                              </button>
+                                <small className="text-muted">
+                                  Tồn kho: {medication.stockQuantity || 0} {medication.unit || 'đơn vị'}
+                                </small>
+                              </div>
                             ))}
+                          </div>
+                        )}
+                        
+                        {showMedicationDropdown && medicationResults.length === 0 && !searchingMedications && (
+                          <div 
+                            className="position-absolute w-100 bg-white border border-warning rounded shadow-sm mt-1"
+                            style={{ zIndex: 1000 }}
+                          >
+                            <div className="p-3 text-center text-muted">Không tìm thấy thuốc phù hợp</div>
                           </div>
                         )}
                       </div>
 
-                      {/* Selected Medications */}
+                      {/* Selected Medications List */}
                       {selectedMedications.length > 0 && (
-                        <div className="mt-4">
-                          <h6 className="fw-bold text-primary mb-3">
-                            <i className="fas fa-pills me-2"></i>
+                        <div>
+                          <h6 className="text-success mb-3">
+                            <i className="fas fa-check-circle me-2"></i>
                             Thuốc đã chọn:
                           </h6>
-                          <div className="medication-list">
-                            {selectedMedications.map((medication, index) => (
-                              <div 
-                                key={`selected-med-${medication.itemID}-${index}`} 
-                                className={`card mb-3 shadow-sm ${medication.isTemporary ? 'border-warning' : 'border-info'}`}
+                          {selectedMedications.map((medication, index) => {
+                            const isOverStock = medication.quantityUsed > (medication.stockQuantity || 0);
+                            return (
+                              <Card 
+                                key={medication.itemID || index} 
+                                className={`mb-2 ${isOverStock ? 'border-danger' : 'border-success'}`}
                               >
-                                <div className={`card-header py-2 ${medication.isTemporary ? 'bg-warning-subtle' : 'bg-info-subtle'}`}>
-                                  <div className="d-flex justify-content-between align-items-center">
-                                    <h6 className="mb-0 fw-bold">
-                                      <i className={`fas fa-capsules me-2 ${medication.isTemporary ? 'text-warning' : 'text-primary'}`}></i>
-                                      {medication.itemName}
-                                    </h6>
-                                    <button
-                                      type="button"
-                                      className="btn btn-outline-danger btn-sm"
-                                      onClick={() => handleMedicationRemove(medication.itemID)}
-                                      title="Xóa thuốc này"
-                                    >
-                                      <i className="fas fa-times"></i>
-                                    </button>
-                                  </div>
-                                </div>
-                                <div className={`card-body py-3 ${medication.isTemporary ? 'bg-light' : ''}`}>
-                                  <div className="row align-items-center">
-                                    <div className="col-md-6 mb-2 mb-md-0">
-                                      <div className="input-group">
-                                        <span className="input-group-text bg-light">
-                                          <i className="fas fa-hashtag text-primary"></i> Số lượng
-                                        </span>
-                                        <input
+                                <Card.Body className="p-3">
+                                  <Row className="align-items-center">
+                                    <Col md={6}>
+                                      <h6 className="text-primary mb-1">{medication.itemName}</h6>
+                                      {medication.isTemporary && (
+                                        <Badge bg="warning" className="mb-2">
+                                          <i className="fas fa-exclamation-triangle me-1"></i>
+                                          Không có trong kho
+                                        </Badge>
+                                      )}
+                                      <div className="d-flex align-items-center gap-2">
+                                        <Form.Label className="small mb-0">Số lượng:</Form.Label>
+                                        <Form.Control
                                           type="number"
-                                          className="form-control"
+                                          min="0"
                                           value={medication.quantityUsed}
                                           onChange={(e) => handleMedicationQuantityChange(medication.itemID, e.target.value)}
-                                          min="0"
-                                          max={medication.stockQuantity}
+                                          className={isOverStock ? 'border-danger' : ''}
+                                          style={{ width: '80px' }}
                                         />
-                                        <span className="input-group-text bg-light">{medication.unit}</span>
                                       </div>
-                                      {medication.isTemporary && (
-                                        <div className="mt-2">
-                                          <small className="text-warning">
-                                            <i className="fas fa-exclamation-triangle me-1"></i>
-                                            Thuốc không có trong kho
-                                          </small>
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div className="col-md-6">
-                                      <div className="d-flex align-items-center">
-                                        <span className="me-2 text-secondary">
-                                          <i className="fas fa-warehouse me-1"></i> Tồn kho:
-                                        </span>
-                                        <span className="fw-bold">{medication.stockQuantity} {medication.unit}</span>
+                                    </Col>
+                                    <Col md={5}>
+                                      <div className="small text-muted mb-1">
+                                        Tồn kho: <strong>{medication.stockQuantity || 0}</strong>
+                                      </div>
+                                      <div>
                                         {medication.stockQuantity === 0 && (
-                                          <span className="badge bg-danger ms-2">Hết hàng</span>
+                                          <Badge bg="danger" className="me-1">Hết hàng</Badge>
                                         )}
                                         {medication.stockQuantity > 0 && medication.stockQuantity <= 5 && (
-                                          <span className="badge bg-warning ms-2">Sắp hết</span>
+                                          <Badge bg="warning" className="me-1">Sắp hết</Badge>
                                         )}
                                         {medication.stockQuantity > 5 && (
-                                          <span className="badge bg-success ms-2">Còn hàng</span>
+                                          <Badge bg="success" className="me-1">Còn hàng</Badge>
                                         )}
                                       </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                                      {isOverStock && (
+                                        <Alert variant="danger" className="p-2 mt-2 mb-0">
+                                          <small>
+                                            <i className="fas fa-exclamation-triangle me-1"></i>
+                                            Số lượng vượt quá tồn kho!
+                                          </small>
+                                        </Alert>
+                                      )}
+                                    </Col>
+                                    <Col md={1}>
+                                      <Button
+                                        variant="outline-danger"
+                                        size="sm"
+                                        onClick={() => handleMedicationRemove(medication.itemID)}
+                                        title="Xóa thuốc"
+                                      >
+                                        <i className="fas fa-times"></i>
+                                      </Button>
+                                    </Col>
+                                  </Row>
+                                </Card.Body>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* Image URL Section với Preview */}
+              <Row className="mb-4">
+                <Col>
+                  <Card className="border-secondary">
+                    <Card.Header className="bg-secondary text-white">
+                      <h6 className="mb-0">
+                        <i className="fas fa-image me-2"></i>
+                        Hình ảnh sự cố y tế
+                      </h6>
+                    </Card.Header>
+                    <Card.Body>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Link ảnh sự cố y tế</Form.Label>
+                        <Form.Control
+                          type="url"
+                          name="imageMedicalUrl"
+                          value={formData.imageMedicalUrl}
+                          onChange={handleInputChange}
+                          placeholder="Nhập link ảnh sự cố y tế (http://... hoặc https://...)"
+                        />
+                      </Form.Group>
+                      
+                      {formData.imageMedicalUrl && (
+                        <div className="medical-image-preview">
+                          <h6 className="text-info fw-bold mb-3 text-center">
+                            <i className="fas fa-eye me-2"></i>Preview ảnh sự cố
+                          </h6>
+                          <div className="d-flex justify-content-center align-items-center">
+                            <div className="position-relative">
+                              <img 
+                                src={formData.imageMedicalUrl} 
+                                alt="Preview ảnh sự cố" 
+                                className="img-fluid rounded shadow-lg border border-2 border-info"
+                                style={{ 
+                                  maxWidth: '100%',
+                                  maxHeight: '400px',
+                                  width: 'auto',
+                                  height: 'auto',
+                                  objectFit: 'contain',
+                                  display: 'block',
+                                  margin: '0 auto'
+                                }}
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'block';
+                                }}
+                                onLoad={(e) => {
+                                  e.target.style.display = 'block';
+                                  e.target.nextSibling.style.display = 'none';
+                                }}
+                              />
+                              <Alert variant="warning" className="text-center mx-auto" style={{ display: 'none', maxWidth: '350px' }}>
+                                <i className="fas fa-exclamation-triangle fs-2 text-warning mb-2"></i>
+                                <h6>Không thể tải ảnh từ link này</h6>
+                                <small className="text-muted">Vui lòng kiểm tra lại link ảnh</small>
+                              </Alert>
+                            </div>
                           </div>
                         </div>
                       )}
-                    </div>
-                  </div>
-                </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
 
-                <hr />
-
-                {/* Checkboxes */}
-                <div className="row mb-3">
-                  <div className="col-md-6">
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id="parentNotified"
-                        name="parentNotified"
-                        checked={formData.parentNotified}
-                        onChange={handleInputChange}
-                      />
-                      <label className="form-check-label fw-bold text-warning" htmlFor="parentNotified">
-                        <i className="fas fa-bell me-2"></i>Đã thông báo phụ huynh
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <div className="col-md-6">
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id="requiresFollowUp"
-                        name="requiresFollowUp"
-                        checked={formData.requiresFollowUp}
-                        onChange={handleInputChange}
-                      />
-                      <label className="form-check-label fw-bold text-info" htmlFor="requiresFollowUp">
-                        <i className="fas fa-eye me-2"></i>Cần theo dõi
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Follow-up Notes */}
-                {formData.requiresFollowUp && (
-                  <div className="mb-3">
-                    <label className="form-label fw-bold" style={{color: '#6f42c1'}}>
-                      <i className="fas fa-sticky-note me-2"></i>Ghi chú theo dõi
-                    </label>
-                    <textarea
-                      name="followUpNotes"
-                      value={formData.followUpNotes}
+              <Row className="mb-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Check
+                      type="checkbox"
+                      name="parentNotified"
+                      checked={formData.parentNotified}
                       onChange={handleInputChange}
-                      rows="2"
-                      placeholder="Ghi chú chi tiết về việc theo dõi"
-                      className="form-control"
+                      label="Đã thông báo phụ huynh"
+                      className="fw-semibold"
                     />
-                  </div>
-                )}
-                  </div>
-                </div>
-              </div>
+                  </Form.Group>
+                </Col>
+                
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Check
+                      type="checkbox"
+                      name="requiresFollowUp"
+                      checked={formData.requiresFollowUp}
+                      onChange={handleInputChange}
+                      label="Cần theo dõi tiếp"
+                      className="fw-semibold"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
 
-              <div className="modal-footer bg-light">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary btn-lg" 
-                  onClick={handleClose}
-                >
-                  <i className="fas fa-times me-2"></i>
-                  Hủy
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn btn-warning btn-lg"
-                  disabled={propLoading || contextLoading}
-                >
-                  {propLoading || contextLoading ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin me-2"></i> Đang cập nhật...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-save me-2"></i> Cập nhật
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+              {formData.requiresFollowUp && (
+                <Row className="mb-3">
+                  <Col>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">
+                        <i className="fas fa-sticky-note me-2 text-info"></i>Ghi chú theo dõi
+                      </Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        name="followUpNotes"
+                        value={formData.followUpNotes}
+                        onChange={handleInputChange}
+                        placeholder="Ghi chú cho việc theo dõi tiếp"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+              )}
+            </Container>
+          </Modal.Body>
+          
+          <Modal.Footer className="lukhang-medical-update-footer-custom">
+            <div className="d-flex justify-content-center align-items-center gap-3 w-100">
+              <Button 
+                variant="outline-secondary"
+                size="lg"
+                onClick={handleClose}
+                className="px-4 py-3 d-flex align-items-center shadow-sm"
+                style={{
+                  borderRadius: '25px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease',
+                  border: '2px solid #6c757d',
+                  minWidth: '130px',
+                  height: '55px',
+                  fontSize: '1.1rem'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#6c757d';
+                  e.target.style.color = 'white';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(108, 117, 125, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '';
+                  e.target.style.color = '';
+                  e.target.style.transform = '';
+                  e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                }}
+              >
+                <i className="fas fa-times me-2"></i> 
+                Hủy
+              </Button>
+              <Button 
+                variant="warning"
+                size="lg"
+                type="submit"
+                disabled={propLoading || contextLoading}
+                className="px-4 py-3 d-flex align-items-center shadow-sm"
+                style={{
+                  borderRadius: '25px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease',
+                  border: '2px solid #ffc107',
+                  minWidth: '150px',
+                  height: '55px',
+                  fontSize: '1.1rem',
+                  background: (propLoading || contextLoading) ? '#6c757d' : 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)',
+                  color: '#212529'
+                }}
+                onMouseEnter={(e) => {
+                  if (!(propLoading || contextLoading)) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(255, 193, 7, 0.4)';
+                    e.target.style.background = 'linear-gradient(135deg, #ffb300 0%, #ff8f00 100%)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!(propLoading || contextLoading)) {
+                    e.target.style.transform = '';
+                    e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                    e.target.style.background = 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)';
+                  }
+                }}
+              >
+                {(propLoading || contextLoading) ? (
+                  <>
+                    <Spinner size="sm" className="me-2" /> 
+                    Đang cập nhật...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-save me-2"></i> 
+                    Cập nhật
+                  </>
+                )}
+              </Button>
+            </div>
+          </Modal.Footer>
+        </Form>
+      </Modal>
     </>
   );
 };

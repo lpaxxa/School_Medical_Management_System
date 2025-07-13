@@ -21,17 +21,8 @@ const MedicalIncidentDetailModal = ({
   const getSeverityBadge = (severity) => {
     const severityMap = {
       'Nhẹ': 'success',
-      'Light': 'success',
-      'Low': 'success',
-      'Mild': 'success',
       'Trung bình': 'warning',
-      'Medium': 'warning',
-      'Moderate': 'warning', 
-      'Nặng': 'danger',
       'Nghiêm trọng': 'danger',
-      'High': 'danger',
-      'Heavy': 'danger',
-      'Severe': 'danger'
     };
     return `badge bg-${severityMap[severity] || 'secondary'}`;
   };
@@ -53,53 +44,64 @@ const MedicalIncidentDetailModal = ({
       <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
         <div className="modal-dialog modal-lg">
           <div className="modal-content">
-            <div className="modal-header bg-primary text-white">
-              <h5 className="modal-title fw-bold">
+            <div className="modal-header bg-gradient bg-primary text-white border-0">
+              <h5 className="modal-title fw-bold d-flex align-items-center">
                 <i className="fas fa-notes-medical me-2"></i>
                 Chi tiết Sự kiện Y tế
               </h5>
               <button 
                 type="button" 
-                className="btn-close btn-close-white" 
+                className="btn-close btn-close-white opacity-75" 
                 onClick={onClose}
                 aria-label="Close"
+                style={{
+                  filter: 'brightness(0) invert(1)',
+                  fontSize: '1.2rem',
+                  padding: '0.5rem'
+                }}
               ></button>
             </div>
             <div className="modal-body">
               <div className="card">
                 <div className="card-body">
-                  {/* Ảnh sự cố y tế - Hiển thị đơn giản */}
+                  {/* Ảnh sự cố y tế - Hiển thị giữa màn hình */}
                   {(selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl) && (
-                    <div className="row mb-3">
+                    <div className="row mb-4">
                       <div className="col-12">
-                        <h6 className="text-info fw-bold mb-2">
+                        <h6 className="text-info fw-bold mb-3 text-center">
                           <i className="fas fa-image me-2"></i>Hình ảnh sự cố
                         </h6>
-                        <div className="text-center">
-                          <img
-                            src={selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl}
-                            alt="Hình ảnh sự cố y tế"
-                            className="img-thumbnail border border-primary"
-                            style={{ 
-                              maxWidth: '400px', 
-                              maxHeight: '400px',
-                              objectFit: 'cover'
-                            }}
-                            onError={(e) => {
-                              console.error('Lỗi tải ảnh sự cố:', selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl);
-                              e.target.style.display = 'none';
-                              e.target.parentElement.innerHTML = `
-                                <div class="alert alert-warning text-center">
-                                  <i class="fas fa-exclamation-triangle"></i>
-                                  <br>Không thể tải ảnh sự cố
-                                  <br><small>URL: ${selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl}</small>
-                                </div>
-                              `;
-                            }}
-                            onLoad={() => {
-                              console.log('Ảnh sự cố tải thành công:', selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl);
-                            }}
-                          />
+                        <div className="d-flex justify-content-center align-items-center">
+                          <div className="position-relative">
+                            <img
+                              src={selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl}
+                              alt="Hình ảnh sự cố y tế"
+                              className="img-fluid rounded shadow-lg border border-2 border-primary"
+                              style={{ 
+                                maxWidth: '100%',
+                                maxHeight: '450px',
+                                width: 'auto',
+                                height: 'auto',
+                                objectFit: 'contain',
+                                display: 'block',
+                                margin: '0 auto'
+                              }}
+                              onError={(e) => {
+                                console.error('Lỗi tải ảnh sự cố:', selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl);
+                                e.target.style.display = 'none';
+                                e.target.parentElement.innerHTML = `
+                                  <div class="alert alert-warning text-center mx-auto" style="max-width: 400px;">
+                                    <i class="fas fa-exclamation-triangle fs-2 text-warning mb-2"></i>
+                                    <h6>Không thể tải ảnh sự cố</h6>
+                                    <small class="text-muted">URL: ${selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl}</small>
+                                  </div>
+                                `;
+                              }}
+                              onLoad={() => {
+                                console.log('Ảnh sự cố tải thành công:', selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl);
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -107,11 +109,11 @@ const MedicalIncidentDetailModal = ({
 
                   {/* Hiển thị thông báo nếu không có ảnh */}
                   {!(selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || selectedEvent.imageUrl) && (
-                    <div className="row mb-3">
+                    <div className="row mb-4">
                       <div className="col-12">
-                        <div className="alert alert-warning text-center">
-                          <i className="fas fa-image me-2"></i>
-                          Không có ảnh sự cố y tế
+                        <div className="alert alert-info text-center mx-auto shadow-sm" style={{maxWidth: '400px'}}>
+                          <i className="fas fa-image fs-2 text-info mb-2"></i>
+                          <h6 className="mb-0">Không có ảnh sự cố y tế</h6>
                         </div>
                       </div>
                     </div>
@@ -255,11 +257,29 @@ const MedicalIncidentDetailModal = ({
                 </div>
               </div>
             </div>
-            <div className="modal-footer bg-light">
+            <div className="modal-footer bg-light border-0 d-flex justify-content-center py-3">
               <button 
                 type="button" 
-                className="btn btn-secondary btn-lg" 
+                className="btn btn-outline-secondary btn-lg px-4 py-2 d-flex align-items-center shadow-sm" 
                 onClick={onClose}
+                style={{
+                  borderRadius: '25px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease',
+                  border: '2px solid #6c757d'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#6c757d';
+                  e.target.style.color = 'white';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(108, 117, 125, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '';
+                  e.target.style.color = '';
+                  e.target.style.transform = '';
+                  e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                }}
               >
                 <i className="fas fa-times me-2"></i>
                 Đóng
