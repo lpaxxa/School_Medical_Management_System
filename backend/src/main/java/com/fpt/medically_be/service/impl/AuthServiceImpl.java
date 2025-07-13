@@ -57,32 +57,32 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AccountMember login(LoginRequestDTO loginRequest) {
-        // Find user by email or username
-        Optional<AccountMember> accountMemberOpt = accountMemberRepos.findAccountMemberByPhoneNumberAndPassword(
-                loginRequest.getUsername(),
-                loginRequest.getPassword()
-        );
-
+        // First, try to find user by phone number
+        Optional<AccountMember> accountMemberOpt = accountMemberRepos.findByPhoneNumber(loginRequest.getUsername());
+        
         if (accountMemberOpt.isEmpty()) {
-            accountMemberOpt = accountMemberRepos.findAccountMemberByEmailAndPassword(
-                    loginRequest.getUsername(),
-                    loginRequest.getPassword()
-
-            );
+            // Try to find by email
+            accountMemberOpt = accountMemberRepos.findByEmail(loginRequest.getUsername());
         }
+        
         if (accountMemberOpt.isEmpty()) {
-            accountMemberOpt = accountMemberRepos.findAccountMemberByUsernameAndPassword(
-                    loginRequest.getUsername(),
-                    loginRequest.getPassword()
-            );
+            // Try to find by username
+            accountMemberOpt = accountMemberRepos.findAccountMemberByUsername(loginRequest.getUsername());
         }
-        if(accountMemberOpt.isPresent()) {
+        
+        // If user found, verify password
+        if (accountMemberOpt.isPresent()) {
             AccountMember member = accountMemberOpt.get();
-            if(!member.getIsActive().equals(true)) {
-                throw new RuntimeException("Account is locked or inactive. Please contact support.");
+            
+            // Verify the raw password against the encoded password in database
+            if (passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
+                if (!member.getIsActive().equals(true)) {
+                    throw new RuntimeException("Account is locked or inactive. Please contact support.");
+                }
+                return member;
             }
-            return member;
         }
+        
         return null;
     }
 
@@ -119,7 +119,7 @@ public class AuthServiceImpl implements AuthService {
         member.setPhoneNumber(parentRegistrationRequestDTO.getPhoneNumber()); // Use phoneNumber instead of emergencyPhoneNumber
         member.setUsername(generateUsername(parentRegistrationRequestDTO.getFullName()));
         member.setPassword(passwordEncoder.encode(parentRegistrationRequestDTO.getPassword()));
-       // member.setPassword(parentRegistrationRequestDTO.getPassword());
+
         member.setRole(PARENT);
         member.setIsActive(true);
         member.setEmailSent(false);
@@ -183,7 +183,6 @@ public class AuthServiceImpl implements AuthService {
         member.setPhoneNumber(nurseRegistrationRequestDTO.getPhoneNumber());
         member.setUsername(generateUsername(nurseRegistrationRequestDTO.getFullName()));
          member.setPassword(passwordEncoder.encode(nurseRegistrationRequestDTO.getPassword()));
-       // member.setPassword(nurseRegistrationRequestDTO.getPassword());
         member.setRole(NURSE);
         member.setIsActive(true);
         member.setEmailSent(false);
@@ -238,7 +237,6 @@ public class AuthServiceImpl implements AuthService {
         member.setPhoneNumber(registrationDTO.getPhoneNumber());
         member.setUsername(generateUsername(registrationDTO.getFullName()));
          member.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
-       // member.setPassword(registrationDTO.getPassword());
         member.setRole(ADMIN);
         member.setIsActive(true);
         member.setEmailSent(false);

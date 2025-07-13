@@ -9,6 +9,20 @@ const axiosInstance = axios.create({
   }
 });
 
+// Add authentication interceptor
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 const API_URL = 'http://localhost:8080/api/v1/medication-items';
 
 const inventoryService = {
@@ -275,17 +289,14 @@ const inventoryService = {
       const encodedName = encodeURIComponent(name.trim());
       const timestamp = Date.now();
 
-      const response = await fetch(`${API_URL}/get-by-name/${encodedName}?_=${timestamp}`, {
-        method: 'GET',
+      const response = await axiosInstance.get(`/get-by-name/${encodedName}?_=${timestamp}`, {
         headers: {
-          'Content-Type': 'application/json',
           'Cache-Control': 'no-cache, no-store'
-        },
-        cache: 'no-store'
+        }
       });
 
-      if (response.ok) {
-        const responseData = await response.text();
+      if (response.status === 200) {
+        const responseData = response.data;
 
         if (responseData === "" || responseData === '""' || responseData === "''") {
           return false;

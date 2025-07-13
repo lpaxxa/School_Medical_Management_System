@@ -1,49 +1,7 @@
-import axios from 'axios';
+import api from '../api.js';
 
-// Base API URL
-const API_URL = 'http://localhost:8080/api/v1'; // Đảm bảo đúng URL
-
-// Tạo instance axios với URL cơ sở
-const axiosInstance = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-});
-
-// Thêm interceptor để gắn token vào mỗi request
-axiosInstance.interceptors.request.use(
-  (config) => {
-    // Sử dụng token từ AuthContext thông qua localStorage
-    const token = localStorage.getItem('authToken');
-    
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    } else {
-      console.log('No authentication token available');
-    }
-    
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Thêm interceptor để xử lý response errors
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    // Nếu token hết hạn (401) hoặc không có quyền (403)
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      console.error('Authentication error:', error.response.data);
-      // Có thể redirect đến trang login hoặc hiển thị thông báo
-    }
-    return Promise.reject(error);
-  }
-);
+// For backward compatibility, create an alias
+const axiosInstance = api;
 
 // Dữ liệu mẫu để sử dụng khi API không hoạt động
 const mockStudents = [
@@ -78,14 +36,10 @@ const mockStudents = [
 // Lấy danh sách tất cả học sinh
 const getAllStudents = async () => {
   try {
-    // Sử dụng trực tiếp fetch để tránh xác thực phức tạp
-    const response = await fetch(`${API_URL}/students`);
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    const data = await response.json();
-    console.log('API response data:', data);
-    return data;
+    // Sử dụng axios instance with authentication
+    const response = await axiosInstance.get('/students');
+    console.log('API response data:', response.data);
+    return response.data;
   } catch (error) {
     console.error('Error fetching students:', error);
     // Fallback to mock data
@@ -190,20 +144,9 @@ const addStudentNote = async (studentId, note) => {
     console.log(`Adding note to student ${studentId}:`, note);
     
     // Gọi API để thêm ghi chú
-    const response = await fetch(`${API_URL}/students/${studentId}/notes`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(note)
-    });
+    const response = await axiosInstance.post(`/students/${studentId}/notes`, note);
     
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    
-    const updatedStudent = await response.json();
-    return updatedStudent;
+    return response.data;
   } catch (error) {
     console.error('Error adding student note:', error);
     
@@ -409,25 +352,49 @@ const getMockHealthProfile = (studentId) => {
 // Thêm đoạn code này vào đầu file để test connection
 const testBackendConnection = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/v1/students');
+    console.log('=== TESTING BACKEND CONNECTION ===');
+    const response = await api.get('/students');
     console.log('Backend connection successful:', response.status);
+    console.log('Response data preview:', response.data?.slice(0, 2));
+    console.log('=== END BACKEND CONNECTION TEST ===');
     return true;
   } catch (error) {
     console.error('Backend connection failed:', error.message);
+    console.error('Error details:', error.response?.data);
     return false;
   }
 };
 
 // Thêm vào file studentRecordsService.js
 const debugAuthToken = () => {
+  console.log('=== AUTH TOKEN DEBUG ===');
   const token = localStorage.getItem('authToken');
+  const user = localStorage.getItem('currentUser');
+  
+  console.log('Token exists:', !!token);
+  console.log('User exists:', !!user);
+  
   if (token) {
-    console.log('Auth token exists:', token.substring(0, 15) + '...');
-    return true;
+    console.log('Auth token preview:', token.substring(0, 15) + '...');
+    // Try to decode the token payload
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log('Token payload:', payload);
+      console.log('Token expires at:', new Date(payload.exp * 1000));
+      console.log('Token is expired:', Date.now() > payload.exp * 1000);
+    } catch (e) {
+      console.log('Could not decode token payload');
+    }
   } else {
     console.warn('No authentication token found');
-    return false;
   }
+  
+  if (user) {
+    console.log('Current user:', JSON.parse(user));
+  }
+  
+  console.log('=== END AUTH TOKEN DEBUG ===');
+  return !!token;
 };
 
 // Gọi hàm này khi khởi tạo service
