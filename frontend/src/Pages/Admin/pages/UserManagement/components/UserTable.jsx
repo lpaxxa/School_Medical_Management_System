@@ -9,6 +9,7 @@ import {
   FaSpinner,
   FaInbox,
   FaCheck,
+  FaEnvelope,
 } from "react-icons/fa";
 import "./UserTable.css";
 
@@ -80,6 +81,7 @@ const UserTable = ({
               <th className="col-phone">Số điện thoại</th>
               <th className="col-role">Vai trò</th>
               <th className="col-status">Trạng thái</th>
+              <th className="col-email-action">Gửi email</th>
               <th className="col-actions">Thao tác</th>
             </tr>
           </thead>
@@ -135,6 +137,37 @@ const UserTable = ({
                         <FaToggleOff className="toggle-icon" />
                         <span>TẠM NGƯNG</span>
                       </>
+                    )}
+                  </button>
+                </td>
+
+                <td className="col-email-action">
+                  <button
+                    className={`email-btn ${
+                      sentEmailUsers.includes(user.id) ? "sent" : ""
+                    }`}
+                    onClick={() => {
+                      if (onSendEmail) {
+                        onSendEmail(user);
+                        setSentEmailUsers(prev => [...prev, user.id]);
+                      }
+                    }}
+                    disabled={
+                      isSendingEmail && sendingUserId === user.id ||
+                      sentEmailUsers.includes(user.id)
+                    }
+                    title={
+                      sentEmailUsers.includes(user.id)
+                        ? "Đã gửi email thành công"
+                        : "Gửi thông tin tài khoản qua email"
+                    }
+                  >
+                    {isSendingEmail && sendingUserId === user.id ? (
+                      <FaSpinner className="spin-icon" />
+                    ) : sentEmailUsers.includes(user.id) ? (
+                      <FaCheck className="check-icon" />
+                    ) : (
+                      <FaEnvelope className="envelope-icon" />
                     )}
                   </button>
                 </td>

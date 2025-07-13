@@ -358,6 +358,81 @@
   background: #f9fafb;
 }
 
+/* Email Button Styling */
+.email-btn {
+  background: var(--color-blue) !important;
+  color: var(--color-white) !important;
+  border: 1px solid var(--color-blue) !important;
+  border-radius: var(--radius) !important;
+  padding: 6px !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  position: relative !important;
+}
+
+.email-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+.email-btn:hover:not(:disabled) {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+.email-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+.email-btn.sent {
+  background: var(--color-green) !important;
+  border-color: var(--color-green) !important;
+}
+
+.email-btn.sent:hover {
+  background: var(--color-green) !important;
+  border-color: var(--color-green) !important;
+  transform: none !important;
+}
+
+.email-btn .spin-icon {
+  animation: spin 1s linear infinite !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.email-btn .check-icon {
+  color: var(--color-white) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.email-btn .envelope-icon {
+  color: var(--color-white) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* Loading State */
 .table-loading-state {
   display: flex;
@@ -436,6 +511,7 @@
 .col-phone { width: 120px; }
 .col-role { width: 100px; }
 .col-status { width: 120px; }
+.col-email-action { width: 80px; min-width: 80px; }
 .col-email-sent { width: 140px; }
 .col-actions { width: 140px; min-width: 140px; }
 
