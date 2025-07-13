@@ -7,7 +7,7 @@
 }
 
 /* Header Section */
-.form-header {
+.create-vaccination-form-header {
   background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   color: white;
   padding: 30px;
@@ -17,26 +17,26 @@
   box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
 }
 
-.header-icon {
+.create-vaccination-header-icon {
   font-size: 3rem;
   margin-bottom: 15px;
 }
 
-.header-content h2 {
+.create-vaccination-header-content h2 {
   margin: 0 0 10px 0;
   font-size: 2rem;
   font-weight: 600;
   color: white;
 }
 
-.header-content p {
+.create-vaccination-header-content p {
   margin: 0;
   font-size: 1.1rem;
   opacity: 0.9;
 }
 
 /* Notifications */
-.notification {
+.create-vaccination-notification {
   display: flex;
   align-items: center;
   gap: 15px;
@@ -46,7 +46,7 @@
   font-weight: 500;
 }
 
-.notification.success {
+.create-vaccination-notification.success {
   background: #d4edda;
   color: #155724;
   border: 1px solid #c3e6cb;
@@ -109,15 +109,15 @@
 }
 
 /* Form Groups */
-.form-group {
+.create-vaccination-form-group {
   margin-bottom: 20px;
 }
 
-.form-group.full-width {
+.create-vaccination-form-group.full-width {
   grid-column: 1 / -1;
 }
 
-.form-group label {
+.create-vaccination-form-group label {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -133,9 +133,9 @@
 }
 
 /* Form Inputs */
-.form-group input,
-.form-group select,
-.form-group textarea {
+.create-vaccination-form-group input,
+.create-vaccination-form-group select,
+.create-vaccination-form-group textarea {
   width: 100%;
   padding: 12px 15px;
   border: 2px solid #e0e0e0;
@@ -145,19 +145,19 @@
   box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.create-vaccination-form-group input:focus,
+.create-vaccination-form-group select:focus,
+.create-vaccination-form-group textarea:focus {
   outline: none;
   border-color: #4CAF50;
 }
 
-.form-group input::placeholder,
-.form-group textarea::placeholder {
+.create-vaccination-form-group input::placeholder,
+.create-vaccination-form-group textarea::placeholder {
   color: #888;
 }
 
-.form-group textarea {
+.create-vaccination-form-group textarea {
   min-height: 120px;
   resize: vertical;
 }
@@ -692,16 +692,16 @@
   display: block;
 }
 
-.form-group input.error,
-.form-group textarea.error,
-.form-group select.error {
+.create-vaccination-form-group input.error,
+.create-vaccination-form-group textarea.error,
+.create-vaccination-form-group select.error {
   border-color: #f44336;
   box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2);
 }
 
-.form-group input.error:focus,
-.form-group textarea.error:focus,
-.form-group select.error:focus {
+.create-vaccination-form-group input.error:focus,
+.create-vaccination-form-group textarea.error:focus,
+.create-vaccination-form-group select.error:focus {
   border-color: #f44336;
   box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.3);
 }

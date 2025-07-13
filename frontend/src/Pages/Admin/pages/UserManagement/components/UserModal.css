@@ -32,26 +32,8 @@
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
-  --space-6: 1  .existing-student-card {
-    margin-bottom: var(--space-2);
-  }
-
-  .student-card-header {
-    padding: var(--space-2);
-    flex-direction: row;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: 50px;
-  }
-
-  .student-details {
-    padding: var(--space-2);
-  }
-
-  .student-detail-grid {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--space-2);
-  }ce-8: 2rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
   --border-width: 1px;
   --border-color: var(--color-gray-200);
   --radius: 0.5rem;
@@ -59,7 +41,7 @@
 }
 
 /* Modal Overlay */
-.modal-overlay {
+.admin-user-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -74,7 +56,7 @@
 }
 
 /* Modal Container */
-.user-modal {
+.admin-user-modal {
   background-color: var(--color-white);
   border-radius: var(--radius);
   width: 100%;
@@ -85,23 +67,22 @@
 }
 
 /* Large Modal for Complex Forms */
-.user-modal-large {
+.admin-user-modal-large {
   max-width: 800px;
   max-height: 95vh;
 }
 
 /* Modal Header */
-.modal-header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  padding: 16px 24px !important;
-  border-bottom: 1px solid var(--border-light) !important;
-  background: var(--bg-primary) !important;
-  margin-bottom: 2% !important;
+.admin-user-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  border-bottom: var(--border-width) solid var(--border-color);
+  background: var(--color-gray-50);
 }
 
-.modal-header h2 {
+.admin-user-modal-header h2 {
   margin: 0;
   font-size: var(--font-size-lg);
   font-weight: 600;
@@ -128,7 +109,7 @@
 }
 
 /* Form Styles */
-form {
+.admin-user-modal form {
   padding: var(--space-4);
 }
 
@@ -172,9 +153,7 @@ form {
 }
 
 .form-group {
-  margin-bottom: var(--space-3) !important;
-  padding-left: 20px !important;
-  padding-right: 20px !important;
+  margin-bottom: var(--space-3);
 }
 
 .form-row {
@@ -270,7 +249,6 @@ textarea.error {
 }
 
 .form-group label .required {
-  padding-top: 2% !important;
   margin-left: var(--space-1);
 }
 
@@ -368,28 +346,14 @@ input[type="checkbox"] {
   color: var(--color-red);
 }
 
-/* Modal Footer */
-.modal-footer {
+/* Admin User Modal Footer */
+.admin-user-modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
   margin-top: var(--space-6);
   padding-top: var(--space-4);
   border-top: var(--border-width) solid var(--border-color);
-  padding-bottom: 2% !important;
-}
-
-.modal-footer button {
-  padding: var(--space-3) var(--space-4);
-  border: none;
-  border-radius: var(--radius);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 /* Student Management */
@@ -616,7 +580,7 @@ input[type="checkbox"] {
   color: var(--color-gray-700);
 }
 
-.btn-add-student {
+.admin-btn-add-student {
   background: var(--color-blue);
   color: var(--color-white);
   border: none;
@@ -631,11 +595,11 @@ input[type="checkbox"] {
   gap: var(--space-1);
 }
 
-.btn-add-student:hover {
+.admin-btn-add-student:hover {
   background: #2563eb;
 }
 
-.btn-remove-student {
+.admin-btn-remove-student {
   background: var(--color-red);
   color: var(--color-white);
   border: none;
@@ -651,7 +615,7 @@ input[type="checkbox"] {
   height: 1.75rem;
 }
 
-.btn-remove-student:hover {
+.admin-btn-remove-student:hover {
   background: #dc2626;
 }
 
@@ -681,41 +645,38 @@ input[type="date"].error {
   border-color: var(--color-red);
 }
 
-/* Buttons */
-.btn-cancel,
-.btn-save {
-  padding: 12px 24px !important;
-  margin-left: 20px !important;
-  margin-right: 12px !important;
-  border-radius: var(--radius) !important;
-  font-size: var(--font-size-sm) !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: all 0.2s !important;
-  border: var(--border-width) solid var(--border-color) !important;
+/* Admin User Modal Buttons */
+.admin-btn-cancel,
+.admin-btn-save {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: var(--border-width) solid var(--border-color);
 }
 
-.btn-cancel {
-  background: var(--color-white) !important;
-  color: var(--color-gray-700) !important;
-  border-color: var(--border-color) !important;
+.admin-btn-cancel {
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  border-color: var(--border-color);
 }
 
-.btn-save {
-  background: var(--color-gray-900) !important;
-  color: var(--color-white) !important;
-  border-color: var(--color-gray-900) !important;
-  padding-right: 25px !important;
+.admin-btn-save {
+  background: var(--color-gray-900);
+  color: var(--color-white);
+  border-color: var(--color-gray-900);
 }
 
-.btn-cancel:hover {
-  background: var(--color-gray-50) !important;
-  border-color: var(--color-gray-300) !important;
+.admin-btn-cancel:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-300);
 }
 
-.btn-save:hover {
-  background: var(--color-gray-800) !important;
-  border-color: var(--color-gray-800) !important;
+.admin-btn-save:hover {
+  background: var(--color-gray-800);
+  border-color: var(--color-gray-800);
 }
 
 /* Placeholder Styling */
@@ -849,12 +810,12 @@ select:focus {
     grid-template-columns: 1fr;
   }
 
-  .modal-footer {
+  .admin-user-modal-footer {
     flex-direction: column;
   }
 
-  .btn-cancel,
-  .btn-save {
+  .admin-btn-cancel,
+  .admin-btn-save {
     width: 100%;
     justify-content: center;
   }
@@ -865,7 +826,7 @@ select:focus {
     gap: var(--space-2);
   }
 
-  .btn-add-student {
+  .admin-btn-add-student {
     align-self: flex-start;
   }
 
@@ -908,18 +869,18 @@ select:focus {
     gap: var(--space-2);
   }
 
-  .btn-remove-student {
+  .admin-btn-remove-student {
     align-self: flex-end;
   }
 }
 
 @media (max-width: 480px) {
-  .modal-header,
-  form {
+  .admin-user-modal-header,
+  .admin-user-modal form {
     padding: var(--space-3);
   }
 
-  .modal-header h2 {
+  .admin-user-modal-header h2 {
     font-size: var(--font-size-base);
   }
 
@@ -931,7 +892,7 @@ select:focus {
     margin-bottom: var(--space-3);
   }
 
-  .modal-footer {
+  .admin-user-modal-footer {
     margin-top: var(--space-4);
     padding-top: var(--space-3);
   }
@@ -991,12 +952,12 @@ select:focus {
 }
 
 /* Enhanced button styling for demo mode */
-.btn-save:has-text("Demo") {
+.admin-btn-save:has-text("Demo") {
   background-color: #f59e0b;
   border-color: #f59e0b;
 }
 
-.btn-save:has-text("Demo"):hover {
+.admin-btn-save:has-text("Demo"):hover {
   background-color: #d97706;
 }
 
@@ -1221,4 +1182,65 @@ select:focus {
 .student-form .form-group .student-image-upload .upload-image-btn:hover,
 .student-edit-form .form-group .student-image-upload .upload-image-btn:hover {
   background: #0056b3;
+}
+
+/* New student image upload styling */
+.new-student-image-upload {
+  margin-bottom: 16px;
+}
+
+.new-student-image-upload .image-container {
+  position: relative;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.new-student-image-upload .image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.new-student-image-upload .image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 8px;
+}
+
+.new-student-image-upload .image-wrapper:hover .image-overlay {
+  opacity: 1;
+}
+
+.new-student-image-upload .image-action-btn {
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.new-student-image-upload .image-action-btn:hover {
+  transform: scale(1.1);
+}
+
+.new-student-image-upload .upload-btn {
+  color: #007bff;
+}
+
+.new-student-image-upload .delete-btn {
+  color: #dc3545;
 }

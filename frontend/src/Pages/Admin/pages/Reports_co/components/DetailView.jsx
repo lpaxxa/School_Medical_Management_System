@@ -72,127 +72,166 @@ const DetailView = ({ data, reportType, isLoading, onViewDetail, onBack }) => {
   );
 
   return (
-    <div className="detail-view-container">
-      {/* Sử dụng component BackButton chung */}
+    <div className="reports-detail-view-container">
       <BackButton onClick={onBack} />
 
-      {/* Phần header thống kê */}
-      <div className="stats-header">
-        <div className="stats-card">
-          <div className="stats-icon document-icon">
+      {/* Stats Header */}
+      <div className="reports-detail-stats-header">
+        <div className="reports-detail-stats-card">
+          <div className="reports-detail-stats-icon reports-detail-document-icon">
             <FaClipboardList />
           </div>
-          <div className="stats-content">
-            <div className="stats-number">{data.length}</div>
-            <div className="stats-label">Thông báo</div>
+          <div className="reports-detail-stats-content">
+            <div className="reports-detail-stats-number">{data.length}</div>
+            <div className="reports-detail-stats-label">Thông báo</div>
           </div>
         </div>
 
-        <div className="stats-card">
-          <div className="stats-icon user-icon">
+        <div className="reports-detail-stats-card">
+          <div className="reports-detail-stats-icon reports-detail-user-icon">
             <FaUsers />
           </div>
-          <div className="stats-content">
-            <div className="stats-number">{totalStats.totalRecipients}</div>
-            <div className="stats-label">Người nhận</div>
+          <div className="reports-detail-stats-content">
+            <div className="reports-detail-stats-number">
+              {totalStats.totalRecipients}
+            </div>
+            <div className="reports-detail-stats-label">Người nhận</div>
           </div>
         </div>
 
-        <div className="stats-card">
-          <div className="stats-icon accept-icon">
+        <div className="reports-detail-stats-card">
+          <div className="reports-detail-stats-icon reports-detail-accept-icon">
             <FaCheck />
           </div>
-          <div className="stats-content">
-            <div className="stats-number">{totalStats.accepted}</div>
-            <div className="stats-label">Đã chấp nhận</div>
+          <div className="reports-detail-stats-content">
+            <div className="reports-detail-stats-number">
+              {totalStats.accepted}
+            </div>
+            <div className="reports-detail-stats-label">Đã chấp nhận</div>
           </div>
         </div>
 
-        <div className="stats-card">
-          <div className="stats-icon pending-icon">
+        <div className="reports-detail-stats-card">
+          <div className="reports-detail-stats-icon reports-detail-pending-icon">
             <FaClock />
           </div>
-          <div className="stats-content">
-            <div className="stats-number">{totalStats.pending}</div>
-            <div className="stats-label">Chờ phản hồi</div>
+          <div className="reports-detail-stats-content">
+            <div className="reports-detail-stats-number">
+              {totalStats.pending}
+            </div>
+            <div className="reports-detail-stats-label">Chờ phản hồi</div>
           </div>
         </div>
 
-        <div className="stats-card">
-          <div className="stats-icon reject-icon">
+        <div className="reports-detail-stats-card">
+          <div className="reports-detail-stats-icon reports-detail-reject-icon">
             <FaReject />
           </div>
-          <div className="stats-content">
-            <div className="stats-number">{totalStats.rejected}</div>
-            <div className="stats-label">Từ chối</div>
+          <div className="reports-detail-stats-content">
+            <div className="reports-detail-stats-number">
+              {totalStats.rejected}
+            </div>
+            <div className="reports-detail-stats-label">Từ chối</div>
           </div>
         </div>
       </div>
 
-      {/* Danh sách thông báo */}
-      <div className="notification-container">
-        {data.map((notification) => (
-          <div key={notification.id} className="notification-item">
-            {/* Tiêu đề thông báo */}
-            <div className="notification-title">{notification.title}</div>
+      {/* Notification Table */}
+      <div className="reports-detail-notification-container">
+        <h3 className="reports-detail-table-title">
+          <FaClipboardList /> Danh sách thông báo
+        </h3>
+        <div className="reports-detail-table-container">
+          <table className="reports-detail-table">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Tiêu đề</th>
+                <th>Người gửi</th>
+                <th>Ngày tạo</th>
+                <th>Loại</th>
+                <th>Số người nhận</th>
+                <th>Đã chấp nhận</th>
+                <th>Chờ phản hồi</th>
+                <th>Từ chối</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((notification, index) => {
+                const acceptedCount = notification.recipients.filter(
+                  (r) => r.response === "ACCEPTED"
+                ).length;
+                const pendingCount = notification.recipients.filter(
+                  (r) => r.response === "PENDING"
+                ).length;
+                const rejectedCount = notification.recipients.filter(
+                  (r) => r.response === "REJECTED"
+                ).length;
 
-            {/* Thông tin người gửi và ngày */}
-            <div className="notification-info">
-              <div className="info-section">
-                <span className="info-tag sender">
-                  <FaUser /> {notification.senderName}
-                </span>
-                <span className="info-tag date">
-                  <FaCalendarAlt /> {formatDate(notification.createdAt)}
-                </span>
-                <span className="info-tag type">
-                  <FaEnvelope /> {notification.type}
-                </span>
-              </div>
-
-              {/* Thống kê phản hồi */}
-              <div className="response-stats">
-                <span className="response-badge accepted">
-                  <FaCheck />{" "}
-                  {
-                    notification.recipients.filter(
-                      (r) => r.response === "ACCEPTED"
-                    ).length
-                  }
-                </span>
-                <span className="response-badge pending">
-                  <FaClock />{" "}
-                  {
-                    notification.recipients.filter(
-                      (r) => r.response === "PENDING"
-                    ).length
-                  }
-                </span>
-                <span className="response-badge rejected">
-                  <FaReject />{" "}
-                  {
-                    notification.recipients.filter(
-                      (r) => r.response === "REJECTED"
-                    ).length
-                  }
-                </span>
-              </div>
-            </div>
-
-            {/* Footer với số người nhận và nút xem chi tiết */}
-            <div className="notification-footer">
-              <span className="recipient-count">
-                {notification.recipients.length} người nhận
-              </span>
-              <button
-                className="detail-button"
-                onClick={() => onViewDetail(notification)}
-              >
-                <FaEye /> Xem chi tiết
-              </button>
-            </div>
-          </div>
-        ))}
+                return (
+                  <tr
+                    key={notification.id}
+                    className="reports-detail-table-row"
+                  >
+                    <td className="reports-detail-table-stt">{index + 1}</td>
+                    <td className="reports-detail-table-title">
+                      <div className="reports-detail-notification-title">
+                        {notification.title}
+                      </div>
+                    </td>
+                    <td className="reports-detail-table-sender">
+                      <div className="reports-detail-sender-info">
+                        <FaUser className="reports-detail-table-icon" />
+                        <span>{notification.senderName}</span>
+                      </div>
+                    </td>
+                    <td className="reports-detail-table-date">
+                      <div className="reports-detail-date-info">
+                        <FaCalendarAlt className="reports-detail-table-icon" />
+                        <span>{formatDate(notification.createdAt)}</span>
+                      </div>
+                    </td>
+                    <td className="reports-detail-table-type">
+                      <span className="reports-detail-type-badge">
+                        {notification.type}
+                      </span>
+                    </td>
+                    <td className="reports-detail-table-recipients">
+                      <span className="reports-detail-recipients-count">
+                        {notification.recipients.length}
+                      </span>
+                    </td>
+                    <td className="reports-detail-table-accepted">
+                      <span className="reports-detail-response-badge reports-detail-accepted">
+                        <FaCheck /> {acceptedCount}
+                      </span>
+                    </td>
+                    <td className="reports-detail-table-pending">
+                      <span className="reports-detail-response-badge reports-detail-pending">
+                        <FaClock /> {pendingCount}
+                      </span>
+                    </td>
+                    <td className="reports-detail-table-rejected">
+                      <span className="reports-detail-response-badge reports-detail-rejected">
+                        <FaReject /> {rejectedCount}
+                      </span>
+                    </td>
+                    <td className="reports-detail-table-actions">
+                      <button
+                        className="reports-detail-action-button"
+                        onClick={() => onViewDetail(notification)}
+                        title="Xem chi tiết"
+                      >
+                        <FaEye />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

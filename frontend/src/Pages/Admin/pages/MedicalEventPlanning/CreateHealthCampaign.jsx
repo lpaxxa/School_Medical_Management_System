@@ -50,18 +50,18 @@ const CreateHealthCampaign = () => {
       setErrorMessage("Vui lòng nhập ghi chú");
       return false;
     }
-    
+
     // Validate end date is on or after start date
     if (formData.endDate && formData.startDate) {
       const startDate = new Date(formData.startDate);
       const endDate = new Date(formData.endDate);
-      
+
       if (endDate < startDate) {
         setErrorMessage("Ngày kết thúc phải bằng hoặc sau ngày bắt đầu");
         return false;
       }
     }
-    
+
     return true;
   };
 
@@ -173,11 +173,11 @@ const CreateHealthCampaign = () => {
   return (
     <div className="create-health-campaign">
       {/* Header */}
-      <div className="form-header">
-        <div className="header-icon">
+      <div className="create-health-campaign-form-header">
+        <div className="create-health-campaign-header-icon">
           <FaStethoscope />
         </div>
-        <div className="header-content">
+        <div className="create-health-campaign-header-content">
           <h2>Tạo Chiến Dịch Kiểm Tra Sức Khỏe Mới</h2>
       
         </div>
@@ -409,7 +409,7 @@ const CreateHealthCampaign = () => {
         </div>
 
         {/* Submit Button */}
-        <div >
+        <div>
           <button type="submit" className="submit-button" disabled={isLoading}>
             {isLoading ? (
               <>

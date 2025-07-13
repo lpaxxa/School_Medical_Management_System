@@ -14,13 +14,13 @@ const PlanManager = () => {
   const sections = [
     {
       id: "vaccination",
-      title: "Kế Hoạch Tiêm Chủng",  
+      title: "Kế Hoạch Tiêm Chủng",
       description: "Quản lý và theo dõi các kế hoạch tiêm vaccine định kỳ",
       color: "#6366f1",
     },
     {
       id: "health",
-      title: "Kiểm Tra Sức Khỏe",     
+      title: "Kiểm Tra Sức Khỏe",
       description: "Tổ chức và quản lý các chương trình kiểm tra sức khỏe",
       color: "#06b6d4",
     },
@@ -83,8 +83,8 @@ const PlanManager = () => {
   return (
     <div className="plan-manager">
       {/* Main Header */}
-      <div className="manager-header">
-        <div className="header-content-admin">
+      <div className="plan-manager-header">
+        <div className="plan-manager-header-content">
           <div className="header-text">
             <h1>Quản Lý Kế Hoạch Y Tế</h1>
             <h2>Hệ thống quản lý sức khỏe toàn diện</h2>
@@ -107,7 +107,6 @@ const PlanManager = () => {
         <div className="section-selector">
           <div className="selector-header">
             <h2 className="selector-title">Kế Hoạch Y Tế</h2>
-            
           </div>
 
           <div className="sections-grid">
@@ -155,7 +154,10 @@ const PlanManager = () => {
           </div>
 
           <div className="selector-content">
-           
+            {/* <h2 className="selector-title">Chức Năng Có Sẵn</h2>
+            <p className="selector-subtitle">
+              Chọn chức năng bạn muốn thực hiện với mô-đun này
+            </p> */}
 
             <div className="actions-grid">
               {getActionsForSection(selectedSection).map((action) => (

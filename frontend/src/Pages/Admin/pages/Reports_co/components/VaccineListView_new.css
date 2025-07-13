@@ -1,0 +1,550 @@
+/* Vaccine List View Styles with Reports Namespace */
+.reports-vaccine-list-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Loading Section */
+.reports-vaccine-loading-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: #6c757d;
+  gap: 20px;
+}
+
+.reports-vaccine-loading-section p {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Header Styles */
+.reports-vaccine-header {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+  color: white;
+  box-shadow: 0 4px 20px rgba(74, 144, 226, 0.2);
+}
+
+.reports-vaccine-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.reports-vaccine-back-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.reports-vaccine-back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.reports-vaccine-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reports-vaccine-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+/* Statistics Cards */
+.reports-vaccine-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.reports-vaccine-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s ease;
+  border-left: 4px solid #e9ecef;
+}
+
+.reports-vaccine-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.reports-vaccine-stat-card.reports-vaccine-total {
+  border-left-color: #4a90e2;
+}
+
+.reports-vaccine-stat-card.reports-vaccine-active {
+  border-left-color: #28a745;
+}
+
+.reports-vaccine-stat-card.reports-vaccine-multi-dose {
+  border-left-color: #ffc107;
+}
+
+.reports-vaccine-stat-card.reports-vaccine-age-groups {
+  border-left-color: #6f42c1;
+}
+
+.reports-vaccine-stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+}
+
+.reports-vaccine-total .reports-vaccine-stat-icon {
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+}
+
+.reports-vaccine-active .reports-vaccine-stat-icon {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.reports-vaccine-multi-dose .reports-vaccine-stat-icon {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+.reports-vaccine-age-groups .reports-vaccine-stat-icon {
+  background: linear-gradient(135deg, #6f42c1, #e83e8c);
+}
+
+.reports-vaccine-stat-content h3 {
+  margin: 0 0 5px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.reports-vaccine-stat-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Filters Section */
+.reports-vaccine-filters {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+}
+
+.reports-vaccine-filter-group {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 20px;
+  align-items: end;
+}
+
+.reports-vaccine-search-box {
+  position: relative;
+}
+
+.reports-vaccine-search-box i {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.reports-vaccine-search-box input {
+  width: 100%;
+  padding: 12px 15px 12px 45px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.reports-vaccine-search-box input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.reports-vaccine-filter-select {
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reports-vaccine-filter-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.reports-vaccine-results-count {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Error Message */
+.reports-vaccine-error-message {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+}
+
+.reports-vaccine-error-message i {
+  font-size: 20px;
+}
+
+.reports-vaccine-error-message span {
+  flex: 1;
+  font-size: 16px;
+}
+
+.reports-vaccine-error-message button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reports-vaccine-error-message button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Table Styles */
+.reports-vaccine-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.reports-vaccine-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.reports-vaccine-table thead {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: white;
+}
+
+.reports-vaccine-table th {
+  padding: 18px 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #1a252f;
+}
+
+.reports-vaccine-table-row {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.reports-vaccine-table-row:hover {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  transform: scale(1.01);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.reports-vaccine-table td {
+  padding: 18px 15px;
+  vertical-align: middle;
+}
+
+.reports-vaccine-table-stt {
+  font-weight: 600;
+  color: #6c757d;
+  width: 60px;
+  text-align: center;
+}
+
+.reports-vaccine-table-name {
+  min-width: 300px;
+}
+
+.reports-vaccine-name-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.reports-vaccine-item-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.reports-vaccine-item-description {
+  font-size: 13px;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
+.reports-vaccine-table-age-range {
+  min-width: 120px;
+}
+
+.reports-vaccine-age-badge {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  color: #1565c0;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  border: 1px solid #90caf9;
+}
+
+.reports-vaccine-table-dose-count {
+  min-width: 80px;
+  text-align: center;
+}
+
+.reports-vaccine-dose-badge {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  color: #ef6c00;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  border: 1px solid #ffcc02;
+}
+
+.reports-vaccine-table-interval {
+  min-width: 100px;
+  text-align: center;
+  font-weight: 500;
+  color: #495057;
+}
+
+.reports-vaccine-table-status {
+  min-width: 130px;
+}
+
+.reports-vaccine-status-badge {
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid;
+}
+
+.reports-vaccine-status-badge.reports-vaccine-active {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  color: #155724;
+  border-color: #b8daff;
+}
+
+.reports-vaccine-status-badge.reports-vaccine-inactive {
+  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+  color: #721c24;
+  border-color: #f1b0b7;
+}
+
+.reports-vaccine-table-actions {
+  width: 100px;
+  text-align: center;
+}
+
+.reports-vaccine-action-button {
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+.reports-vaccine-action-button:hover {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+  background: linear-gradient(135deg, #357abd, #2968a3);
+}
+
+/* No Data State */
+.reports-vaccine-no-data {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 30px;
+  text-align: center;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  color: #6c757d;
+}
+
+.reports-vaccine-no-data i {
+  margin-bottom: 20px;
+  color: #dee2e6;
+}
+
+.reports-vaccine-no-data h3 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 24px;
+}
+
+.reports-vaccine-no-data p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .reports-vaccine-filter-group {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .reports-vaccine-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .reports-vaccine-list-container {
+    padding: 15px;
+  }
+  
+  .reports-vaccine-header {
+    padding: 20px;
+  }
+  
+  .reports-vaccine-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .reports-vaccine-header h2 {
+    font-size: 24px;
+  }
+  
+  .reports-vaccine-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .reports-vaccine-stat-card {
+    padding: 20px;
+  }
+  
+  .reports-vaccine-filters {
+    padding: 20px;
+  }
+  
+  .reports-vaccine-table-container {
+    overflow-x: auto;
+  }
+  
+  .reports-vaccine-table {
+    min-width: 800px;
+  }
+  
+  .reports-vaccine-table th,
+  .reports-vaccine-table td {
+    padding: 12px 10px;
+  }
+  
+  .reports-vaccine-item-name {
+    font-size: 14px;
+  }
+  
+  .reports-vaccine-item-description {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .reports-vaccine-header h2 {
+    font-size: 20px;
+  }
+  
+  .reports-vaccine-stat-content h3 {
+    font-size: 24px;
+  }
+  
+  .reports-vaccine-stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+  
+  .reports-vaccine-no-data {
+    padding: 40px 20px;
+  }
+  
+  .reports-vaccine-no-data h3 {
+    font-size: 20px;
+  }
+  
+  .reports-vaccine-no-data p {
+    font-size: 14px;
+  }
+}

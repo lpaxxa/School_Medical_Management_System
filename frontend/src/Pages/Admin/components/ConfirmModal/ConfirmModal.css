@@ -1,0 +1,207 @@
+/* Admin Confirm Modal Styles - Namespaced to avoid conflicts */
+.admin-confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10003; /* Higher than error modal */
+  animation: admin-confirm-fadeIn 0.3s ease-out;
+}
+
+.admin-confirm-modal-content {
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: admin-confirm-slideIn 0.3s ease-out;
+  border: none;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+}
+
+.admin-confirm-modal-body {
+  text-align: center;
+  padding: 40px 30px;
+}
+
+.admin-confirm-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 25px;
+  font-size: 3rem;
+  color: white;
+  animation: admin-confirm-pulse 2s ease-in-out infinite;
+}
+
+.admin-confirm-icon.default {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+}
+
+.admin-confirm-icon.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+}
+
+.admin-confirm-icon.warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+}
+
+@keyframes admin-confirm-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.admin-confirm-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 20px 0 15px;
+}
+
+.admin-confirm-message {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin: 15px 0;
+  line-height: 1.5;
+}
+
+.admin-confirm-modal-footer {
+  padding: 20px 30px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-confirm-btn-cancel,
+.admin-confirm-btn-confirm {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  min-width: 100px;
+  border: 1px solid;
+}
+
+.admin-confirm-btn-cancel {
+  background: white;
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+.admin-confirm-btn-cancel:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.admin-confirm-btn-confirm.default {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-color: #3b82f6;
+}
+
+.admin-confirm-btn-confirm.default:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.admin-confirm-btn-confirm.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-color: #ef4444;
+}
+
+.admin-confirm-btn-confirm.danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.admin-confirm-btn-confirm.warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border-color: #f59e0b;
+}
+
+.admin-confirm-btn-confirm.warning:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+/* Animations */
+@keyframes admin-confirm-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes admin-confirm-slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .admin-confirm-modal-content {
+    margin: 10px;
+    max-width: none;
+  }
+  
+  .admin-confirm-modal-body {
+    padding: 30px 20px;
+  }
+  
+  .admin-confirm-modal-footer {
+    padding: 20px;
+    flex-direction: column;
+  }
+  
+  .admin-confirm-btn-cancel,
+  .admin-confirm-btn-confirm {
+    width: 100%;
+  }
+  
+  .admin-confirm-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 2.5rem;
+  }
+  
+  .admin-confirm-title {
+    font-size: 1.3rem;
+  }
+  
+  .admin-confirm-message {
+    font-size: 1rem;
+  }
+}

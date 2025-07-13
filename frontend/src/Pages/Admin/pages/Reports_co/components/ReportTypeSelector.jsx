@@ -36,21 +36,30 @@ const ReportTypeSelector = ({ reportType, setReportType }) => {
   ];
 
   return (
-    <div className="report-type-section">
-      <div className="report-types">
+    <div className="reports-type-selector">
+      <div className="reports-type-options">
         {reportTypes.map((type) => (
           <div
             key={type.id}
-            className={`report-type-item ${
+            className={`reports-type-option ${
               reportType === type.id ? "selected" : ""
             }`}
             data-type={type.id}
             onClick={() => setReportType(type.id)}
           >
-            <i className={`report-type-icon ${type.icon}`}></i>
-            <div className="report-type-content">
-              <h3 className="report-type-title">{type.title}</h3>
-              <p className="report-type-desc">{type.desc}</p>
+            <input
+              type="radio"
+              name="reportType"
+              value={type.id}
+              checked={reportType === type.id}
+              onChange={() => setReportType(type.id)}
+            />
+            <div className="reports-type-content">
+              <h3 className="reports-type-title">
+                <i className={type.icon}></i>
+                {type.title}
+              </h3>
+              <p className="reports-type-description">{type.desc}</p>
             </div>
           </div>
         ))}

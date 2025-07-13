@@ -32,21 +32,21 @@ const StudentDetailView = ({ student, onBack }) => {
   console.log("Image URL:", student.imageUrl);
 
   return (
-    <div className="student-detail-page">
+    <div className="reports-student-detail-page">
       {/* Back Button Outside Header */}
       <BackButton onClick={onBack} text="Quay lại danh sách" />
 
       {/* Header */}
-      <div className="page-header">
+      <div className="reports-student-detail-page-header">
         <h1>Thông tin chi tiết học sinh</h1>
       </div>
 
       {/* Body */}
-      <div className="student-content">
+      <div className="reports-student-detail-content">
         {/* Cột trái */}
-        <div className="left-column">
+        <div className="reports-student-detail-left-column">
           {/* Ảnh học sinh */}
-          <div className="student-photo">
+          <div className="reports-student-detail-photo">
             {student.imageUrl ? (
               <img
                 src={student.imageUrl}
@@ -57,15 +57,17 @@ const StudentDetailView = ({ student, onBack }) => {
                 onError={(e) => {
                   console.error("Image failed to load:", student.imageUrl);
                   console.error("Error details:", e);
-                  e.target.onerror = null;
-                  e.target.src =
-                    "https://via.placeholder.com/200x200/cccccc/666666?text=Student";
+                  if (e && e.target) {
+                    e.target.onerror = null;
+                    e.target.src =
+                      "https://via.placeholder.com/200x200/cccccc/666666?text=Student";
+                  }
                 }}
                 crossOrigin="anonymous"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="photo-placeholder">
+              <div className="reports-student-detail-photo-placeholder">
                 <FaUser size={60} />
                 <p>Không có hình ảnh</p>
               </div>
@@ -73,17 +75,17 @@ const StudentDetailView = ({ student, onBack }) => {
           </div>
 
           {/* Thông tin cơ bản */}
-          <div className="basic-info">
+          <div className="reports-student-detail-basic-info">
             <h2>{student.fullName || student.name}</h2>
-            <div className="info-item">
+            <div className="reports-student-detail-info-item">
               <FaIdCard />
               <span>{student.studentId}</span>
             </div>
-            <div className="info-item">
+            <div className="reports-student-detail-info-item">
               <FaSchool />
               <span>Lớp {student.className || student.class}</span>
             </div>
-            <div className="info-item">
+            <div className="reports-student-detail-info-item">
               <FaGraduationCap />
               <span>{student.gradeLevel}</span>
             </div>
@@ -91,50 +93,58 @@ const StudentDetailView = ({ student, onBack }) => {
         </div>
 
         {/* Cột phải */}
-        <div className="right-column">
+        <div className="reports-student-detail-right-column">
           <h3>Thông tin chi tiết</h3>
 
-          <div className="detail-info">
-            <div className="info-row">
-              <span className="label">
+          <div className="reports-student-detail-detail-info">
+            <div className="reports-student-detail-info-row">
+              <span className="reports-student-detail-label">
                 <FaBirthdayCake />
                 Ngày sinh
               </span>
-              <span className="value">{formatDate(student.dateOfBirth)}</span>
+              <span className="reports-student-detail-value">
+                {formatDate(student.dateOfBirth)}
+              </span>
             </div>
 
-            <div className="info-row">
-              <span className="label">
+            <div className="reports-student-detail-info-row">
+              <span className="reports-student-detail-label">
                 <FaVenusMars />
                 Giới tính
               </span>
-              <span className="value">{student.gender || "Chưa có"}</span>
+              <span className="reports-student-detail-value">
+                {student.gender || "Chưa có"}
+              </span>
             </div>
 
-            <div className="info-row">
-              <span className="label">
+            <div className="reports-student-detail-info-row">
+              <span className="reports-student-detail-label">
                 <FaCalendarAlt />
                 Năm học
               </span>
-              <span className="value">{student.schoolYear || "Chưa có"}</span>
+              <span className="reports-student-detail-value">
+                {student.schoolYear || "Chưa có"}
+              </span>
             </div>
 
-            <div className="info-row">
-              <span className="label">
+            <div className="reports-student-detail-info-row">
+              <span className="reports-student-detail-label">
                 <FaUserCircle />
                 ID Hồ sơ sức khỏe
               </span>
-              <span className="value">
+              <span className="reports-student-detail-value">
                 {student.healthProfileId || "Chưa có"}
               </span>
             </div>
 
-            <div className="info-row">
-              <span className="label">
+            <div className="reports-student-detail-info-row">
+              <span className="reports-student-detail-label">
                 <FaUserFriends />
                 ID Phụ huynh
               </span>
-              <span className="value">{student.parentId || "Chưa có"}</span>
+              <span className="reports-student-detail-value">
+                {student.parentId || "Chưa có"}
+              </span>
             </div>
           </div>
         </div>

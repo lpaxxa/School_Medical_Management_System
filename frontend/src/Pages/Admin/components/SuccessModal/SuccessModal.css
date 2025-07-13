@@ -1,5 +1,5 @@
-/* Success Modal Styles */
-.success-modal-overlay {
+/* Admin Success Modal Styles - Namespaced to avoid conflicts */
+.admin-success-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -10,30 +10,27 @@
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  animation: fadeIn 0.3s ease-out;
+  animation: admin-success-fadeIn 0.3s ease-out;
 }
 
-.success-modal {
+.admin-success-modal-content {
   max-width: 400px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  animation: slideIn 0.3s ease-out;
-}
-
-.success-modal .modal-content {
+  animation: admin-success-slideIn 0.3s ease-out;
   border: none;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border-radius: 16px;
 }
 
-.success-modal-body {
+.admin-success-modal-body {
   text-align: center;
   padding: 40px 30px;
 }
 
-.success-icon {
+.admin-success-icon {
   width: 100px;
   height: 100px;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -45,10 +42,10 @@
   font-size: 3rem;
   color: white;
   box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
-  animation: successPulse 2s ease-in-out infinite;
+  animation: admin-success-pulse 2s ease-in-out infinite;
 }
 
-@keyframes successPulse {
+@keyframes admin-success-pulse {
   0%, 100% {
     transform: scale(1);
     box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
@@ -59,21 +56,21 @@
   }
 }
 
-.success-title {
+.admin-success-title {
   font-size: 1.5rem;
   font-weight: 600;
   color: #10b981;
   margin: 20px 0 15px;
 }
 
-.success-message {
+.admin-success-message {
   font-size: 1.1rem;
   color: #374151;
   margin: 15px 0;
   line-height: 1.5;
 }
 
-.success-details {
+.admin-success-details {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   padding: 15px;
   border-radius: 10px;
@@ -84,13 +81,13 @@
   line-height: 1.4;
 }
 
-.success-modal-footer {
+.admin-success-modal-footer {
   padding: 20px 30px;
   text-align: center;
   border-top: 1px solid #e5e7eb;
 }
 
-.success-btn {
+.admin-success-btn {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   border: none;
   padding: 12px 30px;
@@ -103,18 +100,18 @@
   min-width: 120px;
 }
 
-.success-btn:hover {
+.admin-success-btn:hover {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
-.success-btn:active {
+.admin-success-btn:active {
   transform: translateY(0);
 }
 
 /* Animations */
-@keyframes fadeIn {
+@keyframes admin-success-fadeIn {
   from {
     opacity: 0;
   }
@@ -123,7 +120,7 @@
   }
 }
 
-@keyframes slideIn {
+@keyframes admin-success-slideIn {
   from {
     opacity: 0;
     transform: translateY(-20px) scale(0.95);
@@ -136,27 +133,27 @@
 
 /* Responsive */
 @media (max-width: 480px) {
-  .success-modal {
+  .admin-success-modal-content {
     margin: 10px;
     max-width: none;
   }
   
-  .success-modal-body,
-  .success-modal-footer {
+  .admin-success-modal-body,
+  .admin-success-modal-footer {
     padding: 30px 20px;
   }
   
-  .success-icon {
+  .admin-success-icon {
     width: 80px;
     height: 80px;
     font-size: 2.5rem;
   }
   
-  .success-title {
+  .admin-success-title {
     font-size: 1.3rem;
   }
   
-  .success-message {
+  .admin-success-message {
     font-size: 1rem;
   }
 }

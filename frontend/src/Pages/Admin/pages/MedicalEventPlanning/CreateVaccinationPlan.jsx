@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   FaSyringe,
@@ -51,14 +50,14 @@ const CreateVaccinationPlan = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.class-selector-container')) {
+      if (!event.target.closest(".class-selector-container")) {
         setShowClassDropdown(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -313,7 +312,7 @@ const CreateVaccinationPlan = () => {
   // Filter classes based on search term
   const getFilteredClasses = () => {
     if (!classSearchTerm.trim()) return groupedClasses;
-    
+
     const filtered = {};
     Object.keys(groupedClasses).forEach((grade) => {
       const filteredClassesInGrade = groupedClasses[grade].filter((className) =>
@@ -358,8 +357,11 @@ const CreateVaccinationPlan = () => {
   // Check if all classes in a grade are selected
   const isGradeFullySelected = (grade) => {
     const classesInGrade = groupedClasses[grade] || [];
-    return classesInGrade.length > 0 && classesInGrade.every((className) =>
-      formData.className.includes(className)
+    return (
+      classesInGrade.length > 0 &&
+      classesInGrade.every((className) =>
+        formData.className.includes(className)
+      )
     );
   };
 
@@ -397,11 +399,11 @@ const CreateVaccinationPlan = () => {
   return (
     <div className="create-vaccination-plan">
       {/* Header */}
-      <div className="form-header">
-        <div className="header-icon">
+      <div className="create-vaccination-form-header">
+        <div className="create-vaccination-header-icon">
           <FaHospital />
         </div>
-        <div className="header-content">
+        <div className="create-vaccination-header-content">
           <h2>Tạo Kế Hoạch Tiêm Chủng Mới</h2>
         
         </div>
@@ -409,7 +411,7 @@ const CreateVaccinationPlan = () => {
 
       {/* Success Message */}
       {showSuccess && (
-        <div className="notification success">
+        <div className="create-vaccination-notification success">
           <FaCheck className="notification-icon" />
           <div className="notification-content">
             <h4>Thành công!</h4>
@@ -420,7 +422,7 @@ const CreateVaccinationPlan = () => {
 
       {/* Error Message */}
       {showError && (
-        <div className="notification error">
+        <div className="create-vaccination-notification error">
           <FaTimes className="notification-icon" />
           <div className="notification-content">
             <h4>Có lỗi xảy ra!</h4>
@@ -439,7 +441,7 @@ const CreateVaccinationPlan = () => {
           </h3>
 
           <div className="form-grid">
-            <div className="form-group">
+            <div className="create-vaccination-form-group">
               <label htmlFor="name">
                 <FaSyringe className="label-icon" />
                 Tên Kế Hoạch Tiêm Chủng *
@@ -459,7 +461,7 @@ const CreateVaccinationPlan = () => {
               )}
             </div>
 
-            <div className="form-group full-width">
+            <div className="create-vaccination-form-group full-width">
               <label htmlFor="description">
                 <FaFileAlt className="label-icon" />
                 Mô Tả Kế Hoạch *
@@ -489,7 +491,7 @@ const CreateVaccinationPlan = () => {
           </h3>
 
           <div className="form-grid">
-            <div className="form-group">
+            <div className="create-vaccination-form-group">
               <label htmlFor="vaccinationDate">
                 <FaCalendarAlt className="label-icon" />
                 Ngày Tiêm *
@@ -512,7 +514,7 @@ const CreateVaccinationPlan = () => {
               )}
             </div>
 
-            <div className="form-group">
+            <div className="create-vaccination-form-group">
               <label htmlFor="deadlineDate">
                 <FaClock className="label-icon" />
                 Hạn Chót Đăng Ký *
@@ -618,9 +620,10 @@ const CreateVaccinationPlan = () => {
               <>
                 <div className="class-selector-container">
                   <label className="dropdown-label">
-                    Chọn lớp từ danh sách có sẵn ({availableClasses.length} lớp):
+                    Chọn lớp từ danh sách có sẵn ({availableClasses.length}{" "}
+                    lớp):
                   </label>
-                  
+
                   {/* Search and dropdown trigger */}
                   <div className="class-search-container">
                     <div className="search-input-wrapper">
@@ -637,7 +640,9 @@ const CreateVaccinationPlan = () => {
                         onClick={() => setShowClassDropdown(!showClassDropdown)}
                         className="dropdown-toggle-btn"
                       >
-                        <FaChevronDown className={showClassDropdown ? "rotated" : ""} />
+                        <FaChevronDown
+                          className={showClassDropdown ? "rotated" : ""}
+                        />
                       </button>
                     </div>
                   </div>
@@ -647,39 +652,57 @@ const CreateVaccinationPlan = () => {
                     <div className="class-dropdown-content">
                       {availableClasses.length > 0 ? (
                         Object.keys(getFilteredClasses()).length > 0 ? (
-                          Object.entries(getFilteredClasses()).map(([grade, classesInGrade]) => (
-                            <div key={grade} className="grade-group">
-                              <div className="grade-header">
-                                <label className="grade-checkbox">
-                                  <input
-                                    type="checkbox"
-                                    checked={isGradeFullySelected(grade)}
-                                    ref={(el) => {
-                                      if (el) el.indeterminate = isGradePartiallySelected(grade);
-                                    }}
-                                    onChange={() => handleSelectGrade(grade)}
-                                  />
-                                  <span className="grade-name">{grade}</span>
-                                  <span className="grade-count">({classesInGrade.length} lớp)</span>
-                                </label>
-                              </div>
-                              <div className="grade-classes">
-                                {classesInGrade.map((className) => (
-                                  <label key={className} className="class-item">
+                          Object.entries(getFilteredClasses()).map(
+                            ([grade, classesInGrade]) => (
+                              <div key={grade} className="grade-group">
+                                <div className="grade-header">
+                                  <label className="grade-checkbox">
                                     <input
                                       type="checkbox"
-                                      checked={formData.className.includes(className)}
-                                      onChange={() => handleClassSelection(className)}
+                                      checked={isGradeFullySelected(grade)}
+                                      ref={(el) => {
+                                        if (el)
+                                          el.indeterminate =
+                                            isGradePartiallySelected(grade);
+                                      }}
+                                      onChange={() => handleSelectGrade(grade)}
                                     />
-                                    <span className="class-name">{className}</span>
+                                    <span className="grade-name">{grade}</span>
+                                    <span className="grade-count">
+                                      ({classesInGrade.length} lớp)
+                                    </span>
                                   </label>
-                                ))}
+                                </div>
+                                <div className="grade-classes">
+                                  {classesInGrade.map((className) => (
+                                    <label
+                                      key={className}
+                                      className="class-item"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={formData.className.includes(
+                                          className
+                                        )}
+                                        onChange={() =>
+                                          handleClassSelection(className)
+                                        }
+                                      />
+                                      <span className="class-name">
+                                        {className}
+                                      </span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ))
+                            )
+                          )
                         ) : (
                           <div className="no-search-results">
-                            <p>Không tìm thấy lớp nào với từ khóa "{classSearchTerm}"</p>
+                            <p>
+                              Không tìm thấy lớp nào với từ khóa "
+                              {classSearchTerm}"
+                            </p>
                           </div>
                         )
                       ) : (
@@ -713,7 +736,9 @@ const CreateVaccinationPlan = () => {
                       <span>Đã chọn {formData.className.length} lớp học</span>
                       <button
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, className: [] }))}
+                        onClick={() =>
+                          setFormData((prev) => ({ ...prev, className: [] }))
+                        }
                         className="clear-all-btn"
                       >
                         Xóa tất cả
@@ -727,7 +752,7 @@ const CreateVaccinationPlan = () => {
         </div>
 
         {/* Submit Button */}
-        <div >
+        <div>
           <button type="submit" className="submit-button" disabled={isLoading}>
             {isLoading ? (
               <>

@@ -45,7 +45,7 @@ const VaccinationPlanHistory = () => {
   // Handle pagination when filteredPlans changes
   useEffect(() => {
     const totalPages = Math.ceil(filteredPlans.length / itemsPerPage);
-    
+
     // Reset to page 1 if current page is out of bounds
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
@@ -55,7 +55,7 @@ const VaccinationPlanHistory = () => {
     // Calculate start and end indices for current page
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    
+
     // Get plans for current page
     const plansForCurrentPage = filteredPlans.slice(startIndex, endIndex);
     setPaginatedPlans(plansForCurrentPage);
@@ -216,42 +216,42 @@ const VaccinationPlanHistory = () => {
   return (
     <div className="vaccination-plan-history">
       {/* Header */}
-      <div className="history-header">
+      <div className="vac-plan-history-header">
         <h2>Lịch Sử Kế Hoạch Tiêm Chủng</h2>
         <p>Xem và quản lý tất cả các kế hoạch tiêm chủng đã tạo</p>
       </div>
 
       {/* Statistics */}
-      <div className="statistics-row">
-        <div className="stat-card total">
+      <div className="vac-plan-statistics-row">
+        <div className="vac-plan-stat-card total">
           <div className="stat-info">
             <span className="stat-number">{stats.total}</span>
             <span className="stat-label">Tổng kế hoạch</span>
           </div>
         </div>
 
-        <div className="stat-card ongoing">
+        <div className="vac-plan-stat-card ongoing">
           <div className="stat-info">
             <span className="stat-number">{stats.waiting}</span>
             <span className="stat-label">Chờ phụ huynh</span>
           </div>
         </div>
 
-        <div className="stat-card ongoing">
+        <div className="vac-plan-stat-card ongoing">
           <div className="stat-info">
             <span className="stat-number">{stats.progress}</span>
             <span className="stat-label">Đang triển khai</span>
           </div>
         </div>
 
-        <div className="stat-card completed">
+        <div className="vac-plan-stat-card completed">
           <div className="stat-info">
             <span className="stat-number">{stats.completed}</span>
             <span className="stat-label">Hoàn thành</span>
           </div>
         </div>
 
-        <div className="stat-card cancelled">
+        <div className="vac-plan-stat-card cancelled">
           <div className="stat-info">
             <span className="stat-number">{stats.canceled}</span>
             <span className="stat-label">Đã hủy</span>
@@ -346,133 +346,149 @@ const VaccinationPlanHistory = () => {
               </thead>
               <tbody>
                 {paginatedPlans.map((plan) => {
-                const timeStatus = vaccinationPlanService.getTimeStatus(
-                  plan.vaccinationDate,
-                  plan.deadlineDate
-                );
+                  const timeStatus = vaccinationPlanService.getTimeStatus(
+                    plan.vaccinationDate,
+                    plan.deadlineDate
+                  );
 
-                return (
-                  <tr key={plan.id}>
-                    <td className="plan-id-cell">{plan.id}</td>
+                  return (
+                    <tr key={plan.id}>
+                      <td className="plan-id-cell">{plan.id}</td>
 
-                    <td className="plan-name-cell">
-                      <div className="name-with-icon">
-                        <FaSyringe className="vaccine-icon" />
-                        <span>{plan.name}</span>
-                      </div>
-                    </td>
+                      <td className="plan-name-cell">
+                        <div className="name-with-icon">
+                          <FaSyringe className="vaccine-icon" />
+                          <span>{plan.name}</span>
+                        </div>
+                      </td>
 
-                    <td className="date-cell">
-                      {vaccinationPlanService.formatVaccinationDate(
-                        plan.vaccinationDate
-                      )}
-                    </td>
+                      <td className="date-cell">
+                        {vaccinationPlanService.formatVaccinationDate(
+                          plan.vaccinationDate
+                        )}
+                      </td>
 
-                    <td className="deadline-cell">
-                      {vaccinationPlanService.formatDate(plan.deadlineDate)}
-                    </td>
+                      <td className="deadline-cell">
+                        {vaccinationPlanService.formatDate(plan.deadlineDate)}
+                      </td>
 
-                    <td className="status-cell">
-                      <select
-                        className={`status-select ${getStatusBadgeClass(
-                          plan.status
-                        )}`}
-                        value={plan.status}
-                        onChange={(e) =>
-                          handleStatusChange(plan.id, e.target.value)
-                        }
-                        disabled={statusChanging[plan.id]}
-                      >
-                        <option value="WAITING_PARENT">Chờ phụ huynh</option>
-                        <option value="IN_PROGRESS">Đang triển khai</option>
-                        <option value="COMPLETED">Hoàn thành</option>
-                        <option value="CANCELED">Đã hủy</option>
-                      </select>
-                      {statusChanging[plan.id] && (
-                        <FaSpinner className="status-spinner spinning" />
-                      )}
-                    </td>
+                      <td className="status-cell">
+                        <select
+                          className={`status-select ${getStatusBadgeClass(
+                            plan.status
+                          )}`}
+                          value={plan.status}
+                          onChange={(e) =>
+                            handleStatusChange(plan.id, e.target.value)
+                          }
+                          disabled={statusChanging[plan.id]}
+                        >
+                          <option value="WAITING_PARENT">Chờ phụ huynh</option>
+                          <option value="IN_PROGRESS">Đang triển khai</option>
+                          <option value="COMPLETED">Hoàn thành</option>
+                          <option value="CANCELED">Đã hủy</option>
+                        </select>
+                        {statusChanging[plan.id] && (
+                          <FaSpinner className="status-spinner spinning" />
+                        )}
+                      </td>
 
-                    <td className="time-status-cell">
-                      <span
-                        className={`time-status-badge ${timeStatus.type}`}
-                        style={{ color: timeStatus.color }}
-                      >
-                        {timeStatus.text}
-                      </span>
-                    </td>
+                      <td className="time-status-cell">
+                        <span
+                          className={`time-status-badge ${timeStatus.type}`}
+                          style={{ color: timeStatus.color }}
+                        >
+                          {timeStatus.text}
+                        </span>
+                      </td>
 
-                    <td className="description-cell">
-                      <div className="description-text">{plan.description}</div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td className="description-cell">
+                        <div className="description-text">
+                          {plan.description}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
 
-          {/* Pagination Controls */}
-          {filteredPlans.length > itemsPerPage && (
-            <div className="pagination-container">
-              <div className="pagination-info">
-                <span>
-                  Hiển thị {startIndex}-{endIndex} trong tổng số {filteredPlans.length} kế hoạch
-                </span>
-              </div>
-              
-              <div className="pagination-controls">
-                <button
-                  className={`pagination-btn ${!hasPreviousPage ? 'disabled' : ''}`}
-                  onClick={handlePreviousPage}
-                  disabled={!hasPreviousPage}
-                  title="Trang trước"
-                >
-                  <FaChevronLeft />
-                </button>
-                
-                <div className="pagination-pages">
-                  {Array.from({ length: totalPages }, (_, index) => {
-                    const page = index + 1;
-                    const isCurrentPage = page === currentPage;
-                    
-                    // Show first page, last page, current page, and pages around current page
-                    const showPage = 
-                      page === 1 || 
-                      page === totalPages || 
-                      (page >= currentPage - 1 && page <= currentPage + 1);
-                    
-                    if (!showPage) {
-                      // Show ellipsis for gaps
-                      if (page === currentPage - 2 || page === currentPage + 2) {
-                        return <span key={page} className="pagination-ellipsis">...</span>;
-                      }
-                      return null;
-                    }
-                    
-                    return (
-                      <button
-                        key={page}
-                        className={`pagination-page ${isCurrentPage ? 'active' : ''}`}
-                        onClick={() => handlePageChange(page)}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
+            {/* Pagination Controls */}
+            {filteredPlans.length > itemsPerPage && (
+              <div className="pagination-container">
+                <div className="pagination-info">
+                  <span>
+                    Hiển thị {startIndex}-{endIndex} trong tổng số{" "}
+                    {filteredPlans.length} kế hoạch
+                  </span>
                 </div>
-                
-                <button
-                  className={`pagination-btn ${!hasNextPage ? 'disabled' : ''}`}
-                  onClick={handleNextPage}
-                  disabled={!hasNextPage}
-                  title="Trang sau"
-                >
-                  <FaChevronRight />
-                </button>
+
+                <div className="pagination-controls">
+                  <button
+                    className={`pagination-btn ${
+                      !hasPreviousPage ? "disabled" : ""
+                    }`}
+                    onClick={handlePreviousPage}
+                    disabled={!hasPreviousPage}
+                    title="Trang trước"
+                  >
+                    <FaChevronLeft />
+                  </button>
+
+                  <div className="pagination-pages">
+                    {Array.from({ length: totalPages }, (_, index) => {
+                      const page = index + 1;
+                      const isCurrentPage = page === currentPage;
+
+                      // Show first page, last page, current page, and pages around current page
+                      const showPage =
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1);
+
+                      if (!showPage) {
+                        // Show ellipsis for gaps
+                        if (
+                          page === currentPage - 2 ||
+                          page === currentPage + 2
+                        ) {
+                          return (
+                            <span key={page} className="pagination-ellipsis">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <button
+                          key={page}
+                          className={`pagination-page ${
+                            isCurrentPage ? "active" : ""
+                          }`}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    className={`pagination-btn ${
+                      !hasNextPage ? "disabled" : ""
+                    }`}
+                    onClick={handleNextPage}
+                    disabled={!hasNextPage}
+                    title="Trang sau"
+                  >
+                    <FaChevronRight />
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         </>
       ) : (
         <div className="no-data-section">

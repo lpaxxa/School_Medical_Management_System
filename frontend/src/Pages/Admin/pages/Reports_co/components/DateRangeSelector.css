@@ -1,282 +1,223 @@
-/* Date Range Selector - Modern Professional Design */
-.date-range-section {
-  margin-bottom: 32px;
-}
-
-.date-range-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  font-family: var(--font-heading);
-  color: #1e293b;
-  margin: 0 0 24px 0;
-  text-align: center;
-  letter-spacing: -0.025em;
-}
-
-/* Date Range Options */
-.date-range-options {
+/* Date Range Selector Component */
+.reports-date-range-selector {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   gap: 12px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   margin-bottom: 24px;
+}
+
+.reports-date-range-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reports-date-range-label i {
+  color: #6366f1;
+  font-size: 1rem;
+}
+
+.reports-date-inputs {
+  display: flex;
+  gap: 16px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
-.date-range-option {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 20px;
-  cursor: pointer;
+.reports-date-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.reports-date-input-group label {
+  font-size: 0.75rem;
   font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
-  color: #64748b;
-  min-width: 80px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
-.date-range-option:hover {
-  border-color: #cbd5e1;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.date-range-option.selected {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-/* Custom Date Inputs */
-.custom-date-inputs {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 24px;
-  margin-top: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.custom-date-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 20px 0;
-  text-align: center;
-  font-family: var(--font-heading);
-}
-
-.date-inputs-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  align-items: end;
-}
-
-.date-input-group {
-  position: relative;
-}
-
-.date-input-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 6px;
-  font-family: var(--font-body);
-}
-
-.date-input {
-  width: 100%;
-  padding: 12px 16px;
+.reports-date-input {
+  padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 0.875rem;
-  font-weight: 400;
-  transition: all 0.3s ease;
+  color: #374151;
   background: white;
-  color: #1e293b;
-  font-family: inherit;
+  transition: all 0.2s ease;
+  min-width: 160px;
 }
 
-.date-input::placeholder {
-  color: #9ca3af;
-}
-
-.date-input:focus {
+.reports-date-input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: #fefefe;
 }
 
-.date-input:hover {
+.reports-date-input:hover {
   border-color: #9ca3af;
 }
 
-/* Quick Select Buttons */
-.quick-select-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
-  flex-wrap: wrap;
+/* Separator */
+.reports-date-separator {
+  color: #9ca3af;
+  font-weight: 500;
+  margin: 0 8px;
+  align-self: end;
+  margin-bottom: 6px;
 }
 
-.quick-select-btn {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 8px 12px;
+/* Quick date buttons */
+.reports-quick-dates {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.reports-quick-date-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #64748b;
+  color: #6b7280;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
 }
 
-.quick-select-btn:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+.reports-quick-date-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
   color: #374151;
 }
 
-/* Range Preview */
-.date-range-preview {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
-  margin-top: 20px;
-  text-align: center;
+.reports-quick-date-btn.active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: white;
 }
 
-.preview-label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #64748b;
-  margin: 0 0 4px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+/* Apply button */
+.reports-apply-dates {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
 }
 
-.preview-text {
+.reports-apply-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1e293b;
-  margin: 0;
-  font-family: var(--font-heading);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Validation States */
-.date-input.error {
+.reports-apply-btn:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.reports-apply-btn:active {
+  transform: translateY(0);
+}
+
+.reports-apply-btn:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Error state */
+.reports-date-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reports-date-error i {
+  font-size: 0.875rem;
+}
+
+.reports-date-input.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.reports-date-input.error:focus {
   border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
-.date-input.success {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-}
-
-/* Content Animation */
-.date-range-section > * {
-  animation: fadeInUp 0.4s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
-  .date-range-options {
-    gap: 8px;
+  .reports-date-range-selector {
+    padding: 16px;
   }
-  
-  .date-range-option {
-    padding: 10px 16px;
-    font-size: 0.8rem;
-    min-width: 70px;
+
+  .reports-date-inputs {
+    flex-direction: column;
+    align-items: stretch;
   }
-  
-  .custom-date-inputs {
-    padding: 20px 16px;
-    margin-top: 20px;
+
+  .reports-date-input-group {
+    min-width: auto;
   }
-  
-  .date-inputs-row {
-    grid-template-columns: 1fr;
-    gap: 16px;
+
+  .reports-date-input {
+    min-width: auto;
   }
-  
-  .date-input {
-    padding: 10px 12px;
+
+  .reports-date-separator {
+    align-self: center;
+    margin: 0;
+    transform: rotate(90deg);
   }
-  
-  .quick-select-buttons {
-    gap: 6px;
+
+  .reports-quick-dates {
+    justify-content: center;
   }
-  
-  .quick-select-btn {
-    padding: 6px 10px;
-    font-size: 0.7rem;
+
+  .reports-apply-dates {
+    justify-content: center;
   }
 }
 
 @media (max-width: 480px) {
-  .date-range-section {
-    margin-bottom: 28px;
-  }
-  
-  .date-range-title {
-    font-size: 1.25rem;
-    margin-bottom: 20px;
-  }
-  
-  .date-range-options {
+  .reports-quick-dates {
     flex-direction: column;
-    align-items: center;
-    gap: 8px;
   }
-  
-  .date-range-option {
-    width: 100%;
-    max-width: 280px;
-    padding: 10px 14px;
+
+  .reports-quick-date-btn {
+    text-align: center;
   }
-  
-  .custom-date-inputs {
-    padding: 20px 16px;
-    border-radius: 12px;
-  }
-  
-  .date-input {
-    padding: 10px 12px;
-    font-size: 0.8rem;
-  }
-  
-  .quick-select-buttons {
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-  
-  .quick-select-btn {
-    width: 100%;
-    max-width: 200px;
-  }
-} 
+}

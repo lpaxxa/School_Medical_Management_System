@@ -119,11 +119,11 @@ const VaccineListView = ({ onBack }) => {
 
   const getStatusBadge = (isActive) => {
     return isActive ? (
-      <span className="status-badge active">
+      <span className="reports-vaccine-status-badge reports-vaccine-active">
         <i className="fas fa-check-circle"></i> Đang sử dụng
       </span>
     ) : (
-      <span className="status-badge inactive">
+      <span className="reports-vaccine-status-badge reports-vaccine-inactive">
         <i className="fas fa-pause-circle"></i> Tạm dừng
       </span>
     );
@@ -131,8 +131,8 @@ const VaccineListView = ({ onBack }) => {
 
   if (loading) {
     return (
-      <div className="vaccine-list-container">
-        <div className="loading-section">
+      <div className="reports-vaccine-list-container">
+        <div className="reports-vaccine-loading-section">
           <i className="fas fa-spinner fa-spin fa-2x"></i>
           <p>Đang tải danh sách vaccine...</p>
         </div>
@@ -141,11 +141,11 @@ const VaccineListView = ({ onBack }) => {
   }
 
   return (
-    <div className="vaccine-list-container">
+    <div className="reports-vaccine-list-container">
       {/* Header */}
-      <div className="vaccine-header">
-        <div className="header-actions">
-          <button className="back-button" onClick={onBack}>
+      <div className="reports-vaccine-header">
+        <div className="reports-vaccine-header-actions">
+          <button className="reports-vaccine-back-button" onClick={onBack}>
             <i className="fas fa-arrow-left"></i> Quay lại
           </button>
           <h2>
@@ -157,42 +157,42 @@ const VaccineListView = ({ onBack }) => {
 
       {/* Statistics Cards */}
       {statistics && (
-        <div className="vaccine-stats">
-          <div className="stat-card total">
-            <div className="stat-icon">
+        <div className="reports-vaccine-stats">
+          <div className="reports-vaccine-stat-card reports-vaccine-total">
+            <div className="reports-vaccine-stat-icon">
               <i className="fas fa-syringe"></i>
             </div>
-            <div className="stat-content">
+            <div className="reports-vaccine-stat-content">
               <h3>{statistics.total}</h3>
               <p>Tổng số vaccine</p>
             </div>
           </div>
 
-          <div className="stat-card active">
-            <div className="stat-icon">
+          <div className="reports-vaccine-stat-card reports-vaccine-active">
+            <div className="reports-vaccine-stat-icon">
               <i className="fas fa-check-circle"></i>
             </div>
-            <div className="stat-content">
+            <div className="reports-vaccine-stat-content">
               <h3>{statistics.active}</h3>
               <p>Đang sử dụng</p>
             </div>
           </div>
 
-          <div className="stat-card multi-dose">
-            <div className="stat-icon">
+          <div className="reports-vaccine-stat-card reports-vaccine-multi-dose">
+            <div className="reports-vaccine-stat-icon">
               <i className="fas fa-redo"></i>
             </div>
-            <div className="stat-content">
+            <div className="reports-vaccine-stat-content">
               <h3>{statistics.multiDose}</h3>
               <p>Nhiều liều</p>
             </div>
           </div>
 
-          <div className="stat-card age-groups">
-            <div className="stat-icon">
+          <div className="reports-vaccine-stat-card reports-vaccine-age-groups">
+            <div className="reports-vaccine-stat-icon">
               <i className="fas fa-users"></i>
             </div>
-            <div className="stat-content">
+            <div className="reports-vaccine-stat-content">
               <h3>3</h3>
               <p>Nhóm tuổi</p>
             </div>
@@ -201,9 +201,9 @@ const VaccineListView = ({ onBack }) => {
       )}
 
       {/* Filters */}
-      <div className="vaccine-filters">
-        <div className="filter-group">
-          <div className="search-box">
+      <div className="reports-vaccine-filters">
+        <div className="reports-vaccine-filter-group">
+          <div className="reports-vaccine-search-box">
             <i className="fas fa-search"></i>
             <input
               type="text"
@@ -216,7 +216,7 @@ const VaccineListView = ({ onBack }) => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
+            className="reports-vaccine-filter-select"
           >
             <option value="all">Tất cả trạng thái</option>
             <option value="active">Đang sử dụng</option>
@@ -226,7 +226,7 @@ const VaccineListView = ({ onBack }) => {
           <select
             value={ageFilter}
             onChange={(e) => setAgeFilter(e.target.value)}
-            className="filter-select"
+            className="reports-vaccine-filter-select"
           >
             <option value="all">Tất cả độ tuổi</option>
             <option value="infant">Trẻ sơ sinh (0-1 tuổi)</option>
@@ -237,7 +237,7 @@ const VaccineListView = ({ onBack }) => {
           <select
             value={doseFilter}
             onChange={(e) => setDoseFilter(e.target.value)}
-            className="filter-select"
+            className="reports-vaccine-filter-select"
           >
             <option value="all">Tất cả loại liều</option>
             <option value="single">Tiêm 1 lần</option>
@@ -245,14 +245,14 @@ const VaccineListView = ({ onBack }) => {
           </select>
         </div>
 
-        <div className="results-count">
+        <div className="reports-vaccine-results-count">
           Hiển thị {filteredVaccines.length} / {vaccines.length} vaccine
         </div>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="error-message">
+        <div className="reports-vaccine-error-message">
           <i className="fas fa-exclamation-circle"></i>
           <span>{error}</span>
           <button onClick={fetchVaccines}>Thử lại</button>
@@ -261,11 +261,11 @@ const VaccineListView = ({ onBack }) => {
 
       {/* Vaccine Table */}
       {filteredVaccines.length > 0 ? (
-        <div className="vaccine-table-container">
-          <table className="vaccine-table">
+        <div className="reports-vaccine-table-container">
+          <table className="reports-vaccine-table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>STT</th>
                 <th>Tên vaccine</th>
                 <th>Nhóm tuổi</th>
                 <th>Số liều</th>
@@ -275,38 +275,42 @@ const VaccineListView = ({ onBack }) => {
               </tr>
             </thead>
             <tbody>
-              {filteredVaccines.map((vaccine) => (
-                <tr key={vaccine.id} className="vaccine-row">
-                  <td className="vaccine-id">{vaccine.id}</td>
-                  <td className="vaccine-name">
-                    <div className="name-info">
-                      <strong>{vaccine.name}</strong>
-                      <div className="description">
+              {filteredVaccines.map((vaccine, index) => (
+                <tr key={vaccine.id} className="reports-vaccine-table-row">
+                  <td className="reports-vaccine-table-stt">{index + 1}</td>
+                  <td className="reports-vaccine-table-name">
+                    <div className="reports-vaccine-name-info">
+                      <strong className="reports-vaccine-item-name">
+                        {vaccine.name}
+                      </strong>
+                      <div className="reports-vaccine-item-description">
                         {vaccine.description.length > 60
                           ? `${vaccine.description.substring(0, 60)}...`
                           : vaccine.description}
                       </div>
                     </div>
                   </td>
-                  <td className="age-range">
-                    <span className="age-badge">
+                  <td className="reports-vaccine-table-age-range">
+                    <span className="reports-vaccine-age-badge">
                       {vaccineService.getAgeRange(vaccine)}
                     </span>
                   </td>
-                  <td className="dose-count">
-                    <span className="dose-badge">
+                  <td className="reports-vaccine-table-dose-count">
+                    <span className="reports-vaccine-dose-badge">
                       {vaccine.totalDoses} liều
                     </span>
                   </td>
-                  <td className="interval">
+                  <td className="reports-vaccine-table-interval">
                     {vaccine.intervalDays > 0
                       ? `${vaccine.intervalDays} ngày`
                       : "Không có"}
                   </td>
-                  <td className="status">{getStatusBadge(vaccine.isActive)}</td>
-                  <td className="actions">
+                  <td className="reports-vaccine-table-status">
+                    {getStatusBadge(vaccine.isActive)}
+                  </td>
+                  <td className="reports-vaccine-table-actions">
                     <button
-                      className="view-detail-btn"
+                      className="reports-vaccine-action-button"
                       onClick={() => handleViewDetail(vaccine)}
                       title="Xem chi tiết"
                     >
@@ -319,7 +323,7 @@ const VaccineListView = ({ onBack }) => {
           </table>
         </div>
       ) : (
-        <div className="no-data">
+        <div className="reports-vaccine-no-data">
           <i className="fas fa-syringe fa-3x"></i>
           <h3>Không tìm thấy vaccine nào</h3>
           <p>

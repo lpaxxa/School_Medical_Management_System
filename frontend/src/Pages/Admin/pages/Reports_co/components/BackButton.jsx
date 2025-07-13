@@ -4,11 +4,10 @@ import "./BackButton.css";
 
 const BackButton = ({ onClick, text = "Quay lại" }) => {
   return (
-    <div className="back-button-container">
-      <button className="back-button" onClick={onClick}>
-        <FaArrowLeft /> {text}
-      </button>
-    </div>
+    <button className="reports-back-button" onClick={onClick}>
+      <i className="fas fa-arrow-left"></i>
+      {text}
+    </button>
   );
 };
 
