@@ -201,7 +201,7 @@
   padding: 0.5rem 0.75rem;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 20px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(7, 18, 117, 0.9);
   font-size: 0.85rem;
   font-weight: 500;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -380,11 +380,13 @@
   justify-content: center;
   color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
   text-decoration: none;
+  overflow: hidden;
+  animation: parent-notification-float 3s ease-in-out infinite;
 }
 
 .parent-header .parent-header-actions .parent-user-greeting {
@@ -422,15 +424,50 @@
 }
 
 .parent-notification-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  animation: parent-notification-glow 1.5s ease-in-out infinite;
+}
+
+.parent-notification-btn:active {
+  transform: translateY(-1px) scale(1.05);
+  transition: all 0.1s ease;
+}
+
+/* Ripple effect on click */
+.parent-notification-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  z-index: 1;
+}
+
+.parent-notification-btn:active::before {
+  width: 60px;
+  height: 60px;
+  opacity: 0;
 }
 
 .parent-notification-btn i {
   font-size: 1rem;
   color: white;
   position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.parent-notification-btn:hover i {
+  transform: scale(1.1);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .parent-notification-badge {
@@ -458,6 +495,65 @@
   
   100% {
     transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 107, 124, 0);
+  }
+}
+
+/* Enhanced Notification Button Animations */
+@keyframes parent-notification-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes parent-notification-glow {
+  0%, 100% {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25), 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25), 0 0 30px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes parent-notification-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* Enhanced badge animation */
+.parent-notification-btn:hover .parent-notification-badge {
+  animation: parent-notification-shake 0.5s ease-in-out infinite;
+}
+
+/* Focus state for accessibility */
+.parent-notification-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Enhanced pulse animation for badge when hovered */
+.parent-notification-btn:hover .parent-notification-badge {
+  animation: parent-pulse-badge-enhanced 1s infinite, parent-notification-shake 0.5s ease-in-out infinite;
+}
+
+@keyframes parent-pulse-badge-enhanced {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 107, 124, 0.7);
+  }
+  
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 8px rgba(255, 107, 124, 0);
+  }
+  
+  100% {
+    transform: scale(1);
     box-shadow: 0 0 0 0 rgba(255, 107, 124, 0);
   }
 }
@@ -690,9 +786,11 @@
 
 /* Hover Effects */
 .parent-header .parent-header-actions .parent-notification-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  animation: parent-notification-glow 1.5s ease-in-out infinite;
 }
 
 .parent-header .parent-header-actions .parent-user-greeting:hover {

@@ -85,6 +85,7 @@
 /* Override handled by global.css */
 
 .contact-header h1 {
+  color: #fff;
   font-size: 36px;
   font-weight: 800;
   margin-bottom: 16px;

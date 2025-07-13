@@ -629,6 +629,8 @@ const SendMedicine = () => {
       REJECTED: "Từ chối",
       COMPLETED: "Đã hoàn thành",
       CANCELLED: "Đã hủy",
+      FULLY_TAKEN: "Đã uống hết",
+      PARTIALLY_TAKEN: "Đã uống một phần",
     };
     return statusMap[status] || status;
   };
@@ -1768,7 +1770,9 @@ const SendMedicine = () => {
                             </button>
                           </>
                         )}
-                        {request.status === "APPROVED" && (
+                        {(request.status === "APPROVED" ||
+                          request.status === "FULLY_TAKEN" ||
+                          request.status === "PARTIALLY_TAKEN") && (
                           <button
                             className="fix-med-btn fix-med-btn-success"
                             onClick={() => fetchConfirmationData(request.id)}

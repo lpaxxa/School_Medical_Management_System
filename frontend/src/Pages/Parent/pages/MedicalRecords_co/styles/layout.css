@@ -339,6 +339,7 @@
 }
 
 .student-meta {
+  margin-left: 469px;
   display: flex;
   align-items: center;
   gap: var(--space-3);

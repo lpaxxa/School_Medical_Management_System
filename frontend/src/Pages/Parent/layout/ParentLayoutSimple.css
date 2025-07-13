@@ -35,6 +35,12 @@
   background: transparent;
 }
 
+/* Special class for home page with no padding */
+.simple-parent-content.home-page {
+  padding: 0;
+  max-width: 100%;
+}
+
 /* Remove all complex scroll behavior - let browser handle naturally */
 html, body {
   scroll-behavior: auto;
@@ -50,6 +56,10 @@ html, body {
   .simple-parent-content {
     padding: 16px;
   }
+  
+  .simple-parent-content.home-page {
+    padding: 0;
+  }
 }
 
 @media (max-width: 640px) { /* Changed from 768px to match header */
@@ -61,6 +71,11 @@ html, body {
     padding: 12px;
     max-width: 100%;
   }
+  
+  .simple-parent-content.home-page {
+    padding: 0;
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -70,6 +85,10 @@ html, body {
   
   .simple-parent-content {
     padding: 8px;
+  }
+  
+  .simple-parent-content.home-page {
+    padding: 0;
   }
 }
 
