@@ -6,9 +6,9 @@ export const MainLayout = ({ children }) => (
   <ParentLayoutSimple>{children}</ParentLayoutSimple>
 );
 
-// Layout for home page - cũng sử dụng ParentLayoutSimple
+// Layout for home page - cũng sử dụng ParentLayoutSimple với isHomePage=true
 export const HomeLayout = ({ children }) => (
-  <ParentLayoutSimple>{children}</ParentLayoutSimple>
+  <ParentLayoutSimple isHomePage={true}>{children}</ParentLayoutSimple>
 );
 
 // Layout for admin/nurse pages - doesn't include header, navigation, or footer

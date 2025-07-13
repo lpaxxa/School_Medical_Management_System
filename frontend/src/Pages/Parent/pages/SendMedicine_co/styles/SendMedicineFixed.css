@@ -1108,13 +1108,25 @@ body:has(.fix-med-modal-overlay) .parent-header,
   border: 1px solid #c6c8ca;
 }
 
+.confirmation-status.partial {
+  background: linear-gradient(135deg, #fef9e7 0%, #f8f4d6 100%);
+  color: #7d6608;
+  border: 1px solid #f4d03f;
+}
+
+.confirmation-status.unknown {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+}
+
 .confirmation-header-info {
   text-align: center;
   margin-bottom: 8px;
 }
 
 .confirmation-header-info small {
-  color: #6c757d;
+  color: #e6e9ec;
   font-size: 0.85rem;
   font-style: italic;
 }
@@ -1343,6 +1355,18 @@ body:has(.fix-med-modal-overlay) .parent-header,
   border: 1px solid #c6c8ca;
 }
 
+.fix-med-status-fully-taken {
+  background: #d1f2eb;
+  color: #0e6655;
+  border: 1px solid #7dcea0;
+}
+
+.fix-med-status-partially-taken {
+  background: #fef9e7;
+  color: #7d6608;
+  border: 1px solid #f4d03f;
+}
+
 /* Request Details */
 .fix-request-details {
   padding: 20px;
@@ -1487,7 +1511,7 @@ body:has(.fix-med-modal-overlay) .parent-header,
 /* Confirmation Modal Pagination Styles */
 .confirmation-pagination-info {
   font-size: 0.85rem;
-  color: #666;
+  color: #ded1d1;
   font-weight: normal;
   margin-left: 8px;
 }
@@ -1511,9 +1535,10 @@ body:has(.fix-med-modal-overlay) .parent-header,
 
 .pagination-controls {
   display: flex;
+  max-height: 40px;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .pagination-btn {
