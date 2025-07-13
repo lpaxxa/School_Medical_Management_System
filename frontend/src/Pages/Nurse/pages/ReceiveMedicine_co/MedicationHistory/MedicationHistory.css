@@ -336,53 +336,130 @@
   color: #6c757d;
 }
 
-/* Responsive adjustments */
+/* Numbered Pagination Styles - Matching the image style */
+.medication-history-container .pagination-container {
+  margin-top: 1.5rem;
+  padding: 1rem 0;
+  border-top: 1px solid #dee2e6;
+}
+
+.medication-history-container .pagination-wrapper {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.medication-history-container .pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #dee2e6;
+  background-color: #fff;
+  color: #495057;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.medication-history-container .pagination-btn:not(:disabled):hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.medication-history-container .pagination-btn:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.medication-history-container .pagination-numbers {
+  margin: 0 0.5rem;
+}
+
+.medication-history-container .pagination-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #dee2e6;
+  background-color: #fff;
+  color: #495057;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.medication-history-container .pagination-page:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.medication-history-container .pagination-page.active {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: #fff;
+  font-weight: 600;
+}
+
+.medication-history-container .pagination-page.active:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+  color: #fff;
+}
+
+.medication-history-container .pagination-ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+/* Responsive pagination */
 @media (max-width: 768px) {
-  .badge {
-    font-size: 0.75rem;
+  .medication-history-container .pagination-wrapper {
+    padding: 0.25rem;
+    gap: 1px !important;
   }
-  
-  .btn-sm {
-    padding: 0.25rem 0.4rem;
+
+  .medication-history-container .pagination-btn,
+  .medication-history-container .pagination-page {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
   }
-  
-  .image-column {
-    min-width: 100px;
-  }
-  
-  .image-btn {
-    font-size: 0.7rem;
-    padding: 0.25rem 0.5rem;
-  }
-  
-  .no-image-badge {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.4rem;
-    min-width: 70px;
+
+  .medication-history-container .pagination-ellipsis {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
   }
 }
 
-@media (max-width: 992px) {
-  .history-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
+@media (max-width: 576px) {
+  .medication-history-container .pagination-btn,
+  .medication-history-container .pagination-page {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
   }
-  
-  .search-box {
-    width: 100%;
-  }
-  
-  .filter-section {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .filter-group {
-    width: 100%;
-  }
-  
-  .btn-reset-filter {
-    margin-left: 0;
+
+  .medication-history-container .pagination-ellipsis {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
   }
 }

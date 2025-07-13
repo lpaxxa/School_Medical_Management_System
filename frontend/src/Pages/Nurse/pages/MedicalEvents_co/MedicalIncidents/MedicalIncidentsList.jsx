@@ -495,7 +495,7 @@ const MedicalIncidentsList = () => {
         <div className="col-12">
           <div className="card shadow-sm">
             <div className="card-header bg-primary text-white">
-              <h5 className="mb-0">
+              <h5 className="mb-0" style={{color : 'white'}}>
                 <i className="fas fa-search me-2"></i>
                 Tìm kiếm sự kiện y tế
               </h5>
@@ -608,7 +608,7 @@ const MedicalIncidentsList = () => {
             <div className="card shadow-sm">
               <div className="card-header bg-success text-white">
                 <div className="d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">
+                  <h5 className="mb-0" style={{color : 'white', marginRight : '20px'}}>
                     <i className="fas fa-list me-2"></i>
                     Danh sách sự kiện y tế ({displayedEvents.length} sự kiện)
                   </h5>
@@ -862,7 +862,7 @@ const MedicalIncidentsList = () => {
                   <div className="text-center mt-2">
                     <small className="text-muted">
                       Hiển thị {indexOfFirstEvent + 1} - {Math.min(indexOfLastEvent, displayedEvents.length)} 
-                      trong tổng số {displayedEvents.length} sự kiện y tế
+                      <div style={{marginRight: '20px'}}></div>trong tổng số {displayedEvents.length} sự kiện y tế
                     </small>
                   </div>
                 </div>

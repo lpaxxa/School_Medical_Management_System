@@ -14,8 +14,8 @@ const Navigation = () => {
 
       <nav>        <ul>
           <li>
-            <Link to="/nurse/dashboard" className={isActive('/nurse/dashboard')}>
-              <i className="fas fa-home"></i> Dashboard
+            <Link to="/nurse/vaccination" className={isActive('/nurse/vaccination')}>
+              <i className="fas fa-syringe"></i> Quản lý tiêm chủng
             </Link>
           </li>
           <li>
@@ -26,11 +26,6 @@ const Navigation = () => {
           <li>
             <Link to="/nurse/medical-events" className={isActive('/nurse/medical-events')}>
               <i className="fas fa-calendar-plus"></i> Sự kiện y tế
-            </Link>
-          </li>
-          <li>
-            <Link to="/nurse/vaccination" className={isActive('/nurse/vaccination')}>
-              <i className="fas fa-syringe"></i> Quản lý tiêm chủng
             </Link>
           </li>          <li>
             <Link to="/nurse/health-checkups" className={isActive('/nurse/health-checkups')}>

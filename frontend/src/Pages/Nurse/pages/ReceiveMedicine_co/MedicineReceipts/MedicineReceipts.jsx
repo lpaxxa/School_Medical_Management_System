@@ -76,6 +76,30 @@ const getStatusInfo = (status) => {
 };
 
 const MedicineReceipts = () => {
+  // CSS để fix dropdown arrows - styled like MedicalIncidentsList
+  const dropdownStyles = `
+    .medicine-receipts-dropdown {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 0.75rem center !important;
+      background-size: 16px 12px !important;
+      padding-right: 2.25rem !important;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+    }
+    
+    .medicine-receipts-dropdown::-ms-expand {
+      display: none !important;
+    }
+    
+    /* Xóa bỏ tất cả các icon dropdown khác */
+    .medicine-receipts-dropdown::after,
+    .medicine-receipts-dropdown::before {
+      display: none !important;
+    }
+  `;
+
   const {
     medicineRequests,
     loading,
@@ -87,6 +111,7 @@ const MedicineReceipts = () => {
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [searchStudentName, setSearchStudentName] = useState("");
   const [showProcessModal, setShowProcessModal] = useState(false);
   const [pendingProcessId, setPendingProcessId] = useState(null);
   const [processData, setProcessData] = useState({
@@ -553,6 +578,13 @@ const MedicineReceipts = () => {
       }
     }
 
+    // Filter by student name
+    let studentNameMatch = true;
+    if (searchStudentName.trim() !== "") {
+      studentNameMatch = medicine.studentName && 
+        medicine.studentName.toLowerCase().includes(searchStudentName.toLowerCase().trim());
+    }
+
     // Filter by date range
     let dateMatch = true;
     if (dateRange.startDate || dateRange.endDate) {
@@ -571,7 +603,7 @@ const MedicineReceipts = () => {
       }
     }
 
-    return statusMatch && dateMatch;
+    return statusMatch && studentNameMatch && dateMatch;
   }).sort((a, b) => {
     // Sort by end date: current (newest) to older
     // Handle cases where endDate might be null or undefined
@@ -640,8 +672,10 @@ const MedicineReceipts = () => {
     setCurrentPage(1); // Reset to first page when filter changes
   };
 
-  // Clear date filters
+  // Clear all filters
   const clearDateFilters = () => {
+    setFilterStatus("all");
+    setSearchStudentName("");
     setDateRange({
       startDate: "",
       endDate: "",
@@ -690,17 +724,30 @@ const MedicineReceipts = () => {
 
   return (
     <Container fluid className="medicine-receipts-container p-4">
-      <Card className="border-0 shadow-sm">
-        <Card.Header className="bg-white py-3">
-          <Row className="align-items-center">
-            <Col>
-              <h5 className="mb-0 fw-bold">Đơn nhận thuốc</h5>
-            </Col>
-            <Col xs="auto" className="d-flex align-items-center">
-              <Form.Group className="me-3 mb-0">
-                <InputGroup>
-                  <InputGroup.Text>Trạng thái:</InputGroup.Text>
+      {/* Inject dropdown styles */}
+      <style dangerouslySetInnerHTML={{ __html: dropdownStyles }} />
+      
+      {/* Enhanced Filter Section - Styled like MedicalIncidentsList */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="card shadow-sm">
+            <div className="card-header bg-primary text-white">
+              <h5 className="mb-0" style={{color : 'white'}}>
+                <i className="fas fa-filter me-2"></i>
+                Tìm kiếm và lọc đơn nhận thuốc
+              </h5>
+            </div>
+            <div className="card-body">
+              <div className="row g-3 align-items-end">
+                {/* Status Filter */}
+                <div className="col-md-3">
+                  <label htmlFor="filterStatus" className="form-label fw-bold">
+                    <i className="fas fa-tasks me-1"></i>
+                    Trạng thái
+                  </label>
                   <Form.Select
+                    id="filterStatus"
+                    className="form-select form-select-lg medicine-receipts-dropdown"
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
                   >
@@ -712,56 +759,97 @@ const MedicineReceipts = () => {
                     <option value="PARTIALLY_TAKEN">Đang dùng</option>
                     <option value="EXPIRED">Đã hết hạn</option>
                     <option value="CANCELLED">Đã hủy</option>
-                    <option value="FULLY_TAKEN">Đã hoàn thành</option>
-                    <option value="PARTIALLY_TAKEN">Hoàn thành một phần</option>
-                    <option value="EXPIRED">Đã hết hạn</option>
-
                   </Form.Select>
-                </InputGroup>
-              </Form.Group>
-              <Button
-                variant="outline-primary"
-                onClick={fetchMedicineRequests}
-                className="d-flex align-items-center"
-              >
-                <FaSyncAlt className="me-1" /> Làm mới
-              </Button>
-            </Col>
-          </Row>
-          
-          {/* Compact Date Range Filter */}
-          <Row className="mt-3 justify-content-end">
-            <Col xs="auto">
-              <div className="date-range-filter">
-                <div className="date-inputs">
+                </div>
+
+                {/* Student Name Search */}
+                <div className="col-md-3">
+                  <label htmlFor="searchStudentName" className="form-label fw-bold">
+                    <i className="fas fa-user me-1"></i>
+                    Tên học sinh
+                  </label>
                   <Form.Control
-                    type="date"
-                    size="sm"
-                    placeholder="Từ ngày"
-                    value={dateRange.startDate}
-                    onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
-                    className="date-input"
+                    id="searchStudentName"
+                    type="text"
+                    className="form-control form-control-lg"
+                    placeholder="Nhập tên học sinh..."
+                    value={searchStudentName}
+                    onChange={(e) => setSearchStudentName(e.target.value)}
                   />
-                  <span className="date-separator">-</span>
-                  <Form.Control
-                    type="date"
-                    size="sm"
-                    placeholder="Đến ngày"
-                    value={dateRange.endDate}
-                    onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
-                    className="date-input"
-                  />
+                </div>
+
+                {/* Date Range Filter */}
+                <div className="col-md-4">
+                  <label className="form-label fw-bold">
+                    <i className="fas fa-calendar-alt me-1"></i>
+                    Khoảng thời gian
+                  </label>
+                  <div className="d-flex gap-2 align-items-center">
+                    <Form.Control
+                      type="date"
+                      className="form-control form-control-lg"
+                      placeholder="Từ ngày"
+                      value={dateRange.startDate}
+                      onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
+                    />
+                    <span className="mx-2 fw-bold text-muted">-</span>
+                    <Form.Control
+                      type="date"
+                      className="form-control form-control-lg"
+                      placeholder="Đến ngày"
+                      value={dateRange.endDate}
+                      onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Reset Button */}
+                <div className="col-md-2">
                   <Button
                     variant="outline-secondary"
-                    size="sm"
+                    className="btn btn-outline-secondary btn-lg w-100"
                     onClick={clearDateFilters}
-                    className="clear-dates-btn"
-                    title="Xóa bộ lọc ngày"
+                    title="Xóa bộ lọc"
                   >
-                    ×
+                    <i className="fas fa-redo me-2"></i>
+                    Đặt lại
                   </Button>
                 </div>
               </div>
+
+              {/* Results Info */}
+              {totalItems > 0 && (
+                <div className="row mt-3">
+                  <div className="col-12">
+                    <div className="alert alert-info mb-0">
+                      <i className="fas fa-info-circle me-2"></i>
+                      Tìm thấy <strong>{totalItems}</strong> đơn nhận thuốc
+                      {filterStatus !== "all" && (
+                        <span> với trạng thái <strong>{getStatusInfo(filterStatus).text}</strong></span>
+                      )}
+                      {searchStudentName.trim() !== "" && (
+                        <span> cho học sinh có tên chứa "<strong>{searchStudentName}</strong>"</span>
+                      )}
+                      {(dateRange.startDate || dateRange.endDate) && (
+                        <span> trong khoảng thời gian được chọn</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Card className="border-0 shadow-sm">
+        <Card.Header className="bg-white py-3">
+          <Row className="align-items-center">
+            <Col>
+              <h5 className="mb-0 fw-bold" style={{color : 'white'}}>
+                <i className="fas fa-list me-2"></i>
+                Danh sách đơn nhận thuốc ({totalItems} đơn)
+              </h5>
             </Col>
           </Row>
         </Card.Header>
