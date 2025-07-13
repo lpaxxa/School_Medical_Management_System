@@ -359,7 +359,8 @@ public class AccountMemberServiceImp implements AccountMemberService {
         
         if (matcher.find()) {
             String gradeNumber = matcher.group();
-            return "Lớp " + gradeNumber;
+            return "" +
+                    "Lớp " + gradeNumber;
         }
         
         return "";

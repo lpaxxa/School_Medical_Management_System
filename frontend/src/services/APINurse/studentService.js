@@ -1,7 +1,9 @@
+import api from '../api.js';
+
 // Đặt lại cấu hình để sử dụng API thật
 const config = {
   useMockData: false,  // Đổi thành false để sử dụng API thật
-  apiUrl: 'http://localhost:8080/api/v1/students'
+  apiUrl: '/students'
 };
 
 // Hàm trễ để mô phỏng API delay
@@ -14,16 +16,11 @@ export const getAllStudents = async () => {
       await delay(500);
       return mockStudents;
     } else {
-      // Sử dụng fetch thay vì axios để đơn giản hóa
-      const response = await fetch(`${config.apiUrl}`);
+      // Sử dụng centralized API instance with authentication
+      const response = await api.get(config.apiUrl);
       
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('API response from students:', data);
-      return data;
+      console.log('API response from students:', response.data);
+      return response.data;
     }
   } catch (error) {
     console.error('Error fetching students:', error);
