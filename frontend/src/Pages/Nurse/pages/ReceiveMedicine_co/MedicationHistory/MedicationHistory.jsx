@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Container, Row, Col, Card, Table, Form, Button,
-  Spinner, Alert, Modal, InputGroup, Badge, Pagination
+  Spinner, Alert, Modal, InputGroup, Badge
 } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { 
   FaSearch, FaEye, FaImage,
   FaCheckCircle, FaTimesCircle, FaExclamationTriangle, 
-  FaExclamationCircle 
+  FaExclamationCircle, FaAngleLeft, FaAngleRight, 
+  FaAngleDoubleLeft, FaAngleDoubleRight
 } from 'react-icons/fa';
 import './MedicationHistory.css';
 import { useMedicationAdministration } from '../../../../../context/NurseContext/MedicineApprovalContext';
@@ -15,6 +16,30 @@ import { toast } from 'react-toastify';
 
 
 const MedicationHistory = () => {
+  // CSS để fix dropdown arrows - styled like MedicineReceipts
+  const dropdownStyles = `
+    .medication-history-dropdown {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 0.75rem center !important;
+      background-size: 16px 12px !important;
+      padding-right: 2.25rem !important;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+    }
+    
+    .medication-history-dropdown::-ms-expand {
+      display: none !important;
+    }
+    
+    /* Xóa bỏ tất cả các icon dropdown khác */
+    .medication-history-dropdown::after,
+    .medication-history-dropdown::before {
+      display: none !important;
+    }
+  `;
+
   // Use context for read-only access
   const {
     administrations,
@@ -60,6 +85,7 @@ const MedicationHistory = () => {
   
   // State for search and filters only (read-only view)
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   
   // State for viewing image modal
   const [showImageModal, setShowImageModal] = useState(false);
@@ -226,6 +252,13 @@ const MedicationHistory = () => {
       setShowImageModal(true);
     }
   };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('');
+  };
+
   // Handle pagination change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -233,82 +266,20 @@ const MedicationHistory = () => {
     }
   };
 
-  // Generate pagination items
-  const renderPaginationItems = () => {
-    let items = [];
-    
-    // Previous button
-    items.push(
-      <Pagination.Prev 
-        key="prev" 
-        disabled={currentPage === 1} 
-        onClick={() => handlePageChange(currentPage - 1)} 
-      />
-    );
-    
-    // First page
-    if (currentPage > 2) {
-      items.push(
-        <Pagination.Item key={1} onClick={() => handlePageChange(1)}>
-          1
-        </Pagination.Item>
-      );
-      
-      if (currentPage > 3) {
-        items.push(<Pagination.Ellipsis key="ellipsis-1" />);
-      }
-    }
-    
-    // Current page and neighbors
-    for (let page = Math.max(1, currentPage - 1); 
-         page <= Math.min(totalPages, currentPage + 1); 
-         page++) {
-      items.push(
-        <Pagination.Item 
-          key={page} 
-          active={page === currentPage}
-          onClick={() => handlePageChange(page)}
-        >
-          {page}
-        </Pagination.Item>
-      );
-    }
-    
-    // Last page
-    if (currentPage < totalPages - 1) {
-      if (currentPage < totalPages - 2) {
-        items.push(<Pagination.Ellipsis key="ellipsis-2" />);
-      }
-      
-      items.push(
-        <Pagination.Item 
-          key={totalPages} 
-          onClick={() => handlePageChange(totalPages)}
-        >
-          {totalPages}
-        </Pagination.Item>
-      );
-    }
-    
-    // Next button
-    items.push(
-      <Pagination.Next 
-        key="next" 
-        disabled={currentPage === totalPages} 
-        onClick={() => handlePageChange(currentPage + 1)} 
-      />
-    );
-    
-    return items;
-  };
   // Filter by search term with null check
   const filteredAdministrations = administrations && administrations.length > 0 ? 
-    administrations.filter(medication => 
-      searchTerm === '' || 
-      (medication.studentName && medication.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (medication.medicationName && medication.medicationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (medication.administeredBy && medication.administeredBy.toLowerCase().includes(searchTerm.toLowerCase()))
-    ) : [];
+    administrations.filter(medication => {
+      // Search filter
+      const searchMatch = searchTerm === '' || 
+        (medication.studentName && medication.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (medication.medicationName && medication.medicationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (medication.administeredBy && medication.administeredBy.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      // Status filter
+      const statusMatch = statusFilter === '' || medication.administrationStatus === statusFilter;
+      
+      return searchMatch && statusMatch;
+    }) : [];
 
   console.log('🔍 MedicationHistory - Filtered data:', {
     originalCount: administrations?.length || 0,
@@ -318,35 +289,113 @@ const MedicationHistory = () => {
   });
 
   return (
-    <Container fluid className="py-4">
+    <Container fluid className="medication-history-container py-4">
+      {/* Inject dropdown styles */}
+      <style dangerouslySetInnerHTML={{ __html: dropdownStyles }} />
+      
+      {/* Enhanced Filter Section - Styled like MedicineReceipts */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="card shadow-sm">
+            <div className="card-header bg-primary text-white">
+              <h5 className="mb-0"style={{color : 'white'}}>
+                <i className="fas fa-filter me-2" ></i>
+                Tìm kiếm và lọc lịch sử dùng thuốc
+              </h5>
+            </div>
+            <div className="card-body">
+              <div className="row g-3 align-items-end">
+                {/* Status Filter */}
+                <div className="col-md-4">
+                  <label htmlFor="statusFilter" className="form-label fw-bold">
+                    <i className="fas fa-tasks me-1"></i>
+                    Trạng thái
+                  </label>
+                  <Form.Select
+                    id="statusFilter"
+                    className="form-select form-select-lg medication-history-dropdown"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="">Tất cả</option>
+                    <option value="PENDING_APPROVAL">Chờ phê duyệt</option>
+                    <option value="APPROVED">Đã duyệt</option>
+                    <option value="REJECTED">Từ chối</option>
+                    <option value="FULLY_TAKEN">Đã uống đầy đủ</option>
+                    <option value="PARTIALLY_TAKEN">Uống một phần</option>
+                    <option value="EXPIRED">Đã hết hạn</option>
+                    <option value="SUCCESSFUL">Thành công</option>
+                    <option value="REFUSED">Từ chối</option>
+                    <option value="PARTIAL">Một phần</option>
+                  </Form.Select>
+                </div>
+
+                {/* Search Input */}
+                <div className="col-md-6">
+                  <label htmlFor="searchTerm" className="form-label fw-bold">
+                    <i className="fas fa-search me-1"></i>
+                    Tìm kiếm
+                  </label>
+                  <Form.Control
+                    id="searchTerm"
+                    type="text"
+                    className="form-control form-control-lg"
+                    placeholder="Tìm kiếm theo tên học sinh, tên thuốc, người thực hiện..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+
+                {/* Reset Button */}
+                <div className="col-md-2">
+                  <Button
+                    variant="outline-secondary"
+                    className="btn btn-outline-secondary btn-lg w-100"
+                    onClick={clearAllFilters}
+                    title="Xóa bộ lọc"
+                  >
+                    <i className="fas fa-redo me-2"></i>
+                    Đặt lại
+                  </Button>
+                </div>
+              </div>
+
+              {/* Results Info */}
+              {filteredAdministrations.length > 0 && (
+                <div className="row mt-3">
+                  <div className="col-12">
+                    <div className="alert alert-info mb-0">
+                      <i className="fas fa-info-circle me-2"></i>
+                      Tìm thấy <strong>{filteredAdministrations.length}</strong> bản ghi lịch sử dùng thuốc
+                      {statusFilter !== "" && (
+                        <span> với trạng thái <strong>{statusConfig[statusFilter]?.text || statusFilter}</strong></span>
+                      )}
+                      {searchTerm.trim() !== "" && (
+                        <span> cho từ khóa "<strong>{searchTerm}</strong>"</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <Card className="shadow-sm">
         <Card.Header className="bg-white py-3">
           <Row className="align-items-center">
             <Col>
-              <h5 className="mb-0 fw-bold text-primary">Lịch sử dùng thuốc (Chỉ xem)</h5>
+              <h5 className="mb-0 fw-bold" style={{color : 'white', marginRight : '20px'}}>
+                <i className="fas fa-list me-2" ></i>
+                Lịch sử dùng thuốc ({filteredAdministrations.length} bản ghi)
+              </h5>
               <small className="text-muted">Chế độ chỉ xem - không thể thêm, sửa hoặc xóa</small>
             </Col>
           </Row>
         </Card.Header>
 
         <Card.Body>
-          {/* Search and filter controls */}
-          <Row className="mb-4">
-            <Col lg={6} md={8} className="mb-3 mb-lg-0">
-              <InputGroup>
-                <InputGroup.Text className="bg-light">
-                  <FaSearch />
-                </InputGroup.Text>
-                <Form.Control
-                  type="text"
-                  placeholder="Tìm kiếm theo tên học sinh, tên thuốc..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </InputGroup>
-            </Col>
-          </Row>
-
           {/* Error message display */}
           {error && (
             <Alert variant="danger" className="mb-4" dismissible onClose={handleClearError}>
@@ -439,10 +488,112 @@ const MedicationHistory = () => {
                 </Table>
               )}
 
-              {/* Pagination */}
+              {/* Numbered Pagination */}
               {totalPages > 1 && (
-                <div className="d-flex justify-content-center mt-4">
-                  <Pagination>{renderPaginationItems()}</Pagination>
+                <div className="pagination-container d-flex justify-content-center align-items-center mt-4">
+                  <div className="pagination-wrapper d-flex align-items-center gap-2">
+                    {/* First page button */}
+                    <button
+                      className="pagination-btn"
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(1)}
+                      title="Trang đầu"
+                    >
+                      <FaAngleDoubleLeft />
+                    </button>
+                    
+                    {/* Previous page button */}
+                    <button
+                      className="pagination-btn"
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      title="Trang trước"
+                    >
+                      <FaAngleLeft />
+                    </button>
+                    
+                    {/* Page numbers */}
+                    <div className="pagination-numbers d-flex align-items-center gap-1">
+                      {(() => {
+                        const pages = [];
+                        const maxVisiblePages = 3;
+                        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                        
+                        // Adjust start page if we're near the end
+                        if (endPage - startPage < maxVisiblePages - 1) {
+                          startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                        }
+                        
+                        // Add first page if not in range
+                        if (startPage > 1) {
+                          pages.push(
+                            <button
+                              key={1}
+                              className="pagination-page"
+                              onClick={() => handlePageChange(1)}
+                            >
+                              1
+                            </button>
+                          );
+                          if (startPage > 2) {
+                            pages.push(<span key="ellipsis1" className="pagination-ellipsis">...</span>);
+                          }
+                        }
+                        
+                        // Add visible page numbers
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`pagination-page ${i === currentPage ? 'active' : ''}`}
+                              onClick={() => handlePageChange(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                        
+                        // Add last page if not in range
+                        if (endPage < totalPages) {
+                          if (endPage < totalPages - 1) {
+                            pages.push(<span key="ellipsis2" className="pagination-ellipsis">...</span>);
+                          }
+                          pages.push(
+                            <button
+                              key={totalPages}
+                              className="pagination-page"
+                              onClick={() => handlePageChange(totalPages)}
+                            >
+                              {totalPages}
+                            </button>
+                          );
+                        }
+                        
+                        return pages;
+                      })()}
+                    </div>
+                    
+                    {/* Next page button */}
+                    <button
+                      className="pagination-btn"
+                      disabled={currentPage === totalPages}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      title="Trang tiếp"
+                    >
+                      <FaAngleRight />
+                    </button>
+                    
+                    {/* Last page button */}
+                    <button
+                      className="pagination-btn"
+                      disabled={currentPage === totalPages}
+                      onClick={() => handlePageChange(totalPages)}
+                      title="Trang cuối"
+                    >
+                      <FaAngleDoubleRight />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

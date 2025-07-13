@@ -1,4 +1,3 @@
-import Dashboard from './Dashboard_co';
 import Consultation from './Consultation_co/ConsultationMain';
 import HealthCheckupsPage from './HealthCheckups_co';
 import InventoryPage from './Inventory_co';
@@ -8,7 +7,6 @@ import VaccinationPage from './Vaccination_co';
 import BlogManagement from './Blog_co';
 
 export {
-  Dashboard,
   Consultation,
   HealthCheckupsPage,
   InventoryPage,

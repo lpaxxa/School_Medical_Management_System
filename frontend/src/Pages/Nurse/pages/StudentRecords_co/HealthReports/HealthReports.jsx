@@ -285,7 +285,7 @@ const HealthReports = () => {
       <div className="report-header mb-4">
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h2 className="report-title">
+            <h2 className="report-title" style={{color : 'white'}}>
               <FaUserGraduate className="me-2" />
               Báo cáo Sức khỏe Học sinh
             </h2>
@@ -374,7 +374,7 @@ const HealthReports = () => {
         <Col lg={4} md={6} className="mb-4">
           <Card className="chart-card h-100">
             <Card.Header className="chart-header">
-              <h5 className="mb-0">
+              <h5 className="mb-0" style={{color : 'white'}}>
                 <FaWeight className="me-2" />
                 Phân loại chỉ số BMI
               </h5>
@@ -389,7 +389,7 @@ const HealthReports = () => {
         <Col lg={4} md={6} className="mb-4">
           <Card className="chart-card h-100">
             <Card.Header className="chart-header">
-              <h5 className="mb-0">
+              <h5 className="mb-0" style={{color : 'white'}}>
                 <FaTint className="me-2" />
                 Phân bố nhóm máu
               </h5>
@@ -404,7 +404,7 @@ const HealthReports = () => {
         <Col lg={4} md={6} className="mb-4">
           <Card className="chart-card h-100">
             <Card.Header className="chart-header">
-              <h5 className="mb-0">
+              <h5 className="mb-0" style={{color : 'white'}}>
                 <FaSyringe className="me-2" />
                 Tình hình tiêm chủng
               </h5>
@@ -422,9 +422,9 @@ const HealthReports = () => {
       <Card className="data-table-card">
         <Card.Header className="table-header">
           <div className="d-flex justify-content-between align-items-center">
-            <h5 className="mb-0">
-              <FaEye className="me-2" />
-              Danh sách chi tiết học sinh
+            <h5 className="mb-0"style={{color : 'white', marginRight  : '20px'}}>
+              <FaEye className="me-2"/>
+              Danh sách chi tiết học sinh   
             </h5>
             <Badge bg="primary" className="student-count-badge">
               {filteredStudents.length} học sinh

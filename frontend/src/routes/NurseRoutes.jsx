@@ -2,7 +2,6 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 import NurseLayout from "../Pages/Nurse/layout/NurseLayout";
-import Dashboard from "../Pages/Nurse/pages/Dashboard_co";
 import Consultation from "../Pages/Nurse/pages/Consultation_co/ConsultationMain";
 import StudentRecordsPage from "../Pages/Nurse/pages/StudentRecords_co";
 import HealthCheckupsPage from "../Pages/Nurse/pages/HealthCheckups_co";
@@ -24,8 +23,7 @@ const NurseRoutes = () => {
         <ProtectedRoute allowedRoles={["nurse"]}>
           <NurseLayout>
             <Routes>
-              <Route index element={<Dashboard />} />
-              <Route path="dashboard" element={<Dashboard />} />
+              <Route index element={<VaccinationPage />} />
               <Route path="consultations" element={<Consultation />} />
               <Route path="student-records" element={<StudentRecordsPage />} />              <Route path="health-checkups" element={<HealthCheckupsPage />} />
               <Route path="inventory" element={<InventoryPage />} />              <Route path="medical-events" element={<MedicalEventsPage />} />

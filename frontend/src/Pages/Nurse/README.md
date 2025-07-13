@@ -65,9 +65,9 @@ Nurse/
   │   ├── NurseLayout.jsx
   │   └── NurseLayout.css # Sử dụng prefix .nurse-layout-*
   ├── pages/          # Các trang cụ thể của nurse
-  │   ├── Dashboard_co/
-  │   │   ├── DashboardMain.jsx
-  │   │   └── DashboardMain.css # Sử dụng prefix .nurse-dashboard-*
+  │   ├── Vaccination_co/
+  │   │   ├── VaccinationMain.jsx
+  │   │   └── VaccinationMain.css # Sử dụng prefix .nurse-vaccination-*
   │   └── ...
   └── index.js        # Export entry point
 ```
