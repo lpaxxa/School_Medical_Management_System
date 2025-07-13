@@ -1,5 +1,5 @@
 .nurse-sidebar {
-  width: 180px; /* Reduced from 200px */
+  width: 210px; /* Reduced from 200px */
   height: calc(100vh - 60px);
   background-color: #1d5d86;
   background-image: linear-gradient(to bottom, #1d5d86, #1a4e72);

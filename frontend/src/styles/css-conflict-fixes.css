@@ -311,6 +311,94 @@ html, body {
   background-position: right 8px center !important;
 }
 
+/* 
+ * FIX 14: Medical Records Header Color Fix
+ * Đảm bảo header của Medical Records hiển thị đúng màu primary
+ */
+
+/* Define Medical Records CSS variables globally to prevent inheritance issues */
+:root {
+  --medical-primary: #015C92;
+  --medical-primary-hover: #2D82B5;
+  --medical-primary-light: #BCE6FF;
+  --medical-primary-50: #EBF5FF;
+  --medical-primary-dark: #013D61;
+}
+
+.medical-header {
+  /* Force correct primary color regardless of global CSS */
+  background-color: var(--medical-primary) !important;
+}
+
+.medical-header .header-content {
+  /* Ensure header content has correct primary background */
+  background-color: var(--medical-primary) !important;
+  color: #ffffff !important;
+}
+
+.medical-header .header-icon {
+  /* Ensure header icon has correct styling */
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.medical-header .header-info h1 {
+  /* Ensure header title has correct color */
+  color: #ffffff !important;
+}
+
+.medical-header .header-info p {
+  /* Ensure header subtitle has correct color */
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* 
+ * FIX 15: Medical Records CSS Variables Override
+ * Đảm bảo CSS variables của Medical Records không bị override
+ */
+.parent-content-wrapper .medical-container {
+  /* Override CSS variables for medical records specifically */
+  --color-primary: var(--medical-primary) !important;
+  --color-primary-hover: var(--medical-primary-hover) !important;
+  --color-primary-light: var(--medical-primary-light) !important;
+  --color-primary-50: var(--medical-primary-50) !important;
+  --color-primary-dark: var(--medical-primary-dark) !important;
+}
+
+/* 
+ * FIX 16: Medical Records High Specificity Color Fix
+ * Sử dụng specificity cao để đảm bảo colors luôn được áp dụng
+ */
+.parent-content-wrapper .medical-container .medical-header,
+.medical-container .medical-header {
+  background-color: var(--medical-primary) !important;
+  border-bottom: 1px solid var(--medical-primary-light) !important;
+}
+
+.parent-content-wrapper .medical-container .medical-header .header-content,
+.medical-container .medical-header .header-content {
+  background-color: var(--medical-primary) !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+}
+
+.parent-content-wrapper .medical-container .medical-header .header-icon,
+.medical-container .medical-header .header-icon {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.parent-content-wrapper .medical-container .medical-header .header-info h1,
+.medical-container .medical-header .header-info h1 {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.parent-content-wrapper .medical-container .medical-header .header-info p,
+.medical-container .medical-header .header-info p {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
 .parent-layout {
   overflow-x: hidden !important;
   width: 100% !important;
