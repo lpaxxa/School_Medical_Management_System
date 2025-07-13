@@ -20,7 +20,11 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 import SuccessModal from "../../components/SuccessModal";
+import ErrorModal from "../../components/ErrorModal";
+import ConfirmModal from "../../components/ConfirmModal";
 import { useSuccessModal } from "../../hooks/useSuccessModal";
+import { useErrorModal } from "../../hooks/useErrorModal";
+import { useConfirmModal } from "../../hooks/useConfirmModal";
 import "./HealthCampaignHistory.css";
 
 const HealthCampaignHistory = () => {
@@ -41,13 +45,27 @@ const HealthCampaignHistory = () => {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
 
-  // Success modal hook
+  // Modal hooks
   const {
     isOpen: isSuccessOpen,
     modalData: successData,
     showSuccess,
     hideSuccess,
   } = useSuccessModal();
+
+  const {
+    isOpen: isErrorOpen,
+    modalData: errorData,
+    showError,
+    hideError,
+  } = useErrorModal();
+
+  const {
+    isOpen: isConfirmOpen,
+    modalData: confirmData,
+    showConfirm,
+    hideConfirm,
+  } = useConfirmModal();
 
   // Edit form state
   const [editFormData, setEditFormData] = useState({
@@ -89,7 +107,7 @@ const HealthCampaignHistory = () => {
   // Handle pagination when filteredCampaigns changes
   useEffect(() => {
     const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
-    
+
     // Reset to page 1 if current page is out of bounds
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
@@ -99,9 +117,12 @@ const HealthCampaignHistory = () => {
     // Calculate start and end indices for current page
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    
+
     // Get campaigns for current page
-    const campaignsForCurrentPage = filteredCampaigns.slice(startIndex, endIndex);
+    const campaignsForCurrentPage = filteredCampaigns.slice(
+      startIndex,
+      endIndex
+    );
     setPaginatedCampaigns(campaignsForCurrentPage);
   }, [filteredCampaigns, currentPage, itemsPerPage]);
 
@@ -216,22 +237,25 @@ const HealthCampaignHistory = () => {
 
     // Validate required fields
     if (!editFormData.title.trim()) {
-      alert("Vui lòng nhập tiêu đề chiến dịch!");
+      showError("Thiếu thông tin", "Vui lòng nhập tiêu đề chiến dịch!");
       return;
     }
 
     if (!editFormData.startDate) {
-      alert("Vui lòng chọn ngày bắt đầu!");
+      showError("Thiếu thông tin", "Vui lòng chọn ngày bắt đầu!");
       return;
     }
 
     if (!editFormData.endDate) {
-      alert("Vui lòng chọn ngày kết thúc!");
+      showError("Thiếu thông tin", "Vui lòng chọn ngày kết thúc!");
       return;
     }
 
     if (new Date(editFormData.startDate) > new Date(editFormData.endDate)) {
-      alert("Ngày bắt đầu không thể sau ngày kết thúc!");
+      showError(
+        "Ngày không hợp lệ",
+        "Ngày bắt đầu không thể sau ngày kết thúc!"
+      );
       return;
     }
 
@@ -517,7 +541,7 @@ const HealthCampaignHistory = () => {
       console.log("📊 Request payload:", {
         campaignId: selectedCampaign.id,
         studentIds: studentIds,
-        totalStudents: studentIds.length
+        totalStudents: studentIds.length,
       });
 
       // Get auth token from localStorage
@@ -580,13 +604,17 @@ const HealthCampaignHistory = () => {
       );
     } catch (err) {
       console.error("❌ Send notification failed:", err);
-      
+
       // Check for specific database constraint errors
-      if (err.message.includes("consent_given") && err.message.includes("NULL")) {
+      if (
+        err.message.includes("consent_given") &&
+        err.message.includes("NULL")
+      ) {
         alert(
           "Lỗi cơ sở dữ liệu: Thiếu trường 'consent_given' bắt buộc.\n\n" +
-          "Đây là lỗi từ hệ thống backend. Vui lòng liên hệ đội phát triển để sửa lỗi này.\n\n" +
-          "Chi tiết kỹ thuật: " + err.message
+            "Đây là lỗi từ hệ thống backend. Vui lòng liên hệ đội phát triển để sửa lỗi này.\n\n" +
+            "Chi tiết kỹ thuật: " +
+            err.message
         );
       } else {
         alert("Gửi thông báo thất bại: " + err.message);
@@ -799,7 +827,10 @@ const HealthCampaignHistory = () => {
   // Calculate pagination info
   const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(currentPage * itemsPerPage, filteredCampaigns.length);
+  const endIndex = Math.min(
+    currentPage * itemsPerPage,
+    filteredCampaigns.length
+  );
   const hasNextPage = currentPage < totalPages;
   const hasPreviousPage = currentPage > 1;
 
@@ -808,8 +839,8 @@ const HealthCampaignHistory = () => {
   return (
     <div className="health-campaign-history">
       {/* Header */}
-      <div className="page-header">
-        <div className="header-content">
+      <div className="health-campaign-page-header">
+        <div className="health-campaign-header-content">
           <h1>Lịch Sử Chiến Dịch Kiểm Tra Sức Khỏe</h1>
           {/* <p>Xem và quản lý các chiến dịch kiểm tra sức khỏe định kỳ</p> */}
         </div>
@@ -940,128 +971,142 @@ const HealthCampaignHistory = () => {
               </thead>
               <tbody>
                 {paginatedCampaigns.map((campaign) => (
-                <tr
-                  key={campaign.id}
-                  onClick={() => handleRowClick(campaign)}
-                  className="table-row"
-                >
-                  <td>#{campaign.id}</td>
-                  <td className="title-cell">{campaign.title}</td>
-                  <td>{formatDate(campaign.startDate)}</td>
-                  <td>
-                    <span
-                      className={`status-badge ${getStatusClass(
-                        campaign.status
-                      )} clickable`}
-                      onClick={(e) => handleStatusClick(campaign, e)}
-                      title="Click để thay đổi trạng thái"
-                    >
-                      {getStatusLabel(campaign.status)}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="action-btn notify"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSendNotification(campaign);
-                      }}
-                      title="Gửi thông báo"
-                    >
-                      <FaPaperPlane />
-                    </button>
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        className="action-btn view"
-                        onClick={(e) => handleRowClick(campaign)}
-                        title="Xem chi tiết"
+                  <tr
+                    key={campaign.id}
+                    onClick={() => handleRowClick(campaign)}
+                    className="table-row"
+                  >
+                    <td>#{campaign.id}</td>
+                    <td className="title-cell">{campaign.title}</td>
+                    <td>{formatDate(campaign.startDate)}</td>
+                    <td>
+                      <span
+                        className={`status-badge ${getStatusClass(
+                          campaign.status
+                        )} clickable`}
+                        onClick={(e) => handleStatusClick(campaign, e)}
+                        title="Click để thay đổi trạng thái"
                       >
-                        <FaEye />
-                      </button>
+                        {getStatusLabel(campaign.status)}
+                      </span>
+                    </td>
+                    <td>
                       <button
-                        className="action-btn edit"
-                        onClick={(e) => handleEditCampaign(campaign, e)}
-                        title="Chỉnh sửa"
+                        className="action-btn notify"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSendNotification(campaign);
+                        }}
+                        title="Gửi thông báo"
                       >
-                        <FaEdit />
+                        <FaPaperPlane />
                       </button>
-                      <button
-                        className="action-btn delete"
-                        onClick={(e) => handleDeleteCampaign(campaign, e)}
-                        title="Xóa"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <button
+                          className="action-btn view"
+                          onClick={(e) => handleRowClick(campaign)}
+                          title="Xem chi tiết"
+                        >
+                          <FaEye />
+                        </button>
+                        <button
+                          className="action-btn edit"
+                          onClick={(e) => handleEditCampaign(campaign, e)}
+                          title="Chỉnh sửa"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          className="action-btn delete"
+                          onClick={(e) => handleDeleteCampaign(campaign, e)}
+                          title="Xóa"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-          {/* Pagination Controls */}
-          {filteredCampaigns.length > itemsPerPage && (
-            <div className="pagination-container">
-              <div className="pagination-info">
-                <span>
-                  Hiển thị {startIndex}-{endIndex} trong tổng số {filteredCampaigns.length} chiến dịch
-                </span>
-              </div>
-              
-              <div className="pagination-controls">
-                <button
-                  className={`pagination-btn ${!hasPreviousPage ? 'disabled' : ''}`}
-                  onClick={handlePreviousPage}
-                  disabled={!hasPreviousPage}
-                  title="Trang trước"
-                >
-                  <FaChevronLeft />
-                </button>
-                
-                <div className="pagination-pages">
-                  {Array.from({ length: totalPages }, (_, index) => {
-                    const page = index + 1;
-                    const isCurrentPage = page === currentPage;
-                    
-                    // Show first page, last page, current page, and pages around current page
-                    const showPage = 
-                      page === 1 || 
-                      page === totalPages || 
-                      (page >= currentPage - 1 && page <= currentPage + 1);
-                    
-                    if (!showPage) {
-                      // Show ellipsis for gaps
-                      if (page === currentPage - 2 || page === currentPage + 2) {
-                        return <span key={page} className="pagination-ellipsis">...</span>;
-                      }
-                      return null;
-                    }
-                    
-                    return (
-                      <button
-                        key={page}
-                        className={`pagination-page ${isCurrentPage ? 'active' : ''}`}
-                        onClick={() => handlePageChange(page)}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
+            {/* Pagination Controls */}
+            {filteredCampaigns.length > itemsPerPage && (
+              <div className="pagination-container">
+                <div className="pagination-info">
+                  <span>
+                    Hiển thị {startIndex}-{endIndex} trong tổng số{" "}
+                    {filteredCampaigns.length} chiến dịch
+                  </span>
                 </div>
-                
-                <button
-                  className={`pagination-btn ${!hasNextPage ? 'disabled' : ''}`}
-                  onClick={handleNextPage}
-                  disabled={!hasNextPage}
-                  title="Trang sau"
-                >
-                  <FaChevronRight />
-                </button>
+
+                <div className="pagination-controls">
+                  <button
+                    className={`pagination-btn ${
+                      !hasPreviousPage ? "disabled" : ""
+                    }`}
+                    onClick={handlePreviousPage}
+                    disabled={!hasPreviousPage}
+                    title="Trang trước"
+                  >
+                    <FaChevronLeft />
+                  </button>
+
+                  <div className="pagination-pages">
+                    {Array.from({ length: totalPages }, (_, index) => {
+                      const page = index + 1;
+                      const isCurrentPage = page === currentPage;
+
+                      // Show first page, last page, current page, and pages around current page
+                      const showPage =
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1);
+
+                      if (!showPage) {
+                        // Show ellipsis for gaps
+                        if (
+                          page === currentPage - 2 ||
+                          page === currentPage + 2
+                        ) {
+                          return (
+                            <span key={page} className="pagination-ellipsis">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <button
+                          key={page}
+                          className={`pagination-page ${
+                            isCurrentPage ? "active" : ""
+                          }`}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    className={`pagination-btn ${
+                      !hasNextPage ? "disabled" : ""
+                    }`}
+                    onClick={handleNextPage}
+                    disabled={!hasNextPage}
+                    title="Trang sau"
+                  >
+                    <FaChevronRight />
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
           </>
         ) : (
           <div className="empty-state">
@@ -1075,47 +1120,49 @@ const HealthCampaignHistory = () => {
       {/* Detail Modal */}
       {showDetailModal && selectedCampaign && (
         <div
-          className="modal-overlay"
+          className="hch-modal-overlay"
           onClick={() => setShowDetailModal(false)}
         >
           <div
-            className="modal-content detail-modal"
+            className="hch-modal-content hch-detail-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <h2>Chi Tiết Chiến Dịch</h2>
+            <div className="hch-modal-header">
+              <h2>
+                <FaEye /> Chi Tiết Chiến Dịch
+              </h2>
               <button
-                className="close-btn"
+                className="hch-close-btn"
                 onClick={() => setShowDetailModal(false)}
               >
                 <FaTimes />
               </button>
             </div>
-            <div className="modal-body">
-              <div className="detail-grid">
-                <div className="detail-item">
+            <div className="hch-modal-body">
+              <div className="hch-detail-grid">
+                <div className="hch-detail-item">
                   <label>ID:</label>
                   <span>#{selectedCampaign.id}</span>
                 </div>
-                <div className="detail-item">
+                <div className="hch-detail-item">
                   <label>Tiêu đề:</label>
                   <span>{selectedCampaign.title}</span>
                 </div>
-                <div className="detail-item">
+                <div className="hch-detail-item">
                   <label>Mô tả:</label>
                   <span>
                     {selectedCampaign.description || "Không có mô tả"}
                   </span>
                 </div>
-                <div className="detail-item">
+                <div className="hch-detail-item">
                   <label>Ngày bắt đầu:</label>
                   <span>{formatDate(selectedCampaign.startDate)}</span>
                 </div>
-                <div className="detail-item">
+                <div className="hch-detail-item">
                   <label>Ngày kết thúc:</label>
                   <span>{formatDate(selectedCampaign.endDate)}</span>
                 </div>
-                <div className="detail-item">
+                <div className="hch-detail-item">
                   <label>Trạng thái:</label>
                   <span
                     className={`status-badge ${getStatusClass(
@@ -1125,18 +1172,18 @@ const HealthCampaignHistory = () => {
                     {getStatusLabel(selectedCampaign.status)}
                   </span>
                 </div>
-                <div className="detail-item full-width">
+                <div className="hch-detail-item full-width">
                   <label>Ghi chú:</label>
                   <p>{selectedCampaign.notes || "Không có ghi chú"}</p>
                 </div>
                 {selectedCampaign.specialCheckupItems &&
                   selectedCampaign.specialCheckupItems.length > 0 && (
-                    <div className="detail-item full-width">
+                    <div className="hch-detail-item full-width">
                       <label>Mục kiểm tra đặc biệt:</label>
-                      <div className="checkup-items">
+                      <div className="hch-checkup-items">
                         {selectedCampaign.specialCheckupItems.map(
                           (item, index) => (
-                            <span key={index} className="checkup-item">
+                            <span key={index} className="hch-checkup-item">
                               {item}
                             </span>
                           )
@@ -1152,23 +1199,28 @@ const HealthCampaignHistory = () => {
 
       {/* Edit Modal */}
       {showEditModal && selectedCampaign && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+        <div
+          className="hch-modal-overlay"
+          onClick={() => setShowEditModal(false)}
+        >
           <div
-            className="modal-content edit-modal"
+            className="hch-modal-content hch-edit-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <h2>Chỉnh Sửa Chiến Dịch</h2>
+            <div className="hch-modal-header">
+              <h2>
+                <FaEdit /> Chỉnh Sửa Chiến Dịch
+              </h2>
               <button
-                className="close-btn"
+                className="hch-close-btn"
                 onClick={() => setShowEditModal(false)}
               >
                 <FaTimes />
               </button>
             </div>
-            <div className="modal-body">
-              <div className="form-grid">
-                <div className="form-group">
+            <div className="hch-modal-body">
+              <div className="hch-form-grid">
+                <div className="hch-form-group">
                   <label>Tiêu đề:</label>
                   <input
                     type="text"
@@ -1181,7 +1233,7 @@ const HealthCampaignHistory = () => {
                     }
                   />
                 </div>
-                <div className="form-group">
+                <div className="hch-form-group">
                   <label>Mô tả:</label>
                   <textarea
                     value={editFormData.description}
@@ -1193,7 +1245,7 @@ const HealthCampaignHistory = () => {
                     }
                   />
                 </div>
-                <div className="form-group">
+                <div className="hch-form-group">
                   <label>Ngày bắt đầu:</label>
                   <input
                     type="date"
@@ -1206,7 +1258,7 @@ const HealthCampaignHistory = () => {
                     }
                   />
                 </div>
-                <div className="form-group">
+                <div className="hch-form-group">
                   <label>Ngày kết thúc:</label>
                   <input
                     type="date"
@@ -1219,7 +1271,7 @@ const HealthCampaignHistory = () => {
                     }
                   />
                 </div>
-                <div className="form-group">
+                <div className="hch-form-group">
                   <label>Trạng thái:</label>
                   <select
                     value={editFormData.status}
@@ -1236,7 +1288,7 @@ const HealthCampaignHistory = () => {
                     <option value="CANCELLED">Đã hủy</option>
                   </select>
                 </div>
-                <div className="form-group full-width">
+                <div className="hch-form-group full-width">
                   <label>Ghi chú:</label>
                   <textarea
                     rows="4"
@@ -1251,20 +1303,20 @@ const HealthCampaignHistory = () => {
                 </div>
 
                 {/* Special Checkup Items Section */}
-                <div className="form-group full-width">
+                <div className="hch-form-group full-width">
                   <label>Mục kiểm tra đặc biệt:</label>
 
                   {/* Current items */}
-                  {editFormData.specialCheckupItems.length > 0 && (
-                    <div className="current-edit-items">
-                      <div className="edit-items-list">
+                  {editFormData.specialCheckupItems.length > 0 ? (
+                    <div className="hch-current-edit-items">
+                      <div className="hch-edit-items-list">
                         {editFormData.specialCheckupItems.map((item, index) => (
-                          <div key={index} className="edit-item-tag">
+                          <div key={index} className="hch-edit-item-tag">
                             <span>{item}</span>
                             <button
                               type="button"
                               onClick={() => removeEditCheckupItem(index)}
-                              className="remove-edit-item"
+                              className="hch-remove-edit-item"
                               title="Xóa mục này"
                             >
                               <FaTimes />
@@ -1273,11 +1325,16 @@ const HealthCampaignHistory = () => {
                         ))}
                       </div>
                     </div>
+                  ) : (
+                    <div className="hch-empty-checkup-hint">
+                      <FaFileAlt style={{ marginRight: "8px", opacity: 0.6 }} />
+                      Chưa có mục kiểm tra đặc biệt nào. Thêm mục mới bên dưới.
+                    </div>
                   )}
 
                   {/* Add new item */}
-                  <div className="add-edit-item-section">
-                    <div className="edit-input-with-button">
+                  <div className="hch-add-edit-item-section">
+                    <div className="hch-edit-input-with-button">
                       <input
                         type="text"
                         placeholder="Nhập tên mục kiểm tra mới..."
@@ -1291,7 +1348,7 @@ const HealthCampaignHistory = () => {
                       <button
                         type="button"
                         onClick={addEditCheckupItem}
-                        className="add-edit-button"
+                        className="hch-add-edit-button"
                         disabled={!newEditCheckupItem.trim()}
                         title="Thêm mục kiểm tra"
                       >
@@ -1302,15 +1359,15 @@ const HealthCampaignHistory = () => {
                 </div>
               </div>
             </div>
-            <div className="modal-footer">
+            <div className="hch-modal-footer">
               <button
-                className="btn-secondary"
+                className="hch-btn-secondary"
                 onClick={() => setShowEditModal(false)}
               >
                 <FaTimes /> Hủy
               </button>
               <button
-                className="btn-primary"
+                className="hch-btn-primary"
                 onClick={handleSaveEdit}
                 disabled={editLoading}
               >
@@ -1325,40 +1382,44 @@ const HealthCampaignHistory = () => {
       {/* Delete Modal */}
       {showDeleteModal && selectedCampaign && (
         <div
-          className="modal-overlay"
+          className="hch-modal-overlay"
           onClick={() => setShowDeleteModal(false)}
         >
           <div
-            className="modal-content delete-modal"
+            className="hch-modal-content hch-delete-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <h2>Xác Nhận Xóa</h2>
+            <div className="hch-modal-header">
+              <h2>
+                <FaTrash /> Xác Nhận Xóa
+              </h2>
               <button
-                className="close-btn"
+                className="hch-close-btn"
                 onClick={() => setShowDeleteModal(false)}
               >
                 <FaTimes />
               </button>
             </div>
-            <div className="modal-body">
+            <div className="hch-modal-body">
               <p>Bạn có chắc chắn muốn xóa chiến dịch này?</p>
-              <div className="delete-info">
+              <div className="hch-delete-info">
                 <strong>{selectedCampaign.title}</strong>
                 <br />
                 Ngày bắt đầu: {formatDate(selectedCampaign.startDate)}
               </div>
-              <p className="warning">Hành động này không thể hoàn tác!</p>
+              <p className="hch-warning">
+                <FaInfoCircle /> Hành động này không thể hoàn tác!
+              </p>
             </div>
-            <div className="modal-footer">
+            <div className="hch-modal-footer">
               <button
-                className="btn-secondary"
+                className="hch-btn-secondary"
                 onClick={() => setShowDeleteModal(false)}
               >
                 <FaTimes /> Hủy
               </button>
               <button
-                className="btn-danger"
+                className="hch-btn-danger"
                 onClick={handleConfirmDelete}
                 disabled={deleteLoading}
               >
@@ -1377,25 +1438,27 @@ const HealthCampaignHistory = () => {
       {/* Status Modal */}
       {showStatusModal && selectedCampaign && (
         <div
-          className="modal-overlay"
+          className="hch-modal-overlay"
           onClick={() => setShowStatusModal(false)}
         >
           <div
-            className="modal-content status-modal"
+            className="hch-modal-content hch-status-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <h2>Thay Đổi Trạng Thái</h2>
+            <div className="hch-modal-header">
+              <h2>
+                <FaHeartbeat /> Thay Đổi Trạng Thái
+              </h2>
               <button
-                className="close-btn"
+                className="hch-close-btn"
                 onClick={() => setShowStatusModal(false)}
               >
                 <FaTimes />
               </button>
             </div>
-            <div className="modal-body">
+            <div className="hch-modal-body">
               <p>Chọn trạng thái mới cho chiến dịch:</p>
-              <div className="status-info">
+              <div className="hch-status-info">
                 <strong>{selectedCampaign.title}</strong>
                 <br />
                 Trạng thái hiện tại:{" "}
@@ -1408,7 +1471,7 @@ const HealthCampaignHistory = () => {
                 </span>
               </div>
 
-              <div className="status-options">
+              <div className="hch-status-options">
                 {[
                   {
                     value: "PREPARING",
@@ -1429,7 +1492,7 @@ const HealthCampaignHistory = () => {
                 ].map((status) => (
                   <button
                     key={status.value}
-                    className={`status-option ${status.color} ${
+                    className={`hch-status-option ${status.color} ${
                       selectedCampaign.status === status.value ? "current" : ""
                     }`}
                     onClick={() => {
@@ -1444,7 +1507,7 @@ const HealthCampaignHistory = () => {
                       {status.label}
                     </span>
                     {selectedCampaign.status === status.value && (
-                      <span className="current-indicator">(Hiện tại)</span>
+                      <span className="hch-current-indicator">(Hiện tại)</span>
                     )}
                   </button>
                 ))}
@@ -1456,39 +1519,44 @@ const HealthCampaignHistory = () => {
 
       {/* Notification Modal */}
       {showNotificationModal && selectedCampaign && (
-        <div className="modal-overlay" onClick={resetNotificationModal}>
+        <div className="hch-modal-overlay" onClick={resetNotificationModal}>
           <div
-            className="modal-content notification-modal"
+            className="hch-modal-content hch-notification-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <h2>Gửi Thông Báo</h2>
-              <button className="close-btn" onClick={resetNotificationModal}>
+            <div className="hch-modal-header">
+              <h2>
+                <FaBell /> Gửi Thông Báo
+              </h2>
+              <button
+                className="hch-close-btn"
+                onClick={resetNotificationModal}
+              >
                 <FaTimes />
               </button>
             </div>
-            <div className="modal-body">
-              <div className="notification-info">
+            <div className="hch-modal-body">
+              <div className="hch-notification-info">
                 <h3>Chiến dịch: {selectedCampaign.title}</h3>
                 <p>Chọn khối học sinh để gửi thông báo:</p>
               </div>
 
               {loadingStudents ? (
-                <div className="loading-students">
+                <div className="hch-loading-students">
                   <FaSpinner className="spinning" />
                   <p>Đang tải danh sách học sinh...</p>
                 </div>
               ) : (
-                <div className="grade-selection">
-                  <div className="grade-options">
-                    <label className="grade-option all-grades">
+                <div className="hch-grade-selection">
+                  <div className="hch-grade-options">
+                    <label className="hch-grade-option all-grades">
                       <input
                         type="checkbox"
                         checked={isAllGradesSelected}
                         onChange={handleSelectAllGrades}
                       />
-                      <span className="grade-label">Tất cả các khối</span>
-                      <span className="student-count">
+                      <span className="hch-grade-label">Tất cả các khối</span>
+                      <span className="hch-student-count">
                         ({students.length} học sinh)
                       </span>
                     </label>
@@ -1497,7 +1565,7 @@ const HealthCampaignHistory = () => {
                       return (
                         <label
                           key={grade}
-                          className={`grade-option ${
+                          className={`hch-grade-option ${
                             selectedGrades.includes(grade) ? "selected" : ""
                           }`}
                         >
@@ -1510,8 +1578,8 @@ const HealthCampaignHistory = () => {
                             onChange={() => handleGradeSelection(grade)}
                             disabled={isAllGradesSelected}
                           />
-                          <span className="grade-label">Khối {grade}</span>
-                          <span className="student-count">
+                          <span className="hch-grade-label">Khối {grade}</span>
+                          <span className="hch-student-count">
                             ({getStudentsCountByGrade(grade)} học sinh)
                           </span>
                         </label>
@@ -1519,7 +1587,7 @@ const HealthCampaignHistory = () => {
                     })}
                   </div>
 
-                  <div className="selected-summary">
+                  <div className="hch-selected-summary">
                     <h4>Tóm tắt:</h4>
                     <p>
                       Sẽ gửi thông báo đến{" "}
@@ -1534,15 +1602,15 @@ const HealthCampaignHistory = () => {
                 </div>
               )}
             </div>
-            <div className="modal-footer">
+            <div className="hch-modal-footer">
               <button
-                className="btn-secondary"
+                className="hch-btn-secondary"
                 onClick={resetNotificationModal}
               >
                 <FaTimes /> Hủy
               </button>
               <button
-                className="btn-primary"
+                className="hch-btn-primary"
                 onClick={handleConfirmSendNotification}
                 disabled={
                   sendingNotification ||
@@ -1571,6 +1639,29 @@ const HealthCampaignHistory = () => {
         details={successData.details}
         autoClose={successData.autoClose}
         autoCloseDelay={successData.autoCloseDelay}
+      />
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={isErrorOpen}
+        onClose={hideError}
+        title={errorData.title}
+        message={errorData.message}
+        details={errorData.details}
+        autoClose={errorData.autoClose}
+        autoCloseDelay={errorData.autoCloseDelay}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmData.onConfirm}
+        title={confirmData.title}
+        message={confirmData.message}
+        confirmText={confirmData.confirmText}
+        cancelText={confirmData.cancelText}
+        type={confirmData.type}
       />
     </div>
   );

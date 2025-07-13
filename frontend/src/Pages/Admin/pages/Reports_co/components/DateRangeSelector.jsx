@@ -18,39 +18,48 @@ const DateRangeSelector = ({
   ];
 
   return (
-    <div className="date-range-section">
-      <div className="date-ranges">
+    <div className="reports-date-range-selector">
+      <div className="reports-date-range-label">
+        <i className="fas fa-calendar"></i>
+        Chọn khoảng thời gian
+      </div>
+
+      <div className="reports-quick-dates">
         {dateRanges.map((range) => (
-          <div
+          <button
             key={range.id}
-            className={`date-range-item ${
-              dateRange === range.id ? "selected" : ""
+            className={`reports-quick-date-btn ${
+              dateRange === range.id ? "active" : ""
             }`}
             onClick={() => setDateRange(range.id)}
           >
             <i className={range.icon}></i>
-            <span>{range.label}</span>
-          </div>
+            {range.label}
+          </button>
         ))}
       </div>
 
       {dateRange === "custom" && (
-        <div className="custom-date-range">
-          <input
-            type="date"
-            className="date-input"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            placeholder="Từ ngày"
-          />
-          <span>đến</span>
-          <input
-            type="date"
-            className="date-input"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            placeholder="Đến ngày"
-          />
+        <div className="reports-date-inputs">
+          <div className="reports-date-input-group">
+            <label>Từ ngày</label>
+            <input
+              type="date"
+              className="reports-date-input"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+          <div className="reports-date-separator">đến</div>
+          <div className="reports-date-input-group">
+            <label>Đến ngày</label>
+            <input
+              type="date"
+              className="reports-date-input"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
         </div>
       )}
     </div>

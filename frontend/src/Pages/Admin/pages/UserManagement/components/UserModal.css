@@ -32,26 +32,8 @@
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
-  --space-6: 1  .existing-student-card {
-    margin-bottom: var(--space-2);
-  }
-
-  .student-card-header {
-    padding: var(--space-2);
-    flex-direction: row;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: 50px;
-  }
-
-  .student-details {
-    padding: var(--space-2);
-  }
-
-  .student-detail-grid {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--space-2);
-  }ce-8: 2rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
   --border-width: 1px;
   --border-color: var(--color-gray-200);
   --radius: 0.5rem;
@@ -59,7 +41,7 @@
 }
 
 /* Modal Overlay */
-.modal-overlay {
+.admin-user-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -74,7 +56,7 @@
 }
 
 /* Modal Container */
-.user-modal {
+.admin-user-modal {
   background-color: var(--color-white);
   border-radius: var(--radius);
   width: 100%;
@@ -85,13 +67,13 @@
 }
 
 /* Large Modal for Complex Forms */
-.user-modal-large {
+.admin-user-modal-large {
   max-width: 800px;
   max-height: 95vh;
 }
 
 /* Modal Header */
-.modal-header {
+.admin-user-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -100,7 +82,7 @@
   background: var(--color-gray-50);
 }
 
-.modal-header h2 {
+.admin-user-modal-header h2 {
   margin: 0;
   font-size: var(--font-size-lg);
   font-weight: 600;
@@ -127,7 +109,7 @@
 }
 
 /* Form Styles */
-form {
+.admin-user-modal form {
   padding: var(--space-4);
 }
 
@@ -364,8 +346,8 @@ input[type="checkbox"] {
   color: var(--color-red);
 }
 
-/* Modal Footer */
-.modal-footer {
+/* Admin User Modal Footer */
+.admin-user-modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
@@ -598,7 +580,7 @@ input[type="checkbox"] {
   color: var(--color-gray-700);
 }
 
-.btn-add-student {
+.admin-btn-add-student {
   background: var(--color-blue);
   color: var(--color-white);
   border: none;
@@ -613,11 +595,11 @@ input[type="checkbox"] {
   gap: var(--space-1);
 }
 
-.btn-add-student:hover {
+.admin-btn-add-student:hover {
   background: #2563eb;
 }
 
-.btn-remove-student {
+.admin-btn-remove-student {
   background: var(--color-red);
   color: var(--color-white);
   border: none;
@@ -633,7 +615,7 @@ input[type="checkbox"] {
   height: 1.75rem;
 }
 
-.btn-remove-student:hover {
+.admin-btn-remove-student:hover {
   background: #dc2626;
 }
 
@@ -663,9 +645,9 @@ input[type="date"].error {
   border-color: var(--color-red);
 }
 
-/* Buttons */
-.btn-cancel,
-.btn-save {
+/* Admin User Modal Buttons */
+.admin-btn-cancel,
+.admin-btn-save {
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius);
   font-size: var(--font-size-sm);
@@ -675,24 +657,24 @@ input[type="date"].error {
   border: var(--border-width) solid var(--border-color);
 }
 
-.btn-cancel {
+.admin-btn-cancel {
   background: var(--color-white);
   color: var(--color-gray-700);
   border-color: var(--border-color);
 }
 
-.btn-save {
+.admin-btn-save {
   background: var(--color-gray-900);
   color: var(--color-white);
   border-color: var(--color-gray-900);
 }
 
-.btn-cancel:hover {
+.admin-btn-cancel:hover {
   background: var(--color-gray-50);
   border-color: var(--color-gray-300);
 }
 
-.btn-save:hover {
+.admin-btn-save:hover {
   background: var(--color-gray-800);
   border-color: var(--color-gray-800);
 }
@@ -828,12 +810,12 @@ select:focus {
     grid-template-columns: 1fr;
   }
 
-  .modal-footer {
+  .admin-user-modal-footer {
     flex-direction: column;
   }
 
-  .btn-cancel,
-  .btn-save {
+  .admin-btn-cancel,
+  .admin-btn-save {
     width: 100%;
     justify-content: center;
   }
@@ -844,7 +826,7 @@ select:focus {
     gap: var(--space-2);
   }
 
-  .btn-add-student {
+  .admin-btn-add-student {
     align-self: flex-start;
   }
 
@@ -887,18 +869,18 @@ select:focus {
     gap: var(--space-2);
   }
 
-  .btn-remove-student {
+  .admin-btn-remove-student {
     align-self: flex-end;
   }
 }
 
 @media (max-width: 480px) {
-  .modal-header,
-  form {
+  .admin-user-modal-header,
+  .admin-user-modal form {
     padding: var(--space-3);
   }
 
-  .modal-header h2 {
+  .admin-user-modal-header h2 {
     font-size: var(--font-size-base);
   }
 
@@ -910,7 +892,7 @@ select:focus {
     margin-bottom: var(--space-3);
   }
 
-  .modal-footer {
+  .admin-user-modal-footer {
     margin-top: var(--space-4);
     padding-top: var(--space-3);
   }
@@ -970,12 +952,12 @@ select:focus {
 }
 
 /* Enhanced button styling for demo mode */
-.btn-save:has-text("Demo") {
+.admin-btn-save:has-text("Demo") {
   background-color: #f59e0b;
   border-color: #f59e0b;
 }
 
-.btn-save:has-text("Demo"):hover {
+.admin-btn-save:has-text("Demo"):hover {
   background-color: #d97706;
 }
 

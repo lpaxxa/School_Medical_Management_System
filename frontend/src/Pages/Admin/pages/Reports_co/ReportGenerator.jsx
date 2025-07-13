@@ -80,9 +80,30 @@ const ReportGenerator = () => {
       if (reportType === "health") {
         setDetailViewType("student");
         // Gọi API lấy danh sách học sinh
-        const response = await fetch("http://localhost:8080/api/v1/students");
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          throw new Error("Chưa đăng nhập. Vui lòng đăng nhập lại.");
+        }
+
+        const response = await fetch("/api/v1/students", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
         if (!response.ok) {
-          throw new Error("Không thể kết nối đến máy chủ");
+          if (response.status === 401) {
+            throw new Error(
+              "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            );
+          } else if (response.status === 403) {
+            throw new Error("Bạn không có quyền truy cập dữ liệu này.");
+          } else {
+            throw new Error(
+              `Không thể kết nối đến máy chủ (${response.status})`
+            );
+          }
         }
         rawData = await response.json();
       } else if (reportType === "medication") {
@@ -118,6 +139,29 @@ const ReportGenerator = () => {
   };
 
   // Hàm xử lý nút quay lại từ DetailView
+  const handleStudentDeleted = async (studentId) => {
+    // Refresh the student data after deletion
+    try {
+      setIsLoadingDetail(true);
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/v1/students", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const updatedData = await response.json();
+        setDetailData(updatedData);
+      }
+    } catch (error) {
+      console.error("Error refreshing student data:", error);
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
   const handleBackFromDetail = () => {
     setShowDetailView(false);
     setDetailViewType(null);
@@ -142,11 +186,11 @@ const ReportGenerator = () => {
         <div className="reports-header-content">
           <div className="reports-header-text">
             <h1>
-              <i className="fas fa-chart-bar"></i> Báo cáo & Thống kê
+              <i className="fas fa-chart-bar"></i> Quản lý hồ sơ & Thống kê
             </h1>
             <p>
-              Tạo và xem các báo cáo thống kê về sức khỏe học sinh và hoạt động
-              của hệ thống
+              Tạo và quản lý các báo cáo thống kê về sức khỏe học sinh và hoạt
+              động của sự kiện y tế
             </p>
           </div>
           <div className="reports-header-stats">
@@ -166,7 +210,7 @@ const ReportGenerator = () => {
             setReportType={setReportType}
           />
           <div className="reports-action-buttons">
-            <button
+            {/* <button
               className="reports-btn reports-btn-primary"
               onClick={generateReport}
               disabled={isLoading}
@@ -181,7 +225,7 @@ const ReportGenerator = () => {
                   <i className="fas fa-chart-line"></i> Tạo báo cáo
                 </>
               )}
-            </button>
+            </button> */}
             <button
               className="reports-btn reports-btn-secondary"
               onClick={viewDetailData}
@@ -224,6 +268,7 @@ const ReportGenerator = () => {
             isLoading={isLoadingDetail}
             onViewDetail={handleViewDetail}
             onBack={handleBackFromDetail}
+            onStudentDeleted={handleStudentDeleted}
           />
         ) : detailViewType === "medication" ? (
           <MedicationListView onBack={handleBackFromDetail} />

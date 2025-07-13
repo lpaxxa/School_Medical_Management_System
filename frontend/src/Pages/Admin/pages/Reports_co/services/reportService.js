@@ -1,10 +1,24 @@
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = '/api/v1';
+
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    throw new Error('Chưa đăng nhập. Vui lòng đăng nhập lại.');
+  }
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+};
 
 export const reportService = {
   // Fetch vaccination report from API
   getVaccinationReport: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/nurse/getNotificationsByType/VACCINATION`);
+      const response = await fetch(`${API_BASE_URL}/notifications/nurse/getNotificationsByType/VACCINATION`, {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       
       return processVaccinationData(data);
@@ -17,7 +31,9 @@ export const reportService = {
   // Fetch health checkup report from API
   getCheckupReport: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/nurse/getNotificationsByType/HEALTH_CHECKUP`);
+      const response = await fetch(`${API_BASE_URL}/notifications/nurse/getNotificationsByType/HEALTH_CHECKUP`, {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       
       return processCheckupData(data);
@@ -30,7 +46,9 @@ export const reportService = {
   // Fetch vaccine report from API
   getVaccineReport: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/vaccines/getAllVaccine`);
+      const response = await fetch(`${API_BASE_URL}/vaccines/getAllVaccine`, {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       
       return processVaccineData(data);
@@ -43,7 +61,9 @@ export const reportService = {
   // Fetch raw vaccination data for detail view
   getVaccinationDetailData: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/nurse/getNotificationsByType/VACCINATION`);
+      const response = await fetch(`${API_BASE_URL}/notifications/nurse/getNotificationsByType/VACCINATION`, {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       return data;
     } catch (error) {
@@ -55,7 +75,9 @@ export const reportService = {
   // Fetch raw checkup data for detail view
   getCheckupDetailData: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/nurse/getNotificationsByType/HEALTH_CHECKUP`);
+      const response = await fetch(`${API_BASE_URL}/notifications/nurse/getNotificationsByType/HEALTH_CHECKUP`, {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       return data;
     } catch (error) {
@@ -67,7 +89,9 @@ export const reportService = {
   // Fetch vaccine detail data for detail view
   getVaccineDetailData: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/vaccines/getAllVaccine`);
+      const response = await fetch(`${API_BASE_URL}/vaccines/getAllVaccine`, {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       return data;
     } catch (error) {
@@ -79,7 +103,9 @@ export const reportService = {
   // Fetch medication detail data for detail view
   getMedicationDetailData: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/medication-items/get-all`);
+      const response = await fetch(`${API_BASE_URL}/medication-items/get-all`, {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       return data;
     } catch (error) {
@@ -92,7 +118,9 @@ export const reportService = {
   getHealthReport: () => getMockHealthReport(),
   getMedicationReport: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/medication-items/get-all`);
+      const response = await fetch(`${API_BASE_URL}/medication-items/get-all`, {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       
       if (Array.isArray(data)) {

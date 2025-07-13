@@ -1,0 +1,71 @@
+/* 
+   Modal Namespace CSS - Quản lý namespace cho các modal
+   Tránh xung đột CSS giữa các modal khác nhau
+   Created: 2025-01-13
+*/
+
+/* Admin Success Modal Namespace */
+.admin-success-modal-overlay {
+  z-index: 10001; /* Cao hơn user modal */
+}
+
+/* Admin User Modal Namespace */
+.admin-user-modal-overlay {
+  z-index: 10000;
+}
+
+/* Base Modal Styles that can be shared */
+.admin-modal-base {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.admin-modal-content-base {
+  background: white;
+  border-radius: 12px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Shared Animations */
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Conflict Prevention Rules */
+.admin-namespace {
+  /* Ensure admin components don't interfere with other parts */
+  box-sizing: border-box;
+}
+
+.admin-namespace .modal-overlay,
+.admin-namespace .modal-content,
+.admin-namespace .modal-header,
+.admin-namespace .modal-body,
+.admin-namespace .modal-footer {
+  /* Reset any global modal styles that might conflict */
+  all: unset;
+  display: block;
+}

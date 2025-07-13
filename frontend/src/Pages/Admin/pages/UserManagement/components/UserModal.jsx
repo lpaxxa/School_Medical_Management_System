@@ -50,22 +50,18 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
   // Image upload handlers
   const handleImageUpload = (studentId, imageUrl) => {
     // Update the editable students with new image URL
-    setEditableStudents(prev => 
-      prev.map(student => 
-        student.id === studentId 
-          ? { ...student, imageUrl } 
-          : student
+    setEditableStudents((prev) =>
+      prev.map((student) =>
+        student.id === studentId ? { ...student, imageUrl } : student
       )
     );
   };
 
   const handleImageDelete = (studentId) => {
     // Remove image URL from editable students
-    setEditableStudents(prev => 
-      prev.map(student => 
-        student.id === studentId 
-          ? { ...student, imageUrl: null } 
-          : student
+    setEditableStudents((prev) =>
+      prev.map((student) =>
+        student.id === studentId ? { ...student, imageUrl: null } : student
       )
     );
   };
@@ -81,7 +77,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
         console.log("Mode:", mode);
         console.log("=== END ADMIN MODAL DEBUG ===");
       }
-      
+
       setFormData({
         id: user.id || "",
         username: user.username || "",
@@ -97,17 +93,22 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
         relationshipType: user.relationshipType || "Mother",
         occupation: user.occupation || "",
         qualification: user.qualification || "",
-        students: user.students ? user.students.map(student => ({
-          ...student,
-          gradeLevel: student.gradeLevel || generateGradeLevel(student.className || "")
-        })) : [],
+        students: user.students
+          ? user.students.map((student) => ({
+              ...student,
+              gradeLevel:
+                student.gradeLevel ||
+                generateGradeLevel(student.className || ""),
+            }))
+          : [],
       });
 
       // Initialize editable students for edit mode
       if (user.students && (mode === "edit" || mode === "view")) {
-        const initialStudents = user.students.map(student => ({
+        const initialStudents = user.students.map((student) => ({
           ...student,
-          gradeLevel: student.gradeLevel || generateGradeLevel(student.className || "")
+          gradeLevel:
+            student.gradeLevel || generateGradeLevel(student.className || ""),
         }));
         setEditableStudents(initialStudents);
       } else {
@@ -145,7 +146,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
   // Helper function to generate grade level from class name
   const generateGradeLevel = (className) => {
     if (!className) return "";
-    
+
     // Extract number from class name (e.g., "3B" -> "3", "10A" -> "10")
     const gradeNumber = className.match(/\d+/);
     if (gradeNumber) {
@@ -333,8 +334,6 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
         if (!student.dateOfBirth)
           newErrors[`student_${index}_dateOfBirth`] = "Vui lòng chọn ngày sinh";
 
-
-
         if (!student.className.trim())
           newErrors[`student_${index}_className`] = "Vui lòng nhập lớp";
       });
@@ -343,13 +342,16 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
       if (mode === "edit" && editableStudents && editableStudents.length > 0) {
         editableStudents.forEach((student, index) => {
           if (!student.fullName || !student.fullName.trim()) {
-            newErrors[`existingStudent_${index}_fullName`] = "Vui lòng nhập tên học sinh";
+            newErrors[`existingStudent_${index}_fullName`] =
+              "Vui lòng nhập tên học sinh";
           }
           if (!student.dateOfBirth) {
-            newErrors[`existingStudent_${index}_dateOfBirth`] = "Vui lòng chọn ngày sinh";
+            newErrors[`existingStudent_${index}_dateOfBirth`] =
+              "Vui lòng chọn ngày sinh";
           }
           if (!student.className || !student.className.trim()) {
-            newErrors[`existingStudent_${index}_className`] = "Vui lòng nhập lớp";
+            newErrors[`existingStudent_${index}_className`] =
+              "Vui lòng nhập lớp";
           }
         });
       }
@@ -358,10 +360,12 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
       if (mode === "edit" && newStudents && newStudents.length > 0) {
         newStudents.forEach((student, index) => {
           if (!student.fullName || !student.fullName.trim()) {
-            newErrors[`newStudent_${index}_fullName`] = "Vui lòng nhập tên học sinh";
+            newErrors[`newStudent_${index}_fullName`] =
+              "Vui lòng nhập tên học sinh";
           }
           if (!student.dateOfBirth) {
-            newErrors[`newStudent_${index}_dateOfBirth`] = "Vui lòng chọn ngày sinh";
+            newErrors[`newStudent_${index}_dateOfBirth`] =
+              "Vui lòng chọn ngày sinh";
           }
           if (!student.className || !student.className.trim()) {
             newErrors[`newStudent_${index}_className`] = "Vui lòng nhập lớp";
@@ -446,12 +450,12 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
           dataToSave.address = formData.address;
           dataToSave.relationshipType = formData.relationshipType;
           dataToSave.occupation = formData.occupation;
-          
+
           // Include updated student data in edit mode
           if (editableStudents && editableStudents.length > 0) {
             dataToSave.students = editableStudents;
           }
-          
+
           // Include new students being added in edit mode
           if (newStudents && newStudents.length > 0) {
             if (dataToSave.students) {
@@ -493,9 +497,9 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
       : "Thông tin chi tiết";
 
   return (
-    <div className="modal-overlay">
-      <div className="user-modal user-modal-large">
-        <div className="modal-header">
+    <div className="admin-user-modal-overlay">
+      <div className="admin-user-modal admin-user-modal-large">
+        <div className="admin-user-modal-header">
           <h2>{modalTitle}</h2>
           <button className="close-button" onClick={onClose}>
             <FaTimes />
@@ -595,13 +599,19 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                   type="text"
                   id="fullName"
                   name="fullName"
-                  value={formData.fullName || (mode === "view" ? formData.username : "")}
+                  value={
+                    formData.fullName ||
+                    (mode === "view" ? formData.username : "")
+                  }
                   onChange={handleChange}
                   disabled={mode === "view"}
                   className={errors.fullName ? "error" : ""}
-                  placeholder={mode === "view" ? 
-                    (formData.fullName || formData.username || "Chưa có thông tin") : 
-                    "Nhập họ tên đầy đủ"
+                  placeholder={
+                    mode === "view"
+                      ? formData.fullName ||
+                        formData.username ||
+                        "Chưa có thông tin"
+                      : "Nhập họ tên đầy đủ"
                   }
                 />
                 {mode === "view" && !formData.fullName && (
@@ -898,207 +908,508 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
               </div>
 
               {/* Existing Students Display (View/Edit Mode) */}
-              {(mode === "view" || mode === "edit") && user && user.students && user.students.length > 0 && (
-                <div className="form-section">
-                  <div className="section-header">
-                    <h3>
-                      <FaGraduationCap /> Danh sách học sinh hiện tại ({user.students.length} học sinh)
-                      {mode === "edit" && <small className="field-note" style={{marginLeft: "10px", fontSize: "12px", fontWeight: "normal"}}>Click để chỉnh sửa thông tin học sinh</small>}
-                    </h3>
-                    {mode === "edit" && (
-                      <button
-                        type="button"
-                        className="btn-add-student"
-                        onClick={addNewStudent}
-                      >
-                        <FaPlus /> Thêm học sinh mới
-                      </button>
-                    )}
-                  </div>
-                  
-                  {(mode === "edit" ? editableStudents : user.students).map((student, index) => (
-                    <div key={student.id || index} className="existing-student-card">
-                      <div 
-                        className="student-card-header"
-                        onClick={() => toggleStudentDetails(index)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="student-basic-info">
-                          <span className="student-name">{student.fullName}</span>
-                        
-                        </div>
-                        <div className="expand-icon">
-                          {expandedStudents.has(index) ? <FaChevronDown /> : <FaChevronRight />}
-                        </div>
-                      </div>
-                      
-                      {expandedStudents.has(index) && (
-                        <div className="student-details">
-                          {mode === "edit" ? (
-                            // Editable form for edit mode
-                            <div className="student-edit-form">
-                              {/* Student Image Upload */}
-                              <div className="form-group">
-                                <label>Ảnh học sinh</label>
-                                <StudentImageUpload
-                                  student={student}
-                                  onImageUpload={handleImageUpload}
-                                  onImageDelete={handleImageDelete}
-                                  disabled={false}
-                                />
-                              </div>
+              {(mode === "view" || mode === "edit") &&
+                user &&
+                user.students &&
+                user.students.length > 0 && (
+                  <div className="form-section">
+                    <div className="section-header">
+                      <h3>
+                        <FaGraduationCap /> Danh sách học sinh hiện tại (
+                        {user.students.length} học sinh)
+                        {mode === "edit" && (
+                          <small
+                            className="field-note"
+                            style={{
+                              marginLeft: "10px",
+                              fontSize: "12px",
+                              fontWeight: "normal",
+                            }}
+                          >
+                            Click để chỉnh sửa thông tin học sinh
+                          </small>
+                        )}
+                      </h3>
+                      {mode === "edit" && (
+                        <button
+                          type="button"
+                          className="admin-btn-add-student"
+                          onClick={addNewStudent}
+                        >
+                          <FaPlus /> Thêm học sinh mới
+                        </button>
+                      )}
+                    </div>
 
-                              <div className="form-row">
-                                <div className="form-group">
-                                  <label>Họ tên <span className="required">*</span></label>
-                                  <input
-                                    type="text"
-                                    value={student.fullName || ""}
-                                    onChange={(e) => handleEditableStudentChange(index, "fullName", e.target.value)}
-                                    className={errors[`existingStudent_${index}_fullName`] ? "error" : ""}
-                                    placeholder="Nhập họ tên học sinh"
-                                  />
-                                  {errors[`existingStudent_${index}_fullName`] && (
-                                    <span className="error-message">{errors[`existingStudent_${index}_fullName`]}</span>
-                                  )}
-                                </div>
-                                <div className="form-group">
-                                  <label>Ngày sinh <span className="required">*</span></label>
-                                  <input
-                                    type="date"
-                                    value={student.dateOfBirth || ""}
-                                    onChange={(e) => handleEditableStudentChange(index, "dateOfBirth", e.target.value)}
-                                    className={errors[`existingStudent_${index}_dateOfBirth`] ? "error" : ""}
-                                  />
-                                  {errors[`existingStudent_${index}_dateOfBirth`] && (
-                                    <span className="error-message">{errors[`existingStudent_${index}_dateOfBirth`]}</span>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div className="form-row">
-                                <div className="form-group">
-                                  <label>Giới tính</label>
-                                  <select
-                                    value={student.gender || "Male"}
-                                    onChange={(e) => handleEditableStudentChange(index, "gender", e.target.value)}
-                                  >
-                                    <option value="Male">Nam</option>
-                                    <option value="Female">Nữ</option>
-                                  </select>
-                                </div>
-                                <div className="form-group">
-                                  <label>Lớp <span className="required">*</span></label>
-                                  <input
-                                    type="text"
-                                    value={student.className || ""}
-                                    onChange={(e) => handleEditableStudentChange(index, "className", e.target.value)}
-                                    className={errors[`existingStudent_${index}_className`] ? "error" : ""}
-                                    placeholder="5A, 6B, 10C..."
-                                  />
-                                  {errors[`existingStudent_${index}_className`] && (
-                                    <span className="error-message">{errors[`existingStudent_${index}_className`]}</span>
-                                  )}
-                                  {student.className && (
-                                    <small className="field-note">
-                                      Khối: {generateGradeLevel(student.className) || "Không xác định được từ tên lớp"}
-                                    </small>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div className="form-row">
-                                <div className="form-group">
-                                  <label>Mã học sinh</label>
-                                  <input
-                                    type="text"
-                                    value={student.studentId || ""}
-                                    disabled
-                                    className="disabled-field"
-                                    placeholder="Tự động tạo"
-                                  />
-                                  <small className="field-note">Mã học sinh không thể thay đổi</small>
-                                </div>
-                                <div className="form-group">
-                                  <label>Năm học</label>
-                                  <input
-                                    type="text"
-                                    value={student.schoolYear || ""}
-                                    onChange={(e) => handleEditableStudentChange(index, "schoolYear", e.target.value)}
-                                    placeholder="2024-2025"
-                                  />
-                                </div>
-                              </div>
+                    {(mode === "edit" ? editableStudents : user.students).map(
+                      (student, index) => (
+                        <div
+                          key={student.id || index}
+                          className="existing-student-card"
+                        >
+                          <div
+                            className="student-card-header"
+                            onClick={() => toggleStudentDetails(index)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <div className="student-basic-info">
+                              <span className="student-name">
+                                {student.fullName}
+                              </span>
                             </div>
-                          ) : (
-                            // Read-only display for view mode
-                            <div className="student-view-container">
-                              {/* Student Image Display */}
-                              <div className="student-image-section">
-                                <label>Ảnh học sinh</label>
-                                <StudentImageUpload
-                                  student={student}
-                                  onImageUpload={handleImageUpload}
-                                  onImageDelete={handleImageDelete}
-                                  disabled={true}
-                                />
-                              </div>
+                            <div className="expand-icon">
+                              {expandedStudents.has(index) ? (
+                                <FaChevronDown />
+                              ) : (
+                                <FaChevronRight />
+                              )}
+                            </div>
+                          </div>
 
-                              <div className="student-detail-grid">
-                              <div className="detail-item">
-                                <span className="detail-label">Mã học sinh:</span>
-                                <span className="detail-value">{student.studentId}</span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">Ngày sinh:</span>
-                                <span className="detail-value">{formatDate(student.dateOfBirth)}</span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">Giới tính:</span>
-                                <span className="detail-value">{student.gender === 'Male' ? 'Nam' : 'Nữ'}</span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">Lớp:</span>
-                                <span className="detail-value">{student.className}</span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">Khối:</span>
-                                <span className="detail-value">{student.gradeLevel}</span>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">Năm học:</span>
-                                <span className="detail-value">{student.schoolYear}</span>
-                              </div>
-                              </div>
+                          {expandedStudents.has(index) && (
+                            <div className="student-details">
+                              {mode === "edit" ? (
+                                // Editable form for edit mode
+                                <div className="student-edit-form">
+                                  {/* Student Image Upload */}
+                                  <div className="form-group">
+                                    <label>Ảnh học sinh</label>
+                                    <StudentImageUpload
+                                      student={student}
+                                      onImageUpload={handleImageUpload}
+                                      onImageDelete={handleImageDelete}
+                                      disabled={false}
+                                    />
+                                  </div>
+
+                                  <div className="form-row">
+                                    <div className="form-group">
+                                      <label>
+                                        Họ tên{" "}
+                                        <span className="required">*</span>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={student.fullName || ""}
+                                        onChange={(e) =>
+                                          handleEditableStudentChange(
+                                            index,
+                                            "fullName",
+                                            e.target.value
+                                          )
+                                        }
+                                        className={
+                                          errors[
+                                            `existingStudent_${index}_fullName`
+                                          ]
+                                            ? "error"
+                                            : ""
+                                        }
+                                        placeholder="Nhập họ tên học sinh"
+                                      />
+                                      {errors[
+                                        `existingStudent_${index}_fullName`
+                                      ] && (
+                                        <span className="error-message">
+                                          {
+                                            errors[
+                                              `existingStudent_${index}_fullName`
+                                            ]
+                                          }
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="form-group">
+                                      <label>
+                                        Ngày sinh{" "}
+                                        <span className="required">*</span>
+                                      </label>
+                                      <input
+                                        type="date"
+                                        value={student.dateOfBirth || ""}
+                                        onChange={(e) =>
+                                          handleEditableStudentChange(
+                                            index,
+                                            "dateOfBirth",
+                                            e.target.value
+                                          )
+                                        }
+                                        className={
+                                          errors[
+                                            `existingStudent_${index}_dateOfBirth`
+                                          ]
+                                            ? "error"
+                                            : ""
+                                        }
+                                      />
+                                      {errors[
+                                        `existingStudent_${index}_dateOfBirth`
+                                      ] && (
+                                        <span className="error-message">
+                                          {
+                                            errors[
+                                              `existingStudent_${index}_dateOfBirth`
+                                            ]
+                                          }
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="form-row">
+                                    <div className="form-group">
+                                      <label>Giới tính</label>
+                                      <select
+                                        value={student.gender || "Male"}
+                                        onChange={(e) =>
+                                          handleEditableStudentChange(
+                                            index,
+                                            "gender",
+                                            e.target.value
+                                          )
+                                        }
+                                      >
+                                        <option value="Male">Nam</option>
+                                        <option value="Female">Nữ</option>
+                                      </select>
+                                    </div>
+                                    <div className="form-group">
+                                      <label>
+                                        Lớp <span className="required">*</span>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={student.className || ""}
+                                        onChange={(e) =>
+                                          handleEditableStudentChange(
+                                            index,
+                                            "className",
+                                            e.target.value
+                                          )
+                                        }
+                                        className={
+                                          errors[
+                                            `existingStudent_${index}_className`
+                                          ]
+                                            ? "error"
+                                            : ""
+                                        }
+                                        placeholder="5A, 6B, 10C..."
+                                      />
+                                      {errors[
+                                        `existingStudent_${index}_className`
+                                      ] && (
+                                        <span className="error-message">
+                                          {
+                                            errors[
+                                              `existingStudent_${index}_className`
+                                            ]
+                                          }
+                                        </span>
+                                      )}
+                                      {student.className && (
+                                        <small className="field-note">
+                                          Khối:{" "}
+                                          {generateGradeLevel(
+                                            student.className
+                                          ) || "Không xác định được từ tên lớp"}
+                                        </small>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="form-row">
+                                    <div className="form-group">
+                                      <label>Mã học sinh</label>
+                                      <input
+                                        type="text"
+                                        value={student.studentId || ""}
+                                        disabled
+                                        className="disabled-field"
+                                        placeholder="Tự động tạo"
+                                      />
+                                      <small className="field-note">
+                                        Mã học sinh không thể thay đổi
+                                      </small>
+                                    </div>
+                                    <div className="form-group">
+                                      <label>Năm học</label>
+                                      <input
+                                        type="text"
+                                        value={student.schoolYear || ""}
+                                        onChange={(e) =>
+                                          handleEditableStudentChange(
+                                            index,
+                                            "schoolYear",
+                                            e.target.value
+                                          )
+                                        }
+                                        placeholder="2024-2025"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                // Read-only display for view mode
+                                <div className="student-view-container">
+                                  {/* Student Image Display */}
+                                  <div className="student-image-section">
+                                    <label>Ảnh học sinh</label>
+                                    <StudentImageUpload
+                                      student={student}
+                                      onImageUpload={handleImageUpload}
+                                      onImageDelete={handleImageDelete}
+                                      disabled={true}
+                                    />
+                                  </div>
+
+                                  <div className="student-detail-grid">
+                                    <div className="detail-item">
+                                      <span className="detail-label">
+                                        Mã học sinh:
+                                      </span>
+                                      <span className="detail-value">
+                                        {student.studentId}
+                                      </span>
+                                    </div>
+                                    <div className="detail-item">
+                                      <span className="detail-label">
+                                        Ngày sinh:
+                                      </span>
+                                      <span className="detail-value">
+                                        {formatDate(student.dateOfBirth)}
+                                      </span>
+                                    </div>
+                                    <div className="detail-item">
+                                      <span className="detail-label">
+                                        Giới tính:
+                                      </span>
+                                      <span className="detail-value">
+                                        {student.gender === "Male"
+                                          ? "Nam"
+                                          : "Nữ"}
+                                      </span>
+                                    </div>
+                                    <div className="detail-item">
+                                      <span className="detail-label">Lớp:</span>
+                                      <span className="detail-value">
+                                        {student.className}
+                                      </span>
+                                    </div>
+                                    <div className="detail-item">
+                                      <span className="detail-label">
+                                        Khối:
+                                      </span>
+                                      <span className="detail-value">
+                                        {student.gradeLevel}
+                                      </span>
+                                    </div>
+                                    <div className="detail-item">
+                                      <span className="detail-label">
+                                        Năm học:
+                                      </span>
+                                      <span className="detail-value">
+                                        {student.schoolYear}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                      )
+                    )}
+                  </div>
+                )}
 
               {/* New Students Section (Edit Mode Only) */}
-              {mode === "edit" && formData.role === "PARENT" && newStudents.length > 0 && (
+              {mode === "edit" &&
+                formData.role === "PARENT" &&
+                newStudents.length > 0 && (
+                  <div className="form-section">
+                    <div className="section-header">
+                      <h3>
+                        <FaUsers /> Thêm học sinh mới ({newStudents.length} học
+                        sinh)
+                      </h3>
+                    </div>
+
+                    {newStudents.map((student, index) => (
+                      <div key={index} className="student-form">
+                        <div className="student-header">
+                          <h4>Học sinh mới #{index + 1}</h4>
+                          <button
+                            type="button"
+                            className="admin-btn-remove-student"
+                            onClick={() => removeNewStudent(index)}
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>
+                              Họ tên <span className="required">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={student.fullName}
+                              onChange={(e) =>
+                                handleNewStudentChange(
+                                  index,
+                                  "fullName",
+                                  e.target.value
+                                )
+                              }
+                              className={
+                                errors[`newStudent_${index}_fullName`]
+                                  ? "error"
+                                  : ""
+                              }
+                              placeholder="Tên học sinh"
+                            />
+                            {errors[`newStudent_${index}_fullName`] && (
+                              <span className="error-message">
+                                {errors[`newStudent_${index}_fullName`]}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="form-group">
+                            <label>
+                              Ngày sinh <span className="required">*</span>
+                            </label>
+                            <input
+                              type="date"
+                              value={student.dateOfBirth}
+                              onChange={(e) =>
+                                handleNewStudentChange(
+                                  index,
+                                  "dateOfBirth",
+                                  e.target.value
+                                )
+                              }
+                              className={
+                                errors[`newStudent_${index}_dateOfBirth`]
+                                  ? "error"
+                                  : ""
+                              }
+                            />
+                            {errors[`newStudent_${index}_dateOfBirth`] && (
+                              <span className="error-message">
+                                {errors[`newStudent_${index}_dateOfBirth`]}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="form-group">
+                            <label>Giới tính</label>
+                            <select
+                              value={student.gender}
+                              onChange={(e) =>
+                                handleNewStudentChange(
+                                  index,
+                                  "gender",
+                                  e.target.value
+                                )
+                              }
+                            >
+                              <option value="Male">Nam</option>
+                              <option value="Female">Nữ</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>
+                              Lớp <span className="required">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={student.className}
+                              onChange={(e) =>
+                                handleNewStudentChange(
+                                  index,
+                                  "className",
+                                  e.target.value
+                                )
+                              }
+                              className={
+                                errors[`newStudent_${index}_className`]
+                                  ? "error"
+                                  : ""
+                              }
+                              placeholder="5A, 6B, 10C..."
+                            />
+                            {errors[`newStudent_${index}_className`] && (
+                              <span className="error-message">
+                                {errors[`newStudent_${index}_className`]}
+                              </span>
+                            )}
+                            {student.className && (
+                              <small className="field-note">
+                                Khối:{" "}
+                                {generateGradeLevel(student.className) ||
+                                  "Không xác định được từ tên lớp"}
+                              </small>
+                            )}
+                          </div>
+
+                          <div className="form-group">
+                            <label>Năm học</label>
+                            <input
+                              type="text"
+                              value={student.schoolYear}
+                              onChange={(e) =>
+                                handleNewStudentChange(
+                                  index,
+                                  "schoolYear",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="2024-2025"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              {/* Students Section */}
+              {mode === "add" && (
                 <div className="form-section">
                   <div className="section-header">
                     <h3>
-                      <FaUsers /> Thêm học sinh mới ({newStudents.length} học sinh)
+                      <FaUsers /> Thêm thông tin học sinh
                     </h3>
+                    {mode !== "view" && (
+                      <button
+                        type="button"
+                        className="admin-btn-add-student"
+                        onClick={addStudent}
+                      >
+                        <FaPlus /> Thêm học sinh
+                      </button>
+                    )}
                   </div>
 
-                  {newStudents.map((student, index) => (
+                  {formData.students.map((student, index) => (
                     <div key={index} className="student-form">
                       <div className="student-header">
-                        <h4>Học sinh mới #{index + 1}</h4>
-                        <button
-                          type="button"
-                          className="btn-remove-student"
-                          onClick={() => removeNewStudent(index)}
-                        >
-                          <FaTrash />
-                        </button>
+                        <h4>Sinh viên #{index + 1}</h4>
+                        {mode !== "view" && formData.students.length > 1 && (
+                          <button
+                            type="button"
+                            className="admin-btn-remove-student"
+                            onClick={() => removeStudent(index)}
+                          >
+                            <FaTrash />
+                          </button>
+                        )}
                       </div>
 
                       <div className="form-row">
@@ -1110,14 +1421,21 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                             type="text"
                             value={student.fullName}
                             onChange={(e) =>
-                              handleNewStudentChange(index, "fullName", e.target.value)
+                              handleStudentChange(
+                                index,
+                                "fullName",
+                                e.target.value
+                              )
                             }
-                            className={errors[`newStudent_${index}_fullName`] ? "error" : ""}
-                            placeholder="Tên học sinh"
+                            disabled={mode === "view"}
+                            className={
+                              errors[`student_${index}_fullName`] ? "error" : ""
+                            }
+                            placeholder="Tên sinh viên"
                           />
-                          {errors[`newStudent_${index}_fullName`] && (
+                          {errors[`student_${index}_fullName`] && (
                             <span className="error-message">
-                              {errors[`newStudent_${index}_fullName`]}
+                              {errors[`student_${index}_fullName`]}
                             </span>
                           )}
                         </div>
@@ -1130,13 +1448,22 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                             type="date"
                             value={student.dateOfBirth}
                             onChange={(e) =>
-                              handleNewStudentChange(index, "dateOfBirth", e.target.value)
+                              handleStudentChange(
+                                index,
+                                "dateOfBirth",
+                                e.target.value
+                              )
                             }
-                            className={errors[`newStudent_${index}_dateOfBirth`] ? "error" : ""}
+                            disabled={mode === "view"}
+                            className={
+                              errors[`student_${index}_dateOfBirth`]
+                                ? "error"
+                                : ""
+                            }
                           />
-                          {errors[`newStudent_${index}_dateOfBirth`] && (
+                          {errors[`student_${index}_dateOfBirth`] && (
                             <span className="error-message">
-                              {errors[`newStudent_${index}_dateOfBirth`]}
+                              {errors[`student_${index}_dateOfBirth`]}
                             </span>
                           )}
                         </div>
@@ -1146,8 +1473,13 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                           <select
                             value={student.gender}
                             onChange={(e) =>
-                              handleNewStudentChange(index, "gender", e.target.value)
+                              handleStudentChange(
+                                index,
+                                "gender",
+                                e.target.value
+                              )
                             }
+                            disabled={mode === "view"}
                           >
                             <option value="Male">Nam</option>
                             <option value="Female">Nữ</option>
@@ -1164,197 +1496,54 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                             type="text"
                             value={student.className}
                             onChange={(e) =>
-                              handleNewStudentChange(index, "className", e.target.value)
+                              handleStudentChange(
+                                index,
+                                "className",
+                                e.target.value
+                              )
                             }
-                            className={errors[`newStudent_${index}_className`] ? "error" : ""}
+                            disabled={mode === "view"}
+                            className={
+                              errors[`student_${index}_className`]
+                                ? "error"
+                                : ""
+                            }
                             placeholder="5A, 6B, 10C..."
                           />
-                          {errors[`newStudent_${index}_className`] && (
+                          {errors[`student_${index}_className`] && (
                             <span className="error-message">
-                              {errors[`newStudent_${index}_className`]}
+                              {errors[`student_${index}_className`]}
                             </span>
                           )}
+                          {/* Auto-generated grade level display */}
                           {student.className && (
                             <small className="field-note">
-                              Khối: {generateGradeLevel(student.className) || "Không xác định được từ tên lớp"}
+                              Khối:{" "}
+                              {generateGradeLevel(student.className) ||
+                                "Không xác định được từ tên lớp"}
                             </small>
                           )}
                         </div>
+                      </div>
 
-                        <div className="form-group">
-                          <label>Năm học</label>
-                          <input
-                            type="text"
-                            value={student.schoolYear}
-                            onChange={(e) =>
-                              handleNewStudentChange(index, "schoolYear", e.target.value)
-                            }
-                            placeholder="2024-2025"
-                          />
-                        </div>
+                      <div className="form-group">
+                        <label>Năm học</label>
+                        <input
+                          type="text"
+                          value={student.schoolYear}
+                          onChange={(e) =>
+                            handleStudentChange(
+                              index,
+                              "schoolYear",
+                              e.target.value
+                            )
+                          }
+                          disabled={mode === "view"}
+                          placeholder="2024-2025"
+                        />
                       </div>
                     </div>
                   ))}
-                </div>
-              )}
-
-              {/* Students Section */}
-              {mode === "add" && (
-                <div className="form-section">
-                  <div className="section-header">
-                    <h3>
-                      <FaUsers /> Thêm thông tin học sinh
-                    </h3>
-                  {mode !== "view" && (
-                    <button
-                      type="button"
-                      className="btn-add-student"
-                      onClick={addStudent}
-                    >
-                      <FaPlus /> Thêm học sinh
-                    </button>
-                  )}
-                </div>
-
-                {formData.students.map((student, index) => (
-                  <div key={index} className="student-form">
-                    <div className="student-header">
-                      <h4>Sinh viên #{index + 1}</h4>
-                      {mode !== "view" && formData.students.length > 1 && (
-                        <button
-                          type="button"
-                          className="btn-remove-student"
-                          onClick={() => removeStudent(index)}
-                        >
-                          <FaTrash />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>
-                          Họ tên <span className="required">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={student.fullName}
-                          onChange={(e) =>
-                            handleStudentChange(
-                              index,
-                              "fullName",
-                              e.target.value
-                            )
-                          }
-                          disabled={mode === "view"}
-                          className={
-                            errors[`student_${index}_fullName`] ? "error" : ""
-                          }
-                          placeholder="Tên sinh viên"
-                        />
-                        {errors[`student_${index}_fullName`] && (
-                          <span className="error-message">
-                            {errors[`student_${index}_fullName`]}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="form-group">
-                        <label>
-                          Ngày sinh <span className="required">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          value={student.dateOfBirth}
-                          onChange={(e) =>
-                            handleStudentChange(
-                              index,
-                              "dateOfBirth",
-                              e.target.value
-                            )
-                          }
-                          disabled={mode === "view"}
-                          className={
-                            errors[`student_${index}_dateOfBirth`]
-                              ? "error"
-                              : ""
-                          }
-                        />
-                        {errors[`student_${index}_dateOfBirth`] && (
-                          <span className="error-message">
-                            {errors[`student_${index}_dateOfBirth`]}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="form-group">
-                        <label>Giới tính</label>
-                        <select
-                          value={student.gender}
-                          onChange={(e) =>
-                            handleStudentChange(index, "gender", e.target.value)
-                          }
-                          disabled={mode === "view"}
-                        >
-                          <option value="Male">Nam</option>
-                          <option value="Female">Nữ</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>
-                          Lớp <span className="required">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={student.className}
-                          onChange={(e) =>
-                            handleStudentChange(
-                              index,
-                              "className",
-                              e.target.value
-                            )
-                          }
-                          disabled={mode === "view"}
-                          className={
-                            errors[`student_${index}_className`] ? "error" : ""
-                          }
-                          placeholder="5A, 6B, 10C..."
-                        />
-                        {errors[`student_${index}_className`] && (
-                          <span className="error-message">
-                            {errors[`student_${index}_className`]}
-                          </span>
-                        )}
-                        {/* Auto-generated grade level display */}
-                        {student.className && (
-                          <small className="field-note">
-                            Khối: {generateGradeLevel(student.className) || "Không xác định được từ tên lớp"}
-                          </small>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="form-group">
-                      <label>Năm học</label>
-                      <input
-                        type="text"
-                        value={student.schoolYear}
-                        onChange={(e) =>
-                          handleStudentChange(
-                            index,
-                            "schoolYear",
-                            e.target.value
-                          )
-                        }
-                        disabled={mode === "view"}
-                        placeholder="2024-2025"
-                      />
-                    </div>
-                  </div>
-                ))}
                 </div>
               )}
             </>
@@ -1419,7 +1608,8 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                 placeholder="Để trống nếu không muốn thay đổi mật khẩu"
               />
               <small className="field-note">
-                Chỉ nhập mật khẩu mới nếu muốn thay đổi. Để trống sẽ giữ nguyên mật khẩu cũ.
+                Chỉ nhập mật khẩu mới nếu muốn thay đổi. Để trống sẽ giữ nguyên
+                mật khẩu cũ.
               </small>
               {errors.password && (
                 <span className="error-message">{errors.password}</span>
@@ -1458,13 +1648,17 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
             </div>
           )} */}
 
-          <div className="modal-footer">
-            <button type="button" className="btn-cancel" onClick={onClose}>
+          <div className="admin-user-modal-footer">
+            <button
+              type="button"
+              className="admin-btn-cancel"
+              onClick={onClose}
+            >
               {mode === "view" ? "Đóng" : "Hủy"}
             </button>
 
             {mode !== "view" && (
-              <button type="submit" className="btn-save">
+              <button type="submit" className="admin-btn-save">
                 {mode === "add" ? "Thêm người dùng" : "Lưu thay đổi"}
               </button>
             )}

@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 import {
   FaEye,
@@ -64,10 +62,9 @@ const UserTable = ({
       <div className="table-header">
         <h3>Danh sách người dùng</h3>
         <span className="table-count">
-          {totalUsers > 0 
+          {totalUsers > 0
             ? `Trang ${currentPage} - ${users.length} người dùng (${totalUsers} tổng)`
-            : `${users.length} người dùng`
-          }
+            : `${users.length} người dùng`}
         </span>
       </div>
 
@@ -93,7 +90,6 @@ const UserTable = ({
                   <span className="user-id">{user.id}</span>
                 </td>
 
-              
                 <td className="col-email">
                   <span className="user-email">{user.email}</span>
                 </td>

@@ -126,9 +126,9 @@ const MedicationListView = ({ onBack }) => {
 
   if (loading) {
     return (
-      <div className="medication-list-container">
-        <div className="loading-section">
-          <i className="fas fa-spinner fa-spin fa-2x"></i>
+      <div className="reports-medication-list-container">
+        <div className="reports-medication-loading-section">
+          <div className="reports-medication-loading-spinner"></div>
           <p>Đang tải danh sách thuốc...</p>
         </div>
       </div>
@@ -136,58 +136,60 @@ const MedicationListView = ({ onBack }) => {
   }
 
   return (
-    <div className="medication-list-container">
+    <div className="reports-medication-list-container">
       {/* Header */}
-      <div className="medication-header">
-        <div className="header-actions">
-          <button className="back-button" onClick={onBack}>
+      <div className="reports-medication-header">
+        <div className="reports-medication-header-actions">
+          <button className="reports-medication-back-button" onClick={onBack}>
             <i className="fas fa-arrow-left"></i> Quay lại
           </button>
-          <h2>
+          <h2 className="reports-medication-title">
             <i className="fas fa-pills"></i> Báo cáo thuốc và vật tư y tế
           </h2>
         </div>
-        <p>Danh sách tất cả thuốc và vật tư y tế trong kho</p>
+        <p className="reports-medication-subtitle">
+          Danh sách tất cả thuốc và vật tư y tế trong kho
+        </p>
       </div>
 
       {/* Statistics Cards */}
       {statistics && (
-        <div className="medication-stats">
-          <div className="stat-card total">
-            <div className="stat-icon">
+        <div className="reports-medication-stats">
+          <div className="reports-medication-stat-card reports-medication-total">
+            <div className="reports-medication-stat-icon">
               <i className="fas fa-pills"></i>
             </div>
-            <div className="stat-content">
+            <div className="reports-medication-stat-content">
               <h3>{statistics.total}</h3>
               <p>Tổng số loại thuốc</p>
             </div>
           </div>
 
-          <div className="stat-card low-stock">
-            <div className="stat-icon">
+          <div className="reports-medication-stat-card reports-medication-low-stock">
+            <div className="reports-medication-stat-icon">
               <i className="fas fa-exclamation-triangle"></i>
             </div>
-            <div className="stat-content">
+            <div className="reports-medication-stat-content">
               <h3>{statistics.lowStock}</h3>
               <p>Sắp hết hàng</p>
             </div>
           </div>
 
-          <div className="stat-card near-expiry">
-            <div className="stat-icon">
+          <div className="reports-medication-stat-card reports-medication-near-expiry">
+            <div className="reports-medication-stat-icon">
               <i className="fas fa-calendar-times"></i>
             </div>
-            <div className="stat-content">
+            <div className="reports-medication-stat-content">
               <h3>{statistics.nearExpiry}</h3>
               <p>Sắp hết hạn</p>
             </div>
           </div>
 
-          <div className="stat-card types">
-            <div className="stat-icon">
+          <div className="reports-medication-stat-card reports-medication-types">
+            <div className="reports-medication-stat-icon">
               <i className="fas fa-tags"></i>
             </div>
-            <div className="stat-content">
+            <div className="reports-medication-stat-content">
               <h3>{Object.keys(statistics.byType).length}</h3>
               <p>Loại thuốc</p>
             </div>
@@ -196,9 +198,9 @@ const MedicationListView = ({ onBack }) => {
       )}
 
       {/* Filters */}
-      <div className="medication-filters">
-        <div className="filter-group">
-          <div className="search-box">
+      <div className="reports-medication-filters">
+        <div className="reports-medication-filter-group">
+          <div className="reports-medication-search-box">
             <i className="fas fa-search"></i>
             <input
               type="text"
@@ -211,7 +213,7 @@ const MedicationListView = ({ onBack }) => {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="filter-select"
+            className="reports-medication-filter-select"
           >
             <option value="all">Tất cả loại</option>
             {uniqueTypes.map((type) => (
@@ -224,7 +226,7 @@ const MedicationListView = ({ onBack }) => {
           <select
             value={stockFilter}
             onChange={(e) => setStockFilter(e.target.value)}
-            className="filter-select"
+            className="reports-medication-filter-select"
           >
             <option value="all">Tất cả tình trạng</option>
             <option value="low">Sắp hết hàng</option>
@@ -232,7 +234,7 @@ const MedicationListView = ({ onBack }) => {
           </select>
         </div>
 
-        <div className="results-count">
+        <div className="reports-medication-results-count">
           Hiển thị {filteredMedications.length} / {medications.length} loại
           thuốc
         </div>
@@ -240,7 +242,7 @@ const MedicationListView = ({ onBack }) => {
 
       {/* Error Message */}
       {error && (
-        <div className="error-message">
+        <div className="reports-medication-error-message">
           <i className="fas fa-exclamation-circle"></i>
           <span>{error}</span>
           <button onClick={fetchMedications}>Thử lại</button>
@@ -249,39 +251,40 @@ const MedicationListView = ({ onBack }) => {
 
       {/* Medication Table */}
       {filteredMedications.length > 0 ? (
-        <div className="medication-table-container">
-          <table
-            className="medication-table"
-            cellSpacing="0"
-            cellPadding="0"
-            border="1"
-          >
+        <div className="reports-medication-table-container">
+          <table className="reports-medication-table">
             <thead>
               <tr>
-                <th width="50">ID</th>
-                <th width="250">Tên thuốc</th>
-                <th width="100">Loại</th>
-                <th width="80">Đơn vị</th>
-                <th width="80">Tồn kho</th>
-                <th width="100">Hết hạn</th>
-                <th width="120">Trạng thái</th>
-                <th width="80">Hành động</th>
+                <th>STT</th>
+                <th>Tên thuốc</th>
+                <th>Loại</th>
+                <th>Đơn vị</th>
+                <th>Tồn kho</th>
+                <th>Hết hạn</th>
+                <th>Trạng thái kho</th>
+                <th>Trạng thái hạn</th>
+                <th>Hành động</th>
               </tr>
             </thead>
             <tbody>
-              {filteredMedications.map((medication) => {
+              {filteredMedications.map((medication, index) => {
                 const stockStatus = getStockStatus(medication.stockQuantity);
                 const expiryStatus = getExpiryStatus(medication.expiryDate);
 
                 return (
-                  <tr key={medication.itemId} className="medication-row">
-                    <td style={{ textAlign: "center" }}>
-                      {medication.itemId || "-"}
+                  <tr
+                    key={medication.itemId}
+                    className="reports-medication-table-row"
+                  >
+                    <td className="reports-medication-table-stt">
+                      {index + 1}
                     </td>
-                    <td>
-                      <div>
-                        <strong>{medication.itemName || "Chưa có tên"}</strong>
-                        <div style={{ fontSize: "12px", color: "#666" }}>
+                    <td className="reports-medication-table-name">
+                      <div className="reports-medication-name-info">
+                        <strong className="reports-medication-item-name">
+                          {medication.itemName || "Chưa có tên"}
+                        </strong>
+                        <div className="reports-medication-item-description">
                           {medication.itemDescription &&
                           medication.itemDescription.length > 60
                             ? `${medication.itemDescription.substring(
@@ -292,149 +295,49 @@ const MedicationListView = ({ onBack }) => {
                         </div>
                       </div>
                     </td>
-                    <td style={{ textAlign: "center" }}>
-                      <span
-                        style={{
-                          background: "#e9ecef",
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          fontSize: "11px",
-                        }}
-                      >
+                    <td className="reports-medication-table-type">
+                      <span className="reports-medication-type-badge">
                         {medication.itemType || "N/A"}
                       </span>
                     </td>
-                    <td style={{ textAlign: "center" }}>
+                    <td className="reports-medication-table-unit">
                       {medication.unit || "N/A"}
                     </td>
-                    <td style={{ textAlign: "center" }}>
+                    <td className="reports-medication-table-stock">
                       <span
-                        style={{
-                          background:
-                            stockStatus.class === "out-of-stock"
-                              ? "#f8d7da"
-                              : stockStatus.class === "low-stock"
-                              ? "#fff3cd"
-                              : "#d4edda",
-                          color:
-                            stockStatus.class === "out-of-stock"
-                              ? "#721c24"
-                              : stockStatus.class === "low-stock"
-                              ? "#856404"
-                              : "#155724",
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          fontWeight: "bold",
-                          display: "inline-block",
-                        }}
+                        className={`reports-medication-stock-badge reports-medication-${stockStatus.class}`}
                       >
                         {typeof medication.stockQuantity === "number"
                           ? medication.stockQuantity
                           : "N/A"}
                       </span>
                     </td>
-                    <td style={{ textAlign: "center" }}>
+                    <td className="reports-medication-table-expiry">
                       <span
-                        style={{
-                          background:
-                            expiryStatus.class === "expired" ||
-                            expiryStatus.class === "expiring-soon"
-                              ? "#f8d7da"
-                              : expiryStatus.class === "expiring-warning"
-                              ? "#fff3cd"
-                              : "#d4edda",
-                          color:
-                            expiryStatus.class === "expired" ||
-                            expiryStatus.class === "expiring-soon"
-                              ? "#721c24"
-                              : expiryStatus.class === "expiring-warning"
-                              ? "#856404"
-                              : "#155724",
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          fontWeight: "bold",
-                          display: "inline-block",
-                        }}
+                        className={`reports-medication-expiry-badge reports-medication-${expiryStatus.class}`}
                       >
                         {medication.expiryDate
                           ? formatDate(medication.expiryDate)
                           : "N/A"}
                       </span>
                     </td>
-                    <td style={{ textAlign: "center" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "3px",
-                          alignItems: "center",
-                        }}
+                    <td className="reports-medication-table-stock-status">
+                      <span
+                        className={`reports-medication-status-badge reports-medication-${stockStatus.class}`}
                       >
-                        <span
-                          style={{
-                            background:
-                              stockStatus.class === "out-of-stock"
-                                ? "#f8d7da"
-                                : stockStatus.class === "low-stock"
-                                ? "#fff3cd"
-                                : "#d4edda",
-                            color:
-                              stockStatus.class === "out-of-stock"
-                                ? "#721c24"
-                                : stockStatus.class === "low-stock"
-                                ? "#856404"
-                                : "#155724",
-                            padding: "2px 6px",
-                            borderRadius: "3px",
-                            fontSize: "10px",
-                            fontWeight: "bold",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {stockStatus.text}
-                        </span>
-                        <span
-                          style={{
-                            background:
-                              expiryStatus.class === "expired" ||
-                              expiryStatus.class === "expiring-soon"
-                                ? "#f8d7da"
-                                : expiryStatus.class === "expiring-warning"
-                                ? "#fff3cd"
-                                : "#d4edda",
-                            color:
-                              expiryStatus.class === "expired" ||
-                              expiryStatus.class === "expiring-soon"
-                                ? "#721c24"
-                                : expiryStatus.class === "expiring-warning"
-                                ? "#856404"
-                                : "#155724",
-                            padding: "2px 6px",
-                            borderRadius: "3px",
-                            fontSize: "10px",
-                            fontWeight: "bold",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {expiryStatus.text}
-                        </span>
-                      </div>
+                        {stockStatus.text}
+                      </span>
                     </td>
-                    <td style={{ textAlign: "center" }}>
+                    <td className="reports-medication-table-expiry-status">
+                      <span
+                        className={`reports-medication-status-badge reports-medication-${expiryStatus.class}`}
+                      >
+                        {expiryStatus.text}
+                      </span>
+                    </td>
+                    <td className="reports-medication-table-actions">
                       <button
-                        style={{
-                          background: "#007bff",
-                          color: "white",
-                          border: "none",
-                          padding: "6px",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "30px",
-                          height: "30px",
-                        }}
+                        className="reports-medication-action-button"
                         onClick={() => handleViewDetail(medication)}
                         title="Xem chi tiết"
                       >
@@ -448,7 +351,7 @@ const MedicationListView = ({ onBack }) => {
           </table>
         </div>
       ) : (
-        <div className="no-data">
+        <div className="reports-medication-no-data">
           <i className="fas fa-pills fa-3x"></i>
           <h3>Không tìm thấy thuốc nào</h3>
           <p>

@@ -1,9 +1,20 @@
-const API_BASE_URL = "http://localhost:8080/api/v1";
+const API_BASE_URL = "/api/v1";
+
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('authToken');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+};
 
 class VaccineService {
   async getAllVaccines() {
     try {
-      const response = await fetch(`${API_BASE_URL}/vaccines/getAllVaccine`);
+      const response = await fetch(`${API_BASE_URL}/vaccines/getAllVaccine`, {
+        headers: getAuthHeaders()
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

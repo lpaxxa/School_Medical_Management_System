@@ -1,0 +1,480 @@
+/* Medication Detail Modal Styles */
+.reports-medication-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  animation: overlayFadeIn 0.3s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.reports-medication-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 
+    0 40px 80px rgba(0, 0, 0, 0.25),
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.reports-medication-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  padding: 30px 35px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.reports-medication-modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+  animation: shimmer 3s infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.reports-medication-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.reports-medication-modal-title i {
+  font-size: 28px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.reports-medication-modal-title h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.reports-medication-close-button {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+}
+
+.reports-medication-close-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Body */
+.reports-medication-modal-body {
+  padding: 0;
+  max-height: calc(90vh - 140px);
+  overflow-y: auto;
+}
+
+.reports-medication-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reports-medication-modal-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.reports-medication-modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.reports-medication-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Info Sections */
+.reports-medication-info-section {
+  padding: 25px 30px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.reports-medication-info-section:last-child {
+  border-bottom: none;
+}
+
+.reports-medication-info-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.reports-medication-info-section h3 i {
+  color: #4f46e5;
+  font-size: 20px;
+}
+
+/* Basic Information Grid */
+.reports-medication-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.reports-medication-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reports-medication-info-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reports-medication-info-item span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Medication ID Badge */
+.reports-medication-id-badge {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Medication Name */
+.reports-medication-name {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Medication Type */
+.reports-medication-type {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white !important;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+}
+
+/* Dosage Form */
+.reports-medication-dosage-form {
+  background: #f3f4f6;
+  color: #374151;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #d1d5db;
+}
+
+/* Stock Information */
+.reports-medication-stock-info {
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-radius: 16px;
+  padding: 25px;
+  border: 1px solid #e2e8f0;
+}
+
+.reports-medication-stock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.reports-medication-stock-item {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.reports-medication-stock-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+}
+
+.reports-medication-stock-item label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+.reports-medication-stock-item span {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #1f2937 !important;
+}
+
+/* Stock Status Colors */
+.reports-medication-stock-high {
+  border-left: 4px solid #10b981;
+}
+
+.reports-medication-stock-high span {
+  color: #059669 !important;
+}
+
+.reports-medication-stock-medium {
+  border-left: 4px solid #f59e0b;
+}
+
+.reports-medication-stock-medium span {
+  color: #d97706 !important;
+}
+
+.reports-medication-stock-low {
+  border-left: 4px solid #ef4444;
+}
+
+.reports-medication-stock-low span {
+  color: #dc2626 !important;
+}
+
+.reports-medication-stock-out {
+  border-left: 4px solid #6b7280;
+  background: #f9fafb;
+}
+
+.reports-medication-stock-out span {
+  color: #374151 !important;
+}
+
+/* Unit Price */
+.reports-medication-unit-price {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Total Value */
+.reports-medication-total-value {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white !important;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700 !important;
+  font-size: 18px !important;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+  text-align: center;
+}
+
+/* Expiry Information */
+.reports-medication-expiry-info {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 16px;
+  padding: 25px;
+  border: 1px solid #f59e0b;
+}
+
+.reports-medication-expiry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+.reports-medication-expiry-item {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #fbbf24;
+  text-align: center;
+}
+
+.reports-medication-expiry-item label {
+  color: #92400e !important;
+  font-weight: 600 !important;
+}
+
+.reports-medication-expiry-item span {
+  color: #78350f !important;
+  font-weight: 700 !important;
+}
+
+/* Supplier Information */
+.reports-medication-supplier-info {
+  background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+  border-radius: 16px;
+  padding: 25px;
+  border: 1px solid #0284c7;
+}
+
+.reports-medication-supplier-item {
+  background: white;
+  padding: 15px 20px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border-left: 4px solid #0284c7;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.1);
+}
+
+.reports-medication-supplier-item label {
+  color: #0c4a6e !important;
+  font-weight: 600 !important;
+}
+
+.reports-medication-supplier-item span {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+/* Contact Information */
+.reports-medication-contact {
+  color: #1e40af !important;
+  text-decoration: underline;
+  font-weight: 600 !important;
+}
+
+.reports-medication-contact:hover {
+  color: #1d4ed8 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .reports-medication-modal {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+    border-radius: 16px;
+  }
+
+  .reports-medication-modal-header {
+    padding: 20px 25px;
+  }
+
+  .reports-medication-modal-title h2 {
+    font-size: 22px;
+  }
+
+  .reports-medication-info-grid,
+  .reports-medication-stock-grid,
+  .reports-medication-expiry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reports-medication-info-section {
+    padding: 20px 25px;
+  }
+}
+
+@media (max-width: 480px) {
+  .reports-medication-modal {
+    margin: 5px;
+    max-width: calc(100vw - 10px);
+    max-height: calc(100vh - 10px);
+  }
+
+  .reports-medication-modal-header {
+    padding: 15px 20px;
+  }
+
+  .reports-medication-modal-title {
+    gap: 10px;
+  }
+
+  .reports-medication-modal-title h2 {
+    font-size: 18px;
+  }
+
+  .reports-medication-modal-title i {
+    font-size: 20px;
+  }
+
+  .reports-medication-info-section {
+    padding: 15px 20px;
+  }
+
+  .reports-medication-stock-info,
+  .reports-medication-expiry-info,
+  .reports-medication-supplier-info {
+    padding: 20px;
+  }
+}

@@ -1,0 +1,159 @@
+/* Admin Error Modal Styles - Namespaced to avoid conflicts */
+.admin-error-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10002; /* Higher than success modal */
+  animation: admin-error-fadeIn 0.3s ease-out;
+}
+
+.admin-error-modal-content {
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: admin-error-slideIn 0.3s ease-out;
+  border: none;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
+  border-radius: 16px;
+}
+
+.admin-error-modal-body {
+  text-align: center;
+  padding: 40px 30px;
+}
+
+.admin-error-icon {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 25px;
+  font-size: 3rem;
+  color: white;
+  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+  animation: admin-error-pulse 2s ease-in-out infinite;
+}
+
+@keyframes admin-error-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(239, 68, 68, 0.5);
+  }
+}
+
+.admin-error-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ef4444;
+  margin: 20px 0 15px;
+}
+
+.admin-error-message {
+  font-size: 1.1rem;
+  color: #374151;
+  margin: 15px 0;
+  line-height: 1.5;
+}
+
+.admin-error-details {
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 15px 0;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.admin-error-modal-footer {
+  padding: 20px 30px;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-error-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: none;
+  padding: 12px 30px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  min-width: 120px;
+}
+
+.admin-error-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.admin-error-btn:active {
+  transform: translateY(0);
+}
+
+/* Animations */
+@keyframes admin-error-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes admin-error-slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .admin-error-modal-content {
+    margin: 10px;
+    max-width: none;
+  }
+  
+  .admin-error-modal-body,
+  .admin-error-modal-footer {
+    padding: 30px 20px;
+  }
+  
+  .admin-error-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 2.5rem;
+  }
+  
+  .admin-error-title {
+    font-size: 1.3rem;
+  }
+  
+  .admin-error-message {
+    font-size: 1rem;
+  }
+}

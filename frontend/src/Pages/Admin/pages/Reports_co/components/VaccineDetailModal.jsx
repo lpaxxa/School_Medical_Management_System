@@ -77,69 +77,81 @@ const VaccineDetailModal = ({ vaccine, onClose }) => {
   const ageInfo = getAgeGroupInfo();
 
   return (
-    <div className="vaccine-modal-backdrop" onClick={handleBackdropClick}>
-      <div className="vaccine-modal-container">
-        <div className="vaccine-modal-header">
-          <div className="modal-title-section">
-            <h2>
-              <i className="fas fa-syringe"></i>
-              Chi tiết vaccine
-            </h2>
-            <span className="vaccine-id">ID: {vaccine.id}</span>
+    <div
+      className="reports-vaccine-modal-backdrop"
+      onClick={handleBackdropClick}
+    >
+      <div className="reports-vaccine-modal-container">
+        <div className="reports-vaccine-modal-header">
+          <div className="reports-vaccine-modal-title">
+            <i className="fas fa-syringe"></i>
+            <h2>Chi tiết vaccine</h2>
           </div>
-          <button className="modal-close-btn" onClick={onClose}>
+          <button className="reports-vaccine-modal-close-btn" onClick={onClose}>
             <i className="fas fa-times"></i>
           </button>
         </div>
 
-        <div className="vaccine-modal-content">
+        <div className="reports-vaccine-modal-body">
           {/* Basic Information */}
-          <div className="info-section">
+          <div className="reports-vaccine-info-section">
             <h3>
               <i className="fas fa-info-circle"></i>
               Thông tin cơ bản
             </h3>
-            <div className="info-grid">
-              <div className="info-item full-width">
+            <div className="reports-vaccine-info-grid">
+              <div className="reports-vaccine-info-item reports-vaccine-full-width">
                 <label>Tên vaccine:</label>
-                <div className="vaccine-name-display">
+                <div className="reports-vaccine-name-display">
                   <strong>{vaccine.name}</strong>
-                  <span className={`status-indicator ${statusInfo.class}`}>
+                  <span
+                    className={`reports-vaccine-status-indicator ${statusInfo.class}`}
+                  >
                     <i className={statusInfo.icon}></i>
                     {statusInfo.text}
                   </span>
                 </div>
               </div>
 
-              <div className="info-item full-width">
+              <div className="reports-vaccine-info-item reports-vaccine-full-width">
                 <label>Mô tả:</label>
-                <div className="description-box">{vaccine.description}</div>
+                <div className="reports-vaccine-description-box">
+                  {vaccine.description}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Age Group Information */}
-          <div className="info-section">
+          <div className="reports-vaccine-info-section">
             <h3>
               <i className="fas fa-users"></i>
               Thông tin độ tuổi
             </h3>
-            <div className="age-info-card">
-              <div className="age-category">
-                <span className="category-badge">{ageInfo.category}</span>
-                <span className="age-range">{ageInfo.range}</span>
+            <div className="reports-vaccine-age-info-card">
+              <div className="reports-vaccine-age-category">
+                <span className="reports-vaccine-category-badge">
+                  {ageInfo.category}
+                </span>
+                <span className="reports-vaccine-age-range">
+                  {ageInfo.range}
+                </span>
               </div>
-              <p className="age-description">{ageInfo.description}</p>
-              <div className="age-details">
-                <div className="age-detail-item">
-                  <span className="label">Độ tuổi tối thiểu:</span>
-                  <span className="value">
+              <p className="reports-vaccine-age-description">
+                {ageInfo.description}
+              </p>
+              <div className="reports-vaccine-age-details">
+                <div className="reports-vaccine-age-detail-item">
+                  <span className="reports-vaccine-label">
+                    Độ tuổi tối thiểu:
+                  </span>
+                  <span className="reports-vaccine-value">
                     {vaccineService.monthsToAgeText(vaccine.minAgeMonths)}
                   </span>
                 </div>
-                <div className="age-detail-item">
-                  <span className="label">Độ tuổi tối đa:</span>
-                  <span className="value">
+                <div className="reports-vaccine-age-detail-item">
+                  <span className="reports-vaccine-label">Độ tuổi tối đa:</span>
+                  <span className="reports-vaccine-value">
                     {vaccineService.monthsToAgeText(vaccine.maxAgeMonths)}
                   </span>
                 </div>
@@ -148,30 +160,38 @@ const VaccineDetailModal = ({ vaccine, onClose }) => {
           </div>
 
           {/* Dosage Information */}
-          <div className="info-section">
+          <div className="reports-vaccine-info-section">
             <h3>
               <i className="fas fa-calendar-alt"></i>
               Thông tin liều tiêm
             </h3>
-            <div className="dosage-info-card">
-              <div className="dosage-header">
-                <span className="dosage-type">{dosageInfo.type}</span>
-                <span className="total-doses">{vaccine.totalDoses} liều</span>
+            <div className="reports-vaccine-dosage-info-card">
+              <div className="reports-vaccine-dosage-header">
+                <span className="reports-vaccine-dosage-type">
+                  {dosageInfo.type}
+                </span>
+                <span className="reports-vaccine-total-doses">
+                  {vaccine.totalDoses} liều
+                </span>
               </div>
-              <p className="dosage-description">{dosageInfo.schedule}</p>
-              <div className="dosage-details">
-                <div className="dosage-detail-item">
+              <p className="reports-vaccine-dosage-description">
+                {dosageInfo.schedule}
+              </p>
+              <div className="reports-vaccine-dosage-details">
+                <div className="reports-vaccine-dosage-detail-item">
                   <i className="fas fa-syringe"></i>
                   <div>
-                    <span className="label">Tổng số liều:</span>
-                    <span className="value">{vaccine.totalDoses} liều</span>
+                    <span className="reports-vaccine-label">Tổng số liều:</span>
+                    <span className="reports-vaccine-value">
+                      {vaccine.totalDoses} liều
+                    </span>
                   </div>
                 </div>
-                <div className="dosage-detail-item">
+                <div className="reports-vaccine-dosage-detail-item">
                   <i className="fas fa-clock"></i>
                   <div>
-                    <span className="label">Khoảng cách:</span>
-                    <span className="value">
+                    <span className="reports-vaccine-label">Khoảng cách:</span>
+                    <span className="reports-vaccine-value">
                       {vaccine.intervalDays > 0
                         ? `${vaccine.intervalDays} ngày`
                         : "Không có khoảng cách"}
@@ -183,48 +203,60 @@ const VaccineDetailModal = ({ vaccine, onClose }) => {
           </div>
 
           {/* Status Information */}
-          <div className="info-section">
+          <div className="reports-vaccine-info-section">
             <h3>
               <i className="fas fa-toggle-on"></i>
               Trạng thái sử dụng
             </h3>
-            <div className={`status-info-card ${statusInfo.class}`}>
-              <div className="status-header">
+            <div
+              className={`reports-vaccine-status-info-card ${statusInfo.class}`}
+            >
+              <div className="reports-vaccine-status-header">
                 <i className={statusInfo.icon}></i>
-                <span className="status-text">{statusInfo.text}</span>
+                <span className="reports-vaccine-status-text">
+                  {statusInfo.text}
+                </span>
               </div>
-              <p className="status-description">{statusInfo.description}</p>
+              <p className="reports-vaccine-status-description">
+                {statusInfo.description}
+              </p>
             </div>
           </div>
 
           {/* Additional Information */}
-          <div className="info-section">
+          <div className="reports-vaccine-info-section">
             <h3>
               <i className="fas fa-notes-medical"></i>
               Thông tin bổ sung
             </h3>
-            <div className="additional-info">
-              <div className="info-row">
-                <span className="label">Mã vaccine:</span>
-                <span className="value">
+            <div className="reports-vaccine-additional-info">
+              <div className="reports-vaccine-info-row">
+                <span className="reports-vaccine-label">Mã vaccine:</span>
+                <span className="reports-vaccine-value">
                   VCN-{String(vaccine.id).padStart(4, "0")}
                 </span>
               </div>
-              <div className="info-row">
-                <span className="label">Loại vaccine:</span>
-                <span className="value">
+              <div className="reports-vaccine-info-row">
+                <span className="reports-vaccine-label">Loại vaccine:</span>
+                <span className="reports-vaccine-value">
                   {vaccine.totalDoses === 1
                     ? "Vaccine một liều"
                     : "Vaccine đa liều"}
                 </span>
               </div>
-              <div className="info-row">
-                <span className="label">Phân loại theo tuổi:</span>
-                <span className="value">{ageInfo.category}</span>
+              <div className="reports-vaccine-info-row">
+                <span className="reports-vaccine-label">
+                  Phân loại theo tuổi:
+                </span>
+                <span className="reports-vaccine-value">
+                  {ageInfo.category}
+                </span>
               </div>
-              <div className="info-row">
-                <span className="label">Tình trạng:</span>
-                <span className={`value status-${statusInfo.class}`}>
+              <div className="reports-vaccine-info-row">
+                <span className="reports-vaccine-label">Tình trạng:</span>
+                <span
+                  className={`reports-vaccine-value reports-vaccine-status-${statusInfo.class}`}
+                >
                   {statusInfo.text}
                 </span>
               </div>
@@ -232,8 +264,8 @@ const VaccineDetailModal = ({ vaccine, onClose }) => {
           </div>
         </div>
 
-        <div className="vaccine-modal-footer">
-          <button className="btn-secondary" onClick={onClose}>
+        <div className="reports-vaccine-modal-footer">
+          <button className="reports-vaccine-btn-secondary" onClick={onClose}>
             <i className="fas fa-times"></i>
             Đóng
           </button>

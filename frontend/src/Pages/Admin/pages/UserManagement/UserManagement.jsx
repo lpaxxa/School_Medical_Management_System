@@ -17,7 +17,11 @@ import axios from "axios";
 import UserTable from "./components/UserTable";
 import UserModal from "./components/UserModal";
 import SuccessModal from "../../components/SuccessModal";
+import ErrorModal from "../../components/ErrorModal";
+import ConfirmModal from "../../components/ConfirmModal";
 import { useSuccessModal } from "../../hooks/useSuccessModal";
+import { useErrorModal } from "../../hooks/useErrorModal";
+import { useConfirmModal } from "../../hooks/useConfirmModal";
 import { useAuth } from "../../../../context/AuthContext";
 import {
   getAllUsers,
@@ -34,13 +38,27 @@ import "./UserManagement.css";
 const UserManagement = () => {
   const { currentUser } = useAuth(); // Lấy thông tin user hiện tại
 
-  // Success modal hook
+  // Modal hooks
   const {
     isOpen: isSuccessOpen,
     modalData: successData,
     showSuccess,
     hideSuccess,
   } = useSuccessModal();
+
+  const {
+    isOpen: isErrorOpen,
+    modalData: errorData,
+    showError,
+    hideError,
+  } = useErrorModal();
+
+  const {
+    isOpen: isConfirmOpen,
+    modalData: confirmData,
+    showConfirm,
+    hideConfirm,
+  } = useConfirmModal();
 
   // State cho dữ liệu người dùng
   const [users, setUsers] = useState([]);
@@ -263,7 +281,7 @@ const UserManagement = () => {
   // Xử lý tìm kiếm và lọc
   useEffect(() => {
     let result = [...users];
-    
+
     console.log("=== FILTERING DEBUG ===");
     console.log("Total users:", users.length);
     console.log("statusFilter:", statusFilter);
@@ -275,14 +293,17 @@ const UserManagement = () => {
     if (statusFilter !== "all") {
       const statusValue = statusFilter === "active";
       console.log("Filtering by status:", statusValue);
-      
+
       // Debug: Show isActive values for first few users
-      console.log("Sample user isActive values:", users.slice(0, 3).map(u => ({
-        username: u.username,
-        isActive: u.isActive,
-        typeof: typeof u.isActive
-      })));
-      
+      console.log(
+        "Sample user isActive values:",
+        users.slice(0, 3).map((u) => ({
+          username: u.username,
+          isActive: u.isActive,
+          typeof: typeof u.isActive,
+        }))
+      );
+
       result = result.filter((user) => user.isActive === statusValue);
       console.log("After status filter:", result.length);
     }
@@ -315,7 +336,7 @@ const UserManagement = () => {
   // Handle pagination when filteredUsers changes
   useEffect(() => {
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-    
+
     // Reset to page 1 if current page is out of bounds
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
@@ -325,7 +346,7 @@ const UserManagement = () => {
     // Calculate start and end indices for current page
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    
+
     // Get users for current page
     const usersForCurrentPage = filteredUsers.slice(startIndex, endIndex);
     setPaginatedUsers(usersForCurrentPage);
@@ -355,38 +376,64 @@ const UserManagement = () => {
     const user = users.find((u) => u.id === userId);
     const userName = user ? user.username : userId;
 
-    if (
-      window.confirm(
-        `Bạn có chắc chắn muốn xóa người dùng "${userName}" (ID: ${userId})?\n\nLưu ý: Hành động này không thể hoàn tác!`
-      )
-    ) {
-      try {
-        console.log("Deleting user:", { userId, userName });
-        await deleteUser(userId);
-        await loadUsers(); // Reload data sau khi xóa
-        alert(`Xóa người dùng "${userName}" thành công!`);
-      } catch (error) {
-        console.error("Error deleting user:", error);
-        if (error.message.includes("Unauthorized")) {
-          setAuthRequired(true);
-          alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-        } else if (error.message.includes("Forbidden")) {
-          alert("Bạn không có quyền xóa người dùng này.");
-        } else if (error.message.includes("không tồn tại")) {
-          alert("Người dùng không tồn tại hoặc đã bị xóa.");
-          await loadUsers(); // Reload để sync data
-        } else {
-          alert(`Có lỗi xảy ra khi xóa người dùng: ${error.message}`);
+    showConfirm(
+      "Xác nhận xóa người dùng",
+      `Bạn có chắc chắn muốn xóa người dùng "${userName}" (ID: ${userId})?\n\nLưu ý: Hành động này không thể hoàn tác!`,
+      async () => {
+        try {
+          console.log("Deleting user:", { userId, userName });
+          await deleteUser(userId);
+          await loadUsers(); // Reload data sau khi xóa
+          showSuccess(
+            "Xóa thành công!",
+            `Người dùng "${userName}" đã được xóa khỏi hệ thống.`,
+            "",
+            true,
+            3000
+          );
+        } catch (error) {
+          console.error("Error deleting user:", error);
+          if (error.message.includes("Unauthorized")) {
+            setAuthRequired(true);
+            showError(
+              "Phiên đăng nhập hết hạn",
+              "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            );
+          } else if (error.message.includes("Forbidden")) {
+            showError(
+              "Không có quyền",
+              "Bạn không có quyền xóa người dùng này."
+            );
+          } else if (error.message.includes("không tồn tại")) {
+            showError(
+              "Người dùng không tồn tại",
+              "Người dùng không tồn tại hoặc đã bị xóa."
+            );
+            await loadUsers(); // Reload để sync data
+          } else {
+            showError(
+              "Lỗi xóa người dùng",
+              `Có lỗi xảy ra khi xóa người dùng: ${error.message}`
+            );
+          }
         }
+      },
+      {
+        confirmText: "Xóa",
+        cancelText: "Hủy",
+        type: "danger",
       }
-    }
+    );
   };
 
   const handleToggleStatus = async (userId) => {
     try {
       const user = users.find((u) => u.id === userId);
       if (!user) {
-        alert(`Không tìm thấy người dùng với ID: ${userId}`);
+        showError(
+          "Không tìm thấy người dùng",
+          `Không tìm thấy người dùng với ID: ${userId}`
+        );
         return;
       }
 
@@ -421,23 +468,33 @@ const UserManagement = () => {
       // Detailed error handling
       if (error.message.includes("Unauthorized")) {
         setAuthRequired(true);
-        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        showError(
+          "Phiên đăng nhập hết hạn",
+          "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+        );
       } else if (
         error.message.includes("404") ||
         error.message.includes("không tìm thấy")
       ) {
-        alert(`Không tìm thấy tài khoản: ${error.message}`);
+        showError(
+          "Không tìm thấy tài khoản",
+          `Không tìm thấy tài khoản: ${error.message}`
+        );
         // Reload để đồng bộ với server
         await loadUsers();
       } else if (error.message.includes("JSON")) {
         console.error("JSON Parse Error:", error);
-        alert(
+        showError(
+          "Lỗi xử lý dữ liệu",
           "Trạng thái có thể đã được thay đổi, nhưng có lỗi khi xử lý phản hồi. Đang tải lại dữ liệu..."
         );
         // Reload data to check if the status was actually changed
         await loadUsers();
       } else {
-        alert(`Có lỗi xảy ra khi thay đổi trạng thái: ${error.message}`);
+        showError(
+          "Lỗi thay đổi trạng thái",
+          `Có lỗi xảy ra khi thay đổi trạng thái: ${error.message}`
+        );
         // Reload để đảm bảo UI hiển thị trạng thái chính xác
         await loadUsers();
       }
@@ -463,38 +520,38 @@ const UserManagement = () => {
             userData.role
           )}" đã được thêm.`
         );
-          } else if (modalMode === "edit") {
-      console.log("Edit mode - updating user with ID:", userData.id);
-      // Prepare edit data with all fields from the form
-      const editData = {
-        email: userData.email,
-        phoneNumber: userData.phoneNumber,
-      };
-      
-      // Add role-specific fields based on user role
-      if (userData.role === "PARENT") {
-        editData.fullName = userData.fullName;
-        editData.address = userData.address;
-        editData.relationshipType = userData.relationshipType;
-        editData.occupation = userData.occupation;
-        // Include students data for parent updates
-        if (userData.students) {
-          editData.students = userData.students;
+      } else if (modalMode === "edit") {
+        console.log("Edit mode - updating user with ID:", userData.id);
+        // Prepare edit data with all fields from the form
+        const editData = {
+          email: userData.email,
+          phoneNumber: userData.phoneNumber,
+        };
+
+        // Add role-specific fields based on user role
+        if (userData.role === "PARENT") {
+          editData.fullName = userData.fullName;
+          editData.address = userData.address;
+          editData.relationshipType = userData.relationshipType;
+          editData.occupation = userData.occupation;
+          // Include students data for parent updates
+          if (userData.students) {
+            editData.students = userData.students;
+          }
+        } else if (userData.role === "NURSE") {
+          editData.fullName = userData.fullName;
+          editData.qualification = userData.qualification;
+        } else if (userData.role === "ADMIN") {
+          editData.fullName = userData.fullName;
         }
-      } else if (userData.role === "NURSE") {
-        editData.fullName = userData.fullName;
-        editData.qualification = userData.qualification;
-      } else if (userData.role === "ADMIN") {
-        editData.fullName = userData.fullName;
-      }
-      
-      // Only include password if user wants to change it
-      if (userData.password && userData.password.trim() !== "") {
-        editData.password = userData.password;
-      }
-      
-      console.log("Edit mode - sending data:", editData);
-      await updateUser(userData.id, editData);
+
+        // Only include password if user wants to change it
+        if (userData.password && userData.password.trim() !== "") {
+          editData.password = userData.password;
+        }
+
+        console.log("Edit mode - sending data:", editData);
+        await updateUser(userData.id, editData);
         showSuccess(
           "Cập nhật người dùng thành công!",
           "Thông tin người dùng đã được cập nhật.",
@@ -508,10 +565,18 @@ const UserManagement = () => {
       console.error("Error saving user:", error);
       if (error.message.includes("Unauthorized")) {
         setAuthRequired(true);
-        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        showError(
+          "Phiên đăng nhập hết hạn",
+          "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+          "Bạn cần đăng nhập lại để tiếp tục sử dụng hệ thống."
+        );
         setShowModal(false);
       } else {
-        alert(`Có lỗi xảy ra khi lưu thông tin: ${error.message}`);
+        showError(
+          "Lỗi cập nhật tài khoản",
+          "Có lỗi xảy ra khi lưu thông tin người dùng.",
+          `Chi tiết lỗi: ${error.message}`
+        );
       }
     }
   };
@@ -533,84 +598,95 @@ const UserManagement = () => {
   // Handle send email
   const handleSendEmail = async (user) => {
     if (!user || !user.id) {
-      alert("Thông tin người dùng không hợp lệ");
+      showError(
+        "Thông tin không hợp lệ",
+        "Thông tin người dùng không hợp lệ hoặc bị thiếu.",
+        "Vui lòng kiểm tra lại thông tin người dùng và thử lại."
+      );
       return;
     }
 
     // Confirm trước khi gửi
-    const confirmed = window.confirm(
+    showConfirm(
+      "Xác nhận gửi email",
       `Gửi email thông tin tài khoản cho:\n\n` +
         `- Tên: ${user.username}\n` +
         `- Email: ${user.email}\n` +
         `- Vai trò: ${getRoleDisplayName(user.role)}\n\n` +
-        `Bạn có chắc chắn muốn gửi?`
-    );
+        `Bạn có chắc chắn muốn gửi?`,
+      "default",
+      async () => {
+        // Callback khi xác nhận gửi email
+        try {
+          setIsSendingEmail(true);
+          setSendingUserId(user.id);
 
-    if (!confirmed) return;
+          const token = localStorage.getItem("authToken");
+          if (!token) {
+            throw new Error("Không tìm thấy token xác thực");
+          }
 
-    try {
-      setIsSendingEmail(true);
-      setSendingUserId(user.id);
+          // Gọi API gửi email
+          const response = await axios.post(
+            "http://localhost:8080/api/v1/email/sendAccountEmail",
+            [user.id], // Gửi array chứa 1 user ID
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
 
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        throw new Error("Không tìm thấy token xác thực");
-      }
+          if (response.status === 200) {
+            // Cập nhật state local để hiển thị trạng thái đã gửi
+            setUsers((prevUsers) =>
+              prevUsers.map((u) =>
+                u.id === user.id ? { ...u, emailSent: true } : u
+              )
+            );
+            setFilteredUsers((prevUsers) =>
+              prevUsers.map((u) =>
+                u.id === user.id ? { ...u, emailSent: true } : u
+              )
+            );
 
-      // Gọi API gửi email
-      const response = await axios.post(
-        "http://localhost:8080/api/v1/email/sendAccountEmail",
-        [user.id], // Gửi array chứa 1 user ID
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+            showSuccess(
+              "Gửi email thành công!",
+              "Email thông tin tài khoản đã được gửi.",
+              `Email đã được gửi đến ${user.email} cho tài khoản "${user.username}".`
+            );
+          }
+        } catch (error) {
+          console.error("Error sending email:", error);
+
+          let errorMessage = "Có lỗi xảy ra khi gửi email. ";
+          if (error.response?.status === 401) {
+            errorMessage +=
+              "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+            setAuthRequired(true);
+          } else if (error.response?.status === 403) {
+            errorMessage += "Bạn không có quyền thực hiện thao tác này.";
+          } else if (error.response?.status === 400) {
+            errorMessage +=
+              error.response?.data?.message || "Dữ liệu không hợp lệ.";
+          } else if (error.response?.status === 500) {
+            errorMessage += "Lỗi máy chủ. Vui lòng thử lại sau.";
+          } else {
+            errorMessage += "Vui lòng thử lại.";
+          }
+
+          showError(
+            "Lỗi gửi email",
+            "Không thể gửi email thông tin tài khoản.",
+            errorMessage
+          );
+        } finally {
+          setIsSendingEmail(false);
+          setSendingUserId(null);
         }
-      );
-
-      if (response.status === 200) {
-        // Cập nhật state local để hiển thị trạng thái đã gửi
-        setUsers((prevUsers) =>
-          prevUsers.map((u) =>
-            u.id === user.id ? { ...u, emailSent: true } : u
-          )
-        );
-        setFilteredUsers((prevUsers) =>
-          prevUsers.map((u) =>
-            u.id === user.id ? { ...u, emailSent: true } : u
-          )
-        );
-
-        showSuccess(
-          "Gửi email thành công!",
-          "Email thông tin tài khoản đã được gửi.",
-          `Email đã được gửi đến ${user.email} cho tài khoản "${user.username}".`
-        );
       }
-    } catch (error) {
-      console.error("Error sending email:", error);
-
-      let errorMessage = "Có lỗi xảy ra khi gửi email. ";
-      if (error.response?.status === 401) {
-        errorMessage += "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-        setAuthRequired(true);
-      } else if (error.response?.status === 403) {
-        errorMessage += "Bạn không có quyền thực hiện thao tác này.";
-      } else if (error.response?.status === 400) {
-        errorMessage +=
-          error.response?.data?.message || "Dữ liệu không hợp lệ.";
-      } else if (error.response?.status === 500) {
-        errorMessage += "Lỗi máy chủ. Vui lòng thử lại sau.";
-      } else {
-        errorMessage += "Vui lòng thử lại.";
-      }
-
-      alert(errorMessage);
-    } finally {
-      setIsSendingEmail(false);
-      setSendingUserId(null);
-    }
+    );
   };
 
   // Handle retry connection
@@ -911,49 +987,58 @@ const UserManagement = () => {
           isSendingEmail={isSendingEmail}
           sendingUserId={sendingUserId}
         />
-        
+
         {/* Pagination Controls */}
         {filteredUsers.length > itemsPerPage && (
           <div className="pagination-container">
             <div className="pagination-info">
               <span>
-                Hiển thị {startIndex}-{endIndex} trong tổng số {filteredUsers.length} người dùng
+                Hiển thị {startIndex}-{endIndex} trong tổng số{" "}
+                {filteredUsers.length} người dùng
               </span>
             </div>
-            
+
             <div className="pagination-controls">
-                             <button
-                 className={`pagination-btn ${!hasPreviousPage ? 'disabled' : ''}`}
-                 onClick={handlePreviousPage}
-                 disabled={!hasPreviousPage}
-                 title="Trang trước"
-               >
-                 <FaChevronLeft />
-               </button>
-              
+              <button
+                className={`pagination-btn ${
+                  !hasPreviousPage ? "disabled" : ""
+                }`}
+                onClick={handlePreviousPage}
+                disabled={!hasPreviousPage}
+                title="Trang trước"
+              >
+                <FaChevronLeft />
+              </button>
+
               <div className="pagination-pages">
                 {Array.from({ length: totalPages }, (_, index) => {
                   const page = index + 1;
                   const isCurrentPage = page === currentPage;
-                  
+
                   // Show first page, last page, current page, and pages around current page
-                  const showPage = 
-                    page === 1 || 
-                    page === totalPages || 
+                  const showPage =
+                    page === 1 ||
+                    page === totalPages ||
                     (page >= currentPage - 1 && page <= currentPage + 1);
-                  
+
                   if (!showPage) {
                     // Show ellipsis for gaps
                     if (page === currentPage - 2 || page === currentPage + 2) {
-                      return <span key={page} className="pagination-ellipsis">...</span>;
+                      return (
+                        <span key={page} className="pagination-ellipsis">
+                          ...
+                        </span>
+                      );
                     }
                     return null;
                   }
-                  
+
                   return (
                     <button
                       key={page}
-                      className={`pagination-page ${isCurrentPage ? 'active' : ''}`}
+                      className={`pagination-page ${
+                        isCurrentPage ? "active" : ""
+                      }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -961,15 +1046,15 @@ const UserManagement = () => {
                   );
                 })}
               </div>
-              
-                             <button
-                 className={`pagination-btn ${!hasNextPage ? 'disabled' : ''}`}
-                 onClick={handleNextPage}
-                 disabled={!hasNextPage}
-                 title="Trang sau"
-               >
-                 <FaChevronRight />
-               </button>
+
+              <button
+                className={`pagination-btn ${!hasNextPage ? "disabled" : ""}`}
+                onClick={handleNextPage}
+                disabled={!hasNextPage}
+                title="Trang sau"
+              >
+                <FaChevronRight />
+              </button>
             </div>
           </div>
         )}
@@ -995,6 +1080,29 @@ const UserManagement = () => {
         details={successData.details}
         autoClose={successData.autoClose}
         autoCloseDelay={successData.autoCloseDelay}
+      />
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={isErrorOpen}
+        onClose={hideError}
+        title={errorData.title}
+        message={errorData.message}
+        details={errorData.details}
+        autoClose={errorData.autoClose}
+        autoCloseDelay={errorData.autoCloseDelay}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmData.onConfirm}
+        title={confirmData.title}
+        message={confirmData.message}
+        confirmText={confirmData.confirmText}
+        cancelText={confirmData.cancelText}
+        type={confirmData.type}
       />
     </div>
   );

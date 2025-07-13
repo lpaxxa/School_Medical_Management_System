@@ -25,21 +25,21 @@ const SuccessModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay success-modal-overlay" onClick={onClose}>
+    <div className="admin-success-modal-overlay" onClick={onClose}>
       <div
-        className="modal-content success-modal"
+        className="admin-success-modal-content"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-body success-modal-body">
-          <div className="success-icon">
+        <div className="admin-success-modal-body">
+          <div className="admin-success-icon">
             <FaCheck />
           </div>
-          <div className="success-title">{title}</div>
-          {message && <div className="success-message">{message}</div>}
-          {details && <div className="success-details">{details}</div>}
+          <div className="admin-success-title">{title}</div>
+          {message && <div className="admin-success-message">{message}</div>}
+          {details && <div className="admin-success-details">{details}</div>}
         </div>
-        <div className="modal-footer success-modal-footer">
-          <button className="btn-primary success-btn" onClick={onClose}>
+        <div className="admin-success-modal-footer">
+          <button className="admin-success-btn" onClick={onClose}>
             Đóng
           </button>
         </div>

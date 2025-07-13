@@ -34,19 +34,19 @@ const NotificationDetail = ({ notification, onBack }) => {
     switch (status) {
       case "ACCEPTED":
         return (
-          <span className="status-badge accepted">
+          <span className="reports-notification-status-badge reports-notification-accepted">
             <FaCheck /> Đã chấp nhận
           </span>
         );
       case "PENDING":
         return (
-          <span className="status-badge pending">
+          <span className="reports-notification-status-badge reports-notification-pending">
             <FaClock /> Chờ phản hồi
           </span>
         );
       case "REJECTED":
         return (
-          <span className="status-badge rejected">
+          <span className="reports-notification-status-badge reports-notification-rejected">
             <FaReject /> Từ chối
           </span>
         );
@@ -83,42 +83,46 @@ const NotificationDetail = ({ notification, onBack }) => {
   };
 
   return (
-    <div className="notification-detail">
-      <div className="notification-detail-header">
+    <div className="reports-notification-detail">
+      <div className="reports-notification-detail-header">
         {/* Sử dụng component BackButton chung */}
         <BackButton onClick={onBack} text="Quay lại danh sách" />
-        <h2 className="notification-detail-title">{notification.title}</h2>
-        <div className="notification-detail-meta">
-          <div className="notification-detail-meta-item">
-            <FaUser className="icon" />
+        <h2 className="reports-notification-detail-title">
+          {notification.title}
+        </h2>
+        <div className="reports-notification-detail-meta">
+          <div className="reports-notification-detail-meta-item">
+            <FaUser className="reports-notification-icon" />
             <span>Người gửi: {notification.senderName}</span>
           </div>
-          <div className="notification-detail-meta-item">
-            <FaCalendarAlt className="icon" />
+          <div className="reports-notification-detail-meta-item">
+            <FaCalendarAlt className="reports-notification-icon" />
             <span>Ngày tạo: {formatDate(notification.createdAt)}</span>
           </div>
-          <div className="notification-detail-meta-item">
-            <FaEnvelope className="icon" />
+          <div className="reports-notification-detail-meta-item">
+            <FaEnvelope className="reports-notification-icon" />
             <span>Loại thông báo: {notification.type}</span>
           </div>
         </div>
 
-        <div className="notification-message">
+        <div className="reports-notification-message">
           <h3>
             <FaCommentAlt style={{ marginRight: "8px" }} />
             Nội dung thông báo
           </h3>
-          <p className="notification-message-content">{notification.message}</p>
+          <p className="reports-notification-message-content">
+            {notification.message}
+          </p>
         </div>
 
-        <div className="notification-detail-header-actions">
-          <div className="filter-label">
+        <div className="reports-notification-detail-header-actions">
+          <div className="reports-notification-filter-label">
             <FaFilter /> Lọc theo trạng thái:
           </div>
-          <div className="notification-summary">
-            <div className="notification-summary-item">
+          <div className="reports-notification-summary">
+            <div className="reports-notification-summary-item">
               <span
-                className={`summary-stat accepted ${
+                className={`reports-notification-summary-stat reports-notification-accepted ${
                   activeFilter === "ACCEPTED" ? "active" : ""
                 }`}
                 onClick={() => handleFilterClick("ACCEPTED")}
@@ -126,9 +130,9 @@ const NotificationDetail = ({ notification, onBack }) => {
                 <FaCheck /> Đã chấp nhận: {acceptedCount}
               </span>
             </div>
-            <div className="notification-summary-item">
+            <div className="reports-notification-summary-item">
               <span
-                className={`summary-stat pending ${
+                className={`reports-notification-summary-stat reports-notification-pending ${
                   activeFilter === "PENDING" ? "active" : ""
                 }`}
                 onClick={() => handleFilterClick("PENDING")}
@@ -136,9 +140,9 @@ const NotificationDetail = ({ notification, onBack }) => {
                 <FaClock /> Chờ phản hồi: {pendingCount}
               </span>
             </div>
-            <div className="notification-summary-item">
+            <div className="reports-notification-summary-item">
               <span
-                className={`summary-stat rejected ${
+                className={`reports-notification-summary-stat reports-notification-rejected ${
                   activeFilter === "REJECTED" ? "active" : ""
                 }`}
                 onClick={() => handleFilterClick("REJECTED")}
@@ -147,9 +151,9 @@ const NotificationDetail = ({ notification, onBack }) => {
               </span>
             </div>
             {activeFilter && (
-              <div className="notification-summary-item">
+              <div className="reports-notification-summary-item">
                 <span
-                  className="summary-stat clear-filter"
+                  className="reports-notification-summary-stat reports-notification-clear-filter"
                   onClick={() => setActiveFilter(null)}
                 >
                   Xem tất cả
@@ -160,10 +164,10 @@ const NotificationDetail = ({ notification, onBack }) => {
         </div>
       </div>
 
-      <div className="notification-detail-content">
-        <div className="recipient-list">
-          <h3 className="recipient-list-title">
-            <FaUsers className="icon" />
+      <div className="reports-notification-detail-content">
+        <div className="reports-notification-recipient-list">
+          <h3 className="reports-notification-recipient-list-title">
+            <FaUsers className="reports-notification-icon" />
             {activeFilter ? (
               <span>
                 Danh sách người nhận ({filteredRecipients.length}/
@@ -179,35 +183,67 @@ const NotificationDetail = ({ notification, onBack }) => {
             )}
           </h3>
 
-          <div className="recipients-grid">
-            {filteredRecipients.map((recipient) => (
-              <div key={recipient.id} className="recipient-card">
-                <div className="recipient-info">
-                  <div className="recipient-name">{recipient.receiverName}</div>
-                  <div className="recipient-details">
-                    <span>
-                      <FaUser /> {recipient.studentName}
-                    </span>
-                    <span>
-                      <FaIdCard /> {recipient.studentId}
-                    </span>
-                  </div>
-                </div>
-                <div className="recipient-status">
-                  {getStatusBadge(recipient.response)}
-                  {recipient.responseDate && (
-                    <span className="status-date">
-                      {formatDate(recipient.responseDate)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+          {/* Chuyển từ grid sang table */}
+          <div className="reports-notification-table-container">
+            <table className="reports-notification-table">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Tên người nhận</th>
+                  <th>Tên học sinh</th>
+                  <th>Mã học sinh</th>
+                  <th>Trạng thái</th>
+                  <th>Ngày phản hồi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRecipients.map((recipient, index) => (
+                  <tr
+                    key={recipient.id}
+                    className="reports-notification-table-row"
+                  >
+                    <td className="reports-notification-table-stt">
+                      {index + 1}
+                    </td>
+                    <td className="reports-notification-table-receiver">
+                      <div className="reports-notification-receiver-info">
+                        <FaUser className="reports-notification-table-icon" />
+                        <span className="reports-notification-receiver-name">
+                          {recipient.receiverName}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="reports-notification-table-student">
+                      {recipient.studentName}
+                    </td>
+                    <td className="reports-notification-table-student-id">
+                      <span className="reports-notification-student-id-badge">
+                        {recipient.studentId}
+                      </span>
+                    </td>
+                    <td className="reports-notification-table-status">
+                      {getStatusBadge(recipient.response)}
+                    </td>
+                    <td className="reports-notification-table-date">
+                      {recipient.responseDate ? (
+                        <span className="reports-notification-response-date">
+                          {formatDate(recipient.responseDate)}
+                        </span>
+                      ) : (
+                        <span className="reports-notification-no-response">
+                          Chưa phản hồi
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           {filteredRecipients.length === 0 && (
-            <div className="no-recipients">
-              <p>Không có người nhận nào phù hợp với lọc đã chọn</p>
+            <div className="reports-notification-no-recipients">
+              <p>Không có người nhận nào phù hợp với bộ lọc đã chọn</p>
             </div>
           )}
         </div>

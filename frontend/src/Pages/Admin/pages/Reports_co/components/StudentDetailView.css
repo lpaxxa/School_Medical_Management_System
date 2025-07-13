@@ -1,5 +1,5 @@
 /* Student Detail View - Simple Modern Design */
-.student-detail-page {
+.reports-student-detail-page {
   max-width: 1000px;
   margin: 0 auto;
   background: #ffffff;
@@ -8,36 +8,19 @@
 }
 
 /* Back Button Outside Header */
-.student-detail-page > .back-btn {
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 0.875rem;
-  color: #374151;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
+.reports-student-detail-page > .reports-back-button-container {
   margin-bottom: 20px;
-  width: fit-content;
-}
-
-.student-detail-page > .back-btn:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
 }
 
 /* Header */
-.page-header {
+.reports-student-detail-page-header {
   text-align: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.page-header h1 {
+.reports-student-detail-page-header h1 {
   font-size: 1.875rem;
   font-weight: 600;
   color: #111827;
@@ -45,7 +28,7 @@
 }
 
 /* Body Content */
-.student-content {
+.reports-student-detail-content {
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 40px;
@@ -59,8 +42,19 @@
   gap: 24px;
 }
 
+/* Left Column */
+.reports-student-detail-left-column {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
 /* Student Photo */
-.student-photo {
+.reports-student-detail-photo {
   width: 200px;
   height: 200px;
   border: 2px solid #e5e7eb;
@@ -72,7 +66,7 @@
   background: #f9fafb;
 }
 
-.student-photo img {
+.reports-student-detail-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -82,7 +76,7 @@
   max-height: none;
 }
 
-.photo-placeholder {
+.reports-student-detail-photo-placeholder {
   width: 100%;
   height: 100%;
   background: #f9fafb;
@@ -94,26 +88,26 @@
   text-align: center;
 }
 
-.photo-placeholder p {
+.reports-student-detail-photo-placeholder p {
   margin: 8px 0 0 0;
   font-size: 0.75rem;
   color: #6b7280;
 }
 
 /* Basic Info */
-.basic-info {
+.reports-student-detail-basic-info {
   width: 100%;
   text-align: center;
 }
 
-.basic-info h2 {
+.reports-student-detail-basic-info h2 {
   font-size: 1.25rem;
   font-weight: 600;
   color: #111827;
   margin: 0 0 16px 0;
 }
 
-.basic-info .info-item {
+.reports-student-detail-info-item {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,18 +120,18 @@
   color: #374151;
 }
 
-.basic-info .info-item svg {
+.reports-student-detail-info-item svg {
   width: 14px;
   height: 14px;
   color: #6b7280;
 }
 
 /* Right Column */
-.right-column {
+.reports-student-detail-right-column {
   padding: 20px 0;
 }
 
-.right-column h3 {
+.reports-student-detail-right-column h3 {
   font-size: 1.125rem;
   font-weight: 600;
   color: #111827;
@@ -147,13 +141,13 @@
 }
 
 /* Detail Info */
-.detail-info {
+.reports-student-detail-detail-info {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.detail-info .info-row {
+.reports-student-detail-info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -161,11 +155,11 @@
   border-bottom: 1px solid #f3f4f6;
 }
 
-.detail-info .info-row:last-child {
+.reports-student-detail-info-row:last-child {
   border-bottom: none;
 }
 
-.detail-info .label {
+.reports-student-detail-label {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -174,13 +168,13 @@
   font-weight: 500;
 }
 
-.detail-info .label svg {
+.reports-student-detail-label svg {
   width: 16px;
   height: 16px;
   color: #9ca3af;
 }
 
-.detail-info .value {
+.reports-student-detail-value {
   font-size: 0.875rem;
   color: #111827;
   font-weight: 500;
@@ -188,44 +182,44 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .student-detail-page {
+  .reports-student-detail-page {
     padding: 16px;
   }
 
-  .student-content {
+  .reports-student-detail-content {
     grid-template-columns: 1fr;
     gap: 30px;
   }
 
-  .left-column {
+  .reports-student-detail-left-column {
     align-items: center;
   }
 
-  .student-photo {
+  .reports-student-detail-photo {
     width: 160px;
     height: 160px;
   }
 
-  .page-header h1 {
+  .reports-student-detail-page-header h1 {
     font-size: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .student-detail-page {
+  .reports-student-detail-page {
     padding: 12px;
   }
 
-  .student-photo {
+  .reports-student-detail-photo {
     width: 140px;
     height: 140px;
   }
 
-  .page-header h1 {
+  .reports-student-detail-page-header h1 {
     font-size: 1.25rem;
   }
 
-  .basic-info h2 {
+  .reports-student-detail-basic-info h2 {
     font-size: 1.125rem;
   }
 } 
