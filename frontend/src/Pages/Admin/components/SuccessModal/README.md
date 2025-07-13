@@ -103,9 +103,7 @@ const handleCreateUser = async (userData) => {
   try {
     await createUser(userData);
     showSuccess(
-      "Thêm người dùng thành công!",
-      "Người dùng mới đã được tạo trong hệ thống.",
-      `Tài khoản "${userData.username}" với vai trò "${userData.role}" đã được thêm.`
+      "Thêm người dùng thành công!"
     );
     setShowModal(false);
     loadUsers(); // Reload danh sách
@@ -124,8 +122,8 @@ const handleUpdateData = async (id, data) => {
     await updateData(id, data);
     showSuccess(
       "Cập nhật thành công!",
-      "Dữ liệu đã được cập nhật.",
-      `Bản ghi #${id} đã được lưu với thông tin mới.`
+     
+     
     );
     loadData(); // Reload dữ liệu
   } catch (error) {
@@ -144,7 +142,7 @@ const handleDeleteData = async (id) => {
     showSuccess(
       "Xóa thành công!",
       "Bản ghi đã được xóa khỏi hệ thống.",
-      `Bản ghi #${id} đã được xóa vĩnh viễn.`
+      
     );
     loadData(); // Reload dữ liệu
   } catch (error) {

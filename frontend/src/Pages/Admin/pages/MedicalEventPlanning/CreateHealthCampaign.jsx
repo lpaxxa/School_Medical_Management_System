@@ -179,7 +179,7 @@ const CreateHealthCampaign = () => {
         </div>
         <div className="create-health-campaign-header-content">
           <h2>Tạo Chiến Dịch Kiểm Tra Sức Khỏe Mới</h2>
-          <p>Lập kế hoạch kiểm tra sức khỏe định kỳ cho học sinh</p>
+      
         </div>
       </div>
 

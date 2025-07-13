@@ -23,6 +23,9 @@
   font-weight: 600;
   color: #1e293b;
 }
+.header-content {
+  background-color: transparent !important;
+}
 
 .vac-plan-history-header p {
   margin: 0;

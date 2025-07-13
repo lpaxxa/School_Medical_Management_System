@@ -405,7 +405,7 @@ const CreateVaccinationPlan = () => {
         </div>
         <div className="create-vaccination-header-content">
           <h2>Tạo Kế Hoạch Tiêm Chủng Mới</h2>
-          <p>Lập kế hoạch tiêm chủng cho học sinh trong trường</p>
+        
         </div>
       </div>
 

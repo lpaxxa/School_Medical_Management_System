@@ -13,14 +13,14 @@ const BlogManagement = () => {
   return (
     <div className="blog-management">
       <Routes>
-        <Route path="/" element={<Navigate to="posts" replace />} />
-        <Route path="/posts" element={<Posts />} />
-        <Route path="/posts/add" element={<AddPost />} />
-        <Route path="/posts/edit/:id" element={<EditPost />} />
-        <Route path="/posts/:id" element={<PostDetail />} />
-        <Route path="/health-articles" element={<HealthArticles />} />
-        <Route path="/health-articles/add" element={<AddHealthArticle />} />
-        <Route path="/health-articles/edit/:id" element={<EditHealthArticle />} />
+        <Route index element={<Navigate to="posts" replace />} />
+        <Route path="posts" element={<Posts />} />
+        <Route path="posts/add" element={<AddPost />} />
+        <Route path="posts/edit/:id" element={<EditPost />} />
+        <Route path="posts/:id" element={<PostDetail />} />
+        <Route path="health-articles" element={<HealthArticles />} />
+        <Route path="health-articles/add" element={<AddHealthArticle />} />
+        <Route path="health-articles/edit/:id" element={<EditHealthArticle />} />
       </Routes>
     </div>
   );

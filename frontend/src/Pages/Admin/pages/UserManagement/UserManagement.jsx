@@ -514,11 +514,7 @@ const UserManagement = () => {
         console.log("Add mode - API data:", apiData);
         await createUser(apiData);
         showSuccess(
-          "Thêm người dùng thành công!",
-          "Người dùng mới đã được tạo trong hệ thống.",
-          `Tài khoản "${userData.username}" với vai trò "${getRoleDisplayName(
-            userData.role
-          )}" đã được thêm.`
+          "Thêm người dùng thành công!"
         );
       } else if (modalMode === "edit") {
         console.log("Edit mode - updating user with ID:", userData.id);
@@ -554,7 +550,7 @@ const UserManagement = () => {
         await updateUser(userData.id, editData);
         showSuccess(
           "Cập nhật người dùng thành công!",
-          "Thông tin người dùng đã được cập nhật.",
+         
           `Tài khoản "${userData.username}" đã được cập nhật thông tin mới.`
         );
       }
