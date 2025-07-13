@@ -20,9 +20,12 @@
   --color-gray-900: #171717;
   
   /* Primary Color - Navigation Blue (đồng bộ với header) */
-  --color-primary: #015C92;
-  --color-primary-hover: #2D82B5;
-  --color-primary-light: #BCE6FF;
+  /* Use fallback to global medical variables if available */
+  --color-primary: var(--medical-primary, #015C92);
+  --color-primary-hover: var(--medical-primary-hover, #2D82B5);
+  --color-primary-light: var(--medical-primary-light, #BCE6FF);
+  --color-primary-50: var(--medical-primary-50, #EBF5FF);
+  --color-primary-dark: var(--medical-primary-dark, #013D61);
   
   /* Status Colors - Minimal */
   --color-success: #059669;
