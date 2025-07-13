@@ -155,10 +155,7 @@ const PlanManager = () => {
           </div>
 
           <div className="selector-content">
-            <h2 className="selector-title">Chức Năng Có Sẵn</h2>
-            <p className="selector-subtitle">
-              Chọn chức năng bạn muốn thực hiện với mô-đun này
-            </p>
+           
 
             <div className="actions-grid">
               {getActionsForSection(selectedSection).map((action) => (

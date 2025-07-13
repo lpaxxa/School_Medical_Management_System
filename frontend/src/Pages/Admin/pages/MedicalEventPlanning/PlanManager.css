@@ -32,6 +32,8 @@
 }
 
 .header-content-admin {
+      background-color: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -159,6 +161,7 @@
   min-height: 320px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
+  
 
 .section-card::before {
   content: '';
@@ -336,6 +339,8 @@
 }
 
 .selector-content {
+  display: flex !important;
+  flex-direction: column !important ;
   margin-top: 24px;
 }
 
@@ -518,6 +523,8 @@
   }
 
   .header-content {
+    
+    background-color: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
     flex-direction: column;
     text-align: center;
     gap: 20px;
