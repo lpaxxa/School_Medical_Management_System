@@ -82,7 +82,7 @@ const HealthArticles = () => {
       return;
     }
     
-    navigate('/nurse/blog/health-articles/add');
+    navigate('/nurse/blog-management/health-articles/add');
   };
 
   // Handle edit article
@@ -91,7 +91,7 @@ const HealthArticles = () => {
       toast.error('Bạn không có quyền chỉnh sửa bài viết này');
       return;
     }
-    navigate(`/nurse/blog/health-articles/edit/${article.id}`);
+    navigate(`/nurse/blog-management/health-articles/edit/${article.id}`);
   };
 
   // Check if user can edit/delete article (strict permission check)
@@ -233,28 +233,6 @@ const HealthArticles = () => {
           </div>
         </Col>
       </Row>
-
-      {/* Navigation */}
-      <Row className="mb-4">
-        <Col>
-          <Nav variant="tabs" className="mb-4">
-            <Nav.Item>
-              <Nav.Link as={Link} to="/nurse/blog/posts" className="fw-semibold">
-                <i className="fas fa-file-alt me-2"></i>
-                Cẩm nang y tế
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link as={Link} to="/nurse/blog/health-articles" className="fw-semibold" active>
-                <i className="fas fa-heartbeat me-2"></i>
-                Cộng đồng
-              </Nav.Link>
-            </Nav.Item>
-          </Nav>
-        </Col>
-      </Row>
-
-
 
       {/* Articles Header */}
       <Row className="mb-4">
@@ -599,8 +577,8 @@ const HealthArticles = () => {
 
       {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Xác nhận xóa</Modal.Title>
+        <Modal.Header closeButton >
+          <Modal.Title  style={{color : 'red'}}>Xác nhận xóa</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>Bạn có chắc chắn muốn xóa bài viết "{selectedArticle?.title}"?</p>

@@ -122,7 +122,7 @@ const EditPost = () => {
       
       // Redirect to posts list after 2 seconds
       setTimeout(() => {
-        navigate('/nurse/blog/posts');
+        navigate('/nurse/blog-management/posts');
       }, 2000);
 
     } catch (error) {
@@ -135,7 +135,7 @@ const EditPost = () => {
 
   // Handle cancel
   const handleCancel = () => {
-    navigate('/nurse/blog/posts');
+    navigate('/nurse/blog-management/posts');
   };
 
   if (loading) {

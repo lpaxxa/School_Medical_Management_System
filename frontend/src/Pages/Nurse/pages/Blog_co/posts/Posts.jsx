@@ -129,7 +129,7 @@ const Posts = () => {
 
   // Handle view post detail
   const handleViewPostDetail = (post) => {
-    navigate(`/nurse/blog/posts/${post.id}`);
+    navigate(`/nurse/blog-management/posts/${post.id}`);
   };
 
   // Handle edit post
@@ -139,7 +139,7 @@ const Posts = () => {
       alert('Bạn không có quyền chỉnh sửa bài viết này');
       return;
     }
-    navigate(`/nurse/blog/posts/edit/${post.id}`);
+    navigate(`/nurse/blog-management/posts/edit/${post.id}`);
   };
 
   // Handle delete post
@@ -173,7 +173,7 @@ const Posts = () => {
 
   // Handle add new post
   const handleAddPost = () => {
-    navigate('/nurse/blog/posts/add');
+    navigate('/nurse/blog-management/posts/add');
   };
 
   // Handle like/unlike post
@@ -244,26 +244,6 @@ const Posts = () => {
               </p>
             </div>
           </div>
-        </Col>
-      </Row>
-
-      {/* Navigation */}
-      <Row className="mb-4">
-        <Col>
-          <Nav variant="tabs" className="mb-4">
-            <Nav.Item>
-              <Nav.Link as={Link} to="/nurse/blog/posts" className="fw-semibold" active>
-                <i className="fas fa-file-alt me-2"></i>
-                Cẩm nang y tế
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link as={Link} to="/nurse/blog/health-articles" className="fw-semibold">
-                <i className="fas fa-heartbeat me-2"></i>
-                Cộng đồng
-              </Nav.Link>
-            </Nav.Item>
-          </Nav>
         </Col>
       </Row>
 

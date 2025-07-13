@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Nav, Tab, Card } from 'react-bootstrap';
-import VaccinationDashboard from './Dashboard/VaccinationDashboard';
+import { Container, Nav, Tab, Card, Row, Col } from 'react-bootstrap';
 import CreateVaccinationRecord from './CreateRecord/CreateVaccinationRecord';
 import PostVaccinationMonitoring from './PostMonitoring/PostVaccinationMonitoring';
 import './VaccinationMain.css';
 import { VaccinationProvider } from '../../../../context/NurseContext/VaccinationContext';
 
 const VaccinationPage = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('create-record');
 
   // Restore active tab from sessionStorage on mount
   useEffect(() => {
     const savedTab = sessionStorage.getItem('vaccinationActiveTab');
-    if (savedTab) {
+    if (savedTab && savedTab !== 'dashboard') {
       setActiveTab(savedTab);
     }
   }, []);
@@ -24,94 +23,266 @@ const VaccinationPage = () => {
   };
 
   return (
-    <VaccinationProvider>
-      <Container fluid className="p-4 bg-light">
-        <Card className="border-0 shadow-sm mb-4">
-          <Card.Body>
-            <h1 className="h2 mb-3 text-primary">Quản lý Tiêm chủng</h1>
-          </Card.Body>
-        </Card>
-        
-        <Tab.Container activeKey={activeTab} onSelect={handleTabSelect}>
-          <Card className="border-0 shadow-sm">
-            <Card.Header className="bg-white border-bottom-0 pt-3 pb-0">
-              <Nav variant="tabs" className="nav-tabs-custom">
-                <Nav.Item>
-                  <Nav.Link 
-                    eventKey="dashboard" 
-                    className="fw-semibold text-dark border border-bottom-0 rounded-top px-4 py-3"
-                  >
-                    <i className="fas fa-chart-line me-2 text-primary"></i>
-                    Dashboard
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link 
-                    eventKey="create-record" 
-                    className="fw-semibold text-dark border border-bottom-0 rounded-top px-4 py-3"
-                  >
-                    <i className="fas fa-plus-circle me-2 text-success"></i>
-                    Danh sách tiêm chủng
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link 
-                    eventKey="monitoring" 
-                    className="fw-semibold text-dark border border-bottom-0 rounded-top px-4 py-3"
-                  >
-                    <i className="fas fa-user-md me-2 text-info"></i>
-                    Theo dõi sau tiêm
-                  </Nav.Link>
-                </Nav.Item>
-              </Nav>
-            </Card.Header>
-            <Card.Body className="p-4">
-              <Tab.Content>
-                <Tab.Pane eventKey="dashboard">
-                  <Card className="border-0">
-                    <Card.Header className="bg-light border-0">
-                      <h4 className="card-title mb-0 text-primary">
-                        <i className="fas fa-chart-line me-2"></i>
-                        Thống kê tiêm chủng
-                      </h4>
-                    </Card.Header>
-                    <Card.Body>
-                      <VaccinationDashboard />
-                    </Card.Body>
-                  </Card>
-                </Tab.Pane>
-                <Tab.Pane eventKey="create-record">
-                  <Card className="border-0">
-                    <Card.Header className="bg-light border-0">
-                      <h4 className="card-title mb-0 text-success">
-                        <i className="fas fa-plus-circle me-2"></i>
-                        Danh sách tiêm chủng
-                      </h4>
-                    </Card.Header>
-                    <Card.Body>
-                      <CreateVaccinationRecord />
-                    </Card.Body>
-                  </Card>
-                </Tab.Pane>
-                <Tab.Pane eventKey="monitoring">
-                  <Card className="border-0">
-                    <Card.Header className="bg-light border-0">
-                      <h4 className="card-title mb-0 text-info">
-                        <i className="fas fa-user-md me-2"></i>
-                        Theo dõi sau tiêm chủng
-                      </h4>
-                    </Card.Header>
-                    <Card.Body>
-                      <PostVaccinationMonitoring />
-                    </Card.Body>
-                  </Card>
-                </Tab.Pane>
-              </Tab.Content>
+    <>
+      <style>
+        {`
+          .lukhang-vaccination-main-wrapper {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            min-height: 100vh !important;
+            padding: 2rem !important;
+          }
+          
+          .lukhang-vaccination-header-card {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+            border: none !important;
+            border-radius: 1rem !important;
+            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.2) !important;
+            margin-bottom: 2rem !important;
+          }
+          
+          .lukhang-vaccination-title-custom {
+            color: white !important;
+            font-weight: 700 !important;
+            font-size: 2rem !important;
+            margin: 0 !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+          }
+          
+          .lukhang-vaccination-tabs-container {
+            background: white !important;
+            border: none !important;
+            border-radius: 1rem !important;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08) !important;
+            overflow: hidden !important;
+          }
+          
+          .lukhang-vaccination-tabs-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+            border-bottom: 3px solid #e9ecef !important;
+            padding: 1.5rem 2rem 0 2rem !important;
+            border-radius: 1rem 1rem 0 0 !important;
+          }
+          
+          .lukhang-vaccination-nav-tabs {
+            border: none !important;
+            gap: 0.5rem !important;
+          }
+          
+          .lukhang-vaccination-nav-item {
+            margin-bottom: 0 !important;
+          }
+          
+          .lukhang-vaccination-nav-link {
+            background: white !important;
+            border: 2px solid #e9ecef !important;
+            border-radius: 15px 15px 0 0 !important;
+            color: #6c757d !important;
+            font-weight: 600 !important;
+            font-size: 1.1rem !important;
+            padding: 1rem 2rem !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+            border-bottom: none !important;
+            min-width: 200px !important;
+            text-align: center !important;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05) !important;
+          }
+          
+          .lukhang-vaccination-nav-link:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            border-color: #ced4da !important;
+            color: #495057 !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+          }
+          
+          .lukhang-vaccination-nav-link.active {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+            border-color: #28a745 !important;
+            color: white !important;
+            transform: translateY(-3px) !important;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3) !important;
+            z-index: 10 !important;
+          }
+          
+          .lukhang-vaccination-nav-link.active::before {
+            content: '' !important;
+            position: absolute !important;
+            bottom: -2px !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 4px !important;
+            background: white !important;
+            border-radius: 2px !important;
+          }
+          
+          .lukhang-vaccination-nav-link i {
+            margin-right: 0.75rem !important;
+            font-size: 1.2rem !important;
+            vertical-align: middle !important;
+          }
+          
+          .lukhang-vaccination-tab-content-wrapper {
+            padding: 2.5rem !important;
+            background: white !important;
+            min-height: 600px !important;
+          }
+          
+          .lukhang-vaccination-content-card {
+            border: none !important;
+            background: transparent !important;
+          }
+          
+          .lukhang-vaccination-content-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 1.5rem 2rem !important;
+            margin-bottom: 2rem !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+          }
+          
+          .lukhang-vaccination-content-title {
+            color: #495057 !important;
+            font-weight: 700 !important;
+            font-size: 1.5rem !important;
+            margin: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+          }
+          
+          .lukhang-vaccination-content-title i {
+            margin-right: 1rem !important;
+            font-size: 1.4rem !important;
+          }
+          
+          .lukhang-vaccination-content-body {
+            background: transparent !important;
+            padding: 0 !important;
+          }
+          
+          @media (max-width: 992px) {
+            .lukhang-vaccination-main-wrapper {
+              padding: 1rem !important;
+            }
+            
+            .lukhang-vaccination-title-custom {
+              font-size: 1.5rem !important;
+            }
+            
+            .lukhang-vaccination-tabs-header {
+              padding: 1rem !important;
+            }
+            
+            .lukhang-vaccination-nav-link {
+              font-size: 1rem !important;
+              padding: 0.75rem 1.5rem !important;
+              min-width: 160px !important;
+            }
+            
+            .lukhang-vaccination-tab-content-wrapper {
+              padding: 1.5rem !important;
+            }
+            
+            .lukhang-vaccination-content-title {
+              font-size: 1.3rem !important;
+            }
+          }
+          
+          @media (max-width: 768px) {
+            .lukhang-vaccination-nav-tabs {
+              flex-direction: column !important;
+              gap: 0.75rem !important;
+            }
+            
+            .lukhang-vaccination-nav-link {
+              min-width: 100% !important;
+              border-radius: 12px !important;
+            }
+            
+            .lukhang-vaccination-nav-link.active::before {
+              display: none !important;
+            }
+            
+            .lukhang-vaccination-tab-content-wrapper {
+              padding: 1rem !important;
+            }
+          }
+        `}
+      </style>
+      <VaccinationProvider>
+        <Container fluid className="lukhang-vaccination-main-wrapper">
+          <Card className="lukhang-vaccination-header-card">
+            <Card.Body className="text-center py-4">
+              <h1 className="lukhang-vaccination-title-custom">
+                <i className="fas fa-syringe me-3"></i>
+                Quản lý Tiêm chủng
+              </h1>
             </Card.Body>
           </Card>
-        </Tab.Container>
-      </Container>
-    </VaccinationProvider>
+          
+          <Tab.Container activeKey={activeTab} onSelect={handleTabSelect}>
+            <Card className="lukhang-vaccination-tabs-container">
+              <Card.Header className="lukhang-vaccination-tabs-header">
+                <Nav variant="tabs" className="lukhang-vaccination-nav-tabs d-flex justify-content-center">
+                  <Nav.Item className="lukhang-vaccination-nav-item">
+                    <Nav.Link 
+                      eventKey="create-record" 
+                      className="lukhang-vaccination-nav-link"
+                    >
+                      <i className="fas fa-list-alt text-success"></i>
+                      Danh sách tiêm chủng
+                    </Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item className="lukhang-vaccination-nav-item">
+                    <Nav.Link 
+                      eventKey="monitoring" 
+                      className="lukhang-vaccination-nav-link"
+                    >
+                      <i className="fas fa-user-md text-info"></i>
+                      Theo dõi sau tiêm
+                    </Nav.Link>
+                  </Nav.Item>
+                </Nav>
+              </Card.Header>
+              
+              <div className="lukhang-vaccination-tab-content-wrapper">
+                <Tab.Content>
+                  <Tab.Pane eventKey="create-record">
+                    <Card className="lukhang-vaccination-content-card">
+                      <Card.Header className="lukhang-vaccination-content-header">
+                        <h4 className="lukhang-vaccination-content-title">
+                          <i className="fas fa-list-alt text-success"></i>
+                          Quản lý danh sách tiêm chủng
+                        </h4>
+                      </Card.Header>
+                      <Card.Body className="lukhang-vaccination-content-body">
+                        <CreateVaccinationRecord />
+                      </Card.Body>
+                    </Card>
+                  </Tab.Pane>
+                  
+                  <Tab.Pane eventKey="monitoring">
+                    <Card className="lukhang-vaccination-content-card">
+                      <Card.Header className="lukhang-vaccination-content-header">
+                        <h4 className="lukhang-vaccination-content-title">
+                          <i className="fas fa-user-md text-info"></i>
+                          Theo dõi chăm sóc sau tiêm chủng
+                        </h4>
+                      </Card.Header>
+                      <Card.Body className="lukhang-vaccination-content-body">
+                        <PostVaccinationMonitoring />
+                      </Card.Body>
+                    </Card>
+                  </Tab.Pane>
+                </Tab.Content>
+              </div>
+            </Card>
+          </Tab.Container>
+        </Container>
+      </VaccinationProvider>
+    </>
   );
 };
 

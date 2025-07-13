@@ -118,7 +118,7 @@ const AddHealthArticle = () => {
 
       // Redirect to health articles list after 2 seconds
       setTimeout(() => {
-        navigate('/nurse/blog/health-articles');
+        navigate('/nurse/blog-management/health-articles');
       }, 2000);
 
     } catch (error) {
@@ -131,7 +131,7 @@ const AddHealthArticle = () => {
 
   // Handle cancel
   const handleCancel = () => {
-    navigate('/nurse/blog/health-articles');
+    navigate('/nurse/blog-management/health-articles');
   };
 
   return (

@@ -4,7 +4,6 @@ import { useInventory } from '../../../../context/NurseContext';
 import AddItem from './AddItem/AddItem';
 import EditItem from './EditItem/EditItem';
 import DeleteItem from './DeleteItem/DeleteItem';
-import ExportData from './ExportData/ExportData';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -531,25 +530,8 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
                       Thêm vật phẩm
                     </button>
                     
-                    <button 
-                      className="btn btn-success"
-                      onClick={() => setShowExportModal(true)}
-                    >
-                      <i className="fas fa-file-export me-1"></i>
-                      Xuất báo cáo
-                    </button>
-                    
                     {/* Filter Dropdown */}
                     <div className="dropdown">
-                      <button 
-                        className="btn btn-outline-secondary dropdown-toggle" 
-                        type="button" 
-                        data-bs-toggle="dropdown" 
-                        aria-expanded="false"
-                      >
-                        <i className="fas fa-filter me-1"></i>
-                        Lọc
-                      </button>
                       <ul className="dropdown-menu">
                         <li>
                           <a 
