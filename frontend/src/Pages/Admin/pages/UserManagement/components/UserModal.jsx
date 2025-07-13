@@ -143,17 +143,17 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
     }
   };
 
-  // Helper function to generate grade level from class name
-  const generateGradeLevel = (className) => {
-    if (!className) return "";
+  // // Helper function to generate grade level from class name
+  // const generateGradeLevel = (className) => {
+  //   if (!className) return "";
 
-    // Extract number from class name (e.g., "3B" -> "3", "10A" -> "10")
-    const gradeNumber = className.match(/\d+/);
-    if (gradeNumber) {
-      return `Lớp ${gradeNumber[0]}`;
-    }
-    return "";
-  };
+  //   // Extract number from class name (e.g., "3B" -> "3", "10A" -> "10")
+  //   const gradeNumber = className.match(/\d+/);
+  //   if (gradeNumber) {
+  //     return `Lớp ${gradeNumber[0]}`;
+  //   }
+  //   return "";
+  // };
 
   // Toggle student details expansion
   const toggleStudentDetails = (studentIndex) => {
