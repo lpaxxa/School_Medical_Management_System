@@ -106,12 +106,17 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Only allow specific origins when credentials are enabled
+        // Allow both localhost and production domains
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:5173",
             "http://localhost:3000",
             "http://127.0.0.1:5173",
-            "http://127.0.0.1:3000"
+            "http://127.0.0.1:3000",
+            "https://medically-sou-azure.southeastasia.cloudapp.azure.com",
+            "https://www.medically-sou-azure.southeastasia.cloudapp.azure.com",
+                "https://school-medical-management-system-qw29rju61.vercel.app/"
+
+
         ));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
