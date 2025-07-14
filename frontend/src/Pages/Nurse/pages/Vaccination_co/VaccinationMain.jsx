@@ -33,10 +33,10 @@ const VaccinationPage = () => {
           }
           
           .lukhang-vaccination-header-card {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
             border: none !important;
             border-radius: 1rem !important;
-            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.2) !important;
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2) !important;
             margin-bottom: 2rem !important;
           }
           
@@ -98,11 +98,11 @@ const VaccinationPage = () => {
           }
           
           .lukhang-vaccination-nav-link.active {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
-            border-color: #28a745 !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
             color: white !important;
             transform: translateY(-3px) !important;
-            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3) !important;
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3) !important;
             z-index: 10 !important;
           }
           
@@ -121,6 +121,11 @@ const VaccinationPage = () => {
             margin-right: 0.75rem !important;
             font-size: 1.2rem !important;
             vertical-align: middle !important;
+            color: #0d6efd !important;
+          }
+          
+          .lukhang-vaccination-nav-link.active i {
+            color: white !important;
           }
           
           .lukhang-vaccination-tab-content-wrapper {
@@ -231,7 +236,7 @@ const VaccinationPage = () => {
                       eventKey="create-record" 
                       className="lukhang-vaccination-nav-link"
                     >
-                      <i className="fas fa-list-alt text-success"></i>
+                      <i className="fas fa-list-alt"></i>
                       Danh sách tiêm chủng
                     </Nav.Link>
                   </Nav.Item>
@@ -240,7 +245,7 @@ const VaccinationPage = () => {
                       eventKey="monitoring" 
                       className="lukhang-vaccination-nav-link"
                     >
-                      <i className="fas fa-user-md text-info"></i>
+                      <i className="fas fa-user-md"></i>
                       Theo dõi sau tiêm
                     </Nav.Link>
                   </Nav.Item>
@@ -253,7 +258,7 @@ const VaccinationPage = () => {
                     <Card className="lukhang-vaccination-content-card">
                       <Card.Header className="lukhang-vaccination-content-header">
                         <h4 className="lukhang-vaccination-content-title">
-                          <i className="fas fa-list-alt text-success"></i>
+                          <i className="fas fa-list-alt"></i>
                           Quản lý danh sách tiêm chủng
                         </h4>
                       </Card.Header>
@@ -267,7 +272,7 @@ const VaccinationPage = () => {
                     <Card className="lukhang-vaccination-content-card">
                       <Card.Header className="lukhang-vaccination-content-header">
                         <h4 className="lukhang-vaccination-content-title">
-                          <i className="fas fa-user-md text-info"></i>
+                          <i className="fas fa-user-md"></i>
                           Theo dõi chăm sóc sau tiêm chủng
                         </h4>
                       </Card.Header>

@@ -4,10 +4,12 @@ import { useInventory } from '../../../../context/NurseContext';
 import AddItem from './AddItem/AddItem';
 import EditItem from './EditItem/EditItem';
 import DeleteItem from './DeleteItem/DeleteItem';
+import ViewDetailsItem from './ViewDetails/ViewDetailsItem';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const InventoryPage = () => {    // Use context directly without fallback mechanism to prevent double renders
+const InventoryPage = () => {
+  // Use context directly without fallback mechanism to prevent double renders
   const {
     items: inventoryItems,
     loading,
@@ -33,7 +35,63 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showViewDetailsModal, setShowViewDetailsModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  
+  // Custom styles for header - similar to MedicalEventsMain
+  const inventoryStyles = `
+    .lukhang-inventory-main-wrapper {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+      min-height: 100vh !important;
+      padding: 2rem !important;
+    }
+    
+    .lukhang-inventory-header-card {
+      background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+      border: none !important;
+      border-radius: 1rem !important;
+      box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2) !important;
+      margin-bottom: 2rem !important;
+    }
+    
+    .lukhang-inventory-title-custom {
+      color: white !important;
+      font-weight: 700 !important;
+      font-size: 2rem !important;
+      margin: 0 !important;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .lukhang-inventory-title-custom i {
+      color: white !important;
+    }
+    
+    .lukhang-inventory-action-bar {
+      background: white !important;
+      border-radius: 1rem !important;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+      margin-bottom: 2rem !important;
+      padding: 1.5rem !important;
+    }
+    
+    .lukhang-inventory-table-container {
+      background: white !important;
+      border-radius: 1rem !important;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+      padding: 1.5rem !important;
+      margin: 0 !important;
+    }
+    
+    @media (max-width: 992px) {
+      .lukhang-inventory-main-wrapper {
+        padding: 1rem !important;
+      }
+      
+      .lukhang-inventory-title-custom {
+        font-size: 1.5rem !important;
+      }
+    }
+  `;
   
   // Combined useEffect to reduce renders
   useEffect(() => {
@@ -91,8 +149,6 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
       };
       
       console.log('Adding new item:', itemToAdd);
-      // Đóng modal trước khi gọi API để tránh lỗi state
-      setShowAddModal(false);
       
       // Gọi hàm addItem từ context
       const result = await addItem(itemToAdd);
@@ -100,11 +156,13 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
         console.log('Item added successfully:', result);
         // Refresh để hiển thị item mới (optional)
         fetchItems();
+        // Đóng modal sau khi thành công
+        setShowAddModal(false);
       }
+      return result; // Trả về kết quả để AddItem component biết thành công
     } catch (err) {
       console.error("Lỗi khi thêm vật phẩm:", err);
-      // Mở lại modal trong trường hợp lỗi nếu muốn
-      // setShowAddModal(true);
+      throw err; // Ném lỗi để AddItem component xử lý
     }
   };
   
@@ -177,6 +235,11 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
   const openDeleteModal = (item) => {
     setSelectedItem(item);
     setShowDeleteModal(true);
+  };
+
+  const openViewDetailsModal = (item) => {
+    setSelectedItem(item);
+    setShowViewDetailsModal(true);
   };  // Function to format date from ISO string to dd/mm/yyyy format
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -289,18 +352,12 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
                   <i className="fas fa-ruler me-1"></i>Đơn vị
                 </th>
                 <th scope="col" style={{ minWidth: '120px' }}>
-                  <i className="fas fa-calendar-alt me-1"></i>Ngày SX
-                </th>
-                <th scope="col" style={{ minWidth: '120px' }}>
                   <i className="fas fa-calendar-times me-1"></i>Ngày HH
-                </th>
-                <th scope="col" style={{ minWidth: '150px' }}>
-                  <i className="fas fa-align-left me-1"></i>Mô tả
                 </th>
                 <th scope="col" style={{ minWidth: '100px' }}>
                   <i className="fas fa-info-circle me-1"></i>Trạng thái
                 </th>
-                <th scope="col" style={{ minWidth: '140px' }}>
+                <th scope="col" style={{ minWidth: '160px' }}>
                   <i className="fas fa-cogs me-1"></i>Thao tác
                 </th>
               </tr>
@@ -311,7 +368,7 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
                   <td className="fw-bold text-primary">{item.itemId || 'N/A'}</td>
                   <td className="fw-semibold">{item.itemName || item.name}</td>
                   <td>
-                    <span className="badge bg-secondary">
+                    <span className="badge bg-info text-dark">
                       {item.itemType || item.category}
                     </span>
                   </td>
@@ -324,13 +381,7 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
                     })()}
                   </td>
                   <td className="text-dark">{item.unit}</td>              
-                  <td className="text-dark">{formatDate(item.manufactureDate || item.dateAdded)}</td>
                   <td className="text-dark">{formatDate(item.expiryDate) || 'N/A'}</td>
-                  <td>
-                    <span className="text-truncate d-inline-block" style={{ maxWidth: '150px' }} title={item.itemDescription || item.description || '-'}>
-                      {item.itemDescription || item.description || '-'}
-                    </span>
-                  </td>
                   <td>
                     {(() => {
                       const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 
@@ -353,6 +404,13 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
                   <td>
                     <div className="btn-group btn-group-sm" role="group">
                       <button 
+                        className="btn btn-outline-info"
+                        onClick={() => openViewDetailsModal(item)}
+                        title="Xem chi tiết"
+                      >
+                        <i className="fas fa-eye"></i>
+                      </button>
+                      <button 
                         className="btn btn-outline-primary"
                         onClick={() => openEditModal(item)}
                         title="Chỉnh sửa"
@@ -364,7 +422,7 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
                         onClick={() => openDeleteModal(item)}
                         title="Xóa"
                       >
-                        <i className="fas fa-trash-alt"></i>
+                        <i className="fas fa-trash"></i>
                       </button>
                     </div>
                   </td>
@@ -475,197 +533,130 @@ const InventoryPage = () => {    // Use context directly without fallback mechan
   };
 
   return (
-    <div className="container-fluid px-4 py-3">
-      <div className="row">
-        <div className="col-12">
-          {/* Header */}
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <div>
-              <h2 className="text-primary mb-1">
-                <i className="fas fa-warehouse me-2"></i>
-                Quản lý kho y tế
-              </h2>
-              <p className="text-muted mb-0">Quản lý vật phẩm y tế và dược phẩm</p>
-            </div>
+    <>
+      <style>{inventoryStyles}</style>
+      <div className="container-fluid lukhang-inventory-main-wrapper">
+        <div className="card lukhang-inventory-header-card">
+          <div className="card-body text-center py-4">
+            <h1 className="lukhang-inventory-title-custom">
+              <i className="fas fa-warehouse me-3"></i>
+              Quản lý kho y tế
+            </h1>
           </div>
+        </div>
+        <div className="row">
+          <div className="col-12">
           
-          {/* Action Bar */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-body">
-              <div className="row align-items-center">
-                {/* Search Area */}
-                <div className="col-md-6 mb-3 mb-md-0">
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <i className="fas fa-search"></i>
-                    </span>
-                    <input 
-                      type="text" 
-                      className="form-control"
-                      placeholder="Tìm kiếm theo tên, loại hoặc đơn vị..." 
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    {searchTerm && (
-                      <button 
-                        className="btn btn-outline-secondary" 
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        title="Xóa tìm kiếm"
-                      >
-                        <i className="fas fa-times"></i>
-                      </button>
-                    )}
+            {/* Action Bar */}
+            <div className="card shadow-sm mb-4 lukhang-inventory-action-bar">
+              <div className="card-body">
+                <div className="row align-items-center">
+                  {/* Search Area */}
+                  <div className="col-md-6 mb-3 mb-md-0">
+                    <div className="input-group">
+                      <span className="input-group-text">
+                        <i className="fas fa-search"></i>
+                      </span>
+                      <input 
+                        type="text" 
+                        className="form-control"
+                        placeholder="Tìm kiếm theo tên, loại hoặc đơn vị..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      {searchTerm && (
+                        <button 
+                          className="btn btn-outline-secondary" 
+                          type="button"
+                          onClick={() => setSearchTerm('')}
+                          title="Xóa tìm kiếm"
+                        >
+                          <i className="fas fa-times"></i>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="col-md-6">
-                  <div className="d-flex justify-content-end gap-2 flex-wrap">
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => setShowAddModal(true)}
-                    >
-                      <i className="fas fa-plus me-1"></i>
-                      Thêm vật phẩm
-                    </button>
-                    
-                    {/* Filter Dropdown */}
-                    <div className="dropdown">
-                      <ul className="dropdown-menu">
-                        <li>
-                          <a 
-                            className="dropdown-item" 
-                            href="#" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setFilteredItems(inventoryItems.filter(item => {
-                                const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 
-                                               item.quantity !== undefined && item.quantity !== null ? item.quantity : 0;
-                                return getItemStatus(quantity) === 'Sẵn có';
-                              }));
-                              setCurrentPage(1);
-                            }}
-                          >
-                            <span className="badge bg-success me-2"></span>
-                            Sẵn có
-                          </a>
-                        </li>
-                        <li>
-                          <a 
-                            className="dropdown-item" 
-                            href="#" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setFilteredItems(inventoryItems.filter(item => {
-                                const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 
-                                               item.quantity !== undefined && item.quantity !== null ? item.quantity : 0;
-                                return getItemStatus(quantity) === 'Sắp hết';
-                              }));
-                              setCurrentPage(1);
-                            }}
-                          >
-                            <span className="badge bg-warning me-2"></span>
-                            Sắp hết
-                          </a>
-                        </li>
-                        <li>
-                          <a 
-                            className="dropdown-item" 
-                            href="#" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setFilteredItems(inventoryItems.filter(item => {
-                                const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 
-                                               item.quantity !== undefined && item.quantity !== null ? item.quantity : 0;
-                                return getItemStatus(quantity) === 'Hết hàng';
-                              }));
-                              setCurrentPage(1);
-                            }}
-                          >
-                            <span className="badge bg-danger me-2"></span>
-                            Hết hàng
-                          </a>
-                        </li>
-                        <li><hr className="dropdown-divider" /></li>
-                        <li>
-                          <a 
-                            className="dropdown-item" 
-                            href="#" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setFilteredItems(inventoryItems);
-                              setCurrentPage(1);
-                            }}
-                          >
-                            <i className="fas fa-redo-alt me-2"></i>
-                            Hiển thị tất cả
-                          </a>
-                        </li>
-                      </ul>
+                  
+                  {/* Action Buttons */}
+                  <div className="col-md-6">
+                    <div className="d-flex justify-content-end gap-2 flex-wrap">
+                      <button 
+                        className="btn"
+                        onClick={() => setShowAddModal(true)}
+                        style={{ backgroundColor: '#0d6efd', color: 'white' }}
+                      >
+                        <i className="fas fa-plus me-1"></i>
+                        Thêm vật phẩm
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          {/* Content */}
-          <div className="card shadow-sm">
-            <div className="card-body p-0">
-              {renderInventoryTable()}
+            
+            {/* Content */}
+            <div className="card shadow-sm lukhang-inventory-table-container">
+              <div className="card-body">
+                {renderInventoryTable()}
+              </div>
             </div>
+            
           </div>
         </div>
-      </div>
 
-      {/* Modals */}
-      {showAddModal && (
-        <AddItem 
-          onClose={() => setShowAddModal(false)}
-          onAddItem={handleAddItem}
-        />
-      )}
+        {/* Modals */}
+        {showAddModal && (
+          <AddItem 
+            onClose={() => setShowAddModal(false)}
+            onAddItem={handleAddItem}
+          />
+        )}
+        
         {showEditModal && selectedItem && (
-        <EditItem
-          item={selectedItem}
-          onClose={() => {
-            setShowEditModal(false);
-            setSelectedItem(null);
-          }}
-          onEditItem={handleEditItem}
-        />
-      )}
-      
-      {showDeleteModal && selectedItem && (
-        <DeleteItem
-          item={selectedItem}
-          onClose={() => setShowDeleteModal(false)}
-          onDeleteItem={handleDeleteItem}
-        />
-      )}
-      
-      {showExportModal && (
-        <ExportData
-          items={inventoryItems}
-          onClose={() => setShowExportModal(false)}
-        />
-      )}
+          <EditItem
+            item={selectedItem}
+            onClose={() => {
+              setShowEditModal(false);
+              setSelectedItem(null);
+            }}
+            onEditItem={handleEditItem}
+          />
+        )}
+        
+        {showDeleteModal && selectedItem && (
+          <DeleteItem
+            item={selectedItem}
+            onClose={() => setShowDeleteModal(false)}
+            onDeleteItem={handleDeleteItem}
+          />
+        )}
 
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-    </div>
+        {showViewDetailsModal && selectedItem && (
+          <ViewDetailsItem
+            itemId={selectedItem.itemId}
+            show={showViewDetailsModal}
+            onClose={() => {
+              setShowViewDetailsModal(false);
+              setSelectedItem(null);
+            }}
+          />
+        )}
+
+        {/* Toast Container */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+      </div>
+    </>
   );
 };
 

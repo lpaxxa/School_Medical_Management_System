@@ -12,13 +12,58 @@ export const MedicalEventsPage = () => {
 };
 
 const MedicalEventsMain = () => {
+  // Custom styles for header
+  const medicalEventsStyles = `
+    .lukhang-medical-events-main-wrapper {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+      min-height: 100vh !important;
+      padding: 2rem !important;
+    }
+    
+    .lukhang-medical-events-header-card {
+      background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+      border: none !important;
+      border-radius: 1rem !important;
+      box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2) !important;
+      margin-bottom: 2rem !important;
+    }
+    
+    .lukhang-medical-events-title-custom {
+      color: white !important;
+      font-weight: 700 !important;
+      font-size: 2rem !important;
+      margin: 0 !important;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    @media (max-width: 992px) {
+      .lukhang-medical-events-main-wrapper {
+        padding: 1rem !important;
+      }
+      
+      .lukhang-medical-events-title-custom {
+        font-size: 1.5rem !important;
+      }
+    }
+  `;
+
   return (
-    <div className="medical-events-container">
-      <h2 className="page-title">Quản lý sự kiện y tế</h2>
-      <div className="medical-events-content">
-        <MedicalIncidentsList />
+    <>
+      <style>{medicalEventsStyles}</style>
+      <div className="container-fluid lukhang-medical-events-main-wrapper">
+        <div className="card lukhang-medical-events-header-card">
+          <div className="card-body text-center py-4">
+            <h1 className="lukhang-medical-events-title-custom">
+              <i className="fas fa-notes-medical me-3"></i>
+              Quản lý sự kiện y tế
+            </h1>
+          </div>
+        </div>
+        <div className="medical-events-content">
+          <MedicalIncidentsList />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

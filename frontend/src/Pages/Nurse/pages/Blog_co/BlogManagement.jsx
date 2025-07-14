@@ -49,10 +49,10 @@ const BlogManagement = () => {
           }
           
           .lukhang-blogmgmt-header-card {
-            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
             border: none !important;
             border-radius: 1rem !important;
-            box-shadow: 0 10px 30px rgba(23, 162, 184, 0.2) !important;
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2) !important;
             margin-bottom: 2rem !important;
           }
           
@@ -114,11 +114,11 @@ const BlogManagement = () => {
           }
           
           .lukhang-blogmgmt-nav-link.active {
-            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%) !important;
-            border-color: #17a2b8 !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
             color: white !important;
             transform: translateY(-3px) !important;
-            box-shadow: 0 6px 20px rgba(23, 162, 184, 0.3) !important;
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3) !important;
             z-index: 10 !important;
           }
           
@@ -137,6 +137,11 @@ const BlogManagement = () => {
             margin-right: 0.75rem !important;
             font-size: 1.2rem !important;
             vertical-align: middle !important;
+            color: #6c757d !important;
+          }
+          
+          .lukhang-blogmgmt-nav-link.active i {
+            color: white !important;
           }
           
           .lukhang-blogmgmt-tab-content-wrapper {
@@ -237,7 +242,7 @@ const BlogManagement = () => {
         <Card className="lukhang-blogmgmt-header-card">
           <Card.Body className="text-center py-4">
             <h1 className="lukhang-blogmgmt-title-custom">
-              <i className="fas fa-blog me-3"></i>
+              <i className="fas fa-blog me-3" style={{color : 'white'}}></i>
               Quản lý bài viết cộng đồng & cẩm nang y tế
             </h1>
           </Card.Body>
@@ -251,7 +256,7 @@ const BlogManagement = () => {
                   className={`lukhang-blogmgmt-nav-link ${activeTab === 'posts' ? 'active' : ''}`}
                   onClick={() => handleTabSelect('posts')}
                 >
-                  <i className="fas fa-newspaper text-primary"></i>
+                  <i className="fas fa-newspaper"></i>
                   Bài viết cộng đồng
                 </Nav.Link>
               </Nav.Item>
@@ -260,7 +265,7 @@ const BlogManagement = () => {
                   className={`lukhang-blogmgmt-nav-link ${activeTab === 'health-articles' ? 'active' : ''}`}
                   onClick={() => handleTabSelect('health-articles')}
                 >
-                  <i className="fas fa-medkit text-success"></i>
+                  <i className="fas fa-medkit"></i>
                  Cẩm nang y tế
                 </Nav.Link>
               </Nav.Item>

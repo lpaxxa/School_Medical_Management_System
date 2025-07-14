@@ -46,10 +46,10 @@ const HealthCheckups = () => {
           }
           
           .lukhang-healthcheckup-header-card {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
             border: none !important;
             border-radius: 1rem !important;
-            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.2) !important;
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2) !important;
             margin-bottom: 2rem !important;
           }
           
@@ -111,11 +111,11 @@ const HealthCheckups = () => {
           }
           
           .lukhang-healthcheckup-nav-link.active {
-            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%) !important;
-            border-color: #dc3545 !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
             color: white !important;
             transform: translateY(-3px) !important;
-            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3) !important;
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3) !important;
             z-index: 10 !important;
           }
           
@@ -134,6 +134,11 @@ const HealthCheckups = () => {
             margin-right: 0.75rem !important;
             font-size: 1.2rem !important;
             vertical-align: middle !important;
+            color: #0d6efd !important;
+          }
+          
+          .lukhang-healthcheckup-nav-link.active i {
+            color: white !important;
           }
           
           .lukhang-healthcheckup-tab-content-wrapper {
@@ -243,7 +248,7 @@ const HealthCheckups = () => {
                     eventKey="campaign-list" 
                     className="lukhang-healthcheckup-nav-link"
                   >
-                    <i className="fas fa-list text-primary"></i>
+                    <i className="fas fa-list"></i>
                     Danh sách đợt khám
                   </Nav.Link>
                 </Nav.Item>
@@ -252,7 +257,7 @@ const HealthCheckups = () => {
                     eventKey="schedule-consultation" 
                     className="lukhang-healthcheckup-nav-link"
                   >
-                    <i className="fas fa-calendar-alt text-warning"></i>
+                    <i className="fas fa-calendar-alt"></i>
                     Danh sách khám sức khỏe
                   </Nav.Link>
                 </Nav.Item>
@@ -279,7 +284,7 @@ const HealthCheckups = () => {
                   <Card className="lukhang-healthcheckup-content-card">
                     <Card.Header className="lukhang-healthcheckup-content-header">
                       <h4 className="lukhang-healthcheckup-content-title">
-                        <i className="fas fa-calendar-alt text-warning"></i>
+                        <i className="fas fa-calendar-alt text-primary"></i>
                         Quản lý danh sách khám sức khỏe
                       </h4>
                     </Card.Header>
