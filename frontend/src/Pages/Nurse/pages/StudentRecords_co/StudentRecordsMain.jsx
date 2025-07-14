@@ -23,10 +23,10 @@ const StudentRecords = () => {
           }
           
           .lukhang-studentrecords-header-card {
-            background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%) !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
             border: none !important;
             border-radius: 1rem !important;
-            box-shadow: 0 10px 30px rgba(111, 66, 193, 0.2) !important;
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2) !important;
             margin-bottom: 2rem !important;
           }
           
@@ -88,11 +88,11 @@ const StudentRecords = () => {
           }
           
           .lukhang-studentrecords-nav-link.active {
-            background: linear-gradient(135deg, #6f42c1 0%, #20c997 100%) !important;
-            border-color: #6f42c1 !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
             color: white !important;
             transform: translateY(-3px) !important;
-            box-shadow: 0 6px 20px rgba(111, 66, 193, 0.3) !important;
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3) !important;
             z-index: 10 !important;
           }
           
@@ -111,6 +111,11 @@ const StudentRecords = () => {
             margin-right: 0.75rem !important;
             font-size: 1.2rem !important;
             vertical-align: middle !important;
+            color: #0d6efd !important;
+          }
+          
+          .lukhang-studentrecords-nav-link.active i {
+            color: white !important;
           }
           
           .lukhang-studentrecords-tab-content-wrapper {
@@ -220,7 +225,7 @@ const StudentRecords = () => {
                     eventKey="list" 
                     className="lukhang-studentrecords-nav-link"
                   >
-                    <i className="fas fa-list text-info"></i>
+                    <i className="fas fa-list"></i>
                     Danh sách học sinh
                   </Nav.Link>
                 </Nav.Item>
@@ -229,7 +234,7 @@ const StudentRecords = () => {
                     eventKey="reports" 
                     className="lukhang-studentrecords-nav-link"
                   >
-                    <i className="fas fa-chart-bar text-success"></i>
+                    <i className="fas fa-chart-bar"></i>
                     Báo cáo sức khỏe
                   </Nav.Link>
                 </Nav.Item>
@@ -256,7 +261,7 @@ const StudentRecords = () => {
                   <Card className="lukhang-studentrecords-content-card">
                     <Card.Header className="lukhang-studentrecords-content-header">
                       <h4 className="lukhang-studentrecords-content-title">
-                        <i className="fas fa-chart-bar text-success"></i>
+                        <i className="fas fa-chart-bar text-primary"></i>
                         Báo cáo và thống kê sức khỏe
                       </h4>
                     </Card.Header>

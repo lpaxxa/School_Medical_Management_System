@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-b
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../../../context/AuthContext';
 import * as blogService from '../../../../../services/APINurse/blogService';
+import SuccessNotification from './SuccessNotification';
 
 const EditPost = () => {
   const { currentUser } = useAuth();
@@ -22,6 +23,7 @@ const EditPost = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [postData, setPostData] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Post categories
   const postCategories = [
@@ -118,12 +120,7 @@ const EditPost = () => {
       const response = await blogService.updatePost(id, updateData);
       console.log('Post updated successfully:', response);
 
-      setSuccess('Bài viết đã được cập nhật thành công!');
-      
-      // Redirect to posts list after 2 seconds
-      setTimeout(() => {
-        navigate('/nurse/blog-management/posts');
-      }, 2000);
+      setShowSuccessModal(true);
 
     } catch (error) {
       console.error('Error updating post:', error);
@@ -135,6 +132,12 @@ const EditPost = () => {
 
   // Handle cancel
   const handleCancel = () => {
+    navigate('/nurse/blog-management/posts');
+  };
+
+  // Handle success modal close
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
     navigate('/nurse/blog-management/posts');
   };
 
@@ -153,6 +156,72 @@ const EditPost = () => {
 
   return (
     <Container fluid className="py-4">
+      <style>
+        {`
+          /* Đồng bộ màu sắc với hệ thống */
+          .btn-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2) !important;
+          }
+          
+          .btn-primary:hover {
+            background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%) !important;
+            border-color: #0b5ed7 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
+          }
+          
+          .btn-outline-primary {
+            color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          .btn-outline-primary:hover {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          .text-primary {
+            color: #0d6efd !important;
+          }
+          
+          /* Focus state cho form controls */
+          .form-control:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+          
+          /* Form select focus */
+          .form-select:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+          
+          /* Fix dropdown arrow */
+          .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+            padding-right: 2.25rem !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+          }
+          
+          /* Ensure dropdown works properly */
+          .form-select option {
+            color: #212529 !important;
+            background-color: #fff !important;
+          }
+          
+          .form-select:disabled {
+            background-color: #e9ecef !important;
+            opacity: 1 !important;
+          }
+        `}
+      </style>
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
@@ -314,6 +383,16 @@ const EditPost = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* Success Notification Modal */}
+      <SuccessNotification
+        show={showSuccessModal}
+        onHide={handleSuccessModalClose}
+        title="Cập nhật thành công!"
+        message="Bài viết đã được cập nhật thành công."
+        iconType="edit"
+        autoHideDelay={3000}
+      />
     </Container>
   );
 };

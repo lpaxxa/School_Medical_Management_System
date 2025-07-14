@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-b
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../context/AuthContext';
 import * as blogService from '../../../../../services/APINurse/blogService';
+import SuccessNotification from './SuccessNotification';
 
 const AddPost = () => {
   const { currentUser } = useAuth();
@@ -18,7 +19,7 @@ const AddPost = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Post categories
   const postCategories = [
@@ -54,7 +55,6 @@ const AddPost = () => {
 
     setSubmitting(true);
     setError('');
-    setSuccess('');
 
     try {
       // Prepare data for API
@@ -72,7 +72,8 @@ const AddPost = () => {
       const response = await blogService.createPost(postData);
       console.log('Post created successfully:', response);
 
-      setSuccess('Bài viết đã được thêm thành công!');
+      // Show success notification
+      setShowSuccess(true);
       
       // Reset form
       setFormData({
@@ -83,10 +84,10 @@ const AddPost = () => {
         tags: ''
       });
 
-      // Redirect to posts list after 2 seconds
+      // Redirect to posts list after success notification
       setTimeout(() => {
         navigate('/nurse/blog-management/posts');
-      }, 2000);
+      }, 3500);
 
     } catch (error) {
       console.error('Error adding post:', error);
@@ -102,7 +103,29 @@ const AddPost = () => {
   };
 
   return (
-    <Container fluid className="py-4">
+    <>
+      <style>
+        {`
+          /* Fix dropdown arrow issue */
+          .form-select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+          }
+          
+          .form-select:focus {
+            border-color: #86b7fe !important;
+            outline: 0 !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+        `}
+      </style>
+      
+      <Container fluid className="py-4">
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
@@ -132,14 +155,6 @@ const AddPost = () => {
                 <Alert variant="danger" className="mb-4">
                   <i className="fas fa-exclamation-triangle me-2"></i>
                   {error}
-                </Alert>
-              )}
-
-              {/* Success Alert */}
-              {success && (
-                <Alert variant="success" className="mb-4">
-                  <i className="fas fa-check-circle me-2"></i>
-                  {success}
                 </Alert>
               )}
 
@@ -265,6 +280,16 @@ const AddPost = () => {
         </Col>
       </Row>
     </Container>
+    
+    {/* Success Notification */}
+    <SuccessNotification
+      show={showSuccess}
+      onHide={() => setShowSuccess(false)}
+      iconType="add"
+      message="Bài viết đã được thêm thành công và sẽ được xem xét!"
+      autoHideDelay={3000}
+    />
+    </>
   );
 };
 

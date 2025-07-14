@@ -14,8 +14,8 @@ const Navigation = () => {
 
       <nav>        <ul>
           <li>
-            <Link to="/nurse/vaccination" className={isActive('/nurse/vaccination')}>
-              <i className="fas fa-syringe"></i> Quản lý tiêm chủng
+            <Link to="/nurse/blog-management" className={isActive('/nurse/blog-management')}>
+              <i className="fas fa-blog"></i> Quản lý blog
             </Link>
           </li>
           <li>
@@ -27,9 +27,10 @@ const Navigation = () => {
             <Link to="/nurse/medical-events" className={isActive('/nurse/medical-events')}>
               <i className="fas fa-calendar-plus"></i> Sự kiện y tế
             </Link>
-          </li>          <li>
-            <Link to="/nurse/health-checkups" className={isActive('/nurse/health-checkups')}>
-              <i className="fas fa-stethoscope"></i> Khám sức khỏe định kỳ
+          </li>
+          <li>
+            <Link to="/nurse/receive-medicine" className={isActive('/nurse/receive-medicine')}>
+              <i className="fas fa-pills"></i> Nhận thuốc từ phụ huynh
             </Link>
           </li>
           <li>
@@ -38,14 +39,13 @@ const Navigation = () => {
             </Link>
           </li>
           <li>
-            <Link to="/nurse/receive-medicine" className={isActive('/nurse/receive-medicine')}>
-              <i className="fas fa-pills"></i> Nhận thuốc từ phụ huynh
+            <Link to="/nurse/health-checkups" className={isActive('/nurse/health-checkups')}>
+              <i className="fas fa-stethoscope"></i> Khám sức khỏe định kỳ
             </Link>
           </li>
-          
           <li>
-            <Link to="/nurse/blog-management" className={isActive('/nurse/blog-management')}>
-              <i className="fas fa-blog"></i> Quản lý blog
+            <Link to="/nurse/vaccination" className={isActive('/nurse/vaccination')}>
+              <i className="fas fa-syringe"></i> Quản lý tiêm chủng
             </Link>
           </li>
         </ul>

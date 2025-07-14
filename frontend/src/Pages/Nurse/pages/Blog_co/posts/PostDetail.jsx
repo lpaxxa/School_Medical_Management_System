@@ -725,7 +725,172 @@ const PostDetail = () => {
   }
 
   return (
-    <Container fluid className="py-4">
+    <>
+      <style>
+        {`
+          /* Đồng bộ màu sắc với hệ thống */
+          .btn-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2) !important;
+          }
+          
+          .btn-primary:hover {
+            background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%) !important;
+            border-color: #0b5ed7 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
+          }
+          
+          .btn-outline-primary {
+            color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          .btn-outline-primary:hover {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          .text-primary {
+            color: #0d6efd !important;
+          }
+          
+          .text-info {
+            color: #0d6efd !important;
+          }
+          
+          .badge.bg-info {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+          }
+          
+          /* Card header cho comments */
+          .card-header h5 {
+            color: white !important;
+          }
+          
+          .card-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-bottom: 2px solid #0b5ed7 !important;
+          }
+          
+          /* Card header cho thông tin bài viết */
+          .card-header h6 {
+            color: white !important;
+          }
+          
+          /* Badge warning (Nháp) đồng bộ màu */
+          .badge.bg-warning {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            color: white !important;
+          }
+          
+          /* Thẻ (tags) background màu #0d6efd */
+          .badge.bg-secondary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            color: white !important;
+          }
+          
+          /* Focus state cho form controls */
+          .form-control:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+          
+          /* Link styling */
+          .btn-link {
+            color: #0d6efd !important;
+          }
+          
+          .btn-link:hover {
+            color: #0b5ed7 !important;
+          }
+
+          /* Modal styling đồng bộ hệ thống */
+          .modal-header {
+            border-bottom: 2px solid #dee2e6 !important;
+          }
+          
+          /* Modal xóa bình luận - theme đỏ cho delete */
+          .modal-header.delete-modal-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            color: white !important;
+            border-bottom: 2px solid #c82333 !important;
+          }
+          
+          .modal-header.delete-modal-header .modal-title {
+            color: white !important;
+            font-weight: 600 !important;
+          }
+          
+          .modal-header.delete-modal-header .btn-close {
+            filter: brightness(0) invert(1) !important;
+          }
+          
+          /* Modal sửa/phản hồi bình luận - theme xanh hệ thống */
+          .modal-header.system-modal-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            color: white !important;
+            border-bottom: 2px solid #0b5ed7 !important;
+          }
+          
+          .modal-header.system-modal-header .modal-title {
+            color: white !important;
+            font-weight: 600 !important;
+          }
+          
+          .modal-header.system-modal-header .btn-close {
+            filter: brightness(0) invert(1) !important;
+          }
+          
+          /* Modal body styling */
+          .modal-body {
+            padding: 1.5rem !important;
+          }
+          
+          .modal-body .bg-light {
+            background-color: #f8f9fa !important;
+            border: 1px solid #e9ecef !important;
+            border-radius: 0.375rem !important;
+          }
+          
+          /* Modal footer styling */
+          .modal-footer {
+            border-top: 1px solid #dee2e6 !important;
+            padding: 1rem 1.5rem !important;
+          }
+          
+          /* Button danger enhancement */
+          .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            border-color: #dc3545 !important;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2) !important;
+          }
+          
+          .btn-danger:hover {
+            background: linear-gradient(135deg, #c82333 0%, #b21e2f 100%) !important;
+            border-color: #c82333 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
+          }
+          
+          /* Button secondary enhancement */
+          .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+            border-color: #6c757d !important;
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2) !important;
+          }
+          
+          .btn-secondary:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%) !important;
+            border-color: #5a6268 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3) !important;
+          }
+        `}
+      </style>
+      
+      <Container fluid className="py-4">
       {/* Header */}
       <Row className="mb-4">
         <Col>
@@ -1282,18 +1447,24 @@ const PostDetail = () => {
 
       {/* Delete Comment Confirmation Modal */}
       <Modal show={showDeleteCommentModal} onHide={() => setShowDeleteCommentModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Xác nhận xóa bình luận</Modal.Title>
+        <Modal.Header closeButton className="delete-modal-header">
+          <Modal.Title>
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            Xác nhận xóa bình luận
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Bạn có chắc chắn muốn xóa bình luận này không?</p>
-          <div className="p-3 bg-light rounded">
-            <p className="mb-0 text-muted">"{selectedComment?.content}"</p>
+          <div className="text-center mb-3">
+            <i className="fas fa-trash-alt fa-3x text-danger mb-3"></i>
           </div>
-          <p className="text-danger mt-2 mb-0">
-            <i className="fas fa-exclamation-triangle me-1"></i>
-            Lưu ý: Hành động này không thể hoàn tác.
-          </p>
+          <p className="text-center mb-3">Bạn có chắc chắn muốn xóa bình luận này không?</p>
+          <div className="p-3 bg-light rounded border">
+            <p className="mb-0 text-muted fst-italic">"{selectedComment?.content}"</p>
+          </div>
+          <div className="alert alert-danger mt-3 mb-0">
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button 
@@ -1301,6 +1472,7 @@ const PostDetail = () => {
             onClick={() => setShowDeleteCommentModal(false)}
             disabled={deleteLoading}
           >
+            <i className="fas fa-times me-1"></i>
             Hủy
           </Button>
           <Button 
@@ -1332,20 +1504,31 @@ const PostDetail = () => {
 
       {/* Edit Comment Modal */}
       <Modal show={showEditCommentModal} onHide={() => setShowEditCommentModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Chỉnh sửa bình luận</Modal.Title>
+        <Modal.Header closeButton className="system-modal-header">
+          <Modal.Title>
+            <i className="fas fa-edit me-2"></i>
+            Chỉnh sửa bình luận
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Nội dung bình luận</Form.Label>
+              <Form.Label className="fw-semibold">
+                <i className="fas fa-comment-alt me-2"></i>
+                Nội dung bình luận
+              </Form.Label>
               <Form.Control
                 as="textarea"
-                rows={3}
+                rows={4}
                 value={editCommentContent}
                 onChange={(e) => setEditCommentContent(e.target.value)}
                 placeholder="Nhập nội dung bình luận..."
+                className="border-2"
               />
+              <Form.Text className="text-muted">
+                <i className="fas fa-info-circle me-1"></i>
+                Hãy viết nội dung rõ ràng và tôn trọng.
+              </Form.Text>
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -1355,6 +1538,7 @@ const PostDetail = () => {
             onClick={() => setShowEditCommentModal(false)}
             disabled={updateLoading}
           >
+            <i className="fas fa-times me-1"></i>
             Hủy
           </Button>
           <Button 
@@ -1386,29 +1570,43 @@ const PostDetail = () => {
 
       {/* Add Reply Modal */}
       <Modal show={showReplyModal} onHide={() => setShowReplyModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Phản hồi bình luận</Modal.Title>
+        <Modal.Header closeButton className="system-modal-header">
+          <Modal.Title>
+            <i className="fas fa-reply me-2"></i>
+            Phản hồi bình luận
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {replyingToComment && (
-            <div className="mb-3 p-2 bg-light rounded">
-              <strong>Phản hồi cho:</strong>
-              <p className="mb-0 text-muted">"{replyingToComment.content}"</p>
+            <div className="mb-3 p-3 bg-light rounded border-start border-primary border-4">
+              <div className="d-flex align-items-center mb-2">
+                <i className="fas fa-quote-left text-primary me-2"></i>
+                <strong className="text-primary">Phản hồi cho:</strong>
+              </div>
+              <p className="mb-0 text-muted fst-italic">"{replyingToComment.content}"</p>
             </div>
           )}
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Nội dung phản hồi</Form.Label>
+              <Form.Label className="fw-semibold">
+                <i className="fas fa-comment-dots me-2"></i>
+                Nội dung phản hồi
+              </Form.Label>
               <Form.Control
                 as="textarea"
-                rows={3}
+                rows={4}
                 value={newReply[replyingToComment?.id] || ''}
                 onChange={(e) => setNewReply(prev => ({ 
                   ...prev, 
                   [replyingToComment?.id]: e.target.value 
                 }))}
                 placeholder="Viết phản hồi của bạn..."
+                className="border-2"
               />
+              <Form.Text className="text-muted">
+                <i className="fas fa-info-circle me-1"></i>
+                Hãy phản hồi một cách tích cực và xây dựng.
+              </Form.Text>
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -1420,6 +1618,7 @@ const PostDetail = () => {
               setReplyingToComment(null);
             }}
           >
+            <i className="fas fa-times me-1"></i>
             Hủy
           </Button>
           <Button 
@@ -1439,18 +1638,24 @@ const PostDetail = () => {
 
       {/* Delete Reply Confirmation Modal */}
       <Modal show={showDeleteReplyModal} onHide={() => setShowDeleteReplyModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Xác nhận xóa phản hồi</Modal.Title>
+        <Modal.Header closeButton className="delete-modal-header">
+          <Modal.Title>
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            Xác nhận xóa phản hồi
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Bạn có chắc chắn muốn xóa phản hồi này không?</p>
-          <div className="p-3 bg-light rounded">
-            <p className="mb-0 text-muted">"{selectedReply?.content}"</p>
+          <div className="text-center mb-3">
+            <i className="fas fa-trash-alt fa-3x text-danger mb-3"></i>
           </div>
-          <p className="text-danger mt-2 mb-0">
-            <i className="fas fa-exclamation-triangle me-1"></i>
-            Lưu ý: Hành động này không thể hoàn tác.
-          </p>
+          <p className="text-center mb-3">Bạn có chắc chắn muốn xóa phản hồi này không?</p>
+          <div className="p-3 bg-light rounded border">
+            <p className="mb-0 text-muted fst-italic">"{selectedReply?.content}"</p>
+          </div>
+          <div className="alert alert-danger mt-3 mb-0">
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button 
@@ -1458,6 +1663,7 @@ const PostDetail = () => {
             onClick={() => setShowDeleteReplyModal(false)}
             disabled={deleteReplyLoading}
           >
+            <i className="fas fa-times me-1"></i>
             Hủy
           </Button>
           <Button 
@@ -1489,20 +1695,31 @@ const PostDetail = () => {
 
       {/* Edit Reply Modal */}
       <Modal show={showEditReplyModal} onHide={() => setShowEditReplyModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Chỉnh sửa phản hồi</Modal.Title>
+        <Modal.Header closeButton className="system-modal-header">
+          <Modal.Title>
+            <i className="fas fa-edit me-2"></i>
+            Chỉnh sửa phản hồi
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Nội dung phản hồi</Form.Label>
+              <Form.Label className="fw-semibold">
+                <i className="fas fa-comment-dots me-2"></i>
+                Nội dung phản hồi
+              </Form.Label>
               <Form.Control
                 as="textarea"
-                rows={3}
+                rows={4}
                 value={editReplyContent}
                 onChange={(e) => setEditReplyContent(e.target.value)}
                 placeholder="Nhập nội dung phản hồi..."
+                className="border-2"
               />
+              <Form.Text className="text-muted">
+                <i className="fas fa-info-circle me-1"></i>
+                Hãy viết nội dung rõ ràng và tôn trọng.
+              </Form.Text>
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -1512,6 +1729,7 @@ const PostDetail = () => {
             onClick={() => setShowEditReplyModal(false)}
             disabled={updateReplyLoading}
           >
+            <i className="fas fa-times me-1"></i>
             Hủy
           </Button>
           <Button 
@@ -1541,6 +1759,7 @@ const PostDetail = () => {
         </Modal.Footer>
       </Modal>
     </Container>
+    </>
   );
 };
 

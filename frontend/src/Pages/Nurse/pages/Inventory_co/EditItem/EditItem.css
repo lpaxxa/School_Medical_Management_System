@@ -197,6 +197,79 @@
   transition: border-color 0.2s;
 }
 
+/* Edit Item Form Controls */
+.edit-item-form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+}
+
+.edit-item-form-control:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+}
+
+/* Select dropdown styling */
+.edit-item-form-select {
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234a90e2' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  color: #333;
+}
+
+.edit-item-form-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234a90e2' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m14 12-4-4-4 4'/%3e%3c/svg%3e");
+}
+
+.edit-item-form-select:hover {
+  border-color: #4a90e2;
+}
+
+.edit-item-form-select:invalid {
+  color: #6c757d;
+}
+
+.edit-item-form-select option {
+  padding: 12px 15px;
+  background-color: #ffffff;
+  color: #333333;
+  font-size: 14px;
+}
+
+.edit-item-form-select option:first-child {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.edit-item-form-select option:hover {
+  background-color: #f8f9fa;
+}
+
+.edit-item-form-select option:checked {
+  background-color: #4a90e2;
+  color: white;
+}
+
 .form-control:focus {
   border-color: #2196f3;
   outline: none;

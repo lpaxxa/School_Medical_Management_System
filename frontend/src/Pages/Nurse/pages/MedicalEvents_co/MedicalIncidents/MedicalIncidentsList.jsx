@@ -480,8 +480,9 @@ const MedicalIncidentsList = () => {
               Quản lý sự kiện y tế
             </h4>
             <button 
-              className="btn btn-success btn-lg" 
+              className="btn btn-lg" 
               onClick={handleAddNew}
+              style={{ backgroundColor: '#0d6efd', color: 'white' }}
             >
               <i className="fas fa-plus me-2"></i>
               Thêm sự kiện

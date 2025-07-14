@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-b
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../context/AuthContext';
 import * as healthArticleService from '../../../../../services/APINurse/blogService';
+import SuccessNotification from './SuccessNotification';
 
 const AddHealthArticle = () => {
   const { currentUser } = useAuth();
@@ -21,20 +22,18 @@ const AddHealthArticle = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [imagePreview, setImagePreview] = useState('');
+  
+  // Success notification states
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [notificationType, setNotificationType] = useState('add');
 
   // Health article categories
   const healthCategories = [
-    "Disease Prevention",
-    "Nutrition", 
-    "Mental Health",
-    "First Aid",
-    "Physical Activity",
-    "Health Information",
     "COVID-19 và trẻ em",
     "Dinh dưỡng học đường",
     "Sức khỏe tâm thần",
     "Tuổi dậy thì",
-    "Vắc-xin cho học sinh",
+    "Vắc-xin cho học sinh", 
     "Y tế học đường",
     "Phòng bệnh",
     "Sơ cứu",
@@ -58,6 +57,11 @@ const AddHealthArticle = () => {
       ...formData,
       imageUrl: url
     });
+    
+    // Clear any previous errors
+    setError('');
+    
+    // Update preview immediately when URL changes
     setImagePreview(url);
   };
 
@@ -89,12 +93,12 @@ const AddHealthArticle = () => {
         summary: formData.summary.trim(),
         content: formData.content.trim(),
         category: formData.category,
-        imageUrl: formData.imageUrl,
+        imageUrl: formData.imageUrl.trim(), // Use camelCase to match frontend/backend
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : [],
         // Thêm thông tin tác giả từ currentUser
-        authorId: currentUser.id || currentUser.memberId,
+        author_id: currentUser.id || currentUser.memberId,
         author: currentUser.fullName || currentUser.name || currentUser.email,
-        memberId: currentUser.memberId || currentUser.id
+        member_id: currentUser.memberId || currentUser.id
       };
 
       console.log('Adding new health article:', articleData);
@@ -102,8 +106,12 @@ const AddHealthArticle = () => {
       // Call API to create article
       const response = await healthArticleService.createHealthArticle(articleData);
       console.log('Health article created successfully:', response);
+      console.log('Image URL sent:', articleData.image_url);
+      console.log('Image URL received back:', response.imageUrl || response.image_url);
 
-      setSuccess('Bài viết đã được thêm thành công!');
+      // Show success notification instead of alert
+      setNotificationType('add');
+      setShowSuccessNotification(true);
       
       // Reset form
       setFormData({
@@ -116,10 +124,10 @@ const AddHealthArticle = () => {
       });
       setImagePreview('');
 
-      // Redirect to health articles list after 2 seconds
+      // Redirect to health articles list after notification closes
       setTimeout(() => {
         navigate('/nurse/blog-management/health-articles');
-      }, 2000);
+      }, 3500); // Slightly longer than notification auto-hide
 
     } catch (error) {
       console.error('Error adding health article:', error);
@@ -136,6 +144,83 @@ const AddHealthArticle = () => {
 
   return (
     <Container fluid className="py-4">
+      <style>
+        {`
+          /* Đồng bộ màu sắc với hệ thống */
+          .btn-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2) !important;
+          }
+          
+          .btn-primary:hover {
+            background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%) !important;
+            border-color: #0b5ed7 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
+          }
+          
+          .btn-outline-primary {
+            color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          .btn-outline-primary:hover {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          .btn-outline-secondary:hover {
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+          }
+          
+          .text-primary {
+            color: #0d6efd !important;
+          }
+          
+          /* Focus state cho form controls */
+          .form-control:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+          
+          .form-select:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+          
+          /* Fix dropdown arrow */
+          .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+            padding-right: 2.25rem !important;
+          }
+          
+          /* Image upload styling - simplified for URL only */
+          .form-control[type="url"] {
+            border: 1px solid #dee2e6;
+            background-color: #fff;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            transition: all 0.3s ease;
+          }
+          
+          .form-control[type="url"]:hover {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.02);
+          }
+          
+          .form-control[type="url"]:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+            background-color: rgba(13, 110, 253, 0.02);
+          }
+        `}
+      </style>
+      
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
@@ -165,14 +250,6 @@ const AddHealthArticle = () => {
                 <Alert variant="danger" className="mb-4">
                   <i className="fas fa-exclamation-triangle me-2"></i>
                   {error}
-                </Alert>
-              )}
-
-              {/* Success Alert */}
-              {success && (
-                <Alert variant="success" className="mb-4">
-                  <i className="fas fa-check-circle me-2"></i>
-                  {success}
                 </Alert>
               )}
 
@@ -264,15 +341,25 @@ const AddHealthArticle = () => {
                   {imagePreview && (
                     <div className="mt-3">
                       <Form.Label className="small text-muted">Xem trước:</Form.Label>
-                      <div>
+                      <div className="position-relative d-inline-block">
                         <img 
                           src={imagePreview} 
                           alt="Xem trước" 
-                          style={{ maxHeight: '200px', maxWidth: '100%', borderRadius: '4px' }}
+                          className="img-fluid rounded shadow-sm"
+                          style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'cover' }}
+                          onLoad={() => {
+                            console.log('Image loaded successfully:', imagePreview);
+                          }}
                           onError={(e) => {
+                            console.error('Image failed to load:', imagePreview);
+                            setError('Không thể tải ảnh từ URL này. Vui lòng kiểm tra lại đường dẫn ảnh.');
                             e.target.style.display = 'none';
                           }}
                         />
+                        <div className="position-absolute top-0 end-0 bg-success text-white px-2 py-1 rounded-bottom-start">
+                          <i className="fas fa-check me-1"></i>
+                          <small>Ảnh hợp lệ</small>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -332,6 +419,14 @@ const AddHealthArticle = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* Success Notification Modal */}
+      <SuccessNotification
+        show={showSuccessNotification}
+        onHide={() => setShowSuccessNotification(false)}
+        iconType={notificationType}
+        autoHideDelay={3000}
+      />
     </Container>
   );
 };

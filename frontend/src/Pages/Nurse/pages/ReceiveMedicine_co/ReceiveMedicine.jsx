@@ -51,10 +51,10 @@ const ReceiveMedicineMain = () => {
           }
           
           .lukhang-receivemedicine-header-card {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
             border: none !important;
             border-radius: 1rem !important;
-            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.2) !important;
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2) !important;
             margin-bottom: 2rem !important;
           }
           
@@ -116,11 +116,11 @@ const ReceiveMedicineMain = () => {
           }
           
           .lukhang-receivemedicine-nav-link.active {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
-            border-color: #28a745 !important;
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
             color: white !important;
             transform: translateY(-3px) !important;
-            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3) !important;
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3) !important;
             z-index: 10 !important;
           }
           
@@ -143,6 +143,11 @@ const ReceiveMedicineMain = () => {
             margin-right: 0.75rem !important;
             font-size: 1.2rem !important;
             vertical-align: middle !important;
+            color: #0d6efd !important;
+          }
+          
+          .lukhang-receivemedicine-nav-link.active i {
+            color: white !important;
           }
           
           .lukhang-receivemedicine-tab-content-wrapper {
@@ -252,7 +257,7 @@ const ReceiveMedicineMain = () => {
                     eventKey="receipts" 
                     className="lukhang-receivemedicine-nav-link"
                   >
-                    <i className="fas fa-prescription-bottle-alt text-primary"></i>
+                    <i className="fas fa-prescription-bottle-alt"></i>
                     Đơn nhận thuốc
                   </Nav.Link>
                 </Nav.Item>
@@ -261,7 +266,7 @@ const ReceiveMedicineMain = () => {
                     eventKey="history" 
                     className="lukhang-receivemedicine-nav-link"
                   >
-                    <i className="fas fa-history" style={{color: 'white'}}></i>
+                    <i className="fas fa-history"></i>
                     Lịch sử dùng thuốc
                   </Nav.Link>
                 </Nav.Item>
@@ -287,7 +292,7 @@ const ReceiveMedicineMain = () => {
                   <Card className="lukhang-receivemedicine-content-card">
                     <Card.Header className="lukhang-receivemedicine-content-header">
                       <h4 className="lukhang-receivemedicine-content-title">
-                        <i className="fas fa-history text-warning"></i>
+                        <i className="fas fa-history text-primary"></i>
                         Lịch sử và thống kê dùng thuốc
                       </h4>
                     </Card.Header>
@@ -309,9 +314,7 @@ const ReceiveMedicineMain = () => {
 const ReceiveMedicine = () => {
   return (
     <MedicineApprovalProvider>
-      <div className="lukhang-receivemedicine-main-wrapper">
-        <ReceiveMedicineMain />
-      </div>
+      <ReceiveMedicineMain />
     </MedicineApprovalProvider>
   );
 };

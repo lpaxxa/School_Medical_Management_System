@@ -1,8 +1,8 @@
 .nurse-sidebar {
   width: 210px; /* Reduced from 200px */
   height: calc(100vh - 60px);
-  background-color: #1d5d86;
-  background-image: linear-gradient(to bottom, #1d5d86, #1a4e72);
+  background-color: #0a58ca;
+  background-image: linear-gradient(to bottom, #0d6efd, #0a58ca);
   padding: 0;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
   position: fixed;
@@ -65,18 +65,18 @@
   width: 16px; /* Smaller icon width */
   text-align: center;
   font-size: 0.9rem; /* Smaller icon */
-  color: #a3dfff;
+  color: #b3d4fc;
 }
 
 .nurse-sidebar nav ul li a:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  border-left: 3px solid #4cc1a9; /* Mint green/teal - medical color */
+  border-left: 3px solid #0d6efd; /* Updated to use main theme color */
   color: white;
 }
 
 .nurse-sidebar nav ul li a.active {
-  background-color: rgba(76, 193, 169, 0.2); /* Mint green/teal with opacity */
-  border-left: 3px solid #4cc1a9;
+  background-color: rgba(13, 110, 253, 0.2); /* Updated to use main theme color with opacity */
+  border-left: 3px solid #0d6efd;
   font-weight: bold;
   color: white;
 }
@@ -97,7 +97,7 @@
 }
 
 .sidebar-header p {
-  color: #a3dfff;
+  color: #b3d4fc;
   font-size: 0.8rem;
   font-weight: 500;
   margin: 0;

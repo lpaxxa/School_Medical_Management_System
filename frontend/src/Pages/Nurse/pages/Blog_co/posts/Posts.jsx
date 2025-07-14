@@ -230,38 +230,101 @@ const Posts = () => {
 
   return (
     <Container fluid className="py-4">
-      {/* Header */}
-      <Row className="mb-4">
-        <Col>
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h3 className="text-primary fw-bold mb-2">
-                <i className="fas fa-blog me-2"></i>
-                Quản lý Blog
-              </h3>
-              <p className="text-muted mb-0">
-                Quản lý bài viết và nội dung sức khỏe cho cộng đồng
-              </p>
-            </div>
-          </div>
-        </Col>
-      </Row>
+      <style>
+        {`
+          /* Đồng bộ màu sắc với hệ thống */
+          .btn-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2) !important;
+          }
+          
+          .btn-primary:hover {
+            background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%) !important;
+            border-color: #0b5ed7 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
+          }
+          
+          .btn-outline-primary {
+            color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          .btn-outline-primary:hover {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          /* Badge info đồng bộ màu */
+          .badge.bg-info {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            color: white !important;
+          }
+          
+          /* Thẻ tags đồng bộ màu */
+          .badge.bg-secondary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            color: white !important;
+          }
+          
+          /* Focus state cho form controls */
+          .form-control:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+          
+          /* Form select focus */
+          .form-select:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+          
+          /* Fix dropdown arrow */
+          .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+            padding-right: 2.25rem !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+          }
+          
+          /* Ensure dropdown works properly */
+          .form-select option {
+            color: #212529 !important;
+            background-color: #fff !important;
+          }
+          
+          .form-select:disabled {
+            background-color: #e9ecef !important;
+            opacity: 1 !important;
+          }
+          
+          /* Pagination active */
+          .pagination .page-item.active .page-link {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          .pagination .page-link {
+            color: #0d6efd !important;
+          }
+          
+          .pagination .page-link:hover {
+            color: #0b5ed7 !important;
+            background-color: #e7f1ff !important;
+            border-color: #86b7fe !important;
+          }
+        `}
+      </style>
 
       {/* Posts Header */}
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h4 className="text-primary fw-bold mb-2">Bài viết chung</h4>
-              <p className="text-muted mb-0">
-                Quản lý các bài viết và tin tức chung
-                {!postsLoading && !postsError && (
-                  <span className="ms-2">
-                    ({filteredPosts.length} bài viết {filteredPosts.length !== (postsWithLikeStatus.length > 0 ? postsWithLikeStatus.length : posts.length) ? `được lọc từ ${postsWithLikeStatus.length > 0 ? postsWithLikeStatus.length : posts.length} bài` : ''})
-                  </span>
-                )}
-              </p>
-            </div>
             <Button variant="primary" className="btn-sm" onClick={handleAddPost}>
               <i className="fas fa-plus me-2"></i>
               Thêm bài viết
@@ -343,7 +406,12 @@ const Posts = () => {
                 <Card.Body className="d-flex flex-column">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <div className="d-flex flex-wrap gap-1">
-                      <Badge bg="light" text="dark" className="mb-2">
+                      <Badge bg="light" className="mb-2" style={{
+                        background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
+                        color: 'white',
+                        border: 'none',
+                        fontWeight: '500'
+                      }}>
                         ID: {post.id}
                       </Badge>
                       <Badge bg="info" className="mb-2">{post.category || 'Chưa phân loại'}</Badge>
@@ -362,7 +430,11 @@ const Posts = () => {
                   
                   <div className="mb-2">
                     {post.tags && Array.isArray(post.tags) && post.tags.map((tag, index) => (
-                      <Badge key={index} bg="secondary" className="me-1 mb-1">
+                      <Badge key={index} bg="secondary" className="me-1 mb-1" style={{
+                        background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
+                        color: 'white',
+                        border: 'none'
+                      }}>
                         {tag}
                       </Badge>
                     ))}

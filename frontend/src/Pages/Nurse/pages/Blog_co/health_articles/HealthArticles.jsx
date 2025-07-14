@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import SuccessNotification from './SuccessNotification';
 import { Container, Row, Col, Card, Button, Badge, Form, InputGroup, Modal, Spinner, Nav, Pagination } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../../../context/AuthContext';
 import * as healthArticleService from '../../../../../services/APINurse/blogService';
-import { canUserEditHealthArticle, canUserCreateHealthArticle, getAuthorDisplayName } from '../../../../../context/NurseContext/BlogContext';
+import {  getAuthorDisplayName } from '../../../../../context/NurseContext/BlogContext';
 import './HealthArticles.css';
 
 const HealthArticles = () => {
@@ -22,15 +23,13 @@ const HealthArticles = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [articlesPerPage] = useState(6);
+  
+  // Success notification states
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [notificationType, setNotificationType] = useState('delete');
 
   // Health article categories
   const healthCategories = [
-    "Disease Prevention",
-    "Nutrition", 
-    "Mental Health",
-    "First Aid",
-    "Physical Activity",
-    "Health Information",
     "COVID-19 và trẻ em",
     "Dinh dưỡng học đường",
     "Sức khỏe tâm thần",
@@ -205,7 +204,10 @@ const HealthArticles = () => {
       await healthArticleService.deleteHealthArticle(selectedArticle.id);
       setShowDeleteModal(false);
       setSelectedArticle(null);
-      toast.success('Xóa bài viết thành công!');
+      
+      // Show success notification instead of toast
+      setNotificationType('delete');
+      setShowSuccessNotification(true);
       
       // Refresh articles list
       fetchHealthArticles();
@@ -215,38 +217,145 @@ const HealthArticles = () => {
     }
   };
 
+  // Handle notification close
+  const handleNotificationClose = () => {
+    setShowSuccessNotification(false);
+  };
+
   return (
     <Container fluid className="py-4">
-      {/* Header */}
-      <Row className="mb-4">
-        <Col>
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h3 className="text-primary fw-bold mb-2">
-                <i className="fas fa-blog me-2"></i>
-                Quản lý Blog
-              </h3>
-              <p className="text-muted mb-0">
-                Quản lý bài viết và nội dung sức khỏe cho cộng đồng
-              </p>
-            </div>
-          </div>
-        </Col>
-      </Row>
+      <style>
+        {`
+          /* Đồng bộ màu sắc với hệ thống */
+          .btn-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2) !important;
+          }
+          
+          .btn-primary:hover {
+            background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%) !important;
+            border-color: #0b5ed7 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
+          }
+          
+          .btn-outline-primary {
+            color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          .btn-outline-primary:hover {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+          }
+          
+          /* Badge ID đồng bộ với hệ thống */
+          .badge.bg-info {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            color: white !important;
+          }
+          
+          /* Badge secondary (tags) đồng bộ với hệ thống */
+          .badge.bg-secondary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            color: white !important;
+          }
+          
+          /* Text primary cho các element khác */
+          .text-primary {
+            color: #0d6efd !important;
+          }
+          
+          /* Focus state cho form controls */
+          .form-control:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+          
+          .form-select:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+          
+          /* Fix dropdown arrow */
+          .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+            padding-right: 2.25rem !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+          }
+          
+          /* Ensure dropdown works properly */
+          .form-select option {
+            color: #212529 !important;
+            background-color: #fff !important;
+          }
+          
+          .form-select:disabled {
+            background-color: #e9ecef !important;
+            opacity: 1 !important;
+          }
+          
+          /* Modal styling đồng bộ hệ thống */
+          .modal-header {
+            border-bottom: 2px solid #dee2e6 !important;
+          }
+          
+          /* Modal xóa - theme đỏ cho delete */
+          .modal-header.delete-modal-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            color: white !important;
+            border-bottom: 2px solid #c82333 !important;
+          }
+          
+          .modal-header.delete-modal-header .modal-title {
+            color: white !important;
+            font-weight: 600 !important;
+          }
+          
+          .modal-header.delete-modal-header .btn-close {
+            filter: brightness(0) invert(1) !important;
+          }
+          
+          /* Button danger enhancement */
+          .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            border-color: #dc3545 !important;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2) !important;
+          }
+          
+          .btn-danger:hover {
+            background: linear-gradient(135deg, #c82333 0%, #b21e2f 100%) !important;
+            border-color: #c82333 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
+          }
+          
+          /* Button secondary enhancement */
+          .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+            border-color: #6c757d !important;
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2) !important;
+          }
+          
+          .btn-secondary:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%) !important;
+            border-color: #5a6268 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3) !important;
+          }
+        `}
+      </style>
 
       {/* Articles Header */}
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h4 className="text-primary fw-bold mb-2">
-                <i className="fas fa-heartbeat me-2"></i>
-                Bài viết Y tế
-              </h4>
-              <p className="text-muted mb-0">
-                Quản lý bài viết y tế cho cộng đồng trường học
-              </p>
-            </div>
             <Button
               variant="primary"
               onClick={handleAddArticle}
@@ -478,8 +587,15 @@ const HealthArticles = () => {
       
       {/* Article Detail Modal */}
       <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Chi tiết bài viết</Modal.Title>
+        <Modal.Header closeButton className="system-modal-header" style={{
+          background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
+          color: 'white',
+          borderBottom: '2px solid #0b5ed7'
+        }}>
+          <Modal.Title style={{ color: 'white', fontWeight: '600' }}>
+            <i className="fas fa-file-alt me-2"></i>
+            Chi tiết bài viết y tế
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {detailLoading ? (
@@ -514,7 +630,10 @@ const HealthArticles = () => {
                 </span>
               </div>
               
-              <Badge bg={getDifficultyVariant(selectedArticle.category)} className="mb-3">
+              <Badge bg="info" className="mb-3" style={{
+                background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
+                color: 'white'
+              }}>
                 {selectedArticle.category || 'Chưa phân loại'}
               </Badge>
               
@@ -536,7 +655,10 @@ const HealthArticles = () => {
                   <h6>Thẻ:</h6>
                   <div>
                     {selectedArticle.tags.map((tag, index) => (
-                      <Badge key={index} bg="secondary" className="me-1 mb-1">
+                      <Badge key={index} bg="secondary" className="me-1 mb-1" style={{
+                        background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
+                        color: 'white'
+                      }}>
                         {tag}
                       </Badge>
                     ))}
@@ -577,22 +699,41 @@ const HealthArticles = () => {
 
       {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
-        <Modal.Header closeButton >
-          <Modal.Title  style={{color : 'red'}}>Xác nhận xóa</Modal.Title>
+        <Modal.Header closeButton className="delete-modal-header">
+          <Modal.Title>
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            Xác nhận xóa bài viết
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Bạn có chắc chắn muốn xóa bài viết "{selectedArticle?.title}"?</p>
-          <p className="text-danger">Lưu ý: Hành động này không thể hoàn tác.</p>
+          <div className="text-center mb-3">
+            <i className="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+          </div>
+          <p className="text-center mb-3">Bạn có chắc chắn muốn xóa bài viết "{selectedArticle?.title}"?</p>
+          <div className="alert alert-danger">
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            <i className="fas fa-times me-1"></i>
             Hủy
           </Button>
           <Button variant="danger" onClick={confirmDeleteArticle}>
+            <i className="fas fa-trash me-1"></i>
             Xóa bài viết
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Success Notification Modal */}
+      <SuccessNotification
+        show={showSuccessNotification}
+        onHide={handleNotificationClose}
+        iconType={notificationType}
+        autoHideDelay={3000}
+      />
     </Container>
   );
 };
