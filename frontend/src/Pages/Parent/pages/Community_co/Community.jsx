@@ -5,10 +5,12 @@ import "./Community.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import SearchBox from "../../../../components/SearchBox/SearchBox"; // Import SearchBox component
 import { useAuth } from "../../../../context/AuthContext";
+import { useNotification } from "../../../../context/NotificationContext";
 import communityService from "../../../../services/communityService"; // Import communityService
 
 const Community = () => {
   const { currentUser } = useAuth();
+  const { showNotification } = useNotification();
   const [allPosts, setAllPosts] = useState([]); // Store all posts từ API
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
@@ -28,6 +30,7 @@ const Community = () => {
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại cho pagination client-side
   const postsPerPage = 10; // Số bài viết mỗi trang
   const [totalPages, setTotalPages] = useState(1);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   // API URL
   const API_URL = "http://localhost:8080/api/v1";
@@ -276,6 +279,46 @@ const Community = () => {
     setCurrentPage(1);
   }, [activeTab, searchQuery]);
 
+  // Effect để ẩn/hiện header khi modal mở/đóng và control body scroll
+  useEffect(() => {
+    const headerElement = document.querySelector(".parent-header");
+    const bodyElement = document.body;
+
+    if (showCreatePostForm) {
+      // Ẩn header và ngăn body scroll khi modal mở
+      if (headerElement) {
+        headerElement.style.display = "none";
+      }
+      bodyElement.style.overflow = "hidden";
+    } else {
+      // Hiện header và cho phép body scroll khi modal đóng
+      if (headerElement) {
+        headerElement.style.display = "block";
+      }
+      bodyElement.style.overflow = "auto";
+    }
+
+    // Cleanup function để đảm bảo header được hiển thị lại khi component unmount
+    return () => {
+      if (headerElement) {
+        headerElement.style.display = "block";
+      }
+      bodyElement.style.overflow = "auto";
+    };
+  }, [showCreatePostForm]);
+
+  // Effect để tự động đóng success modal sau 3 giây
+  useEffect(() => {
+    if (showSuccessToast) {
+      const timer = setTimeout(() => {
+        setShowSuccessToast(false);
+      }, 3000); // 3 giây
+
+      // Cleanup timer khi component unmount hoặc showSuccessToast thay đổi
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessToast]);
+
   const handleNewPostChange = (e) => {
     const { name, value } = e.target;
     setNewPost((prev) => ({ ...prev, [name]: value }));
@@ -337,7 +380,13 @@ const Community = () => {
           tags: [],
         });
 
-        alert("Đăng bài thành công!");
+        // Hiển thị thông báo thành công đẹp
+        setShowSuccessToast(true);
+
+        // Fallback cho trường hợp notification context không có
+        if (showNotification) {
+          showNotification("Đăng bài viết thành công! 🎉", "success");
+        }
       }
     } catch (error) {
       console.error("❌ Error creating post:", error);
@@ -545,6 +594,33 @@ const Community = () => {
   return (
     <div className="parent-content-wrapper">
       <div className="community-container">
+        {/* Success Modal Notification */}
+        {showSuccessToast && (
+          <div
+            className="success-modal"
+            onClick={() => setShowSuccessToast(false)} // Click backdrop để đóng
+          >
+            <div
+              className="success-modal-content"
+              onClick={(e) => e.stopPropagation()} // Ngăn đóng khi click vào content
+            >
+              <div className="success-modal-icon">
+                <i className="fas fa-check-circle"></i>
+              </div>
+              <h3 className="success-modal-title">Thành công!</h3>
+              <p className="success-modal-message">
+                Bài viết của bạn đã được đăng thành công! 🎉
+              </p>
+              <button
+                className="success-modal-close-btn"
+                onClick={() => setShowSuccessToast(false)}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="community-header">
           <div className="community-title">
             <h1>Cộng đồng sức khỏe học đường</h1>
@@ -704,6 +780,8 @@ const Community = () => {
                   ></textarea>
                 </div>
 
+                {/* Ẩn phần đính kèm file theo yêu cầu */}
+                {/* 
                 <div className="form-group">
                   <label htmlFor="post-attachments">
                     Đính kèm file (tùy chọn)
@@ -726,6 +804,7 @@ const Community = () => {
                     Cho phép file: jpg, png, pdf, doc, docx. Tối đa 5MB/file
                   </span>
                 </div>
+                */}
 
                 <div className="form-actions">
                   <button

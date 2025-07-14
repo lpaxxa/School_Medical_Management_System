@@ -229,11 +229,14 @@ const HealthGuideDetail = () => {
 
   const readingTime = article ? estimateReadingTime(article.content) : 1;
 
+  // Debug mode flag - set to true only when needed for debugging
+  const isDebugMode = false;
+
   return (
     <div className="parent-content-wrapper">
       <div className="article-detail-container">
-        {/* Debug Info */}
-        {debugInfo}
+        {/* Debug Info - only show in debug mode */}
+        {isDebugMode && debugInfo}
 
         {isLoading ? (
           <div className="loading-container article-loading">
