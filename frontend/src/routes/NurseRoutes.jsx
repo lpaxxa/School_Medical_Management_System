@@ -25,12 +25,15 @@ const NurseRoutes = () => {
             <Routes>
               <Route index element={<VaccinationPage />} />
               <Route path="consultations" element={<Consultation />} />
-              <Route path="student-records" element={<StudentRecordsPage />} />              <Route path="health-checkups" element={<HealthCheckupsPage />} />
-              <Route path="inventory" element={<InventoryPage />} />              <Route path="medical-events" element={<MedicalEventsPage />} />
-              <Route path="vaccination" element={<VaccinationPage />} />              <Route 
-                path="blog-management/*" 
-                element={<BlogManagement />} 
-              />
+              <Route
+                path="student-records"
+                element={<StudentRecordsPage />}
+              />{" "}
+              <Route path="health-checkups" element={<HealthCheckupsPage />} />
+              <Route path="inventory" element={<InventoryPage />} />{" "}
+              <Route path="medical-events" element={<MedicalEventsPage />} />
+              <Route path="vaccination" element={<VaccinationPage />} />{" "}
+              <Route path="blog-management/*" element={<BlogManagement />} />
               <Route path="receive-medicine" element={<ReceiveMedicine />} />
             </Routes>
           </NurseLayout>

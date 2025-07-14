@@ -30,9 +30,13 @@ import {
   FaImage,
 } from "react-icons/fa";
 import "./MedicineReceipts.css";
+import MedicineDetailModal from "./MedicineDetailModal";
+import MedicineProcessModal from "./MedicineProcessModal";
+import MedicineAdministrationModal from "./MedicineAdministrationModal";
+import MedicineImageUploadModal from "./MedicineImageUploadModal";
+import MedicineNotification from "./MedicineNotification";
 import { useMedicineApproval } from "../../../../../context/NurseContext/MedicineApprovalContext";
 import receiveMedicineService from "../../../../../services/APINurse/receiveMedicineService";
-import { toast } from "react-toastify";
 
 // Hàm chuyển đổi status thành text và style - Updated to match backend Status enum
 const getStatusInfo = (status) => {
@@ -153,6 +157,29 @@ const MedicineReceipts = () => {
     startDate: "",
     endDate: "",
   });
+
+  // Notification state
+  const [notification, setNotification] = useState({
+    show: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
+
+  // Helper function to show notifications
+  const showNotification = (type, title, message = '') => {
+    setNotification({
+      show: true,
+      type,
+      title,
+      message,
+    });
+  };
+
+  // Helper function to hide notifications
+  const hideNotification = () => {
+    setNotification(prev => ({ ...prev, show: false }));
+  };
 
   // Helper function to get current time in datetime-local format
   const getCurrentDateTime = () => {
@@ -282,13 +309,13 @@ const MedicineReceipts = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        toast.error('Vui lòng chọn file ảnh hợp lệ');
+        showNotification('error', 'Lỗi file', 'Vui lòng chọn file ảnh hợp lệ');
         return;
       }
       
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('Kích thước file không được vượt quá 5MB');
+        showNotification('error', 'Lỗi kích thước', 'Kích thước file không được vượt quá 5MB');
         return;
       }
       
@@ -310,12 +337,12 @@ const MedicineReceipts = () => {
       
       // Validate required fields
       if (!formData.medicationInstructionId) {
-        toast.warn('Vui lòng chọn yêu cầu thuốc');
+        showNotification('warning', 'Thiếu thông tin', 'Vui lòng chọn yêu cầu thuốc');
         return;
       }
       
       if (!formData.administeredAt) {
-        toast.warn('Vui lòng chọn thời gian thực hiện');
+        showNotification('warning', 'Thiếu thông tin', 'Vui lòng chọn thời gian thực hiện');
         return;
       }
 
@@ -330,7 +357,7 @@ const MedicineReceipts = () => {
         
         if (selectedDateTime < startDate) {
           const formattedStartDate = startDate.toLocaleDateString('vi-VN');
-          toast.warn(`Thời gian ghi nhận không được trước ngày bắt đầu: ${formattedStartDate}`);
+          showNotification('warning', 'Thời gian không hợp lệ', `Thời gian ghi nhận không được trước ngày bắt đầu: ${formattedStartDate}`);
           return;
         }
       }
@@ -342,14 +369,14 @@ const MedicineReceipts = () => {
         
         if (selectedDateTime > endDate) {
           const formattedEndDate = endDate.toLocaleDateString('vi-VN');
-          toast.warn(`Thời gian ghi nhận không được sau ngày kết thúc: ${formattedEndDate}`);
+          showNotification('warning', 'Thời gian không hợp lệ', `Thời gian ghi nhận không được sau ngày kết thúc: ${formattedEndDate}`);
           return;
         }
       }
       
       // Validate against future time (but allow future dates within medication period)
       if (selectedDateTime > currentTime) {
-        toast.warn('Thời gian ghi nhận không được là thời gian tương lai');
+        showNotification('warning', 'Thời gian không hợp lệ', 'Thời gian ghi nhận không được là thời gian tương lai');
         return;
       }
       
@@ -374,17 +401,19 @@ const MedicineReceipts = () => {
           setShowImageModal(true);
         } else {
           // Success without image
-          toast.success(`✅ Đã ghi nhận việc cung cấp thuốc thành công!\n\n📋 Mã bản ghi: #${result.data?.id}`);
+          showNotification('success', 'Thành công!', `Đã ghi nhận việc cung cấp thuốc thành công! Mã bản ghi: #${result.data?.id}`);
           setShowAdminModal(false);
           resetAdminForm();
           
-          // Trigger a custom event to refresh history data
-          window.dispatchEvent(new CustomEvent('medicationAdministrationCreated'));
+          // Reload page after successful submission
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000); // Wait 2 seconds for user to see the success message
         }
       } else {
         // Display server error message on screen
         const errorMessage = result.message || 'Không thể ghi nhận việc cung cấp thuốc';
-        toast.error(errorMessage);
+        showNotification('error', 'Lỗi xử lý', errorMessage);
       }
     } catch (err) {
       console.error('Error submitting medication administration:', err);
@@ -440,7 +469,7 @@ const MedicineReceipts = () => {
       }
       
       // Display the error message on screen
-      toast.error(errorMessage);
+      showNotification('error', 'Lỗi hệ thống', errorMessage);
     } finally {
       setAdminLoading(false);
     }
@@ -449,7 +478,7 @@ const MedicineReceipts = () => {
   // Handle image upload
   const handleImageUpload = async () => {
     if (!selectedImage || !pendingAdministrationId) {
-      toast.error('Thiếu thông tin để tải lên ảnh');
+      showNotification('error', 'Thiếu thông tin', 'Thiếu thông tin để tải lên ảnh');
       return;
     }
 
@@ -462,20 +491,22 @@ const MedicineReceipts = () => {
       );
 
       if (result.success) {
-        toast.success(`✅ Đã tải lên ảnh xác nhận thành công!\n\n📋 Mã bản ghi: #${pendingAdministrationId}`);
+        showNotification('success', 'Tải ảnh thành công!', `Đã tải lên ảnh xác nhận thành công! Mã bản ghi: #${pendingAdministrationId}`);
         setShowImageModal(false);
         setShowAdminModal(false);
         resetAdminForm();
         setPendingAdministrationId(null);
         
-        // Trigger a custom event to refresh history data
-        window.dispatchEvent(new CustomEvent('medicationAdministrationCreated'));
+        // Reload page after successful upload
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000); // Wait 2 seconds for user to see the success message
       } else {
-        toast.error(result.message || 'Không thể tải lên ảnh xác nhận');
+        showNotification('error', 'Lỗi tải ảnh', result.message || 'Không thể tải lên ảnh xác nhận');
       }
     } catch (err) {
       console.error('Error uploading image:', err);
-      toast.error('Có lỗi xảy ra khi tải lên ảnh');
+      showNotification('error', 'Lỗi hệ thống', 'Có lỗi xảy ra khi tải lên ảnh');
     } finally {
       setUploadLoading(false);
     }
@@ -483,11 +514,16 @@ const MedicineReceipts = () => {
 
   // Handle skip image upload
   const handleSkipImage = () => {
-    toast.success('Đã ghi nhận việc cung cấp thuốc thành công!');
+    showNotification('success', 'Thành công!', 'Đã ghi nhận việc cung cấp thuốc thành công!');
     setShowImageModal(false);
     setShowAdminModal(false);
     resetAdminForm();
     setPendingAdministrationId(null);
+    
+    // Reload page after skipping image
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000); // Wait 2 seconds for user to see the success message
   };
 
   // Handle viewing medicine image sent by parents
@@ -521,12 +557,12 @@ const MedicineReceipts = () => {
   const handleConfirmProcess = async () => {
     try {
       if (!["APPROVED", "REJECTED"].includes(processData.decision)) {
-        toast.warn("Quyết định không hợp lệ. Chỉ có thể là APPROVED hoặc REJECTED");
+        showNotification('warning', 'Quyết định không hợp lệ', 'Chỉ có thể là APPROVED hoặc REJECTED');
         return;
       }
 
       if (processData.decision === "REJECTED" && !processData.reason?.trim()) {
-        toast.warn("Vui lòng nhập lý do từ chối");
+        showNotification('warning', 'Thiếu thông tin', 'Vui lòng nhập lý do từ chối');
         return;
       }
 
@@ -540,14 +576,15 @@ const MedicineReceipts = () => {
 
       if (result.success) {
         setShowProcessModal(false);
-        toast.success(`Đã ${processData.decision === "APPROVED" ? "phê duyệt" : "từ chối"} yêu cầu thuốc thành công!`);
+        const successMessage = processData.decision === "APPROVED" ? "phê duyệt" : "từ chối";
+        showNotification('success', 'Xử lý thành công!', `Đã ${successMessage} yêu cầu thuốc thành công!`);
         fetchMedicineRequests();
       } else {
-        toast.error(`Không thể xử lý yêu cầu: ${result.message || "Đã xảy ra lỗi"}`);
+        showNotification('error', 'Lỗi xử lý', `Không thể xử lý yêu cầu: ${result.message || "Đã xảy ra lỗi"}`);
       }
     } catch (err) {
       console.error("Lỗi khi xử lý yêu cầu thuốc:", err);
-      toast.error("Có lỗi xảy ra khi xử lý yêu cầu thuốc. Vui lòng thử lại sau.");
+      showNotification('error', 'Lỗi hệ thống', 'Có lỗi xảy ra khi xử lý yêu cầu thuốc. Vui lòng thử lại sau.');
     }
   };
 
@@ -1090,325 +1127,56 @@ const MedicineReceipts = () => {
       </Card>
 
       {/* Medication Administration Modal */}
-      <Modal
+      <MedicineAdministrationModal
         show={showAdminModal}
         onHide={() => {
           setShowAdminModal(false);
           resetAdminForm();
         }}
-        size="lg"
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Ghi nhận cung cấp thuốc</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleAdminSubmit}>
-          <Modal.Body>
-            {selectedRequest && (
-              <Alert variant="info" className="mb-3">
-                <strong>Yêu cầu:</strong> #{selectedRequest.id} - {selectedRequest.studentName} - {selectedRequest.medicationName}
-              </Alert>
-            )}
-
-                        <Row>
-              <Col md={12}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Thời gian thực hiện *</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    name="administeredAt"
-                    value={formData.administeredAt}
-                    onChange={handleInputChange}
-                    min={getMinDateTime()}
-                    max={getMaxDateTime()}
-                    required
-                  />
-                  <Form.Text className="text-muted">
-                    Thời gian thực tế đã cung cấp thuốc. Trạng thái sẽ được tự động cập nhật dựa trên số lần đã cho thuốc.
-                    {selectedRequest && selectedRequest.startDate && (
-                      <><br />Không được trước ngày bắt đầu: {new Date(selectedRequest.startDate).toLocaleDateString('vi-VN')}</>
-                    )}
-                    {selectedRequest && selectedRequest.endDate && (
-                      <><br />Không được sau ngày kết thúc: {new Date(selectedRequest.endDate).toLocaleDateString('vi-VN')}</>
-                    )}
-                  </Form.Text>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Ảnh xác nhận</Form.Label>
-                  <Form.Control
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                  />
-                  <Form.Text className="text-muted">
-                    Ảnh xác nhận học sinh đã dùng thuốc (tùy chọn, tối đa 5MB)
-                  </Form.Text>
-                </Form.Group>
-              </Col>
-              
-              <Col md={6}>
-                {imagePreview && (
-                  <div className="mb-3">
-                    <label className="form-label">Xem trước ảnh:</label>
-                    <div className="text-center">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        style={{ maxWidth: '150px', maxHeight: '150px' }}
-                        className="img-thumbnail"
-                      />
-                    </div>
-                  </div>
-                )}
-              </Col>
-            </Row>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Ghi chú</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={4}
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                placeholder="Nhập ghi chú về việc cung cấp thuốc (ví dụ: phản ứng của học sinh, liều lượng thực tế đã cho, bất kỳ vấn đề gì xảy ra...)"
-              />
-              <Form.Text className="text-muted">
-                Ghi chú chi tiết về quá trình cung cấp thuốc, bao gồm phản ứng của học sinh và mọi thông tin quan trọng khác.
-              </Form.Text>
-            </Form.Group>
-          </Modal.Body>
-          
-          <Modal.Footer>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setShowAdminModal(false);
-                resetAdminForm();
-              }}
-            >
-              Hủy
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              disabled={adminLoading}
-            >
-              {adminLoading ? (
-                <>
-                  <Spinner animation="border" size="sm" className="me-2" />
-                  Đang xử lý...
-                </>
-              ) : (
-                <>
-                  <FaCheck className="me-2" />
-                  Ghi nhận
-                </>
-              )}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+        selectedRequest={selectedRequest}
+        formData={formData}
+        onInputChange={handleInputChange}
+        onSubmit={handleAdminSubmit}
+        loading={adminLoading}
+        selectedImage={selectedImage}
+        imagePreview={imagePreview}
+        onImageSelect={handleImageSelect}
+        getCurrentDateTime={getCurrentDateTime}
+        getMinDateTime={getMinDateTime}
+        getMaxDateTime={getMaxDateTime}
+      />
 
       {/* Image Upload Modal */}
-      <Modal
+      <MedicineImageUploadModal
         show={showImageModal}
         onHide={() => setShowImageModal(false)}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Tải lên ảnh xác nhận</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="text-center">
-            <FaCamera size={48} className="text-primary mb-3" />
-            <p>Bạn có muốn tải lên ảnh xác nhận cho bản ghi này không?</p>
-            
-            {imagePreview && (
-              <div className="mb-3">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  style={{ maxWidth: '200px', maxHeight: '200px' }}
-                  className="img-thumbnail"
-                />
-              </div>
-            )}
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={handleSkipImage}
-            disabled={uploadLoading}
-          >
-            Bỏ qua
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleImageUpload}
-            disabled={uploadLoading || !selectedImage}
-          >
-            {uploadLoading ? (
-              <>
-                <Spinner animation="border" size="sm" className="me-2" />
-                Đang tải lên...
-              </>
-            ) : (
-              <>
-                <FaUpload className="me-2" />
-                Tải lên
-              </>
-            )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        onUpload={handleImageUpload}
+        onSkip={handleSkipImage}
+        selectedImage={selectedImage}
+        imagePreview={imagePreview}
+        uploadLoading={uploadLoading}
+        pendingAdministrationId={pendingAdministrationId}
+      />
 
       {/* Simple Detail Modal */}
-      {showDetail && selectedReceipt && (
-        <Modal show={true} onHide={handleCloseDetail} size="lg" centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Chi tiết đơn nhận thuốc #{selectedReceipt?.id}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Row>
-              <Col md={6}>
-                <Card className="mb-3">
-                  <Card.Header>Thông tin cơ bản</Card.Header>
-                  <Card.Body>
-                    <p><strong>ID:</strong> {selectedReceipt?.id}</p>
-                    <p><strong>Tên thuốc:</strong> {selectedReceipt?.medicationName || "Không có thông tin"}</p>
-                    <p><strong>Liều lượng:</strong> {selectedReceipt?.dosageInstructions || "Không có thông tin"}</p>
-                    <p><strong>Tần suất:</strong> {selectedReceipt?.frequencyPerDay || "Không có thông tin"}</p>
-                    <p><strong>Ngày bắt đầu:</strong> {selectedReceipt?.startDate ? new Date(selectedReceipt.startDate).toLocaleDateString("vi-VN") : "Không có thông tin"}</p>
-                    <p><strong>Ngày kết thúc:</strong> {selectedReceipt?.endDate ? new Date(selectedReceipt.endDate).toLocaleDateString("vi-VN") : "Không có thông tin"}</p>
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col md={6}>
-                <Card className="mb-3">
-                  <Card.Header>Thông tin học sinh</Card.Header>
-                  <Card.Body>
-                    <p><strong>Học sinh:</strong> {selectedReceipt?.studentName || "Không có thông tin"}</p>
-                    <p><strong>Mã học sinh:</strong> {selectedReceipt?.studentId || "Không có thông tin"}</p>
-                    <p><strong>Người yêu cầu:</strong> {selectedReceipt?.requestedBy || "Không có thông tin"}</p>
-                    <p><strong>Mã tài khoản:</strong> {selectedReceipt?.requestedByAccountId || "Không có thông tin"}</p>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-            
-            {selectedReceipt?.specialInstructions && (
-              <Card className="mb-3">
-                <Card.Header>Hướng dẫn đặc biệt</Card.Header>
-                <Card.Body>
-                  <p>{selectedReceipt.specialInstructions}</p>
-                </Card.Body>
-              </Card>
-            )}
-            
-            {selectedReceipt?.rejectionReason && (
-              <Card className="mb-3 border-danger">
-                <Card.Header className="bg-danger text-white">Lý do từ chối</Card.Header>
-                <Card.Body>
-                  <p className="text-danger">{selectedReceipt.rejectionReason}</p>
-                </Card.Body>
-              </Card>
-            )}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseDetail}>
-              Đóng
-            </Button>
-            {canRecordAdministration(selectedReceipt?.status, selectedReceipt) && (
-              <Button 
-                variant="success"
-                onClick={() => {
-                  handleCloseDetail();
-                  handleRecordAdministration(selectedReceipt);
-                }}
-              >
-                <FaPlus className="me-2" /> 
-                {selectedReceipt?.status === "PARTIALLY_TAKEN" ? "Tiếp tục ghi nhận" : "Ghi nhận cung cấp"}
-              </Button>
-            )}
-            {(selectedReceipt?.status === "PENDING_APPROVAL" || selectedReceipt?.status === 0) && (
-              <>
-                <Button 
-                  variant="success"
-                  onClick={() => {
-                    handleCloseDetail();
-                    handleProcessClick(selectedReceipt.id, "APPROVED");
-                  }}
-                >
-                  <FaCheckCircle className="me-2" /> Phê duyệt
-                </Button>
-                <Button 
-                  variant="danger"
-                  onClick={() => {
-                    handleCloseDetail();
-                    handleProcessClick(selectedReceipt.id, "REJECTED");
-                  }}
-                >
-                  <FaTimesCircle className="me-2" /> Từ chối
-                </Button>
-              </>
-            )}
-          </Modal.Footer>
-        </Modal>
-      )}
+      <MedicineDetailModal 
+        show={showDetail && selectedReceipt}
+        onHide={handleCloseDetail}
+        selectedReceipt={selectedReceipt}
+        getStatusInfo={getStatusInfo}
+        canRecordAdministration={canRecordAdministration}
+        handleRecordAdministration={handleRecordAdministration}
+        handleProcessClick={handleProcessClick}
+      />
 
       {/* Modal xử lý yêu cầu thuốc */}
-      {showProcessModal && (
-        <Modal show={true} onHide={() => setShowProcessModal(false)} centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Xử lý yêu cầu thuốc</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Form.Group className="mb-3">
-                <Form.Label>Quyết định:</Form.Label>
-                <Form.Select
-                  name="decision"
-                  value={processData.decision}
-                  onChange={handleProcessDataChange}
-                >
-                  <option value="APPROVED">Phê duyệt</option>
-                  <option value="REJECTED">Từ chối</option>
-                </Form.Select>
-              </Form.Group>
-
-              {processData.decision === "REJECTED" && (
-                <Form.Group className="mb-3">
-                  <Form.Label>Lý do từ chối:</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    name="reason"
-                    placeholder="Nhập lý do từ chối yêu cầu thuốc..."
-                    value={processData.reason}
-                    onChange={handleProcessDataChange}
-                    required={processData.decision === "REJECTED"}
-                  />
-                </Form.Group>
-              )}
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowProcessModal(false)}>
-              Hủy
-            </Button>
-            <Button variant="primary" onClick={handleConfirmProcess}>
-              Xác nhận
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
+      <MedicineProcessModal 
+        show={showProcessModal}
+        onHide={() => setShowProcessModal(false)}
+        processData={processData}
+        onChange={handleProcessDataChange}
+        onConfirm={handleConfirmProcess}
+      />
 
       {/* Medicine Image Viewing Modal */}
       <Modal 
@@ -1416,39 +1184,37 @@ const MedicineReceipts = () => {
         onHide={() => setShowMedicineImageModal(false)} 
         centered 
         size="lg"
-        className="medicine-image-modal"
+        className="medicine-parent-image-modal"
       >
         <Modal.Header closeButton>
           <Modal.Title>Ảnh thuốc từ phụ huynh</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="text-center">
+        <Modal.Body>
           {selectedMedicineImage ? (
-            <div>
+            <div className="parent-image-container">
               <img 
                 src={selectedMedicineImage} 
                 alt="Ảnh thuốc từ phụ huynh" 
-                className="img-fluid rounded"
-                style={{ maxHeight: '500px', maxWidth: '100%' }}
+                className="parent-medicine-image"
                 onError={(e) => {
                   e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2Yjc0ODMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5LaG9uZyB0aGUgdGFpIGFuaDwvdGV4dD4KPC9zdmc+';
                   e.target.alt = 'Không thể tải ảnh';
                 }}
               />
-              <div className="mt-3">
-                <small className="text-muted">
-                  Ảnh thuốc được gửi từ phụ huynh kèm theo yêu cầu
-                </small>
-              </div>
             </div>
           ) : (
-            <div className="text-muted py-4">
-              <FaImage size={48} className="mb-3" />
-              <p>Không có ảnh để hiển thị</p>
+            <div className="no-image-placeholder">
+              <FaImage className="no-image-icon" />
+              <p className="mb-0">Không có ảnh để hiển thị</p>
             </div>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowMedicineImageModal(false)}>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowMedicineImageModal(false)}
+          >
+            <FaTimes className="me-2" />
             Đóng
           </Button>
           {selectedMedicineImage && (
@@ -1456,11 +1222,21 @@ const MedicineReceipts = () => {
               variant="primary" 
               onClick={() => window.open(selectedMedicineImage, '_blank')}
             >
+              <FaEye className="me-2" />
               Mở ảnh gốc
             </Button>
           )}
         </Modal.Footer>
       </Modal>
+
+      {/* Notification Component - Replaces toast notifications */}
+      <MedicineNotification 
+        show={notification.show}
+        onHide={hideNotification}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+      />
     </Container>
   );
 };

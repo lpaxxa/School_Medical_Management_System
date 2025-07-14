@@ -239,54 +239,7 @@ tr.status-cancelled-row {
   background-color: rgba(108, 117, 125, 0.05);
 }
 
-/* Medicine receipt detail modal customization */
-.medicine-receipt-detail-modal .modal-content {
-  border: none;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
 
-.medicine-receipt-detail-modal .modal-header {
-  border-bottom: 1px solid #dee2e6;
-  background-color: #f8f9fa;
-}
-
-.medicine-receipt-detail-modal .modal-footer {
-  border-top: 1px solid #dee2e6;
-  background-color: #f8f9fa;
-}
-
-/* Animation for modals */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Info panel styling */
-.medicine-receipt-detail-modal dl.row dt {
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.medicine-receipt-detail-modal dl.row dd {
-  font-weight: 500;
-}
-
-/* Animated fade-in for cards and content */
-.medicine-receipt-detail-modal .card {
-  animation: fadeIn 0.3s ease;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .medicine-receipt-detail-modal .modal-dialog {
-    margin: 0.5rem;
-  }
-  
-  .medicine-receipt-detail-modal dl.row dt,
-  .medicine-receipt-detail-modal dl.row dd {
-    padding: 0.25rem 0;
-  }
-}
 
 /* Cập nhật CSS cho badge */
 .badge.bg-warning {
@@ -334,11 +287,7 @@ tr.status-cancelled-row {
   max-width: 300px;
 }
 
-/* Cải thiện style cho badge */
-.modal-header {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-}
+
 
 /* Cải thiện hiển thị nội dung */ 
 .card-body p {
@@ -561,5 +510,238 @@ tr.status-cancelled-row {
     font-size: 0.7rem;
     padding: 0.2rem 0.4rem;
     min-width: 70px;
+  }
+}
+
+/* Medicine Parent Image Modal Styles - Bootstrap Integration */
+.medicine-parent-image-modal .modal-dialog {
+  max-width: 900px;
+  margin: 2rem auto;
+}
+
+.medicine-parent-image-modal .modal-content {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.medicine-parent-image-modal .modal-header {
+  background: linear-gradient(135deg, #17a2b8 0%, #3498db 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  border-bottom: none;
+}
+
+.medicine-parent-image-modal .modal-title {
+  font-weight: 600;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.medicine-parent-image-modal .modal-title::before {
+  content: "📸";
+  font-size: 1.5rem;
+}
+
+.medicine-parent-image-modal .btn-close {
+  filter: brightness(0) invert(1);
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.medicine-parent-image-modal .btn-close:hover {
+  opacity: 1;
+}
+
+.medicine-parent-image-modal .modal-body {
+  padding: 2rem;
+  background: #f8f9fa;
+  text-align: center;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.medicine-parent-image-modal .parent-image-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  background: white;
+  padding: 15px;
+  margin: 0 auto;
+}
+
+.medicine-parent-image-modal .parent-medicine-image {
+  max-height: 500px;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+  display: block;
+  margin: 0 auto;
+}
+
+.medicine-parent-image-modal .parent-medicine-image:hover {
+  transform: scale(1.02);
+}
+
+.medicine-parent-image-modal .image-info-text {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+.medicine-parent-image-modal .image-info-text::before {
+  content: "ℹ️";
+}
+
+.medicine-parent-image-modal .no-image-placeholder {
+  padding: 3rem 2rem;
+  color: #6c757d;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  border: 2px dashed #dee2e6;
+}
+
+.medicine-parent-image-modal .no-image-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.medicine-parent-image-modal .modal-footer {
+  background: #f8f9fa;
+  border-top: none;
+  padding: 1.5rem 2rem;
+  gap: 1rem;
+}
+
+.medicine-parent-image-modal .btn {
+  border-radius: 25px;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.medicine-parent-image-modal .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.medicine-parent-image-modal .btn-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+}
+
+.medicine-parent-image-modal .btn-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border: none;
+}
+
+/* Loading state */
+.medicine-parent-image-modal .image-loading {
+  position: relative;
+}
+
+.medicine-parent-image-modal .image-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: medicine-image-spin 1s linear infinite;
+}
+
+@keyframes medicine-image-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error state styling */
+.medicine-parent-image-modal .image-error {
+  color: #dc3545;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .medicine-parent-image-modal .modal-dialog {
+    margin: 1rem;
+    max-width: none;
+  }
+  
+  .medicine-parent-image-modal .modal-header,
+  .medicine-parent-image-modal .modal-body,
+  .medicine-parent-image-modal .modal-footer {
+    padding: 1rem 1.5rem;
+  }
+  
+  .medicine-parent-image-modal .modal-title {
+    font-size: 1.1rem;
+  }
+  
+  .medicine-parent-image-modal .parent-medicine-image {
+    max-height: 300px;
+  }
+  
+  .medicine-parent-image-modal .parent-image-container {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .medicine-parent-image-modal .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .medicine-parent-image-modal .modal-header,
+  .medicine-parent-image-modal .modal-body,
+  .medicine-parent-image-modal .modal-footer {
+    padding: 1rem;
+  }
+  
+  .medicine-parent-image-modal .btn {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .medicine-parent-image-modal .parent-image-container {
+    padding: 8px;
+  }
+  
+  .medicine-parent-image-modal .parent-medicine-image {
+    max-height: 250px;
   }
 }

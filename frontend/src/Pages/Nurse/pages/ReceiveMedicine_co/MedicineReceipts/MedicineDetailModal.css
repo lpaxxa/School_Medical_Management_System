@@ -1,0 +1,327 @@
+/* Medicine Receipts Detail Modal CSS - Namespaced to prevent conflicts */
+
+/* Main detail modal container */
+.medicine-receipts-detail-modal .modal-dialog {
+  max-width: 900px;
+}
+
+.medicine-receipts-detail-modal .modal-content {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.medicine-receipts-detail-modal .modal-header {
+  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+  color: white !important;
+  border-bottom: none;
+  padding: 20px 25px;
+  position: relative;
+}
+
+.medicine-receipts-detail-modal .modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.05);
+  backdrop-filter: none;
+}
+
+.medicine-receipts-detail-modal .modal-title {
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.medicine-receipts-detail-modal .btn-close {
+  filter: invert(1);
+  position: relative;
+  z-index: 2;
+}
+
+/* Modal body styling */
+.medicine-receipts-detail-modal .modal-body {
+  padding: 25px;
+  background: #f8f9fa;
+}
+
+/* Information cards */
+.medicine-receipts-detail-modal .card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.medicine-receipts-detail-modal .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.medicine-receipts-detail-modal .card-header {
+  background: linear-gradient(135deg, #55a3ff 0%, #00b894 100%);
+  color: white !important;
+  border-bottom: none;
+  padding: 15px 20px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  position: relative;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.medicine-receipts-detail-modal .card-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.05);
+  backdrop-filter: none;
+}
+
+.medicine-receipts-detail-modal .card-header * {
+  position: relative;
+  z-index: 2;
+  color: white !important;
+  text-shadow: inherit;
+}
+
+.medicine-receipts-detail-modal .card-body {
+  padding: 20px;
+  background: white;
+}
+
+/* Information display styling */
+.medicine-receipts-detail-modal .card-body p {
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #2d3436;
+}
+
+.medicine-receipts-detail-modal .card-body p strong {
+  color: #00b894;
+  font-weight: 600;
+  display: inline-block;
+  min-width: 120px;
+}
+
+.medicine-receipts-detail-modal .card-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Special styling for different card types */
+.medicine-receipts-detail-modal .card.border-danger {
+  border-left: 4px solid #dc3545 !important;
+}
+
+.medicine-receipts-detail-modal .card.border-danger .card-header {
+  background: linear-gradient(135deg, #ff7675 0%, #d63031 100%) !important;
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.medicine-receipts-detail-modal .card.border-danger .card-header * {
+  color: white !important;
+  text-shadow: inherit;
+}
+
+.medicine-receipts-detail-modal .card.border-danger .card-body .text-danger {
+  color: #d63031 !important;
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* Special instructions card */
+.medicine-receipts-detail-modal .special-instructions-card {
+  border-left: 4px solid #00b894;
+}
+
+.medicine-receipts-detail-modal .special-instructions-card .card-header {
+  background: linear-gradient(135deg, #00b894 0%, #00a085 100%) !important;
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.medicine-receipts-detail-modal .special-instructions-card .card-header * {
+  color: white !important;
+  text-shadow: inherit;
+}
+
+/* Modal footer */
+.medicine-receipts-detail-modal .modal-footer {
+  padding: 20px 25px;
+  background: white;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.medicine-receipts-detail-modal .modal-footer .btn {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  border: none;
+  min-width: 120px;
+}
+
+.medicine-receipts-detail-modal .modal-footer .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.medicine-receipts-detail-modal .modal-footer .btn-secondary {
+  background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+  color: white;
+}
+
+.medicine-receipts-detail-modal .modal-footer .btn-success {
+  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+  color: white;
+}
+
+.medicine-receipts-detail-modal .modal-footer .btn-danger {
+  background: linear-gradient(135deg, #ff7675 0%, #d63031 100%);
+  color: white;
+}
+
+/* Status badge in detail modal */
+.medicine-receipts-detail-modal .status-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-align: center;
+  min-width: 140px;
+  margin-top: 10px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .medicine-receipts-detail-modal .modal-dialog {
+    max-width: 95%;
+    margin: 10px;
+  }
+  
+  .medicine-receipts-detail-modal .modal-header,
+  .medicine-receipts-detail-modal .modal-body,
+  .medicine-receipts-detail-modal .modal-footer {
+    padding: 15px;
+  }
+  
+  .medicine-receipts-detail-modal .modal-title {
+    font-size: 1.2rem;
+  }
+  
+  .medicine-receipts-detail-modal .card-body p strong {
+    min-width: auto;
+    display: block;
+    margin-bottom: 2px;
+  }
+  
+  .medicine-receipts-detail-modal .modal-footer {
+    flex-direction: column;
+  }
+  
+  .medicine-receipts-detail-modal .modal-footer .btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+/* Animation for modal entrance */
+.medicine-receipts-detail-modal.fade .modal-dialog {
+  transform: scale(0.8) translateY(-50px);
+  transition: all 0.3s ease-out;
+}
+
+.medicine-receipts-detail-modal.show .modal-dialog {
+  transform: scale(1) translateY(0);
+}
+
+/* Loading states */
+.medicine-receipts-detail-modal .loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  border-radius: 12px;
+}
+
+.medicine-receipts-detail-modal .loading-spinner {
+  color: #00b894;
+}
+
+/* Info highlight */
+.medicine-receipts-detail-modal .info-highlight {
+  background: linear-gradient(135deg, #e8f8f5 0%, #d1f2eb 100%);
+  border-left: 4px solid #00b894;
+  padding: 15px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 15px;
+}
+
+.medicine-receipts-detail-modal .info-highlight .fa-info-circle {
+  color: #00b894;
+  margin-right: 8px;
+}
+
+/* Enhanced typography */
+.medicine-receipts-detail-modal {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.medicine-receipts-detail-modal .card-body {
+  line-height: 1.7;
+}
+
+/* Icon styling */
+.medicine-receipts-detail-modal .btn .fas,
+.medicine-receipts-detail-modal .btn .fa {
+  margin-right: 6px;
+}
+
+/* Custom scrollbar for long content */
+.medicine-receipts-detail-modal .modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.medicine-receipts-detail-modal .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.medicine-receipts-detail-modal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.medicine-receipts-detail-modal .modal-body::-webkit-scrollbar-thumb {
+  background: #00b894;
+  border-radius: 3px;
+}
+
+.medicine-receipts-detail-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #00a085;
+}

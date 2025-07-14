@@ -1,0 +1,119 @@
+/* Medicine Notification Modal Styles */
+
+.medicine-notification-modal .modal-dialog {
+  z-index: 9999;
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.medicine-notification-modal .modal-content {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.medicine-notification-modal .modal-header {
+  border-bottom: none;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, var(--bs-primary) 0%, #6f42c1 100%);
+  min-height: 70px;
+}
+
+.medicine-notification-modal .modal-header.bg-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
+.medicine-notification-modal .modal-header.bg-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%) !important;
+}
+
+.medicine-notification-modal .modal-header.bg-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #f39c12 100%) !important;
+}
+
+.medicine-notification-modal .modal-header.bg-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #3498db 100%) !important;
+}
+
+.medicine-notification-modal .modal-title {
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.medicine-notification-modal .modal-body {
+  padding: 2rem 1.5rem;
+  background: #f8f9fa;
+}
+
+.medicine-notification-modal .modal-footer {
+  padding: 1rem 1.5rem 1.5rem;
+  background: #f8f9fa;
+}
+
+.medicine-notification-modal .btn {
+  min-width: 100px;
+  font-weight: 600;
+  border-radius: 25px;
+  transition: all 0.2s ease;
+}
+
+.medicine-notification-modal .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Animation keyframes */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 576px) {
+  .medicine-notification-modal .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .medicine-notification-modal .modal-header,
+  .medicine-notification-modal .modal-body,
+  .medicine-notification-modal .modal-footer {
+    padding: 1rem;
+  }
+  
+  .medicine-notification-modal .modal-title {
+    font-size: 1.1rem;
+  }
+}
+
+/* Responsive styles for long titles */
+@media (max-width: 400px) {
+  .medicine-notification-modal .modal-title {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .medicine-notification-modal .modal-header {
+    padding: 1rem 1.25rem;
+    min-height: 65px;
+  }
+}
+
+/* Ensure proper text wrapping and alignment */
+.medicine-notification-modal .modal-header .d-flex {
+  align-items: flex-start !important;
+  gap: 0.5rem;
+}
+
+.medicine-notification-modal .modal-header .d-flex .flex-grow-1 {
+  min-width: 0; /* Allow text to wrap properly */
+}
