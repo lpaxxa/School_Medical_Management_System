@@ -1,0 +1,234 @@
+/* Medicine Image Upload Modal CSS - Bootstrap Integration with Namespace */
+
+/* Main modal namespace to avoid conflicts */
+.medicine-image-upload-modal .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.medicine-image-upload-modal .modal-header {
+  background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%);
+  color: white;
+  border-bottom: none;
+  padding: 1.25rem 1.5rem;
+}
+
+.medicine-image-upload-modal .modal-header .modal-title {
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.medicine-image-upload-modal .modal-body {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+}
+
+/* Success banner styling */
+.medicine-image-upload-modal .medicine-upload-success-banner {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 1px solid #a3d5a3;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+}
+
+.medicine-image-upload-modal .medicine-upload-success-banner .text-success {
+  color: #155724 !important;
+  font-size: 1.2rem;
+}
+
+/* Content styling */
+.medicine-image-upload-modal .medicine-upload-content {
+  text-align: center;
+}
+
+.medicine-image-upload-modal .medicine-upload-title {
+  color: #6f42c1;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.medicine-image-upload-modal .medicine-upload-description {
+  color: #6c757d;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* Image preview styling */
+.medicine-image-upload-modal .medicine-upload-preview {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 10px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.medicine-image-upload-modal .medicine-upload-preview-title {
+  color: #6f42c1;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.medicine-image-upload-modal .medicine-upload-image-container {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #dee2e6;
+  background-color: #f8f9fa;
+}
+
+.medicine-image-upload-modal .medicine-upload-preview-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.medicine-image-upload-modal .medicine-upload-file-info {
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  text-align: center;
+}
+
+/* No image alert */
+.medicine-image-upload-modal .medicine-upload-no-image {
+  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+  border: 1px solid #b6d4d9;
+  border-radius: 8px;
+  text-align: center;
+  padding: 1rem;
+}
+
+/* Footer styling */
+.medicine-image-upload-modal .medicine-upload-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  padding: 1rem 1.5rem;
+  justify-content: space-between;
+}
+
+.medicine-image-upload-modal .medicine-upload-skip-btn {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border: 2px solid #6c757d;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.medicine-image-upload-modal .medicine-upload-skip-btn:hover:not(:disabled) {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.medicine-image-upload-modal .medicine-upload-submit-btn {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%);
+  border: 2px solid #6f42c1;
+  transition: all 0.3s ease;
+}
+
+.medicine-image-upload-modal .medicine-upload-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a2d91 0%, #4c1f78 100%);
+  border-color: #5a2d91;
+  transform: translateY(-1px);
+}
+
+.medicine-image-upload-modal .medicine-upload-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading spinner animation */
+.medicine-image-upload-modal .spinner-border {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.125rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .medicine-image-upload-modal .modal-body {
+    padding: 1rem;
+  }
+  
+  .medicine-image-upload-modal .medicine-upload-footer {
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .medicine-image-upload-modal .medicine-upload-skip-btn,
+  .medicine-image-upload-modal .medicine-upload-submit-btn {
+    width: 100%;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+  
+  .medicine-image-upload-modal .medicine-upload-preview-image {
+    max-height: 150px;
+  }
+}
+
+/* Animation for modal appearance */
+.medicine-image-upload-modal .modal-dialog {
+  animation: zoomIn 0.3s ease-out;
+}
+
+@keyframes zoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Icon colors */
+.medicine-image-upload-modal .text-success {
+  color: #28a745 !important;
+}
+
+.medicine-image-upload-modal .fas,
+.medicine-image-upload-modal .fa {
+  color: inherit;
+}
+
+/* Hover effects for interactive elements */
+.medicine-image-upload-modal .medicine-upload-image-container:hover {
+  border-color: #6f42c1;
+  transition: border-color 0.3s ease;
+}
+
+/* Success check animation */
+.medicine-image-upload-modal .medicine-upload-success-banner .fa-check {
+  animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

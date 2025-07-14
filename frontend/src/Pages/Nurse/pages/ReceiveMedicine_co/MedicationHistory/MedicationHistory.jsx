@@ -5,7 +5,7 @@ import {
 } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { 
-  FaSearch, FaEye, FaImage,
+  FaSearch, FaEye, FaImage, FaTimes,
   FaCheckCircle, FaTimesCircle, FaExclamationTriangle, 
   FaExclamationCircle, FaAngleLeft, FaAngleRight, 
   FaAngleDoubleLeft, FaAngleDoubleRight
@@ -607,39 +607,40 @@ const MedicationHistory = () => {
         onHide={() => setShowImageModal(false)} 
         centered 
         size="lg"
-        className="image-modal"
+        className="medication-history-image-modal"
+        backdrop="static"
       >
         <Modal.Header closeButton>
           <Modal.Title>Ảnh xác nhận dùng thuốc</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="text-center">
+        <Modal.Body>
           {selectedImage ? (
-            <div>
+            <div className="confirmation-image-container">
               <img 
                 src={selectedImage} 
                 alt="Ảnh xác nhận dùng thuốc" 
-                className="img-fluid rounded"
-                style={{ maxHeight: '500px', maxWidth: '100%' }}
+                className="confirmation-medicine-image"
                 onError={(e) => {
                   e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2Yjc0ODMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5LaG9uZyB0aGUgdGFpIGFuaDwvdGV4dD4KPC9zdmc+';
                   e.target.alt = 'Không thể tải ảnh';
                 }}
+                onClick={() => window.open(selectedImage, '_blank')}
               />
-              <div className="mt-3">
-                <small className="text-muted">
-                  Click vào ảnh để phóng to hoặc nhấn ESC để đóng
-                </small>
-              </div>
             </div>
           ) : (
-            <div className="text-muted py-4">
-              <FaImage size={48} className="mb-3" />
-              <p>Không có ảnh để hiển thị</p>
+            <div className="no-confirmation-image-placeholder">
+              <FaImage className="no-confirmation-image-icon" />
+              <h6 className="mb-2">Không có ảnh xác nhận</h6>
+              <p className="mb-0">Không có ảnh xác nhận được tải lên cho lần sử dụng thuốc này</p>
             </div>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowImageModal(false)}>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowImageModal(false)}
+          >
+            <FaTimes className="me-2" />
             Đóng
           </Button>
           {selectedImage && (
@@ -647,6 +648,7 @@ const MedicationHistory = () => {
               variant="primary" 
               onClick={() => window.open(selectedImage, '_blank')}
             >
+              <FaEye className="me-2" />
               Mở ảnh gốc
             </Button>
           )}

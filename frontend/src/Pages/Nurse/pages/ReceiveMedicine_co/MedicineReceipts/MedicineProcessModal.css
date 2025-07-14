@@ -1,0 +1,224 @@
+/* Medicine Process Modal CSS - Namespaced to prevent conflicts */
+
+/* Main process modal container */
+.medicine-process-modal .modal-dialog {
+  max-width: 600px;
+}
+
+.medicine-process-modal .modal-content {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.medicine-process-modal .modal-header {
+  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+  color: white !important;
+  border-bottom: none;
+  padding: 20px 25px;
+  position: relative;
+}
+
+.medicine-process-modal .modal-title {
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin: 0;
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.medicine-process-modal .btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.medicine-process-modal .btn-close:hover {
+  opacity: 1;
+}
+
+/* Modal body styling */
+.medicine-process-modal .modal-body {
+  padding: 25px;
+  background: #f8f9fa;
+}
+
+/* Form styling */
+.medicine-process-modal .form-label {
+  font-weight: 600;
+  color: #2d3436;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+/* Custom dropdown styling to fix multiple arrows */
+.medicine-process-modal .form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2300b894' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 16px 12px !important;
+  padding-right: 2.5rem !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.medicine-process-modal .form-select:focus {
+  border-color: #00b894;
+  box-shadow: 0 0 0 0.2rem rgba(0, 184, 148, 0.25);
+  outline: none;
+}
+
+/* Remove all default dropdown arrows */
+.medicine-process-modal .form-select::-ms-expand {
+  display: none !important;
+}
+
+.medicine-process-modal .form-select::after,
+.medicine-process-modal .form-select::before {
+  display: none !important;
+}
+
+/* Textarea styling */
+.medicine-process-modal .form-control {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  resize: vertical;
+}
+
+.medicine-process-modal .form-control:focus {
+  border-color: #00b894;
+  box-shadow: 0 0 0 0.2rem rgba(0, 184, 148, 0.25);
+  outline: none;
+}
+
+.medicine-process-modal .form-control::placeholder {
+  color: #6c757d;
+  opacity: 0.7;
+}
+
+/* Form groups */
+.medicine-process-modal .mb-3 {
+  margin-bottom: 1.5rem !important;
+}
+
+/* Modal footer */
+.medicine-process-modal .modal-footer {
+  padding: 20px 25px;
+  background: white;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.medicine-process-modal .modal-footer .btn {
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  border: none;
+  min-width: 100px;
+}
+
+.medicine-process-modal .modal-footer .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.medicine-process-modal .modal-footer .btn-secondary {
+  background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+  color: white;
+}
+
+.medicine-process-modal .modal-footer .btn-primary {
+  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+  color: white;
+}
+
+/* Decision-specific styling */
+.medicine-process-modal .decision-approve {
+  border-left: 4px solid #28a745;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  padding: 15px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 15px;
+}
+
+.medicine-process-modal .decision-reject {
+  border-left: 4px solid #dc3545;
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  padding: 15px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 15px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .medicine-process-modal .modal-dialog {
+    max-width: 95%;
+    margin: 10px;
+  }
+  
+  .medicine-process-modal .modal-header,
+  .medicine-process-modal .modal-body,
+  .medicine-process-modal .modal-footer {
+    padding: 15px;
+  }
+  
+  .medicine-process-modal .modal-title {
+    font-size: 1.1rem;
+  }
+  
+  .medicine-process-modal .modal-footer {
+    flex-direction: column;
+  }
+  
+  .medicine-process-modal .modal-footer .btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+/* Animation for modal entrance */
+.medicine-process-modal.fade .modal-dialog {
+  transform: scale(0.8) translateY(-50px);
+  transition: all 0.3s ease-out;
+}
+
+.medicine-process-modal.show .modal-dialog {
+  transform: scale(1) translateY(0);
+}
+
+/* Enhanced typography */
+.medicine-process-modal {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Custom focus styles */
+.medicine-process-modal .form-select:focus,
+.medicine-process-modal .form-control:focus {
+  border-color: #00b894 !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 184, 148, 0.25) !important;
+}
+
+/* Loading state */
+.medicine-process-modal .btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Icon styling */
+.medicine-process-modal .btn .fas,
+.medicine-process-modal .btn .fa {
+  margin-right: 6px;
+}

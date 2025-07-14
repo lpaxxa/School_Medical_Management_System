@@ -470,19 +470,6 @@ const CheckupList = () => {
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
           }
           
-          .campaign-card {
-            border: 3px solid #007bff !important;
-            border-radius: 12px !important;
-            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.15) !important;
-            transition: all 0.3s ease !important;
-          }
-          
-          .campaign-card:hover {
-            border-color: #0056b3 !important;
-            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.25) !important;
-            transform: translateY(-2px) !important;
-          }
-          
           @media (max-width: 768px) {
             .lukhang-checkuplist-header-section {
               padding: 1.5rem !important;

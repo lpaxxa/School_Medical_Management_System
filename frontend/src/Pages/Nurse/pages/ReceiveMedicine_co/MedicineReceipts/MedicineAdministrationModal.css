@@ -1,0 +1,288 @@
+/* Medicine Administration Modal CSS - Bootstrap Integration with Namespace */
+
+/* Main modal namespace to avoid conflicts */
+.medicine-administration-modal .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.medicine-administration-modal .modal-header {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border-bottom: none;
+  padding: 1.25rem 1.5rem;
+}
+
+.medicine-administration-modal .modal-header .modal-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.medicine-administration-modal .modal-header .btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.medicine-administration-modal .modal-header .btn-close:hover {
+  opacity: 1;
+}
+
+.medicine-administration-modal .modal-body {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+}
+
+/* Info banner styling */
+.medicine-administration-modal .medicine-admin-info-banner {
+  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+  border: 1px solid #b6d4d9;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+}
+
+.medicine-administration-modal .medicine-admin-info-banner strong {
+  color: #0c5460;
+  font-weight: 600;
+}
+
+/* Card styling */
+.medicine-administration-modal .card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.medicine-administration-modal .card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.medicine-administration-modal .card-header {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border-bottom: none;
+  padding: 0.875rem 1.25rem;
+  font-weight: 600;
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.medicine-administration-modal .card-body {
+  padding: 1.25rem;
+  background-color: white;
+}
+
+/* Time card specific styling */
+.medicine-administration-modal .medicine-admin-time-card .card-header {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+/* Photo card specific styling */
+.medicine-administration-modal .medicine-admin-photo-card .card-header {
+  background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%);
+}
+
+/* Notes card specific styling */
+.medicine-administration-modal .medicine-admin-notes-card .card-header {
+  background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);
+}
+
+/* Form input styling */
+.medicine-administration-modal .form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.medicine-administration-modal .medicine-admin-datetime-input {
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.medicine-administration-modal .medicine-admin-datetime-input:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.medicine-administration-modal .medicine-admin-file-input {
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.medicine-administration-modal .medicine-admin-file-input:hover {
+  border-color: #6f42c1;
+  background-color: #f3f0ff;
+}
+
+.medicine-administration-modal .medicine-admin-file-input:focus {
+  border-color: #6f42c1;
+  box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+.medicine-administration-modal .medicine-admin-notes-textarea {
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+  padding: 0.75rem;
+  resize: vertical;
+  min-height: 100px;
+  transition: all 0.3s ease;
+}
+
+.medicine-administration-modal .medicine-admin-notes-textarea:focus {
+  border-color: #fd7e14;
+  box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+}
+
+/* Image preview styling */
+.medicine-administration-modal .medicine-admin-image-preview {
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  text-align: center;
+}
+
+.medicine-administration-modal .medicine-admin-image-preview img {
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+/* Form text styling */
+.medicine-administration-modal .form-text {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.medicine-administration-modal .form-text.text-muted {
+  color: #6c757d !important;
+}
+
+.medicine-administration-modal .form-text.text-success {
+  color: #28a745 !important;
+  font-weight: 500;
+}
+
+.medicine-administration-modal .form-text.text-warning {
+  color: #fd7e14 !important;
+  font-weight: 500;
+}
+
+/* Footer styling */
+.medicine-administration-modal .medicine-admin-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  padding: 1rem 1.5rem;
+}
+
+.medicine-administration-modal .medicine-admin-cancel-btn {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border: 2px solid #6c757d;
+  transition: all 0.3s ease;
+}
+
+.medicine-administration-modal .medicine-admin-cancel-btn:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  transform: translateY(-1px);
+}
+
+.medicine-administration-modal .medicine-admin-submit-btn {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: 2px solid #28a745;
+  transition: all 0.3s ease;
+}
+
+.medicine-administration-modal .medicine-admin-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+  border-color: #218838;
+  transform: translateY(-1px);
+}
+
+.medicine-administration-modal .medicine-admin-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading spinner animation */
+.medicine-administration-modal .fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .medicine-administration-modal .modal-body {
+    padding: 1rem;
+  }
+  
+  .medicine-administration-modal .card-body {
+    padding: 1rem;
+  }
+  
+  .medicine-administration-modal .medicine-admin-footer {
+    padding: 0.75rem 1rem;
+  }
+  
+  .medicine-administration-modal .medicine-admin-cancel-btn,
+  .medicine-administration-modal .medicine-admin-submit-btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Animation for modal appearance */
+.medicine-administration-modal .modal-dialog {
+  animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Success state for completed inputs */
+.medicine-administration-modal .form-control.is-valid {
+  border-color: #28a745;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='m2.3 6.73.94-.94 2.94 2.94L9.1 5.8l.94.94L6.1 10.68z'/%3e%3c/svg%3e");
+}
+
+/* Focus states with green theme */
+.medicine-administration-modal .form-control:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Icon styling */
+.medicine-administration-modal .fas,
+.medicine-administration-modal .fa {
+  color: inherit;
+}
+
+.medicine-administration-modal .card-header .fas,
+.medicine-administration-modal .card-header .fa {
+  opacity: 0.9;
+}
