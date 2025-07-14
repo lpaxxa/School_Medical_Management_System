@@ -318,6 +318,34 @@ const MedicalIncidentAddModal = ({
             width: 100vw !important;
             z-index: 1055 !important;
           }
+
+          /* Fix dropdown arrow display issues */
+          .lukhang-medical-incident-modal-wrapper .form-select,
+          .lukhang-medical-incident-modal-wrapper select.form-control,
+          .lukhang-medical-incident-modal-wrapper .medical-severity-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+          }
+
+          /* Remove multiple arrows from dropdown */
+          .lukhang-medical-incident-modal-wrapper select::-ms-expand {
+            display: none !important;
+          }
+
+          .lukhang-medical-incident-modal-wrapper .form-select::after,
+          .lukhang-medical-incident-modal-wrapper .medical-severity-select::after {
+            display: none !important;
+          }
+
+          /* Ensure only one arrow per dropdown */
+          .lukhang-medical-incident-modal-wrapper .dropdown-toggle::after {
+            display: none !important;
+          }
           
           .lukhang-medical-incident-modal-wrapper .modal-dialog {
             margin: 2rem auto !important;
@@ -499,6 +527,30 @@ const MedicalIncidentAddModal = ({
               padding: 1.75rem 1.25rem !important;
               min-height: 100px !important;
             }
+          }
+
+          /* Additional styling for dropdown elements */
+          .lukhang-medical-incident-modal-wrapper .medical-severity-select:focus {
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+          }
+
+          .lukhang-medical-incident-modal-wrapper .medical-student-input:focus,
+          .lukhang-medical-incident-modal-wrapper .medical-medication-search:focus {
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+          }
+
+          /* Dropdown menu styling */
+          .lukhang-medical-incident-modal-wrapper .dropdown-menu {
+            border: 1px solid #0d6efd !important;
+            border-radius: 0.375rem !important;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+          }
+
+          .lukhang-medical-incident-modal-wrapper .dropdown-item:hover {
+            background-color: #f8f9fa !important;
+            color: #0d6efd !important;
           }
         `}
       </style>
