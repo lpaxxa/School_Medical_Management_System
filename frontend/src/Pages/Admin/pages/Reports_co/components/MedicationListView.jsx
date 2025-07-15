@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import medicationService from "../../../../../services/APIAdmin/medicationService";
 import MedicationDetailModal from "./MedicationDetailModal";
+import ReportHeader from "./ReportHeader";
 import "./MedicationListView.css";
 
 const MedicationListView = ({ onBack }) => {
@@ -138,19 +139,13 @@ const MedicationListView = ({ onBack }) => {
   return (
     <div className="reports-medication-list-container">
       {/* Header */}
-      <div className="reports-medication-header">
-        <div className="reports-medication-header-actions">
-          <button className="reports-medication-back-button" onClick={onBack}>
-            <i className="fas fa-arrow-left"></i> Quay lại
-          </button>
-          <h2 className="reports-medication-title">
-            <i className="fas fa-pills"></i> Báo cáo thuốc và vật tư y tế
-          </h2>
-        </div>
-        <p className="reports-medication-subtitle">
-          Danh sách tất cả thuốc và vật tư y tế trong kho
-        </p>
-      </div>
+      <ReportHeader
+        title="Báo cáo thuốc và vật tư y tế"
+        subtitle="Danh sách tất cả thuốc và vật tư y tế trong kho"
+        icon="fas fa-pills"
+        onBack={onBack}
+        colorTheme="green"
+      />
 
       {/* Statistics Cards */}
       {statistics && (

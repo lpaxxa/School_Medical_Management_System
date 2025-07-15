@@ -1,6 +1,6 @@
 import React from "react";
 import vaccineService from "../../../../../services/APIAdmin/vaccineService";
-import "./VaccineDetailModal.css";
+import "./VaccineDetailModal_new.css";
 
 const VaccineDetailModal = ({ vaccine, onClose }) => {
   if (!vaccine) return null;
@@ -262,13 +262,85 @@ const VaccineDetailModal = ({ vaccine, onClose }) => {
               </div>
             </div>
           </div>
+
+          {/* Manufacturer Information */}
+          <div className="reports-vaccine-info-section">
+            <h3>
+              <i className="fas fa-industry"></i>
+              Thông tin nhà sản xuất
+            </h3>
+            <div className="reports-manufacturer-card">
+              <div className="reports-manufacturer-name">
+                <i className="fas fa-building"></i>
+                {vaccine.manufacturer || "Pfizer-BioNTech"}
+              </div>
+              <div className="reports-manufacturer-country">
+                <i className="fas fa-globe"></i>
+                {vaccine.country || "Hoa Kỳ"}
+              </div>
+            </div>
+          </div>
+
+          {/* Storage Requirements */}
+          <div className="reports-vaccine-info-section">
+            <h3>
+              <i className="fas fa-thermometer-half"></i>
+              Yêu cầu bảo quản
+            </h3>
+            <div className="reports-storage-requirements">
+              <div className="reports-storage-title">
+                <i className="fas fa-snowflake"></i>
+                Điều kiện bảo quản vaccine
+              </div>
+              <div className="reports-storage-grid">
+                <div className="reports-storage-item">
+                  <i className="fas fa-thermometer-half"></i>
+                  <strong>Nhiệt độ</strong>
+                  <span>{vaccine.storageTemp || "2°C - 8°C"}</span>
+                </div>
+                <div className="reports-storage-item">
+                  <i className="fas fa-tint"></i>
+                  <strong>Độ ẩm</strong>
+                  <span>{vaccine.humidity || "< 60%"}</span>
+                </div>
+                <div className="reports-storage-item">
+                  <i className="fas fa-sun"></i>
+                  <strong>Ánh sáng</strong>
+                  <span>Tránh ánh sáng trực tiếp</span>
+                </div>
+                <div className="reports-storage-item">
+                  <i className="fas fa-calendar-times"></i>
+                  <strong>Hạn sử dụng</strong>
+                  <span>{vaccine.expiryDate || "24 tháng"}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="reports-vaccine-modal-footer">
-          <button className="reports-vaccine-btn-secondary" onClick={onClose}>
-            <i className="fas fa-times"></i>
-            Đóng
-          </button>
+          <div className="reports-vaccine-modal-info">
+            <i className="fas fa-info-circle"></i>
+            <span>Thông tin vaccine được cập nhật từ hệ thống</span>
+          </div>
+          <div className="reports-vaccine-modal-actions">
+            <button
+              className="reports-vaccine-modal-print-btn"
+              onClick={() => window.print()}
+              title="In thông tin vaccine"
+            >
+              <i className="fas fa-print"></i>
+              In
+            </button>
+            <button
+              className="reports-vaccine-modal-footer-close-btn"
+              onClick={onClose}
+              title="Đóng modal"
+            >
+              <i className="fas fa-times"></i>
+              Đóng
+            </button>
+          </div>
         </div>
       </div>
     </div>

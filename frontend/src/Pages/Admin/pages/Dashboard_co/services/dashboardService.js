@@ -1,3 +1,6 @@
+// Import safe date utilities
+import { formatDate as safeDateFormat, safeParseDate } from '../../../utils/dateUtils';
+
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 // Dashboard service để lấy dữ liệu cho các biểu đồ
@@ -885,7 +888,7 @@ export const dashboardService = {
        
        // Sort by most recent and limit results
        const sortedCampaigns = campaigns
-         .sort((a, b) => new Date(b.createdAt || b.startDate) - new Date(a.createdAt || a.startDate))
+         .sort((a, b) => safeParseDate(b.createdAt || b.startDate) - safeParseDate(a.createdAt || a.startDate))
          .slice(0, limit);
        
        // Transform data for the events table
@@ -1473,8 +1476,8 @@ export const dashboardService = {
        // Sort by vaccination date (most recent first) and limit results
        const sortedPlans = vaccinationPlans
          .sort((a, b) => {
-           const dateA = new Date(a.vaccinationDate);
-           const dateB = new Date(b.vaccinationDate);
+           const dateA = safeParseDate(a.vaccinationDate);
+           const dateB = safeParseDate(b.vaccinationDate);
            return dateB - dateA; // Most recent first
          })
          .slice(0, limit);
@@ -1574,19 +1577,7 @@ function normalizeGradeLevel(gradeLevel) {
 
 // Helper function để format date
 function formatDate(dateString) {
-  if (!dateString) return '';
-  
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return dateString;
-  }
+  return safeDateFormat(dateString);
 }
 
 // Helper function để map campaign status to display status

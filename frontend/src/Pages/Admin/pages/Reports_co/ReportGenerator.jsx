@@ -204,7 +204,7 @@ const ReportGenerator = () => {
 
       {!showDetailView && !selectedNotification && !selectedStudent && (
         <div className="reports-generator">
-          <h2 className="reports-generator-title">Tạo báo cáo mới</h2>
+          <h2 className="reports-generator-title">Xem báo cáo mới</h2>
           <ReportTypeSelector
             reportType={reportType}
             setReportType={setReportType}

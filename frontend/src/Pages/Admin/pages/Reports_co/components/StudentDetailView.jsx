@@ -12,20 +12,10 @@ import {
 } from "react-icons/fa";
 import "./StudentDetailView.css";
 import BackButton from "./BackButton";
+import { formatDate } from "../../../utils/dateUtils";
 
 const StudentDetailView = ({ student, onBack }) => {
   if (!student) return null;
-
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return "Không có dữ liệu";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  };
 
   // Debug: Log student data
   console.log("Student data:", student);

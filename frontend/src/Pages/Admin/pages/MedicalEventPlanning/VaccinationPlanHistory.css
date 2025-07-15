@@ -1012,7 +1012,7 @@
 /* Cell Specific Styles */
 .plan-id-cell {
   font-weight: 600;
-  color: #6366f1;
+  color: #3b82f6;
   width: 60px;
   text-align: center;
 }
@@ -1099,7 +1099,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.8rem;
-  color: #6366f1;
+  color: #3b82f6;
 }
 
 .time-status-cell {

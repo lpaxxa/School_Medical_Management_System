@@ -1,0 +1,198 @@
+.modern-showcase {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.showcase-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.showcase-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 0.5rem;
+}
+
+.showcase-header p {
+  font-size: 1.125rem;
+  color: var(--gray-600);
+  margin: 0 0 24px 0;
+}
+
+.showcase-actions {
+  text-align: center;
+}
+
+.showcase-section {
+  margin-bottom: 3rem;
+}
+
+.showcase-section h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--indigo-500);
+  padding-bottom: 0.5rem;
+}
+
+/* Color Palette */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.color-group h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 0.75rem;
+}
+
+.color-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.color-swatch {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+}
+
+/* Buttons */
+.button-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.stat-content h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.stat-content p {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+/* Badges */
+.badge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Forms */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+/* Typography */
+.typography-showcase {
+  space-y: 1rem;
+}
+
+.typography-showcase h1 {
+  color: var(--gray-900);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.typography-showcase h2 {
+  color: var(--gray-800);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.typography-showcase h3 {
+  color: var(--gray-800);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.typography-showcase h4 {
+  color: var(--gray-700);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.typography-showcase p {
+  color: var(--gray-600);
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.typography-showcase small {
+  color: var(--gray-500);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modern-showcase {
+    padding: 1rem;
+  }
+  
+  .showcase-header h1 {
+    font-size: 2rem;
+  }
+  
+  .button-grid {
+    flex-direction: column;
+  }
+  
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

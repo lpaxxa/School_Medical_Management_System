@@ -1,28 +1,9 @@
 import React from "react";
 import "./MedicationDetailModal.css";
+import { formatDate, formatDateTimeLocale } from "../../../utils/dateUtils";
 
 const MedicationDetailModal = ({ medication, onClose }) => {
   if (!medication) return null;
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
-  const formatDateTime = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   const getStockStatus = (quantity) => {
     if (quantity === 0)
@@ -43,6 +24,17 @@ const MedicationDetailModal = ({ medication, onClose }) => {
   const getExpiryStatus = (expiryDate) => {
     const today = new Date();
     const expiry = new Date(expiryDate);
+
+    // Check if expiry date is valid
+    if (isNaN(expiry.getTime())) {
+      return {
+        class: "expired",
+        text: "Ngày không hợp lệ",
+        icon: "fas fa-ban",
+        days: 0,
+      };
+    }
+
     const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
 
     if (daysUntilExpiry < 0)
@@ -191,7 +183,7 @@ const MedicationDetailModal = ({ medication, onClose }) => {
               </div>
               <div className="reports-medication-date-item">
                 <label>Ngày nhập kho:</label>
-                <span>{formatDateTime(medication.createdAt)}</span>
+                <span>{formatDateTimeLocale(medication.createdAt)}</span>
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import vaccineService from "../../../../../services/APIAdmin/vaccineService";
 import VaccineDetailModal from "./VaccineDetailModal";
+import ReportHeader from "./ReportHeader";
 import "./VaccineListView.css";
 
 const VaccineListView = ({ onBack }) => {
@@ -143,17 +144,13 @@ const VaccineListView = ({ onBack }) => {
   return (
     <div className="reports-vaccine-list-container">
       {/* Header */}
-      <div className="reports-vaccine-header">
-        <div className="reports-vaccine-header-actions">
-          <button className="reports-vaccine-back-button" onClick={onBack}>
-            <i className="fas fa-arrow-left"></i> Quay lại
-          </button>
-          <h2>
-            <i className="fas fa-syringe"></i> Báo cáo vaccine
-          </h2>
-        </div>
-        <p>Danh sách tất cả vaccine trong chương trình tiêm chủng</p>
-      </div>
+      <ReportHeader
+        title="Báo cáo vaccine"
+        subtitle="Danh sách tất cả vaccine trong chương trình tiêm chủng"
+        icon="fas fa-syringe"
+        onBack={onBack}
+        colorTheme="blue"
+      />
 
       {/* Statistics Cards */}
       {statistics && (

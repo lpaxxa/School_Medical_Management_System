@@ -27,6 +27,7 @@ import ConfirmModal from "../../components/ConfirmModal";
 import { useSuccessModal } from "../../hooks/useSuccessModal";
 import { useErrorModal } from "../../hooks/useErrorModal";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
+import { formatDate, safeParseDate } from "../../utils/dateUtils";
 import "./HealthCampaignHistory.css";
 
 const HealthCampaignHistory = () => {
@@ -203,8 +204,8 @@ const HealthCampaignHistory = () => {
 
     // Sort by date
     filtered.sort((a, b) => {
-      const dateA = new Date(a.startDate);
-      const dateB = new Date(b.startDate);
+      const dateA = safeParseDate(a.startDate);
+      const dateB = safeParseDate(b.startDate);
 
       if (sortOrder === "newest") {
         return dateB - dateA; // Mới nhất trước
@@ -271,7 +272,10 @@ const HealthCampaignHistory = () => {
       return;
     }
 
-    if (new Date(editFormData.startDate) > new Date(editFormData.endDate)) {
+    if (
+      safeParseDate(editFormData.startDate) >
+      safeParseDate(editFormData.endDate)
+    ) {
       showError(
         "Ngày không hợp lệ",
         "Ngày bắt đầu không thể sau ngày kết thúc!"
@@ -768,29 +772,6 @@ const HealthCampaignHistory = () => {
         (_, i) => i !== index
       ),
     }));
-  };
-
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return "Chưa xác định";
-
-    try {
-      const date = new Date(dateString);
-
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return "Ngày không hợp lệ";
-      }
-
-      return date.toLocaleDateString("vi-VN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch (err) {
-      console.error("Error formatting date:", err);
-      return "Ngày không hợp lệ";
-    }
   };
 
   // Get status label
@@ -1574,44 +1555,49 @@ const HealthCampaignHistory = () => {
 
       {/* Notification Modal */}
       {showNotificationModal && selectedCampaign && (
-        <div className="hch-modal-overlay" onClick={resetNotificationModal}>
+        <div
+          className="modalchonjlop_hc-overlay"
+          onClick={resetNotificationModal}
+        >
           <div
-            className="hch-modal-content hch-notification-modal"
+            className="modalchonjlop_hc-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="hch-modal-header">
+            <div className="modalchonjlop_hc-header">
               <h2>
                 <FaBell /> Gửi Thông Báo
               </h2>
               <button
-                className="hch-close-btn"
+                className="modalchonjlop_hc-close-btn"
                 onClick={resetNotificationModal}
               >
                 <FaTimes />
               </button>
             </div>
-            <div className="hch-modal-body">
-              <div className="hch-notification-info">
+            <div className="modalchonjlop_hc-body">
+              <div className="modalchonjlop_hc-notification-info">
                 <h3>Chiến dịch: {selectedCampaign.title}</h3>
                 <p>Chọn khối học sinh để gửi thông báo:</p>
               </div>
 
               {loadingStudents ? (
-                <div className="hch-loading-students">
+                <div className="modalchonjlop_hc-loading-students">
                   <FaSpinner className="spinning" />
                   <p>Đang tải danh sách học sinh...</p>
                 </div>
               ) : (
-                <div className="hch-grade-selection">
-                  <div className="hch-grade-options">
-                    <label className="hch-grade-option all-grades">
+                <div className="modalchonjlop_hc-grade-selection">
+                  <div className="modalchonjlop_hc-grade-options">
+                    <label className="modalchonjlop_hc-grade-option all-grades">
                       <input
                         type="checkbox"
                         checked={isAllGradesSelected}
                         onChange={handleSelectAllGrades}
                       />
-                      <span className="hch-grade-label">Tất cả các khối</span>
-                      <span className="hch-student-count">
+                      <span className="modalchonjlop_hc-grade-label">
+                        Tất cả các khối
+                      </span>
+                      <span className="modalchonjlop_hc-student-count">
                         ({students.length} học sinh)
                       </span>
                     </label>
@@ -1620,7 +1606,7 @@ const HealthCampaignHistory = () => {
                       return (
                         <label
                           key={grade}
-                          className={`hch-grade-option ${
+                          className={`modalchonjlop_hc-grade-option ${
                             selectedGrades.includes(grade) ? "selected" : ""
                           }`}
                         >
@@ -1633,8 +1619,10 @@ const HealthCampaignHistory = () => {
                             onChange={() => handleGradeSelection(grade)}
                             disabled={isAllGradesSelected}
                           />
-                          <span className="hch-grade-label">Khối {grade}</span>
-                          <span className="hch-student-count">
+                          <span className="modalchonjlop_hc-grade-label">
+                            Khối {grade}
+                          </span>
+                          <span className="modalchonjlop_hc-student-count">
                             ({getStudentsCountByGrade(grade)} học sinh)
                           </span>
                         </label>
@@ -1642,7 +1630,7 @@ const HealthCampaignHistory = () => {
                     })}
                   </div>
 
-                  <div className="hch-selected-summary">
+                  <div className="modalchonjlop_hc-selected-summary">
                     <h4>Tóm tắt:</h4>
                     <p>
                       Sẽ gửi thông báo đến{" "}
@@ -1657,15 +1645,15 @@ const HealthCampaignHistory = () => {
                 </div>
               )}
             </div>
-            <div className="hch-modal-footer">
+            <div className="modalchonjlop_hc-modal-footer">
               <button
-                className="hch-btn-secondary"
+                className="modalchonjlop_hc-btn-secondary"
                 onClick={resetNotificationModal}
               >
                 <FaTimes /> Hủy
               </button>
               <button
-                className="hch-btn-primary"
+                className="modalchonjlop_hc-btn-primary"
                 onClick={handleConfirmSendNotification}
                 disabled={
                   sendingNotification ||

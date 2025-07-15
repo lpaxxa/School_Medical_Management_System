@@ -63,31 +63,71 @@ const vaccinationPlanService = {
   // Helper function để format ngày tháng
   formatDate: (dateString) => {
     if (!dateString) return '';
-    
-    const date = new Date(dateString);
-    const options = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    
-    return date.toLocaleDateString('vi-VN', options);
+
+    try {
+      // Handle array format from Java backend
+      let date;
+      if (Array.isArray(dateString)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0] = dateString;
+        // Java month is 1-based, JavaScript month is 0-based
+        date = new Date(year, month - 1, day, hour, minute, second);
+      } else {
+        date = new Date(dateString);
+      }
+
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date in formatDate:', dateString);
+        return 'Ngày không hợp lệ';
+      }
+
+      const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+
+      return date.toLocaleDateString('vi-VN', options);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Ngày không hợp lệ';
+    }
   },
 
   // Helper function để format ngày tiêm (chỉ ngày)
   formatVaccinationDate: (dateString) => {
     if (!dateString) return '';
-    
-    const date = new Date(dateString);
-    const options = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    };
-    
-    return date.toLocaleDateString('vi-VN', options);
+
+    try {
+      // Handle array format from Java backend
+      let date;
+      if (Array.isArray(dateString)) {
+        const [year, month, day] = dateString;
+        // Java month is 1-based, JavaScript month is 0-based
+        date = new Date(year, month - 1, day);
+      } else {
+        date = new Date(dateString);
+      }
+
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date in formatVaccinationDate:', dateString);
+        return 'Ngày không hợp lệ';
+      }
+
+      const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      };
+
+      return date.toLocaleDateString('vi-VN', options);
+    } catch (error) {
+      console.error('Error formatting vaccination date:', error);
+      return 'Ngày không hợp lệ';
+    }
   },
 
   // Helper function để kiểm tra trạng thái thời gian
