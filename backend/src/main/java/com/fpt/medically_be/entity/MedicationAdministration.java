@@ -41,7 +41,7 @@ public class MedicationAdministration {
     private String notes;
     
     // URL of confirmation image
-    @Column(name = "confirmation_image_url", columnDefinition = "NVARCHAR(255)")
+    @Column(name = "confirmation_image_url", columnDefinition = "TEXT")
     private String confirmationImageUrl;
 
     @Column(name = "dose_sequence")

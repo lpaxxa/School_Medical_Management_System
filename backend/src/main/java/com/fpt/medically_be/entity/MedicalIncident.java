@@ -46,7 +46,7 @@ public class MedicalIncident {
     @Column(name = "follow_up_notes",columnDefinition = "NVARCHAR(150)")
     private String followUpNotes;
 
-    @Column(name = "image_url", columnDefinition = "NVARCHAR(255)")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageMedicalUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
