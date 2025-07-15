@@ -106,7 +106,7 @@ const PlanManager = () => {
       {!selectedSection && !selectedAction && (
         <div className="section-selector">
           <div className="selector-header">
-            <h2 className="selector-title">Kế Hoạch Y Tế</h2>
+            {/* <h2 className="selector-title">Kế Hoạch Y Tế</h2> */}
           </div>
 
           <div className="sections-grid">

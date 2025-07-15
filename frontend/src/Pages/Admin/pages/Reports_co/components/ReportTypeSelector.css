@@ -21,27 +21,31 @@
 }
 
 .reports-type-label i {
-  color: #8b5cf6;
+  color: #3b82f6;
   font-size: 1rem;
 }
 
 .reports-type-options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
 }
 
 .reports-type-option {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 16px;
-  background: white;
+  justify-content: center;
+  padding: 20px 16px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
   border: 2px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
+  aspect-ratio: 1;
+  text-align: center;
 }
 
 .reports-type-option::before {
@@ -59,24 +63,203 @@
   left: 100%;
 }
 
-.reports-type-option:hover {
+/* Color Theme Styles for Report Type Options */
+
+/* Blue Theme - Vaccine Reports */
+.reports-type-option-blue {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #bfdbfe;
+}
+
+.reports-type-option-blue:hover {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.reports-type-option-blue.selected {
+  border-color: #1d4ed8;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  border-width: 3px;
+}
+
+.reports-type-option-blue.selected .reports-type-title,
+.reports-type-option-blue.selected .reports-type-description {
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.reports-type-option-blue.selected .reports-type-title i {
+  color: #1d4ed8;
+}
+
+/* Green Theme - Medication Reports */
+.reports-type-option-green {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #a7f3d0;
+}
+
+.reports-type-option-green:hover {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.reports-type-option-green.selected {
+  border-color: #047857;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  border-width: 3px;
+}
+
+.reports-type-option-green.selected .reports-type-title,
+.reports-type-option-green.selected .reports-type-description {
+  color: #065f46;
+  font-weight: 600;
+}
+
+.reports-type-option-green.selected .reports-type-title i {
+  color: #047857;
+}
+
+/* Purple Theme - Health Checkup Reports */
+.reports-type-option-purple {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-color: #ddd6fe;
+}
+
+.reports-type-option-purple:hover {
   border-color: #8b5cf6;
-  background: #faf5ff;
+  background: linear-gradient(135deg, #f3e8ff 0%, #ddd6fe 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
 }
 
+.reports-type-option-purple.selected {
+  border-color: #6d28d9;
+  background: linear-gradient(135deg, #f3e8ff 0%, #ddd6fe 100%);
+  color: #581c87;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  border-width: 3px;
+}
+
+.reports-type-option-purple.selected .reports-type-title,
+.reports-type-option-purple.selected .reports-type-description {
+  color: #581c87;
+  font-weight: 600;
+}
+
+.reports-type-option-purple.selected .reports-type-title i {
+  color: #6d28d9;
+}
+
+/* Orange Theme - Vaccination Reports */
+.reports-type-option-orange {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fde68a;
+}
+
+.reports-type-option-orange:hover {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.reports-type-option-orange.selected {
+  border-color: #b45309;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  border-width: 3px;
+}
+
+.reports-type-option-orange.selected .reports-type-title,
+.reports-type-option-orange.selected .reports-type-description {
+  color: #92400e;
+  font-weight: 600;
+}
+
+.reports-type-option-orange.selected .reports-type-title i {
+  color: #b45309;
+}
+
+/* Teal Theme - Student Management */
+.reports-type-option-teal {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  border-color: #99f6e4;
+}
+
+.reports-type-option-teal:hover {
+  border-color: #14b8a6;
+  background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.15);
+}
+
+.reports-type-option-teal.selected {
+  border-color: #0f766e;
+  background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+  color: #134e4a;
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+  border-width: 3px;
+}
+
+.reports-type-option-teal.selected .reports-type-title,
+.reports-type-option-teal.selected .reports-type-description {
+  color: #134e4a;
+  font-weight: 600;
+}
+
+.reports-type-option-teal.selected .reports-type-title i {
+  color: #0f766e;
+}
+
+/* Default hover and selected styles (fallback) */
+.reports-type-option:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
 .reports-type-option.selected {
-  border-color: #8b5cf6;
-  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Radio button colors for different themes */
+.reports-type-option-blue input[type="radio"] {
+  accent-color: #3b82f6;
+}
+
+.reports-type-option-green input[type="radio"] {
+  accent-color: #10b981;
+}
+
+.reports-type-option-purple input[type="radio"] {
+  accent-color: #8b5cf6;
+}
+
+.reports-type-option-orange input[type="radio"] {
+  accent-color: #f59e0b;
+}
+
+.reports-type-option-teal input[type="radio"] {
+  accent-color: #14b8a6;
 }
 
 .reports-type-option input[type="radio"] {
   margin-right: 12px;
   width: 18px;
   height: 18px;
-  accent-color: #8b5cf6;
+  accent-color: #3b82f6;
   cursor: pointer;
 }
 
@@ -91,14 +274,37 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
-  margin: 0;
+  margin: 0 0 8px 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  text-align: center;
+}
+
+/* Icon colors for different themes */
+.reports-type-option-blue .reports-type-title i {
+  color: #3b82f6;
+}
+
+.reports-type-option-green .reports-type-title i {
+  color: #10b981;
+}
+
+.reports-type-option-purple .reports-type-title i {
+  color: #8b5cf6;
+}
+
+.reports-type-option-orange .reports-type-title i {
+  color: #f59e0b;
+}
+
+.reports-type-option-teal .reports-type-title i {
+  color: #14b8a6;
 }
 
 .reports-type-title i {
-  color: #8b5cf6;
+  color: #3b82f6;
   font-size: 1rem;
 }
 
@@ -107,6 +313,7 @@
   color: #6b7280;
   margin: 0;
   line-height: 1.4;
+  text-align: center;
 }
 
 /* Advanced options */
@@ -192,7 +399,7 @@
 .reports-checkbox-option input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #8b5cf6;
+  accent-color: #3b82f6;
   cursor: pointer;
 }
 
@@ -224,8 +431,8 @@
 
 .reports-filter-input:focus {
   outline: none;
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .reports-filter-input::placeholder {
@@ -242,7 +449,7 @@
 }
 
 .reports-generate-btn {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
   padding: 14px 28px;
@@ -274,9 +481,9 @@
 }
 
 .reports-generate-btn:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 .reports-generate-btn:active {
@@ -305,13 +512,21 @@
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+  .reports-type-options {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+}
+
 @media (max-width: 768px) {
   .reports-type-selector {
     padding: 16px;
   }
 
   .reports-type-options {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .reports-advanced-content {
@@ -325,8 +540,15 @@
 }
 
 @media (max-width: 480px) {
+  .reports-type-options {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
   .reports-type-option {
-    padding: 12px;
+    padding: 16px 12px;
+    aspect-ratio: auto;
+    min-height: 120px;
   }
 
   .reports-type-title {

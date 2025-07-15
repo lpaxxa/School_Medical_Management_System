@@ -7,28 +7,20 @@ import {
   FaCheck,
   FaClock,
   FaTimes as FaReject,
+  FaTimes,
   FaUsers,
   FaIdCard,
   FaCommentAlt,
   FaFilter,
 } from "react-icons/fa";
 import BackButton from "./BackButton"; // Import BackButton
+import { formatDateTimeLocale } from "../../../utils/dateUtils"; // Import date utility
 
 const NotificationDetail = ({ notification, onBack }) => {
   // Thêm state để quản lý filter
   const [activeFilter, setActiveFilter] = useState(null);
 
   if (!notification) return null;
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -50,8 +42,18 @@ const NotificationDetail = ({ notification, onBack }) => {
             <FaReject /> Từ chối
           </span>
         );
+      case "NOT_APPLICABLE":
+        return (
+          <span className="reports-notification-status-badge reports-notification-not-applicable">
+            <FaTimes /> Không áp dụng
+          </span>
+        );
       default:
-        return status;
+        return (
+          <span className="reports-notification-status-badge reports-notification-unknown">
+            <FaClock /> {status || "Chưa xác định"}
+          </span>
+        );
     }
   };
 
@@ -65,6 +67,10 @@ const NotificationDetail = ({ notification, onBack }) => {
 
   const rejectedCount = notification.recipients.filter(
     (r) => r.response === "REJECTED"
+  ).length;
+
+  const notApplicableCount = notification.recipients.filter(
+    (r) => r.response === "NOT_APPLICABLE"
   ).length;
 
   // Lọc danh sách người nhận dựa trên filter đang kích hoạt
@@ -97,7 +103,9 @@ const NotificationDetail = ({ notification, onBack }) => {
           </div>
           <div className="reports-notification-detail-meta-item">
             <FaCalendarAlt className="reports-notification-icon" />
-            <span>Ngày tạo: {formatDate(notification.createdAt)}</span>
+            <span>
+              Ngày tạo: {formatDateTimeLocale(notification.createdAt)}
+            </span>
           </div>
           <div className="reports-notification-detail-meta-item">
             <FaEnvelope className="reports-notification-icon" />
@@ -150,6 +158,16 @@ const NotificationDetail = ({ notification, onBack }) => {
                 <FaReject /> Từ chối: {rejectedCount}
               </span>
             </div>
+            <div className="reports-notification-summary-item">
+              <span
+                className={`reports-notification-summary-stat reports-notification-not-applicable ${
+                  activeFilter === "NOT_APPLICABLE" ? "active" : ""
+                }`}
+                onClick={() => handleFilterClick("NOT_APPLICABLE")}
+              >
+                <FaTimes /> Không áp dụng: {notApplicableCount}
+              </span>
+            </div>
             {activeFilter && (
               <div className="reports-notification-summary-item">
                 <span
@@ -175,6 +193,7 @@ const NotificationDetail = ({ notification, onBack }) => {
                 {activeFilter === "ACCEPTED" && " - Đã chấp nhận"}
                 {activeFilter === "PENDING" && " - Chờ phản hồi"}
                 {activeFilter === "REJECTED" && " - Từ chối"}
+                {activeFilter === "NOT_APPLICABLE" && " - Không áp dụng"}
               </span>
             ) : (
               <span>
@@ -227,7 +246,7 @@ const NotificationDetail = ({ notification, onBack }) => {
                     <td className="reports-notification-table-date">
                       {recipient.responseDate ? (
                         <span className="reports-notification-response-date">
-                          {formatDate(recipient.responseDate)}
+                          {formatDateTimeLocale(recipient.responseDate)}
                         </span>
                       ) : (
                         <span className="reports-notification-no-response">

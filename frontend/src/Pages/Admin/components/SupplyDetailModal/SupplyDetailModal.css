@@ -1,0 +1,373 @@
+/* Supply Detail Modal */
+.admin_ui_modal_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.admin_ui_supply_modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.admin_ui_modal_header {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin_ui_modal_header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+}
+
+.admin_ui_modal_title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.admin_ui_modal_icon {
+  font-size: 24px;
+}
+
+.admin_ui_modal_title h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.admin_ui_modal_close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.admin_ui_modal_close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Modal Content */
+.admin_ui_modal_content {
+  padding: 24px;
+  max-height: calc(90vh - 160px);
+  overflow-y: auto;
+}
+
+.admin_ui_info_section {
+  margin-bottom: 24px;
+}
+
+.admin_ui_section_header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.admin_ui_section_icon {
+  font-size: 18px;
+}
+
+.admin_ui_section_header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Info Grid */
+.admin_ui_info_grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin_ui_info_item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin_ui_info_item label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin_ui_info_value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.admin_ui_id_badge {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  max-width: fit-content;
+}
+
+.admin_ui_name_value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.admin_ui_category_tag {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  max-width: fit-content;
+}
+
+.admin_ui_category_supplies {
+  background: #10b981;
+  color: white;
+}
+
+.admin_ui_category_medicine {
+  background: #3b82f6;
+  color: white;
+}
+
+.admin_ui_category_equipment {
+  background: #64748b;
+  color: white;
+}
+
+/* Stock Display */
+.admin_ui_stock_display {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.admin_ui_stock_main {
+  margin-bottom: 12px;
+}
+
+.admin_ui_stock_number {
+  font-size: 48px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.admin_ui_stock_unit {
+  font-size: 16px;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.admin_ui_stock_status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin_ui_stock_valid {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin_ui_stock_warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.admin_ui_stock_expired {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Date Grid */
+.admin_ui_date_grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin_ui_date_item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin_ui_date_value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.admin_ui_expiry_date {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.admin_ui_warning_item {
+  grid-column: 1 / -1;
+}
+
+.admin_ui_warning_badge {
+  background: #3b82f6;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.admin_ui_warning_text {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.admin_ui_warning_detail {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* Modal Footer */
+.admin_ui_modal_footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  text-align: right;
+}
+
+.admin_ui_modal_btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin_ui_btn_close {
+  background: #64748b;
+  color: white;
+}
+
+.admin_ui_btn_close:hover {
+  background: #475569;
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin_ui_modal_overlay {
+    padding: 10px;
+  }
+  
+  .admin_ui_supply_modal {
+    max-height: 95vh;
+  }
+  
+  .admin_ui_modal_header {
+    padding: 20px;
+  }
+  
+  .admin_ui_modal_title h2 {
+    font-size: 18px;
+  }
+  
+  .admin_ui_modal_content {
+    padding: 20px;
+  }
+  
+  .admin_ui_info_grid,
+  .admin_ui_date_grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .admin_ui_stock_number {
+    font-size: 36px;
+  }
+  
+  .admin_ui_warning_item {
+    grid-column: 1;
+  }
+}

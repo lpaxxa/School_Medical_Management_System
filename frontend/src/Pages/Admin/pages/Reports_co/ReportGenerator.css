@@ -10,12 +10,12 @@
 
 /* Header */
 .reports-main-header {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   padding: 40px;
   border-radius: 20px;
   margin-bottom: 32px;
-  box-shadow: 0 10px 25px rgba(30, 41, 59, 0.15);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
   position: relative;
   overflow: hidden;
 }
@@ -111,6 +111,7 @@
   margin: 0 0 32px 0;
   text-align: center;
   letter-spacing: -0.025em;
+  padding-bottom: 15px;
 }
 
 /* Action Buttons */

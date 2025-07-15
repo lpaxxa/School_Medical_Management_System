@@ -1,37 +1,57 @@
-/* Student Detail View - Simple Modern Design */
+/* Student Detail View - Modern Blue Theme */
 .reports-student-detail-page {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
-  background: #ffffff;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   min-height: 100vh;
-  padding: 20px;
+  padding: 24px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Back Button Outside Header */
 .reports-student-detail-page > .reports-back-button-container {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 /* Header */
 .reports-student-detail-page-header {
   text-align: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 32px;
+  padding: 32px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.reports-student-detail-page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb, #1d4ed8);
 }
 
 .reports-student-detail-page-header h1 {
-  font-size: 1.875rem;
-  font-weight: 600;
-  color: #111827;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
   margin: 0;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Body Content */
 .reports-student-detail-content {
   display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 40px;
+  grid-template-columns: 350px 1fr;
+  gap: 32px;
 }
 
 /* Left Column */
@@ -44,26 +64,51 @@
 
 /* Left Column */
 .reports-student-detail-left-column {
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 20px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 24px;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.reports-student-detail-left-column::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #10b981, #059669);
 }
 
 /* Student Photo */
 .reports-student-detail-photo {
-  width: 200px;
-  height: 200px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  width: 220px;
+  height: 220px;
+  border: 3px solid #e2e8f0;
+  border-radius: 16px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f9fafb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+  position: relative;
+}
+
+.reports-student-detail-photo::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb, #1d4ed8);
+  border-radius: 16px;
+  z-index: -1;
 }
 
 .reports-student-detail-photo img {
@@ -74,24 +119,26 @@
   display: block;
   max-width: none;
   max-height: none;
+  border-radius: 13px;
 }
 
 .reports-student-detail-photo-placeholder {
   width: 100%;
   height: 100%;
-  background: #f9fafb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: #64748b;
   text-align: center;
 }
 
 .reports-student-detail-photo-placeholder p {
   margin: 8px 0 0 0;
-  font-size: 0.75rem;
-  color: #6b7280;
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
 }
 
 /* Basic Info */
@@ -101,43 +148,76 @@
 }
 
 .reports-student-detail-basic-info h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 20px 0;
+  background: linear-gradient(135deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .reports-student-detail-info-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 8px 12px;
-  margin: 4px 0;
-  background: #f9fafb;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  color: #374151;
+  gap: 10px;
+  padding: 12px 16px;
+  margin: 8px 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.reports-student-detail-info-item:hover {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #bfdbfe;
+  transform: translateY(-1px);
 }
 
 .reports-student-detail-info-item svg {
-  width: 14px;
-  height: 14px;
-  color: #6b7280;
+  width: 16px;
+  height: 16px;
+  color: #3b82f6;
 }
 
 /* Right Column */
 .reports-student-detail-right-column {
-  padding: 20px 0;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.reports-student-detail-right-column::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb, #1d4ed8);
 }
 
 .reports-student-detail-right-column h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 20px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e5e7eb;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 24px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Detail Info */

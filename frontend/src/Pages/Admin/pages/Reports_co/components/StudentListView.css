@@ -1,52 +1,90 @@
-/* Namespace cho StudentListView component - Tránh xung đột CSS */
+/* Student List View - Modern Blue Theme */
 .reports-student-list-container {
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   min-height: 100vh;
-  padding: 20px;
+  padding: 24px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .reports-student-list-header-section {
   background: white;
-  border-radius: 8px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.reports-student-list-header-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb, #1d4ed8);
 }
 
 .reports-student-header-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .reports-student-list-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #2c3e50;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
   margin: 0;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .reports-student-list-subtitle {
-  color: #6c757d;
+  color: #64748b;
   font-size: 16px;
+  font-weight: 500;
   margin: 0;
 }
 
 .reports-student-stats-section {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .reports-student-stat-item {
   background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.reports-student-stat-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.reports-student-stat-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
+  border-color: #bfdbfe;
 }
 
 .reports-student-stat-icon {

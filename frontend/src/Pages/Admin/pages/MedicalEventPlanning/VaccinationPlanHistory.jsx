@@ -13,6 +13,7 @@ import {
   FaSortAmountDown,
   FaSortAmountUp,
 } from "react-icons/fa";
+import { safeParseDate } from "../../utils/dateUtils";
 import vaccinationPlanService from "../../../../services/APIAdmin/vaccinationPlanService";
 import "./VaccinationPlanHistory.css";
 
@@ -131,8 +132,8 @@ const VaccinationPlanHistory = () => {
 
     // Sort theo ngày tiêm
     filtered.sort((a, b) => {
-      const dateA = new Date(a.vaccinationDate);
-      const dateB = new Date(b.vaccinationDate);
+      const dateA = safeParseDate(a.vaccinationDate);
+      const dateB = safeParseDate(b.vaccinationDate);
 
       if (sortOrder === "newest") {
         return dateB - dateA; // Mới nhất trước

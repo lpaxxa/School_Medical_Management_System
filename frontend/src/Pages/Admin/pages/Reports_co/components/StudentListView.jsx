@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import "./StudentListView.css";
 import BackButton from "./BackButton";
+import ReportHeader from "./ReportHeader";
 import ErrorModal from "../../../components/ErrorModal";
 import ConfirmModal from "../../../components/ConfirmModal";
 import SuccessModal from "../../../components/SuccessModal";
@@ -140,15 +141,13 @@ const StudentListView = ({
   if (!students || students.length === 0) {
     return (
       <div className="reports-student-list-container">
-        <div className="reports-student-list-header-section">
-          <div className="reports-student-header-content">
-            <BackButton onClick={onBack} text="Quay lại" />
-            <h1 className="reports-student-list-title">Quản lý học sinh</h1>
-            <p className="reports-student-list-subtitle">
-              Thống kê sức khỏe học sinh
-            </p>
-          </div>
-        </div>
+        <ReportHeader
+          title="Quản lý học sinh"
+          subtitle="Thống kê sức khỏe học sinh"
+          icon="fas fa-user-graduate"
+          onBack={onBack}
+          colorTheme="teal"
+        />
         <div className="reports-student-list-empty">
           <FaUsers size={48} color="#ccc" />
           <h3>Không có dữ liệu học sinh</h3>
@@ -185,15 +184,13 @@ const StudentListView = ({
   return (
     <div className="reports-student-list-container">
       {/* Header Section */}
-      <div className="reports-student-list-header-section">
-        <div className="reports-student-header-content">
-          <BackButton onClick={onBack} text="Quay lại" />
-          <h1 className="reports-student-list-title">Quản lý học sinh</h1>
-          <p className="reports-student-list-subtitle">
-            Thống kê sức khỏe học sinh
-          </p>
-        </div>
-      </div>
+      <ReportHeader
+        title="Quản lý học sinh"
+        subtitle="Thống kê sức khỏe học sinh"
+        icon="fas fa-user-graduate"
+        onBack={onBack}
+        colorTheme="teal"
+      />
 
       {/* Stats Section */}
       <div className="reports-student-stats-section">

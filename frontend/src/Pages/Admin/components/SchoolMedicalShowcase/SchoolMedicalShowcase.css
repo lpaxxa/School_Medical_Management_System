@@ -1,0 +1,285 @@
+/* School Medical Showcase */
+.admin_ui_school_medical_showcase {
+  padding: 0;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.admin_ui_showcase_nav {
+  padding: 16px 24px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.admin_ui_back_to_overview {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin_ui_back_to_overview:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+/* Overview Section */
+.admin_ui_showcase_overview {
+  padding: 24px;
+}
+
+.admin_ui_showcase_header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.admin_ui_showcase_header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 16px 0;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.admin_ui_showcase_header p {
+  font-size: 18px;
+  color: #64748b;
+  margin: 0;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Showcase Grid */
+.admin_ui_showcase_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.admin_ui_showcase_card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin_ui_showcase_card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.admin_ui_showcase_blue::before {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.admin_ui_showcase_purple::before {
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+}
+
+.admin_ui_showcase_green::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.admin_ui_showcase_orange::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.admin_ui_showcase_card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.admin_ui_showcase_card_header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.admin_ui_showcase_card_header p {
+  color: #64748b;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.admin_ui_showcase_features h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin: 0 0 12px 0;
+}
+
+.admin_ui_showcase_features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+
+.admin_ui_showcase_features li {
+  padding: 6px 0;
+  color: #64748b;
+  font-size: 14px;
+  position: relative;
+  padding-left: 20px;
+}
+
+.admin_ui_showcase_features li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.admin_ui_showcase_action {
+  text-align: right;
+}
+
+.admin_ui_showcase_btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin_ui_showcase_btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Info Section */
+.admin_ui_showcase_info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.admin_ui_info_card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.admin_ui_info_card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 16px 0;
+}
+
+.admin_ui_info_card p {
+  color: #64748b;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.admin_ui_info_card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin_ui_info_card li {
+  padding: 4px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Color Palette */
+.admin_ui_color_palette {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin_ui_color_item {
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin_ui_showcase_overview {
+    padding: 16px;
+  }
+  
+  .admin_ui_showcase_header h1 {
+    font-size: 28px;
+  }
+  
+  .admin_ui_showcase_header p {
+    font-size: 16px;
+  }
+  
+  .admin_ui_showcase_grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .admin_ui_showcase_card {
+    padding: 20px;
+  }
+  
+  .admin_ui_showcase_info {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .admin_ui_info_card {
+    padding: 20px;
+  }
+  
+  .admin_ui_color_palette {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin_ui_showcase_header h1 {
+    font-size: 24px;
+  }
+  
+  .admin_ui_showcase_card {
+    padding: 16px;
+  }
+  
+  .admin_ui_info_card {
+    padding: 16px;
+  }
+  
+  .admin_ui_color_item {
+    min-width: 70px;
+    font-size: 11px;
+  }
+}

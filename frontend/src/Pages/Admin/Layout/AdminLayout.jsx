@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
-import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import Dashboard from "../pages/Dashboard_co/Dashboard";
 import UserManagement from "../pages/UserManagement";
 import { PlanManager } from "../pages/MedicalEventPlanning";
 import Reports from "../pages/Reports_co/index.jsx";
 import Notifications from "../pages/EmailManagement_co/Notifications";
+import ModernUIShowcase from "../components/ModernUIShowcase";
+import "../styles/modern-theme.css";
 import "./AdminLayout.css";
 
 const AdminLayout = () => {
@@ -32,21 +33,23 @@ const AdminLayout = () => {
         return <Notifications />;
       case "reports":
         return <Reports />;
+      case "ui-showcase":
+        return <ModernUIShowcase />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <div className="admin-layout">
-      <Header user={currentUser} />
+    <div className="admin_ui_layout">
       <Sidebar
         activeSection={activeSection}
         onSectionChange={handleSectionChange}
         userRole={currentUser?.role || "admin"}
+        user={currentUser}
       />
-      <div className="admin-main">
-        <main className="admin-content">{renderContent()}</main>
+      <div className="admin_ui_main">
+        <main className="admin_ui_content">{renderContent()}</main>
       </div>
     </div>
   );

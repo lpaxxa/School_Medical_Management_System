@@ -83,7 +83,7 @@
 }
 
 .reports-data-table thead {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
 .reports-data-table th {
@@ -94,7 +94,7 @@
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.025em;
-  border-bottom: 2px solid #0f172a;
+  border-bottom: 2px solid #1d4ed8;
 }
 
 .reports-data-table td {

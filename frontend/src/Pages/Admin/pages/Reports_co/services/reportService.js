@@ -65,7 +65,14 @@ export const reportService = {
         headers: getAuthHeaders()
       });
       const data = await response.json();
-      return data;
+
+      // Ensure each notification has senderName field
+      const processedData = data.map(notification => ({
+        ...notification,
+        senderName: notification.senderName || notification.createdBy || 'Y tá trường học'
+      }));
+
+      return processedData;
     } catch (error) {
       console.error('Error fetching vaccination detail data:', error);
       throw new Error('Không thể lấy chi tiết dữ liệu tiêm chủng');
@@ -79,7 +86,14 @@ export const reportService = {
         headers: getAuthHeaders()
       });
       const data = await response.json();
-      return data;
+
+      // Ensure each notification has senderName field
+      const processedData = data.map(notification => ({
+        ...notification,
+        senderName: notification.senderName || notification.createdBy || 'Y tá trường học'
+      }));
+
+      return processedData;
     } catch (error) {
       console.error('Error fetching checkup detail data:', error);
       throw new Error('Không thể lấy chi tiết dữ liệu khám sức khỏe');

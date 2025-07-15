@@ -12,12 +12,14 @@ import {
   FaEye,
 } from "react-icons/fa";
 import BackButton from "./BackButton"; // Import BackButton
+import ReportHeader from "./ReportHeader";
+import { formatDateTimeLocale } from "../../../utils/dateUtils";
 
 const DetailView = ({ data, reportType, isLoading, onViewDetail, onBack }) => {
   // Thêm prop onBack
   if (isLoading) {
     return (
-      <div className="detail-view">
+      <div className="reports-detail-view-container">
         <div className="detail-loading">
           <div className="loading-spinner"></div>
           <p>Đang tải chi tiết dữ liệu...</p>
@@ -28,7 +30,7 @@ const DetailView = ({ data, reportType, isLoading, onViewDetail, onBack }) => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="detail-view">
+      <div className="reports-detail-view-container">
         <div className="no-data">
           <i className="fas fa-inbox"></i>
           <p>Không có dữ liệu chi tiết</p>
@@ -36,16 +38,6 @@ const DetailView = ({ data, reportType, isLoading, onViewDetail, onBack }) => {
       </div>
     );
   }
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   // Tính tổng thống kê
   const totalStats = data.reduce(
@@ -71,9 +63,39 @@ const DetailView = ({ data, reportType, isLoading, onViewDetail, onBack }) => {
     { totalRecipients: 0, accepted: 0, pending: 0, rejected: 0 }
   );
 
+  // Determine header content based on report type
+  const getHeaderConfig = () => {
+    switch (reportType) {
+      case "vaccination":
+        return {
+          title: "Báo cáo tiêm chủng",
+          subtitle: "Thống kê chi tiết các chiến dịch tiêm chủng",
+          icon: "fas fa-syringe",
+          colorTheme: "orange",
+        };
+      case "checkup":
+      default:
+        return {
+          title: "Báo cáo khám sức khỏe định kỳ",
+          subtitle: "Thống kê chi tiết các thông báo khám sức khỏe định kỳ",
+          icon: "fas fa-heartbeat",
+          colorTheme: "purple",
+        };
+    }
+  };
+
+  const headerConfig = getHeaderConfig();
+
   return (
     <div className="reports-detail-view-container">
-      <BackButton onClick={onBack} />
+      {/* Header */}
+      <ReportHeader
+        title={headerConfig.title}
+        subtitle={headerConfig.subtitle}
+        icon={headerConfig.icon}
+        onBack={onBack}
+        colorTheme={headerConfig.colorTheme}
+      />
 
       {/* Stats Header */}
       <div className="reports-detail-stats-header">
@@ -183,18 +205,26 @@ const DetailView = ({ data, reportType, isLoading, onViewDetail, onBack }) => {
                     <td className="reports-detail-table-sender">
                       <div className="reports-detail-sender-info">
                         <FaUser className="reports-detail-table-icon" />
-                        <span>{notification.senderName}</span>
+                        <span>
+                          {notification.senderName ||
+                            notification.createdBy ||
+                            "Y tá trường học"}
+                        </span>
                       </div>
                     </td>
                     <td className="reports-detail-table-date">
                       <div className="reports-detail-date-info">
                         <FaCalendarAlt className="reports-detail-table-icon" />
-                        <span>{formatDate(notification.createdAt)}</span>
+                        <span>
+                          {formatDateTimeLocale(notification.createdAt)}
+                        </span>
                       </div>
                     </td>
                     <td className="reports-detail-table-type">
                       <span className="reports-detail-type-badge">
-                        {notification.type}
+                        {notification.type === "HEALTH_CHECKUP"
+                          ? "Khám tổng quát"
+                          : notification.type}
                       </span>
                     </td>
                     <td className="reports-detail-table-recipients">
