@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import { Modal, Form, Button, Container, Row, Col, Card, Alert, Badge, Spinner } from 'react-bootstrap';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
 import { useMedicalEvents } from '../../../../../context/NurseContext/MedicalEventsContext';
@@ -158,11 +158,17 @@ const MedicalIncidentUpdateModal = ({
                 const notFoundCount = medicationsWithDetails.filter(med => med.isTemporary).length;
                 
                 if (foundCount > 0) {
-                  toast.success(`Đã tải ${foundCount} thuốc từ danh sách sự kiện`);
+                  Swal.fire({
+                    toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+                    icon: 'success', title: `Đã tải ${foundCount} thuốc từ danh sách sự kiện`
+                  });
                 }
                 
                 if (notFoundCount > 0) {
-                  toast.info(`Có ${notFoundCount} thuốc không tìm thấy trong kho hiện tại`);
+                  Swal.fire({
+                    toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+                    icon: 'info', title: `Có ${notFoundCount} thuốc không tìm thấy trong kho hiện tại`
+                  });
                 }
               }
               
@@ -181,19 +187,19 @@ const MedicalIncidentUpdateModal = ({
             setAllInventoryItems([]);
           }
         } catch (error) {
-          toast.error("Không thể tải danh sách thuốc trong kho.");
+          Swal.fire('Lỗi!', 'Không thể tải danh sách thuốc trong kho.', 'error');
           console.error("Failed to fetch inventory:", error);
           
           // Thông báo chi tiết hơn về lỗi
           if (error.response) {
             const status = error.response.status;
             if (status === 404) {
-              toast.error("API không tìm thấy danh sách thuốc (404)");
+              Swal.fire('Lỗi!', 'API không tìm thấy danh sách thuốc (404)', 'error');
             } else if (status >= 500) {
-              toast.error("Lỗi máy chủ khi tải danh sách thuốc. Vui lòng thử lại sau");
+              Swal.fire('Lỗi!', 'Lỗi máy chủ khi tải danh sách thuốc. Vui lòng thử lại sau', 'error');
             }
           } else if (error.request) {
-            toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng");
+            Swal.fire('Lỗi!', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng', 'error');
           }
         }
       };
@@ -397,17 +403,26 @@ const MedicalIncidentUpdateModal = ({
       const foundCount = validMedications.filter(med => !med.isTemporary).length;
       const notFoundCount = validMedications.filter(med => med.isTemporary).length;
       
-      if (foundCount > 0) {
-        toast.success(`Đã tìm thấy ${foundCount} thuốc trong kho`);
-      }
+      // if (foundCount > 0) {
+      //   Swal.fire({
+      //     toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+      //     icon: 'success', title: `Đã tìm thấy ${foundCount} thuốc trong kho`
+      //   });
+      // }
       
       if (notFoundCount > 0) {
-        toast.info(`Có ${notFoundCount} thuốc không tìm thấy trong kho hiện tại`);
+        Swal.fire({
+          toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+          icon: 'info', title: `Có ${notFoundCount} thuốc không tìm thấy trong kho hiện tại`
+        });
       }
       
       // Nếu phân tích được ít hơn số thuốc đầu vào
       if (validMedications.length < medicationParts.length) {
-        toast.warning(`Không thể phân tích ${medicationParts.length - validMedications.length} mục thuốc do định dạng không đúng`);
+        Swal.fire({
+          toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+          icon: 'warning', title: `Không thể phân tích ${medicationParts.length - validMedications.length} mục thuốc do định dạng không đúng`
+        });
       }
     }
     
@@ -464,9 +479,15 @@ const MedicalIncidentUpdateModal = ({
       }]);
       
       // Hiển thị thông báo thêm thuốc thành công
-      toast.success(`Đã thêm thuốc "${medication.itemName}" vào danh sách`);
+      Swal.fire({
+        toast: true, position: 'top-end', showConfirmButton: false, timer: 2000,
+        icon: 'success', title: `Đã thêm thuốc "${medication.itemName}" vào danh sách`
+      });
     } else {
-      toast.info(`Thuốc "${medication.itemName}" đã có trong danh sách`);
+      Swal.fire({
+        toast: true, position: 'top-end', showConfirmButton: false, timer: 2000,
+        icon: 'info', title: `Thuốc "${medication.itemName}" đã có trong danh sách`
+      });
     }
     
     setMedicationSearch('');
@@ -487,9 +508,10 @@ const MedicalIncidentUpdateModal = ({
       // Show toast if quantity changed significantly
       if (medicationBeingUpdated && Math.abs(parsedQuantity - oldQuantity) > 0) {
         // Only show toast when quantity changes by more than 0
-        toast.info(
-          `Đã cập nhật số lượng thuốc "${medicationBeingUpdated.itemName}" từ ${oldQuantity} thành ${parsedQuantity} ${medicationBeingUpdated.unit || 'viên'}`
-        );
+        Swal.fire({
+          toast: true, position: 'top-end', showConfirmButton: false, timer: 2000,
+          icon: 'info', title: `Đã cập nhật số lượng thuốc "${medicationBeingUpdated.itemName}" từ ${oldQuantity} thành ${parsedQuantity} ${medicationBeingUpdated.unit || 'viên'}`
+        });
       }
       
       // Update the medication quantity
@@ -508,7 +530,10 @@ const MedicalIncidentUpdateModal = ({
     
     if (medicationToRemove) {
       // Show toast notification for removal
-      toast.warning(`Đã xóa thuốc "${medicationToRemove.itemName}" khỏi danh sách`);
+      Swal.fire({
+        toast: true, position: 'top-end', showConfirmButton: false, timer: 2000,
+        icon: 'warning', title: `Đã xóa thuốc "${medicationToRemove.itemName}" khỏi danh sách`
+      });
     }
     
     // Filter out the medication with the given itemID
@@ -522,7 +547,7 @@ const MedicalIncidentUpdateModal = ({
     // Use the event ID from the initial selectedEvent prop
     const eventId = selectedEvent?.incidentId || selectedEvent?.id;
     if (!eventId) {
-      toast.error('Không tìm thấy ID sự kiện để cập nhật. Vui lòng thử lại.');
+      Swal.fire('Lỗi!', 'Không tìm thấy ID sự kiện để cập nhật. Vui lòng thử lại.', 'error');
       return;
     }
 
@@ -532,17 +557,17 @@ const MedicalIncidentUpdateModal = ({
 
       // Validate required fields
       if (!formData.incidentType?.trim()) {
-        toast.error('Vui lòng nhập loại sự kiện');
+        Swal.fire('Lỗi!', 'Vui lòng nhập loại sự kiện', 'error');
         return;
       }
       
       if (!formData.severityLevel) {
-        toast.error('Vui lòng chọn mức độ nghiêm trọng');
+        Swal.fire('Lỗi!', 'Vui lòng chọn mức độ nghiêm trọng', 'error');
         return;
       }
       
       if (!formData.studentId?.trim()) {
-        toast.error('Mã học sinh không được để trống');
+        Swal.fire('Lỗi!', 'Mã học sinh không được để trống', 'error');
         return;
       }
 
@@ -631,7 +656,7 @@ const MedicalIncidentUpdateModal = ({
         );
         
         if (invalidMedications.length > 0) {
-          toast.warning(`Một số thuốc có ID không hợp lệ. Hệ thống sẽ bỏ qua những thuốc này.`);
+          Swal.fire('Cảnh báo', 'Một số thuốc có ID không hợp lệ. Hệ thống sẽ bỏ qua những thuốc này.', 'warning');
           console.warn("Invalid medications that will be skipped:", invalidMedications);
         }
         
@@ -640,7 +665,7 @@ const MedicalIncidentUpdateModal = ({
         );
         
         if (invalidQuantities.length > 0) {
-          toast.warning(`Một số thuốc có số lượng không hợp lệ. Hệ thống sẽ bỏ qua những thuốc này.`);
+          Swal.fire('Cảnh báo', 'Một số thuốc có số lượng không hợp lệ. Hệ thống sẽ bỏ qua những thuốc này.', 'warning');
           console.warn("Invalid quantities that will be skipped:", invalidQuantities);
         }
       }
@@ -662,9 +687,9 @@ const MedicalIncidentUpdateModal = ({
             console.log(`Filtering out invalid medication: ID=${med.itemID}, Name=${med.itemName}, Quantity=${med.quantityUsed}, isTemporary=${med.isTemporary}`);
             
             // Show specific reason for filtering
-            if (!isValidID) toast.warning(`Thuốc "${med.itemName}" có ID không hợp lệ nên sẽ bị bỏ qua`);
-            else if (!isValidQuantity) toast.warning(`Thuốc "${med.itemName}" có số lượng không hợp lệ nên sẽ bị bỏ qua`);
-            else if (med.isTemporary) toast.info(`Thuốc "${med.itemName}" không có trong kho nên sẽ bị bỏ qua`);
+            if (!isValidID) Swal.fire({toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, icon: 'warning', title: `Thuốc "${med.itemName}" có ID không hợp lệ nên sẽ bị bỏ qua`});
+            else if (!isValidQuantity) Swal.fire({toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, icon: 'warning', title: `Thuốc "${med.itemName}" có số lượng không hợp lệ nên sẽ bị bỏ qua`});
+            else if (med.isTemporary) Swal.fire({toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, icon: 'info', title: `Thuốc "${med.itemName}" không có trong kho nên sẽ bị bỏ qua`});
           }
           
           return isValid;
@@ -698,7 +723,7 @@ const MedicalIncidentUpdateModal = ({
       // Final validation before sending to backend - hiển thị thông báo nhưng không ngăn cản việc gửi
       if (apiData.medicationsUsed.length === 0 && selectedMedications.length > 0) {
         // Nếu người dùng đã chọn thuốc nhưng tất cả đều không hợp lệ
-        toast.warning("Tất cả thuốc đã chọn đều không hợp lệ hoặc không còn trong kho. Hệ thống sẽ tiếp tục lưu sự kiện mà không có thông tin thuốc.");
+        Swal.fire('Cảnh báo', 'Tất cả thuốc đã chọn đều không hợp lệ hoặc không còn trong kho. Hệ thống sẽ tiếp tục lưu sự kiện mà không có thông tin thuốc.', 'warning');
         console.warn("All medications were invalid and will be skipped.");
       }
       
@@ -716,7 +741,7 @@ const MedicalIncidentUpdateModal = ({
         const result = await updateEvent(eventId, apiData);
         
         if (result) {
-          toast.success('Cập nhật sự kiện y tế thành công!');
+          Swal.fire('Thành công!', 'Cập nhật sự kiện y tế thành công!', 'success');
           handleClose();
         }
       } catch (updateError) {
@@ -727,23 +752,23 @@ const MedicalIncidentUpdateModal = ({
           const errorIdMatch = updateError.response.data.data.match(/id: (\d+)/);
           const errorId = errorIdMatch ? errorIdMatch[1] : 'không xác định';
           
-          toast.error(`Không tìm thấy thuốc với ID: ${errorId}`);
+          Swal.fire('Lỗi!', `Không tìm thấy thuốc với ID: ${errorId}`, 'error');
           console.error(`Backend rejected medication with ID: ${errorId}`);
           
           // Show instructions to retry
-          toast.info('Vui lòng kiểm tra lại danh sách thuốc và thử lại');
+          Swal.fire('Thông tin', 'Vui lòng kiểm tra lại danh sách thuốc và thử lại', 'info');
         } else {
           const errorMessage = updateError.response?.data?.message || updateError.message || 'Lỗi không xác định.';
           if (updateError.response?.status === 400) {
-            toast.error(`Dữ liệu không hợp lệ: ${errorMessage}`);
+            Swal.fire('Lỗi!', `Dữ liệu không hợp lệ: ${errorMessage}`, 'error');
           } else {
-            toast.error(`Không thể cập nhật: ${errorMessage}`);
+            Swal.fire('Lỗi!', `Không thể cập nhật: ${errorMessage}`, 'error');
           }
         }
       }
     } catch (error) {
       console.error("Update Modal - General error in handleSubmit:", error);
-      toast.error(`Đã xảy ra lỗi: ${error.message || 'Lỗi không xác định'}`)
+      Swal.fire('Lỗi!', `Đã xảy ra lỗi: ${error.message || 'Lỗi không xác định'}`, 'error');
     }
   };
 
@@ -826,8 +851,8 @@ const MedicalIncidentUpdateModal = ({
           }
           
           .lukhang-medical-update-header-custom {
-            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
-            color: #212529 !important;
+            background: #0d6efd !important;
+            color: white !important;
             border: none !important;
             border-radius: 1rem 1rem 0 0 !important;
             padding: 1.5rem 2rem !important;
@@ -839,7 +864,7 @@ const MedicalIncidentUpdateModal = ({
           }
           
           .lukhang-medical-update-title-custom {
-            color: #212529 !important;
+            color: white !important;
             font-weight: 600 !important;
             font-size: 1.4rem !important;
             margin: 0 !important;
@@ -852,15 +877,15 @@ const MedicalIncidentUpdateModal = ({
           }
           
           .lukhang-medical-update-title-custom i {
-            color: #212529 !important;
+            color: white !important;
             margin-right: 0.75rem !important;
             font-size: 1.2rem !important;
           }
           
           .lukhang-medical-update-close-button-custom {
-            background: rgba(33, 37, 41, 0.15) !important;
-            border: 2px solid rgba(33, 37, 41, 0.4) !important;
-            color: #212529 !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 2px solid rgba(255, 255, 255, 0.4) !important;
+            color: white !important;
             border-radius: 50% !important;
             width: 48px !important;
             height: 48px !important;
@@ -877,22 +902,22 @@ const MedicalIncidentUpdateModal = ({
           }
           
           .lukhang-medical-update-close-button-custom:hover {
-            background: rgba(33, 37, 41, 0.3) !important;
-            border-color: rgba(33, 37, 41, 0.6) !important;
-            color: #212529 !important;
+            background: rgba(255, 255, 255, 0.3) !important;
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            color: white !important;
             transform: rotate(90deg) scale(1.15) !important;
             text-decoration: none !important;
           }
           
           .lukhang-medical-update-close-button-custom:focus {
-            box-shadow: 0 0 0 4px rgba(33, 37, 41, 0.3) !important;
-            color: #212529 !important;
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
             outline: none !important;
             text-decoration: none !important;
           }
           
           .lukhang-medical-update-close-button-custom:active {
-            color: #212529 !important;
+            color: white !important;
             text-decoration: none !important;
           }
           
@@ -986,25 +1011,25 @@ const MedicalIncidentUpdateModal = ({
 
           /* Additional styling for dropdown elements */
           .lukhang-medical-update-modal-wrapper .form-select:focus {
-            border-color: #ffc107 !important;
-            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
           }
 
           .lukhang-medical-update-modal-wrapper .form-control:focus {
-            border-color: #ffc107 !important;
-            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
           }
 
           /* Dropdown menu styling for update modal */
           .lukhang-medical-update-modal-wrapper .dropdown-menu {
-            border: 1px solid #ffc107 !important;
+            border: 1px solid #0d6efd !important;
             border-radius: 0.375rem !important;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
           }
 
           .lukhang-medical-update-modal-wrapper .dropdown-item:hover {
-            background-color: #fff3cd !important;
-            color: #856404 !important;
+            background-color: #e7f1ff !important;
+            color: #084298 !important;
           }
 
           /* Fix severity level dropdown styling */
@@ -1198,8 +1223,8 @@ const MedicalIncidentUpdateModal = ({
               {/* Medication Search Section */}
               <Row className="mb-3">
                 <Col>
-                  <Card className="border-warning">
-                    <Card.Header className="bg-warning text-dark">
+                  <Card className="border-primary">
+                    <Card.Header className="bg-primary text-white">
                       <h6 className="mb-0">
                         <i className="fas fa-pills me-2"></i>
                         Thuốc sử dụng
@@ -1222,7 +1247,7 @@ const MedicalIncidentUpdateModal = ({
                         {/* Medication Search Results Dropdown */}
                         {showMedicationDropdown && medicationResults.length > 0 && (
                           <div 
-                            className="position-absolute w-100 bg-white border border-warning rounded shadow-sm mt-1"
+                            className="position-absolute w-100 bg-white border border-primary rounded shadow-sm mt-1"
                             style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}
                           >
                             {medicationResults.map((medication, index) => (
@@ -1247,7 +1272,7 @@ const MedicalIncidentUpdateModal = ({
                         
                         {showMedicationDropdown && medicationResults.length === 0 && !searchingMedications && (
                           <div 
-                            className="position-absolute w-100 bg-white border border-warning rounded shadow-sm mt-1"
+                            className="position-absolute w-100 bg-white border border-primary rounded shadow-sm mt-1"
                             style={{ zIndex: 1000 }}
                           >
                             <div className="p-3 text-center text-muted">Không tìm thấy thuốc phù hợp</div>
@@ -1340,8 +1365,8 @@ const MedicalIncidentUpdateModal = ({
               {/* Image URL Section với Preview */}
               <Row className="mb-4">
                 <Col>
-                  <Card className="border-secondary">
-                    <Card.Header className="bg-secondary text-white">
+                  <Card className="border-primary">
+                    <Card.Header className="bg-primary text-white">
                       <h6 className="mb-0">
                         <i className="fas fa-image me-2"></i>
                         Hình ảnh sự cố y tế
@@ -1485,7 +1510,7 @@ const MedicalIncidentUpdateModal = ({
                 Hủy
               </Button>
               <Button 
-                variant="warning"
+                variant="primary"
                 size="lg"
                 type="submit"
                 disabled={propLoading || contextLoading}
@@ -1494,25 +1519,25 @@ const MedicalIncidentUpdateModal = ({
                   borderRadius: '25px',
                   fontWeight: '600',
                   transition: 'all 0.3s ease',
-                  border: '2px solid #ffc107',
+                  border: '2px solid #0d6efd',
                   minWidth: '150px',
                   height: '55px',
                   fontSize: '1.1rem',
-                  background: (propLoading || contextLoading) ? '#6c757d' : 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)',
-                  color: '#212529'
+                  background: (propLoading || contextLoading) ? '#6c757d' : '#0d6efd',
+                  color: 'white'
                 }}
                 onMouseEnter={(e) => {
                   if (!(propLoading || contextLoading)) {
                     e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 4px 12px rgba(255, 193, 7, 0.4)';
-                    e.target.style.background = 'linear-gradient(135deg, #ffb300 0%, #ff8f00 100%)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(13, 110, 253, 0.4)';
+                    e.target.style.background = '#0b5ed7';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!(propLoading || contextLoading)) {
                     e.target.style.transform = '';
                     e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                    e.target.style.background = 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)';
+                    e.target.style.background = '#0d6efd';
                   }
                 }}
               >

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Badge, Card, Modal, Spinner, Form, Row, Col } from 'react-bootstrap';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import './ScheduleConsultation.css';
 import './ScheduleEditModal.css';
 import CheckupDetailModal from './CheckupDetailModal';
@@ -34,6 +34,10 @@ const MedicalCheckupList = ({ refreshData }) => {
   const [editFormData, setEditFormData] = useState({});
   const [submitting, setSubmitting] = useState(false);
   
+  // State for validation
+  const [validated, setValidated] = useState(false);
+  const [errors, setErrors] = useState({});
+
   // State for single notification modal
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   
@@ -186,7 +190,11 @@ const MedicalCheckupList = ({ refreshData }) => {
       setShowDetailModal(true);
     } catch (error) {
       console.error('Error fetching checkup details:', error);
-      toast.error('Không thể tải thông tin chi tiết. Vui lòng thử lại sau.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không thể tải thông tin chi tiết. Vui lòng thử lại sau.',
+      });
     } finally {
       setDetailLoading(false);
     }
@@ -200,26 +208,82 @@ const MedicalCheckupList = ({ refreshData }) => {
       
       setEditFormData({ ...checkupDetail, specialCheckupItems: checkupDetail.specialCheckupItems || [] });
       setShowEditModal(true);
+      setValidated(false); // Reset validation state
+      setErrors({});
     } catch (error) {
       console.error('Error fetching checkup details for edit:', error);
-      toast.error('Không thể tải thông tin để chỉnh sửa. Vui lòng thử lại sau.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không thể tải thông tin để chỉnh sửa. Vui lòng thử lại sau.',
+      });
     } finally {
       setDetailLoading(false);
     }
   };
+
+  const validateForm = (data) => {
+    const newErrors = {};
+    if (!data.checkupDate) newErrors.checkupDate = 'Ngày khám là bắt buộc.';
+    if (!data.checkupStatus) newErrors.checkupStatus = 'Trạng thái khám là bắt buộc.';
+    
+    // Numeric fields validation
+    const numericFields = ['height', 'weight', 'bmi', 'bodyTemperature', 'heartRate'];
+    numericFields.forEach(field => {
+        if (data[field] && (isNaN(data[field]) || Number(data[field]) <= 0)) {
+            newErrors[field] = 'Giá trị phải là một số dương.';
+        }
+    });
+
+    // Blood pressure validation
+    if (data.bloodPressure && !/^\d+\/\d+$/.test(data.bloodPressure)) {
+        newErrors.bloodPressure = 'Định dạng huyết áp không hợp lệ (ví dụ: 120/80).';
+    }
+
+    // Vision validation for both eyes
+    if (data.visionLeft && !/^\d+\/\d+$/.test(data.visionLeft)) {
+        newErrors.visionLeft = 'Định dạng không hợp lệ (VD: 10/10).';
+    }
+    if (data.visionRight && !/^\d+\/\d+$/.test(data.visionRight)) {
+        newErrors.visionRight = 'Định dạng không hợp lệ (VD: 10/10).';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
   
   // Handle submit updated data
   const handleUpdateSubmit = async (updatedData) => {
+    setValidated(true);
+    if (!validateForm(updatedData)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Dữ liệu không hợp lệ',
+            text: 'Vui lòng kiểm tra lại các thông tin đã nhập.',
+        });
+        return;
+    }
+
     setSubmitting(true);
     try {
         await updateMedicalCheckup(updatedData.id, updatedData);
-        toast.success(`Đã cập nhật hồ sơ cho học sinh ${updatedData.studentName} thành công!`);
+        Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: `Đã cập nhật hồ sơ cho học sinh ${updatedData.studentName} thành công!`,
+            timer: 2000,
+            showConfirmButton: false,
+        });
         setShowEditModal(false);
         refreshMedicalCheckups();
     } catch (error) {
         console.error("Failed to update checkup", error);
         const errorMessage = error?.response?.data || error?.message || 'Cập nhật thất bại. Vui lòng thử lại.';
-        toast.error(errorMessage);
+        Swal.fire({
+            icon: 'error',
+            title: 'Cập nhật thất bại',
+            text: errorMessage,
+        });
     } finally {
         setSubmitting(false);
     }
@@ -227,25 +291,63 @@ const MedicalCheckupList = ({ refreshData }) => {
   
   // Handle open send notification modal
   const handleSendNotification = (checkup) => {
-    setSelectedCheckup(checkup);
-    setShowNotificationModal(true);
+    Swal.fire({
+      title: 'Xác nhận gửi thông báo',
+      html: `Bạn có chắc chắn muốn gửi thông báo kết quả khám cho phụ huynh của em <strong>${checkup.studentName}</strong> không?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Đúng, gửi đi!',
+      cancelButtonText: 'Hủy',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        confirmSendNotification(checkup);
+      }
+    });
   };
   
   // Handle open batch notification modal
   const handleBatchNotification = () => {
-    setShowBatchNotificationModal(true);
+    const checkupsToNotify = filteredCheckups.filter(c => c.checkupStatus === 'COMPLETED' || c.checkupStatus === 'NEED_FOLLOW_UP');
+    if(checkupsToNotify.length === 0) {
+        Swal.fire('Không có hồ sơ nào', 'Không có hồ sơ nào ở trạng thái "Đã hoàn thành" hoặc "Cần theo dõi" để gửi thông báo.', 'info');
+        return;
+    }
+
+    Swal.fire({
+      title: 'Xác nhận gửi hàng loạt',
+      html: `Bạn có chắc chắn muốn gửi thông báo cho phụ huynh của <strong>${checkupsToNotify.length} học sinh</strong> có hồ sơ đã hoàn thành hoặc cần theo dõi không?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Đúng, gửi cho tất cả!',
+      cancelButtonText: 'Hủy',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        confirmBatchNotification();
+      }
+    });
   };
 
   // Handle confirm sending notification
-  const confirmSendNotification = async () => {
-    if (!selectedCheckup) return;
+  const confirmSendNotification = async (checkup) => {
+    if (!checkup) return;
     setSubmitting(true);
     try {
-      await notifyParent(selectedCheckup.id);
-      toast.success(`Đã gửi thông báo cho phụ huynh em ${selectedCheckup.studentName}`);
-      setShowNotificationModal(false);
+      await notifyParent(checkup.id);
+      Swal.fire(
+        'Đã gửi!',
+        `Đã gửi thông báo cho phụ huynh em ${checkup.studentName}.`,
+        'success'
+      );
     } catch (error) {
-      toast.error(`Lỗi khi gửi thông báo: ${error.message}`);
+      Swal.fire(
+        'Lỗi!',
+        `Lỗi khi gửi thông báo: ${error.message}`,
+        'error'
+      );
     } finally {
       setSubmitting(false);
     }
@@ -253,19 +355,30 @@ const MedicalCheckupList = ({ refreshData }) => {
   
   // Handle confirm batch notification
   const confirmBatchNotification = async () => {
-    if (filteredCheckups.length === 0) {
-      toast.error('Không có dữ liệu để gửi thông báo');
-      return;
-    }
-    
     setSubmitting(true);
     try {
-      const checkupIds = filteredCheckups.map(checkup => checkup.id);
+      const checkupIds = filteredCheckups
+        .filter(c => c.checkupStatus === 'COMPLETED' || c.checkupStatus === 'NEED_FOLLOW_UP')
+        .map(c => c.id);
+        
+      if (checkupIds.length === 0) {
+        Swal.fire('Không có hồ sơ nào', 'Không có hồ sơ phù hợp để gửi thông báo.', 'info');
+        return;
+      }
+
       await batchNotifyParents(checkupIds);
-      toast.success(`Đã gửi thông báo cho ${filteredCheckups.length} phụ huynh`);
-      setShowBatchNotificationModal(false);
+      Swal.fire(
+        'Đã gửi hàng loạt!',
+        `Đã gửi thông báo thành công cho ${checkupIds.length} phụ huynh.`,
+        'success'
+      );
+      refreshMedicalCheckups();
     } catch (error) {
-      toast.error(`Lỗi khi gửi thông báo: ${error.message}`);
+      Swal.fire(
+        'Lỗi!',
+        `Gửi hàng loạt thất bại: ${error.message}`,
+        'error'
+      );
     } finally {
       setSubmitting(false);
     }
@@ -304,8 +417,12 @@ const MedicalCheckupList = ({ refreshData }) => {
           <span className="text-muted">
             Hiển thị {currentCheckups.length} / {filteredCheckups.length} bản ghi
           </span>
-          <Button variant="info" onClick={handleBatchNotification}>
-            <i className="fas fa-bullhorn me-2"></i> Gửi thông báo cho {filteredCheckups.length} người
+          <Button variant="info" className="me-2" onClick={() => handleBatchNotification()} style={{color : 'white'}}>
+            <i className="fas fa-paper-plane me-2"></i>
+            Gửi thông báo cho {filteredCheckups.length} người
+          </Button>
+          <Button variant="outline-secondary" onClick={handleRefresh}>
+            <i className="fas fa-sync-alt"></i>
           </Button>
         </div>
       </div>
@@ -443,242 +560,257 @@ const MedicalCheckupList = ({ refreshData }) => {
       {!loading && !error && renderPagination()}
       
       {/* Detail Modal */}
-      <CheckupDetailModal
-        show={showDetailModal}
-        onHide={() => setShowDetailModal(false)}
-        details={selectedCheckup}
-        loading={detailLoading}
-      />
-      
-      {/* Edit Modal */}
-      <ScheduleEditCheckupModal
-        show={showEditModal}
-        onHide={() => setShowEditModal(false)}
-        checkupData={editFormData}
-        onSubmit={handleUpdateSubmit}
-        loading={submitting}
-        getStudentIdFromName={getStudentIdFromName}
-      />
+      {selectedCheckup && (
+        <CheckupDetailModal
+          show={showDetailModal}
+          onHide={() => setShowDetailModal(false)}
+          checkup={selectedCheckup}
+        />
+      )}
 
-      {/* Send Notification Modal */}
-      <Modal show={showNotificationModal} onHide={() => setShowNotificationModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title style={{color : 'red'}}>Xác nhận gửi thông báo</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedCheckup && <p>Bạn có chắc chắn muốn gửi thông báo cho phụ huynh của em <strong>{selectedCheckup.studentName}</strong>?</p>}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowNotificationModal(false)}>Hủy</Button>
-          <Button variant="primary" onClick={confirmSendNotification} disabled={submitting}>
-            {submitting ? 'Đang gửi...' : 'Xác nhận gửi'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      
-      {/* Batch Notification Modal */}
-      <Modal show={showBatchNotificationModal} onHide={() => setShowBatchNotificationModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title  style={{color : 'red'}}>Xác nhận gửi thông báo hàng loạt</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Bạn có chắc chắn muốn gửi thông báo cho <strong>{filteredCheckups.length}</strong> phụ huynh dựa trên kết quả lọc hiện tại?</p>
-          <div className="mt-3">
-            <strong>Thông tin lọc hiện tại:</strong>
-            <ul className="mt-2">
-              {searchTerm && <li>Tìm kiếm: "{searchTerm}"</li>}
-              {statusFilter && <li>Trạng thái: {statusFilter === 'COMPLETED' ? 'Đã hoàn thành' : 'Cần theo dõi'}</li>}
-              {dateFilter && <li>Ngày khám: {new Date(dateFilter).toLocaleDateString('vi-VN')}</li>}
-              {campaignFilter && <li>Chiến dịch: "{campaignFilter}"</li>}
-            </ul>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowBatchNotificationModal(false)}>Hủy</Button>
-          <Button variant="primary" onClick={confirmBatchNotification} disabled={submitting}>
-            {submitting ? 'Đang gửi...' : `Gửi cho ${filteredCheckups.length} người`}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* Edit Modal */}
+      {showEditModal && (
+        <ScheduleEditCheckupModal
+          show={showEditModal}
+          onHide={() => setShowEditModal(false)}
+          checkupData={editFormData}
+          onSubmit={handleUpdateSubmit}
+          loading={submitting}
+          validated={validated}
+          errors={errors}
+          setCheckupData={setEditFormData}
+        />
+      )}
     </div>
   );
 };
 
-// Component for the Edit Modal, now defined within the same file
-const ScheduleEditCheckupModal = ({ show, onHide, checkupData, onSubmit, loading, getStudentIdFromName }) => {
-    const [formData, setFormData] = useState({});
+// =================================================================
+// Edit Checkup Modal Component
+// =================================================================
+const ScheduleEditCheckupModal = ({ show, onHide, checkupData, onSubmit, loading, validated, errors, setCheckupData }) => {
+    
+    const [formData, setFormData] = useState(checkupData);
 
     useEffect(() => {
-        if (checkupData) {
-            const formattedData = {
-                ...checkupData,
-                checkupDate: checkupData.checkupDate ? new Date(checkupData.checkupDate).toISOString().split('T')[0] : '',
-                specialCheckupItems: checkupData.specialCheckupItems || [],
-                // Mặc định đặt followUpNeeded và parentNotified là true
-                followUpNeeded: true,
-                parentNotified: true,
-            };
-            setFormData(formattedData);
-        }
+        setFormData(checkupData);
     }, [checkupData]);
 
-     useEffect(() => {
-        if (formData.height > 0 && formData.weight > 0) {
-            const heightInMeters = formData.height / 100;
-            const bmi = (formData.weight / (heightInMeters * heightInMeters)).toFixed(2);
-            setFormData(prev => ({ ...prev, bmi }));
-        }
-    }, [formData.height, formData.weight]);
-
-
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+        if (setCheckupData) {
+            setCheckupData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Đảm bảo followUpNeeded và parentNotified luôn là true
-        const submissionData = {
-            ...formData,
-            followUpNeeded: true,
-            parentNotified: true
-        };
-        onSubmit(submissionData);
+        onSubmit(formData);
     };
 
-    if (!checkupData) return null;
-
+    const formatDateForInput = (dateString) => {
+        if (!dateString) return '';
+        // Handles both ISO strings and simple date strings
+        return new Date(dateString).toISOString().split('T')[0];
+    };
+    
     return (
-        <Modal 
-            show={show} 
-            onHide={onHide} 
-            size="xl" 
-            backdrop="static" 
-            scrollable 
-            id="schedule-edit-modal"
-            className="schedule-edit-checkup-modal"
+        <Modal
+            show={show}
+            onHide={onHide}
+            size="xl"
+            dialogClassName="schedule-edit-checkup-modal"
+            aria-labelledby="edit-checkup-modal"
             centered
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
             <Modal.Header closeButton className="schedule-edit-modal-header">
-                <Modal.Title style={{color : 'red'}} className="schedule-edit-modal-title">
+                <Modal.Title id="edit-checkup-modal" className="schedule-edit-modal-title">
                     Chỉnh sửa Hồ sơ khám: {formData.studentName}
                 </Modal.Title>
             </Modal.Header>
-            <Form onSubmit={handleSubmit} className="schedule-edit-form">
-                <Modal.Body 
-                    style={{maxHeight: '60vh', overflowY: 'auto', flex: '1 1 auto'}}
-                    className="schedule-edit-modal-body"
-                >
-                    <div className="form-section schedule-form-section">
+            <Form noValidate validated={validated} onSubmit={handleSubmit}>
+                <Modal.Body className="schedule-edit-modal-body">
+                    {/* General Info Section */}
+                    <div className="schedule-form-section">
                         <h5>Thông tin chung (Không thể thay đổi)</h5>
                         <Row>
-                            <Col md={4}><p><strong>Mã học sinh:</strong> {getStudentIdFromName(formData.studentName)}</p></Col>
-                            <Col md={4}><p><strong>Học sinh:</strong> {formData.studentName}</p></Col>
-                            <Col md={4}><p><strong>Lớp:</strong> {formData.studentClass}</p></Col>
+                            <Col md={4}>
+                                <Form.Group>
+                                    <Form.Label>Mã học sinh</Form.Label>
+                                    <Form.Control type="text" value={formData.studentId || ''} readOnly disabled />
+                                </Form.Group>
+                            </Col>
+                            <Col md={4}>
+                                <Form.Group>
+                                    <Form.Label>Học sinh</Form.Label>
+                                    <Form.Control type="text" value={formData.studentName || ''} readOnly disabled />
+                                </Form.Group>
+                            </Col>
+                            <Col md={4}>
+                                <Form.Group>
+                                    <Form.Label>Lớp</Form.Label>
+                                    <Form.Control type="text" value={formData.studentClass || ''} readOnly disabled />
+                                </Form.Group>
+                            </Col>
                         </Row>
                         <Row>
-                            <Col md={12}><p><strong>Chiến dịch:</strong> {formData.campaignTitle}</p></Col>
+                             <Col md={12}>
+                                <Form.Group>
+                                    <Form.Label>Chiến dịch khám</Form.Label>
+                                    <Form.Control as="textarea" rows={2} value={formData.campaignTitle || ''} readOnly disabled />
+                                </Form.Group>
+                            </Col>
                         </Row>
                     </div>
 
-                    <div className="form-section schedule-form-section">
+                    {/* Checkup Info Section */}
+                    <div className="schedule-form-section">
                         <h5>Thông tin khám</h5>
                         <Row>
-                            <Col md={6}>
-                                <Form.Group controlId="scheduleCheckupDate">
+                            <Col md={4}>
+                                <Form.Group controlId="checkupDate">
                                     <Form.Label>Ngày khám</Form.Label>
-                                    <Form.Control type="date" name="checkupDate" value={formData.checkupDate || ''} onChange={handleChange} required />
+                                    <Form.Control
+                                        type="date"
+                                        name="checkupDate"
+                                        value={formatDateForInput(formData.checkupDate)}
+                                        onChange={handleChange}
+                                        required
+                                        isInvalid={!!errors.checkupDate}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.checkupDate}
+                                    </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
-                            <Col md={6}>
-                                <Form.Group controlId="scheduleCheckupStatus">
+                            <Col md={4}>
+                                 <Form.Group controlId="checkupStatus">
                                     <Form.Label>Trạng thái khám</Form.Label>
-                                    <Form.Select name="checkupStatus" value={formData.checkupStatus || ''} onChange={handleChange} required>
+                                    <Form.Select
+                                        name="checkupStatus"
+                                        value={formData.checkupStatus || ''}
+                                        onChange={handleChange}
+                                        required
+                                        isInvalid={!!errors.checkupStatus}
+                                    >
+                                        <option value="">Chọn trạng thái</option>
                                         <option value="COMPLETED">Đã hoàn thành</option>
                                         <option value="NEED_FOLLOW_UP">Cần theo dõi</option>
+                                        <option value="CANCELLED">Đã hủy</option>
                                     </Form.Select>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.checkupStatus}
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                             <Col md={4}>
+                                <Form.Group controlId="checkupType">
+                                    <Form.Label>Loại hình khám</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="checkupType"
+                                        value={formData.checkupType || ''}
+                                        onChange={handleChange}
+                                        placeholder="Ví dụ: Định kỳ giữa năm"
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                    </div>
+
+                    {/* Health Metrics Section */}
+                    <div className="schedule-form-section">
+                        <h5>Kết quả khám</h5>
+                        <Row>
+                            <Col md={3} sm={6}>
+                                <Form.Group controlId="height">
+                                    <Form.Label>Chiều cao (cm)</Form.Label>
+                                    <Form.Control type="number" name="height" value={formData.height || ''} onChange={handleChange} isInvalid={!!errors.height} />
+                                    <Form.Control.Feedback type="invalid">{errors.height}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={3} sm={6}>
+                                <Form.Group controlId="weight">
+                                    <Form.Label>Cân nặng (kg)</Form.Label>
+                                    <Form.Control type="number" name="weight" value={formData.weight || ''} onChange={handleChange} isInvalid={!!errors.weight} />
+                                    <Form.Control.Feedback type="invalid">{errors.weight}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={3} sm={6}>
+                                <Form.Group controlId="bmi">
+                                    <Form.Label>BMI</Form.Label>
+                                    <Form.Control type="number" name="bmi" value={formData.bmi || ''} onChange={handleChange} isInvalid={!!errors.bmi} />
+                                    <Form.Control.Feedback type="invalid">{errors.bmi}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                             <Col md={3} sm={6}>
+                                <Form.Group controlId="bodyTemperature">
+                                    <Form.Label>Nhiệt độ (°C)</Form.Label>
+                                    <Form.Control type="number" name="bodyTemperature" value={formData.bodyTemperature || ''} onChange={handleChange} isInvalid={!!errors.bodyTemperature} />
+                                    <Form.Control.Feedback type="invalid">{errors.bodyTemperature}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={3} sm={6}>
+                                <Form.Group controlId="heartRate">
+                                    <Form.Label>Nhịp tim (bpm)</Form.Label>
+                                    <Form.Control type="number" name="heartRate" value={formData.heartRate || ''} onChange={handleChange} isInvalid={!!errors.heartRate} />
+                                    <Form.Control.Feedback type="invalid">{errors.heartRate}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={3} sm={6}>
+                                <Form.Group controlId="bloodPressure">
+                                    <Form.Label>Huyết áp</Form.Label>
+                                    <Form.Control type="text" name="bloodPressure" placeholder="VD: 120/80" value={formData.bloodPressure || ''} onChange={handleChange} isInvalid={!!errors.bloodPressure} />
+                                     <Form.Control.Feedback type="invalid">{errors.bloodPressure}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={3} sm={6}>
+                                <Form.Group controlId="visionLeft">
+                                    <Form.Label>Thị lực (Trái)</Form.Label>
+                                    <Form.Control type="text" name="visionLeft" placeholder="VD: 10/10" value={formData.visionLeft || ''} onChange={handleChange} isInvalid={!!errors.visionLeft} />
+                                    <Form.Control.Feedback type="invalid">{errors.visionLeft}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={3} sm={6}>
+                                <Form.Group controlId="visionRight">
+                                    <Form.Label>Thị lực (Phải)</Form.Label>
+                                    <Form.Control type="text" name="visionRight" placeholder="VD: 10/10" value={formData.visionRight || ''} onChange={handleChange} isInvalid={!!errors.visionRight} />
+                                    <Form.Control.Feedback type="invalid">{errors.visionRight}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                    </div>
+
+                    {/* Diagnosis and Notes Section */}
+                    <div className="schedule-form-section">
+                        <h5>Chẩn đoán và Đề nghị</h5>
+                         <Row>
+                            <Col md={12}>
+                                <Form.Group controlId="diagnosis">
+                                    <Form.Label>Chẩn đoán</Form.Label>
+                                    <Form.Control as="textarea" rows={3} name="diagnosis" value={formData.diagnosis || ''} onChange={handleChange} />
                                 </Form.Group>
                             </Col>
                         </Row>
                         <Row>
                             <Col md={12}>
-                                <Form.Group controlId="scheduleCheckupType">
-                                    <Form.Label>Loại hình khám</Form.Label>
-                                    <Form.Control type="text" name="checkupType" value={formData.checkupType || ''} onChange={handleChange} required />
+                                <Form.Group controlId="notes">
+                                    <Form.Label>Đề nghị của bác sĩ</Form.Label>
+                                    <Form.Control as="textarea" rows={3} name="notes" value={formData.notes || ''} onChange={handleChange} />
                                 </Form.Group>
                             </Col>
                         </Row>
                     </div>
-
-                    <div className="form-section schedule-form-section">
-                        <h5>Các chỉ số sức khỏe</h5>
-                        <Row>
-                            <Col md={4}><Form.Group><Form.Label>Chiều cao (cm)</Form.Label><Form.Control type="number" name="height" value={formData.height || ''} onChange={handleChange} /></Form.Group></Col>
-                            <Col md={4}><Form.Group><Form.Label>Cân nặng (kg)</Form.Label><Form.Control type="number" name="weight" value={formData.weight || ''} onChange={handleChange} /></Form.Group></Col>
-                            <Col md={4}><Form.Group><Form.Label>BMI</Form.Label><Form.Control type="number" name="bmi" value={formData.bmi || ''} readOnly /></Form.Group></Col>
-                        </Row>
-                        <Row>
-                            <Col md={4}><Form.Group><Form.Label>Huyết áp</Form.Label><Form.Control type="text" name="bloodPressure" value={formData.bloodPressure || ''} onChange={handleChange} /></Form.Group></Col>
-                            <Col md={4}><Form.Group><Form.Label>Thị lực (Trái)</Form.Label><Form.Control type="text" name="visionLeft" value={formData.visionLeft || ''} onChange={handleChange} /></Form.Group></Col>
-                            <Col md={4}><Form.Group><Form.Label>Thị lực (Phải)</Form.Label><Form.Control type="text" name="visionRight" value={formData.visionRight || ''} onChange={handleChange} /></Form.Group></Col>
-                        </Row>
-                        <Row>
-                            <Col md={4}><Form.Group><Form.Label>Thính lực</Form.Label><Form.Control type="text" name="hearingStatus" value={formData.hearingStatus || ''} onChange={handleChange} /></Form.Group></Col>
-                            <Col md={4}><Form.Group><Form.Label>Nhịp tim</Form.Label><Form.Control type="number" name="heartRate" value={formData.heartRate || ''} onChange={handleChange} /></Form.Group></Col>
-                            <Col md={4}><Form.Group><Form.Label>Nhiệt độ (°C)</Form.Label><Form.Control type="number" step="0.1" name="bodyTemperature" value={formData.bodyTemperature || ''} onChange={handleChange} /></Form.Group></Col>
-                        </Row>
-                    </div>
-
-                    <div className="form-section schedule-form-section">
-                        <h5>Kết luận & Đề nghị</h5>
-                        <Form.Group controlId="scheduleDiagnosis" className="mb-3">
-                            <Form.Label>Chẩn đoán</Form.Label>
-                            <Form.Control as="textarea" rows={3} name="diagnosis" value={formData.diagnosis || ''} onChange={handleChange} />
-                        </Form.Group>
-                        <Form.Group controlId="scheduleRecommendations">
-                            <Form.Label>Đề nghị</Form.Label>
-                            <Form.Control as="textarea" rows={3} name="recommendations" value={formData.recommendations || ''} onChange={handleChange} />
-                        </Form.Group>
-                        
-                        {/* Hidden fields for followUpNeeded and parentNotified - always set to true */}
-                        <input type="hidden" name="followUpNeeded" value="true" />
-                        <input type="hidden" name="parentNotified" value="true" />
-                        
-                        {/* Removed checkboxes as they are now set to true by default */}
-                        {/*
-                        <Row className="mt-3">
-                            <Col md={6}>
-                                <Form.Group controlId="scheduleFollowUpNeeded">
-                                    <Form.Check type="checkbox" name="followUpNeeded" label="Cần theo dõi thêm" checked={formData.followUpNeeded || false} onChange={handleChange} />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group controlId="scheduleParentNotified">
-                                    <Form.Check 
-                                        type="checkbox" 
-                                        name="parentNotified" 
-                                        label="Đã thông báo phụ huynh" 
-                                        checked={formData.parentNotified || false} 
-                                        onChange={handleChange} 
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        */}
-                    </div>
-
                 </Modal.Body>
                 <Modal.Footer className="schedule-edit-modal-footer">
-                    <Button variant="secondary" onClick={onHide} disabled={loading} className="schedule-close-btn">
+                    <Button variant="secondary" onClick={onHide} className="schedule-close-btn" disabled={loading}>
                         Đóng
                     </Button>
-                    <Button variant="primary" type="submit" disabled={loading} className="schedule-save-btn">
-                        {loading ? <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Đang cập nhật...</> : 'Cập nhật hồ sơ'}
+                    <Button variant="primary" type="submit" className="schedule-save-btn" disabled={loading}>
+                        {loading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : 'Lưu thay đổi'}
                     </Button>
                 </Modal.Footer>
             </Form>

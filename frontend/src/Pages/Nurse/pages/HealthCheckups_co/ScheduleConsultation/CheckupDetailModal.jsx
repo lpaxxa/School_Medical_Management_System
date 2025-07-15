@@ -1,8 +1,11 @@
 import React from 'react';
-import { Modal, Button, Row, Col, Badge, Spinner, Alert } from 'react-bootstrap';
-import { FaUser, FaBuilding, FaCalendarAlt, FaStethoscope, FaClipboardList, FaInfoCircle } from 'react-icons/fa';
+import { Modal, Button, Row, Col, Badge, Spinner, Alert, Card, ListGroup } from 'react-bootstrap';
+import { 
+    FaUser, FaBuilding, FaCalendarAlt, FaStethoscope, FaClipboardList, FaInfoCircle,
+    FaRulerVertical, FaWeight, FaHeartbeat, FaThermometerHalf, FaEye, FaNotesMedical, FaUserMd
+} from 'react-icons/fa';
 
-const CheckupDetailModal = ({ show, onHide, details, loading }) => {
+const CheckupDetailModal = ({ show, onHide, checkup, loading }) => {
     
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -15,85 +18,113 @@ const CheckupDetailModal = ({ show, onHide, details, loading }) => {
     const renderStatusBadge = (status) => {
         switch (status) {
             case 'COMPLETED':
-                return <Badge bg="success">Đã hoàn thành</Badge>;
+                return <Badge bg="success" className="detail-badge">Đã hoàn thành</Badge>;
             case 'NEED_FOLLOW_UP':
-                return <Badge bg="warning">Cần theo dõi</Badge>;
+                return <Badge bg="warning" text="dark" className="detail-badge">Cần theo dõi</Badge>;
+            case 'CANCELLED':
+                return <Badge bg="danger" className="detail-badge">Đã hủy</Badge>;
             default:
-                return <Badge bg="secondary">{status}</Badge>;
+                return <Badge bg="secondary" className="detail-badge">{status || 'Không xác định'}</Badge>;
         }
     };
+    
+    const renderParentNotifiedBadge = (status) => {
+        return status ? 
+            <Badge bg="success" className="detail-badge">Đã gửi</Badge> : 
+            <Badge bg="secondary" className="detail-badge">Chưa gửi</Badge>;
+    };
+
+    const DetailItem = ({ icon, label, value }) => (
+        <ListGroup.Item className="d-flex justify-content-between align-items-start">
+            <div className="ms-2 me-auto">
+                <div className="fw-bold">
+                    {React.cloneElement(icon, { className: 'me-2 text-primary' })}
+                    {label}
+                </div>
+                {value || 'N/A'}
+            </div>
+        </ListGroup.Item>
+    );
 
     return (
-        <Modal show={show} onHide={onHide} size="lg" centered>
-            <Modal.Header closeButton>
-                <Modal.Title  style={{color : 'red'}}>
+        <Modal show={show} onHide={onHide} size="lg" centered dialogClassName="checkup-detail-modal">
+            <Modal.Header closeButton className="checkup-detail-modal-header">
+                <Modal.Title>
                     <FaInfoCircle className="me-2" />
                     Chi tiết Lượt khám
                 </Modal.Title>
             </Modal.Header>
-            <Modal.Body>
+            <Modal.Body className="checkup-detail-modal-body">
                 {loading ? (
-                    <div className="text-center"><Spinner animation="border" /> <p>Đang tải dữ liệu...</p></div>
-                ) : !details ? (
+                    <div className="text-center py-5"><Spinner animation="border" /> <p className="mt-2">Đang tải dữ liệu...</p></div>
+                ) : !checkup ? (
                     <Alert variant="warning">Không tìm thấy thông tin chi tiết.</Alert>
                 ) : (
-                    <div>
-                        {/* Section: Student & Campaign Info */}
-                        <div className="detail-section">
-                            <h5>Thông tin chung</h5>
-                            <Row>
-                                <Col md={6}><p><strong><FaUser /> Học sinh:</strong> {details.studentName}</p></Col>
-                                <Col md={6}><p><strong><FaBuilding /> Lớp:</strong> {details.studentClass}</p></Col>
-                            </Row>
-                            <Row>
-                                <Col md={12}><p><strong><FaClipboardList /> Chiến dịch:</strong> {details.campaignTitle}</p></Col>
-                            </Row>
-                            <Row>
-                                <Col md={12}><p><strong><FaCalendarAlt /> Ngày khám:</strong> {formatDate(details.checkupDate)}</p></Col>
-                            </Row>
-                        </div>
-                        <hr />
-                        {/* Section: Checkup Details */}
-                        <div className="detail-section">
-                            <h5>Kết quả khám</h5>
-                            <Row>
-                                <Col md={6}><p><strong>Trạng thái:</strong> {renderStatusBadge(details.checkupStatus)}</p></Col>
-                                <Col md={6}><p><strong>Thông báo phụ huynh:</strong> {details.parentNotified ? <Badge bg="success">Đã gửi</Badge> : <Badge bg="secondary">Chưa gửi</Badge>}</p></Col>
-                            </Row>
-                            <Row>
-                                <Col md={6}><p><strong>Loại khám:</strong> {details.checkupType}</p></Col>
-                                <Col md={6}><p><strong>Nhân viên y tế:</strong> {details.medicalStaffName}</p></Col>
-                            </Row>
-                            <Row>
-                                <Col md={4}><p><strong>Chiều cao:</strong> {details.height} cm</p></Col>
-                                <Col md={4}><p><strong>Cân nặng:</strong> {details.weight} kg</p></Col>
-                                <Col md={4}><p><strong>BMI:</strong> {details.bmi}</p></Col>
-                            </Row>
-                            <Row>
-                                <Col md={4}><p><strong>Huyết áp:</strong> {details.bloodPressure}</p></Col>
-                                <Col md={4}><p><strong>Thị lực (T):</strong> {details.visionLeft}</p></Col>
-                                <Col md={4}><p><strong>Thị lực (P):</strong> {details.visionRight}</p></Col>
-                            </Row>
-                            <Row>
-                                <Col md={4}><p><strong>Thính lực:</strong> {details.hearingStatus}</p></Col>
-                                <Col md={4}><p><strong>Nhịp tim:</strong> {details.heartRate} bpm</p></Col>
-                                <Col md={4}><p><strong>Nhiệt độ:</strong> {details.bodyTemperature} °C</p></Col>
-                            </Row>
-                        </div>
-                        <hr />
-                        {/* Section: Diagnosis & Recommendations */}
-                        <div className="detail-section">
-                             <h5><FaStethoscope /> Chẩn đoán & Đề nghị</h5>
-                             <p><strong>Chẩn đoán:</strong></p>
-                             <p className="text-muted">{details.diagnosis || 'Không có'}</p>
-                             <p><strong>Đề nghị:</strong></p>
-                             <p className="text-muted">{details.recommendations || 'Không có'}</p>
-                        </div>
-                    </div>
+                    <>
+                        <Card className="mb-3 detail-card">
+                            <Card.Header><FaUser className="me-2" />Thông tin chung</Card.Header>
+                            <ListGroup variant="flush">
+                                <Row>
+                                    <Col md={6}><DetailItem icon={<FaUser />} label="Học sinh" value={checkup.studentName} /></Col>
+                                    <Col md={6}><DetailItem icon={<FaBuilding />} label="Lớp" value={checkup.studentClass} /></Col>
+                                    <Col md={6}><DetailItem icon={<FaClipboardList />} label="Chiến dịch" value={checkup.campaignTitle} /></Col>
+                                    <Col md={6}><DetailItem icon={<FaCalendarAlt />} label="Ngày khám" value={formatDate(checkup.checkupDate)} /></Col>
+                                    <Col md={6}><DetailItem icon={<FaUserMd />} label="Nhân viên y tế" value={checkup.medicalStaffName} /></Col>
+                                </Row>
+                            </ListGroup>
+                        </Card>
+                        <Row>
+                            <Col md={7}>
+                                <Card className="mb-3 detail-card">
+                                    <Card.Header><FaStethoscope className="me-2" />Các chỉ số chính</Card.Header>
+                                    <ListGroup variant="flush">
+                                        <DetailItem icon={<FaRulerVertical />} label="Chiều cao" value={`${checkup.height || 'N/A'} cm`} />
+                                        <DetailItem icon={<FaWeight />} label="Cân nặng" value={`${checkup.weight || 'N/A'} kg`} />
+                                        <DetailItem icon={<FaHeartbeat />} label="Huyết áp" value={checkup.bloodPressure} />
+                                        <DetailItem icon={<FaEye />} label="Thị lực (Trái)" value={checkup.visionLeft} />
+                                        <DetailItem icon={<FaEye />} label="Thị lực (Phải)" value={checkup.visionRight} />
+                                        <DetailItem icon={<FaHeartbeat />} label="Nhịp tim" value={`${checkup.heartRate || 'N/A'} bpm`} />
+                                        <DetailItem icon={<FaThermometerHalf />} label="Nhiệt độ" value={`${checkup.bodyTemperature || 'N/A'} °C`} />
+                                    </ListGroup>
+                                </Card>
+                            </Col>
+                            <Col md={5}>
+                                <Card className="mb-3 detail-card">
+                                    <Card.Header><FaClipboardList className="me-2" />Kết quả & Trạng thái</Card.Header>
+                                    <Card.Body className="text-center">
+                                        <div className="mb-3">
+                                            <div className="fw-bold mb-1">Trạng thái khám</div>
+                                            {renderStatusBadge(checkup.checkupStatus)}
+                                        </div>
+                                        <div>
+                                            <div className="fw-bold mb-1">Thông báo P.Huynh</div>
+                                            {renderParentNotifiedBadge(checkup.parentNotified)}
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                                <Card className="mb-3 detail-card">
+                                     <Card.Header><FaInfoCircle className="me-2" />Chỉ số BMI</Card.Header>
+                                     <Card.Body className="text-center">
+                                        <div className="fw-bold display-6">{checkup.bmi || 'N/A'}</div>
+                                     </Card.Body>
+                                </Card>
+                            </Col>
+                        </Row>
+                        <Card className="detail-card">
+                            <Card.Header><FaNotesMedical className="me-2" />Chẩn đoán & Đề nghị</Card.Header>
+                            <Card.Body>
+                                <h6 className="card-subtitle mb-2 text-muted">Chẩn đoán của bác sĩ</h6>
+                                <p className="card-text">{checkup.diagnosis || 'Chưa có chẩn đoán.'}</p>
+                                <hr />
+                                <h6 className="card-subtitle mb-2 mt-3 text-muted">Đề nghị</h6>
+                                <p className="card-text">{checkup.notes || 'Chưa có đề nghị.'}</p>
+                            </Card.Body>
+                        </Card>
+                    </>
                 )}
             </Modal.Body>
-            <Modal.Footer>
-                <Button variant="secondary" onClick={onHide}>
+            <Modal.Footer className="checkup-detail-modal-footer">
+                <Button variant="outline-secondary" onClick={onHide}>
                     Đóng
                 </Button>
             </Modal.Footer>

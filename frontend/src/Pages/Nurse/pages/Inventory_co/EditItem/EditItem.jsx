@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import './EditItem.css';
+import inventoryService from '../../../../../services/APINurse/inventoryService';
 
 // Custom styles để tránh xung đột Bootstrap
 const editItemStyles = `
@@ -274,6 +275,7 @@ const editItemStyles = `
   .edit-item-me-1 { margin-right: 0.25rem; }
   .edit-item-me-2 { margin-right: 0.5rem; }
   .edit-item-text-danger { color: #dc3545; }
+  .edit-item-text-muted { color: #6c757d; }
 `;
 
 // Hàm định dạng ngày từ form input sang định dạng API yêu cầu (yyyy-MM-dd)
@@ -297,20 +299,108 @@ const formatDateForApi = (dateString) => {
 
 // Component chỉnh sửa vật phẩm
 const EditItem = ({ item, onClose, onEditItem }) => {
+  const [editedItem, setEditedItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  
-  const [editedItem, setEditedItem] = useState({
-    itemId: item.itemId,
-    itemName: item.itemName || item.name || '',
-    unit: item.unit || '',
-    stockQuantity: item.stockQuantity || item.quantity || 0,
-    itemType: item.itemType || item.category || '',
-    expiryDate: item.expiryDate || '',
-    manufactureDate: item.manufactureDate || item.dateAdded || '',
-    itemDescription: item.itemDescription || item.description || ''
-  });
+  const [isCheckingName, setIsCheckingName] = useState(false);
 
+  useEffect(() => {
+    if (item) {
+      setEditedItem({
+        itemId: item.itemId,
+        itemName: item.itemName || item.name || '',
+        unit: item.unit || '',
+        stockQuantity: item.stockQuantity || item.quantity || 0,
+        itemType: item.itemType || item.category || '',
+        expiryDate: item.expiryDate || '',
+        manufactureDate: item.manufactureDate || item.dateAdded || '',
+        itemDescription: item.itemDescription || item.description || ''
+      });
+    }
+  }, [item]);
+
+  // Debounced name check
+  useEffect(() => {
+    if (!editedItem || !editedItem.itemName) return;
+
+    const itemName = editedItem.itemName.trim();
+    if (itemName === (item.itemName || '').trim()) {
+        setErrors(prev => ({ ...prev, itemName: null }));
+        return;
+    }
+    
+    if (!itemName) {
+        setErrors(prev => ({ ...prev, itemName: "Tên vật phẩm là bắt buộc" }));
+        return;
+    }
+
+    setIsCheckingName(true);
+    const handler = setTimeout(async () => {
+        try {
+            const { exists, message } = await inventoryService.checkItemNameExistence(itemName, editedItem.itemId);
+            if (exists) {
+                setErrors(prev => ({ ...prev, itemName: message }));
+            } else {
+                setErrors(prev => ({ ...prev, itemName: null }));
+            }
+        } catch (error) {
+            setErrors(prev => ({ ...prev, itemName: 'Lỗi khi kiểm tra tên vật phẩm.' }));
+        } finally {
+            setIsCheckingName(false);
+        }
+    }, 500);
+
+    return () => {
+        clearTimeout(handler);
+        setIsCheckingName(false);
+    };
+  }, [editedItem?.itemName]);
+
+
+  if (!editedItem) {
+    return (
+      <>
+        <style>{editItemStyles}</style>
+        <div className="edit-item-modal-overlay">
+          <div className="edit-item-modal-dialog">
+            <div className="edit-item-modal-content">
+              <div className="edit-item-modal-header">
+                <h5 className="edit-item-modal-title">
+                  <i className="fas fa-edit edit-item-me-2"></i>
+                  Chỉnh sửa vật phẩm
+                </h5>
+                <button 
+                  type="button" 
+                  className="edit-item-btn-close"
+                  onClick={onClose}
+                  aria-label="Close"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+
+              <div className="edit-item-modal-body">
+                <p>Đang tải dữ liệu vật phẩm...</p>
+              </div>
+
+              <div className="edit-item-modal-footer">
+                <button 
+                  type="button" 
+                  className="edit-item-btn edit-item-btn-secondary"
+                  onClick={onClose}
+                  disabled={loading}
+                >
+                  <i className="fas fa-times edit-item-me-1"></i>
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+  
   const getItemStatus = (quantity) => {
     const qty = Number(quantity);
     if (qty === 0) {
@@ -329,7 +419,7 @@ const EditItem = ({ item, onClose, onEditItem }) => {
       newErrors.itemName = 'Tên vật phẩm là bắt buộc';
     }
     
-    if (!editedItem.itemType) {
+    if (!editedItem.itemType.trim()) {
       newErrors.itemType = 'Loại vật phẩm là bắt buộc';
     }
     
@@ -339,31 +429,75 @@ const EditItem = ({ item, onClose, onEditItem }) => {
     
     if (editedItem.stockQuantity < 0) {
       newErrors.stockQuantity = 'Số lượng không được âm';
+    } else if (editedItem.stockQuantity > 10000) {
+      newErrors.stockQuantity = "Số lượng không được vượt quá 10000";
+    }
+
+    if (editedItem.expiryDate && editedItem.manufactureDate) {
+      const expiryDate = new Date(editedItem.expiryDate);
+      const manufactureDate = new Date(editedItem.manufactureDate);
+      if (expiryDate < manufactureDate) {
+        newErrors.expiryDate = "Ngày hết hạn không được trước ngày sản xuất";
+      }
+    }
+
+    if (editedItem.manufactureDate) {
+        const manufactureDate = new Date(editedItem.manufactureDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+        if (manufactureDate > today) {
+            newErrors.manufactureDate = "Ngày sản xuất không được ở tương lai";
+        }
     }
     
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    let parsedValue = value;
+    if (name === 'stockQuantity') {
+        parsedValue = value === '' ? 0 : parseInt(value, 10);
+    }
+
     setEditedItem(prev => ({
       ...prev,
-      [name]: value
+      [name]: parsedValue
     }));
     
-    if (errors[name]) {
+    if (errors[name] && name !== 'itemName') {
       setErrors(prev => ({
         ...prev,
-        [name]: ''
+        [name]: null
       }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Final name check before submitting
+    let formErrors = validateForm();
+    const itemName = editedItem.itemName.trim();
+
+    if (itemName && itemName !== (item.itemName || '').trim()) {
+        setIsCheckingName(true);
+        const finalNameCheck = await inventoryService.checkItemNameExistence(itemName, editedItem.itemId);
+        setIsCheckingName(false);
+        
+        if (finalNameCheck.exists) {
+            formErrors.itemName = finalNameCheck.message;
+        }
+    }
     
-    if (!validateForm()) {
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Dữ liệu không hợp lệ',
+        html: `Vui lòng kiểm tra lại các trường sau:<br/>${Object.values(formErrors).join('<br/>')}`,
+      });
       return;
     }
     
@@ -381,18 +515,24 @@ const EditItem = ({ item, onClose, onEditItem }) => {
       
       await onEditItem(dataToSubmit);
       
-      toast.success('Cập nhật vật phẩm thành công!', {
-        position: "top-right",
-        autoClose: 3000,
+      Swal.fire({
+        icon: 'success',
+        title: 'Cập nhật thành công!',
+        text: `Vật phẩm "${editedItem.itemName}" đã được cập nhật.`,
+        timer: 2000,
+        showConfirmButton: false
       });
       
       onClose();
     } catch (err) {
       console.error("Lỗi khi cập nhật vật phẩm:", err);
-      toast.error("Có lỗi xảy ra khi cập nhật vật phẩm. Vui lòng thử lại.", {
-        position: "top-right",
-        autoClose: 5000,
-      });
+      const errorMessage = err.response?.data?.message || err.message || "Lỗi không xác định";
+      
+      if (errorMessage.toLowerCase().includes("duplicate")) {
+        Swal.fire('Lỗi!', 'Tên vật phẩm đã tồn tại. Vui lòng chọn tên khác.', 'error');
+      } else {
+        Swal.fire('Lỗi!', `Không thể cập nhật vật phẩm: ${errorMessage}`, 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -445,6 +585,11 @@ const EditItem = ({ item, onClose, onEditItem }) => {
                         placeholder="Nhập tên vật phẩm..."
                         required
                       />
+                      {isCheckingName && (
+                        <small className="edit-item-text-muted" style={{ marginLeft: '0.5rem' }}>
+                          <i className="fas fa-spinner fa-spin"></i> Đang kiểm tra...
+                        </small>
+                      )}
                       {errors.itemName && (
                         <div className="edit-item-alert edit-item-alert-danger">
                           <i className="fas fa-exclamation-triangle edit-item-me-1"></i>
@@ -555,6 +700,12 @@ const EditItem = ({ item, onClose, onEditItem }) => {
                         value={editedItem.manufactureDate}
                         onChange={handleInputChange}
                       />
+                      {errors.manufactureDate && (
+                        <div className="edit-item-alert edit-item-alert-danger">
+                          <i className="fas fa-exclamation-triangle edit-item-me-1"></i>
+                          {errors.manufactureDate}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -572,6 +723,12 @@ const EditItem = ({ item, onClose, onEditItem }) => {
                         value={editedItem.expiryDate}
                         onChange={handleInputChange}
                       />
+                      {errors.expiryDate && (
+                        <div className="edit-item-alert edit-item-alert-danger">
+                          <i className="fas fa-exclamation-triangle edit-item-me-1"></i>
+                          {errors.expiryDate}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -613,17 +770,17 @@ const EditItem = ({ item, onClose, onEditItem }) => {
                 type="submit"
                 className="edit-item-btn edit-item-btn-success"
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loading || isCheckingName}
               >
-                {loading ? (
+                {loading || isCheckingName ? (
                   <>
                     <div className="edit-item-spinner"></div>
-                    Đang cập nhật...
+                    {loading ? 'Đang lưu...' : 'Đang kiểm tra...'}
                   </>
                 ) : (
                   <>
                     <i className="fas fa-save edit-item-me-1"></i>
-                    Cập nhật
+                    Lưu thay đổi
                   </>
                 )}
               </button>

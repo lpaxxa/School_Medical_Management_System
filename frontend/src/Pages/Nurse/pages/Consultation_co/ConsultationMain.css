@@ -89,7 +89,7 @@
 .consultation-nav {
   display: flex;
   align-items: center;
-  background-color: var(--nav-bg);
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%) !important;
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
   border-radius: var(--border-radius) var(--border-radius) 0 0;
@@ -124,9 +124,9 @@
 }
 
 .nav-btn.active {
-  background-color: var(--accent-light);
-  color: var(--accent-color);
-  border-color: var(--accent-light);
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .nav-btn i {

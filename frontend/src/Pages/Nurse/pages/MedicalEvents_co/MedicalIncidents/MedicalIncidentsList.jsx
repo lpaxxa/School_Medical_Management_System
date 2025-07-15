@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import { useMedicalEvents } from '../../../../../context/NurseContext/MedicalEventsContext';
 import MedicalIncidentDetailModal from './MedicalIncidentDetailModal';
 import MedicalIncidentAddModal from './MedicalIncidentAddModal';
 import MedicalIncidentUpdateModal from './MedicalIncidentUpdateModal';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import './MedicalIncidents.css';
 import * as studentService from '../../../../../services/APINurse/studentService';
 import { getParentById } from '../../../../../services/APINurse/healthCheckupService';
@@ -57,6 +58,11 @@ const MedicalIncidentsList = () => {
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState('');
   
+  // State cho modal xóa và thành công
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
+  
   // State cho tìm kiếm
   const [searchType, setSearchType] = useState('name');
   const [searchValue, setSearchValue] = useState('');
@@ -79,7 +85,13 @@ const MedicalIncidentsList = () => {
   }, [fetchEvents, events]);
 
   useEffect(() => {
-    setDisplayedEvents(events);
+    // Sắp xếp sự kiện theo ngày mới nhất
+    const sortedEvents = [...events].sort((a, b) => {
+      const dateA = new Date(a.dateTime);
+      const dateB = new Date(b.dateTime);
+      return dateB - dateA; // Ngày mới nhất trước
+    });
+    setDisplayedEvents(sortedEvents);
     setCurrentPage(1); // Reset về trang đầu khi dữ liệu thay đổi
   }, [events]);
 
@@ -95,7 +107,16 @@ const MedicalIncidentsList = () => {
             }
         } catch (error) {
             console.error("Lỗi khi tải danh sách học sinh:", error);
-            toast.error("Không thể tải danh sách học sinh.");
+            Swal.fire({
+              icon: 'error',
+              title: 'Không thể tải danh sách học sinh.',
+              text: error.message,
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
+            });
             setStudents([]);
         }
     };
@@ -166,7 +187,16 @@ const MedicalIncidentsList = () => {
       console.error("Message:", error.message);
       console.error("Stack:", error.stack);
       console.error("=== KẾT THÚC LỖI ===");
-      alert(`Không thể tải chi tiết sự kiện. Lỗi: ${error.message}`);
+      Swal.fire({
+        icon: 'error',
+        title: 'Không thể tải chi tiết sự kiện.',
+        text: error.message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
     }
   };
 
@@ -196,7 +226,16 @@ const MedicalIncidentsList = () => {
       }
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu cập nhật:", error);
-      alert("Không thể lấy dữ liệu để cập nhật!");
+      Swal.fire({
+        icon: 'error',
+        title: 'Không thể lấy dữ liệu để cập nhật.',
+        text: error.message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
     }
   };
 
@@ -249,18 +288,50 @@ const MedicalIncidentsList = () => {
     }
   };
 
-  // Xử lý xóa sự kiện
-  const handleDelete = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa sự kiện này không?")) {
-      try {
-        const result = await deleteEvent(id);
-        if (result) {
-          toast.success("Xóa sự kiện y tế thành công!");
-        }
-      } catch (error) {
-        console.error("Lỗi khi xóa sự kiện:", error);
-        toast.error("Không thể xóa sự kiện. Vui lòng thử lại sau.");
+  // Xử lý mở modal xóa
+  const handleDelete = (id) => {
+    // Tìm event để hiển thị thông tin trong modal
+    const eventToDeleteData = events.find(event => event.incidentId === id);
+    setEventToDelete({
+      id,
+      name: eventToDeleteData ? `sự kiện của ${eventToDeleteData.studentName}` : "sự kiện này"
+    });
+    setShowDeleteModal(true);
+  };
+
+  // Xác nhận xóa sự kiện
+  const handleConfirmDelete = async () => {
+    if (!eventToDelete) return;
+    
+    setDeleteLoading(true);
+    try {
+      const result = await deleteEvent(eventToDelete.id);
+      if (result) {
+        setShowDeleteModal(false);
+        Swal.fire(
+          'Đã xóa!',
+          'Sự kiện y tế đã được xóa thành công.',
+          'success'
+        );
+        setEventToDelete(null);
       }
+    } catch (error) {
+      console.error("Lỗi khi xóa sự kiện:", error);
+      Swal.fire(
+        'Lỗi!',
+        'Không thể xóa sự kiện. Vui lòng thử lại sau.',
+        'error'
+      );
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Đóng modal xóa
+  const handleCloseDeleteModal = () => {
+    if (!deleteLoading) {
+      setShowDeleteModal(false);
+      setEventToDelete(null);
     }
   };
 
@@ -303,6 +374,15 @@ const MedicalIncidentsList = () => {
     }
     
     return "bg-secondary";
+  };
+
+  // Hàm helper để sắp xếp events theo ngày mới nhất
+  const sortEventsByDate = (events) => {
+    return [...events].sort((a, b) => {
+      const dateA = new Date(a.dateTime);
+      const dateB = new Date(b.dateTime);
+      return dateB - dateA; // Ngày mới nhất trước
+    });
   };
 
   // Xử lý thay đổi loại tìm kiếm
@@ -356,7 +436,7 @@ const MedicalIncidentsList = () => {
           return false;
         });
         
-        setDisplayedEvents(results);
+        setDisplayedEvents(sortEventsByDate(results));
         setSearchStatus({
           hasSearched: true,
           resultCount: results.length
@@ -373,7 +453,7 @@ const MedicalIncidentsList = () => {
           return studentName.includes(studentNameLower);
         });
         
-        setDisplayedEvents(results);
+        setDisplayedEvents(sortEventsByDate(results));
         setSearchStatus({
           hasSearched: true,
           resultCount: results.length
@@ -414,7 +494,7 @@ const MedicalIncidentsList = () => {
         return event.requiresFollowUp === followUpValue;
       });
       
-      setDisplayedEvents(results);
+      setDisplayedEvents(sortEventsByDate(results));
       setSearchStatus({
         hasSearched: true,
         resultCount: results.length
@@ -495,12 +575,6 @@ const MedicalIncidentsList = () => {
       <div className="row mb-4">
         <div className="col-12">
           <div className="card shadow-sm">
-            <div className="card-header bg-primary text-white">
-              <h5 className="mb-0" style={{color : 'white'}}>
-                <i className="fas fa-search me-2"></i>
-                Tìm kiếm sự kiện y tế
-              </h5>
-            </div>
             <div className="card-body">
               <div className="row g-3 align-items-end">
                 {/* Dropdown chọn loại tìm kiếm */}
@@ -607,20 +681,7 @@ const MedicalIncidentsList = () => {
             </div>
           ) : (
             <div className="card shadow-sm">
-              <div className="card-header bg-success text-white">
-                <div className="d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0" style={{color : 'white', marginRight : '20px'}}>
-                    <i className="fas fa-list me-2"></i>
-                    Danh sách sự kiện y tế ({displayedEvents.length} sự kiện)
-                  </h5>
-                  <small>
-                    Trang {currentPage} / {totalPages} 
-                    {displayedEvents.length > 0 && (
-                      <> (Hiển thị {indexOfFirstEvent + 1} - {Math.min(indexOfLastEvent, displayedEvents.length)})</>
-                    )}
-                  </small>
-                </div>
-              </div>
+              
               <div className="card-body p-0">
                 <div className="table-responsive">
                   <table className="table table-striped table-hover mb-0">
@@ -629,10 +690,10 @@ const MedicalIncidentsList = () => {
                         <th scope="col">
                           STT
                         </th>
-                        <th scope="col">
+                        {/* <th scope="col">
                           <i className="fas fa-id-badge me-1"></i>
                           ID
-                        </th>
+                        </th> */}
                         <th scope="col">
                           <i className="fas fa-id-card me-1"></i>
                           Mã học sinh
@@ -671,9 +732,9 @@ const MedicalIncidentsList = () => {
                       {currentEvents.length > 0 ? currentEvents.map((event, index) => (
                         <tr key={event.incidentId}>
                           <td className="text-center fw-bold">{indexOfFirstEvent + index + 1}</td>
-                          <td className="text-center">
+                          {/* <td className="text-center">
                             <span className="badge bg-primary">{event.incidentId}</span>
-                          </td>
+                          </td> */}
                           <td>
                             <code>{event.studentId}</code>
                           </td>
@@ -743,19 +804,6 @@ const MedicalIncidentsList = () => {
                                   handleDelete(event.incidentId);
                                 }}
                                 title="Xóa"
-                                style={{ 
-                                  transition: 'none',
-                                  border: '1px solid #dc3545',
-                                  color: '#dc3545'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.target.style.backgroundColor = '#dc3545';
-                                  e.target.style.color = 'white';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.target.style.backgroundColor = 'transparent';
-                                  e.target.style.color = '#dc3545';
-                                }}
                               >
                                 <i className="fas fa-trash"></i>
                               </button>
@@ -899,6 +947,15 @@ const MedicalIncidentsList = () => {
         onClose={() => setShowUpdateModal(false)}
         onSubmit={handleUpdateSubmit}
         loading={loading}
+      />
+
+      {/* Modal xác nhận xóa */}
+      <DeleteConfirmModal
+        show={showDeleteModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        itemName={eventToDelete?.name}
+        loading={deleteLoading}
       />
     </div>
   );

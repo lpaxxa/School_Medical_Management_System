@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import '../InventoryMain.css';
 import './AddItem.css';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
@@ -482,6 +483,7 @@ const AddItem = ({ onClose, onAddItem }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isCheckingName, setIsCheckingName] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationType, setNotificationType] = useState('success');
   const [notificationTitle, setNotificationTitle] = useState('');
@@ -491,12 +493,42 @@ const AddItem = ({ onClose, onAddItem }) => {
   const [newItem, setNewItem] = useState({
     itemName: '',
     unit: '',
-    stockQuantity: 0,
+    stockQuantity: '',
     itemType: '',
     expiryDate: '',
     manufactureDate: new Date().toISOString().split('T')[0],
     itemDescription: ''
   });
+
+  // Debounced name check
+  useEffect(() => {
+    const itemName = newItem.itemName.trim();
+    if (!itemName) {
+        setErrors(prev => ({ ...prev, itemName: null }));
+        return;
+    }
+
+    setIsCheckingName(true);
+    const handler = setTimeout(async () => {
+        try {
+            const { exists, message } = await inventoryService.checkItemNameExistence(itemName);
+            if (exists) {
+                setErrors(prev => ({ ...prev, itemName: message }));
+            } else {
+                setErrors(prev => ({ ...prev, itemName: null }));
+            }
+        } catch (error) {
+            setErrors(prev => ({ ...prev, itemName: 'Lỗi khi kiểm tra tên vật phẩm.' }));
+        } finally {
+            setIsCheckingName(false);
+        }
+    }, 500); // 500ms debounce delay
+
+    return () => {
+        clearTimeout(handler);
+        setIsCheckingName(false);
+    };
+  }, [newItem.itemName]);
 
   // Notification timer effect
   useEffect(() => {
@@ -546,12 +578,12 @@ const AddItem = ({ onClose, onAddItem }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!newItem.itemName) newErrors.itemName = "Tên vật phẩm là bắt buộc";
-    if (!newItem.itemType) newErrors.itemType = "Loại vật phẩm là bắt buộc";
-    if (!newItem.unit) newErrors.unit = "Đơn vị là bắt buộc";
+    if (!newItem.itemName.trim()) newErrors.itemName = "Tên vật phẩm là bắt buộc";
+    if (!newItem.itemType.trim()) newErrors.itemType = "Loại vật phẩm là bắt buộc";
+    if (!newItem.unit.trim()) newErrors.unit = "Đơn vị là bắt buộc";
 
-    if (newItem.stockQuantity < 0) {
-      newErrors.stockQuantity = "Số lượng không được nhỏ hơn 0";
+    if (newItem.stockQuantity === '' || newItem.stockQuantity <= 0) {
+      newErrors.stockQuantity = "Số lượng phải là một số dương";
     } else if (newItem.stockQuantity > 10000) {
       newErrors.stockQuantity = "Số lượng không được vượt quá 10000";
     }
@@ -564,15 +596,24 @@ const AddItem = ({ onClose, onAddItem }) => {
       }
     }
 
+    if (newItem.manufactureDate) {
+        const manufactureDate = new Date(newItem.manufactureDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+        if (manufactureDate > today) {
+            newErrors.manufactureDate = "Ngày sản xuất không được ở tương lai";
+        }
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let parsedValue = value;
     if (name === 'stockQuantity') {
-      parsedValue = value === '' ? 0 : parseInt(value);
+      parsedValue = value === '' ? '' : parseInt(value, 10);
     }
 
     setNewItem({
@@ -580,7 +621,8 @@ const AddItem = ({ onClose, onAddItem }) => {
       [name]: parsedValue
     });
 
-    if (errors[name]) {
+    // Don't clear the error if it's from the API check
+    if (errors[name] && name !== 'itemName') {
       setErrors(prev => ({
         ...prev,
         [name]: null
@@ -591,8 +633,26 @@ const AddItem = ({ onClose, onAddItem }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
-    if (errors.itemName) return;
+    // Perform a final, non-debounced check before submitting
+    setIsCheckingName(true);
+    const finalNameCheck = await inventoryService.checkItemNameExistence(newItem.itemName.trim());
+    setIsCheckingName(false);
+
+    const formErrors = validateForm();
+
+    if (finalNameCheck.exists) {
+        formErrors.itemName = finalNameCheck.message;
+    }
+
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Dữ liệu không hợp lệ',
+        html: `Vui lòng kiểm tra lại các trường sau:<br/>${Object.values(formErrors).join('<br/>')}`,
+      });
+      return;
+    }
 
     try {
       setLoading(true);
@@ -611,53 +671,31 @@ const AddItem = ({ onClose, onAddItem }) => {
       
       if (result) {
         // Hiển thị thông báo thành công
-        setNotificationType('success');
-        setNotificationTitle('Thêm vật phẩm thành công!');
-        setNotificationMessage(`Vật phẩm "${itemToAdd.itemName}" đã được thêm thành công vào kho y tế.`);
-        setShowNotification(true);
+        Swal.fire({
+          icon: 'success',
+          title: 'Thêm vật phẩm thành công!',
+          text: `Vật phẩm "${itemToAdd.itemName}" đã được thêm thành công vào kho y tế.`,
+        });
       }
       
     } catch (err) {
       console.error("Lỗi khi thêm vật phẩm:", err);
-
-      const isDuplicateNameError = (msg) =>
-        msg.includes("already exists") || msg.includes("đã tồn tại") || msg.includes("Medication item with this name already exists");
-
-      let message = "";
-
-      if (err.response && err.response.data) {
-        const data = err.response.data;
-
-        if (typeof data === 'string' && isDuplicateNameError(data)) {
-          message = "Tên vật phẩm đã tồn tại trong hệ thống";
-        } else if (typeof data === 'object' && data.message && isDuplicateNameError(data.message)) {
-          message = "Tên vật phẩm đã tồn tại trong hệ thống";
-        } else {
-          message = typeof data === 'string' ? data : data.message || "Lỗi không xác định từ server";
-        }
-      } else if (err.message && isDuplicateNameError(err.message)) {
-        message = "Tên vật phẩm đã tồn tại trong hệ thống";
-      } else {
-        message = err.message || "Có lỗi xảy ra khi thêm vật phẩm.";
-      }
-
-      if (message.includes("tồn tại")) {
-        setErrors(prev => ({
-          ...prev,
-          itemName: message
-        }));
-      } else {
-        setErrors(prev => ({
-          ...prev,
-          submit: message
-        }));
-      }
+      const errorMessage = err.response?.data?.message || err.message || "Lỗi không xác định";
       
-      // Hiển thị thông báo lỗi
-      setNotificationType('error');
-      setNotificationTitle('Lỗi khi thêm vật phẩm!');
-      setNotificationMessage(message);
-      setShowNotification(true);
+      // Check for specific error messages to provide better feedback
+      if (isDuplicateNameError(errorMessage)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Tên vật phẩm bị trùng!',
+          text: 'Vật phẩm với tên này đã tồn tại trong kho. Vui lòng chọn một tên khác.',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Không thể thêm vật phẩm!',
+          text: `Đã có lỗi xảy ra: ${errorMessage}`,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -748,7 +786,13 @@ const AddItem = ({ onClose, onAddItem }) => {
 
             {/* Modal Body */}
             <div className="add-item-modal-body">
-              <form onSubmit={handleSubmit}>
+              {showNotification && (
+                <div className={`add-item-alert add-item-alert-${notificationType}`}>
+                  {notificationMessage}
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmit} noValidate>
                 {/* Tên vật phẩm */}
                 <div className="add-item-row">
                   <div className="add-item-col-12">
@@ -767,6 +811,11 @@ const AddItem = ({ onClose, onAddItem }) => {
                         placeholder="Nhập tên vật phẩm..."
                         required
                       />
+                      {isCheckingName && (
+                        <small className="add-item-text-muted" style={{ marginLeft: '0.5rem' }}>
+                          <i className="fas fa-spinner fa-spin"></i> Đang kiểm tra...
+                        </small>
+                      )}
                       {errors.itemName && (
                         <div className="add-item-alert add-item-alert-danger">
                           <i className="fas fa-exclamation-triangle add-item-me-1"></i>
@@ -820,9 +869,9 @@ const AddItem = ({ onClose, onAddItem }) => {
                         name="stockQuantity"
                         value={newItem.stockQuantity}
                         onChange={handleInputChange}
-                        min="0"
+                        min="1"
                         max="10000"
-                        placeholder="0"
+                        placeholder="Nhập số lượng..."
                         required
                       />
                       {errors.stockQuantity && (
@@ -1002,12 +1051,12 @@ const AddItem = ({ onClose, onAddItem }) => {
                 type="submit"
                 className="add-item-btn add-item-btn-primary"
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loading || isCheckingName}
               >
-                {loading ? (
+                {loading || isCheckingName ? (
                   <>
                     <div className="add-item-spinner"></div>
-                    Đang thêm...
+                    {loading ? 'Đang thêm...' : 'Đang kiểm tra...'}
                   </>
                 ) : (
                   <>

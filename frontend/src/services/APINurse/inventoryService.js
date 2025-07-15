@@ -282,52 +282,41 @@ const inventoryService = {
     }
   },
 
-  checkItemNameExists: async (name, excludeId) => {
-    if (!name || name.trim() === '') return false;
-
+  checkItemNameExists: async (name, excludeId = null) => {
+    if (!name || !name.trim()) return false;
     try {
       const encodedName = encodeURIComponent(name.trim());
-      const timestamp = Date.now();
-
-      const response = await axiosInstance.get(`/get-by-name/${encodedName}?_=${timestamp}`, {
+      const response = await axiosInstance.get(`${API_URL}/get-by-name/${encodedName}`, {
         headers: {
-          'Cache-Control': 'no-cache, no-store'
-        }
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
       });
 
-      if (response.status === 200) {
-        const responseData = response.data;
-
-        if (responseData === "" || responseData === '""' || responseData === "''") {
-          return false;
-        }
-
-        if (excludeId) {
-          let data;
-          try {
-            data = JSON.parse(responseData);
-            const foundItemId = data?.itemId || data?.id;
-            if (foundItemId?.toString() === excludeId.toString()) {
-              return false;
-            }
-          } catch {
-            return true;
-          }
-        }
-
-        return true;
+      const foundItem = response.data;
+      if (!foundItem || (typeof foundItem === 'object' && Object.keys(foundItem).length === 0)) {
+        return false;
+      }
+      
+      if (!excludeId) {
+        return true; 
       }
 
-      if (response.status === 404) return false;
-      return false;
+      const foundItemId = foundItem.itemID || foundItem.itemId || foundItem.id;
+      return foundItemId?.toString() !== excludeId.toString();
+      
     } catch (error) {
+      if (error.response && error.response.status === 404) {
+        return false;
+      }
       console.error('Lỗi khi kiểm tra tên vật phẩm:', error);
-      return false;
+      throw error;
     }
   },
 
   checkItemNameExistence: async (name, excludeId = null) => {
-    if (!name || name.trim() === '') {
+    if (!name || !name.trim()) {
       return { exists: false, message: 'Tên không được để trống' };
     }
 
@@ -336,13 +325,13 @@ const inventoryService = {
       return {
         exists,
         message: exists
-          ? 'Tên vật phẩm đã tồn tại trong hệ thống'
-          : 'Tên vật phẩm hợp lệ'
+          ? 'Tên vật phẩm đã tồn tại trong hệ thống.'
+          : 'Tên vật phẩm hợp lệ.'
       };
     } catch (error) {
       return {
-        exists: false,
-        message: 'Lỗi khi kiểm tra tên vật phẩm. Vui lòng thử lại.'
+        exists: true, // Treat error as duplicate to be safe
+        message: 'Không thể xác thực tên. Vui lòng thử lại.'
       };
     }
   },

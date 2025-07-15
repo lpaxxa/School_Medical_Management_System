@@ -1,19 +1,66 @@
-.form-section {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
+.create-checkup-modal .modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.create-checkup-modal .modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem 1.5rem;
+}
+
+.create-checkup-modal .modal-title {
+  font-weight: 600;
+  color: #343a40;
+}
+
+.create-checkup-modal .modal-body {
+  padding: 1.5rem 2rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.create-checkup-modal .form-section {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e9ecef;
+}
+
+.create-checkup-modal .form-section h5 {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid #e9ecef;
 }
 
-.form-section:last-of-type {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+.create-checkup-modal .form-label {
+  font-weight: 500;
 }
 
-.form-section h5 {
-  color: #0d6efd;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #0d6efd;
-  display: inline-block;
+.create-checkup-modal .modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  padding: 1rem;
+}
+
+.create-checkup-modal .form-control[readonly],
+.create-checkup-modal .form-control:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.create-checkup-modal .info-text p {
+    margin: 0;
+    padding: 0.375rem 0.75rem;
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+    color: #495057;
+}
+
+.create-checkup-modal .info-text strong {
+    color: #212529;
 } 

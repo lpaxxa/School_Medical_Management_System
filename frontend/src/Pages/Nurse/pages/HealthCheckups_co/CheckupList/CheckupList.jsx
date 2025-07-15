@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Modal, Table, Badge, Row, Col, Alert, Spinner, ProgressBar, Form, ListGroup } from 'react-bootstrap';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
 import { useAuth } from '../../../../../context/AuthContext';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import {
   FaCalendarAlt, FaUsers, FaChild, FaCheckCircle, FaTimesCircle, FaClock, FaStethoscope,
   FaFileMedical, FaEye, FaInfoCircle, FaSearch, FaNotesMedical, FaListOl,
@@ -81,7 +81,11 @@ const CheckupList = () => {
       const studentsData = await getCampaignStudents(campaign.id);
       setCampaignStudents(studentsData);
     } catch (err) {
-      toast.error(`Lỗi tải danh sách học sinh cho chiến dịch: ${campaign.title}`);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi tải danh sách học sinh',
+        text: `Lỗi tải danh sách học sinh cho chiến dịch: ${campaign.title}`,
+      });
       console.error(err);
     } finally {
       setDetailsLoading(false);
@@ -118,7 +122,11 @@ const CheckupList = () => {
   // Handle opening the consent details modal
   const handleViewConsent = async (consentId) => {
     if (!consentId) {
-      toast.info('Phụ huynh chưa đưa ra quyết định.');
+      Swal.fire({
+        icon: 'info',
+        title: 'Thông tin phản hồi',
+        text: 'Phụ huynh chưa đưa ra quyết định.',
+      });
       return;
     }
     setSelectedConsent(null);
@@ -128,7 +136,11 @@ const CheckupList = () => {
       const consentData = await getConsentDetails(consentId);
       setSelectedConsent(consentData);
     } catch (err) {
-      toast.error('Không thể tải chi tiết đồng ý của phụ huynh.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi tải chi tiết đồng ý',
+        text: 'Không thể tải chi tiết đồng ý của phụ huynh.',
+      });
       console.error(err);
     } finally {
       setConsentLoading(false);
@@ -145,7 +157,13 @@ const CheckupList = () => {
   const handleCreateCheckupSubmit = async (formData) => {
     try {
       await addHealthCheckup(formData);
-      toast.success(`Đã tạo hồ sơ khám cho học sinh ${studentForCheckup.studentName} thành công!`);
+      Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: `Đã tạo hồ sơ khám cho học sinh ${studentForCheckup.studentName} thành công!`,
+        timer: 2000,
+        showConfirmButton: false
+      });
       
       // Refresh campaign students data to show updated status
       if (selectedCampaign) {
@@ -159,7 +177,11 @@ const CheckupList = () => {
     } catch (error) {
       console.error("Lỗi khi tạo hồ sơ khám:", error);
       const errorMessage = error?.response?.data || error?.message || 'Tạo hồ sơ khám thất bại do lỗi không xác định.';
-      toast.error(errorMessage);
+      Swal.fire({
+        icon: 'error',
+        title: 'Tạo hồ sơ thất bại',
+        text: errorMessage,
+      });
       throw error; // Re-throw to keep modal open on error
     }
   };
@@ -212,6 +234,33 @@ const CheckupList = () => {
       return <Badge bg="warning">Chờ phản hồi</Badge>;
       default:
         return <Badge bg="secondary">Chưa có</Badge>;
+    }
+  };
+
+  const renderConsentStatusBadge = (status) => {
+    switch (status) {
+      case 'APPROVED':
+        return (
+          <div className="feedback-status-badge approved">
+            <FaCheckCircle className="feedback-status-badge-icon" />
+            Đã đồng ý
+          </div>
+        );
+      case 'REJECTED':
+        return (
+          <div className="feedback-status-badge rejected">
+            <FaTimesCircle className="feedback-status-badge-icon" />
+            Đã từ chối
+          </div>
+        );
+      case 'PENDING':
+      default:
+        return (
+          <div className="feedback-status-badge pending">
+            <FaClock className="feedback-status-badge-icon" />
+            Chờ phản hồi
+          </div>
+        );
     }
   };
 
@@ -347,156 +396,6 @@ const CheckupList = () => {
 
   return (
     <>
-      <style>
-        {`
-          .lukhang-checkuplist-wrapper {
-            background: #f8f9fa !important;
-            min-height: 100vh !important;
-          }
-          
-          .lukhang-checkuplist-header-section {
-            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%) !important;
-            border: 1px solid #e9ecef !important;
-            border-radius: 12px !important;
-            padding: 2rem !important;
-            margin-bottom: 2rem !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
-          }
-          
-          .lukhang-checkuplist-title-section {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            margin-bottom: 1.5rem !important;
-          }
-          
-          .lukhang-checkuplist-main-title {
-            color: #495057 !important;
-            font-weight: 700 !important;
-            font-size: 1.75rem !important;
-            margin: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            text-shadow: none !important;
-          }
-          
-          .lukhang-checkuplist-main-title i {
-            color: #dc3545 !important;
-            margin-right: 0.75rem !important;
-            font-size: 1.5rem !important;
-          }
-          
-          .lukhang-checkuplist-reset-button {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
-            border: 2px solid #007bff !important;
-            color: white !important;
-            font-weight: 600 !important;
-            padding: 0.5rem 1.5rem !important;
-            border-radius: 25px !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2) !important;
-            font-size: 0.9rem !important;
-          }
-          
-          .lukhang-checkuplist-reset-button:hover {
-            background: linear-gradient(135deg, #0056b3 0%, #004085 100%) !important;
-            border-color: #0056b3 !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3) !important;
-            color: white !important;
-          }
-          
-          .lukhang-checkuplist-reset-button:focus {
-            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25) !important;
-            color: white !important;
-          }
-          
-          .lukhang-checkuplist-filters-row {
-            display: flex !important;
-            gap: 1rem !important;
-            align-items: end !important;
-            flex-wrap: wrap !important;
-          }
-          
-          .lukhang-checkuplist-status-filter {
-            background: white !important;
-            border: 2px solid #e9ecef !important;
-            border-radius: 8px !important;
-            padding: 0.25rem !important;
-            min-width: 200px !important;
-            transition: all 0.3s ease !important;
-          }
-          
-          .lukhang-checkuplist-status-filter:focus-within {
-            border-color: #007bff !important;
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
-          }
-          
-          .lukhang-checkuplist-status-select {
-            border: none !important;
-            outline: none !important;
-            background: transparent !important;
-            color: #495057 !important;
-            font-weight: 500 !important;
-          }
-          
-          .lukhang-checkuplist-search-container {
-            flex: 1 !important;
-            min-width: 250px !important;
-          }
-          
-          .lukhang-checkuplist-search-input {
-            border: 2px solid #e9ecef !important;
-            border-radius: 8px !important;
-            padding: 0.75rem 1rem !important;
-            font-size: 1rem !important;
-            transition: all 0.3s ease !important;
-            background: white !important;
-          }
-          
-          .lukhang-checkuplist-search-input:focus {
-            border-color: #007bff !important;
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
-            outline: none !important;
-          }
-          
-          .campaign-card .card-header h5 {
-            color: white !important;
-          }
-    
-          .campaign-card .card-header .id-badge {
-            background-color: rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-          }
-          
-          @media (max-width: 768px) {
-            .lukhang-checkuplist-header-section {
-              padding: 1.5rem !important;
-            }
-            
-            .lukhang-checkuplist-title-section {
-              flex-direction: column !important;
-              align-items: flex-start !important;
-              gap: 1rem !important;
-            }
-            
-            .lukhang-checkuplist-main-title {
-              font-size: 1.5rem !important;
-            }
-            
-            .lukhang-checkuplist-filters-row {
-              flex-direction: column !important;
-              gap: 1rem !important;
-            }
-            
-            .lukhang-checkuplist-status-filter,
-            .lukhang-checkuplist-search-container {
-              min-width: 100% !important;
-            }
-          }
-        `}
-      </style>
       <div className="checkup-list-container lukhang-checkuplist-wrapper">
         {error && <Alert variant="danger">{error}</Alert>}
         
@@ -780,10 +679,18 @@ const CheckupList = () => {
         </Modal.Body>
       </Modal>
 
-      {/* Consent Details Modal */}
-      <Modal show={showConsentModal} onHide={() => setShowConsentModal(false)} size="lg">
+      {/* Consent Details Modal - Redesigned */}
+      <Modal 
+        show={showConsentModal} 
+        onHide={() => setShowConsentModal(false)} 
+        dialogClassName="feedback-modal"
+        centered
+      >
         <Modal.Header closeButton>
-          <Modal.Title style={{color:'red'}}>Chi tiết Phản hồi của Phụ huynh</Modal.Title>
+          <Modal.Title>
+            <FaFileMedical className="modal-title-icon" />
+            Chi tiết Phản hồi của Phụ huynh
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {consentLoading ? (
@@ -794,34 +701,45 @@ const CheckupList = () => {
           ) : !selectedConsent ? (
             <Alert variant="warning">Không tìm thấy thông tin.</Alert>
           ) : (
-            <div>
-              <Row>
-                <Col md={6}>
-                  <p><strong>Học sinh:</strong> {selectedConsent.studentName}</p>
-                </Col>
-                <Col md={6}>
-                  <p><strong>Trạng thái:</strong> {getConsentStatus(selectedConsent.consentStatus)}</p>
-                </Col>
-              </Row>
-              <p><strong>Chiến dịch:</strong> {selectedConsent.campaignTitle}</p>
-              <hr/>
-              <h5><FaListOl className="me-2"/>Các mục khám đặc biệt đã chọn:</h5>
-              {selectedConsent.selectedSpecialCheckupItems?.length > 0 ? (
-                <ListGroup variant="flush">
-                  {selectedConsent.selectedSpecialCheckupItems.map((item, index) => (
-                    <ListGroup.Item key={index}>{item}</ListGroup.Item>
-                  ))}
-                </ListGroup>
-              ) : (
-                <p className="text-muted">Không có mục khám đặc biệt nào được chọn.</p>
-              )}
-              <h5 className="mt-3"><FaNotesMedical className="me-2"/>Ghi chú của phụ huynh:</h5>
-              <p className="text-muted">{selectedConsent.consent?.parentNotes || 'Không có ghi chú.'}</p>
-            </div>
+            <>
+              <div className="feedback-info-section">
+                <div className="feedback-info-header">
+                  <div className="feedback-student-info">
+                    <p><strong>Học sinh:</strong> {selectedConsent.studentName}</p>
+                    <p><strong>Chiến dịch:</strong> {selectedConsent.campaignTitle}</p>
+                  </div>
+                  {renderConsentStatusBadge(selectedConsent.consentStatus)}
+                </div>
+              </div>
+
+              <div className="feedback-info-section">
+                <h5 className="feedback-details-title">
+                  <FaListOl className="feedback-details-icon" />
+                  Các mục khám đặc biệt đã chọn
+                </h5>
+                {selectedConsent.selectedSpecialCheckupItems?.length > 0 ? (
+                  <ListGroup variant="flush">
+                    {selectedConsent.selectedSpecialCheckupItems.map((item, index) => (
+                      <ListGroup.Item key={index}>{item}</ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                ) : (
+                  <p className="text-muted">Không có mục khám đặc biệt nào được chọn.</p>
+                )}
+              </div>
+
+              <div className="feedback-info-section">
+                <h5 className="feedback-details-title">
+                  <FaNotesMedical className="feedback-details-icon" />
+                  Ghi chú của phụ huynh
+                </h5>
+                <p className="text-muted">{selectedConsent.consent?.parentNotes || 'Không có ghi chú.'}</p>
+              </div>
+            </>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConsentModal(false)}>
+          <Button variant="secondary" onClick={() => setShowConsentModal(false)} className="btn-close-custom">
             Đóng
           </Button>
         </Modal.Footer>

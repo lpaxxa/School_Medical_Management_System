@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import './DeleteItem.css';
 
 // Custom styles để tránh xung đột Bootstrap và tăng kích thước modal
@@ -312,44 +312,33 @@ const deleteItemModalStyles = `
 const DeleteItemModal = ({ item, onClose, onDeleteItem }) => {
   const [loading, setLoading] = useState(false);
   
+  // Function to handle the actual deletion
   const handleDeleteItem = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      console.log('Deleting item with itemId:', item.itemId);
+      // Use the onDeleteItem prop which should handle the API call
+      await onDeleteItem(item.itemId); // Make sure to use itemId
       
-      // Call the parent component's onDeleteItem with the item's itemId
-      await onDeleteItem(item.itemId);
-      
-      // Hiển thị thông báo thành công
-      toast.success(`Xóa vật phẩm "${item.itemName || item.name}" thành công!`, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        className: 'delete-item-toast-success'
+      // Show success alert
+      Swal.fire({
+        icon: 'success',
+        title: 'Xóa thành công!',
+        text: `Vật phẩm "${item.itemName}" đã được xóa khỏi kho.`,
+        timer: 2000,
+        showConfirmButton: false
       });
+
+      onClose(); // Close the modal on success
+    } catch (error) {
+      console.error('Lỗi khi xóa vật phẩm:', error);
       
-      // Đóng modal sau khi thành công
-      setTimeout(() => {
-        onClose();
-      }, 1000);
-      
-    } catch (err) {
-      console.error("Lỗi khi xóa vật tư:", err);
-      
-      // Hiển thị thông báo lỗi
-      toast.error('Có lỗi xảy ra khi xóa vật phẩm. Vui lòng thử lại.', {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        className: 'delete-item-toast-error'
+      // Show error alert
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: `Không thể xóa vật phẩm. Lỗi: ${error.message}`,
       });
-      
+    } finally {
       setLoading(false);
     }
   };
