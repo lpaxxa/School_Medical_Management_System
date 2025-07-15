@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { useAuth } from "../../../context/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
-// Sửa đường dẫn import để trỏ đúng đến các component
-import Header from "../components/Header/Header";
+import { useNavigate } from "react-router-dom";
+// Component Header đã bị loại bỏ
 import Navigation from "../components/Navigation/Navigation";
 import { 
   InventoryProvider, 
@@ -16,37 +15,29 @@ import { VaccinationProvider } from "../../../context/NurseContext/VaccinationCo
 import "./NurseLayout.css";
 
 const NurseLayout = ({ children }) => {
-  const { currentUser, logout } = useAuth();
-  const navigate = useNavigate();
-  
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };    
+  // Logic logout và user đã được chuyển vào Navigation.jsx
   
   return (
     <div className="nurse-layout">
-      <Header />      
-      <div className="layout-container">
-        <Navigation />        
-        <main className="nurse-content">
-          <InventoryProvider>
-            <MedicalEventsProvider>
-              <MedicineApprovalProvider>
-                <StudentRecordsProvider>
-                  <HealthCheckupProvider>
-                    <BlogProvider>
-                      <VaccinationProvider>
-                        {children}
-                      </VaccinationProvider>
-                    </BlogProvider>
-                  </HealthCheckupProvider>
-                </StudentRecordsProvider>
-              </MedicineApprovalProvider>
-            </MedicalEventsProvider>
-          </InventoryProvider>
-        </main>
-      </div>
+      {/* Header đã được tích hợp vào Navigation */}
+      <Navigation />        
+      <main className="nurse-content">
+        <InventoryProvider>
+          <MedicalEventsProvider>
+            <MedicineApprovalProvider>
+              <StudentRecordsProvider>
+                <HealthCheckupProvider>
+                  <BlogProvider>
+                    <VaccinationProvider>
+                      {children}
+                    </VaccinationProvider>
+                  </BlogProvider>
+                </HealthCheckupProvider>
+              </StudentRecordsProvider>
+            </MedicineApprovalProvider>
+          </MedicalEventsProvider>
+        </InventoryProvider>
+      </main>
     </div>
   );
 };

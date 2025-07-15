@@ -33,7 +33,7 @@ const VaccinationPage = () => {
           }
           
           .lukhang-vaccination-header-card {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+            background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%) !important;
             border: none !important;
             border-radius: 1rem !important;
             box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2) !important;
@@ -98,8 +98,8 @@ const VaccinationPage = () => {
           }
           
           .lukhang-vaccination-nav-link.active {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-            border-color: #0d6efd !important;
+            background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%) !important;
+            border-color: #015C92 !important;
             color: white !important;
             transform: translateY(-3px) !important;
             box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3) !important;
@@ -258,7 +258,7 @@ const VaccinationPage = () => {
                     <Card className="lukhang-vaccination-content-card">
                       <Card.Header className="lukhang-vaccination-content-header">
                         <h4 className="lukhang-vaccination-content-title">
-                          <i className="fas fa-list-alt"></i>
+                          <i className="fas fa-list-alt text-primary"></i>
                           Quản lý danh sách tiêm chủng
                         </h4>
                       </Card.Header>
@@ -272,7 +272,7 @@ const VaccinationPage = () => {
                     <Card className="lukhang-vaccination-content-card">
                       <Card.Header className="lukhang-vaccination-content-header">
                         <h4 className="lukhang-vaccination-content-title">
-                          <i className="fas fa-user-md"></i>
+                          <i className="fas fa-user-md text-primary"></i>
                           Theo dõi chăm sóc sau tiêm chủng
                         </h4>
                       </Card.Header>

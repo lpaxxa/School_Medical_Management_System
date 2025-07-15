@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import { Modal, Form, Button, Container, Row, Col, Card, Alert, Badge, Spinner } from 'react-bootstrap';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
 import { getAllStudents } from '../../../../../services/APINurse/studentRecordsService';
@@ -89,7 +89,7 @@ const MedicalIncidentAddModal = ({
           }
         } catch (error) {
           console.error("Failed to fetch students:", error);
-          toast.error("Không thể tải danh sách học sinh.");
+          Swal.fire('Lỗi!', 'Không thể tải danh sách học sinh.', 'error');
         } finally {
           setLoadingStudents(false);
         }
@@ -232,17 +232,17 @@ const MedicalIncidentAddModal = ({
     
     // Validation
     if (!formData.studentId.trim()) {
-      toast.error('Vui lòng nhập mã học sinh');
+      Swal.fire('Lỗi!', 'Vui lòng nhập mã học sinh', 'error');
       return;
     }
     
     if (!formData.incidentType.trim()) {
-      toast.error('Vui lòng nhập loại sự kiện');
+      Swal.fire('Lỗi!', 'Vui lòng nhập loại sự kiện', 'error');
       return;
     }
     
     if (!formData.description.trim()) {
-      toast.error('Vui lòng nhập mô tả sự kiện');
+      Swal.fire('Lỗi!', 'Vui lòng nhập mô tả sự kiện', 'error');
       return;
     }
     
@@ -272,10 +272,10 @@ const MedicalIncidentAddModal = ({
       const result = await onSubmit(apiData);
       
       if (result) {
-        toast.success(selectedEvent ? 'Cập nhật sự kiện y tế thành công!' : 'Thêm sự kiện y tế mới thành công!');
+        Swal.fire('Thành công!', 'Thêm sự kiện y tế mới thành công!', 'success');
         handleClose();
       } else {
-        toast.error('Không thể lưu sự kiện y tế - không có phản hồi từ server');
+        Swal.fire('Lỗi!', 'Không thể lưu sự kiện y tế - không có phản hồi từ server', 'error');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -289,7 +289,7 @@ const MedicalIncidentAddModal = ({
         errorMessage += ': ' + error.message;
       }
       
-      toast.error(errorMessage);
+      Swal.fire('Lỗi!', errorMessage, 'error');
     }
   };
 
