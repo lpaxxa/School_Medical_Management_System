@@ -85,12 +85,17 @@ const MedicalIncidentsList = () => {
   }, [fetchEvents, events]);
 
   useEffect(() => {
-    // Sắp xếp sự kiện theo ngày mới nhất
-    const sortedEvents = [...events].sort((a, b) => {
-      const dateA = new Date(a.dateTime);
-      const dateB = new Date(b.dateTime);
-      return dateB - dateA; // Ngày mới nhất trước
-    });
+    // Debug logging để kiểm tra format dữ liệu
+    if (events && events.length > 0) {
+      console.log("=== EVENTS DATA DEBUG ===");
+      console.log("First event:", events[0]);
+      console.log("DateTime format:", events[0]?.dateTime);
+      console.log("DateTime type:", typeof events[0]?.dateTime);
+      console.log("Is array:", Array.isArray(events[0]?.dateTime));
+    }
+
+    // Sắp xếp sự kiện theo ngày mới nhất sử dụng hàm helper
+    const sortedEvents = sortEventsByDate(events);
     setDisplayedEvents(sortedEvents);
     setCurrentPage(1); // Reset về trang đầu khi dữ liệu thay đổi
   }, [events]);
@@ -207,18 +212,19 @@ const MedicalIncidentsList = () => {
   };
 
   // Xử lý mở form cập nhật
-  const handleEdit = async (id) => {
+  const handleEdit = async (id, e) => {
     try {
       console.log("=== HANDLE EDIT CALLED ===");
       console.log("Event ID:", id);
       console.log("Event ID type:", typeof id);
-      
+
       // Prevent default navigation if this is somehow being called as a link
-      event?.preventDefault?.();
-      
+      e?.preventDefault?.();
+
       const eventData = await fetchEventById(id);
       console.log("Dữ liệu sự kiện cần cập nhật:", eventData);
-      
+      console.log("DateTime format from API:", eventData?.dateTime);
+
       if (eventData) {
         setSelectedEvent(eventData);
         setShowUpdateModal(true);
@@ -335,22 +341,39 @@ const MedicalIncidentsList = () => {
     }
   };
 
-  // Format date time
-  const formatDateTime = (dateTimeString) => {
-    if (!dateTimeString) return "Không có thông tin";
-    
+  // Format date time - handle both string and array formats
+  const formatDateTime = (dateTimeInput) => {
+    if (!dateTimeInput) return "Không có thông tin";
+
     try {
-      const dateObj = new Date(dateTimeString);
+      let dateObj;
+
+      // Handle array format from backend: [year, month, day, hour, minute, second, nanosecond]
+      if (Array.isArray(dateTimeInput)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = dateTimeInput;
+        // Month in JavaScript Date is 0-indexed, so subtract 1
+        dateObj = new Date(year, month - 1, day, hour, minute, second, Math.floor(nanosecond / 1000000));
+      } else {
+        // Handle string format
+        dateObj = new Date(dateTimeInput);
+      }
+
+      // Check if date is valid
+      if (isNaN(dateObj.getTime())) {
+        console.warn("Invalid date detected:", dateTimeInput);
+        return "Thời gian không hợp lệ";
+      }
+
       return dateObj.toLocaleString('vi-VN', {
         day: '2-digit',
-        month: '2-digit', 
+        month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
       });
     } catch (error) {
-      console.error("Lỗi khi định dạng ngày tháng:", error);
-      return dateTimeString;
+      console.error("Lỗi khi định dạng ngày tháng:", error, "Input:", dateTimeInput);
+      return "Lỗi định dạng thời gian";
     }
   };
 
@@ -376,11 +399,31 @@ const MedicalIncidentsList = () => {
     return "bg-secondary";
   };
 
+  // Helper function to convert dateTime to Date object
+  const parseDateTime = (dateTimeInput) => {
+    if (!dateTimeInput) return new Date(0); // Return epoch for null/undefined
+
+    try {
+      // Handle array format from backend: [year, month, day, hour, minute, second, nanosecond]
+      if (Array.isArray(dateTimeInput)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = dateTimeInput;
+        // Month in JavaScript Date is 0-indexed, so subtract 1
+        return new Date(year, month - 1, day, hour, minute, second, Math.floor(nanosecond / 1000000));
+      } else {
+        // Handle string format
+        return new Date(dateTimeInput);
+      }
+    } catch (error) {
+      console.error("Error parsing dateTime:", error, "Input:", dateTimeInput);
+      return new Date(0); // Return epoch for invalid dates
+    }
+  };
+
   // Hàm helper để sắp xếp events theo ngày mới nhất
   const sortEventsByDate = (events) => {
     return [...events].sort((a, b) => {
-      const dateA = new Date(a.dateTime);
-      const dateB = new Date(b.dateTime);
+      const dateA = parseDateTime(a.dateTime);
+      const dateB = parseDateTime(b.dateTime);
       return dateB - dateA; // Ngày mới nhất trước
     });
   };
@@ -559,10 +602,14 @@ const MedicalIncidentsList = () => {
               <i className="fas fa-notes-medical me-2"></i>
               Quản lý sự kiện y tế
             </h4>
-            <button 
-              className="btn btn-lg" 
+            <button
+              className="btn btn-lg"
               onClick={handleAddNew}
-              style={{ backgroundColor: '#0d6efd', color: 'white' }}
+              style={{
+                background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)',
+                color: 'white',
+                border: 'none'
+              }}
             >
               <i className="fas fa-plus me-2"></i>
               Thêm sự kiện
@@ -789,7 +836,7 @@ const MedicalIncidentsList = () => {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   console.log("Edit button clicked for event:", event.incidentId);
-                                  handleEdit(event.incidentId);
+                                  handleEdit(event.incidentId, e);
                                 }}
                                 title="Chỉnh sửa"
                                 type="button"
@@ -825,94 +872,77 @@ const MedicalIncidentsList = () => {
                 </div>
               </div>
               
-              {/* Phân trang */}
+              {/* Simple Pagination with "1 / 3" style */}
               {displayedEvents.length > eventsPerPage && (
                 <div className="card-footer">
-                  <nav aria-label="Phân trang sự kiện y tế">
-                    <ul className="pagination justify-content-center mb-0">
-                      {/* Nút Previous */}
-                      <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                        <button 
-                          className="page-link"
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1}
-                        >
-                          <i className="fas fa-chevron-left"></i> Trước
-                        </button>
-                      </li>
-                      
-                      {/* Nút trang đầu */}
-                      {currentPage > 3 && (
-                        <>
-                          <li className="page-item">
-                            <button 
-                              className="page-link"
-                              onClick={() => handlePageChange(1)}
-                            >
-                              1
-                            </button>
-                          </li>
-                          {currentPage > 4 && (
-                            <li className="page-item disabled">
-                              <span className="page-link">...</span>
-                            </li>
-                          )}
-                        </>
-                      )}
-                      
-                      {/* Các số trang */}
-                      {getPageNumbers().map(number => (
-                        <li 
-                          key={number} 
-                          className={`page-item ${currentPage === number ? 'active' : ''}`}
-                        >
-                          <button 
-                            className="page-link"
-                            onClick={() => handlePageChange(number)}
-                          >
-                            {number}
-                          </button>
-                        </li>
-                      ))}
-                      
-                      {/* Nút trang cuối */}
-                      {currentPage < totalPages - 2 && (
-                        <>
-                          {currentPage < totalPages - 3 && (
-                            <li className="page-item disabled">
-                              <span className="page-link">...</span>
-                            </li>
-                          )}
-                          <li className="page-item">
-                            <button 
-                              className="page-link"
-                              onClick={() => handlePageChange(totalPages)}
-                            >
-                              {totalPages}
-                            </button>
-                          </li>
-                        </>
-                      )}
-                      
-                      {/* Nút Next */}
-                      <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                        <button 
-                          className="page-link"
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                        >
-                          Sau <i className="fas fa-chevron-right"></i>
-                        </button>
-                      </li>
-                    </ul>
-                  </nav>
-                  
-                  {/* Thông tin phân trang */}
-                  <div className="text-center mt-2">
-                    <small className="text-muted">
-                      Hiển thị {indexOfFirstEvent + 1} - {Math.min(indexOfLastEvent, displayedEvents.length)} 
-                      <div style={{marginRight: '20px'}}></div>trong tổng số {displayedEvents.length} sự kiện y tế
-                    </small>
+                  <div className="d-flex justify-content-between align-items-center px-3">
+                    {/* Showing entries info */}
+                    <div className="text-muted">
+                      <small>
+                        Showing {indexOfFirstEvent + 1} to {Math.min(indexOfLastEvent, displayedEvents.length)} of {displayedEvents.length} medical events
+                      </small>
+                    </div>
+
+                    {/* Pagination controls */}
+                    <div className="d-flex align-items-center gap-2">
+                      {/* First page button */}
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        disabled={currentPage === 1}
+                        onClick={() => handlePageChange(1)}
+                        title="Trang đầu"
+                        style={{ minWidth: '40px' }}
+                      >
+                        <i className="fas fa-angle-double-left"></i>
+                      </button>
+
+                      {/* Previous page button */}
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        disabled={currentPage === 1}
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        title="Trang trước"
+                        style={{ minWidth: '40px' }}
+                      >
+                        <i className="fas fa-angle-left"></i>
+                      </button>
+
+                      {/* Current page indicator */}
+                      <div
+                        className="px-3 py-1 text-white rounded"
+                        style={{
+                          minWidth: '60px',
+                          textAlign: 'center',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'
+                        }}
+                      >
+                        {currentPage} / {totalPages}
+                      </div>
+
+                      {/* Next page button */}
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        disabled={currentPage === totalPages}
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        title="Trang tiếp"
+                        style={{ minWidth: '40px' }}
+                      >
+                        <i className="fas fa-angle-right"></i>
+                      </button>
+
+                      {/* Last page button */}
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        disabled={currentPage === totalPages}
+                        onClick={() => handlePageChange(totalPages)}
+                        title="Trang cuối"
+                        style={{ minWidth: '40px' }}
+                      >
+                        <i className="fas fa-angle-double-right"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -926,7 +956,7 @@ const MedicalIncidentsList = () => {
         show={showViewDetailsModal}
         selectedEvent={selectedEvent}
         onClose={() => setShowViewDetailsModal(false)}
-        onEdit={handleEdit}
+        onEdit={(id) => handleEdit(id, null)}
         showImageModal={showImageModal}
         setShowImageModal={setShowImageModal}
         selectedImageUrl={selectedImageUrl}

@@ -24,6 +24,7 @@ const EditHealthArticle = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   
   // Success notification states
@@ -107,19 +108,13 @@ const EditHealthArticle = () => {
     });
   };
 
-  // Handle image URL input
-  const handleImageUrlChange = (e) => {
-    const url = e.target.value;
-    setFormData({
-      ...formData,
-      imageUrl: url
-    });
-    
-    // Clear any previous errors
-    setError('');
-    
-    // Update preview immediately when URL changes
-    setImagePreview(url);
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
   };
 
   // Handle form submission
@@ -136,28 +131,32 @@ const EditHealthArticle = () => {
     setSuccess('');
 
     try {
-      // Prepare data for API
-      const updatedData = {
+      // Step 1: Update the article with text data
+      const updatedTextData = {
         title: formData.title.trim(),
         summary: formData.summary.trim(),
         content: formData.content.trim(),
         category: formData.category,
-        imageUrl: formData.imageUrl,
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : []
       };
 
-      console.log('Updating health article:', updatedData);
+      console.log('Step 1: Updating health article with text data:', updatedTextData);
+      await healthArticleService.updateHealthArticle(id, updatedTextData);
+      console.log('Article text data updated successfully.');
 
-      // Call API to update article
-      const response = await healthArticleService.updateHealthArticle(id, updatedData);
-      console.log('Health article updated successfully:', response);
+      // Step 2: If a new image file was selected, upload it
+      if (imageFile) {
+        console.log(`Step 2: Uploading new image for article ID: ${id}`);
+        await healthArticleService.uploadImageForHealthArticle(imageFile, id);
+        console.log('New image uploaded successfully.');
+      }
 
       // Show success notification instead of alert
       setNotificationType('edit');
       setShowSuccessNotification(true);
       
       // Update local state
-      setArticle({ ...article, ...updatedData });
+      setArticle({ ...article, ...updatedTextData });
 
       // Remove the automatic redirect since user can choose via notification
       // setTimeout(() => {
@@ -421,16 +420,14 @@ const EditHealthArticle = () => {
 
                 <Form.Group className="mb-3">
                   <Form.Label className="fw-semibold">Hình ảnh</Form.Label>
-                  
                   <Form.Control
-                    type="url"
-                    name="imageUrl"
-                    value={formData.imageUrl}
-                    onChange={handleImageUrlChange}
-                    placeholder="https://example.com/image.jpg"
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    onChange={handleImageChange}
                   />
                   <Form.Text className="text-muted">
-                    Nhập URL của hình ảnh minh họa cho bài viết
+                    Tải lên ảnh mới để thay thế ảnh hiện tại. Để trống nếu không muốn thay đổi.
                   </Form.Text>
 
                   {/* Image preview */}
@@ -443,19 +440,11 @@ const EditHealthArticle = () => {
                           alt="Xem trước" 
                           className="img-fluid rounded shadow-sm"
                           style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'cover' }}
-                          onLoad={() => {
-                            console.log('Image loaded successfully:', imagePreview);
-                          }}
                           onError={(e) => {
-                            console.error('Image failed to load:', imagePreview);
-                            setError('Không thể tải ảnh từ URL này. Vui lòng kiểm tra lại đường dẫn ảnh.');
+                            console.error('Image preview failed to load:', imagePreview);
                             e.target.style.display = 'none';
                           }}
                         />
-                        <div className="position-absolute top-0 end-0 bg-success text-white px-2 py-1 rounded-bottom-start">
-                          <i className="fas fa-check me-1"></i>
-                          <small>Ảnh hợp lệ</small>
-                        </div>
                       </div>
                     </div>
                   )}

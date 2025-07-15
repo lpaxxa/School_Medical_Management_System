@@ -602,7 +602,7 @@ const AddItem = ({ onClose, onAddItem }) => {
         today.setHours(0, 0, 0, 0); 
         if (manufactureDate > today) {
             newErrors.manufactureDate = "Ngày sản xuất không được ở tương lai";
-        }
+      }
     }
 
     setErrors(newErrors);
@@ -689,7 +689,7 @@ const AddItem = ({ onClose, onAddItem }) => {
           title: 'Tên vật phẩm bị trùng!',
           text: 'Vật phẩm với tên này đã tồn tại trong kho. Vui lòng chọn một tên khác.',
         });
-      } else {
+        } else {
         Swal.fire({
           icon: 'error',
           title: 'Không thể thêm vật phẩm!',

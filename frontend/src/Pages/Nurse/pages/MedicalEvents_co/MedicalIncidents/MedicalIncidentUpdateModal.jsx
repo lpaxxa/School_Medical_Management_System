@@ -37,6 +37,11 @@ const MedicalIncidentUpdateModal = ({
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [allInventoryItems, setAllInventoryItems] = useState([]); // State for all inventory items
 
+  // Image upload states - following AddHealthArticle pattern
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [imageUploadError, setImageUploadError] = useState('');
+
   // Initialize form data when modal opens or selectedEvent changes
   useEffect(() => {
     if (show && selectedEvent) {
@@ -224,6 +229,17 @@ const MedicalIncidentUpdateModal = ({
         imageMedicalUrl: selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || '',
         // medicationsUsed is now handled by selectedMedications state
       });
+
+      // Reset image upload states when modal opens
+      setImageFile(null);
+      setImageUploadError('');
+
+      // Set existing image preview like EditHealthArticle
+      if (selectedEvent.imageMedicalUrl) {
+        setImagePreview(selectedEvent.imageMedicalUrl);
+      } else {
+        setImagePreview('');
+      }
     }
   }, [show, selectedEvent]);
   
@@ -527,7 +543,7 @@ const MedicalIncidentUpdateModal = ({
   const handleMedicationRemove = (itemID) => {
     // Find the medication to be removed to show its name in the toast
     const medicationToRemove = selectedMedications.find(med => med.itemID === itemID);
-    
+
     if (medicationToRemove) {
       // Show toast notification for removal
       Swal.fire({
@@ -535,9 +551,74 @@ const MedicalIncidentUpdateModal = ({
         icon: 'warning', title: `Đã xóa thuốc "${medicationToRemove.itemName}" khỏi danh sách`
       });
     }
-    
+
     // Filter out the medication with the given itemID
     setSelectedMedications(prev => prev.filter(med => med.itemID !== itemID));
+  };
+
+  // Handle image file selection - following AddHealthArticle pattern
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      setImageUploadError('Chỉ chấp nhận file ảnh định dạng JPG, PNG hoặc GIF');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setImageUploadError('Kích thước file không được vượt quá 5MB');
+      return;
+    }
+
+    setImageUploadError('');
+    setImageFile(file);
+
+    // Create preview URL using URL.createObjectURL like AddHealthArticle
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+  };
+
+  // Process image when submitting form - convert to base64
+  const processImageForSubmit = async () => {
+    if (!imageFile) return '';
+
+    try {
+      // Convert image to base64
+      const base64Image = await convertImageToBase64(imageFile);
+      return base64Image;
+    } catch (error) {
+      console.error('Error processing image:', error);
+      throw new Error('Không thể xử lý ảnh. Vui lòng thử lại.');
+    }
+  };
+
+  // Convert image to base64
+  const convertImageToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  // Handle removing uploaded image
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setFormData(prev => ({
+      ...prev,
+      imageMedicalUrl: ''
+    }));
+    setImageUploadError('');
+    // Reset file input
+    const fileInput = document.getElementById('medical-image-upload-update');
+    if (fileInput) fileInput.value = '';
   };
 
   // Handle form submission
@@ -701,7 +782,7 @@ const MedicalIncidentUpdateModal = ({
       
       console.log(`Found ${validMedicationsArray.length} valid medications for submission out of ${medicationsArray.length} total`);
 
-      // Format data for API submission according to the new format
+      // Format data for API submission according to the new format (without image first)
       const apiData = {
         incidentType: formData.incidentType,
         description: formData.description,
@@ -713,7 +794,7 @@ const MedicalIncidentUpdateModal = ({
         followUpNotes: formData.followUpNotes,
         handledById: parseInt(formData.handledById) || 1,
         studentId: formData.studentId,
-        imageMedicalUrl: formData.imageMedicalUrl,
+        imageMedicalUrl: formData.imageMedicalUrl, // Keep existing URL for now
         medicationsUsed: validMedicationsArray // Sử dụng mảng thuốc đã được lọc
       };
 
@@ -737,24 +818,56 @@ const MedicalIncidentUpdateModal = ({
       }
       
       try {
-        // Directly call the context function to update the event
+        // Step 1: Update the event with text data (following EditHealthArticle pattern)
+        console.log('Step 1: Updating medical incident with data:', apiData);
         const result = await updateEvent(eventId, apiData);
-        
-        if (result) {
-          Swal.fire('Thành công!', 'Cập nhật sự kiện y tế thành công!', 'success');
-          handleClose();
+
+        if (!result) {
+          throw new Error('Không thể cập nhật sự kiện');
         }
+
+        console.log('Medical incident data updated successfully.');
+
+        // Step 2: If a new image file was selected, convert to base64 and update again
+        if (imageFile) {
+          console.log(`Step 2: Processing new image for incident ID: ${eventId}`);
+
+          try {
+            const base64Image = await processImageForSubmit();
+
+            // Update again with the new image
+            const imageUpdateData = {
+              ...apiData,
+              imageMedicalUrl: base64Image
+            };
+
+            console.log('Updating with new image...');
+            const imageResult = await updateEvent(eventId, imageUpdateData);
+
+            if (imageResult) {
+              console.log('New image updated successfully.');
+            }
+          } catch (imageError) {
+            console.error('Error processing image:', imageError);
+            // Don't fail the whole update if image processing fails
+            Swal.fire('Cảnh báo!', 'Cập nhật thông tin thành công nhưng có lỗi khi xử lý ảnh mới.', 'warning');
+          }
+        }
+
+        Swal.fire('Thành công!', 'Cập nhật sự kiện y tế thành công!', 'success');
+        handleClose();
+
       } catch (updateError) {
         console.error("Update Modal - Error in updateEvent API call:", updateError);
-        
+
         // Check for medication ID errors specifically
         if (updateError.response?.data?.data?.includes('Medication Item not found with id')) {
           const errorIdMatch = updateError.response.data.data.match(/id: (\d+)/);
           const errorId = errorIdMatch ? errorIdMatch[1] : 'không xác định';
-          
+
           Swal.fire('Lỗi!', `Không tìm thấy thuốc với ID: ${errorId}`, 'error');
           console.error(`Backend rejected medication with ID: ${errorId}`);
-          
+
           // Show instructions to retry
           Swal.fire('Thông tin', 'Vui lòng kiểm tra lại danh sách thuốc và thử lại', 'info');
         } else {
@@ -778,6 +891,13 @@ const MedicalIncidentUpdateModal = ({
     setMedicationResults([]);
     setShowMedicationDropdown(false);
     setSelectedMedications([]);
+    // Reset image upload states
+    setImageFile(null);
+    setImagePreview('');
+    setImageUploadError('');
+    // Reset file input
+    const fileInput = document.getElementById('medical-image-upload-update');
+    if (fileInput) fileInput.value = '';
     onClose();
   };
 
@@ -1362,7 +1482,7 @@ const MedicalIncidentUpdateModal = ({
                 </Col>
               </Row>
 
-              {/* Image URL Section với Preview */}
+              {/* Image Upload Section */}
               <Row className="mb-4">
                 <Col>
                   <Card className="border-primary">
@@ -1373,8 +1493,74 @@ const MedicalIncidentUpdateModal = ({
                       </h6>
                     </Card.Header>
                     <Card.Body>
-                      <Form.Group className="mb-3">
-                        <Form.Label className="fw-semibold">Link ảnh sự cố y tế</Form.Label>
+                      {/* Upload from computer section - following AddHealthArticle pattern */}
+                      <div className="mb-4">
+                        <Form.Label className="fw-semibold">
+                          <i className="fas fa-upload me-2 text-primary"></i>
+                          Tải ảnh từ máy tính
+                        </Form.Label>
+                        <Form.Control
+                          id="medical-image-upload-update"
+                          type="file"
+                          name="image"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                        />
+                        <Form.Text className="text-muted">
+                          Tải lên ảnh mới để thay thế ảnh hiện tại. Để trống nếu không muốn thay đổi.
+                        </Form.Text>
+
+                        {/* Image preview - following AddHealthArticle pattern */}
+                        {imagePreview && (
+                          <div className="mt-3">
+                            <Form.Label className="small text-muted">Xem trước:</Form.Label>
+                            <div className="position-relative d-inline-block">
+                              <img
+                                src={imagePreview}
+                                alt="Xem trước"
+                                className="img-fluid rounded shadow-sm"
+                                style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'cover' }}
+                                onError={(e) => {
+                                  console.error('Image preview failed to load:', imagePreview);
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                              <Button
+                                variant="outline-danger"
+                                size="sm"
+                                onClick={handleRemoveImage}
+                                className="position-absolute top-0 end-0 m-1"
+                                title="Xóa ảnh"
+                              >
+                                <i className="fas fa-times"></i>
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {imageFile && (
+                          <div className="mt-2">
+                            <small className="text-muted">
+                              <i className="fas fa-file-image me-1"></i>
+                              Đã chọn: {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
+                            </small>
+                          </div>
+                        )}
+
+                        {imageUploadError && (
+                          <Alert variant="danger" className="mt-3">
+                            <i className="fas fa-exclamation-triangle me-2"></i>
+                            {imageUploadError}
+                          </Alert>
+                        )}
+                      </div>
+
+                      {/* Manual URL input section */}
+                      <div className="mb-3">
+                        <Form.Label className="fw-semibold">
+                          <i className="fas fa-link me-2 text-info"></i>
+                          Hoặc nhập link ảnh
+                        </Form.Label>
                         <Form.Control
                           type="url"
                           name="imageMedicalUrl"
@@ -1382,20 +1568,21 @@ const MedicalIncidentUpdateModal = ({
                           onChange={handleInputChange}
                           placeholder="Nhập link ảnh sự cố y tế (http://... hoặc https://...)"
                         />
-                      </Form.Group>
-                      
-                      {formData.imageMedicalUrl && (
+                      </div>
+
+                      {/* Image preview section */}
+                      {(imagePreview || formData.imageMedicalUrl) && (
                         <div className="medical-image-preview">
                           <h6 className="text-info fw-bold mb-3 text-center">
                             <i className="fas fa-eye me-2"></i>Preview ảnh sự cố
                           </h6>
                           <div className="d-flex justify-content-center align-items-center">
                             <div className="position-relative">
-                              <img 
-                                src={formData.imageMedicalUrl} 
-                                alt="Preview ảnh sự cố" 
+                              <img
+                                src={imagePreview || formData.imageMedicalUrl}
+                                alt="Preview ảnh sự cố"
                                 className="img-fluid rounded shadow-lg border border-2 border-info"
-                                style={{ 
+                                style={{
                                   maxWidth: '100%',
                                   maxHeight: '400px',
                                   width: 'auto',

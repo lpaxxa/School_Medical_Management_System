@@ -297,9 +297,9 @@ const MedicationHistory = () => {
       <div className="row mb-4">
         <div className="col-12">
           <div className="card shadow-sm">
-            <div className="card-header bg-primary text-white">
-              <h5 className="mb-0"style={{color : 'white'}}>
-                <i className="fas fa-filter me-2" ></i>
+            <div className="card-header text-white" style={{background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'}}>
+              <h5 className="mb-0" style={{color: 'white'}}>
+                <i className="fas fa-filter me-2"></i>
                 Tìm kiếm và lọc lịch sử dùng thuốc
               </h5>
             </div>
@@ -383,14 +383,14 @@ const MedicationHistory = () => {
       </div>
 
       <Card className="shadow-sm">
-        <Card.Header className="bg-white py-3">
+        <Card.Header className="py-3" style={{background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'}}>
           <Row className="align-items-center">
             <Col>
-              <h5 className="mb-0 fw-bold" style={{color : 'white', marginRight : '20px'}}>
-                <i className="fas fa-list me-2" ></i>
+              <h5 className="mb-0 fw-bold" style={{color: 'white', marginRight: '20px'}}>
+                <i className="fas fa-list me-2"></i>
                 Lịch sử dùng thuốc ({filteredAdministrations.length} bản ghi)
               </h5>
-              <small className="text-muted">Chế độ chỉ xem - không thể thêm, sửa hoặc xóa</small>
+              <small style={{color: 'rgba(255, 255, 255, 0.8)'}}>Chế độ chỉ xem - không thể thêm, sửa hoặc xóa</small>
             </Col>
           </Row>
         </Card.Header>
@@ -488,108 +488,71 @@ const MedicationHistory = () => {
                 </Table>
               )}
 
-              {/* Numbered Pagination */}
+              {/* Simple Pagination with "1 / 3" style */}
               {totalPages > 1 && (
-                <div className="pagination-container d-flex justify-content-center align-items-center mt-4">
-                  <div className="pagination-wrapper d-flex align-items-center gap-2">
+                <div className="d-flex justify-content-between align-items-center mt-4 px-3">
+                  {/* Showing entries info */}
+                  <div className="text-muted">
+                    <small>
+                      Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} entries
+                    </small>
+                  </div>
+
+                  {/* Pagination controls */}
+                  <div className="d-flex align-items-center gap-2">
                     {/* First page button */}
                     <button
-                      className="pagination-btn"
+                      className="btn btn-outline-secondary btn-sm"
                       disabled={currentPage === 1}
                       onClick={() => handlePageChange(1)}
                       title="Trang đầu"
+                      style={{ minWidth: '40px' }}
                     >
                       <FaAngleDoubleLeft />
                     </button>
-                    
+
                     {/* Previous page button */}
                     <button
-                      className="pagination-btn"
+                      className="btn btn-outline-secondary btn-sm"
                       disabled={currentPage === 1}
                       onClick={() => handlePageChange(currentPage - 1)}
                       title="Trang trước"
+                      style={{ minWidth: '40px' }}
                     >
                       <FaAngleLeft />
                     </button>
-                    
-                    {/* Page numbers */}
-                    <div className="pagination-numbers d-flex align-items-center gap-1">
-                      {(() => {
-                        const pages = [];
-                        const maxVisiblePages = 3;
-                        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                        
-                        // Adjust start page if we're near the end
-                        if (endPage - startPage < maxVisiblePages - 1) {
-                          startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                        }
-                        
-                        // Add first page if not in range
-                        if (startPage > 1) {
-                          pages.push(
-                            <button
-                              key={1}
-                              className="pagination-page"
-                              onClick={() => handlePageChange(1)}
-                            >
-                              1
-                            </button>
-                          );
-                          if (startPage > 2) {
-                            pages.push(<span key="ellipsis1" className="pagination-ellipsis">...</span>);
-                          }
-                        }
-                        
-                        // Add visible page numbers
-                        for (let i = startPage; i <= endPage; i++) {
-                          pages.push(
-                            <button
-                              key={i}
-                              className={`pagination-page ${i === currentPage ? 'active' : ''}`}
-                              onClick={() => handlePageChange(i)}
-                            >
-                              {i}
-                            </button>
-                          );
-                        }
-                        
-                        // Add last page if not in range
-                        if (endPage < totalPages) {
-                          if (endPage < totalPages - 1) {
-                            pages.push(<span key="ellipsis2" className="pagination-ellipsis">...</span>);
-                          }
-                          pages.push(
-                            <button
-                              key={totalPages}
-                              className="pagination-page"
-                              onClick={() => handlePageChange(totalPages)}
-                            >
-                              {totalPages}
-                            </button>
-                          );
-                        }
-                        
-                        return pages;
-                      })()}
+
+                    {/* Current page indicator */}
+                    <div
+                      className="px-3 py-1 bg-primary text-white rounded"
+                      style={{
+                        minWidth: '60px',
+                        textAlign: 'center',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {currentPage} / {totalPages}
                     </div>
-                    
+
                     {/* Next page button */}
                     <button
-                      className="pagination-btn"
+                      className="btn btn-outline-secondary btn-sm"
                       disabled={currentPage === totalPages}
                       onClick={() => handlePageChange(currentPage + 1)}
                       title="Trang tiếp"
+                      style={{ minWidth: '40px' }}
                     >
                       <FaAngleRight />
                     </button>
-                    
+
                     {/* Last page button */}
                     <button
-                      className="pagination-btn"
+                      className="btn btn-outline-secondary btn-sm"
                       disabled={currentPage === totalPages}
                       onClick={() => handlePageChange(totalPages)}
                       title="Trang cuối"
+                      style={{ minWidth: '40px' }}
                     >
                       <FaAngleDoubleRight />
                     </button>

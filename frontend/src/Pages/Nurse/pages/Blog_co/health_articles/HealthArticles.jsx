@@ -42,16 +42,46 @@ const HealthArticles = () => {
     "Other"
   ];
 
+  // Helper function to parse date from various formats
+  const parseDate = (dateInput) => {
+    if (!dateInput) return new Date(0); // Return epoch for null/undefined
+
+    try {
+      // Handle array format from backend: [year, month, day, hour, minute, second, nanosecond]
+      if (Array.isArray(dateInput)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = dateInput;
+        // Month in JavaScript Date is 0-indexed, so subtract 1
+        return new Date(year, month - 1, day, hour, minute, second, Math.floor(nanosecond / 1000000));
+      } else {
+        // Handle string format
+        return new Date(dateInput);
+      }
+    } catch (error) {
+      console.error("Error parsing date:", error, "Input:", dateInput);
+      return new Date(0); // Return epoch for invalid dates
+    }
+  };
+
   // Fetch health articles
   const fetchHealthArticles = async () => {
     try {
       setLoading(true);
       setError('');
       const response = await healthArticleService.getAllHealthArticles();
-      // Sắp xếp theo publishDate mới nhất trước
+
+      // Debug logging để kiểm tra format dữ liệu
+      if (response && response.length > 0) {
+        console.log("=== HEALTH ARTICLES DATA DEBUG ===");
+        console.log("First article:", response[0]);
+        console.log("PublishDate format:", response[0]?.publishDate);
+        console.log("PublishDate type:", typeof response[0]?.publishDate);
+        console.log("Is array:", Array.isArray(response[0]?.publishDate));
+      }
+
+      // Sắp xếp theo publishDate mới nhất trước sử dụng helper function
       const sortedArticles = (response || []).sort((a, b) => {
-        const dateA = new Date(a.publishDate);
-        const dateB = new Date(b.publishDate);
+        const dateA = parseDate(a.publishDate);
+        const dateB = parseDate(b.publishDate);
         return dateB - dateA; // Sắp xếp giảm dần (mới nhất trước)
       });
       setArticles(sortedArticles);
@@ -110,17 +140,41 @@ const HealthArticles = () => {
     return isAuthor;
   };
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
+  // Format date - handle both string and array formats
+  const formatDate = (dateInput) => {
+    if (!dateInput) return 'N/A';
+
+    try {
+      let dateObj;
+
+      // Handle array format from backend: [year, month, day, hour, minute, second, nanosecond]
+      if (Array.isArray(dateInput)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = dateInput;
+        // Month in JavaScript Date is 0-indexed, so subtract 1
+        dateObj = new Date(year, month - 1, day, hour, minute, second, Math.floor(nanosecond / 1000000));
+      } else {
+        // Handle string format
+        dateObj = new Date(dateInput);
+      }
+
+      // Check if date is valid
+      if (isNaN(dateObj.getTime())) {
+        console.warn("Invalid date detected:", dateInput);
+        return "Thời gian không hợp lệ";
+      }
+
+      const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return dateObj.toLocaleDateString('vi-VN', options);
+    } catch (error) {
+      console.error("Lỗi khi định dạng ngày tháng:", error, "Input:", dateInput);
+      return "Lỗi định dạng thời gian";
+    }
   };
 
   // Get difficulty badge variant
@@ -517,56 +571,78 @@ const HealthArticles = () => {
             ))}
           </Row>
 
-          {/* Pagination */}
+          {/* Simple Pagination with "1 / 3" style */}
           {totalPages > 1 && (
             <Row className="mt-4">
-              <Col className="d-flex justify-content-center">
-                <Pagination>
-                  <Pagination.First 
-                    onClick={() => handlePageChange(1)}
-                    disabled={currentPage === 1}
-                  />
-                  <Pagination.Prev 
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  />
-                  
-                  {/* Page numbers */}
-                  {Array.from({ length: totalPages }, (_, index) => {
-                    const pageNumber = index + 1;
-                    // Show only relevant page numbers
-                    if (
-                      pageNumber === 1 ||
-                      pageNumber === totalPages ||
-                      (pageNumber >= currentPage - 2 && pageNumber <= currentPage + 2)
-                    ) {
-                      return (
-                        <Pagination.Item
-                          key={pageNumber}
-                          active={pageNumber === currentPage}
-                          onClick={() => handlePageChange(pageNumber)}
-                        >
-                          {pageNumber}
-                        </Pagination.Item>
-                      );
-                    } else if (
-                      pageNumber === currentPage - 3 ||
-                      pageNumber === currentPage + 3
-                    ) {
-                      return <Pagination.Ellipsis key={pageNumber} />;
-                    }
-                    return null;
-                  })}
-                  
-                  <Pagination.Next 
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  />
-                  <Pagination.Last 
-                    onClick={() => handlePageChange(totalPages)}
-                    disabled={currentPage === totalPages}
-                  />
-                </Pagination>
+              <Col>
+                <div className="d-flex justify-content-between align-items-center px-3">
+                  {/* Showing entries info */}
+                  <div className="text-muted">
+                    <small>
+                      Showing {startIndex + 1} to {Math.min(endIndex, totalArticles)} of {totalArticles} articles
+                    </small>
+                  </div>
+
+                  {/* Pagination controls */}
+                  <div className="d-flex align-items-center gap-2">
+                    {/* First page button */}
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(1)}
+                      title="Trang đầu"
+                      style={{ minWidth: '40px' }}
+                    >
+                      <i className="fas fa-angle-double-left"></i>
+                    </button>
+
+                    {/* Previous page button */}
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      title="Trang trước"
+                      style={{ minWidth: '40px' }}
+                    >
+                      <i className="fas fa-angle-left"></i>
+                    </button>
+
+                    {/* Current page indicator */}
+                    <div
+                      className="px-3 py-1 bg-primary text-white rounded"
+                      style={{
+                        minWidth: '60px',
+                        textAlign: 'center',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {currentPage} / {totalPages}
+                    </div>
+
+                    {/* Next page button */}
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      disabled={currentPage === totalPages}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      title="Trang tiếp"
+                      style={{ minWidth: '40px' }}
+                    >
+                      <i className="fas fa-angle-right"></i>
+                    </button>
+
+                    {/* Last page button */}
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      disabled={currentPage === totalPages}
+                      onClick={() => handlePageChange(totalPages)}
+                      title="Trang cuối"
+                      style={{ minWidth: '40px' }}
+                    >
+                      <i className="fas fa-angle-double-right"></i>
+                    </button>
+                  </div>
+                </div>
               </Col>
             </Row>
           )}

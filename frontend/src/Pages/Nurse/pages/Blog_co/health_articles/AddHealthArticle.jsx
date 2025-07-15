@@ -18,6 +18,7 @@ const AddHealthArticle = () => {
     tags: ''
   });
 
+  const [imageFile, setImageFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -50,19 +51,13 @@ const AddHealthArticle = () => {
     });
   };
 
-  // Handle image URL input
-  const handleImageUrlChange = (e) => {
-    const url = e.target.value;
-    setFormData({
-      ...formData,
-      imageUrl: url
-    });
-    
-    // Clear any previous errors
-    setError('');
-    
-    // Update preview immediately when URL changes
-    setImagePreview(url);
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
   };
 
   // Handle form submission
@@ -87,27 +82,29 @@ const AddHealthArticle = () => {
     setSuccess('');
 
     try {
-      // Prepare data for API
-      const articleData = {
+      // Step 1: Create the article with text data first
+      const articleTextData = {
         title: formData.title.trim(),
         summary: formData.summary.trim(),
         content: formData.content.trim(),
         category: formData.category,
-        imageUrl: formData.imageUrl.trim(), // Use camelCase to match frontend/backend
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : [],
-        // Thêm thông tin tác giả từ currentUser
         author_id: currentUser.id || currentUser.memberId,
         author: currentUser.fullName || currentUser.name || currentUser.email,
         member_id: currentUser.memberId || currentUser.id
       };
 
-      console.log('Adding new health article:', articleData);
+      console.log('Step 1: Creating health article with text data:', articleTextData);
+      const createdArticle = await healthArticleService.createHealthArticle(articleTextData);
+      const newArticleId = createdArticle.id;
+      console.log('Article created successfully with ID:', newArticleId);
 
-      // Call API to create article
-      const response = await healthArticleService.createHealthArticle(articleData);
-      console.log('Health article created successfully:', response);
-      console.log('Image URL sent:', articleData.image_url);
-      console.log('Image URL received back:', response.imageUrl || response.image_url);
+      // Step 2: If an image file was selected, upload it
+      if (imageFile && newArticleId) {
+        console.log(`Step 2: Uploading image for article ID: ${newArticleId}`);
+        await healthArticleService.uploadImageForHealthArticle(imageFile, newArticleId);
+        console.log('Image uploaded successfully.');
+      }
 
       // Show success notification instead of alert
       setNotificationType('add');
@@ -122,6 +119,7 @@ const AddHealthArticle = () => {
         imageUrl: '',
         tags: ''
       });
+      setImageFile(null);
       setImagePreview('');
 
       // Redirect to health articles list after notification closes
@@ -325,16 +323,14 @@ const AddHealthArticle = () => {
 
                 <Form.Group className="mb-3">
                   <Form.Label className="fw-semibold">Hình ảnh</Form.Label>
-                  
                   <Form.Control
-                    type="url"
-                    name="imageUrl"
-                    value={formData.imageUrl}
-                    onChange={handleImageUrlChange}
-                    placeholder="https://example.com/image.jpg"
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    onChange={handleImageChange}
                   />
                   <Form.Text className="text-muted">
-                    Nhập URL của hình ảnh minh họa cho bài viết
+                    Chọn một ảnh để làm ảnh bìa cho bài viết (tùy chọn).
                   </Form.Text>
 
                   {/* Image preview */}
@@ -347,19 +343,11 @@ const AddHealthArticle = () => {
                           alt="Xem trước" 
                           className="img-fluid rounded shadow-sm"
                           style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'cover' }}
-                          onLoad={() => {
-                            console.log('Image loaded successfully:', imagePreview);
-                          }}
                           onError={(e) => {
-                            console.error('Image failed to load:', imagePreview);
-                            setError('Không thể tải ảnh từ URL này. Vui lòng kiểm tra lại đường dẫn ảnh.');
+                            console.error('Image preview failed to load:', imagePreview);
                             e.target.style.display = 'none';
                           }}
                         />
-                        <div className="position-absolute top-0 end-0 bg-success text-white px-2 py-1 rounded-bottom-start">
-                          <i className="fas fa-check me-1"></i>
-                          <small>Ảnh hợp lệ</small>
-                        </div>
                       </div>
                     </div>
                   )}

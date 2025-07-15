@@ -361,63 +361,78 @@ const CreateVaccinationRecord = () => {
               ))}
             </div>
 
-            {/* Pagination */}
+            {/* Simple Pagination with "1 / 3" style */}
             {totalPages > 1 && (
-              <div className="d-flex justify-content-center mt-4">
-                <Pagination>
-                  <Pagination.First 
+              <div className="d-flex justify-content-between align-items-center mt-4 px-3">
+                {/* Showing entries info */}
+                <div className="text-muted">
+                  <small>
+                    Showing {startIndex + 1} to {Math.min(endIndex, filteredPlans.length)} of {filteredPlans.length} vaccination plans
+                  </small>
+                </div>
+
+                {/* Pagination controls */}
+                <div className="d-flex align-items-center gap-2">
+                  {/* First page button */}
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    disabled={currentPage === 1}
                     onClick={() => setCurrentPage(1)}
+                    title="Trang đầu"
+                    style={{ minWidth: '40px' }}
+                  >
+                    <i className="fas fa-angle-double-left"></i>
+                  </button>
+
+                  {/* Previous page button */}
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
                     disabled={currentPage === 1}
-                  />
-                  <Pagination.Prev 
                     onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  />
-                  
-                  {/* Page numbers */}
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                    // Show first page, last page, current page, and 2 pages around current
-                    if (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 2 && page <= currentPage + 2)
-                    ) {
-                      return (
-                        <Pagination.Item
-                          key={page}
-                          active={page === currentPage}
-                          onClick={() => setCurrentPage(page)}
-                        >
-                          {page}
-                        </Pagination.Item>
-                      );
-                    } else if (
-                      page === currentPage - 3 ||
-                      page === currentPage + 3
-                    ) {
-                      return <Pagination.Ellipsis key={page} />;
-                    }
-                    return null;
-                  })}
-                  
-                  <Pagination.Next 
+                    title="Trang trước"
+                    style={{ minWidth: '40px' }}
+                  >
+                    <i className="fas fa-angle-left"></i>
+                  </button>
+
+                  {/* Current page indicator */}
+                  <div
+                    className="px-3 py-1 text-white rounded"
+                    style={{
+                      minWidth: '60px',
+                      textAlign: 'center',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'
+                    }}
+                  >
+                    {currentPage} / {totalPages}
+                  </div>
+
+                  {/* Next page button */}
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(currentPage + 1)}
+                    title="Trang tiếp"
+                    style={{ minWidth: '40px' }}
+                  >
+                    <i className="fas fa-angle-right"></i>
+                  </button>
+
+                  {/* Last page button */}
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
                     disabled={currentPage === totalPages}
-                  />
-                  <Pagination.Last 
                     onClick={() => setCurrentPage(totalPages)}
-                    disabled={currentPage === totalPages}
-                  />
-                </Pagination>
+                    title="Trang cuối"
+                    style={{ minWidth: '40px' }}
+                  >
+                    <i className="fas fa-angle-double-right"></i>
+                  </button>
+                </div>
               </div>
             )}
-
-            {/* Pagination Info */}
-            <div className="text-center mt-2 text-muted">
-              <small>
-                Hiển thị {startIndex + 1} - {Math.min(endIndex, filteredPlans.length)} trong tổng số {filteredPlans.length} kế hoạch
-              </small>
-            </div>
           </>
         )}
       </div>

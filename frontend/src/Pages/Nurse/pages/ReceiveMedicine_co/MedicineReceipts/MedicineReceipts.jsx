@@ -768,8 +768,8 @@ const MedicineReceipts = () => {
       <div className="row mb-4">
         <div className="col-12">
           <div className="card shadow-sm">
-            <div className="card-header bg-primary text-white">
-              <h5 className="mb-0" style={{color : 'white'}}>
+            <div className="card-header text-white" style={{background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'}}>
+              <h5 className="mb-0" style={{color: 'white'}}>
                 <i className="fas fa-filter me-2"></i>
                 Tìm kiếm và lọc đơn nhận thuốc
               </h5>
@@ -880,10 +880,10 @@ const MedicineReceipts = () => {
       </div>
 
       <Card className="border-0 shadow-sm">
-        <Card.Header className="bg-white py-3">
+        <Card.Header className="py-3" style={{background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'}}>
           <Row className="align-items-center">
             <Col>
-              <h5 className="mb-0 fw-bold" style={{color : 'white'}}>
+              <h5 className="mb-0 fw-bold" style={{color: 'white'}}>
                 <i className="fas fa-list me-2"></i>
                 Danh sách đơn nhận thuốc ({totalItems} đơn)
               </h5>

@@ -344,39 +344,73 @@ const CheckupList = () => {
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
-    const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(
-        <button
-          key={i}
-          className={`pagination-button ${currentPage === i ? 'active' : ''}`}
-          onClick={() => handlePageChange(i)}
-        >
-          {i}
-        </button>
-      );
-    }
-
     return (
-      <div className="pagination-container">
-        <div className="pagination-info">
-          Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredCampaigns.length)} trong {filteredCampaigns.length} chiến dịch
+      <div className="d-flex justify-content-between align-items-center mt-4 px-3">
+        {/* Showing entries info */}
+        <div className="text-muted">
+          <small>
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredCampaigns.length)} of {filteredCampaigns.length} campaigns
+          </small>
         </div>
-        <div className="pagination-controls">
+
+        {/* Pagination controls */}
+        <div className="d-flex align-items-center gap-2">
+          {/* First page button */}
           <button
-            className="pagination-button"
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(1)}
+            title="Trang đầu"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-double-left"></i>
+          </button>
+
+          {/* Previous page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
             disabled={currentPage === 1}
             onClick={() => handlePageChange(currentPage - 1)}
+            title="Trang trước"
+            style={{ minWidth: '40px' }}
           >
-            ← Trước
+            <i className="fas fa-angle-left"></i>
           </button>
-          {pages}
+
+          {/* Current page indicator */}
+          <div
+            className="px-3 py-1 text-white rounded"
+            style={{
+              minWidth: '60px',
+              textAlign: 'center',
+              fontSize: '14px',
+              fontWeight: '500',
+              background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'
+            }}
+          >
+            {currentPage} / {totalPages}
+          </div>
+
+          {/* Next page button */}
           <button
-            className="pagination-button"
+            className="btn btn-outline-secondary btn-sm"
             disabled={currentPage === totalPages}
             onClick={() => handlePageChange(currentPage + 1)}
+            title="Trang tiếp"
+            style={{ minWidth: '40px' }}
           >
-            Tiếp →
+            <i className="fas fa-angle-right"></i>
+          </button>
+
+          {/* Last page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(totalPages)}
+            title="Trang cuối"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-double-right"></i>
           </button>
         </div>
       </div>

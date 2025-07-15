@@ -432,85 +432,76 @@ const InventoryPage = () => {
           </table>
         </div>
         
-        {/* Bootstrap Pagination */}
+        {/* Simple Pagination with "1 / 3" style */}
         {totalPages > 1 && (
           <div className="d-flex justify-content-between align-items-center px-3 py-3 border-top">
-            <div className="text-muted small">
-              Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredItems.length)} trên {filteredItems.length} vật phẩm
+            {/* Showing entries info */}
+            <div className="text-muted">
+              <small>
+                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredItems.length)} of {filteredItems.length} items
+              </small>
             </div>
-            
-            <nav aria-label="Table pagination">
-              <ul className="pagination pagination-sm mb-0">
-                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                  <button 
-                    className="page-link"
-                    onClick={() => setCurrentPage(1)} 
-                    disabled={currentPage === 1}
-                    title="Trang đầu"
-                  >
-                    <i className="fas fa-angle-double-left"></i>
-                  </button>
-                </li>
-                
-                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                  <button 
-                    className="page-link"
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
-                    disabled={currentPage === 1}
-                    title="Trang trước"
-                  >
-                    <i className="fas fa-angle-left"></i>
-                  </button>
-                </li>
-                
-                {/* Page numbers */}
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNumber;
-                  if (totalPages <= 5) {
-                    pageNumber = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNumber = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNumber = totalPages - 4 + i;
-                  } else {
-                    pageNumber = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <li key={pageNumber} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
-                      <button 
-                        className="page-link"
-                        onClick={() => setCurrentPage(pageNumber)}
-                      >
-                        {pageNumber}
-                      </button>
-                    </li>
-                  );
-                })}
-                
-                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                  <button 
-                    className="page-link"
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
-                    disabled={currentPage === totalPages}
-                    title="Trang sau"
-                  >
-                    <i className="fas fa-angle-right"></i>
-                  </button>
-                </li>
-                
-                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                  <button 
-                    className="page-link"
-                    onClick={() => setCurrentPage(totalPages)} 
-                    disabled={currentPage === totalPages}
-                    title="Trang cuối"
-                  >
-                    <i className="fas fa-angle-double-right"></i>
-                  </button>
-                </li>
-              </ul>
-            </nav>
+
+            {/* Pagination controls */}
+            <div className="d-flex align-items-center gap-2">
+              {/* First page button */}
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                title="Trang đầu"
+                style={{ minWidth: '40px' }}
+              >
+                <i className="fas fa-angle-double-left"></i>
+              </button>
+
+              {/* Previous page button */}
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                title="Trang trước"
+                style={{ minWidth: '40px' }}
+              >
+                <i className="fas fa-angle-left"></i>
+              </button>
+
+              {/* Current page indicator */}
+              <div
+                className="px-3 py-1 text-white rounded"
+                style={{
+                  minWidth: '60px',
+                  textAlign: 'center',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'
+                }}
+              >
+                {currentPage} / {totalPages}
+              </div>
+
+              {/* Next page button */}
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                title="Trang tiếp"
+                style={{ minWidth: '40px' }}
+              >
+                <i className="fas fa-angle-right"></i>
+              </button>
+
+              {/* Last page button */}
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                title="Trang cuối"
+                style={{ minWidth: '40px' }}
+              >
+                <i className="fas fa-angle-double-right"></i>
+              </button>
+            </div>
           </div>
         )}
       </>
@@ -580,10 +571,14 @@ const InventoryPage = () => {
                   {/* Action Buttons */}
                   <div className="col-md-6">
                     <div className="d-flex justify-content-end gap-2 flex-wrap">
-                      <button 
+                      <button
                         className="btn"
                         onClick={() => setShowAddModal(true)}
-                        style={{ backgroundColor: '#0d6efd', color: 'white' }}
+                        style={{
+                          background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)',
+                          color: 'white',
+                          border: 'none'
+                        }}
                       >
                         <i className="fas fa-plus me-1"></i>
                         Thêm vật phẩm

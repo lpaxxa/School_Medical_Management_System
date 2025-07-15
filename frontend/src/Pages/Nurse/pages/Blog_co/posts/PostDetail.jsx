@@ -61,17 +61,41 @@ const PostDetail = () => {
   const [updateReplyLoading, setUpdateReplyLoading] = useState(false);
   const [showReplySuccessMessage, setShowReplySuccessMessage] = useState(false);
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
+  // Format date - handle both string and array formats
+  const formatDate = (dateInput) => {
+    if (!dateInput) return 'N/A';
+
+    try {
+      let dateObj;
+
+      // Handle array format from backend: [year, month, day, hour, minute, second, nanosecond]
+      if (Array.isArray(dateInput)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = dateInput;
+        // Month in JavaScript Date is 0-indexed, so subtract 1
+        dateObj = new Date(year, month - 1, day, hour, minute, second, Math.floor(nanosecond / 1000000));
+      } else {
+        // Handle string format
+        dateObj = new Date(dateInput);
+      }
+
+      // Check if date is valid
+      if (isNaN(dateObj.getTime())) {
+        console.warn("Invalid date detected:", dateInput);
+        return "Thời gian không hợp lệ";
+      }
+
+      const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return dateObj.toLocaleDateString('vi-VN', options);
+    } catch (error) {
+      console.error("Lỗi khi định dạng ngày tháng:", error, "Input:", dateInput);
+      return "Lỗi định dạng thời gian";
+    }
   };
 
   // Load post details
