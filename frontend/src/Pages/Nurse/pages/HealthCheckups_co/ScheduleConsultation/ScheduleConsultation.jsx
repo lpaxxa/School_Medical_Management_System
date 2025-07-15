@@ -37,7 +37,7 @@ const MedicalCheckupList = ({ refreshData }) => {
   // State for validation
   const [validated, setValidated] = useState(false);
   const [errors, setErrors] = useState({});
-
+  
   // State for single notification modal
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   
@@ -127,52 +127,78 @@ const MedicalCheckupList = ({ refreshData }) => {
     setCurrentPage(page);
   };
 
-  // Render pagination
+  // Simple pagination with "1 / 3" style
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
-    const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(
-        <Button
-          key={i}
-          variant={currentPage === i ? "primary" : "outline-primary"}
-          size="sm"
-          onClick={() => handlePageChange(i)}
-          className="mx-1"
-        >
-          {i}
-        </Button>
-      );
-    }
-
     return (
-      <div className="d-flex flex-column align-items-center mt-3">
-        <div className="pagination-info mb-2">
-          <small className="text-muted">
-            Trang {currentPage} / {totalPages} - Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredCheckups.length)} trong {filteredCheckups.length} bản ghi
+      <div className="d-flex justify-content-between align-items-center mt-4 px-3">
+        {/* Showing entries info */}
+        <div className="text-muted">
+          <small>
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredCheckups.length)} of {filteredCheckups.length} checkups
           </small>
         </div>
-        <div className="pagination-controls">
-          <Button
-            variant="outline-primary"
-            size="sm"
+
+        {/* Pagination controls */}
+        <div className="d-flex align-items-center gap-2">
+          {/* First page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(1)}
+            title="Trang đầu"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-double-left"></i>
+          </button>
+
+          {/* Previous page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
             disabled={currentPage === 1}
             onClick={() => handlePageChange(currentPage - 1)}
-            className="me-2"
+            title="Trang trước"
+            style={{ minWidth: '40px' }}
           >
-            ← Trước
-          </Button>
-          {pages}
-          <Button
-            variant="outline-primary"
-            size="sm"
+            <i className="fas fa-angle-left"></i>
+          </button>
+
+          {/* Current page indicator */}
+          <div
+            className="px-3 py-1 text-white rounded"
+            style={{
+              minWidth: '60px',
+              textAlign: 'center',
+              fontSize: '14px',
+              fontWeight: '500',
+              background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'
+            }}
+          >
+            {currentPage} / {totalPages}
+          </div>
+
+          {/* Next page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
             disabled={currentPage === totalPages}
             onClick={() => handlePageChange(currentPage + 1)}
-            className="ms-2"
+            title="Trang tiếp"
+            style={{ minWidth: '40px' }}
           >
-            Tiếp →
-          </Button>
+            <i className="fas fa-angle-right"></i>
+          </button>
+
+          {/* Last page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(totalPages)}
+            title="Trang cuối"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-double-right"></i>
+          </button>
         </div>
       </div>
     );
@@ -561,21 +587,21 @@ const MedicalCheckupList = ({ refreshData }) => {
       
       {/* Detail Modal */}
       {selectedCheckup && (
-        <CheckupDetailModal
-          show={showDetailModal}
-          onHide={() => setShowDetailModal(false)}
+      <CheckupDetailModal
+        show={showDetailModal}
+        onHide={() => setShowDetailModal(false)}
           checkup={selectedCheckup}
-        />
+      />
       )}
-
+      
       {/* Edit Modal */}
       {showEditModal && (
-        <ScheduleEditCheckupModal
-          show={showEditModal}
-          onHide={() => setShowEditModal(false)}
-          checkupData={editFormData}
-          onSubmit={handleUpdateSubmit}
-          loading={submitting}
+      <ScheduleEditCheckupModal
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+        checkupData={editFormData}
+        onSubmit={handleUpdateSubmit}
+        loading={submitting}
           validated={validated}
           errors={errors}
           setCheckupData={setEditFormData}
@@ -614,12 +640,12 @@ const ScheduleEditCheckupModal = ({ show, onHide, checkupData, onSubmit, loading
         // Handles both ISO strings and simple date strings
         return new Date(dateString).toISOString().split('T')[0];
     };
-    
+
     return (
-        <Modal
-            show={show}
-            onHide={onHide}
-            size="xl"
+        <Modal 
+            show={show} 
+            onHide={onHide} 
+            size="xl" 
             dialogClassName="schedule-edit-checkup-modal"
             aria-labelledby="edit-checkup-modal"
             centered
@@ -790,8 +816,8 @@ const ScheduleEditCheckupModal = ({ show, onHide, checkupData, onSubmit, loading
                          <Row>
                             <Col md={12}>
                                 <Form.Group controlId="diagnosis">
-                                    <Form.Label>Chẩn đoán</Form.Label>
-                                    <Form.Control as="textarea" rows={3} name="diagnosis" value={formData.diagnosis || ''} onChange={handleChange} />
+                            <Form.Label>Chẩn đoán</Form.Label>
+                            <Form.Control as="textarea" rows={3} name="diagnosis" value={formData.diagnosis || ''} onChange={handleChange} />
                                 </Form.Group>
                             </Col>
                         </Row>

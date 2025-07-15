@@ -64,16 +64,16 @@ const CheckupDetailModal = ({ show, onHide, checkup, loading }) => {
                         <Card className="mb-3 detail-card">
                             <Card.Header><FaUser className="me-2" />Thông tin chung</Card.Header>
                             <ListGroup variant="flush">
-                                <Row>
+                            <Row>
                                     <Col md={6}><DetailItem icon={<FaUser />} label="Học sinh" value={checkup.studentName} /></Col>
                                     <Col md={6}><DetailItem icon={<FaBuilding />} label="Lớp" value={checkup.studentClass} /></Col>
                                     <Col md={6}><DetailItem icon={<FaClipboardList />} label="Chiến dịch" value={checkup.campaignTitle} /></Col>
                                     <Col md={6}><DetailItem icon={<FaCalendarAlt />} label="Ngày khám" value={formatDate(checkup.checkupDate)} /></Col>
                                     <Col md={6}><DetailItem icon={<FaUserMd />} label="Nhân viên y tế" value={checkup.medicalStaffName} /></Col>
-                                </Row>
+                            </Row>
                             </ListGroup>
                         </Card>
-                        <Row>
+                            <Row>
                             <Col md={7}>
                                 <Card className="mb-3 detail-card">
                                     <Card.Header><FaStethoscope className="me-2" />Các chỉ số chính</Card.Header>
@@ -99,7 +99,7 @@ const CheckupDetailModal = ({ show, onHide, checkup, loading }) => {
                                         <div>
                                             <div className="fw-bold mb-1">Thông báo P.Huynh</div>
                                             {renderParentNotifiedBadge(checkup.parentNotified)}
-                                        </div>
+                        </div>
                                     </Card.Body>
                                 </Card>
                                 <Card className="mb-3 detail-card">
@@ -109,13 +109,13 @@ const CheckupDetailModal = ({ show, onHide, checkup, loading }) => {
                                      </Card.Body>
                                 </Card>
                             </Col>
-                        </Row>
+                            </Row>
                         <Card className="detail-card">
                             <Card.Header><FaNotesMedical className="me-2" />Chẩn đoán & Đề nghị</Card.Header>
                             <Card.Body>
                                 <h6 className="card-subtitle mb-2 text-muted">Chẩn đoán của bác sĩ</h6>
                                 <p className="card-text">{checkup.diagnosis || 'Chưa có chẩn đoán.'}</p>
-                                <hr />
+                        <hr />
                                 <h6 className="card-subtitle mb-2 mt-3 text-muted">Đề nghị</h6>
                                 <p className="card-text">{checkup.notes || 'Chưa có đề nghị.'}</p>
                             </Card.Body>

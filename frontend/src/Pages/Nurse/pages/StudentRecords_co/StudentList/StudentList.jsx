@@ -244,79 +244,79 @@ const StudentList = () => {
     );
   };
 
-  // Hàm render phân trang
+  // Simple pagination with "1 / 3" style
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
-    const items = [];
-    
-    // Nút Previous
-    items.push(
-      <Pagination.Prev
-        key="prev"
-        disabled={currentPage === 1}
-        onClick={() => handlePageChange(currentPage - 1)}
-      />
-    );
-
-    // Tính toán các trang hiển thị
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
-
-    // Nút đầu và dấu ...
-    if (startPage > 1) {
-      items.push(
-        <Pagination.Item key={1} onClick={() => handlePageChange(1)}>
-          1
-        </Pagination.Item>
-      );
-      if (startPage > 2) {
-        items.push(<Pagination.Ellipsis key="start-ellipsis" />);
-      }
-    }
-
-    // Các trang ở giữa
-    for (let page = startPage; page <= endPage; page++) {
-      items.push(
-        <Pagination.Item
-          key={page}
-          active={page === currentPage}
-          onClick={() => handlePageChange(page)}
-        >
-          {page}
-        </Pagination.Item>
-      );
-    }
-
-    // Nút cuối và dấu ...
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1) {
-        items.push(<Pagination.Ellipsis key="end-ellipsis" />);
-      }
-      items.push(
-        <Pagination.Item key={totalPages} onClick={() => handlePageChange(totalPages)}>
-          {totalPages}
-        </Pagination.Item>
-      );
-    }
-
-    // Nút Next
-    items.push(
-      <Pagination.Next
-        key="next"
-        disabled={currentPage === totalPages}
-        onClick={() => handlePageChange(currentPage + 1)}
-      />
-    );
-
     return (
-      <div className="d-flex justify-content-between align-items-center mt-4">
+      <div className="d-flex justify-content-between align-items-center mt-4 px-3">
+        {/* Showing entries info */}
         <div className="text-muted">
-          Hiển thị {indexOfFirstStudent + 1} - {Math.min(indexOfLastStudent, gradeFilteredStudents.length)} trong tổng số {gradeFilteredStudents.length} học sinh
+          <small>
+            Showing {indexOfFirstStudent + 1} to {Math.min(indexOfLastStudent, gradeFilteredStudents.length)} of {gradeFilteredStudents.length} students
+          </small>
         </div>
-        <Pagination className="mb-0">
-          {items}
-        </Pagination>
+
+        {/* Pagination controls */}
+        <div className="d-flex align-items-center gap-2">
+          {/* First page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(1)}
+            title="Trang đầu"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-double-left"></i>
+          </button>
+
+          {/* Previous page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+            title="Trang trước"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-left"></i>
+          </button>
+
+          {/* Current page indicator */}
+          <div
+            className="px-3 py-1 text-white rounded"
+            style={{
+              minWidth: '60px',
+              textAlign: 'center',
+              fontSize: '14px',
+              fontWeight: '500',
+              background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'
+            }}
+          >
+            {currentPage} / {totalPages}
+          </div>
+
+          {/* Next page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+            title="Trang tiếp"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-right"></i>
+          </button>
+
+          {/* Last page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(totalPages)}
+            title="Trang cuối"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-double-right"></i>
+          </button>
+        </div>
       </div>
     );
   };

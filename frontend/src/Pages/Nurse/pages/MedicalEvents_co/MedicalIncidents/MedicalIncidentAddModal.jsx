@@ -26,6 +26,11 @@ const MedicalIncidentAddModal = ({
     imageMedicalUrl: ''
   });
 
+  // Image upload states - following AddHealthArticle pattern
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [imageUploadError, setImageUploadError] = useState('');
+
   // Medication search states
   const [medicationSearch, setMedicationSearch] = useState('');
   const [medicationResults, setMedicationResults] = useState([]);
@@ -59,6 +64,11 @@ const MedicalIncidentAddModal = ({
           medicationsUsed: selectedEvent.medicationsUsed || [],
           imageMedicalUrl: selectedEvent.imageMedicalUrl || ''
         });
+
+        // Reset image upload states for edit mode
+        setImageFile(null);
+        setImagePreview('');
+        setImageUploadError('');
       } else {
         // Add mode - reset form with current datetime
         const now = new Date();
@@ -77,6 +87,11 @@ const MedicalIncidentAddModal = ({
           medicationsUsed: [],
           imageMedicalUrl: ''
         });
+
+        // Reset image upload states for add mode
+        setImageFile(null);
+        setImagePreview('');
+        setImageUploadError('');
       }
 
       // Fetch all students for the dropdown
@@ -226,6 +241,71 @@ const MedicalIncidentAddModal = ({
     }));
   };
 
+  // Handle image file selection - following AddHealthArticle pattern
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      setImageUploadError('Chỉ chấp nhận file ảnh định dạng JPG, PNG hoặc GIF');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setImageUploadError('Kích thước file không được vượt quá 5MB');
+      return;
+    }
+
+    setImageUploadError('');
+    setImageFile(file);
+
+    // Create preview URL using URL.createObjectURL like AddHealthArticle
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+  };
+
+  // Process image when submitting form - convert to base64
+  const processImageForSubmit = async () => {
+    if (!imageFile) return '';
+
+    try {
+      // Convert image to base64
+      const base64Image = await convertImageToBase64(imageFile);
+      return base64Image;
+    } catch (error) {
+      console.error('Error processing image:', error);
+      throw new Error('Không thể xử lý ảnh. Vui lòng thử lại.');
+    }
+  };
+
+  // Convert image to base64
+  const convertImageToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  // Handle removing uploaded image
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setFormData(prev => ({
+      ...prev,
+      imageMedicalUrl: ''
+    }));
+    setImageUploadError('');
+    // Reset file input
+    const fileInput = document.getElementById('medical-image-upload');
+    if (fileInput) fileInput.value = '';
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -247,6 +327,13 @@ const MedicalIncidentAddModal = ({
     }
     
     try {
+      // Process image if selected
+      let imageUrl = formData.imageMedicalUrl; // Use manual URL if provided
+      if (imageFile && !imageUrl) {
+        // Convert image to base64 if file is selected but no manual URL
+        imageUrl = await processImageForSubmit();
+      }
+
       // Format data for API submission
       const apiData = {
         studentId: formData.studentId,
@@ -264,7 +351,7 @@ const MedicalIncidentAddModal = ({
           itemID: med.itemID,
           name: med.name  // Include name for string conversion in service
         })),
-        imageMedicalUrl: formData.imageMedicalUrl, // Direct URL from input
+        imageMedicalUrl: imageUrl, // Use processed image URL
         handledById: 1 // Default handler ID
       };
 
@@ -298,6 +385,13 @@ const MedicalIncidentAddModal = ({
     setMedicationSearch('');
     setMedicationResults([]);
     setShowMedicationDropdown(false);
+    // Reset image upload states
+    setImageFile(null);
+    setImagePreview('');
+    setImageUploadError('');
+    // Reset file input
+    const fileInput = document.getElementById('medical-image-upload');
+    if (fileInput) fileInput.value = '';
     onClose();
   };
 
@@ -882,7 +976,7 @@ const MedicalIncidentAddModal = ({
                 </Col>
               </Row>
 
-              {/* Image URL Section */}
+              {/* Image Upload Section */}
               <Row className="mb-4">
                 <Col>
                   <Card className="border-secondary medical-image-card">
@@ -893,8 +987,74 @@ const MedicalIncidentAddModal = ({
                       </h6>
                     </Card.Header>
                     <Card.Body>
-                      <Form.Group className="mb-3">
-                        <Form.Label className="fw-semibold">Link ảnh sự cố y tế</Form.Label>
+                      {/* Upload from computer section - following AddHealthArticle pattern */}
+                      <div className="mb-4">
+                        <Form.Label className="fw-semibold">
+                          <i className="fas fa-upload me-2 text-primary"></i>
+                          Tải ảnh từ máy tính
+                        </Form.Label>
+                        <Form.Control
+                          id="medical-image-upload"
+                          type="file"
+                          name="image"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                        />
+                        <Form.Text className="text-muted">
+                          Chọn một ảnh để làm ảnh minh họa cho sự cố y tế (tùy chọn).
+                        </Form.Text>
+
+                        {/* Image preview - following AddHealthArticle pattern */}
+                        {imagePreview && (
+                          <div className="mt-3">
+                            <Form.Label className="small text-muted">Xem trước:</Form.Label>
+                            <div className="position-relative d-inline-block">
+                              <img
+                                src={imagePreview}
+                                alt="Xem trước"
+                                className="img-fluid rounded shadow-sm"
+                                style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'cover' }}
+                                onError={(e) => {
+                                  console.error('Image preview failed to load:', imagePreview);
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                              <Button
+                                variant="outline-danger"
+                                size="sm"
+                                onClick={handleRemoveImage}
+                                className="position-absolute top-0 end-0 m-1"
+                                title="Xóa ảnh"
+                              >
+                                <i className="fas fa-times"></i>
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {imageFile && (
+                          <div className="mt-2">
+                            <small className="text-muted">
+                              <i className="fas fa-file-image me-1"></i>
+                              Đã chọn: {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
+                            </small>
+                          </div>
+                        )}
+
+                        {imageUploadError && (
+                          <Alert variant="danger" className="mt-3">
+                            <i className="fas fa-exclamation-triangle me-2"></i>
+                            {imageUploadError}
+                          </Alert>
+                        )}
+                      </div>
+
+                      {/* Manual URL input section */}
+                      <div className="mb-3">
+                        <Form.Label className="fw-semibold">
+                          <i className="fas fa-link me-2 text-info"></i>
+                          Hoặc nhập link ảnh
+                        </Form.Label>
                         <Form.Control
                           type="url"
                           name="imageMedicalUrl"
@@ -903,20 +1063,21 @@ const MedicalIncidentAddModal = ({
                           placeholder="Nhập link ảnh sự cố y tế (http://... hoặc https://...)"
                           className="medical-image-input"
                         />
-                      </Form.Group>
-                      
-                      {formData.imageMedicalUrl && (
+                      </div>
+
+                      {/* Image preview section */}
+                      {(imagePreview || formData.imageMedicalUrl) && (
                         <div className="medical-image-preview">
                           <h6 className="text-info fw-bold mb-3 text-center">
                             <i className="fas fa-eye me-2"></i>Preview ảnh sự cố
                           </h6>
                           <div className="d-flex justify-content-center align-items-center">
                             <div className="position-relative">
-                              <img 
-                                src={formData.imageMedicalUrl} 
-                                alt="Preview ảnh sự cố" 
+                              <img
+                                src={imagePreview || formData.imageMedicalUrl}
+                                alt="Preview ảnh sự cố"
                                 className="img-fluid rounded shadow-lg border border-2 border-info"
-                                style={{ 
+                                style={{
                                   maxWidth: '100%',
                                   maxHeight: '400px',
                                   width: 'auto',

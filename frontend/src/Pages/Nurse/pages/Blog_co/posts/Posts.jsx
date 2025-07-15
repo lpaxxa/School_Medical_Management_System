@@ -43,6 +43,13 @@ const Posts = () => {
   useEffect(() => {
     const loadLikeAndBookmarkStatus = async () => {
       if (posts && posts.length > 0) {
+        // Debug logging để kiểm tra format dữ liệu
+        console.log("=== POSTS DATA DEBUG ===");
+        console.log("First post:", posts[0]);
+        console.log("CreatedAt format:", posts[0]?.createdAt);
+        console.log("CreatedAt type:", typeof posts[0]?.createdAt);
+        console.log("Is array:", Array.isArray(posts[0]?.createdAt));
+
         try {
           const postsWithStatusData = await Promise.all(
             posts.map(async (post) => {
@@ -80,17 +87,61 @@ const Posts = () => {
     loadLikeAndBookmarkStatus();
   }, [posts]);
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
+  // Helper function to parse date from various formats
+  const parseDate = (dateInput) => {
+    if (!dateInput) return new Date(0); // Return epoch for null/undefined
+
+    try {
+      // Handle array format from backend: [year, month, day, hour, minute, second, nanosecond]
+      if (Array.isArray(dateInput)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = dateInput;
+        // Month in JavaScript Date is 0-indexed, so subtract 1
+        return new Date(year, month - 1, day, hour, minute, second, Math.floor(nanosecond / 1000000));
+      } else {
+        // Handle string format
+        return new Date(dateInput);
+      }
+    } catch (error) {
+      console.error("Error parsing date:", error, "Input:", dateInput);
+      return new Date(0); // Return epoch for invalid dates
+    }
+  };
+
+  // Format date - handle both string and array formats
+  const formatDate = (dateInput) => {
+    if (!dateInput) return 'N/A';
+
+    try {
+      let dateObj;
+
+      // Handle array format from backend: [year, month, day, hour, minute, second, nanosecond]
+      if (Array.isArray(dateInput)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = dateInput;
+        // Month in JavaScript Date is 0-indexed, so subtract 1
+        dateObj = new Date(year, month - 1, day, hour, minute, second, Math.floor(nanosecond / 1000000));
+      } else {
+        // Handle string format
+        dateObj = new Date(dateInput);
+      }
+
+      // Check if date is valid
+      if (isNaN(dateObj.getTime())) {
+        console.warn("Invalid date detected:", dateInput);
+        return "Thời gian không hợp lệ";
+      }
+
+      const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return dateObj.toLocaleDateString('vi-VN', options);
+    } catch (error) {
+      console.error("Lỗi khi định dạng ngày tháng:", error, "Input:", dateInput);
+      return "Lỗi định dạng thời gian";
+    }
   };
 
   // Filter posts based on search term and category
@@ -109,7 +160,11 @@ const Posts = () => {
     // Sắp xếp theo bookmark trước (bài ghim lên đầu), sau đó theo createdAt (mới nhất trước)
     if (a.bookmarked && !b.bookmarked) return -1;
     if (!a.bookmarked && b.bookmarked) return 1;
-    return new Date(b.createdAt) - new Date(a.createdAt);
+
+    // Use parseDate helper for proper date comparison
+    const dateA = parseDate(a.createdAt);
+    const dateB = parseDate(b.createdAt);
+    return dateB - dateA; // Newest first
   });
 
   // Pagination logic
@@ -529,43 +584,77 @@ const Posts = () => {
         </Row>
       )}
 
-      {/* Pagination */}
+      {/* Simple Pagination with "1 / 3" style */}
       {!postsLoading && !postsError && totalPagesLocal > 1 && (
         <Row className="mt-4">
-          <Col className="d-flex justify-content-center align-items-center">
-            <div className="d-flex align-items-center gap-3">
-              <span className="text-muted small">
-                Hiển thị {startIndex + 1} - {Math.min(endIndex, totalPosts)} của {totalPosts} bài viết
-              </span>
-              <Pagination>
-                <Pagination.First 
-                  onClick={() => setCurrentLocalPage(1)} 
+          <Col>
+            <div className="d-flex justify-content-between align-items-center px-3">
+              {/* Showing entries info */}
+              <div className="text-muted">
+                <small>
+                  Showing {startIndex + 1} to {Math.min(endIndex, totalPosts)} of {totalPosts} posts
+                </small>
+              </div>
+
+              {/* Pagination controls */}
+              <div className="d-flex align-items-center gap-2">
+                {/* First page button */}
+                <button
+                  className="btn btn-outline-secondary btn-sm"
                   disabled={currentLocalPage === 1}
-                />
-                <Pagination.Prev 
-                  onClick={() => setCurrentLocalPage(currentLocalPage - 1)} 
+                  onClick={() => setCurrentLocalPage(1)}
+                  title="Trang đầu"
+                  style={{ minWidth: '40px' }}
+                >
+                  <i className="fas fa-angle-double-left"></i>
+                </button>
+
+                {/* Previous page button */}
+                <button
+                  className="btn btn-outline-secondary btn-sm"
                   disabled={currentLocalPage === 1}
-                />
-                
-                {[...Array(totalPagesLocal).keys()].map(number => (
-                  <Pagination.Item 
-                    key={number + 1} 
-                    active={number + 1 === currentLocalPage}
-                    onClick={() => setCurrentLocalPage(number + 1)}
-                  >
-                    {number + 1}
-                  </Pagination.Item>
-                ))}
-                
-                <Pagination.Next 
-                  onClick={() => setCurrentLocalPage(currentLocalPage + 1)} 
+                  onClick={() => setCurrentLocalPage(currentLocalPage - 1)}
+                  title="Trang trước"
+                  style={{ minWidth: '40px' }}
+                >
+                  <i className="fas fa-angle-left"></i>
+                </button>
+
+                {/* Current page indicator */}
+                <div
+                  className="px-3 py-1 bg-primary text-white rounded"
+                  style={{
+                    minWidth: '60px',
+                    textAlign: 'center',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  {currentLocalPage} / {totalPagesLocal}
+                </div>
+
+                {/* Next page button */}
+                <button
+                  className="btn btn-outline-secondary btn-sm"
                   disabled={currentLocalPage === totalPagesLocal}
-                />
-                <Pagination.Last 
-                  onClick={() => setCurrentLocalPage(totalPagesLocal)} 
+                  onClick={() => setCurrentLocalPage(currentLocalPage + 1)}
+                  title="Trang tiếp"
+                  style={{ minWidth: '40px' }}
+                >
+                  <i className="fas fa-angle-right"></i>
+                </button>
+
+                {/* Last page button */}
+                <button
+                  className="btn btn-outline-secondary btn-sm"
                   disabled={currentLocalPage === totalPagesLocal}
-                />
-              </Pagination>
+                  onClick={() => setCurrentLocalPage(totalPagesLocal)}
+                  title="Trang cuối"
+                  style={{ minWidth: '40px' }}
+                >
+                  <i className="fas fa-angle-double-right"></i>
+                </button>
+              </div>
             </div>
           </Col>
         </Row>

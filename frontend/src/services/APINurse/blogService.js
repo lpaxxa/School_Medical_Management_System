@@ -280,7 +280,7 @@ export const deleteHealthArticle = async (id) => {
 export const uploadImageForHealthArticle = async (file, articleId) => {
   try {
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('file', file); // Sửa 'image' thành 'file' để khớp với backend
     
     console.log('Uploading image for health article:', articleId);
     const response = await api.post(`/${articleId}/upload-image`, formData, {

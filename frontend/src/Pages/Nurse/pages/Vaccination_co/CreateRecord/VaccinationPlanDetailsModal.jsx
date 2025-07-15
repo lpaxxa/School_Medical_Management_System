@@ -16,6 +16,10 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
     const [filterClass, setFilterClass] = useState('');
     const [filterResponse, setFilterResponse] = useState('');
 
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     // Monitoring status states
     const [monitoringStatuses, setMonitoringStatuses] = useState({});
     const [monitoringStatusLoading, setMonitoringStatusLoading] = useState(false);
@@ -84,11 +88,18 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
         });
     }, [planDetails?.students, filterName, filterClass, filterResponse]);
 
+    // Pagination logic
+    const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentStudents = filteredStudents.slice(startIndex, endIndex);
+
     // Reset filters
     const resetFilters = () => {
         setFilterName('');
         setFilterClass('');
         setFilterResponse('');
+        setCurrentPage(1); // Reset to first page when filters change
     };
 
     // Không hiển thị gì nếu show = false
@@ -438,7 +449,7 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                 onClick={resetFilters}
                                                 style={{
                                                     padding: '10px 20px',
-                                                    background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                                                    background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)',
                                                     border: 'none',
                                                     borderRadius: '8px',
                                                     color: 'white',
@@ -455,12 +466,12 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                                                 }}
                                                 onMouseEnter={(e) => {
-                                                    e.target.style.background = 'linear-gradient(135deg, #4b5563, #374151)';
+                                                    e.target.style.background = 'linear-gradient(135deg, #013D61 0%, #015C92 100%)';
                                                     e.target.style.transform = 'translateY(-2px)';
-                                                    e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+                                                    e.target.style.boxShadow = '0 4px 12px rgba(1, 92, 146, 0.3)';
                                                 }}
                                                 onMouseLeave={(e) => {
-                                                    e.target.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
+                                                    e.target.style.background = 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)';
                                                     e.target.style.transform = 'translateY(0)';
                                                     e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
                                                 }}
@@ -490,7 +501,8 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                             </p>
                                         </div>
                                     ) : (
-                                    <Table 
+                                    <>
+                                    <Table
                                         bordered 
                                         className="mb-0" 
                                         style={{
@@ -556,13 +568,13 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {filteredStudents.map((student, index) => (
+                                            {currentStudents.map((student, index) => (
                                                 <tr key={student.id}>
                                                     <td style={{
                                                         border: '1px solid #e5e7eb',
                                                         padding: '8px',
                                                         textAlign: 'left'
-                                                    }}>{index + 1}</td>
+                                                    }}>{startIndex + index + 1}</td>
                                                     <td style={{
                                                         border: '1px solid #e5e7eb',
                                                         padding: '8px',
@@ -625,8 +637,8 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                                                     onClick={() => handleShowCreateRecordModal(student, response)}
                                                                                     style={{
                                                                                         background: 'none',
-                                                                                        border: '1px solid #059669',
-                                                                                        color: '#059669',
+                                                                                        border: '1px solid #015C92',
+                                                                                        color: '#015C92',
                                                                                         padding: '4px 8px',
                                                                                         borderRadius: '4px',
                                                                                         cursor: 'pointer',
@@ -634,25 +646,25 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                                                         marginBottom: '2px'
                                                                                     }}
                                                                                     onMouseEnter={(e) => {
-                                                                                        e.target.style.backgroundColor = '#059669';
+                                                                                        e.target.style.backgroundColor = '#015C92';
                                                                                         e.target.style.color = 'white';
                                                                                     }}
                                                                                     onMouseLeave={(e) => {
                                                                                         e.target.style.backgroundColor = 'transparent';
-                                                                                        e.target.style.color = '#059669';
+                                                                                        e.target.style.color = '#015C92';
                                                                                     }}
                                                                                 >
                                                                                     Tạo HS
                                                                                 </button>
                                                                             ) : (
                                                                                 <span style={{
-                                                                                    color: '#059669',
+                                                                                    color: '#015C92',
                                                                                     fontWeight: 'bold',
                                                                                     fontSize: '11px',
                                                                                     padding: '3px 6px',
                                                                                     borderRadius: '4px',
                                                                                     backgroundColor: '#f0f9ff',
-                                                                                    border: '1px solid #059669',
+                                                                                    border: '1px solid #015C92',
                                                                                     display: 'inline-block',
                                                                                     lineHeight: '1.2',
                                                                                     whiteSpace: 'nowrap'
@@ -672,6 +684,80 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                             ))}
                                         </tbody>
                                     </Table>
+
+                                    {/* Simple Pagination with "1 / 3" style */}
+                                    {totalPages > 1 && (
+                                        <div className="d-flex justify-content-between align-items-center mt-4 px-3">
+                                            {/* Showing entries info */}
+                                            <div className="text-muted">
+                                                <small>
+                                                    Showing {startIndex + 1} to {Math.min(endIndex, filteredStudents.length)} of {filteredStudents.length} students
+                                                </small>
+                                            </div>
+
+                                            {/* Pagination controls */}
+                                            <div className="d-flex align-items-center gap-2">
+                                                {/* First page button */}
+                                                <button
+                                                    className="btn btn-outline-secondary btn-sm"
+                                                    disabled={currentPage === 1}
+                                                    onClick={() => setCurrentPage(1)}
+                                                    title="Trang đầu"
+                                                    style={{ minWidth: '40px' }}
+                                                >
+                                                    <i className="fas fa-angle-double-left"></i>
+                                                </button>
+
+                                                {/* Previous page button */}
+                                                <button
+                                                    className="btn btn-outline-secondary btn-sm"
+                                                    disabled={currentPage === 1}
+                                                    onClick={() => setCurrentPage(currentPage - 1)}
+                                                    title="Trang trước"
+                                                    style={{ minWidth: '40px' }}
+                                                >
+                                                    <i className="fas fa-angle-left"></i>
+                                                </button>
+
+                                                {/* Current page indicator */}
+                                                <div
+                                                    className="px-3 py-1 text-white rounded"
+                                                    style={{
+                                                        minWidth: '60px',
+                                                        textAlign: 'center',
+                                                        fontSize: '14px',
+                                                        fontWeight: '500',
+                                                        background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'
+                                                    }}
+                                                >
+                                                    {currentPage} / {totalPages}
+                                                </div>
+
+                                                {/* Next page button */}
+                                                <button
+                                                    className="btn btn-outline-secondary btn-sm"
+                                                    disabled={currentPage === totalPages}
+                                                    onClick={() => setCurrentPage(currentPage + 1)}
+                                                    title="Trang tiếp"
+                                                    style={{ minWidth: '40px' }}
+                                                >
+                                                    <i className="fas fa-angle-right"></i>
+                                                </button>
+
+                                                {/* Last page button */}
+                                                <button
+                                                    className="btn btn-outline-secondary btn-sm"
+                                                    disabled={currentPage === totalPages}
+                                                    onClick={() => setCurrentPage(totalPages)}
+                                                    title="Trang cuối"
+                                                    style={{ minWidth: '40px' }}
+                                                >
+                                                    <i className="fas fa-angle-double-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    </>
                                     )}
                                 </div>
                             </div>
