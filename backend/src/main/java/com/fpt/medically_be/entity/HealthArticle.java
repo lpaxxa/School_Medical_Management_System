@@ -41,7 +41,7 @@ public class HealthArticle {
     @Column(nullable = false, columnDefinition = "NVARCHAR(50)")
     private String category;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(500)")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String imageUrl;
 
     @ElementCollection

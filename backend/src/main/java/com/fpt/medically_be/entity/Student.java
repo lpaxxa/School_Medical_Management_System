@@ -37,7 +37,7 @@ public class Student {
     @Column(name = "school_year", columnDefinition = "NVARCHAR(50)")
     private String schoolYear;
 
-    @Column(name = "image_url", columnDefinition = "NVARCHAR(255)")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @OneToOne(cascade = CascadeType.ALL)
