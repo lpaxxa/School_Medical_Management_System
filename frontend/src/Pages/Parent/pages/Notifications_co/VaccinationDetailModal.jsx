@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import notificationService from "../../../../services/notificationService";
+import "./VaccinationDetailModal.css";
 
 const VaccinationDetailModal = ({
   isOpen,
@@ -9,6 +10,50 @@ const VaccinationDetailModal = ({
   parentId,
   onResponseUpdated,
 }) => {
+  // Utility function to format Java LocalDateTime arrays
+  const formatDateTime = (timestamp) => {
+    console.log("formatDateTime input:", timestamp);
+
+    if (!timestamp) return "Không có thông tin";
+
+    try {
+      let date;
+
+      // Kiểm tra nếu timestamp là mảng Java LocalDateTime
+      if (Array.isArray(timestamp)) {
+        console.log("Processing array timestamp:", timestamp);
+
+        if (timestamp.length >= 5) {
+          const [year, month, day, hour = 0, minute = 0, second = 0] =
+            timestamp;
+          // Java month là 1-based, JavaScript month là 0-based
+          date = new Date(year, month - 1, day, hour, minute, second);
+          console.log("Created date from array:", date);
+        } else {
+          console.log("Array too short:", timestamp.length);
+          return "Dữ liệu không hợp lệ";
+        }
+      } else {
+        // Xử lý timestamp dạng string hoặc number
+        date = new Date(timestamp);
+      }
+
+      if (isNaN(date.getTime())) {
+        console.log("Invalid date created:", date);
+        return "Thời gian không hợp lệ";
+      }
+
+      // Format thành dd/MM/yyyy HH:mm:ss
+      const result = date.toLocaleString("vi-VN");
+
+      console.log("formatDateTime result:", result);
+      return result;
+    } catch (error) {
+      console.error("Error in formatDateTime:", error);
+      return "Lỗi xử lý thời gian";
+    }
+  };
+
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [vaccinationDetail, setVaccinationDetail] = useState(null);
@@ -71,22 +116,22 @@ const VaccinationDetailModal = ({
     } catch (error) {
       console.error("Error loading vaccination detail:", error);
 
-      // Nếu API thất bại, hiển thị dữ liệu mẫu
+      // Nếu API thất bại, hiển thị dữ liệu mẫu phù hợp với hình
       const sampleDetail = {
         id: notificationId,
-        title: "Thông báo tiêm vaccine MMR",
+        title: "Thông báo kế hoạch tiêm chủng: okoko22222222222",
         message:
-          "Kính gửi quý phụ huynh, trường sẽ tổ chức tiêm vaccine MMR cho học sinh vào ngày 15/03/2024. Vui lòng xác nhận tham gia.",
-        senderName: "Nguyễn Thị Hoa",
-        createdAt: "2025-07-05T22:40:22.25",
-        isRequest: true,
+          "Có kế hoạch tiêm chủng mới cho học sinh các lớp 2A1, 2A2, 2B1, 2B2, 2C1, 3A1, 3A2, 3B1, 3B2, 3C1, 3C2, 3D1, 3D2, 3E1, 3E2",
+        senderName: "Y tá trường học",
+        createdAt: "2025-07-14T11:15:17",
+        isRequest: false, // Đây là thông báo thông tin, không phải yêu cầu
         response: null,
         responseAt: null,
-        vaccinationType: "MMR (Sởi, Quai bị, Rubella)",
-        scheduledDate: "2024-03-15T08:00:00",
-        location: "Phòng y tế trường học - Tầng 1, Tòa A",
-        studentName: "Nguyễn Văn A",
-        studentClass: "3A1",
+        vaccinationType: "Vaccine định kỳ",
+        scheduledDate: null,
+        location: "Phòng y tế trường học",
+        studentName: null,
+        studentClass: null,
       };
 
       setVaccinationDetail(sampleDetail);
@@ -211,9 +256,9 @@ const VaccinationDetailModal = ({
     // Nếu đã có phản hồi, hiển thị trạng thái
     if (vaccinationDetail.response) {
       return (
-        <div className="pn-response-status">
+        <div className="modaldetailofnotivaccine-response-status">
           <div
-            className={`pn-response-badge pn-response-badge--${vaccinationDetail.response}`}
+            className={`modaldetailofnotivaccine-response-badge modaldetailofnotivaccine-response-badge--${vaccinationDetail.response}`}
           >
             <i
               className={`fas ${
@@ -228,9 +273,8 @@ const VaccinationDetailModal = ({
             </span>
           </div>
           {vaccinationDetail.responseAt && (
-            <p className="pn-response-time">
-              Phản hồi lúc:{" "}
-              {new Date(vaccinationDetail.responseAt).toLocaleString("vi-VN")}
+            <p className="modaldetailofnotivaccine-response-time">
+              Phản hồi lúc: {formatDateTime(vaccinationDetail.responseAt)}
             </p>
           )}
         </div>
@@ -239,9 +283,9 @@ const VaccinationDetailModal = ({
 
     // Nếu chưa có phản hồi, hiển thị buttons
     return (
-      <div className="pn-response-buttons">
+      <div className="modaldetailofnotivaccine-response-buttons">
         <button
-          className="pn-btn pn-btn--accept"
+          className="modaldetailofnotivaccine-btn modaldetailofnotivaccine-btn--accept"
           onClick={() => handleVaccinationResponse("accept")}
           disabled={submitting}
         >
@@ -249,7 +293,7 @@ const VaccinationDetailModal = ({
           {submitting ? "Đang gửi..." : "Đồng ý"}
         </button>
         <button
-          className="pn-btn pn-btn--reject"
+          className="modaldetailofnotivaccine-btn modaldetailofnotivaccine-btn--reject"
           onClick={() => handleVaccinationResponse("reject")}
           disabled={submitting}
         >
@@ -263,119 +307,157 @@ const VaccinationDetailModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="pn-modal-overlay" onClick={onClose}>
-      <div className="pn-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="pn-modal-header">
-          <h2 className="pn-modal-title">
-            {vaccinationDetail?.title || "Chi tiết thông báo tiêm chủng"}
-          </h2>
-          <button className="pn-modal-close" onClick={onClose}>
-            <i className="fas fa-times"></i>
-          </button>
+    <div className="modaldetailofnotivaccine-overlay" onClick={onClose}>
+      <div
+        className="modaldetailofnotivaccine-content"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modern Header */}
+        <div className="modaldetailofnotivaccine-header">
+          <div className="modaldetailofnotivaccine-header-content">
+            <div className="modaldetailofnotivaccine-header-left">
+              <div className="modaldetailofnotivaccine-header-icon">
+                <i className="fas fa-syringe"></i>
+              </div>
+              <div className="modaldetailofnotivaccine-header-text">
+                <h2>
+                  {vaccinationDetail?.title || "Chi tiết thông báo tiêm chủng"}
+                </h2>
+                <p>Thông tin chi tiết về kế hoạch tiêm chủng</p>
+              </div>
+            </div>
+            <button
+              className="modaldetailofnotivaccine-close"
+              onClick={onClose}
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
         </div>
 
-        <div className="pn-modal-body">
+        {/* Modern Body */}
+        <div className="modaldetailofnotivaccine-body">
           {loading ? (
-            <div className="pn-loading">
-              <div className="pn-spinner"></div>
+            <div className="modaldetailofnotivaccine-loading">
+              <div className="modaldetailofnotivaccine-spinner"></div>
               <p>Đang tải thông tin...</p>
             </div>
           ) : vaccinationDetail ? (
             <>
-              {/* Thông tin chi tiết */}
-              <div className="pn-vaccination-detail-info">
-                <div className="pn-info-row">
-                  <div className="pn-info-label">
-                    <i className="fas fa-user-md"></i>
-                    Người gửi:
-                  </div>
-                  <div className="pn-info-value">
-                    {vaccinationDetail.senderName}
-                  </div>
-                </div>
+              {/* Basic Information */}
+              <div className="modaldetailofnotivaccine-section">
+                <h3 className="modaldetailofnotivaccine-section-title">
+                  <i className="fas fa-info-circle"></i>
+                  Thông tin cơ bản
+                </h3>
 
-                <div className="pn-info-row">
-                  <div className="pn-info-label">
-                    <i className="fas fa-calendar"></i>
-                    Ngày nhận:
+                <div className="modaldetailofnotivaccine-detail-info">
+                  <div className="modaldetailofnotivaccine-info-row">
+                    <div className="modaldetailofnotivaccine-info-label">
+                      <i className="fas fa-user-md"></i>
+                      Người gửi:
+                    </div>
+                    <div className="modaldetailofnotivaccine-info-value">
+                      {vaccinationDetail.senderName}
+                    </div>
                   </div>
-                  <div className="pn-info-value">
-                    {vaccinationDetail.createdAt
-                      ? new Date(vaccinationDetail.createdAt).toLocaleString(
-                          "vi-VN"
-                        )
-                      : "Không có thông tin"}
-                  </div>
-                </div>
 
-                {vaccinationDetail.vaccinationType && (
-                  <div className="pn-info-row">
-                    <div className="pn-info-label">
-                      <i className="fas fa-syringe"></i>
-                      Loại vaccine:
+                  <div className="modaldetailofnotivaccine-info-row">
+                    <div className="modaldetailofnotivaccine-info-label">
+                      <i className="fas fa-calendar"></i>
+                      Ngày nhận:
                     </div>
-                    <div className="pn-info-value">
-                      {vaccinationDetail.vaccinationType}
-                    </div>
-                  </div>
-                )}
-
-                {vaccinationDetail.scheduledDate && (
-                  <div className="pn-info-row">
-                    <div className="pn-info-label">
-                      <i className="fas fa-clock"></i>
-                      Thời gian tiêm:
-                    </div>
-                    <div className="pn-info-value">
-                      {new Date(vaccinationDetail.scheduledDate).toLocaleString(
-                        "vi-VN"
-                      )}
+                    <div className="modaldetailofnotivaccine-info-value">
+                      {formatDateTime(vaccinationDetail.createdAt)}
                     </div>
                   </div>
-                )}
 
-                {vaccinationDetail.location && (
-                  <div className="pn-info-row">
-                    <div className="pn-info-label">
-                      <i className="fas fa-map-marker-alt"></i>
-                      Địa điểm:
+                  {vaccinationDetail.vaccinationType && (
+                    <div className="modaldetailofnotivaccine-info-row">
+                      <div className="modaldetailofnotivaccine-info-label">
+                        <i className="fas fa-syringe"></i>
+                        Loại vaccine:
+                      </div>
+                      <div className="modaldetailofnotivaccine-info-value">
+                        {vaccinationDetail.vaccinationType}
+                      </div>
                     </div>
-                    <div className="pn-info-value">
-                      {vaccinationDetail.location}
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {vaccinationDetail.studentName && (
-                  <div className="pn-info-row">
-                    <div className="pn-info-label">
-                      <i className="fas fa-user"></i>
-                      Học sinh:
+                  {vaccinationDetail.scheduledDate && (
+                    <div className="modaldetailofnotivaccine-info-row">
+                      <div className="modaldetailofnotivaccine-info-label">
+                        <i className="fas fa-clock"></i>
+                        Thời gian tiêm:
+                      </div>
+                      <div className="modaldetailofnotivaccine-info-value">
+                        {formatDateTime(vaccinationDetail.scheduledDate)}
+                      </div>
                     </div>
-                    <div className="pn-info-value">
-                      {vaccinationDetail.studentName}
-                      {vaccinationDetail.studentClass &&
-                        ` - Lớp ${vaccinationDetail.studentClass}`}
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
 
-              {/* Nội dung thông báo */}
-              <div className="pn-vaccination-message">
-                <h4>Nội dung thông báo:</h4>
-                <div className="pn-message-content">
-                  {vaccinationDetail.message || "Không có nội dung"}
+                  {vaccinationDetail.location && (
+                    <div className="modaldetailofnotivaccine-info-row">
+                      <div className="modaldetailofnotivaccine-info-label">
+                        <i className="fas fa-map-marker-alt"></i>
+                        Địa điểm:
+                      </div>
+                      <div className="modaldetailofnotivaccine-info-value">
+                        {vaccinationDetail.location}
+                      </div>
+                    </div>
+                  )}
+
+                  {vaccinationDetail.studentName && (
+                    <div className="modaldetailofnotivaccine-info-row">
+                      <div className="modaldetailofnotivaccine-info-label">
+                        <i className="fas fa-user"></i>
+                        Học sinh:
+                      </div>
+                      <div className="modaldetailofnotivaccine-info-value">
+                        {vaccinationDetail.studentName}
+                        {vaccinationDetail.studentClass &&
+                          ` - Lớp ${vaccinationDetail.studentClass}`}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Response buttons */}
-              {renderResponseButtons()}
+              {/* Message Content */}
+              <div className="modaldetailofnotivaccine-section">
+                <h3 className="modaldetailofnotivaccine-section-title">
+                  <i className="fas fa-envelope"></i>
+                  Nội dung thông báo
+                </h3>
+
+                <div className="modaldetailofnotivaccine-message">
+                  <div className="modaldetailofnotivaccine-content-card-title">
+                    <i style={{ color: 'gray' }} className="fas fa-file-alt"></i>
+                    Chi tiết thông báo
+                  </div>
+                  <div className="modaldetailofnotivaccine-message-content">
+                    {vaccinationDetail.message || "Không có nội dung"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Response Section - Chỉ hiển thị khi là yêu cầu cần phản hồi */}
+              {vaccinationDetail.isRequest && (
+                <div className="modaldetailofnotivaccine-section">
+                  <h3 className="modaldetailofnotivaccine-section-title">
+                    <i className="fas fa-reply"></i>
+                    Phản hồi của phụ huynh
+                  </h3>
+
+                  {renderResponseButtons()}
+                </div>
+              )}
             </>
           ) : (
-            <div className="pn-no-data">
-              <i className="fas fa-exclamation-circle pn-no-data-icon"></i>
-              <p className="pn-no-data-text">
+            <div className="modaldetailofnotivaccine-no-data">
+              <i className="fas fa-exclamation-circle modaldetailofnotivaccine-no-data-icon"></i>
+              <p className="modaldetailofnotivaccine-no-data-text">
                 Không thể tải thông tin chi tiết
               </p>
             </div>

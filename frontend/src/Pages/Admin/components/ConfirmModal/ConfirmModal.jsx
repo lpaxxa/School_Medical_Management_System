@@ -15,7 +15,9 @@ const ConfirmModal = ({
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    onConfirm();
+    if (typeof onConfirm === "function") {
+      onConfirm();
+    }
     onClose();
   };
 

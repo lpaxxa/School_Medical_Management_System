@@ -9,6 +9,11 @@
 }
 
 /* Header Section */
+.create-health-campaign-form-header h2{
+  color: #fff;
+}
+
+
 .create-health-campaign-form-header {
   background: linear-gradient(135deg, #00b4d8 0%, #0077b6 50%, #023e8a 100%);
   color: white;

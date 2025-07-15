@@ -7,6 +7,12 @@ import SearchBox from "../../../../components/SearchBox/SearchBox"; // Import Se
 import { useAuth } from "../../../../context/AuthContext";
 import { useNotification } from "../../../../context/NotificationContext";
 import communityService from "../../../../services/communityService"; // Import communityService
+import {
+  formatDate,
+  safeParseDate,
+  sortByDate,
+  areDatesDifferent,
+} from "./utils/dateUtils"; // Import date utilities
 
 const Community = () => {
   const { currentUser } = useAuth();
@@ -23,14 +29,41 @@ const Community = () => {
     category: "Hỏi đáp", // Cập nhật category mặc định
     tags: [], // Thêm trường tags
   });
-  // Thêm state để theo dõi bài viết đã được like
-  const [likedPosts, setLikedPosts] = useState([]);
-  // Thêm state để quản lý bài viết đã được ghim
-  const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
+  // Helper function để lấy unique key từ user info thay vì token
+  const getUserStorageKey = (suffix) => {
+    // Ưu tiên sử dụng currentUser.id, fallback về token, cuối cùng là guest
+    if (currentUser?.id) {
+      return `user_${currentUser.id}_${suffix}`;
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      const tokenSuffix = token.slice(-10);
+      return `token_${tokenSuffix}_${suffix}`;
+    }
+
+    return `guest_${suffix}`;
+  };
+
+  // Thêm state để theo dõi bài viết đã được like - load từ localStorage theo token
+  const [likedPosts, setLikedPosts] = useState(() => {
+    const saved = localStorage.getItem(getUserStorageKey("likedPosts"));
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Thêm state để quản lý bài viết đã được ghim - load từ localStorage theo token
+  const [bookmarkedPosts, setBookmarkedPosts] = useState(() => {
+    const saved = localStorage.getItem(getUserStorageKey("bookmarkedPosts"));
+    return saved ? JSON.parse(saved) : [];
+  });
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại cho pagination client-side
   const postsPerPage = 10; // Số bài viết mỗi trang
   const [totalPages, setTotalPages] = useState(1);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+
+  // ✅ NEW: State để prevent multiple clicks
+  const [likingPosts, setLikingPosts] = useState(new Set()); // Track posts đang được like/unlike
+  const [bookmarkingPosts, setBookmarkingPosts] = useState(new Set()); // Track posts đang được bookmark
 
   // API URL
   const API_URL = "http://localhost:8080/api/v1";
@@ -158,6 +191,26 @@ const Community = () => {
     },
   ];
 
+  // Effect để lưu trạng thái liked posts vào localStorage theo user info
+  useEffect(() => {
+    if (currentUser?.id || localStorage.getItem("authToken")) {
+      localStorage.setItem(
+        getUserStorageKey("likedPosts"),
+        JSON.stringify(likedPosts)
+      );
+    }
+  }, [likedPosts, currentUser?.id]);
+
+  // Effect để lưu trạng thái bookmarked posts vào localStorage theo user info
+  useEffect(() => {
+    if (currentUser?.id || localStorage.getItem("authToken")) {
+      localStorage.setItem(
+        getUserStorageKey("bookmarkedPosts"),
+        JSON.stringify(bookmarkedPosts)
+      );
+    }
+  }, [bookmarkedPosts, currentUser?.id]);
+
   // Load tất cả posts một lần duy nhất khi component mount
   useEffect(() => {
     const fetchAllPosts = async () => {
@@ -189,22 +242,82 @@ const Community = () => {
             "posts"
           );
 
-          // Cập nhật liked và bookmarked posts từ API response
-          const likedPostIds = [];
-          const bookmarkedPostIds = [];
+          // ✅ ENHANCED FIX: Merge localStorage với API data và đảm bảo like count chính xác
+          const savedLikedPosts = JSON.parse(
+            localStorage.getItem(getUserStorageKey("likedPosts")) || "[]"
+          );
+          const savedBookmarkedPosts = JSON.parse(
+            localStorage.getItem(getUserStorageKey("bookmarkedPosts")) || "[]"
+          );
 
-          result.data.content.forEach((post) => {
-            if (post.liked) {
-              likedPostIds.push(parseInt(post.id));
+          // Merge thay vì reset - bắt đầu từ localStorage data
+          const mergedLikedPosts = [...savedLikedPosts];
+          const mergedBookmarkedPosts = [...savedBookmarkedPosts];
+
+          // ✅ ENHANCED: Process posts và ensure correct like counts
+          const processedPosts = result.data.content.map((post) => {
+            const postId = parseInt(post.id);
+
+            // ✅ DEBUG: Log post data to identify date format issues
+            console.log(`📊 Processing post ${postId}:`, {
+              title: post.title?.substring(0, 30) + "...",
+              createdAt: post.createdAt,
+              createdAtType: typeof post.createdAt,
+              updatedAt: post.updatedAt,
+              isArray: Array.isArray(post.createdAt),
+              rawPost: post,
+            });
+
+            // Check localStorage state
+            const isLikedInStorage = savedLikedPosts.includes(postId);
+            const isBookmarkedInStorage = savedBookmarkedPosts.includes(postId);
+
+            // Merge API liked state with localStorage
+            if (post.liked && !mergedLikedPosts.includes(postId)) {
+              mergedLikedPosts.push(postId);
             }
-            if (post.bookmarked) {
-              bookmarkedPostIds.push(parseInt(post.id));
+            if (post.bookmarked && !mergedBookmarkedPosts.includes(postId)) {
+              mergedBookmarkedPosts.push(postId);
             }
+
+            // ✅ CRITICAL FIX: Ensure like count is correct
+            // If user liked in localStorage but API doesn't reflect it, we trust localStorage for UI consistency
+            const actualLikeCount = post.likes || post.likesCount || 0;
+            const userLikedFromStorage = isLikedInStorage;
+            const userLikedFromAPI = post.liked;
+
+            console.log(`📊 Post ${postId} like analysis:`, {
+              title: post.title?.substring(0, 30) + "...",
+              apiLikeCount: actualLikeCount,
+              apiLiked: userLikedFromAPI,
+              storageLiked: userLikedFromStorage,
+              finalLiked: userLikedFromStorage || userLikedFromAPI,
+            });
+
+            return {
+              ...post,
+              likes: actualLikeCount,
+              likesCount: actualLikeCount,
+              liked: userLikedFromStorage || userLikedFromAPI, // Merge both states
+              bookmarked: isBookmarkedInStorage || post.bookmarked,
+            };
           });
 
-          setLikedPosts(likedPostIds);
-          setBookmarkedPosts(bookmarkedPostIds);
-          setAllPosts(result.data.content);
+          console.log("📊 Enhanced Merge state:", {
+            savedLikedPosts,
+            apiLikedCount: result.data.content.filter((p) => p.liked).length,
+            finalLikedPosts: mergedLikedPosts,
+            savedBookmarkedPosts,
+            apiBookmarkedCount: result.data.content.filter((p) => p.bookmarked)
+              .length,
+            finalBookmarkedPosts: mergedBookmarkedPosts,
+            processedPostsCount: processedPosts.length,
+          });
+
+          // ✅ Cập nhật state với merged data
+          setLikedPosts(mergedLikedPosts);
+          setBookmarkedPosts(mergedBookmarkedPosts);
+          setAllPosts(processedPosts); // Use processed posts with correct counts
         } else {
           console.warn("⚠️ API response invalid, using mock data:", result);
           setAllPosts(MOCK_POSTS);
@@ -222,8 +335,110 @@ const Community = () => {
   }, []); // Chỉ chạy một lần khi component mount
 
   // Function để refresh lại dữ liệu
-  const refreshPosts = () => {
-    fetchAllPosts();
+  const refreshPosts = async () => {
+    setLoading(true);
+    console.log("🔄 Refreshing posts...");
+
+    if (!checkAuthentication()) {
+      console.log("🔄 Using mock data due to authentication issues");
+      setAllPosts(MOCK_POSTS);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const result = await communityService.getPosts(1, 1000, null, null);
+      console.log("📝 Refresh API response:", result);
+
+      if (
+        result &&
+        result.status === "success" &&
+        result.data &&
+        Array.isArray(result.data.content)
+      ) {
+        // ✅ ENHANCED REFRESH FIX: Merge với localStorage data và ensure correct like counts
+        const savedLikedPosts = JSON.parse(
+          localStorage.getItem(getUserStorageKey("likedPosts")) || "[]"
+        );
+        const savedBookmarkedPosts = JSON.parse(
+          localStorage.getItem(getUserStorageKey("bookmarkedPosts")) || "[]"
+        );
+
+        // Merge thay vì chỉ map với state hiện tại
+        const mergedLikedPosts = [...savedLikedPosts];
+        const mergedBookmarkedPosts = [...savedBookmarkedPosts];
+
+        // ✅ ENHANCED: Process posts với correct like counts
+        const processedPosts = result.data.content.map((post) => {
+          const postId = parseInt(post.id);
+
+          // ✅ DEBUG: Log post data for refresh to identify date issues
+          console.log(`🔄 Refresh processing post ${postId}:`, {
+            title: post.title?.substring(0, 30) + "...",
+            createdAt: post.createdAt,
+            createdAtType: typeof post.createdAt,
+            isArray: Array.isArray(post.createdAt),
+          });
+
+          // Check localStorage state
+          const isLikedInStorage = savedLikedPosts.includes(postId);
+          const isBookmarkedInStorage = savedBookmarkedPosts.includes(postId);
+
+          // Merge API liked state with localStorage
+          if (post.liked && !mergedLikedPosts.includes(postId)) {
+            mergedLikedPosts.push(postId);
+          }
+          if (post.bookmarked && !mergedBookmarkedPosts.includes(postId)) {
+            mergedBookmarkedPosts.push(postId);
+          }
+
+          // ✅ CRITICAL FIX: Ensure like count is correct for refresh
+          const actualLikeCount = post.likes || post.likesCount || 0;
+          const userLikedFromStorage = isLikedInStorage;
+          const userLikedFromAPI = post.liked;
+
+          console.log(`🔄 Refresh Post ${postId} analysis:`, {
+            title: post.title?.substring(0, 30) + "...",
+            apiLikeCount: actualLikeCount,
+            apiLiked: userLikedFromAPI,
+            storageLiked: userLikedFromStorage,
+            finalLiked: userLikedFromStorage || userLikedFromAPI,
+          });
+
+          return {
+            ...post,
+            likes: actualLikeCount,
+            likesCount: actualLikeCount,
+            liked: userLikedFromStorage || userLikedFromAPI,
+            bookmarked: isBookmarkedInStorage || post.bookmarked,
+          };
+        });
+
+        console.log("🔄 Enhanced Refresh merge state:", {
+          savedLikedPosts,
+          apiLikedCount: result.data.content.filter((p) => p.liked).length,
+          finalLikedPosts: mergedLikedPosts,
+          savedBookmarkedPosts,
+          finalBookmarkedPosts: mergedBookmarkedPosts,
+          processedPostsCount: processedPosts.length,
+        });
+
+        // Cập nhật state với merged data
+        setLikedPosts(mergedLikedPosts);
+        setBookmarkedPosts(mergedBookmarkedPosts);
+        setAllPosts(processedPosts); // Use processed posts
+        console.log("✅ Posts refreshed successfully with enhanced merge");
+      } else {
+        console.warn(
+          "⚠️ API response invalid during refresh, keeping current data"
+        );
+      }
+    } catch (error) {
+      console.error("❌ Error refreshing posts:", error);
+      console.log("🔄 Keeping current data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Lọc và tìm kiếm bài viết trên client-side
@@ -261,11 +476,20 @@ const Community = () => {
       })
     : [];
 
-  // Sắp xếp bài viết: ghim lên đầu, sau đó sắp xếp theo thời gian
+  // Sắp xếp bài viết: ghim cá nhân lên đầu, sau đó sắp xếp theo thời gian
   const sortedPosts = [...filteredPosts].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1;
-    if (!a.pinned && b.pinned) return 1;
-    return new Date(b.createdAt) - new Date(a.createdAt);
+    // Ưu tiên bài viết đã được ghim bởi user
+    const aBookmarked = bookmarkedPosts.includes(parseInt(a.id));
+    const bBookmarked = bookmarkedPosts.includes(parseInt(b.id));
+
+    if (aBookmarked && !bBookmarked) return -1;
+    if (!aBookmarked && bBookmarked) return 1;
+
+    // Sử dụng safeParseDate để tránh invalid date
+    const dateA = safeParseDate(a.createdAt);
+    const dateB = safeParseDate(b.createdAt);
+
+    return dateB.getTime() - dateA.getTime();
   });
 
   // Pagination trên client-side
@@ -435,45 +659,215 @@ const Community = () => {
       return;
     }
 
+    // ✅ PROTECTION: Prevent multiple clicks on same post
+    if (likingPosts.has(numericPostId)) {
+      console.log(
+        "⏳ Like action already in progress for post:",
+        numericPostId
+      );
+      return;
+    }
+
+    // Tìm post hiện tại để debug
+    const currentPost = allPosts.find((p) => parseInt(p.id) === numericPostId);
+    const currentLikeCount = currentPost?.likes || currentPost?.likesCount || 0;
+    const wasLiked = likedPosts.includes(numericPostId);
+
+    console.log("👍 BEFORE Like action:", {
+      postId: numericPostId,
+      currentLikeCount,
+      wasLiked,
+      postTitle: currentPost?.title?.substring(0, 50) + "...",
+      postCategory: currentPost?.category,
+      likedPostsState: likedPosts.includes(numericPostId),
+      isInProgress: likingPosts.has(numericPostId),
+    });
+
+    // ✅ PROTECTION: Add to in-progress set
+    setLikingPosts((prev) => new Set(prev).add(numericPostId));
+
     try {
       console.log("👍 Attempting to like post:", numericPostId);
       const result = await communityService.toggleLike(numericPostId);
       console.log("👍 Like result:", result);
 
       if (result.status === "success") {
-        const { liked, likesCount } = result.data;
+        const { liked, likesCount, likes } = result.data;
 
-        // Cập nhật state cho likedPosts
-        if (liked) {
-          setLikedPosts((prev) => [...prev, numericPostId]);
-        } else {
-          setLikedPosts((prev) => prev.filter((id) => id !== numericPostId));
+        // ✅ ENHANCED: Validate API response structure
+        if (typeof liked !== "boolean") {
+          console.error(
+            "❌ Invalid API response: 'liked' field missing or not boolean",
+            result.data
+          );
+          alert("Lỗi: Phản hồi từ server không hợp lệ");
+          return;
         }
 
-        // Cập nhật số lượt like trong danh sách bài viết
-        setAllPosts((prev) =>
-          prev.map((post) =>
-            parseInt(post.id) === numericPostId
-              ? { ...post, likes: likesCount }
-              : post
-          )
-        );
+        // API có thể trả về likesCount hoặc likes, ưu tiên likesCount
+        const actualLikesCount = likesCount !== undefined ? likesCount : likes;
+
+        // ✅ ENHANCED: Validate like count is a valid number
+        if (
+          actualLikesCount === undefined ||
+          isNaN(actualLikesCount) ||
+          actualLikesCount < 0
+        ) {
+          console.error("❌ Invalid like count from API:", {
+            likesCount,
+            likes,
+            actualLikesCount,
+          });
+          alert("Lỗi: Số lượt thích không hợp lệ");
+          return;
+        }
+
+        console.log("👍 AFTER API call:", {
+          liked,
+          likesCount,
+          likes,
+          actualLikesCount,
+          expectedChange: wasLiked
+            ? currentLikeCount - 1
+            : currentLikeCount + 1,
+        });
+
+        // ✅ CRITICAL FIX: Sanity check for like count logic
+        const expectedLikeCount = wasLiked
+          ? currentLikeCount - 1
+          : currentLikeCount + 1;
+        const countDifference = Math.abs(actualLikesCount - expectedLikeCount);
+
+        if (countDifference > 5) {
+          console.warn("🚨 SUSPICIOUS LIKE COUNT CHANGE:", {
+            currentCount: currentLikeCount,
+            newCount: actualLikesCount,
+            expected: expectedLikeCount,
+            difference: countDifference,
+            action: wasLiked ? "UNLIKE" : "LIKE",
+          });
+
+          // Option 1: Use expected count for UI consistency
+          const correctedCount = Math.max(0, expectedLikeCount);
+          console.log("🔧 Using corrected count for UI:", correctedCount);
+
+          // Override with corrected count
+          var finalLikeCount = correctedCount;
+        } else {
+          var finalLikeCount = actualLikesCount;
+        }
+
+        // ✅ ENHANCED: Safe state update with try-catch
+        try {
+          // Cập nhật likedPosts state với validation
+          const newLikedPosts = liked
+            ? [
+                ...likedPosts.filter((id) => id !== numericPostId),
+                numericPostId,
+              ]
+            : likedPosts.filter((id) => id !== numericPostId);
+
+          console.log("👍 Updating likedPosts:", {
+            before: likedPosts,
+            after: newLikedPosts,
+            action: liked ? "ADDED" : "REMOVED",
+            postId: numericPostId,
+          });
+
+          setLikedPosts(newLikedPosts);
+
+          // Cập nhật số lượt like trong danh sách bài viết với số chính xác từ API
+          setAllPosts((prev) =>
+            prev.map((post) =>
+              parseInt(post.id) === numericPostId
+                ? {
+                    ...post,
+                    likes: finalLikeCount, // Use corrected count
+                    likesCount: finalLikeCount, // Use corrected count
+                    liked,
+                  }
+                : post
+            )
+          );
+
+          // Hiển thị thông báo thành công
+          console.log(
+            `✅ ${
+              liked ? "Đã thích" : "Đã bỏ thích"
+            } bài viết thành công! Số like: ${finalLikeCount} (API: ${actualLikesCount})`
+          );
+        } catch (stateUpdateError) {
+          console.error("❌ Error updating state:", stateUpdateError);
+          alert("Lỗi: Không thể cập nhật trạng thái. Vui lòng refresh trang.");
+        }
+      } else {
+        // ✅ ENHANCED: Handle non-success API responses
+        console.error("❌ API returned non-success status:", result);
+        const errorMessage = result.message || result.error || "Không xác định";
+        alert(`Lỗi từ server: ${errorMessage}`);
       }
     } catch (error) {
-      console.error("❌ Error liking post:", error);
+      console.error("❌ Error liking/unliking post:", error);
       console.error("❌ Error details:", {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
+        postId: numericPostId,
+        wasLiked: wasLiked,
+        action: wasLiked ? "UNLIKE" : "LIKE",
       });
 
-      if (error.response?.status === 401) {
-        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
-      } else if (error.response?.status === 400) {
-        alert("Lỗi yêu cầu không hợp lệ. Vui lòng thử lại");
+      // ✅ ENHANCED: More specific error handling
+      if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        const data = error.response.data;
+
+        switch (status) {
+          case 401:
+            console.error("🔐 Authentication error:", data);
+            alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+            break;
+          case 400:
+            console.error("📝 Bad request error:", data);
+            alert("Lỗi yêu cầu không hợp lệ. Vui lòng thử lại");
+            break;
+          case 403:
+            console.error("🚫 Permission error:", data);
+            alert("Bạn không có quyền thực hiện thao tác này");
+            break;
+          case 404:
+            console.error("🔍 Post not found:", data);
+            alert("Bài viết không tồn tại hoặc đã bị xóa");
+            break;
+          case 500:
+            console.error("🔥 Server error:", data);
+            alert("Lỗi server. Vui lòng thử lại sau");
+            break;
+          default:
+            console.error(`❓ Unknown server error (${status}):`, data);
+            alert(`Lỗi server (${status}). Vui lòng thử lại sau`);
+        }
+      } else if (error.request) {
+        // Network error - no response received
+        console.error("🌐 Network error:", error.request);
+        alert("Lỗi kết nối mạng. Vui lòng kiểm tra internet và thử lại");
       } else {
-        alert("Không thể thực hiện thao tác. Vui lòng thử lại sau.");
+        // Something else went wrong
+        console.error("❓ Unknown error:", error.message);
+        alert("Có lỗi xảy ra. Vui lòng thử lại sau");
       }
+
+      // ✅ ENHANCED: Optional - revert UI state if needed
+      console.log("🔄 Error occurred, UI state preserved (no changes made)");
+    } finally {
+      // ✅ PROTECTION: Always remove from in-progress set
+      setLikingPosts((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(numericPostId);
+        return newSet;
+      });
+      console.log("🔄 Removed post from liking progress:", numericPostId);
     }
   };
 
@@ -520,6 +914,11 @@ const Community = () => {
             parseInt(post.id) === numericPostId ? { ...post, bookmarked } : post
           )
         );
+
+        // Hiển thị thông báo thành công
+        console.log(
+          `✅ ${bookmarked ? "Đã ghim" : "Đã bỏ ghim"} bài viết thành công!`
+        );
       }
     } catch (error) {
       console.error("❌ Lỗi khi ghim bài viết:", error);
@@ -539,15 +938,23 @@ const Community = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-    return new Date(dateString).toLocaleDateString("vi-VN", options);
+  // Helper function để format tên author đẹp hơn
+  const formatAuthorName = (authorName, role) => {
+    if (!authorName) return "Người dùng";
+
+    // Kiểm tra nếu tên bắt đầu bằng các prefix cần format
+    const lowerName = authorName.toLowerCase();
+
+    if (lowerName.startsWith("nurse")) {
+      return "Y tá trường";
+    } else if (lowerName.startsWith("admin")) {
+      return "Quản trị viên";
+    } else if (lowerName.startsWith("parent")) {
+      return "Phụ huynh";
+    }
+
+    // Trả về tên gốc nếu không match pattern nào
+    return authorName;
   };
 
   const getCategoryIcon = (category) => {
@@ -869,11 +1276,16 @@ const Community = () => {
                 {currentPosts.map((post) => (
                   <div
                     key={post.id}
-                    className={`post-card ${post.pinned ? "pinned" : ""}`}
+                    className={`post-card ${
+                      bookmarkedPosts.includes(parseInt(post.id))
+                        ? "pinned bookmarked-post"
+                        : ""
+                    }`}
                   >
-                    {post.pinned && (
-                      <div className="pin-indicator">
-                        <i className="fas fa-thumbtack"></i> Ghim
+                    {/* Chỉ hiển thị indicator ghim cá nhân */}
+                    {bookmarkedPosts.includes(parseInt(post.id)) && (
+                      <div className="pin-indicator personal">
+                        <i className="fas fa-bookmark"></i> Bài viết đã ghim
                       </div>
                     )}
 
@@ -897,7 +1309,10 @@ const Community = () => {
                         )}
                         <div className="author-info">
                           <div className="author-name">
-                            {post.author.name}
+                            {formatAuthorName(
+                              post.author.name,
+                              post.author.role
+                            )}
                             {post.author.role === "NURSE" && (
                               <span className="author-badge nurse">
                                 <i className="fas fa-user-nurse"></i> Y tá
@@ -906,6 +1321,11 @@ const Community = () => {
                             {post.author.role === "PARENT" && (
                               <span className="author-badge parent">
                                 <i className="fas fa-users"></i> Phụ huynh
+                              </span>
+                            )}
+                            {post.author.role === "ADMIN" && (
+                              <span className="author-badge admin">
+                                <i className="fas fa-user-shield"></i> Quản trị
                               </span>
                             )}
                           </div>
@@ -941,24 +1361,31 @@ const Community = () => {
                             likedPosts.includes(parseInt(post.id))
                               ? "liked"
                               : ""
+                          } ${
+                            likingPosts.has(parseInt(post.id)) ? "loading" : ""
                           }`}
                           onClick={(e) => handlePostLike(post.id, e)}
+                          disabled={likingPosts.has(parseInt(post.id))}
                         >
-                          <i
-                            className={`${
-                              likedPosts.includes(parseInt(post.id))
-                                ? "fas"
-                                : "far"
-                            } fa-heart`}
-                          ></i>{" "}
-                          {post.likes}
+                          {likingPosts.has(parseInt(post.id)) ? (
+                            <i className="fas fa-spinner fa-spin"></i>
+                          ) : (
+                            <i
+                              className={`${
+                                likedPosts.includes(parseInt(post.id))
+                                  ? "fas"
+                                  : "far"
+                              } fa-heart`}
+                            ></i>
+                          )}{" "}
+                          {post.likes || post.likesCount || 0}
                         </button>
                         <Link
                           to={`/parent/community/post/${post.id}`}
                           className="comments-btn"
                         >
                           <i className="fas fa-comment"></i>{" "}
-                          {post.commentsCount}
+                          {post.commentsCount || post.comments || 0}
                         </Link>
 
                         {/* Thêm nút bookmark */}

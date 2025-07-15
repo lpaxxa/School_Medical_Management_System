@@ -41,6 +41,8 @@ const VaccinationModal = ({ isOpen, onClose, vaccination }) => {
     switch (type) {
       case "SCHOOL_PLAN":
         return "Kế hoạch trường";
+      case "PARENT_DECLARED":
+        return "Phụ huynh khai báo";
       case "INDIVIDUAL":
         return "Cá nhân";
       case "CAMPAIGN":

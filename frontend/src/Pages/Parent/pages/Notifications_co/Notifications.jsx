@@ -11,6 +11,75 @@ import VaccinationDetailModal from "./VaccinationDetailModal";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const Notifications = () => {
+  // Utility function to format Java LocalDateTime arrays
+  const formatDateTime = (timestamp) => {
+    console.log("formatDateTime input:", timestamp);
+
+    if (!timestamp) return "N/A";
+
+    try {
+      let date;
+
+      // Kiểm tra nếu timestamp là mảng Java LocalDateTime
+      if (Array.isArray(timestamp)) {
+        console.log("Processing array timestamp:", timestamp);
+
+        if (timestamp.length >= 5) {
+          const [year, month, day, hour = 0, minute = 0, second = 0] =
+            timestamp;
+          // Java month là 1-based, JavaScript month là 0-based
+          date = new Date(year, month - 1, day, hour, minute, second);
+          console.log("Created date from array:", date);
+        } else {
+          console.log("Array too short:", timestamp.length);
+          return "Dữ liệu không hợp lệ";
+        }
+      } else {
+        // Xử lý timestamp dạng string hoặc number
+        date = new Date(timestamp);
+      }
+
+      if (isNaN(date.getTime())) {
+        console.log("Invalid date created:", date);
+        return "Thời gian không hợp lệ";
+      }
+
+      // Format thành dd/MM/yyyy
+      const result = date.toLocaleDateString("vi-VN");
+
+      console.log("formatDateTime result:", result);
+      return result;
+    } catch (error) {
+      console.error("Error in formatDateTime:", error);
+      return "Lỗi xử lý thời gian";
+    }
+  };
+
+  // Helper function to parse date for sorting and filtering
+  const parseDate = (timestamp) => {
+    if (!timestamp) return new Date(0);
+
+    try {
+      // Kiểm tra nếu timestamp là mảng Java LocalDateTime
+      if (Array.isArray(timestamp)) {
+        if (timestamp.length >= 5) {
+          const [year, month, day, hour = 0, minute = 0, second = 0] =
+            timestamp;
+          // Java month là 1-based, JavaScript month là 0-based
+          return new Date(year, month - 1, day, hour, minute, second);
+        } else {
+          return new Date(0); // Return epoch if array is too short
+        }
+      } else {
+        // Xử lý timestamp dạng string hoặc number
+        return new Date(timestamp);
+      }
+    } catch (error) {
+      console.error("Error parsing date:", error);
+      return new Date(0);
+    }
+  };
+
   // State chính
   const [activeTab, setActiveTab] = useState("health-checkup");
   const [loading, setLoading] = useState(false);
@@ -190,10 +259,10 @@ const Notifications = () => {
 
     // Sắp xếp theo ngày mới nhất từ trên xuống
     filtered.sort((a, b) => {
-      const dateA = new Date(
+      const dateA = parseDate(
         a.createdAt || a.campaignStartDate || a.updatedAt || 0
       );
-      const dateB = new Date(
+      const dateB = parseDate(
         b.createdAt || b.campaignStartDate || b.updatedAt || 0
       );
       return dateB - dateA; // Ngày mới nhất trước
@@ -344,7 +413,7 @@ const Notifications = () => {
 
       if (startDate) {
         filtered = filtered.filter((item) => {
-          const itemDate = new Date(item.receivedDate || item.createdAt);
+          const itemDate = parseDate(item.receivedDate || item.createdAt);
           return itemDate >= startDate;
         });
       }
@@ -352,8 +421,8 @@ const Notifications = () => {
 
     // Sắp xếp theo ngày mới nhất từ trên xuống
     filtered.sort((a, b) => {
-      const dateA = new Date(a.receivedDate || a.createdAt || 0);
-      const dateB = new Date(b.receivedDate || b.createdAt || 0);
+      const dateA = parseDate(a.receivedDate || a.createdAt || 0);
+      const dateB = parseDate(b.receivedDate || b.createdAt || 0);
       return dateB - dateA; // Ngày mới nhất trước
     });
 
@@ -926,14 +995,14 @@ const Notifications = () => {
           </span>
 
           {/* Debug button */}
-          <button
+          {/* <button
             className="pn-debug-btn"
             onClick={() => {
               alert("Debug info printed to console. Check F12 -> Console tab");
             }}
           >
             🐛 Debug
-          </button>
+          </button> */}
         </div>
       </div>
     );
@@ -1062,7 +1131,7 @@ const Notifications = () => {
           </span>
 
           {/* Debug button */}
-          <button
+          {/* <button
             className="pn-debug-btn"
             onClick={() => {
               console.log("Vaccination Filters:", vaccinationFilters);
@@ -1071,7 +1140,7 @@ const Notifications = () => {
             }}
           >
             🐛 Debug
-          </button>
+          </button> */}
         </div>
       </div>
     );
@@ -1163,14 +1232,9 @@ const Notifications = () => {
                   <div className="pn-consent-meta">
                     Học sinh: {consent.studentName} ({consent.studentClass}){" "}
                     <br />
-                    Thời gian:{" "}
-                    {new Date(consent.campaignStartDate).toLocaleDateString(
-                      "vi-VN"
-                    )}{" "}
-                    -{" "}
-                    {new Date(consent.campaignEndDate).toLocaleDateString(
-                      "vi-VN"
-                    )}
+                    Thời gian: {formatDateTime(
+                      consent.campaignStartDate
+                    )} - {formatDateTime(consent.campaignEndDate)}
                   </div>
                 </div>
                 {renderStatusBadge(consent.consentStatus)}
@@ -1251,12 +1315,9 @@ const Notifications = () => {
                         </h4>
                         <p className="pn-vaccination-date">
                           Ngày nhận:{" "}
-                          {notification.receivedDate || notification.createdAt
-                            ? new Date(
-                                notification.receivedDate ||
-                                  notification.createdAt
-                              ).toLocaleDateString("vi-VN")
-                            : "N/A"}
+                          {formatDateTime(
+                            notification.receivedDate || notification.createdAt
+                          )}
                         </p>
                       </div>
                       <div className="pn-vaccination-arrow">

@@ -18,7 +18,7 @@ import UserTable from "./components/UserTable";
 import UserModal from "./components/UserModal";
 import SuccessModal from "../../components/SuccessModal";
 import ErrorModal from "../../components/ErrorModal";
-import ConfirmModal from "../../components/ConfirmModal";
+import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 import { useSuccessModal } from "../../hooks/useSuccessModal";
 import { useErrorModal } from "../../hooks/useErrorModal";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
@@ -513,9 +513,7 @@ const UserManagement = () => {
         const apiData = transformUserToAPI(userData);
         console.log("Add mode - API data:", apiData);
         await createUser(apiData);
-        showSuccess(
-          "Thêm người dùng thành công!"
-        );
+        showSuccess("Thêm người dùng thành công!");
       } else if (modalMode === "edit") {
         console.log("Edit mode - updating user with ID:", userData.id);
         // Prepare edit data with all fields from the form
@@ -550,7 +548,7 @@ const UserManagement = () => {
         await updateUser(userData.id, editData);
         showSuccess(
           "Cập nhật người dùng thành công!",
-         
+
           `Tài khoản "${userData.username}" đã được cập nhật thông tin mới.`
         );
       }
@@ -610,7 +608,6 @@ const UserManagement = () => {
         `- Email: ${user.email}\n` +
         `- Vai trò: ${getRoleDisplayName(user.role)}\n\n` +
         `Bạn có chắc chắn muốn gửi?`,
-      "default",
       async () => {
         // Callback khi xác nhận gửi email
         try {
@@ -681,6 +678,11 @@ const UserManagement = () => {
           setIsSendingEmail(false);
           setSendingUserId(null);
         }
+      },
+      {
+        type: "default",
+        confirmText: "Xác nhận",
+        cancelText: "Hủy",
       }
     );
   };
