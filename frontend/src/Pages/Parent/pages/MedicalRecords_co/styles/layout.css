@@ -209,18 +209,20 @@
 }
 
 .chonhocsinhtabparent {
-  background-color: var(--color-primary-50);
+  /* background-color: var(--color-primary-50); */
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-primary-100);
   width: 100%;
   box-sizing: border-box;
+  
 }
 
 .selector-header {
   margin-bottom: var(--space-6);
   text-align: center;
+  padding-left: 410px;
 }
 
 .selector-header h2 {
@@ -262,6 +264,7 @@
   cursor: pointer;
   transition: all var(--transition);
   box-sizing: border-box;
+  
 }
 
 .chonhocsinhtabparent-select:focus,
@@ -374,6 +377,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  background-color: var(--color-white);
 }
 
 .content-header h2 {

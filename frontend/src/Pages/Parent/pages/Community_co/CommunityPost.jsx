@@ -4,6 +4,11 @@ import "./CommunityPost.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
 import communityService from "../../../../services/communityService"; // Import communityService
+import {
+  formatDate,
+  safeParseDate,
+  areDatesDifferent,
+} from "./utils/dateUtils"; // Import date utilities
 
 const CommunityPost = () => {
   const { postId: postIdParam } = useParams();
@@ -215,17 +220,6 @@ const CommunityPost = () => {
   };
 
   // Format date dưới dạng "DD thg MM, YYYY HH:MM"
-  const formatDate = (dateString) => {
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-    return new Date(dateString).toLocaleDateString("vi-VN", options);
-  };
-
   const getCategoryIcon = (category) => {
     switch (category) {
       case "Hỏi đáp":
@@ -251,10 +245,13 @@ const CommunityPost = () => {
   const sortedComments =
     comments && Array.isArray(comments)
       ? [...comments].sort((a, b) => {
+          const dateA = safeParseDate(a.createdAt);
+          const dateB = safeParseDate(b.createdAt);
+
           if (sortBy === "latest") {
-            return new Date(b.createdAt) - new Date(a.createdAt);
+            return dateB.getTime() - dateA.getTime();
           }
-          return new Date(a.createdAt) - new Date(b.createdAt);
+          return dateA.getTime() - dateB.getTime();
         })
       : [];
 
@@ -664,7 +661,10 @@ const CommunityPost = () => {
                         </span>
                         <span className="comment-time">
                           {formatDate(comment.createdAt)}
-                          {comment.updatedAt !== comment.createdAt && (
+                          {areDatesDifferent(
+                            comment.updatedAt,
+                            comment.createdAt
+                          ) && (
                             <span className="edited-indicator">
                               {" "}
                               • đã chỉnh sửa

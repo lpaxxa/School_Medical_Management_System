@@ -10,13 +10,37 @@ import {
   FaStethoscope,
   FaTrashAlt,
 } from "react-icons/fa";
+import SuccessModal from "../../components/SuccessModal/SuccessModal";
+import ErrorModal from "../../components/ErrorModal/ErrorModal";
+import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
+import { useSuccessModal } from "../../hooks/useSuccessModal";
+import { useErrorModal } from "../../hooks/useErrorModal";
+import { useConfirmModal } from "../../hooks/useConfirmModal";
 import "./CreateHealthCampaign.css";
 
 const CreateHealthCampaign = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Modal hooks
+  const {
+    isOpen: isSuccessModalVisible,
+    modalData: successModalData,
+    showSuccess,
+    hideSuccess,
+  } = useSuccessModal();
+  const {
+    isOpen: isErrorModalVisible,
+    modalData: errorModalData,
+    showError,
+    hideError,
+  } = useErrorModal();
+  const {
+    isOpen: isConfirmModalVisible,
+    modalData: confirmModalData,
+    showConfirm,
+    hideConfirm,
+  } = useConfirmModal();
 
   // Form data với giá trị mặc định
   const [formData, setFormData] = useState({
@@ -69,14 +93,12 @@ const CreateHealthCampaign = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      setShowError(true);
-      setTimeout(() => setShowError(false), 5000);
+      console.log("🎯 Validation failed, hiển thị modal error...");
+      showError("Lỗi xác thực", errorMessage);
       return;
     }
 
     setIsLoading(true);
-    setShowSuccess(false);
-    setShowError(false);
 
     try {
       console.log("🚀 Tạo chiến dịch kiểm tra sức khỏe:", formData);
@@ -99,7 +121,13 @@ const CreateHealthCampaign = () => {
 
       const result = await response.json();
       console.log("✅ Tạo thành công:", result);
-      setShowSuccess(true);
+      console.log("🎯 Đang hiển thị modal success...");
+
+      // Sử dụng SuccessModal
+      showSuccess(
+        "Thành công!",
+        "Chiến dịch kiểm tra sức khỏe đã được tạo thành công!"
+      );
 
       // Reset form sau khi thành công
       setFormData({
@@ -111,13 +139,13 @@ const CreateHealthCampaign = () => {
         status: "PREPARING",
         specialCheckupItems: [],
       });
-
-      setTimeout(() => setShowSuccess(false), 5000);
     } catch (err) {
       console.error("❌ Lỗi tạo chiến dịch:", err);
-      setErrorMessage(err.message || "Có lỗi không mong muốn xảy ra");
-      setShowError(true);
-      setTimeout(() => setShowError(false), 5000);
+      console.log("🎯 Đang hiển thị modal error...");
+      showError(
+        "Có lỗi xảy ra!",
+        err.message || "Có lỗi không mong muốn xảy ra"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -179,31 +207,8 @@ const CreateHealthCampaign = () => {
         </div>
         <div className="create-health-campaign-header-content">
           <h2>Tạo Chiến Dịch Kiểm Tra Sức Khỏe Mới</h2>
-      
         </div>
       </div>
-
-      {/* Success Message */}
-      {showSuccess && (
-        <div className="notification success">
-          <FaCheck className="notification-icon" />
-          <div className="notification-content">
-            <h4>Thành công!</h4>
-            <p>Chiến dịch kiểm tra sức khỏe đã được tạo thành công</p>
-          </div>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {showError && (
-        <div className="notification error">
-          <FaTimes className="notification-icon" />
-          <div className="notification-content">
-            <h4>Có lỗi xảy ra!</h4>
-            <p>{errorMessage}</p>
-          </div>
-        </div>
-      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="campaign-form">
@@ -425,6 +430,61 @@ const CreateHealthCampaign = () => {
           </button>
         </div>
       </form>
+
+      {/* Modal Components */}
+      {isSuccessModalVisible && (
+        <SuccessModal
+          isOpen={isSuccessModalVisible}
+          onClose={hideSuccess}
+          title={successModalData.title}
+          message={successModalData.message}
+          details={successModalData.details}
+        />
+      )}
+
+      {isErrorModalVisible && (
+        <ErrorModal
+          isOpen={isErrorModalVisible}
+          onClose={hideError}
+          title={errorModalData.title}
+          message={errorModalData.message}
+          details={errorModalData.details}
+        />
+      )}
+
+      {isConfirmModalVisible && (
+        <ConfirmModal
+          isOpen={isConfirmModalVisible}
+          onConfirm={hideConfirm}
+          onCancel={hideConfirm}
+          title={confirmModalData.title}
+          message={confirmModalData.message}
+        />
+      )}
+
+      {/* Debug info - Hidden */}
+      {false && process.env.NODE_ENV === "development" && (
+        <div
+          style={{
+            position: "fixed",
+            top: 10,
+            right: 10,
+            background: "rgba(0,0,0,0.8)",
+            color: "white",
+            padding: "10px",
+            fontSize: "12px",
+            zIndex: 9999,
+          }}
+        >
+          Success Modal: {isSuccessModalVisible ? "VISIBLE" : "HIDDEN"}
+          <br />
+          Error Modal: {isErrorModalVisible ? "VISIBLE" : "HIDDEN"}
+          <br />
+          Success Data: {JSON.stringify(successModalData)}
+          <br />
+          Error Data: {JSON.stringify(errorModalData)}
+        </div>
+      )}
     </div>
   );
 };

@@ -111,13 +111,34 @@ const HealthGuide = () => {
   };
 
   // Format date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+  const formatDate = (dateInput) => {
+    if (!dateInput) return "Không có dữ liệu";
+
+    try {
+      let date;
+
+      // Check if it's an array (Java LocalDateTime format)
+      if (Array.isArray(dateInput) && dateInput.length >= 3) {
+        // Format: [year, month, day, hour, minute, second, nanosecond]
+        const [year, month, day] = dateInput;
+        // Note: month in Java is 1-based, but JavaScript Date expects 0-based month
+        date = new Date(year, month - 1, day);
+      } else {
+        // Handle as string
+        date = new Date(dateInput);
+      }
+
+      if (isNaN(date.getTime())) return "Không có dữ liệu";
+
+      return date.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch (err) {
+      console.error("Error formatting date:", err);
+      return "Không có dữ liệu";
+    }
   };
 
   // Xử lý chuyển trang

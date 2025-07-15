@@ -985,7 +985,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px; /* Further reduced padding for perfect centering */
+  padding: 20px;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.2s ease-out;
 }
@@ -996,21 +996,23 @@
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 600px;
-  max-height: 80vh; /* Further reduced for perfect centering */
+  max-height: 90vh;
   width: 100%;
   overflow: hidden;
   animation: slideUp 0.3s ease-out;
   position: relative;
-  margin: 0; /* Remove auto margin, let flexbox handle centering */
+  display: flex;
+  flex-direction: column;
 }
 
 /* Modal Header */
 .modern-modal-header {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: var(--color-white);
-  padding: var(--space-6);
+  padding: var(--space-4) var(--space-6);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .modern-modal-header::before {
@@ -1087,11 +1089,12 @@
 
 /* Modal Body */
 .modern-modal-body {
-  padding: var(--space-6);
-  max-height: calc(90vh - 120px);
+  padding: var(--space-4) var(--space-6);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--color-gray-300) transparent;
+  flex: 1;
+  min-height: 0;
 }
 
 .modern-modal-body::-webkit-scrollbar {
@@ -1890,7 +1893,7 @@
   font-size: 20px;
   margin-top: 2px;
   flex-shrink: 0;
-  background: #eff6ff;
+  background: #b0bedf !important;
   padding: 10px;
   border-radius: 10px;
 }
@@ -2509,7 +2512,7 @@
 
 .profile-info-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 4px;
 }
 
@@ -2532,6 +2535,8 @@
   border-radius: 12px;
   font-size: 12px;
   display: inline-block;
+  max-width: 70px;
+  text-align: center;
 }
 
 .immunization-status.incomplete {
@@ -2607,7 +2612,7 @@
 .vaccination-type-badge {
   padding: 4px 10px;
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -2617,6 +2622,24 @@
   background: #dbeafe;
   color: #1e40af;
   border: 1px solid #93c5fd;
+}
+
+.vaccination-type-badge.parent_declared {
+  background: #fef9c3;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.vaccination-type-badge.individual {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.vaccination-type-badge.campaign {
+  background: #f3e8ff;
+  color: #7c3aed;
+  border: 1px solid #d8b4fe;
 }
 
 .vaccination-details {
@@ -2786,20 +2809,26 @@
   letter-spacing: 0.5px;
 }
 
+.vaccination-type-badge-small.parent_declared {
+  background-color: #FFF9C4; /* Vàng nhạt */
+  color: #FBC02D;            /* Vàng đậm */
+}
+
 .vaccination-type-badge-small.school_plan {
-  background-color: var(--color-blue-100);
-  color: var(--color-blue-700);
+  background-color: #BBDEFB; /* Xanh dương nhạt */
+  color: #1976D2;            /* Xanh dương đậm */
 }
 
 .vaccination-type-badge-small.individual {
-  background-color: var(--color-green-100);
-  color: var(--color-green-700);
+  background-color: #C8E6C9; /* Xanh lá nhạt */
+  color: #388E3C;            /* Xanh lá đậm */
 }
 
 .vaccination-type-badge-small.campaign {
-  background-color: var(--color-purple-100);
-  color: var(--color-purple-700);
+  background-color: #E1BEE7; /* Tím nhạt */
+  color: #8E24AA;            /* Tím đậm */
 }
+
 
 .vaccination-row-status {
   display: flex;
@@ -2813,6 +2842,7 @@
 
 .status-icon.completed {
   color: var(--color-green-500);
+  color: #10b981 !important;
 }
 
 .status-icon.pending {
@@ -2935,16 +2965,22 @@
 .status-badge-simple.success {
   background-color: var(--color-green-100);
   color: var(--color-green-700);
+  background-color: rgb(96, 206, 18);
+  color: #fff;
 }
 
 .status-badge-simple.warning {
   background-color: var(--color-yellow-100);
   color: var(--color-yellow-700);
+  background-color: rgb(255, 211, 54);
+  color: #484b03;
 }
 
 .status-badge-simple.error {
   background-color: var(--color-red-100);
   color: var(--color-red-700);
+  background-color: rgb(217, 83, 38);
+  color: ffff;
 }
 
 .status-badge-simple.info {

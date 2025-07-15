@@ -942,6 +942,9 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
                               >
                                 {vaccination.vaccinationType === "SCHOOL_PLAN"
                                   ? "Kế hoạch trường"
+                                  : vaccination.vaccinationType ===
+                                    "PARENT_DECLARED"
+                                  ? "Phụ huynh khai báo"
                                   : vaccination.vaccinationType || "N/A"}
                               </span>
                             </div>

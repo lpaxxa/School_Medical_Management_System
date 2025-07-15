@@ -156,7 +156,18 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
                   <span className="info-card-label">Thời gian xảy ra</span>
                 </div>
                 <div className="info-card-value">
-                  {formatDateTime(incident.dateTime)}
+                  {(() => {
+                    console.log("IncidentModal dateTime:", incident.dateTime);
+                    console.log(
+                      "IncidentModal dateTime type:",
+                      typeof incident.dateTime
+                    );
+                    console.log(
+                      "IncidentModal dateTime isArray:",
+                      Array.isArray(incident.dateTime)
+                    );
+                    return formatDateTime(incident.dateTime);
+                  })()}
                 </div>
               </div>
 
@@ -391,8 +402,8 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
 
       {/* Image Zoom Overlay - Fixed to prevent modal closing */}
       {zoomedImage && (
-        <div 
-          className="incident-zoom-overlay" 
+        <div
+          className="incident-zoom-overlay"
           onClick={(e) => {
             e.stopPropagation(); // Prevent event bubbling to modal
             handleCloseZoom();
@@ -404,8 +415,8 @@ const IncidentModal = ({ isOpen, onClose, incident }) => {
             className="incident-zoomed-image"
             onClick={(e) => e.stopPropagation()}
           />
-          <button 
-            className="incident-zoom-close-btn" 
+          <button
+            className="incident-zoom-close-btn"
             onClick={(e) => {
               e.stopPropagation(); // Prevent event bubbling to modal
               handleCloseZoom();

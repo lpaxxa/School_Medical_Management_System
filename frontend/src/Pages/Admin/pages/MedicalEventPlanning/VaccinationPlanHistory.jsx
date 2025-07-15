@@ -10,6 +10,8 @@ import {
   FaClock,
   FaChevronLeft,
   FaChevronRight,
+  FaSortAmountDown,
+  FaSortAmountUp,
 } from "react-icons/fa";
 import vaccinationPlanService from "../../../../services/APIAdmin/vaccinationPlanService";
 import "./VaccinationPlanHistory.css";
@@ -23,6 +25,7 @@ const VaccinationPlanHistory = () => {
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [sortOrder, setSortOrder] = useState("newest"); // "newest" hoặc "oldest"
 
   // Status change state
   const [statusChanging, setStatusChanging] = useState({});
@@ -37,10 +40,10 @@ const VaccinationPlanHistory = () => {
     loadVaccinationPlans();
   }, []);
 
-  // Filter plans khi search term hoặc status filter thay đổi
+  // Filter plans khi search term, status filter, hoặc sort order thay đổi
   useEffect(() => {
     filterPlans();
-  }, [plans, searchTerm, statusFilter]);
+  }, [plans, searchTerm, statusFilter, sortOrder]);
 
   // Handle pagination when filteredPlans changes
   useEffect(() => {
@@ -126,7 +129,24 @@ const VaccinationPlanHistory = () => {
       filtered = filtered.filter((plan) => plan.status === statusFilter);
     }
 
+    // Sort theo ngày tiêm
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.vaccinationDate);
+      const dateB = new Date(b.vaccinationDate);
+
+      if (sortOrder === "newest") {
+        return dateB - dateA; // Mới nhất trước
+      } else {
+        return dateA - dateB; // Cũ nhất trước
+      }
+    });
+
     setFilteredPlans(filtered);
+  };
+
+  // Toggle sort order
+  const toggleSortOrder = () => {
+    setSortOrder((current) => (current === "newest" ? "oldest" : "newest"));
   };
 
   // Handle status change
@@ -288,6 +308,42 @@ const VaccinationPlanHistory = () => {
         </div>
 
         <div className="toolbar-buttons">
+          <button
+            className="sort-button"
+            onClick={toggleSortOrder}
+            title={
+              sortOrder === "newest"
+                ? "Sắp xếp từ cũ nhất"
+                : "Sắp xếp từ mới nhất"
+            }
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "8px 12px",
+              backgroundColor: "#f8f9fa",
+              border: "1px solid #dee2e6",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "14px",
+              color: "#495057",
+              transition: "all 0.2s ease",
+              marginRight: "8px",
+            }}
+          >
+            {sortOrder === "newest" ? (
+              <>
+                <FaSortAmountDown />
+                Mới nhất
+              </>
+            ) : (
+              <>
+                <FaSortAmountUp />
+                Cũ nhất
+              </>
+            )}
+          </button>
+
           <button
             className="refresh-button"
             onClick={loadVaccinationPlans}

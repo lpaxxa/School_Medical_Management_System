@@ -1,0 +1,531 @@
+/* VaccinationDetailModal CSS - Beautiful Gradient Style */
+
+:root {
+  /* --color-primary: linear-gradient(135deg, #015C92 0%, #2D82B5 50%, #428CD4 100%); */
+  --color-primary-hover: #1d4ed8;
+  --color-secondary: #6366f1;
+  --color-accent: #083370;
+}
+
+.modaldetailofnotivaccine-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: modaldetailofnotivaccine-fadeIn 0.3s ease;
+}
+
+.modaldetailofnotivaccine-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  animation: modaldetailofnotivaccine-slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Beautiful Header with gradient */
+.modaldetailofnotivaccine-header {
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 50%, #428CD4 100%);
+  color: white;
+  padding: 24px 28px;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.modaldetailofnotivaccine-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.modaldetailofnotivaccine-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modaldetailofnotivaccine-header-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modaldetailofnotivaccine-header-text h2 {
+  color: #fff;
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modaldetailofnotivaccine-header-text p {
+  color: #cbd5e1;
+  margin: 4px 0 0 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.modaldetailofnotivaccine-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.modaldetailofnotivaccine-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Simple Body */
+.modaldetailofnotivaccine-body {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(90vh - 100px);
+}
+
+.modaldetailofnotivaccine-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modaldetailofnotivaccine-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.modaldetailofnotivaccine-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+/* Modal Sections */
+.modaldetailofnotivaccine-section {
+  margin-bottom: 24px;
+}
+
+.modaldetailofnotivaccine-section:last-child {
+  margin-bottom: 0;
+}
+
+.modaldetailofnotivaccine-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: linear-gradient(135deg, #015C92 0%, #2D82B5 50%, #428CD4 100%);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+}
+
+.modaldetailofnotivaccine-section-title i {
+  color: var(--color-primary);
+  font-size: 1.1rem;
+}
+
+/* Detail Info Grid with beautiful styling */
+.modaldetailofnotivaccine-detail-info {
+  background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.modaldetailofnotivaccine-detail-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+}
+
+.modaldetailofnotivaccine-info-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  transition: all 0.3s ease;
+}
+
+.modaldetailofnotivaccine-info-row:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.modaldetailofnotivaccine-info-row:hover {
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 8px;
+  padding: 14px 12px;
+  margin: 0 -12px 18px -12px;
+}
+
+.modaldetailofnotivaccine-info-row:hover:last-child {
+  margin-bottom: -12px;
+}
+
+.modaldetailofnotivaccine-info-label {
+  display: flex;
+  align-items: center;
+  min-width: 140px;
+  font-weight: 500;
+  color: #64748b;
+  font-size: 0.9rem;
+  gap: 8px;
+}
+
+.modaldetailofnotivaccine-info-label i {
+  width: 18px;
+  text-align: center;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+}
+
+.modaldetailofnotivaccine-info-value {
+  flex: 1;
+  color: #1e293b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Message Content with beautiful styling */
+.modaldetailofnotivaccine-message {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.modaldetailofnotivaccine-message::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
+}
+
+.modaldetailofnotivaccine-content-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+.modaldetailofnotivaccine-content-card-title i {
+  color: var(--color-secondary);
+  font-size: 1rem;
+}
+
+.modaldetailofnotivaccine-message-content {
+  background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 8px;
+  padding: 18px;
+  color: #1e293b;
+  line-height: 1.7;
+  font-size: 0.95rem;
+  border-left: 4px solid var(--color-primary);
+  box-shadow: inset 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Response Status */
+.modaldetailofnotivaccine-response-status {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.modaldetailofnotivaccine-response-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+/* Badge màu vàng giống như trong hình */
+.modaldetailofnotivaccine-response-badge--accept {
+  background: #fbbf24;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.modaldetailofnotivaccine-response-badge--reject {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.modaldetailofnotivaccine-response-time {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin: 8px 0 0 0;
+  font-style: italic;
+}
+
+/* Beautiful Response Buttons */
+.modaldetailofnotivaccine-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 130px;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.modaldetailofnotivaccine-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.modaldetailofnotivaccine-btn:hover::before {
+  left: 100%;
+}
+
+/* Response Buttons continued */
+.modaldetailofnotivaccine-response-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modaldetailofnotivaccine-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.modaldetailofnotivaccine-btn:disabled::before {
+  display: none;
+}
+
+.modaldetailofnotivaccine-btn--accept {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.modaldetailofnotivaccine-btn--accept:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.modaldetailofnotivaccine-btn--reject {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.modaldetailofnotivaccine-btn--reject:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Loading State */
+.modaldetailofnotivaccine-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.modaldetailofnotivaccine-spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid var(--color-primary);
+  border-radius: 50%;
+  animation: modaldetailofnotivaccine-spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+.modaldetailofnotivaccine-loading p {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* No Data State */
+.modaldetailofnotivaccine-no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.modaldetailofnotivaccine-no-data-icon {
+  font-size: 3rem;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+
+.modaldetailofnotivaccine-no-data-text {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Animations */
+@keyframes modaldetailofnotivaccine-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modaldetailofnotivaccine-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modaldetailofnotivaccine-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modaldetailofnotivaccine-overlay {
+    padding: 16px;
+  }
+
+  .modaldetailofnotivaccine-content {
+    max-height: 95vh;
+    border-radius: 8px;
+  }
+
+  .modaldetailofnotivaccine-header {
+    padding: 16px 20px;
+  }
+
+  .modaldetailofnotivaccine-header-left {
+    gap: 10px;
+  }
+
+  .modaldetailofnotivaccine-header-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .modaldetailofnotivaccine-header-text h2 {
+    font-size: 1.3rem;
+  }
+
+  .modaldetailofnotivaccine-header-text p {
+    font-size: 0.8rem;
+  }
+
+  .modaldetailofnotivaccine-body {
+    padding: 20px;
+  }
+
+  .modaldetailofnotivaccine-detail-info,
+  .modaldetailofnotivaccine-message {
+    padding: 16px;
+  }
+
+  .modaldetailofnotivaccine-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .modaldetailofnotivaccine-info-label {
+    min-width: auto;
+  }
+
+  .modaldetailofnotivaccine-response-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modaldetailofnotivaccine-btn {
+    width: 100%;
+    padding: 12px 20px;
+  }
+
+  .modaldetailofnotivaccine-section-title {
+    font-size: 1rem;
+  }
+}

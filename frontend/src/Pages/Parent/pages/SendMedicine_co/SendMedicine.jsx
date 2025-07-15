@@ -952,16 +952,54 @@ const SendMedicine = () => {
 
   // Function để format timestamp cho confirmation
   const formatConfirmationTimestamp = (timestamp) => {
-    if (!timestamp) return "";
-    const date = new Date(timestamp);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
+    console.log("formatConfirmationTimestamp input:", timestamp);
+
+    if (!timestamp) return "Không có thông tin";
+
+    try {
+      let date;
+
+      // Kiểm tra nếu timestamp là mảng Java LocalDateTime
+      if (Array.isArray(timestamp)) {
+        console.log("Processing array timestamp:", timestamp);
+
+        if (timestamp.length >= 5) {
+          const [year, month, day, hour = 0, minute = 0, second = 0] =
+            timestamp;
+          // Java month là 1-based, JavaScript month là 0-based
+          date = new Date(year, month - 1, day, hour, minute, second);
+          console.log("Created date from array:", date);
+        } else {
+          console.log("Array too short:", timestamp.length);
+          return "Dữ liệu không hợp lệ";
+        }
+      } else {
+        // Xử lý timestamp dạng string hoặc number
+        date = new Date(timestamp);
+      }
+
+      if (isNaN(date.getTime())) {
+        console.log("Invalid date created:", date);
+        return "Thời gian không hợp lệ";
+      }
+
+      // Format thành dd/MM/yyyy HH:mm:ss
+      const result = date.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+
+      console.log("formatConfirmationTimestamp result:", result);
+      return result;
+    } catch (error) {
+      console.error("Error in formatConfirmationTimestamp:", error);
+      return "Lỗi xử lý thời gian";
+    }
   };
 
   // Function để lấy label và class cho administration status

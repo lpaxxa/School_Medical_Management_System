@@ -18,6 +18,8 @@ import {
   FaCheck,
   FaChevronLeft,
   FaChevronRight,
+  FaSortAmountDown,
+  FaSortAmountUp,
 } from "react-icons/fa";
 import SuccessModal from "../../components/SuccessModal";
 import ErrorModal from "../../components/ErrorModal";
@@ -36,6 +38,7 @@ const HealthCampaignHistory = () => {
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [sortOrder, setSortOrder] = useState("newest"); // "newest" hoặc "oldest"
 
   // Modal states
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -99,10 +102,10 @@ const HealthCampaignHistory = () => {
     loadHealthCampaigns();
   }, []);
 
-  // Filter campaigns when search term or status filter changes
+  // Filter campaigns when search term, status filter, or sort order changes
   useEffect(() => {
     filterCampaigns();
-  }, [campaigns, searchTerm, statusFilter]);
+  }, [campaigns, searchTerm, statusFilter, sortOrder]);
 
   // Handle pagination when filteredCampaigns changes
   useEffect(() => {
@@ -198,7 +201,24 @@ const HealthCampaignHistory = () => {
       );
     }
 
+    // Sort by date
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.startDate);
+      const dateB = new Date(b.startDate);
+
+      if (sortOrder === "newest") {
+        return dateB - dateA; // Mới nhất trước
+      } else {
+        return dateA - dateB; // Cũ nhất trước
+      }
+    });
+
     setFilteredCampaigns(filtered);
+  };
+
+  // Toggle sort order
+  const toggleSortOrder = () => {
+    setSortOrder((current) => (current === "newest" ? "oldest" : "newest"));
   };
 
   // Handle row click to show details
@@ -927,6 +947,41 @@ const HealthCampaignHistory = () => {
             <option value="COMPLETED">Đã hoàn thành</option>
             <option value="CANCELLED">Đã hủy</option>
           </select>
+
+          <button
+            className="sort-btn"
+            onClick={toggleSortOrder}
+            title={
+              sortOrder === "newest"
+                ? "Sắp xếp từ cũ nhất"
+                : "Sắp xếp từ mới nhất"
+            }
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "8px 12px",
+              backgroundColor: "#f8f9fa",
+              border: "1px solid #dee2e6",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "14px",
+              color: "#495057",
+              transition: "all 0.2s ease",
+            }}
+          >
+            {sortOrder === "newest" ? (
+              <>
+                <FaSortAmountDown />
+                Mới nhất
+              </>
+            ) : (
+              <>
+                <FaSortAmountUp />
+                Cũ nhất
+              </>
+            )}
+          </button>
 
           <button
             className="refresh-btn"

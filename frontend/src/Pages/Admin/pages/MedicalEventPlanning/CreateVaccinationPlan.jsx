@@ -16,13 +16,37 @@ import {
 import vaccinationPlanService from "../../../../services/APIAdmin/vaccinationPlanService";
 import vaccineService from "../../../../services/APIAdmin/vaccineService";
 import classService from "../../../../services/APIAdmin/classService";
+import SuccessModal from "../../components/SuccessModal/SuccessModal";
+import ErrorModal from "../../components/ErrorModal/ErrorModal";
+import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
+import { useSuccessModal } from "../../hooks/useSuccessModal";
+import { useErrorModal } from "../../hooks/useErrorModal";
+import { useConfirmModal } from "../../hooks/useConfirmModal";
 import "./CreateVaccinationPlan.css";
 
 const CreateVaccinationPlan = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Modal hooks
+  const {
+    isOpen: isSuccessModalVisible,
+    modalData: successModalData,
+    showSuccess,
+    hideSuccess,
+  } = useSuccessModal();
+  const {
+    isOpen: isErrorModalVisible,
+    modalData: errorModalData,
+    showError,
+    hideError,
+  } = useErrorModal();
+  const {
+    isOpen: isConfirmModalVisible,
+    modalData: confirmModalData,
+    showConfirm,
+    hideConfirm,
+  } = useConfirmModal();
   const [vaccines, setVaccines] = useState([]);
   const [loadingVaccines, setLoadingVaccines] = useState(true);
   const [availableClasses, setAvailableClasses] = useState([]);
@@ -200,14 +224,11 @@ const CreateVaccinationPlan = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      setShowError(true);
-      setTimeout(() => setShowError(false), 5000);
+      showError("Lỗi xác thực", errorMessage);
       return;
     }
 
     setIsLoading(true);
-    setShowSuccess(false);
-    setShowError(false);
 
     try {
       // Chuẩn bị data theo format API mới
@@ -227,7 +248,13 @@ const CreateVaccinationPlan = () => {
       );
 
       if (result.success) {
-        setShowSuccess(true);
+        // Sử dụng SuccessModal
+        console.log("🎯 Đang hiển thị modal success...");
+        showSuccess(
+          "Thành công!",
+          "Kế hoạch tiêm chủng đã được tạo thành công!"
+        );
+
         // Reset form sau khi thành công
         setFormData({
           name: "",
@@ -237,15 +264,15 @@ const CreateVaccinationPlan = () => {
           vaccineIds: [],
           className: [],
         });
-        setTimeout(() => setShowSuccess(false), 5000);
       } else {
         throw new Error(result.message || "Có lỗi xảy ra khi tạo kế hoạch");
       }
     } catch (err) {
       console.error("❌ Lỗi tạo kế hoạch:", err);
-      setErrorMessage(err.message || "Có lỗi không mong muốn xảy ra");
-      setShowError(true);
-      setTimeout(() => setShowError(false), 5000);
+      showError(
+        "Có lỗi xảy ra!",
+        err.message || "Có lỗi không mong muốn xảy ra"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -405,31 +432,8 @@ const CreateVaccinationPlan = () => {
         </div>
         <div className="create-vaccination-header-content">
           <h2>Tạo Kế Hoạch Tiêm Chủng Mới</h2>
-        
         </div>
       </div>
-
-      {/* Success Message */}
-      {showSuccess && (
-        <div className="create-vaccination-notification success">
-          <FaCheck className="notification-icon" />
-          <div className="notification-content">
-            <h4>Thành công!</h4>
-            <p>Kế hoạch tiêm chủng đã được tạo thành công</p>
-          </div>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {showError && (
-        <div className="create-vaccination-notification error">
-          <FaTimes className="notification-icon" />
-          <div className="notification-content">
-            <h4>Có lỗi xảy ra!</h4>
-            <p>{errorMessage}</p>
-          </div>
-        </div>
-      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="vaccination-form">
@@ -804,6 +808,61 @@ const CreateVaccinationPlan = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Components */}
+      {isSuccessModalVisible && (
+        <SuccessModal
+          isOpen={isSuccessModalVisible}
+          onClose={hideSuccess}
+          title={successModalData.title}
+          message={successModalData.message}
+          details={successModalData.details}
+        />
+      )}
+
+      {isErrorModalVisible && (
+        <ErrorModal
+          isOpen={isErrorModalVisible}
+          onClose={hideError}
+          title={errorModalData.title}
+          message={errorModalData.message}
+          details={errorModalData.details}
+        />
+      )}
+
+      {isConfirmModalVisible && (
+        <ConfirmModal
+          isOpen={isConfirmModalVisible}
+          onConfirm={hideConfirm}
+          onCancel={hideConfirm}
+          title={confirmModalData.title}
+          message={confirmModalData.message}
+        />
+      )}
+
+      {/* Debug info - Hidden */}
+      {false && process.env.NODE_ENV === "development" && (
+        <div
+          style={{
+            position: "fixed",
+            top: 10,
+            right: 10,
+            background: "rgba(0,0,0,0.8)",
+            color: "white",
+            padding: "10px",
+            fontSize: "12px",
+            zIndex: 9999,
+          }}
+        >
+          Success Modal: {isSuccessModalVisible ? "VISIBLE" : "HIDDEN"}
+          <br />
+          Error Modal: {isErrorModalVisible ? "VISIBLE" : "HIDDEN"}
+          <br />
+          Success Data: {JSON.stringify(successModalData)}
+          <br />
+          Error Data: {JSON.stringify(errorModalData)}
+        </div>
+      )}
     </div>
   );
 };
