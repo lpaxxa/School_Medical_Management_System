@@ -26,6 +26,8 @@ const BlogTab = ({ onView, onEdit, onAdd }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [blogToDelete, setBlogToDelete] = useState(null);
 
   // Fetch blog posts
   useEffect(() => {
@@ -57,11 +59,30 @@ const BlogTab = ({ onView, onEdit, onAdd }) => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
-      return;
-    }
+  // Show delete confirmation modal
+  const showDeleteConfirmation = (blog) => {
+    setBlogToDelete(blog);
+    setShowDeleteModal(true);
+  };
 
+  // Hide delete confirmation modal
+  const hideDeleteConfirmation = () => {
+    setShowDeleteModal(false);
+    setBlogToDelete(null);
+  };
+
+  // Confirm delete action
+  const confirmDelete = () => {
+    console.log("BlogTab - confirmDelete called with:", blogToDelete);
+    if (blogToDelete) {
+      console.log("BlogTab - Calling handleDelete with ID:", blogToDelete.id);
+      handleDelete(blogToDelete.id);
+      hideDeleteConfirmation();
+    }
+  };
+
+  const handleDelete = async (id) => {
+    console.log("BlogTab - handleDelete called with ID:", id);
     try {
       // Try API first, fallback to local deletion
       try {
@@ -69,6 +90,9 @@ const BlogTab = ({ onView, onEdit, onAdd }) => {
           `${import.meta.env.VITE_BACKEND_URL}/api/v1/community/posts/${id}`,
           {
             method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
           }
         );
 
@@ -78,9 +102,17 @@ const BlogTab = ({ onView, onEdit, onAdd }) => {
           setShowSuccessModal(true);
           fetchBlogs();
           return;
+        } else {
+          // API returned error
+          const errorData = await response.text();
+          console.error("API delete failed:", response.status, errorData);
+          throw new Error(`API Error: ${response.status}`);
         }
       } catch (apiError) {
-        console.log("API not available, using local deletion");
+        console.log(
+          "API not available, using local deletion:",
+          apiError.message
+        );
       }
 
       // Fallback: Remove from local state
@@ -248,7 +280,7 @@ const BlogTab = ({ onView, onEdit, onAdd }) => {
                     </button>
                     <button
                       className="admin-btn-delete"
-                      onClick={() => handleDelete(blog.id)}
+                      onClick={() => showDeleteConfirmation(blog)}
                       title="Xóa bài viết"
                     >
                       <FaTrash />
@@ -303,6 +335,58 @@ const BlogTab = ({ onView, onEdit, onAdd }) => {
         message={successMessage}
         title="Thành công!"
       />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div
+          className="admin-delete-modal-overlay"
+          onClick={hideDeleteConfirmation}
+        >
+          <div
+            className="admin-delete-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="admin-delete-modal-header">
+              <h3>Xác nhận xóa bài viết blog</h3>
+            </div>
+
+            <div className="admin-delete-modal-body">
+              <div className="admin-delete-modal-icon">
+                <FaTrash />
+              </div>
+              <div className="admin-delete-modal-text">
+                <p>Bạn có chắc chắn muốn xóa bài viết blog này?</p>
+                {blogToDelete && (
+                  <div className="admin-delete-modal-article-info">
+                    <strong>"{blogToDelete.title}"</strong>
+                  </div>
+                )}
+                <p className="admin-delete-modal-warning">
+                  Hành động này không thể hoàn tác.
+                </p>
+              </div>
+            </div>
+
+            <div className="admin-delete-modal-footer">
+              <button
+                className="admin-delete-modal-btn admin-delete-modal-btn-cancel"
+                onClick={hideDeleteConfirmation}
+              >
+                Hủy
+              </button>
+              <button
+                className="admin-delete-modal-btn admin-delete-modal-btn-confirm"
+                onClick={() => {
+                  console.log("BlogTab - OK button clicked");
+                  confirmDelete();
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

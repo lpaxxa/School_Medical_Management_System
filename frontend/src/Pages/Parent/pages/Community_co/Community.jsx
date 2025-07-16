@@ -211,6 +211,51 @@ const Community = () => {
     }
   }, [bookmarkedPosts, currentUser?.id]);
 
+  // ✅ SYNC FIX: Listen for like changes from CommunityPost
+  useEffect(() => {
+    const handlePostLikeChanged = (event) => {
+      const { postId, liked, likesCount, source } = event.detail;
+
+      console.log("🔄 Received postLikeChanged event:", {
+        postId,
+        liked,
+        likesCount,
+        source,
+        currentLikedPosts: likedPosts,
+      });
+
+      // Update likedPosts state
+      if (liked && !likedPosts.includes(postId)) {
+        setLikedPosts((prev) => [
+          ...prev.filter((id) => id !== postId),
+          postId,
+        ]);
+      } else if (!liked && likedPosts.includes(postId)) {
+        setLikedPosts((prev) => prev.filter((id) => id !== postId));
+      }
+
+      // Update post in allPosts array
+      setAllPosts((prev) =>
+        prev.map((post) =>
+          parseInt(post.id) === postId
+            ? {
+                ...post,
+                likes: likesCount,
+                likesCount: likesCount,
+                liked: liked,
+              }
+            : post
+        )
+      );
+    };
+
+    window.addEventListener("postLikeChanged", handlePostLikeChanged);
+
+    return () => {
+      window.removeEventListener("postLikeChanged", handlePostLikeChanged);
+    };
+  }, [likedPosts]);
+
   // Load tất cả posts một lần duy nhất khi component mount
   useEffect(() => {
     const fetchAllPosts = async () => {
@@ -788,6 +833,18 @@ const Community = () => {
                   }
                 : post
             )
+          );
+
+          // ✅ SYNC FIX: Dispatch custom event để thông báo cho CommunityPost.jsx
+          window.dispatchEvent(
+            new CustomEvent("postLikeChanged", {
+              detail: {
+                postId: numericPostId,
+                liked: liked,
+                likesCount: finalLikeCount,
+                source: "Community",
+              },
+            })
           );
 
           // Hiển thị thông báo thành công
