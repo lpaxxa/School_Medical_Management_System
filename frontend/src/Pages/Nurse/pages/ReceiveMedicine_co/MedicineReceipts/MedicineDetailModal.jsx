@@ -24,6 +24,65 @@ const MedicineDetailModal = ({
 }) => {
   if (!selectedReceipt) return null;
 
+  // Helper function to format date from backend
+  const formatDate = (dateInput) => {
+    if (!dateInput) return "Không có thông tin";
+
+    try {
+      let date;
+
+      // Debug log to see what we're receiving
+      console.log('formatDate input:', dateInput, 'type:', typeof dateInput, 'isArray:', Array.isArray(dateInput));
+
+      // Handle array format from backend [year, month, day, hour, minute, second, nanosecond]
+      if (Array.isArray(dateInput)) {
+        if (dateInput.length >= 3) {
+          // Month is 0-indexed in JavaScript Date constructor
+          const year = dateInput[0];
+          const month = dateInput[1] - 1; // Convert to 0-indexed
+          const day = dateInput[2];
+          const hour = dateInput[3] || 0;
+          const minute = dateInput[4] || 0;
+          const second = dateInput[5] || 0;
+          const nanosecond = dateInput[6] || 0;
+          // Convert nanoseconds to milliseconds for JavaScript Date
+          const millisecond = Math.floor(nanosecond / 1000000);
+
+          console.log('Creating date with:', { year, month, day, hour, minute, second, millisecond });
+          date = new Date(year, month, day, hour, minute, second, millisecond);
+        } else {
+          console.log('Array too short:', dateInput.length);
+          return 'Ngày không hợp lệ';
+        }
+      }
+      // Handle string format
+      else if (typeof dateInput === 'string') {
+        date = new Date(dateInput);
+      }
+      // Handle Date object
+      else if (dateInput instanceof Date) {
+        date = dateInput;
+      }
+      else {
+        console.log('Unknown date format:', typeof dateInput);
+        return 'Ngày không hợp lệ';
+      }
+
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.log('Invalid date created:', date);
+        return 'Ngày không hợp lệ';
+      }
+
+      const result = date.toLocaleDateString('vi-VN');
+      console.log('Final formatted date:', result);
+      return result;
+    } catch (error) {
+      console.error('Error formatting date:', error, dateInput);
+      return 'Ngày không hợp lệ';
+    }
+  };
+
   return (
     <Modal 
       show={show} 
@@ -65,8 +124,8 @@ const MedicineDetailModal = ({
                 <p><strong>Tên thuốc:</strong> {selectedReceipt?.medicationName || "Không có thông tin"}</p>
                 <p><strong>Liều lượng:</strong> {selectedReceipt?.dosageInstructions || "Không có thông tin"}</p>
                 <p><strong>Tần suất:</strong> {selectedReceipt?.frequencyPerDay ? `${selectedReceipt.frequencyPerDay} lần/ngày` : "Không có thông tin"}</p>
-                <p><strong>Ngày bắt đầu:</strong> {selectedReceipt?.startDate ? new Date(selectedReceipt.startDate).toLocaleDateString("vi-VN") : "Không có thông tin"}</p>
-                <p><strong>Ngày kết thúc:</strong> {selectedReceipt?.endDate ? new Date(selectedReceipt.endDate).toLocaleDateString("vi-VN") : "Không có thông tin"}</p>
+                <p><strong>Ngày bắt đầu:</strong> {formatDate(selectedReceipt?.startDate)}</p>
+                <p><strong>Ngày kết thúc:</strong> {formatDate(selectedReceipt?.endDate)}</p>
               </Card.Body>
             </Card>
           </Col>
@@ -81,7 +140,10 @@ const MedicineDetailModal = ({
                 <p><strong>Mã học sinh:</strong> {selectedReceipt?.studentId || "Không có thông tin"}</p>
                 <p><strong>Người yêu cầu:</strong> {selectedReceipt?.requestedBy || "Không có thông tin"}</p>
                 <p><strong>Mã tài khoản:</strong> {selectedReceipt?.requestedByAccountId || "Không có thông tin"}</p>
-                <p><strong>Ngày yêu cầu:</strong> {selectedReceipt?.createdAt ? new Date(selectedReceipt.createdAt).toLocaleDateString("vi-VN") : "Không có thông tin"}</p>
+                <p><strong>Ngày yêu cầu:</strong> {formatDate(selectedReceipt?.submittedAt || selectedReceipt?.createdAt)}</p>
+                {selectedReceipt?.responseDate && (
+                  <p><strong>Ngày phê duyệt:</strong> {formatDate(selectedReceipt?.responseDate)}</p>
+                )}
               </Card.Body>
             </Card>
           </Col>

@@ -32,32 +32,66 @@ const ViewDetailsItem = ({ itemId, onClose, show }) => {
     }
   };
 
-  // Format date function
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Chưa cập nhật';
-    
+  // Format date function - Enhanced to handle array format from Java LocalDate
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'Chưa cập nhật';
+
     try {
+      console.log('🔍 ViewDetails formatDate input:', dateValue, 'type:', typeof dateValue);
+
       let date;
-      if (dateString.includes('T')) {
-        date = new Date(dateString);
-      } else if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        date = new Date(dateString + 'T00:00:00');
-      } else {
-        date = new Date(dateString);
+
+      // Handle array format from Java LocalDate [year, month, day]
+      if (Array.isArray(dateValue)) {
+        console.log('📅 Array format detected in ViewDetails:', dateValue);
+        if (dateValue.length >= 3) {
+          const [year, month, day] = dateValue;
+          // Create date with proper month conversion (Java 1-based to JS 0-based)
+          date = new Date(year, month - 1, day);
+          console.log(`📅 Converted array [${year}, ${month}, ${day}] to Date:`, date);
+        } else {
+          console.warn('❌ Invalid array format:', dateValue);
+          return dateValue.toString();
+        }
       }
-      
+      // Handle string formats
+      else if (typeof dateValue === 'string') {
+        console.log('📝 String format detected in ViewDetails:', dateValue);
+        if (dateValue.includes('T')) {
+          date = new Date(dateValue);
+        } else if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          date = new Date(dateValue + 'T00:00:00');
+        } else {
+          date = new Date(dateValue);
+        }
+      }
+      // Handle Date objects
+      else if (dateValue instanceof Date) {
+        date = dateValue;
+      }
+      else {
+        console.warn('❌ Unknown date format in ViewDetails:', dateValue);
+        return dateValue.toString();
+      }
+
+      // Validate date
       if (isNaN(date.getTime())) {
-        return dateString;
+        console.warn('❌ Invalid date created from:', dateValue);
+        return dateValue.toString();
       }
-      
-      return date.toLocaleDateString('vi-VN', {
+
+      // Format as DD/MM/YYYY
+      const formatted = date.toLocaleDateString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
       });
+
+      console.log('✅ ViewDetails formatDate result:', formatted);
+      return formatted;
     } catch (err) {
-      console.error('Error formatting date:', err);
-      return dateString;
+      console.error('❌ Error formatting date in ViewDetails:', err, 'Input:', dateValue);
+      return dateValue.toString();
     }
   };
 

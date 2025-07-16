@@ -44,6 +44,41 @@ const MedicalIncidentAddModal = ({
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
+  // Utility function to handle different date formats
+  const formatDateForInput = (dateInput) => {
+    if (!dateInput) return '';
+
+    let date;
+
+    // Handle array format from backend [year, month, day]
+    if (Array.isArray(dateInput)) {
+      if (dateInput.length >= 3) {
+        // Month is 0-indexed in JavaScript Date constructor
+        date = new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
+      } else {
+        return '';
+      }
+    }
+    // Handle string format
+    else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+    }
+    // Handle Date object
+    else if (dateInput instanceof Date) {
+      date = dateInput;
+    }
+    else {
+      return '';
+    }
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
+    return date.toISOString().slice(0, 16);
+  };
+
   // Initialize form data when modal opens or selectedEvent changes
   useEffect(() => {
     if (show) {
@@ -52,8 +87,7 @@ const MedicalIncidentAddModal = ({
         setFormData({
           studentId: selectedEvent.studentId || '',
           incidentType: selectedEvent.incidentType || '',
-          dateTime: selectedEvent.dateTime ? 
-            new Date(selectedEvent.dateTime).toISOString().slice(0, 16) : '',
+          dateTime: formatDateForInput(selectedEvent.dateTime) || '',
           description: selectedEvent.description || '',
           symptoms: selectedEvent.symptoms || '',
           severityLevel: selectedEvent.severityLevel || '',

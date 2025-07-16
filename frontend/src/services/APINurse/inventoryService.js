@@ -59,6 +59,17 @@ const inventoryService = {
         result = response.data || [];
       }
 
+      // Debug: Log raw data from API to see actual format
+      console.log('🔍 Raw API response for inventory items:', result);
+      if (result && result.length > 0) {
+        console.log('🔍 Sample item from API:', result[0]);
+        console.log('🔍 Sample expiryDate from API:', result[0].expiryDate, 'type:', typeof result[0].expiryDate);
+        console.log('🔍 All expiryDates in first 5 items:');
+        result.slice(0, 5).forEach((item, index) => {
+          console.log(`   Item ${index + 1} (${item.itemName}): expiryDate = ${item.expiryDate} (${typeof item.expiryDate})`);
+        });
+      }
+
       inventoryService._cache.getAllItems = result;
       inventoryService._cache.lastFetchTime = now;
 

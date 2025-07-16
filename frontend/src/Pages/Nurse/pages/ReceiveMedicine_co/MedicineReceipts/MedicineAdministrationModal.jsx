@@ -126,13 +126,35 @@ const MedicineAdministrationModal = ({
                   </Form.Group>
 
                   {imagePreview && (
-                    <div className="medicine-admin-image-preview">
-                      <img 
-                        src={imagePreview} 
-                        alt="Ảnh xác nhận" 
+                    <div className="medicine-admin-image-preview position-relative">
+                      <img
+                        src={imagePreview}
+                        alt="Ảnh xác nhận"
                         className="img-fluid rounded shadow-sm"
                         style={{ maxHeight: '150px', width: '100%', objectFit: 'cover' }}
                       />
+                      {/* Nút X để xóa ảnh */}
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        className="position-absolute top-0 end-0 m-1 rounded-circle"
+                        style={{
+                          width: '30px',
+                          height: '30px',
+                          padding: '0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '12px'
+                        }}
+                        onClick={() => {
+                          // Reset image states
+                          onImageSelect(null);
+                        }}
+                        title="Xóa ảnh"
+                      >
+                        <FaTimes />
+                      </Button>
                       <div className="text-center mt-2">
                         <small className="text-success">
                           <FaCheck className="me-1" />

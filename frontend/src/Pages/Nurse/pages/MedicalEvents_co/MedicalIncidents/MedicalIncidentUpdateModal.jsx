@@ -42,6 +42,79 @@ const MedicalIncidentUpdateModal = ({
   const [imagePreview, setImagePreview] = useState('');
   const [imageUploadError, setImageUploadError] = useState('');
 
+  // Utility function to handle different date formats
+  const formatDateForInput = (dateInput) => {
+    if (!dateInput) return '';
+
+    let date;
+
+    // Handle array format from backend [year, month, day]
+    if (Array.isArray(dateInput)) {
+      if (dateInput.length >= 3) {
+        // Month is 0-indexed in JavaScript Date constructor
+        date = new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
+      } else {
+        return '';
+      }
+    }
+    // Handle string format
+    else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+    }
+    // Handle Date object
+    else if (dateInput instanceof Date) {
+      date = dateInput;
+    }
+    else {
+      return '';
+    }
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
+    return date.toISOString().slice(0, 16);
+  };
+
+  const formatDateForDisplay = (dateInput) => {
+    if (!dateInput) return 'N/A';
+
+    let date;
+
+    // Handle array format from backend [year, month, day]
+    if (Array.isArray(dateInput)) {
+      if (dateInput.length >= 3) {
+        // Month is 0-indexed in JavaScript Date constructor
+        date = new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
+      } else {
+        return 'N/A';
+      }
+    }
+    // Handle string format
+    else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+    }
+    // Handle Date object
+    else if (dateInput instanceof Date) {
+      date = dateInput;
+    }
+    else {
+      return 'N/A';
+    }
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+
+    return date.toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
   // Initialize form data when modal opens or selectedEvent changes
   useEffect(() => {
     if (show && selectedEvent) {
@@ -225,7 +298,7 @@ const MedicalIncidentUpdateModal = ({
         handledById: selectedEvent.handledById || selectedEvent.staffId || 1,
         studentId: selectedEvent.studentId || '',
         studentName: selectedEvent.studentName || '',
-        dateTime: selectedEvent.dateTime || selectedEvent.date || new Date().toISOString(),
+        dateTime: formatDateForInput(selectedEvent.dateTime || selectedEvent.date) || new Date().toISOString(),
         imageMedicalUrl: selectedEvent.imageMedicalUrl || selectedEvent.imgUrl || '',
         // medicationsUsed is now handled by selectedMedications state
       });
@@ -1216,7 +1289,7 @@ const MedicalIncidentUpdateModal = ({
                     </Form.Label>
                     <Form.Control
                       type="text"
-                      value={formData.dateTime ? new Date(formData.dateTime).toLocaleDateString('vi-VN') : 'N/A'}
+                      value={formatDateForDisplay(selectedEvent?.dateTime || selectedEvent?.date)}
                       disabled
                       className="bg-light"
                     />

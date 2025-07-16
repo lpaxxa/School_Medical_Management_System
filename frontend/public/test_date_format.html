@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Date Format Functions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+            font-family: monospace;
+        }
+        .success { border-left-color: #28a745; }
+        .error { border-left-color: #dc3545; }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #007bff; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Date Format Functions</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Array Format [year, month, day]</h2>
+        <div id="array-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test Array Format with Time [year, month, day, hour, minute, second]</h2>
+        <div id="array-time-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test String Format</h2>
+        <div id="string-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Test Invalid Cases</h2>
+        <div id="invalid-test"></div>
+    </div>
+
+    <script>
+        // Utility function for Medical Incidents (formatDate)
+        const formatDateMedical = (dateInput) => {
+            if (!dateInput) return 'N/A';
+            
+            let date;
+            
+            // Handle array format from backend [year, month, day]
+            if (Array.isArray(dateInput)) {
+                if (dateInput.length >= 3) {
+                    // Month is 0-indexed in JavaScript Date constructor
+                    date = new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
+                } else {
+                    return 'N/A';
+                }
+            } 
+            // Handle string format
+            else if (typeof dateInput === 'string') {
+                date = new Date(dateInput);
+            }
+            // Handle Date object
+            else if (dateInput instanceof Date) {
+                date = dateInput;
+            }
+            else {
+                return 'N/A';
+            }
+            
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return 'N/A';
+            }
+            
+            return date.toLocaleDateString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+
+        // Utility function for Medication History (formatDate)
+        const formatDateMedication = (dateInput) => {
+            if (!dateInput) return 'Không có thông tin';
+            
+            try {
+                let date;
+                
+                // Handle array format from backend [year, month, day, hour, minute, second]
+                if (Array.isArray(dateInput)) {
+                    if (dateInput.length >= 3) {
+                        // Month is 0-indexed in JavaScript Date constructor
+                        const year = dateInput[0];
+                        const month = dateInput[1] - 1; // Convert to 0-indexed
+                        const day = dateInput[2];
+                        const hour = dateInput[3] || 0;
+                        const minute = dateInput[4] || 0;
+                        const second = dateInput[5] || 0;
+                        
+                        date = new Date(year, month, day, hour, minute, second);
+                    } else {
+                        return 'Ngày không hợp lệ';
+                    }
+                } 
+                // Handle string format
+                else if (typeof dateInput === 'string') {
+                    date = new Date(dateInput);
+                }
+                // Handle Date object
+                else if (dateInput instanceof Date) {
+                    date = dateInput;
+                }
+                else {
+                    return 'Ngày không hợp lệ';
+                }
+                
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                    return 'Ngày không hợp lệ';
+                }
+                
+                return new Intl.DateTimeFormat('vi-VN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric'
+                }).format(date);
+            } catch (error) {
+                console.error('Error formatting date:', error);
+                return 'Lỗi định dạng ngày';
+            }
+        };
+
+        // Test cases
+        const testCases = {
+            arrayFormat: [
+                [2024, 7, 16],
+                [2024, 12, 25],
+                [2023, 1, 1]
+            ],
+            arrayTimeFormat: [
+                [2024, 7, 16, 14, 30, 0],
+                [2024, 12, 25, 9, 15, 30],
+                [2023, 1, 1, 23, 59, 59]
+            ],
+            stringFormat: [
+                "2024-07-16T14:30:00",
+                "2024-12-25T09:15:30",
+                "2023-01-01T23:59:59"
+            ],
+            invalidCases: [
+                null,
+                undefined,
+                "",
+                [],
+                [2024],
+                [2024, 13, 32], // Invalid month/day
+                "invalid-date",
+                123456
+            ]
+        };
+
+        function runTests() {
+            // Test Array Format
+            let html = '';
+            testCases.arrayFormat.forEach((testCase, index) => {
+                const medicalResult = formatDateMedical(testCase);
+                const medicationResult = formatDateMedication(testCase);
+                html += `
+                    <div class="test-result success">
+                        <strong>Input:</strong> [${testCase.join(', ')}]<br>
+                        <strong>Medical Format:</strong> ${medicalResult}<br>
+                        <strong>Medication Format:</strong> ${medicationResult}
+                    </div>
+                `;
+            });
+            document.getElementById('array-test').innerHTML = html;
+
+            // Test Array Time Format
+            html = '';
+            testCases.arrayTimeFormat.forEach((testCase, index) => {
+                const medicalResult = formatDateMedical(testCase);
+                const medicationResult = formatDateMedication(testCase);
+                html += `
+                    <div class="test-result success">
+                        <strong>Input:</strong> [${testCase.join(', ')}]<br>
+                        <strong>Medical Format:</strong> ${medicalResult}<br>
+                        <strong>Medication Format:</strong> ${medicationResult}
+                    </div>
+                `;
+            });
+            document.getElementById('array-time-test').innerHTML = html;
+
+            // Test String Format
+            html = '';
+            testCases.stringFormat.forEach((testCase, index) => {
+                const medicalResult = formatDateMedical(testCase);
+                const medicationResult = formatDateMedication(testCase);
+                html += `
+                    <div class="test-result success">
+                        <strong>Input:</strong> "${testCase}"<br>
+                        <strong>Medical Format:</strong> ${medicalResult}<br>
+                        <strong>Medication Format:</strong> ${medicationResult}
+                    </div>
+                `;
+            });
+            document.getElementById('string-test').innerHTML = html;
+
+            // Test Invalid Cases
+            html = '';
+            testCases.invalidCases.forEach((testCase, index) => {
+                const medicalResult = formatDateMedical(testCase);
+                const medicationResult = formatDateMedication(testCase);
+                const inputDisplay = testCase === null ? 'null' : 
+                                   testCase === undefined ? 'undefined' : 
+                                   Array.isArray(testCase) ? `[${testCase.join(', ')}]` :
+                                   typeof testCase === 'string' ? `"${testCase}"` : testCase;
+                html += `
+                    <div class="test-result error">
+                        <strong>Input:</strong> ${inputDisplay}<br>
+                        <strong>Medical Format:</strong> ${medicalResult}<br>
+                        <strong>Medication Format:</strong> ${medicationResult}
+                    </div>
+                `;
+            });
+            document.getElementById('invalid-test').innerHTML = html;
+        }
+
+        // Run tests when page loads
+        window.onload = runTests;
+    </script>
+</body>
+</html>

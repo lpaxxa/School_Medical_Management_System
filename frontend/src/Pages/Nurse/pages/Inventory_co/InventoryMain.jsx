@@ -243,35 +243,136 @@ const InventoryPage = () => {
   };  // Function to format date from ISO string to dd/mm/yyyy format
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    
+
     try {
+      console.log('🔍 formatDate input:', dateString, 'type:', typeof dateString);
+
       // Handle different date formats
       let date;
-      if (dateString.includes('T')) {
-        // ISO format like "2023-07-01T01:00:00.000+00:00"
-        date = new Date(dateString);
-      } else if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        // YYYY-MM-DD format
-        const [year, month, day] = dateString.split('-');
-        date = new Date(year, month - 1, day);
+
+      // If it's already a Date object
+      if (dateString instanceof Date) {
+        date = dateString;
+        console.log('📅 Detected: Date object');
+      }
+      // If it's an array (LocalDate from Java backend)
+      else if (Array.isArray(dateString)) {
+        console.log('📅 Detected: Array format (LocalDate from Java)');
+        console.log('📅 Array content:', dateString);
+
+        if (dateString.length >= 3) {
+          // Array format: [year, month, day] - month is 1-based in Java
+          const [year, month, day] = dateString;
+          console.log(`📅 Array format: ${year}-${month}-${day}`);
+          date = new Date(year, month - 1, day); // Convert to 0-based month for JS
+        } else {
+          console.warn('❌ Invalid array format:', dateString);
+          return dateString.toString();
+        }
+      }
+      // If it's a timestamp (number)
+      else if (typeof dateString === 'number') {
+        console.log('🔢 Detected: Number format');
+        // Handle special case: numbers like 202611, 2025315 (YYYYMM or YYYYMMD format)
+        const numStr = dateString.toString();
+        console.log(`🔢 Number string: ${numStr}, length: ${numStr.length}`);
+
+        if (numStr.length === 6) {
+          // YYYYMM format (202611 = 2026-11)
+          const year = numStr.substring(0, 4);
+          const month = numStr.substring(4, 6);
+          console.log(`📅 YYYYMM format: ${year}-${month}`);
+          date = new Date(year, month - 1, 1); // First day of the month
+        } else if (numStr.length === 7) {
+          // YYYYMMD format (2025315 = 2025-3-15)
+          const year = numStr.substring(0, 4);
+          const month = numStr.substring(4, 5);
+          const day = numStr.substring(5, 7);
+          console.log(`📅 YYYYMMD format: ${year}-${month}-${day}`);
+          date = new Date(year, month - 1, day);
+        } else if (numStr.length === 8) {
+          // YYYYMMDD format (20251231 = 2025-12-31)
+          const year = numStr.substring(0, 4);
+          const month = numStr.substring(4, 6);
+          const day = numStr.substring(6, 8);
+          console.log(`📅 YYYYMMDD format: ${year}-${month}-${day}`);
+          date = new Date(year, month - 1, day);
+        } else {
+          // Regular timestamp
+          console.log('📅 Regular timestamp');
+          date = new Date(dateString);
+        }
+      }
+      // If it's a string
+      else if (typeof dateString === 'string') {
+        console.log('📝 Detected: String format');
+        // Check for various string formats
+        if (dateString.includes('T')) {
+          // ISO format like "2023-07-01T01:00:00.000+00:00"
+          console.log('📅 ISO format detected');
+          date = new Date(dateString);
+        } else if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          // YYYY-MM-DD format (LocalDate from Java backend)
+          console.log('📅 YYYY-MM-DD format (LocalDate)');
+          const [year, month, day] = dateString.split('-');
+          date = new Date(year, month - 1, day);
+        } else if (dateString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+          // DD/MM/YYYY format
+          console.log('📅 DD/MM/YYYY format');
+          const [day, month, year] = dateString.split('/');
+          date = new Date(year, month - 1, day);
+        } else if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+          // DD-MM-YYYY format
+          console.log('📅 DD-MM-YYYY format');
+          const [day, month, year] = dateString.split('-');
+          date = new Date(year, month - 1, day);
+        } else if (dateString.match(/^\d{6}$/)) {
+          // YYYYMM format as string
+          console.log('📅 YYYYMM string format');
+          const year = dateString.substring(0, 4);
+          const month = dateString.substring(4, 6);
+          date = new Date(year, month - 1, 1);
+        } else if (dateString.match(/^\d{7}$/)) {
+          // YYYYMMD format as string
+          console.log('📅 YYYYMMD string format');
+          const year = dateString.substring(0, 4);
+          const month = dateString.substring(4, 5);
+          const day = dateString.substring(5, 7);
+          date = new Date(year, month - 1, day);
+        } else if (dateString.match(/^\d{8}$/)) {
+          // YYYYMMDD format
+          console.log('📅 YYYYMMDD string format');
+          const year = dateString.substring(0, 4);
+          const month = dateString.substring(4, 6);
+          const day = dateString.substring(6, 8);
+          date = new Date(year, month - 1, day);
+        } else {
+          // Try to parse as is
+          console.log('📅 Attempting generic parse');
+          date = new Date(dateString);
+        }
       } else {
-        // Already formatted or unknown format
+        console.warn('❌ Unknown date format:', dateString);
         return dateString;
       }
-      
+
       // Check if date is valid
       if (isNaN(date.getTime())) {
+        console.warn('❌ Invalid date created from:', dateString);
         return dateString;
       }
-      
+
       // Format as DD/MM/YYYY
-      return date.toLocaleDateString('vi-VN', {
+      const formatted = date.toLocaleDateString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
       });
+
+      console.log('✅ formatDate result:', formatted, 'from input:', dateString);
+      return formatted;
     } catch (err) {
-      console.error('Error formatting date:', err);
+      console.error('❌ Error formatting date:', err, 'Input:', dateString);
       return dateString; // Return original string if fails
     }
   };
@@ -380,8 +481,62 @@ const InventoryPage = () => {
                       return quantity !== undefined && quantity !== null ? quantity : 0;
                     })()}
                   </td>
-                  <td className="text-dark">{item.unit}</td>              
-                  <td className="text-dark">{formatDate(item.expiryDate) || 'N/A'}</td>
+                  <td className="text-dark">{item.unit}</td>
+                  <td className="text-dark">
+                    {(() => {
+                      console.log('🚨 DEBUG ITEM:', item.itemName, 'expiryDate:', item.expiryDate, 'type:', typeof item.expiryDate);
+
+                      // Test direct conversion for different formats
+                      if (Array.isArray(item.expiryDate)) {
+                        console.log('🚨 ARRAY DETECTED:', item.expiryDate);
+                        if (item.expiryDate.length >= 3) {
+                          const [year, month, day] = item.expiryDate;
+                          const testDate = new Date(year, month - 1, day);
+                          const testFormatted = testDate.toLocaleDateString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          });
+                          console.log('🚨 ARRAY CONVERSION RESULT:', testFormatted);
+                          return testFormatted;
+                        }
+                      } else if (typeof item.expiryDate === 'number') {
+                        const numStr = item.expiryDate.toString();
+                        console.log('🚨 NUMBER DETECTED:', numStr, 'length:', numStr.length);
+
+                        if (numStr.length === 6) {
+                          // YYYYMM format
+                          const year = numStr.substring(0, 4);
+                          const month = numStr.substring(4, 6);
+                          const testDate = new Date(year, month - 1, 1);
+                          const testFormatted = testDate.toLocaleDateString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          });
+                          console.log('🚨 DIRECT CONVERSION RESULT:', testFormatted);
+                          return testFormatted;
+                        } else if (numStr.length === 7) {
+                          // YYYYMMD format
+                          const year = numStr.substring(0, 4);
+                          const month = numStr.substring(4, 5);
+                          const day = numStr.substring(5, 7);
+                          const testDate = new Date(year, month - 1, day);
+                          const testFormatted = testDate.toLocaleDateString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          });
+                          console.log('🚨 DIRECT CONVERSION RESULT:', testFormatted);
+                          return testFormatted;
+                        }
+                      }
+
+                      const formattedDate = formatDate(item.expiryDate);
+                      console.log('🚨 FORMATTED DATE RESULT:', formattedDate);
+                      return formattedDate || 'N/A';
+                    })()}
+                  </td>
                   <td>
                     {(() => {
                       const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity : 

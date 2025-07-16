@@ -142,16 +142,45 @@ const MedicationHistory = () => {
     }
   };
   // Format date for display
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Không có thông tin';
-    
+  const formatDate = (dateInput) => {
+    if (!dateInput) return 'Không có thông tin';
+
     try {
-      const date = new Date(dateString);
+      let date;
+
+      // Handle array format from backend [year, month, day, hour, minute, second]
+      if (Array.isArray(dateInput)) {
+        if (dateInput.length >= 3) {
+          // Month is 0-indexed in JavaScript Date constructor
+          const year = dateInput[0];
+          const month = dateInput[1] - 1; // Convert to 0-indexed
+          const day = dateInput[2];
+          const hour = dateInput[3] || 0;
+          const minute = dateInput[4] || 0;
+          const second = dateInput[5] || 0;
+
+          date = new Date(year, month, day, hour, minute, second);
+        } else {
+          return 'Ngày không hợp lệ';
+        }
+      }
+      // Handle string format
+      else if (typeof dateInput === 'string') {
+        date = new Date(dateInput);
+      }
+      // Handle Date object
+      else if (dateInput instanceof Date) {
+        date = dateInput;
+      }
+      else {
+        return 'Ngày không hợp lệ';
+      }
+
       // Check if date is valid
       if (isNaN(date.getTime())) {
         return 'Ngày không hợp lệ';
       }
-      
+
       return new Intl.DateTimeFormat('vi-VN', {
         year: 'numeric',
         month: 'long',
