@@ -4,7 +4,7 @@ import axios from "axios";
 import googleAuthService from "../services/googleAuthService";
 
 // Base API URL
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
 // Comprehensive API endpoints configuration
