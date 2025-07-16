@@ -101,3 +101,5 @@ pids
 
 # email configuration
 src/main/resources/application-secret.properties
+/student_db.bak
+/deploy.py

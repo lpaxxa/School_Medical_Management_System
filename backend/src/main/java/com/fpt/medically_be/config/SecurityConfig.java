@@ -60,7 +60,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/v1/auth/**").permitAll() // Allow all auth endpoints
                 .requestMatchers("/api/v1/mock/**").permitAll()
-                .requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
+                    .requestMatchers(
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**",
+                            "/swagger-ui.html",
+                            "/api/**"
+                    ).permitAll()
                 .requestMatchers("/actuator/**").permitAll() // Allow actuator endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     // Specific bypass for student image upload due to authentication recursion issue
@@ -83,7 +88,7 @@ public class SecurityConfig {
             )
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .oauth2Login(oauth2Login -> oauth2Login
+            .oauth2Login(oauth2 -> oauth2
                         .defaultSuccessUrl("/api/v1/auth/oauth2/success", true)
                         .failureUrl("/api/v1/auth/oauth2/failure")
                         .permitAll()
@@ -112,11 +117,10 @@ public class SecurityConfig {
             "http://localhost:3000",
             "http://127.0.0.1:5173",
             "http://127.0.0.1:3000",
+            "https://www.medically.site",
             "https://medically-sou-azure.southeastasia.cloudapp.azure.com",
             "https://www.medically-sou-azure.southeastasia.cloudapp.azure.com",
-                "https://school-medical-management-system-qw29rju61.vercel.app/"
-
-
+            "https://school-medical-management-system-qw29rju61.vercel.app"
         ));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

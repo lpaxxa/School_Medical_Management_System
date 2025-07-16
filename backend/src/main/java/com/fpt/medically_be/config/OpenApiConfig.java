@@ -55,17 +55,18 @@ public class OpenApiConfig {
     @Bean
     public io.swagger.v3.oas.models.OpenAPI customOpenAPI() {
         io.swagger.v3.oas.models.OpenAPI openAPI = new io.swagger.v3.oas.models.OpenAPI();
-        
+
         // Always add HTTPS server for production domain
         openAPI.addServersItem(new io.swagger.v3.oas.models.servers.Server()
-                .url("https://medically-sou-azure.southeastasia.cloudapp.azure.com")
+                .url("https://medically-backend.southeastasia.cloudapp.azure.com")
                 .description("Production Server (HTTPS)"));
-        
-        // Add HTTP server for local development
+
+        // Add local development server with current port
+        String localPort = environment.getProperty("server.port", "8080");
         openAPI.addServersItem(new io.swagger.v3.oas.models.servers.Server()
-                .url("http://localhost:8080")
+                .url("http://localhost:" + localPort)
                 .description("Local Development Server (HTTP)"));
-        
+
         return openAPI;
     }
 }
