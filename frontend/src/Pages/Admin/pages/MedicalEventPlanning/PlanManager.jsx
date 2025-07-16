@@ -81,11 +81,11 @@ const PlanManager = () => {
   };
 
   return (
-    <div className="plan-manager">
+    <div className="admin-plan-manager">
       {/* Main Header */}
-      <div className="plan-manager-header">
-        <div className="plan-manager-header-content">
-          <div className="header-text">
+      <div className="admin-plan-manager-header">
+        <div className="admin-plan-manager-header-content">
+          <div className="admin-header-text">
             <h1>Quản Lý Kế Hoạch Y Tế</h1>
             <h2>Hệ thống quản lý sức khỏe toàn diện</h2>
             <p>
@@ -134,7 +134,7 @@ const PlanManager = () => {
 
       {selectedSection && !selectedAction && (
         <div className="action-selector">
-          <div className="selector-header">
+          <div className="admin-selector-header">
             <button className="back-button" onClick={handleBackToSections}>
               <FaArrowLeft /> Quay lại
             </button>

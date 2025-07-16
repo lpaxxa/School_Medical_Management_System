@@ -184,15 +184,15 @@ const VaccinationPlanHistory = () => {
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case "WAITING_PARENT":
-        return "status-waiting";
+        return "admin-status-waiting";
       case "IN_PROGRESS":
-        return "status-progress";
+        return "admin-status-progress";
       case "COMPLETED":
-        return "status-completed";
+        return "admin-status-completed";
       case "CANCELED":
-        return "status-canceled";
+        return "admin-status-canceled";
       default:
-        return "status-default";
+        return "admin-status-default";
     }
   };
 
@@ -235,56 +235,56 @@ const VaccinationPlanHistory = () => {
   const hasPreviousPage = currentPage > 1;
 
   return (
-    <div className="vaccination-plan-history">
+    <div className="admin-vaccination-plan-history">
       {/* Header */}
-      <div className="vac-plan-history-header">
+      <div className="admin-vac-plan-history-header">
         <h2>Lịch Sử Kế Hoạch Tiêm Chủng</h2>
         <p>Xem và quản lý tất cả các kế hoạch tiêm chủng đã tạo</p>
       </div>
 
       {/* Statistics */}
-      <div className="vac-plan-statistics-row">
-        <div className="vac-plan-stat-card total">
-          <div className="stat-info">
-            <span className="stat-number">{stats.total}</span>
-            <span className="stat-label">Tổng kế hoạch</span>
+      <div className="admin-vac-plan-statistics-row">
+        <div className="admin-vac-plan-stat-card total">
+          <div className="admin-stat-info">
+            <span className="admin-stat-number">{stats.total}</span>
+            <span className="admin-stat-label">Tổng kế hoạch</span>
           </div>
         </div>
 
-        <div className="vac-plan-stat-card ongoing">
-          <div className="stat-info">
-            <span className="stat-number">{stats.waiting}</span>
-            <span className="stat-label">Chờ phụ huynh</span>
+        <div className="admin-vac-plan-stat-card ongoing">
+          <div className="admin-stat-info">
+            <span className="admin-stat-number">{stats.waiting}</span>
+            <span className="admin-stat-label">Chờ phụ huynh</span>
           </div>
         </div>
 
-        <div className="vac-plan-stat-card ongoing">
-          <div className="stat-info">
-            <span className="stat-number">{stats.progress}</span>
-            <span className="stat-label">Đang triển khai</span>
+        <div className="admin-vac-plan-stat-card ongoing">
+          <div className="admin-stat-info">
+            <span className="admin-stat-number">{stats.progress}</span>
+            <span className="admin-stat-label">Đang triển khai</span>
           </div>
         </div>
 
-        <div className="vac-plan-stat-card completed">
-          <div className="stat-info">
-            <span className="stat-number">{stats.completed}</span>
-            <span className="stat-label">Hoàn thành</span>
+        <div className="admin-vac-plan-stat-card completed">
+          <div className="admin-stat-info">
+            <span className="admin-stat-number">{stats.completed}</span>
+            <span className="admin-stat-label">Hoàn thành</span>
           </div>
         </div>
 
-        <div className="vac-plan-stat-card cancelled">
-          <div className="stat-info">
-            <span className="stat-number">{stats.canceled}</span>
-            <span className="stat-label">Đã hủy</span>
+        <div className="admin-vac-plan-stat-card cancelled">
+          <div className="admin-stat-info">
+            <span className="admin-stat-number">{stats.canceled}</span>
+            <span className="admin-stat-label">Đã hủy</span>
           </div>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="history-toolbar">
-        <div className="search-filter-group">
-          <div className="search-box">
-            <FaSearch className="search-icon" />
+      <div className="admin-history-toolbar">
+        <div className="admin-search-filter-group">
+          <div className="admin-search-box">
+            <FaSearch className="admin-search-icon" />
             <input
               type="text"
               placeholder="Tìm kiếm theo tên vaccine hoặc mô tả..."
@@ -293,8 +293,8 @@ const VaccinationPlanHistory = () => {
             />
           </div>
 
-          <div className="filter-dropdown">
-            <FaFilter className="filter-icon" />
+          <div className="admin-filter-dropdown">
+            <FaFilter className="admin-filter-icon" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -308,9 +308,9 @@ const VaccinationPlanHistory = () => {
           </div>
         </div>
 
-        <div className="toolbar-buttons">
+        <div className="admin-toolbar-buttons">
           <button
-            className="sort-button"
+            className="admin-sort-button"
             onClick={toggleSortOrder}
             title={
               sortOrder === "newest"
@@ -320,16 +320,18 @@ const VaccinationPlanHistory = () => {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "8px",
-              padding: "8px 12px",
-              backgroundColor: "#f8f9fa",
-              border: "1px solid #dee2e6",
-              borderRadius: "4px",
+              gap: "10px",
+              padding: "12px 16px",
+              backgroundColor: "#f8fafc",
+              border: "2px solid #e2e8f0",
+              borderRadius: "12px",
               cursor: "pointer",
               fontSize: "14px",
-              color: "#495057",
-              transition: "all 0.2s ease",
-              marginRight: "8px",
+              color: "#475569",
+              transition: "all 0.3s ease",
+              marginRight: "12px",
+              fontWeight: "600",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
             }}
           >
             {sortOrder === "newest" ? (
@@ -346,7 +348,7 @@ const VaccinationPlanHistory = () => {
           </button>
 
           <button
-            className="refresh-button"
+            className="admin-refresh-button"
             onClick={loadVaccinationPlans}
             disabled={loading}
           >
@@ -388,8 +390,8 @@ const VaccinationPlanHistory = () => {
         </div>
       ) : filteredPlans.length > 0 ? (
         <>
-          <div className="plans-table-container">
-            <table className="plans-table">
+          <div className="admin-plans-table-container">
+            <table className="admin-plans-table">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -410,28 +412,28 @@ const VaccinationPlanHistory = () => {
 
                   return (
                     <tr key={plan.id}>
-                      <td className="plan-id-cell">{plan.id}</td>
+                      <td className="admin-plan-id-cell">{plan.id}</td>
 
-                      <td className="plan-name-cell">
-                        <div className="name-with-icon">
-                          <FaSyringe className="vaccine-icon" />
+                      <td className="admin-plan-name-cell">
+                        <div className="admin-name-with-icon">
+                          <FaSyringe className="admin-vaccine-icon" />
                           <span>{plan.name}</span>
                         </div>
                       </td>
 
-                      <td className="date-cell">
+                      <td className="admin-date-cell">
                         {vaccinationPlanService.formatVaccinationDate(
                           plan.vaccinationDate
                         )}
                       </td>
 
-                      <td className="deadline-cell">
+                      <td className="admin-deadline-cell">
                         {vaccinationPlanService.formatDate(plan.deadlineDate)}
                       </td>
 
-                      <td className="status-cell">
+                      <td className="admin-status-cell">
                         <select
-                          className={`status-select ${getStatusBadgeClass(
+                          className={`admin-status-select ${getStatusBadgeClass(
                             plan.status
                           )}`}
                           value={plan.status}
@@ -446,21 +448,21 @@ const VaccinationPlanHistory = () => {
                           <option value="CANCELED">Đã hủy</option>
                         </select>
                         {statusChanging[plan.id] && (
-                          <FaSpinner className="status-spinner spinning" />
+                          <FaSpinner className="admin-status-spinner spinning" />
                         )}
                       </td>
 
-                      <td className="time-status-cell">
+                      <td className="admin-time-status-cell">
                         <span
-                          className={`time-status-badge ${timeStatus.type}`}
+                          className={`admin-time-status-badge ${timeStatus.type}`}
                           style={{ color: timeStatus.color }}
                         >
                           {timeStatus.text}
                         </span>
                       </td>
 
-                      <td className="description-cell">
-                        <div className="description-text">
+                      <td className="admin-description-cell">
+                        <div className="admin-description-text">
                           {plan.description}
                         </div>
                       </td>
@@ -472,7 +474,7 @@ const VaccinationPlanHistory = () => {
 
             {/* Pagination Controls */}
             {filteredPlans.length > itemsPerPage && (
-              <div className="pagination-container">
+              <div className="admin-pagination-container">
                 <div className="pagination-info">
                   <span>
                     Hiển thị {startIndex}-{endIndex} trong tổng số{" "}

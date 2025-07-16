@@ -54,6 +54,11 @@ const CreateVaccinationPlan = () => {
   const [groupedClasses, setGroupedClasses] = useState({});
   const [classSearchTerm, setClassSearchTerm] = useState("");
   const [showClassDropdown, setShowClassDropdown] = useState(false);
+  const [showClassModal, setShowClassModal] = useState(false);
+  const [tempSelectedClasses, setTempSelectedClasses] = useState([]);
+  const [showVaccineModal, setShowVaccineModal] = useState(false);
+  const [tempSelectedVaccines, setTempSelectedVaccines] = useState([]);
+  const [vaccineSearchTerm, setVaccineSearchTerm] = useState("");
 
   // Form data với giá trị mặc định theo API mới
   const [formData, setFormData] = useState({
@@ -328,6 +333,112 @@ const CreateVaccinationPlan = () => {
     });
   };
 
+  // Modal functions
+  const openClassModal = () => {
+    setTempSelectedClasses([...formData.className]);
+    setShowClassModal(true);
+  };
+
+  const closeClassModal = () => {
+    setShowClassModal(false);
+    setClassSearchTerm("");
+  };
+
+  const confirmClassSelection = () => {
+    setFormData((prev) => ({
+      ...prev,
+      className: [...tempSelectedClasses],
+    }));
+    closeClassModal();
+  };
+
+  const handleTempClassSelection = (className) => {
+    setTempSelectedClasses((prev) =>
+      prev.includes(className)
+        ? prev.filter((cls) => cls !== className)
+        : [...prev, className]
+    );
+  };
+
+  const handleGradeSelection = (gradeClasses, isSelected) => {
+    if (isSelected) {
+      setTempSelectedClasses((prev) => [
+        ...new Set([...prev, ...gradeClasses]),
+      ]);
+    } else {
+      setTempSelectedClasses((prev) =>
+        prev.filter((cls) => !gradeClasses.includes(cls))
+      );
+    }
+  };
+
+  const removeSelectedClass = (className) => {
+    setFormData((prev) => ({
+      ...prev,
+      className: prev.className.filter((cls) => cls !== className),
+    }));
+  };
+
+  const clearAllClasses = () => {
+    setFormData((prev) => ({
+      ...prev,
+      className: [],
+    }));
+  };
+
+  // Vaccine modal functions
+  const openVaccineModal = () => {
+    setTempSelectedVaccines([...formData.vaccineIds]);
+    setShowVaccineModal(true);
+  };
+
+  const closeVaccineModal = () => {
+    setShowVaccineModal(false);
+    setVaccineSearchTerm("");
+  };
+
+  const confirmVaccineSelection = () => {
+    setFormData((prev) => ({
+      ...prev,
+      vaccineIds: [...tempSelectedVaccines],
+    }));
+    closeVaccineModal();
+  };
+
+  const handleTempVaccineSelection = (vaccineId) => {
+    setTempSelectedVaccines((prev) =>
+      prev.includes(vaccineId)
+        ? prev.filter((id) => id !== vaccineId)
+        : [...prev, vaccineId]
+    );
+  };
+
+  const removeSelectedVaccine = (vaccineId) => {
+    setFormData((prev) => ({
+      ...prev,
+      vaccineIds: prev.vaccineIds.filter((id) => id !== vaccineId),
+    }));
+  };
+
+  const clearAllVaccines = () => {
+    setFormData((prev) => ({
+      ...prev,
+      vaccineIds: [],
+    }));
+  };
+
+  // Filter vaccines for modal
+  const getFilteredVaccines = () => {
+    if (!vaccineSearchTerm) return vaccines;
+    return vaccines.filter(
+      (vaccine) =>
+        vaccine.name.toLowerCase().includes(vaccineSearchTerm.toLowerCase()) ||
+        vaccine.description
+          ?.toLowerCase()
+          .includes(vaccineSearchTerm.toLowerCase())
+    );
+  };
+
   // Xử lý xóa lớp học
   const handleRemoveClassName = (classToRemove) => {
     setFormData((prev) => ({
@@ -424,30 +535,30 @@ const CreateVaccinationPlan = () => {
   };
 
   return (
-    <div className="create-vaccination-plan">
+    <div className="admin-create-vaccination-plan">
       {/* Header */}
-      <div className="create-vaccination-form-header">
-        <div className="create-vaccination-header-icon">
+      <div className="admin-create-vaccination-form-header">
+        <div className="admin-create-vaccination-header-icon">
           <FaHospital />
         </div>
-        <div className="create-vaccination-header-content">
+        <div className="admin-create-vaccination-header-content">
           <h2>Tạo Kế Hoạch Tiêm Chủng Mới</h2>
         </div>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="vaccination-form">
+      <form onSubmit={handleSubmit} className="admin-vaccination-form">
         {/* Thông tin cơ bản */}
-        <div className="form-section">
+        <div className="admin-form-section">
           <h3>
-            <FaFileAlt className="section-icon" />
+            <FaFileAlt className="admin-section-icon" />
             Thông Tin Cơ Bản
           </h3>
 
-          <div className="form-grid">
-            <div className="create-vaccination-form-group">
+          <div className="admin-form-grid">
+            <div className="admin-create-vaccination-form-group">
               <label htmlFor="name">
-                <FaSyringe className="label-icon" />
+                <FaSyringe className="admin-label-icon" />
                 Tên Kế Hoạch Tiêm Chủng *
               </label>
               <input
@@ -461,13 +572,13 @@ const CreateVaccinationPlan = () => {
                 required
               />
               {fieldErrors.name && (
-                <div className="field-error">{fieldErrors.name}</div>
+                <div className="admin-field-error">{fieldErrors.name}</div>
               )}
             </div>
 
-            <div className="create-vaccination-form-group full-width">
+            <div className="admin-create-vaccination-form-group full-width">
               <label htmlFor="description">
-                <FaFileAlt className="label-icon" />
+                <FaFileAlt className="admin-label-icon" />
                 Mô Tả Kế Hoạch *
               </label>
               <textarea
@@ -481,23 +592,25 @@ const CreateVaccinationPlan = () => {
                 required
               />
               {fieldErrors.description && (
-                <div className="field-error">{fieldErrors.description}</div>
+                <div className="admin-field-error">
+                  {fieldErrors.description}
+                </div>
               )}
             </div>
           </div>
         </div>
 
         {/* Thời gian */}
-        <div className="form-section">
+        <div className="admin-form-section">
           <h3>
-            <FaCalendarAlt className="section-icon" />
+            <FaCalendarAlt className="admin-section-icon" />
             Thời Gian Thực Hiện
           </h3>
 
-          <div className="form-grid">
-            <div className="create-vaccination-form-group">
+          <div className="admin-form-grid">
+            <div className="admin-create-vaccination-form-group">
               <label htmlFor="vaccinationDate">
-                <FaCalendarAlt className="label-icon" />
+                <FaCalendarAlt className="admin-label-icon" />
                 Ngày Tiêm *
               </label>
               <input
@@ -514,13 +627,15 @@ const CreateVaccinationPlan = () => {
                 required
               />
               {fieldErrors.vaccinationDate && (
-                <div className="field-error">{fieldErrors.vaccinationDate}</div>
+                <div className="admin-field-error">
+                  {fieldErrors.vaccinationDate}
+                </div>
               )}
             </div>
 
-            <div className="create-vaccination-form-group">
+            <div className="admin-create-vaccination-form-group">
               <label htmlFor="deadlineDate">
-                <FaClock className="label-icon" />
+                <FaClock className="admin-label-icon" />
                 Hạn Chót Đăng Ký *
               </label>
               <input
@@ -537,9 +652,11 @@ const CreateVaccinationPlan = () => {
                 required
               />
               {fieldErrors.deadlineDate && (
-                <div className="field-error">{fieldErrors.deadlineDate}</div>
+                <div className="admin-field-error">
+                  {fieldErrors.deadlineDate}
+                </div>
               )}
-              <small className="helper-text">
+              <small className="admin-helper-text">
                 Hạn chót phải trước ngày tiêm
               </small>
             </div>
@@ -547,206 +664,154 @@ const CreateVaccinationPlan = () => {
         </div>
 
         {/* Chọn vaccine */}
-        <div className="form-section">
+        <div className="admin-form-section">
           <h3>
-            <FaSyringe className="section-icon" />
+            <FaSyringe className="admin-section-icon" />
             Chọn Vaccine
           </h3>
 
           {loadingVaccines ? (
-            <div className="loading-vaccines">
-              <FaSpinner className="spinning" />
+            <div className="admin-loading-vaccines">
+              <FaSpinner className="admin-spinning" />
               <span>Đang tải danh sách vaccine...</span>
             </div>
           ) : (
-            <div className="vaccine-list">
-              {vaccines.length > 0 ? (
-                vaccines.map((vaccine) => {
-                  const formatted = formatVaccineDisplay(vaccine);
-                  return (
-                    <div key={vaccine.id} className="vaccine-item">
-                      <label className="vaccine-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={formData.vaccineIds.includes(vaccine.id)}
-                          onChange={() => handleVaccineChange(vaccine.id)}
-                        />
-                        <span className="checkmark"></span>
-                        <div className="vaccine-info">
-                          <div className="vaccine-name">
-                            {formatted.displayName}
-                          </div>
-                          <div className="vaccine-details">
-                            Độ tuổi: {formatted.ageDisplay}
-                            {vaccine.description && (
-                              <span className="vaccine-description">
-                                | {vaccine.description}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="no-vaccines">
-                  <p>Không có vaccine nào trong hệ thống</p>
-                </div>
-              )}
+            <>
+              <div className="admin-create-vaccination-form-group">
+                <label>
+                  <FaSyringe className="admin-label-icon" />
+                  Chọn vaccine cần tiêm *
+                </label>
+
+                <button
+                  type="button"
+                  className="admin-class-selection-button"
+                  onClick={openVaccineModal}
+                >
+                  <div className="admin-class-selection-text">
+                    <FaSyringe className="admin-class-selection-icon" />
+                    <span>
+                      {formData.vaccineIds.length > 0
+                        ? `Đã chọn ${formData.vaccineIds.length} vaccine`
+                        : "Chọn vaccine từ danh sách"}
+                    </span>
+                  </div>
+                  <FaChevronDown className="admin-class-selection-arrow" />
+                </button>
+
+                <small className="admin-helper-text">
+                  Có {vaccines.length} vaccine có sẵn trong hệ thống
+                </small>
+              </div>
 
               {formData.vaccineIds.length > 0 && (
-                <div className="selected-vaccines-summary">
-                  <strong>Đã chọn {formData.vaccineIds.length} vaccine:</strong>
-                  <span>
-                    {formatSelectedVaccines(formData.vaccineIds, vaccines)}
-                  </span>
+                <div className="admin-selected-classes-display">
+                  <div className="admin-selected-classes-header">
+                    <span className="admin-selected-classes-title">
+                      Vaccine đã chọn ({formData.vaccineIds.length})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearAllVaccines}
+                      className="admin-clear-all-button"
+                    >
+                      Xóa tất cả
+                    </button>
+                  </div>
+                  <div className="admin-class-tags">
+                    {formData.vaccineIds.map((vaccineId) => {
+                      const vaccine = vaccines.find((v) => v.id === vaccineId);
+                      return vaccine ? (
+                        <div key={vaccineId} className="admin-class-tag">
+                          <span>{vaccine.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeSelectedVaccine(vaccineId)}
+                            className="admin-remove-class-button"
+                            title="Bỏ chọn vaccine này"
+                          >
+                            <FaTimes />
+                          </button>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
 
         {/* Chọn lớp học */}
-        <div className="form-section">
+        <div className="admin-form-section">
           <h3>
-            <FaSchool className="section-icon" />
+            <FaSchool className="admin-section-icon" />
             Lớp Học Tham Gia
           </h3>
 
-          <div className="class-selection-section">
+          <div className="admin-class-selection-section">
             {loadingClasses ? (
-              <div className="loading-classes">
-                <FaSpinner className="spinning" />
+              <div className="admin-loading-classes">
+                <FaSpinner className="admin-spinning" />
                 <span>Đang tải danh sách lớp học...</span>
               </div>
             ) : (
               <>
-                <div className="class-selector-container">
-                  <label className="dropdown-label">
-                    Chọn lớp từ danh sách có sẵn ({availableClasses.length}{" "}
-                    lớp):
+                <div className="admin-create-vaccination-form-group">
+                  <label>
+                    <FaSchool className="admin-label-icon" />
+                    Chọn lớp học tham gia *
                   </label>
 
-                  {/* Search and dropdown trigger */}
-                  <div className="class-search-container">
-                    <div className="search-input-wrapper">
-                      <input
-                        type="text"
-                        placeholder="Tìm kiếm lớp học (VD: 3A, 10B)..."
-                        value={classSearchTerm}
-                        onChange={(e) => setClassSearchTerm(e.target.value)}
-                        onFocus={() => setShowClassDropdown(true)}
-                        className="class-search-input"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowClassDropdown(!showClassDropdown)}
-                        className="dropdown-toggle-btn"
-                      >
-                        <FaChevronDown
-                          className={showClassDropdown ? "rotated" : ""}
-                        />
-                      </button>
+                  <button
+                    type="button"
+                    className="admin-class-selection-button"
+                    onClick={openClassModal}
+                  >
+                    <div className="admin-class-selection-text">
+                      <FaSchool className="admin-class-selection-icon" />
+                      <span>
+                        {formData.className.length > 0
+                          ? `Đã chọn ${formData.className.length} lớp học`
+                          : "Chọn lớp học từ danh sách"}
+                      </span>
                     </div>
-                  </div>
+                    <FaChevronDown className="admin-class-selection-arrow" />
+                  </button>
 
-                  {/* Dropdown content */}
-                  {showClassDropdown && (
-                    <div className="class-dropdown-content">
-                      {availableClasses.length > 0 ? (
-                        Object.keys(getFilteredClasses()).length > 0 ? (
-                          Object.entries(getFilteredClasses()).map(
-                            ([grade, classesInGrade]) => (
-                              <div key={grade} className="grade-group">
-                                <div className="grade-header">
-                                  <label className="grade-checkbox">
-                                    <input
-                                      type="checkbox"
-                                      checked={isGradeFullySelected(grade)}
-                                      ref={(el) => {
-                                        if (el)
-                                          el.indeterminate =
-                                            isGradePartiallySelected(grade);
-                                      }}
-                                      onChange={() => handleSelectGrade(grade)}
-                                    />
-                                    <span className="grade-name">{grade}</span>
-                                    <span className="grade-count">
-                                      ({classesInGrade.length} lớp)
-                                    </span>
-                                  </label>
-                                </div>
-                                <div className="grade-classes">
-                                  {classesInGrade.map((className) => (
-                                    <label
-                                      key={className}
-                                      className="class-item"
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={formData.className.includes(
-                                          className
-                                        )}
-                                        onChange={() =>
-                                          handleClassSelection(className)
-                                        }
-                                      />
-                                      <span className="class-name">
-                                        {className}
-                                      </span>
-                                    </label>
-                                  ))}
-                                </div>
-                              </div>
-                            )
-                          )
-                        ) : (
-                          <div className="no-search-results">
-                            <p>
-                              Không tìm thấy lớp nào với từ khóa "
-                              {classSearchTerm}"
-                            </p>
-                          </div>
-                        )
-                      ) : (
-                        <div className="no-classes">
-                          <p>Không có lớp học nào trong hệ thống</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <small className="admin-helper-text">
+                    Có {availableClasses.length} lớp học có sẵn trong hệ thống
+                  </small>
                 </div>
 
                 {formData.className.length > 0 && (
-                  <div className="selected-classes">
-                    <h4>Các lớp đã chọn ({formData.className.length}):</h4>
-                    <div className="class-tags">
+                  <div className="admin-selected-classes-display">
+                    <div className="admin-selected-classes-header">
+                      <span className="admin-selected-classes-title">
+                        Các lớp đã chọn ({formData.className.length})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={clearAllClasses}
+                        className="admin-clear-all-button"
+                      >
+                        Xóa tất cả
+                      </button>
+                    </div>
+                    <div className="admin-class-tags">
                       {formData.className.sort().map((className, index) => (
-                        <div key={index} className="class-tag">
+                        <div key={index} className="admin-class-tag">
                           <span>{className}</span>
                           <button
                             type="button"
-                            onClick={() => handleRemoveClassName(className)}
-                            className="remove-class-btn"
+                            onClick={() => removeSelectedClass(className)}
+                            className="admin-remove-class-button"
                             title="Bỏ chọn lớp này"
                           >
                             <FaTimes />
                           </button>
                         </div>
                       ))}
-                    </div>
-                    <div className="class-selection-summary">
-                      <span>Đã chọn {formData.className.length} lớp học</span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFormData((prev) => ({ ...prev, className: [] }))
-                        }
-                        className="clear-all-btn"
-                      >
-                        Xóa tất cả
-                      </button>
                     </div>
                   </div>
                 )}
@@ -756,11 +821,15 @@ const CreateVaccinationPlan = () => {
         </div>
 
         {/* Submit Button */}
-        <div>
-          <button type="submit" className="submit-button" disabled={isLoading}>
+        <div className="admin-form-actions">
+          <button
+            type="submit"
+            className="admin-submit-button"
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
-                <FaSpinner className="spinning" />
+                <FaSpinner className="admin-spinning" />
                 <span>Đang xử lý...</span>
               </>
             ) : (
@@ -774,10 +843,10 @@ const CreateVaccinationPlan = () => {
       </form>
 
       {/* Info Cards */}
-      <div className="info-cards">
-        <div className="info-card">
-          <div className="card-icon">📋</div>
-          <div className="card-content">
+      <div className="admin-info-cards">
+        <div className="admin-info-card">
+          <div className="admin-card-icon">📋</div>
+          <div className="admin-card-content">
             <h4>Lưu ý quan trọng</h4>
             <p>
               Kế hoạch tiêm chủng cần được thông báo trước cho phụ huynh ít nhất
@@ -786,9 +855,9 @@ const CreateVaccinationPlan = () => {
           </div>
         </div>
 
-        <div className="info-card">
-          <div className="card-icon">⏰</div>
-          <div className="card-content">
+        <div className="admin-info-card">
+          <div className="admin-card-icon">⏰</div>
+          <div className="admin-card-content">
             <h4>Thời gian thực hiện</h4>
             <p>
               Nên lên kế hoạch vào thời gian không ảnh hưởng đến việc học của
@@ -797,9 +866,9 @@ const CreateVaccinationPlan = () => {
           </div>
         </div>
 
-        <div className="info-card">
-          <div className="card-icon">👥</div>
-          <div className="card-content">
+        <div className="admin-info-card">
+          <div className="admin-card-icon">👥</div>
+          <div className="admin-card-content">
             <h4>Đối tượng tham gia</h4>
             <p>
               Y tá trường, giáo viên chủ nhiệm và đại diện phụ huynh cần phối
@@ -808,6 +877,238 @@ const CreateVaccinationPlan = () => {
           </div>
         </div>
       </div>
+
+      {/* Vaccine Selection Modal */}
+      {showVaccineModal && (
+        <div className="admin-class-modal-overlay" onClick={closeVaccineModal}>
+          <div
+            className="admin-class-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="admin-class-modal-header">
+              <h3>Chọn vaccine cần tiêm</h3>
+              <button
+                type="button"
+                className="admin-class-modal-close"
+                onClick={closeVaccineModal}
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="admin-class-modal-body">
+              <div className="admin-class-search-container">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm vaccine theo tên hoặc mô tả..."
+                  value={vaccineSearchTerm}
+                  onChange={(e) => setVaccineSearchTerm(e.target.value)}
+                  className="admin-class-search-input"
+                />
+              </div>
+
+              <div className="admin-vaccine-modal-grid">
+                {getFilteredVaccines().length > 0 ? (
+                  getFilteredVaccines().map((vaccine) => {
+                    const formatted = formatVaccineDisplay(vaccine);
+                    const isSelected = tempSelectedVaccines.includes(
+                      vaccine.id
+                    );
+
+                    return (
+                      <div
+                        key={vaccine.id}
+                        className={`admin-vaccine-modal-item ${
+                          isSelected ? "selected" : ""
+                        }`}
+                        onClick={() => handleTempVaccineSelection(vaccine.id)}
+                      >
+                        <div className="admin-vaccine-modal-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() =>
+                              handleTempVaccineSelection(vaccine.id)
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                        <div className="admin-vaccine-modal-info">
+                          <div className="admin-vaccine-modal-name">
+                            {formatted.displayName}
+                          </div>
+                          <div className="admin-vaccine-modal-details">
+                            Độ tuổi: {formatted.ageDisplay}
+                            {vaccine.description && (
+                              <div className="admin-vaccine-modal-description">
+                                {vaccine.description}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="admin-vaccine-modal-icon">
+                          <FaSyringe />
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="admin-no-search-results">
+                    <p>
+                      Không tìm thấy vaccine nào với từ khóa "
+                      {vaccineSearchTerm}"
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="admin-class-modal-footer">
+              <span className="admin-selected-count">
+                Đã chọn {tempSelectedVaccines.length} vaccine
+              </span>
+              <div className="admin-modal-buttons">
+                <button
+                  type="button"
+                  className="admin-modal-button cancel"
+                  onClick={closeVaccineModal}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  className="admin-modal-button confirm"
+                  onClick={confirmVaccineSelection}
+                >
+                  Xác nhận
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Class Selection Modal */}
+      {showClassModal && (
+        <div className="admin-class-modal-overlay" onClick={closeClassModal}>
+          <div
+            className="admin-class-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="admin-class-modal-header">
+              <h3>Chọn lớp học tham gia</h3>
+              <button
+                type="button"
+                className="admin-class-modal-close"
+                onClick={closeClassModal}
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="admin-class-modal-body">
+              <div className="admin-class-search-container">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm lớp học (VD: 3A, 10B)..."
+                  value={classSearchTerm}
+                  onChange={(e) => setClassSearchTerm(e.target.value)}
+                  className="admin-class-search-input"
+                />
+              </div>
+
+              <div className="admin-class-grid">
+                {Object.keys(getFilteredClasses()).length > 0 ? (
+                  Object.entries(getFilteredClasses()).map(
+                    ([grade, classesInGrade]) => {
+                      const isGradeSelected = classesInGrade.every((cls) =>
+                        tempSelectedClasses.includes(cls)
+                      );
+                      const isGradePartial =
+                        classesInGrade.some((cls) =>
+                          tempSelectedClasses.includes(cls)
+                        ) && !isGradeSelected;
+
+                      return (
+                        <div key={grade} className="admin-grade-group">
+                          <div className="admin-grade-header">
+                            <label className="admin-grade-checkbox">
+                              <input
+                                type="checkbox"
+                                checked={isGradeSelected}
+                                ref={(el) => {
+                                  if (el) el.indeterminate = isGradePartial;
+                                }}
+                                onChange={() =>
+                                  handleGradeSelection(
+                                    classesInGrade,
+                                    !isGradeSelected
+                                  )
+                                }
+                              />
+                              <span className="admin-grade-name">{grade}</span>
+                              <span className="admin-grade-count">
+                                ({classesInGrade.length} lớp)
+                              </span>
+                            </label>
+                          </div>
+                          <div className="admin-grade-classes">
+                            {classesInGrade.map((className) => (
+                              <label
+                                key={className}
+                                className="admin-class-item"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={tempSelectedClasses.includes(
+                                    className
+                                  )}
+                                  onChange={() =>
+                                    handleTempClassSelection(className)
+                                  }
+                                />
+                                <span>{className}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                  )
+                ) : (
+                  <div className="admin-no-search-results">
+                    <p>
+                      Không tìm thấy lớp nào với từ khóa "{classSearchTerm}"
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="admin-class-modal-footer">
+              <span className="admin-selected-count">
+                Đã chọn {tempSelectedClasses.length} lớp học
+              </span>
+              <div className="admin-modal-buttons">
+                <button
+                  type="button"
+                  className="admin-modal-button cancel"
+                  onClick={closeClassModal}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  className="admin-modal-button confirm"
+                  onClick={confirmClassSelection}
+                >
+                  Xác nhận
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Components */}
       {isSuccessModalVisible && (

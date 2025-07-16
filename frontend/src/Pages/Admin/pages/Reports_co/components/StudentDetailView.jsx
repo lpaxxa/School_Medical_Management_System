@@ -11,10 +11,10 @@ import {
   FaUserFriends,
 } from "react-icons/fa";
 import "./StudentDetailView.css";
-import BackButton from "./BackButton";
+import ReportHeader from "./ReportHeader";
 import { formatDate } from "../../../utils/dateUtils";
 
-const StudentDetailView = ({ student, onBack }) => {
+const StudentDetailView = ({ student, onBack, theme = "teal" }) => {
   if (!student) return null;
 
   // Debug: Log student data
@@ -22,14 +22,15 @@ const StudentDetailView = ({ student, onBack }) => {
   console.log("Image URL:", student.imageUrl);
 
   return (
-    <div className="reports-student-detail-page">
-      {/* Back Button Outside Header */}
-      <BackButton onClick={onBack} text="Quay lại danh sách" />
-
-      {/* Header */}
-      <div className="reports-student-detail-page-header">
-        <h1>Thông tin chi tiết học sinh</h1>
-      </div>
+    <div className={`reports-student-detail-page theme-${theme}`}>
+      {/* Header with theme support */}
+      <ReportHeader
+        title="Quản lý học sinh"
+        subtitle="Thông tin chi tiết học sinh"
+        icon="fas fa-user-graduate"
+        onBack={onBack}
+        colorTheme={theme}
+      />
 
       {/* Body */}
       <div className="reports-student-detail-content">

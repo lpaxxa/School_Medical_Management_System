@@ -13,10 +13,14 @@ import {
   FaCommentAlt,
   FaFilter,
 } from "react-icons/fa";
-import BackButton from "./BackButton"; // Import BackButton
+import ReportHeader from "./ReportHeader";
 import { formatDateTimeLocale } from "../../../utils/dateUtils"; // Import date utility
 
-const NotificationDetail = ({ notification, onBack }) => {
+const NotificationDetail = ({
+  notification,
+  onBack,
+  reportType = "checkup",
+}) => {
   // Thêm state để quản lý filter
   const [activeFilter, setActiveFilter] = useState(null);
 
@@ -88,11 +92,44 @@ const NotificationDetail = ({ notification, onBack }) => {
     }
   };
 
+  // Determine header config based on report type
+  const getHeaderConfig = () => {
+    switch (reportType) {
+      case "vaccination":
+        return {
+          title: "Báo cáo tiêm chủng",
+          subtitle: "Chi tiết thông báo tiêm chủng",
+          icon: "fas fa-syringe",
+          colorTheme: "orange",
+        };
+      case "checkup":
+      default:
+        return {
+          title: "Báo cáo khám sức khỏe định kỳ",
+          subtitle: "Chi tiết thông báo khám sức khỏe",
+          icon: "fas fa-heartbeat",
+          colorTheme: "purple",
+        };
+    }
+  };
+
+  const headerConfig = getHeaderConfig();
+
   return (
-    <div className="reports-notification-detail">
-      <div className="reports-notification-detail-header">
-        {/* Sử dụng component BackButton chung */}
-        <BackButton onClick={onBack} text="Quay lại danh sách" />
+    <div
+      className={`reports-notification-detail theme-${headerConfig.colorTheme}`}
+    >
+      {/* Header with theme support */}
+      <ReportHeader
+        title={headerConfig.title}
+        subtitle={headerConfig.subtitle}
+        icon={headerConfig.icon}
+        onBack={onBack}
+        colorTheme={headerConfig.colorTheme}
+      />
+
+      {/* Notification Info Section */}
+      <div className="reports-notification-info-section">
         <h2 className="reports-notification-detail-title">
           {notification.title}
         </h2>

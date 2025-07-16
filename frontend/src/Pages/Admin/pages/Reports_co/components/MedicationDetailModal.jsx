@@ -2,7 +2,7 @@ import React from "react";
 import "./MedicationDetailModal.css";
 import { formatDate, formatDateTimeLocale } from "../../../utils/dateUtils";
 
-const MedicationDetailModal = ({ medication, onClose }) => {
+const MedicationDetailModal = ({ medication, onClose, theme = "green" }) => {
   if (!medication) return null;
 
   const getStockStatus = (quantity) => {
@@ -77,7 +77,7 @@ const MedicationDetailModal = ({ medication, onClose }) => {
 
   return (
     <div
-      className="reports-medication-modal-overlay"
+      className={`reports-medication-modal-overlay theme-${theme}`}
       onClick={handleOverlayClick}
     >
       <div className="reports-medication-modal">

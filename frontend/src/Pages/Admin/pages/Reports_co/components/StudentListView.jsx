@@ -123,7 +123,7 @@ const StudentListView = ({
   // Xử lý màn hình loading
   if (isLoading) {
     return (
-      <div className="reports-student-list-container">
+      <div className="reports-student-list-container theme-teal">
         <div className="reports-student-list-loading">
           <div className="reports-student-loading-spinner"></div>
           <div className="reports-student-loading-text">
@@ -140,10 +140,10 @@ const StudentListView = ({
   // Xử lý trường hợp không có dữ liệu
   if (!students || students.length === 0) {
     return (
-      <div className="reports-student-list-container">
+      <div className="reports-student-list-container theme-teal">
         <ReportHeader
           title="Quản lý học sinh"
-          subtitle="Thống kê sức khỏe học sinh"
+          subtitle="Thống kê học sinh"
           icon="fas fa-user-graduate"
           onBack={onBack}
           colorTheme="teal"
@@ -182,11 +182,11 @@ const StudentListView = ({
   });
 
   return (
-    <div className="reports-student-list-container">
+    <div className="reports-student-list-container theme-teal">
       {/* Header Section */}
       <ReportHeader
         title="Quản lý học sinh"
-        subtitle="Thống kê sức khỏe học sinh"
+        subtitle="Thống kê học sinh"
         icon="fas fa-user-graduate"
         onBack={onBack}
         colorTheme="teal"
@@ -308,7 +308,7 @@ const StudentListView = ({
                     </td>
                     <td className="reports-student-table-grade">
                       <span className="reports-student-grade-badge">
-                        Lớp {student.gradeLevel}
+                        {student.gradeLevel}
                       </span>
                     </td>
                     <td className="reports-student-table-gender">
