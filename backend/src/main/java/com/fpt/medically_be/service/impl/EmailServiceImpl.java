@@ -9,6 +9,7 @@ import com.fpt.medically_be.repos.MedicalCheckupRepository;
 import com.fpt.medically_be.dto.response.ParentHealthCheckupNotificationDTO;
 import com.fpt.medically_be.service.AccountMemberService;
 import com.fpt.medically_be.service.EmailService;
+import com.fpt.medically_be.service.ResendClientService;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +37,8 @@ public  class EmailServiceImpl implements EmailService {
     private AccountMemberRepository accountMemberRepository;
     @Autowired
     private MedicalCheckupRepository medicalCheckupRepository;
+    @Autowired
+    private ResendClientService resendClient;
     
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -82,15 +85,8 @@ public  class EmailServiceImpl implements EmailService {
 
         // 3. Gửi email HTML
         try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, StandardCharsets.UTF_8.name());
-            helper.setFrom(fromEmail);
-            helper.setTo(member.getEmail());
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-
-
-            javaMailSender.send(message);
+            resendClient.sendEmail(fromEmail, member.getEmail(), subject, htmlBody);
+            // Hoặc nếu dùng JavaMailSender
         } catch (Exception e) {
             throw new RuntimeException("Send email failed: " + e.getMessage());
         }
@@ -169,14 +165,7 @@ public  class EmailServiceImpl implements EmailService {
 
         // 6. Gửi email HTML
         try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, StandardCharsets.UTF_8.name());
-            helper.setFrom(fromEmail);
-            helper.setTo(notification.getParentEmail());
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-
-            javaMailSender.send(message);
+            resendClient.sendEmail(fromEmail, notification.getParentEmail(), subject, htmlBody);
         } catch (Exception e) {
             throw new RuntimeException("Send health checkup email failed: " + e.getMessage());
         }
