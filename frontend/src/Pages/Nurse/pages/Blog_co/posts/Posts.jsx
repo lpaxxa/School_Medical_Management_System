@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useBlog } from '../../../../../context/NurseContext/BlogContext';
 import { useAuth } from '../../../../../context/AuthContext';
 import * as blogService from '../../../../../services/APINurse/blogService';
+import Swal from 'sweetalert2';
 import './Posts.css';
 
 // Avatar mặc định cho người dùng
@@ -211,18 +212,46 @@ const Posts = () => {
   // Confirm delete post
   const confirmDeletePost = async () => {
     if (!selectedPost) return;
-    
+
     try {
       await blogService.deletePost(selectedPost.id);
       setShowDeleteModal(false);
       setSelectedPost(null);
       setCurrentLocalPage(1);
-      
+
       // Refresh posts list
       fetchPosts(currentPage, pageSize);
+
+      // Show success notification with Sweet2
+      Swal.fire({
+        icon: 'success',
+        title: 'Xóa thành công!',
+        text: `Bài viết "${selectedPost.title}" đã được xóa thành công.`,
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#0d6efd',
+        timer: 3000,
+        timerProgressBar: true,
+        showClass: {
+          popup: 'animate__animated animate__fadeInDown'
+        },
+        hideClass: {
+          popup: 'animate__animated animate__fadeOutUp'
+        }
+      });
     } catch (error) {
       console.error('Error deleting post:', error);
-      alert('Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại sau.');
+
+      // Show error notification with Sweet2
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: 'Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại sau.',
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#dc3545',
+        showClass: {
+          popup: 'animate__animated animate__shakeX'
+        }
+      });
     }
   };
 
@@ -373,6 +402,200 @@ const Posts = () => {
             background-color: #e7f1ff !important;
             border-color: #86b7fe !important;
           }
+
+          /* Modal delete styling - chuyên nghiệp */
+          .modal-header.delete-modal-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            color: white !important;
+            border-bottom: none !important;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 25px 30px !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2) !important;
+          }
+
+          .modal-header.delete-modal-header .modal-title {
+            color: white !important;
+            font-weight: 700 !important;
+            font-size: 1.4rem !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+          }
+
+          .modal-header.delete-modal-header .btn-close {
+            filter: brightness(0) invert(1) !important;
+            opacity: 0.8 !important;
+            transition: all 0.3s ease !important;
+            border-radius: 50% !important;
+            padding: 8px !important;
+            width: 40px !important;
+            height: 40px !important;
+          }
+
+          .modal-header.delete-modal-header .btn-close:hover {
+            opacity: 1 !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+            transform: rotate(90deg) !important;
+          }
+
+          .modal-content.delete-modal-content {
+            border: none !important;
+            border-radius: 12px !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+            overflow: hidden !important;
+          }
+
+          .modal-body.delete-modal-body {
+            padding: 30px !important;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+          }
+
+          .delete-warning-box {
+            background: white !important;
+            border: 2px solid #fee2e2 !important;
+            border-radius: 12px !important;
+            padding: 20px !important;
+            margin-bottom: 20px !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.1) !important;
+            text-align: center !important;
+          }
+
+          .delete-warning-icon {
+            color: #dc3545 !important;
+            font-size: 2.5rem !important;
+            margin-bottom: 15px !important;
+          }
+
+          .delete-warning-text {
+            color: #333 !important;
+            font-size: 1.1rem !important;
+            line-height: 1.6 !important;
+            margin-bottom: 15px !important;
+          }
+
+          .delete-item-preview {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            border: 1px solid #dee2e6 !important;
+            border-radius: 8px !important;
+            padding: 15px !important;
+            font-style: italic !important;
+            color: #666 !important;
+            border-left: 4px solid #dc3545 !important;
+            font-weight: 600 !important;
+          }
+
+          .modal-footer.delete-modal-footer {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            border-top: 2px solid #e8f4fd !important;
+            padding: 20px 30px !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            gap: 15px !important;
+          }
+
+          .btn-danger.delete-confirm-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            border: none !important;
+            padding: 12px 24px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            color: white !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+          }
+
+          .btn-danger.delete-confirm-btn:hover {
+            background: linear-gradient(135deg, #c82333 0%, #b21e2f 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4) !important;
+            color: white !important;
+          }
+
+          .btn-secondary.delete-cancel-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+            border: none !important;
+            padding: 12px 24px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            color: white !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+          }
+
+          .btn-secondary.delete-cancel-btn:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #495057 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
+            color: white !important;
+          }
+
+          /* Fix button hover issue - đảm bảo text không bị mất */
+          .btn-outline-primary {
+            color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            background-color: transparent !important;
+            transition: all 0.3s ease !important;
+          }
+
+          .btn-outline-primary:hover {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: white !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
+          }
+
+          .btn-outline-primary:focus {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: white !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+
+          .btn-outline-primary:active {
+            background-color: #0b5ed7 !important;
+            border-color: #0b5ed7 !important;
+            color: white !important;
+          }
+
+          /* Sweet2 custom styling */
+          .swal2-popup {
+            border-radius: 15px !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+          }
+
+          .swal2-title {
+            font-weight: 700 !important;
+            color: #333 !important;
+          }
+
+          .swal2-content {
+            font-size: 1.1rem !important;
+            color: #666 !important;
+          }
+
+          .swal2-confirm {
+            border-radius: 10px !important;
+            padding: 12px 24px !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+          }
+
+          .swal2-confirm:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+          }
+
+          .swal2-timer-progress-bar {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+          }
         `}
       </style>
 
@@ -507,24 +730,20 @@ const Posts = () => {
                     {formatDate(post.createdAt)}
                   </div>
                   
-                  <div className="d-flex justify-content-between align-items-center text-muted small mb-3">
-                    <span>
-                      <i className="fas fa-eye me-1"></i>
-                      {post.viewCount || 0} lượt xem
-                    </span>
-                    <div className="d-flex gap-3">
-                      <span 
-                        className={post.liked ? 'text-danger' : ''} 
-                        style={{ cursor: 'pointer' }} 
+                  <div className="d-flex justify-content-center align-items-center text-muted small mb-3">
+                    <div className="d-flex gap-4">
+                      <span
+                        className={post.liked ? 'text-danger' : ''}
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleToggleLike(post)}
                         title={post.liked ? 'Bỏ thích bài viết' : 'Thích bài viết'}
                       >
                         <i className={`${post.liked ? 'fas' : 'far'} fa-heart me-1`}></i>
                         {post.likesCount || 0} thích
                       </span>
-                      <span 
-                        className={post.bookmarked ? 'text-warning' : ''} 
-                        style={{ cursor: 'pointer' }} 
+                      <span
+                        className={post.bookmarked ? 'text-warning' : ''}
+                        style={{ cursor: 'pointer' }}
                         onClick={() => handleToggleBookmark(post)}
                         title={post.bookmarked ? 'Bỏ ghim bài viết' : 'Ghim bài viết'}
                       >
@@ -661,19 +880,50 @@ const Posts = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Xác nhận xóa</Modal.Title>
+      <Modal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        centered
+        dialogClassName="delete-modal-content"
+      >
+        <Modal.Header closeButton className="delete-modal-header">
+          <Modal.Title>
+            <i className="fas fa-exclamation-triangle"></i>
+            Xác nhận xóa bài viết
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <p>Bạn có chắc chắn muốn xóa bài viết "{selectedPost?.title}"?</p>
-          <p className="text-danger">Lưu ý: Hành động này không thể hoàn tác.</p>
+        <Modal.Body className="delete-modal-body">
+          <div className="delete-warning-box">
+            <div className="delete-warning-icon">
+              <i className="fas fa-trash-alt"></i>
+            </div>
+            <div className="delete-warning-text">
+              Bạn có chắc chắn muốn xóa bài viết này không?
+            </div>
+            <div className="delete-item-preview">
+              "{selectedPost?.title}"
+            </div>
+            <div className="mt-3">
+              <i className="fas fa-exclamation-triangle me-2 text-danger"></i>
+              <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
+            </div>
+          </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+        <Modal.Footer className="delete-modal-footer">
+          <Button
+            variant="secondary"
+            onClick={() => setShowDeleteModal(false)}
+            className="delete-cancel-btn"
+          >
+            <i className="fas fa-times"></i>
             Hủy
           </Button>
-          <Button variant="danger" onClick={confirmDeletePost}>
+          <Button
+            variant="danger"
+            onClick={confirmDeletePost}
+            className="delete-confirm-btn"
+          >
+            <i className="fas fa-trash"></i>
             Xóa bài viết
           </Button>
         </Modal.Footer>

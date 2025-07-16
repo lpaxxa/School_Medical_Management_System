@@ -835,20 +835,146 @@ const PostDetail = () => {
             border-bottom: 2px solid #dee2e6 !important;
           }
           
-          /* Modal xóa bình luận - theme đỏ cho delete */
+          /* Modal xóa bình luận - theme đỏ chuyên nghiệp */
           .modal-header.delete-modal-header {
             background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
             color: white !important;
-            border-bottom: 2px solid #c82333 !important;
+            border-bottom: none !important;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 25px 30px !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2) !important;
           }
-          
+
           .modal-header.delete-modal-header .modal-title {
             color: white !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
+            font-size: 1.4rem !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
           }
-          
+
           .modal-header.delete-modal-header .btn-close {
             filter: brightness(0) invert(1) !important;
+            opacity: 0.8 !important;
+            transition: all 0.3s ease !important;
+            border-radius: 50% !important;
+            padding: 8px !important;
+            width: 40px !important;
+            height: 40px !important;
+          }
+
+          .modal-header.delete-modal-header .btn-close:hover {
+            opacity: 1 !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+            transform: rotate(90deg) !important;
+          }
+
+          /* Modal content styling */
+          .modal-content.delete-modal-content {
+            border: none !important;
+            border-radius: 12px !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+            overflow: hidden !important;
+          }
+
+          /* Modal body for delete */
+          .modal-body.delete-modal-body {
+            padding: 30px !important;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+          }
+
+          .delete-warning-box {
+            background: white !important;
+            border: 2px solid #fee2e2 !important;
+            border-radius: 12px !important;
+            padding: 20px !important;
+            margin-bottom: 20px !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.1) !important;
+          }
+
+          .delete-warning-icon {
+            color: #dc3545 !important;
+            font-size: 2.5rem !important;
+            margin-bottom: 15px !important;
+          }
+
+          .delete-warning-text {
+            color: #333 !important;
+            font-size: 1.1rem !important;
+            line-height: 1.6 !important;
+            margin-bottom: 15px !important;
+          }
+
+          .delete-item-preview {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            border: 1px solid #dee2e6 !important;
+            border-radius: 8px !important;
+            padding: 15px !important;
+            font-style: italic !important;
+            color: #666 !important;
+            border-left: 4px solid #dc3545 !important;
+          }
+
+          /* Modal footer for delete */
+          .modal-footer.delete-modal-footer {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            border-top: 2px solid #e8f4fd !important;
+            padding: 20px 30px !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            gap: 15px !important;
+          }
+
+          /* Enhanced delete button */
+          .btn-danger.delete-confirm-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            border: none !important;
+            padding: 12px 24px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            color: white !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+          }
+
+          .btn-danger.delete-confirm-btn:hover {
+            background: linear-gradient(135deg, #c82333 0%, #b21e2f 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4) !important;
+            color: white !important;
+          }
+
+          .btn-danger.delete-confirm-btn:disabled {
+            opacity: 0.6 !important;
+            transform: none !important;
+            cursor: not-allowed !important;
+          }
+
+          /* Enhanced cancel button */
+          .btn-secondary.delete-cancel-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+            border: none !important;
+            padding: 12px 24px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            color: white !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+          }
+
+          .btn-secondary.delete-cancel-btn:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #495057 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
+            color: white !important;
           }
           
           /* Modal sửa/phản hồi bình luận - theme xanh hệ thống */
@@ -1026,11 +1152,7 @@ const PostDetail = () => {
               )}
               
               <div className="stats d-flex justify-content-between py-3 border-top mt-auto">
-                <span>
-                  <i className="fas fa-eye me-1"></i>
-                  {post?.viewCount || 0} lượt xem
-                </span>
-                <span 
+                <span
                   className={`${post?.liked ? 'text-danger' : 'text-muted'}`}
                   style={{ cursor: 'pointer' }}
                   onClick={handleToggleLike}
@@ -1039,7 +1161,7 @@ const PostDetail = () => {
                   <i className={`${post?.liked ? 'fas' : 'far'} fa-heart me-1`}></i>
                   {post?.likesCount || 0} lượt thích
                 </span>
-                <span 
+                <span
                   className={`${post?.bookmarked ? 'text-warning' : 'text-muted'}`}
                   style={{ cursor: 'pointer' }}
                   onClick={handleToggleBookmark}
@@ -1470,39 +1592,50 @@ const PostDetail = () => {
       )}
 
       {/* Delete Comment Confirmation Modal */}
-      <Modal show={showDeleteCommentModal} onHide={() => setShowDeleteCommentModal(false)} centered>
+      <Modal
+        show={showDeleteCommentModal}
+        onHide={() => setShowDeleteCommentModal(false)}
+        centered
+        dialogClassName="delete-modal-content"
+      >
         <Modal.Header closeButton className="delete-modal-header">
           <Modal.Title>
-            <i className="fas fa-exclamation-triangle me-2"></i>
+            <i className="fas fa-exclamation-triangle"></i>
             Xác nhận xóa bình luận
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <div className="text-center mb-3">
-            <i className="fas fa-trash-alt fa-3x text-danger mb-3"></i>
-          </div>
-          <p className="text-center mb-3">Bạn có chắc chắn muốn xóa bình luận này không?</p>
-          <div className="p-3 bg-light rounded border">
-            <p className="mb-0 text-muted fst-italic">"{selectedComment?.content}"</p>
-          </div>
-          <div className="alert alert-danger mt-3 mb-0">
-            <i className="fas fa-exclamation-triangle me-2"></i>
-            <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
+        <Modal.Body className="delete-modal-body">
+          <div className="delete-warning-box text-center">
+            <div className="delete-warning-icon">
+              <i className="fas fa-trash-alt"></i>
+            </div>
+            <div className="delete-warning-text">
+              Bạn có chắc chắn muốn xóa bình luận này không?
+            </div>
+            <div className="delete-item-preview">
+              "{selectedComment?.content}"
+            </div>
+            <div className="mt-3">
+              <i className="fas fa-exclamation-triangle me-2 text-danger"></i>
+              <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
+            </div>
           </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button 
-            variant="secondary" 
+        <Modal.Footer className="delete-modal-footer">
+          <Button
+            variant="secondary"
             onClick={() => setShowDeleteCommentModal(false)}
             disabled={deleteLoading}
+            className="delete-cancel-btn"
           >
-            <i className="fas fa-times me-1"></i>
+            <i className="fas fa-times"></i>
             Hủy
           </Button>
-          <Button 
-            variant="danger" 
+          <Button
+            variant="danger"
             onClick={confirmDeleteComment}
             disabled={deleteLoading}
+            className="delete-confirm-btn"
           >
             {deleteLoading ? (
               <>
@@ -1512,13 +1645,12 @@ const PostDetail = () => {
                   size="sm"
                   role="status"
                   aria-hidden="true"
-                  className="me-2"
                 />
                 Đang xóa...
               </>
             ) : (
               <>
-                <i className="fas fa-trash me-1"></i>
+                <i className="fas fa-trash"></i>
                 Xóa bình luận
               </>
             )}
@@ -1661,39 +1793,50 @@ const PostDetail = () => {
       </Modal>
 
       {/* Delete Reply Confirmation Modal */}
-      <Modal show={showDeleteReplyModal} onHide={() => setShowDeleteReplyModal(false)} centered>
+      <Modal
+        show={showDeleteReplyModal}
+        onHide={() => setShowDeleteReplyModal(false)}
+        centered
+        dialogClassName="delete-modal-content"
+      >
         <Modal.Header closeButton className="delete-modal-header">
           <Modal.Title>
-            <i className="fas fa-exclamation-triangle me-2"></i>
+            <i className="fas fa-exclamation-triangle"></i>
             Xác nhận xóa phản hồi
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <div className="text-center mb-3">
-            <i className="fas fa-trash-alt fa-3x text-danger mb-3"></i>
-          </div>
-          <p className="text-center mb-3">Bạn có chắc chắn muốn xóa phản hồi này không?</p>
-          <div className="p-3 bg-light rounded border">
-            <p className="mb-0 text-muted fst-italic">"{selectedReply?.content}"</p>
-          </div>
-          <div className="alert alert-danger mt-3 mb-0">
-            <i className="fas fa-exclamation-triangle me-2"></i>
-            <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
+        <Modal.Body className="delete-modal-body">
+          <div className="delete-warning-box text-center">
+            <div className="delete-warning-icon">
+              <i className="fas fa-trash-alt"></i>
+            </div>
+            <div className="delete-warning-text">
+              Bạn có chắc chắn muốn xóa phản hồi này không?
+            </div>
+            <div className="delete-item-preview">
+              "{selectedReply?.content}"
+            </div>
+            <div className="mt-3">
+              <i className="fas fa-exclamation-triangle me-2 text-danger"></i>
+              <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
+            </div>
           </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button 
-            variant="secondary" 
+        <Modal.Footer className="delete-modal-footer">
+          <Button
+            variant="secondary"
             onClick={() => setShowDeleteReplyModal(false)}
             disabled={deleteReplyLoading}
+            className="delete-cancel-btn"
           >
-            <i className="fas fa-times me-1"></i>
+            <i className="fas fa-times"></i>
             Hủy
           </Button>
-          <Button 
-            variant="danger" 
+          <Button
+            variant="danger"
             onClick={confirmDeleteReply}
             disabled={deleteReplyLoading}
+            className="delete-confirm-btn"
           >
             {deleteReplyLoading ? (
               <>
@@ -1703,13 +1846,12 @@ const PostDetail = () => {
                   size="sm"
                   role="status"
                   aria-hidden="true"
-                  className="me-2"
                 />
                 Đang xóa...
               </>
             ) : (
               <>
-                <i className="fas fa-trash me-1"></i>
+                <i className="fas fa-trash"></i>
                 Xóa phản hồi
               </>
             )}

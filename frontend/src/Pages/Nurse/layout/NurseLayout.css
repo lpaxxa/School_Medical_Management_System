@@ -1,15 +1,35 @@
 .nurse-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f4f6f9;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
-
-/* layout-container không còn cần thiết */
 
 .nurse-content {
   flex: 1;
   padding: 2rem;
-  margin-left: 220px; /* Match new sidebar width */
-  background-color: #f4f6f9;
-  transition: margin-left 0.3s ease;
+  margin-left: 300px; /* Match new sidebar width */
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
+}
+
+/* === Responsive adjustments === */
+@media (max-width: 1024px) {
+  .nurse-content {
+    margin-left: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nurse-content {
+    margin-left: 260px;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nurse-content {
+    margin-left: 240px;
+    padding: 1rem;
+  }
 }

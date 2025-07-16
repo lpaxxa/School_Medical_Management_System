@@ -1,0 +1,531 @@
+/* HistoryModal.css - Custom Modal without Bootstrap */
+
+/* Ensure modal is always on top and covers entire viewport */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Reset all potential inherited styles */
+.history-modal-overlay {
+  all: initial;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.history-modal-overlay *,
+.history-modal-overlay *::before,
+.history-modal-overlay *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Modal Overlay */
+.history-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 9999 !important;
+  padding: 20px !important;
+  backdrop-filter: blur(6px) !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Modal Container */
+.history-modal-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s ease-out;
+  position: relative;
+  margin: auto;
+  transform: none;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.history-modal-header {
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%);
+  color: white;
+  padding: 25px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+
+.title-icon {
+  font-size: 1.5rem;
+}
+
+.modal-title h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+/* Modal Body */
+.history-modal-body {
+  padding: 30px;
+  overflow-y: auto;
+  flex: 1;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+/* Student Information Card */
+.student-info-card {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.1);
+  border: 2px solid #e8f4fd;
+}
+
+.student-info-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e8f4fd;
+}
+
+.info-icon {
+  font-size: 1.5rem;
+}
+
+.student-info-header h3 {
+  margin: 0;
+  color: #015C92;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.student-info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.info-item:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(1, 92, 146, 0.1);
+}
+
+.info-label {
+  font-weight: 600;
+  color: #015C92;
+  font-size: 1rem;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #333;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+/* Vaccination History Section */
+.vaccination-history-section {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.1);
+  border: 2px solid #e8f4fd;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e8f4fd;
+}
+
+.section-icon {
+  font-size: 1.5rem;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #015C92;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+/* Loading Container */
+.loading-container {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e8f4fd;
+  border-top: 4px solid #015C92;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Vaccination Records */
+.vaccination-records {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.vaccination-record {
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e8f4fd;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(1, 92, 146, 0.08);
+}
+
+.vaccination-record:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(1, 92, 146, 0.15);
+}
+
+/* Record Header */
+.record-header {
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%);
+  color: white;
+  padding: 20px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.record-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dose-icon {
+  font-size: 1.2rem;
+}
+
+.record-title h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.record-status {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.record-number {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.status-badge.status-complete {
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+}
+
+.status-badge.status-incomplete {
+  background: rgba(255, 193, 7, 0.9);
+  color: #333;
+}
+
+.status-badge.status-monitoring {
+  background: rgba(255, 152, 0, 0.9);
+  color: white;
+}
+
+/* Record Content */
+.record-content {
+  padding: 25px;
+  background: #fafafa;
+}
+
+.record-field {
+  margin-bottom: 20px;
+}
+
+.record-field:last-child {
+  margin-bottom: 0;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #015C92;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.field-icon {
+  font-size: 1rem;
+}
+
+.field-value {
+  background: white;
+  padding: 15px 18px;
+  border-radius: 10px;
+  border: 2px solid #e8f4fd;
+  font-size: 1rem;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.field-value:hover {
+  border-color: #015C92;
+  box-shadow: 0 4px 8px rgba(1, 92, 146, 0.1);
+}
+
+.note-field {
+  font-style: italic;
+  color: #555;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-left: 4px solid #015C92;
+  min-height: 60px;
+}
+
+/* Record Footer */
+.record-footer {
+  padding: 20px 25px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-top: 2px solid #e8f4fd;
+  text-align: center;
+}
+
+.update-note-button {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+}
+
+.update-note-button:hover {
+  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.4);
+}
+
+.button-icon {
+  font-size: 1rem;
+}
+
+/* No Records */
+.no-records {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.no-records-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.no-records h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.no-records p {
+  margin: 0;
+  color: #888;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Modal Footer */
+.history-modal-footer {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 20px 30px;
+  border-top: 2px solid #e8f4fd;
+  text-align: center;
+}
+
+.back-button {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+}
+
+.back-button:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .history-modal-overlay {
+    padding: 10px;
+  }
+
+  .history-modal-container {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .history-modal-header {
+    padding: 20px;
+  }
+
+  .modal-title h2 {
+    font-size: 1.4rem;
+  }
+
+  .history-modal-body {
+    padding: 20px;
+  }
+
+  .student-info-card,
+  .vaccination-history-section {
+    padding: 20px;
+  }
+
+  .record-header {
+    padding: 15px 20px;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .record-content {
+    padding: 20px;
+  }
+
+  .record-footer {
+    padding: 15px 20px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .info-value {
+    width: 100%;
+  }
+}

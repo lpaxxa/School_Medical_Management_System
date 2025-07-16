@@ -69,7 +69,7 @@ const getStatusInfo = (status) => {
     case "FULLY_TAKEN":
       return { text: "Đã dùng hết", color: "#0D6EFD", textColor: "#FFFFFF" };
     case "PARTIALLY_TAKEN":
-      return { text: "Đang dùng", color: "#0DCAF0", textColor: "#FFFFFF" };
+      return { text: "Đang dùng", color: "#198754", textColor: "#FFFFFF" };
     case "EXPIRED":
       return { text: "Đã hết hạn", color: "#6C757D", textColor: "#FFFFFF" };
     case "CANCELLED":

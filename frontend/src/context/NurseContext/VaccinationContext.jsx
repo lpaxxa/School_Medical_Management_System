@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import vaccinationApiService from '../../services/APINurse/vaccinationApiService';
 
 export const VaccinationContext = createContext();
@@ -307,19 +308,25 @@ export const VaccinationProvider = ({ children }) => {
         // The record from new API might not have direct ID for update
         // We need to use the vaccination record ID from the history
         const vaccinationId = recordToUpdate.id || recordToUpdate.vaccinationId;
-        
+
         await vaccinationApiService.updateVaccinationNote(vaccinationId, notes);
-        toast.success('Cập nhật ghi chú thành công!');
+
+        // Close modal first
         handleCloseUpdateNoteModal();
-        
+
         // Refresh history data after update
         if (selectedStudentHistory.student) {
             const studentData = selectedStudentHistory.student;
             const vaccinationDate = selectedStudentHistory.vaccinationDate;
             handleShowHistoryModal(studentData, vaccinationDate);
         }
+
+        // Success will be handled by UpdateNoteModal component with SweetAlert2
+        return Promise.resolve();
     } catch (err) {
-        toast.error('Cập nhật ghi chú thất bại.');
+        // Error will be handled by UpdateNoteModal component with SweetAlert2
+        console.error('Error updating note:', err);
+        return Promise.reject(err);
     }
   };
 
