@@ -25,7 +25,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
         },
         servers = {
                 @io.swagger.v3.oas.annotations.servers.Server(
-                        url = "https://medically-sou-azure.southeastasia.cloudapp.azure.com",
+                        url = "https://medically-backend.southeastasia.cloudapp.azure.com",
                         description = "Production Server"
                 ),
                 @io.swagger.v3.oas.annotations.servers.Server(
