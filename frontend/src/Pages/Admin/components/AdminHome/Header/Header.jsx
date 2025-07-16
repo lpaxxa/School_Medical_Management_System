@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "./Header.css";
@@ -8,18 +8,70 @@ const Header = ({ user }) => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const notificationRef = useRef(null);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Logout clicked - starting logout process");
+
+    try {
+      // Close dropdown first
+      setDropdownOpen(false);
+
+      // Call logout function
+      console.log("Calling logout function...");
+      logout();
+
+      // Add small delay to ensure logout completes
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      console.log("Navigating to login page...");
+      navigate("/login");
+
+      // Force page reload as backup
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 500);
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force redirect even if there's an error
+      window.location.href = "/login";
+    }
   };
 
-  const toggleDropdown = () => {
+  const toggleDropdown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Toggle dropdown clicked, current state:", dropdownOpen);
     setDropdownOpen(!dropdownOpen);
     setNotificationsOpen(false);
   };
 
-  const toggleNotifications = () => {
+  const toggleNotifications = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     setNotificationsOpen(!notificationsOpen);
     setDropdownOpen(false);
   };
@@ -64,10 +116,11 @@ const Header = ({ user }) => {
             <span>School Management</span>
           </div>
         </div>{" "}
-        
-      </div>      <div className="admin-header-right">
+      </div>{" "}
+      <div className="admin-header-right">
         {/* Notifications */}
-        <div className="header-notifications">          <button
+        <div className="header-notifications" ref={notificationRef}>
+          <button
             className={`notification-btn ${notificationsOpen ? "active" : ""}`}
             onClick={toggleNotifications}
             title="Thông báo"
@@ -75,7 +128,6 @@ const Header = ({ user }) => {
             <i className="fas fa-bell"></i>
             <span className="notification-badge">3</span>
           </button>
-
           {notificationsOpen && (
             <div className="notifications-dropdown">
               <div className="dropdown-header">
@@ -117,7 +169,7 @@ const Header = ({ user }) => {
             </span>
           </div> */}
 
-          <div className="admin-header-dropdown">
+          <div className="admin-header-dropdown" ref={dropdownRef}>
             <button
               className={`admin-header-profile ${dropdownOpen ? "active" : ""}`}
               onClick={toggleDropdown}
@@ -164,7 +216,16 @@ const Header = ({ user }) => {
                   <span>Chế độ tối</span>
                 </button>
                 <div className="dropdown-divider"></div>
-                <button className="dropdown-item logout" onClick={handleLogout}>
+                <button
+                  className="dropdown-item logout"
+                  onClick={handleLogout}
+                  style={{
+                    cursor: "pointer",
+                    pointerEvents: "auto",
+                    zIndex: 10001,
+                    position: "relative",
+                  }}
+                >
                   <i className="fas fa-sign-out-alt"></i>
                   <span>Đăng xuất</span>
                 </button>

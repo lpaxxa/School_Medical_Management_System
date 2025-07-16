@@ -725,13 +725,13 @@ const UserManagement = () => {
 
   if (apiConnectionStatus === "checking") {
     return (
-      <div className="user-management-container">
-        <div className="connection-checking">
-          <div className="checking-spinner"></div>
+      <div className="admin-user-management-container">
+        <div className="admin-connection-checking">
+          <div className="admin-checking-spinner"></div>
           <h3>Đang kiểm tra kết nối API...</h3>
           <p>Vui lòng đợi trong giây lát (timeout sau 10 giây)</p>
           {currentUser && (
-            <p className="auth-info">
+            <p className="admin-auth-info">
               Đăng nhập với tư cách: <strong>{currentUser.role}</strong>
             </p>
           )}
@@ -743,15 +743,7 @@ const UserManagement = () => {
               );
               setIsLoading(false);
             }}
-            style={{
-              marginTop: "1rem",
-              padding: "0.5rem 1rem",
-              background: "#f59e0b",
-              color: "white",
-              border: "none",
-              borderRadius: "0.5rem",
-              cursor: "pointer",
-            }}
+            className="admin-btn-retry"
           >
             Bỏ qua kiểm tra kết nối
           </button>
@@ -765,16 +757,16 @@ const UserManagement = () => {
     (apiConnectionStatus === "failed" && error?.includes("đăng nhập"))
   ) {
     return (
-      <div className="user-management-container">
-        <div className="auth-required">
-          <FaSignInAlt className="auth-icon" />
+      <div className="admin-user-management-container">
+        <div className="admin-auth-required">
+          <FaSignInAlt className="admin-auth-icon" />
           <h3>Yêu cầu đăng nhập</h3>
           <p>
             Bạn cần đăng nhập với tài khoản Admin để truy cập trang quản lý
             người dùng.
           </p>
           {currentUser ? (
-            <div className="current-user-info">
+            <div className="admin-current-user-info">
               <p>
                 Hiện tại bạn đăng nhập với role:{" "}
                 <strong>{currentUser.role}</strong>
@@ -784,7 +776,7 @@ const UserManagement = () => {
           ) : (
             <p>Vui lòng đăng nhập để tiếp tục.</p>
           )}
-          <button onClick={handleLoginRedirect} className="btn-login">
+          <button onClick={handleLoginRedirect} className="admin-btn-login">
             <FaSignInAlt /> Đến trang đăng nhập
           </button>
         </div>
@@ -794,12 +786,12 @@ const UserManagement = () => {
 
   if (apiConnectionStatus === "failed" || error) {
     return (
-      <div className="user-management-container">
-        <div className="error-message">
-          <FaWifi className="error-icon" />
+      <div className="admin-user-management-container">
+        <div className="admin-error-message">
+          <FaWifi className="admin-error-icon" />
           <h3>Không thể kết nối với API</h3>
           <p>{error}</p>
-          <div className="error-details">
+          <div className="admin-error-details">
             <p>
               <strong>API Endpoint:</strong>{" "}
               http://localhost:8080/api/v1/account-members/getAll
@@ -823,7 +815,7 @@ const UserManagement = () => {
               <li>Kiểm tra token đăng nhập còn hạn không</li>
             </ul>
           </div>
-          <button onClick={handleRetry} className="btn-retry">
+          <button onClick={handleRetry} className="admin-btn-retry">
             <FaWifi /> Thử lại
           </button>
         </div>
@@ -832,105 +824,105 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="user-management-container">
-      <div className="user-management-header">
+    <div className="admin-user-management-container">
+      <div className="admin-user-management-header">
         <div>
           <h1>Quản lý người dùng</h1>
           <p>
             Quản lý thông tin và phân quyền người dùng trong hệ thống
-            <span className="connection-status success">
+            <span className="admin-connection-status success">
               {/* <FaWifi /> API Connected */}
             </span>
             {currentUser && (
-              <span className="user-info">
+              <span className="admin-user-info">
                 {/* | Đăng nhập: <strong>{currentUser.role}</strong> */}
               </span>
             )}
           </p>
         </div>
-        <button className="btn-add" onClick={handleAddUser}>
+        <button className="admin-btn-add" onClick={handleAddUser}>
           <FaPlus /> Thêm người dùng
         </button>
       </div>
 
       {/* Thống kê - Modern Stats Grid */}
-      <div className="user-stats">
-        <div className="stat-card">
-          <div className="stat-card-content">
-            <div className="stat-icon total">
+      <div className="admin-user-stats">
+        <div className="admin-stat-card">
+          <div className="admin-stat-card-content">
+            <div className="admin-stat-icon total">
               <FaUsers />
             </div>
-            <div className="stat-info">
-              <div className="stat-label">Tổng số</div>
-              <div className="stat-value">{stats.total}</div>
+            <div className="admin-stat-info">
+              <div className="admin-stat-label">Tổng số</div>
+              <div className="admin-stat-value">{stats.total}</div>
             </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card-content">
-            <div className="stat-icon admin">
+        <div className="admin-stat-card">
+          <div className="admin-stat-card-content">
+            <div className="admin-stat-icon admin">
               <FaUserTie />
             </div>
-            <div className="stat-info">
-              <div className="stat-label">Quản trị</div>
-              <div className="stat-value">{stats.admin}</div>
+            <div className="admin-stat-info">
+              <div className="admin-stat-label">Quản trị</div>
+              <div className="admin-stat-value">{stats.admin}</div>
             </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card-content">
-            <div className="stat-icon nurse">
+        <div className="admin-stat-card">
+          <div className="admin-stat-card-content">
+            <div className="admin-stat-icon nurse">
               <FaUserMd />
             </div>
-            <div className="stat-info">
-              <div className="stat-label">Y tá</div>
-              <div className="stat-value">{stats.nurse}</div>
+            <div className="admin-stat-info">
+              <div className="admin-stat-label">Y tá</div>
+              <div className="admin-stat-value">{stats.nurse}</div>
             </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card-content">
-            <div className="stat-icon parent">
+        <div className="admin-stat-card">
+          <div className="admin-stat-card-content">
+            <div className="admin-stat-icon parent">
               <FaUsers />
             </div>
-            <div className="stat-info">
-              <div className="stat-label">Ph. Huynh</div>
-              <div className="stat-value">{stats.parent}</div>
+            <div className="admin-stat-info">
+              <div className="admin-stat-label">Ph. Huynh</div>
+              <div className="admin-stat-value">{stats.parent}</div>
             </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card-content">
-            <div className="stat-icon active">
+        <div className="admin-stat-card">
+          <div className="admin-stat-card-content">
+            <div className="admin-stat-icon active">
               <FaUserCheck />
             </div>
-            <div className="stat-info">
-              <div className="stat-label">Kích hoạt</div>
-              <div className="stat-value">{stats.active}</div>
+            <div className="admin-stat-info">
+              <div className="admin-stat-label">Kích hoạt</div>
+              <div className="admin-stat-value">{stats.active}</div>
             </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card-content">
-            <div className="stat-icon inactive">
+        <div className="admin-stat-card">
+          <div className="admin-stat-card-content">
+            <div className="admin-stat-icon inactive">
               <FaUserClock />
             </div>
-            <div className="stat-info">
-              <div className="stat-label">Khóa</div>
-              <div className="stat-value">{stats.inactive}</div>
+            <div className="admin-stat-info">
+              <div className="admin-stat-label">Khóa</div>
+              <div className="admin-stat-value">{stats.inactive}</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Modern Search & Filter Section */}
-      <div className="user-filters">
-        <div className="search-box">
+      <div className="admin-user-filters">
+        <div className="admin-search-box">
           <FaSearch />
           <input
             type="text"
@@ -940,8 +932,8 @@ const UserManagement = () => {
           />
         </div>
 
-        <div className="filter-group">
-          <div className="filter">
+        <div className="admin-filter-group">
+          <div className="admin-filter">
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
@@ -953,7 +945,7 @@ const UserManagement = () => {
             </select>
           </div>
 
-          <div className="filter">
+          <div className="admin-filter">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -967,7 +959,7 @@ const UserManagement = () => {
       </div>
 
       {/* Modern User Table */}
-      <div className="user-table-wrapper">
+      <div className="admin-user-table-wrapper">
         <UserTable
           users={paginatedUsers}
           totalUsers={filteredUsers.length}
@@ -988,17 +980,17 @@ const UserManagement = () => {
 
         {/* Pagination Controls */}
         {filteredUsers.length > itemsPerPage && (
-          <div className="pagination-container">
-            <div className="pagination-info">
+          <div className="admin-pagination-container">
+            <div className="admin-pagination-info">
               <span>
                 Hiển thị {startIndex}-{endIndex} trong tổng số{" "}
                 {filteredUsers.length} người dùng
               </span>
             </div>
 
-            <div className="pagination-controls">
+            <div className="admin-pagination-controls">
               <button
-                className={`pagination-btn ${
+                className={`admin-pagination-btn ${
                   !hasPreviousPage ? "disabled" : ""
                 }`}
                 onClick={handlePreviousPage}
@@ -1008,7 +1000,7 @@ const UserManagement = () => {
                 <FaChevronLeft />
               </button>
 
-              <div className="pagination-pages">
+              <div className="admin-pagination-pages">
                 {Array.from({ length: totalPages }, (_, index) => {
                   const page = index + 1;
                   const isCurrentPage = page === currentPage;
@@ -1023,7 +1015,7 @@ const UserManagement = () => {
                     // Show ellipsis for gaps
                     if (page === currentPage - 2 || page === currentPage + 2) {
                       return (
-                        <span key={page} className="pagination-ellipsis">
+                        <span key={page} className="admin-pagination-ellipsis">
                           ...
                         </span>
                       );
@@ -1034,7 +1026,7 @@ const UserManagement = () => {
                   return (
                     <button
                       key={page}
-                      className={`pagination-page ${
+                      className={`admin-pagination-btn ${
                         isCurrentPage ? "active" : ""
                       }`}
                       onClick={() => handlePageChange(page)}
@@ -1046,7 +1038,9 @@ const UserManagement = () => {
               </div>
 
               <button
-                className={`pagination-btn ${!hasNextPage ? "disabled" : ""}`}
+                className={`admin-pagination-btn ${
+                  !hasNextPage ? "disabled" : ""
+                }`}
                 onClick={handleNextPage}
                 disabled={!hasNextPage}
                 title="Trang sau"

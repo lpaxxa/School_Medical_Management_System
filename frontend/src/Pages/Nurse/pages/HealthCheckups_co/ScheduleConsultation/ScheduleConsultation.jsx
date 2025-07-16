@@ -436,7 +436,34 @@ const MedicalCheckupList = ({ refreshData }) => {
   };
 
   return (
-    <div className="medical-checkup-list-container">
+    <>
+      <style>
+        {`
+          /* Fix dropdown arrow for Form.Select */
+          .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+            padding-right: 2.25rem !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+          }
+
+          .form-select:focus {
+            border-color: #86b7fe !important;
+            outline: 0 !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+
+          .form-select:disabled {
+            background-color: #e9ecef !important;
+            opacity: 1 !important;
+          }
+        `}
+      </style>
+      <div className="medical-checkup-list-container">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2>Danh sách khám sức khỏe</h2>
         <div className="d-flex align-items-center gap-3">
@@ -470,7 +497,7 @@ const MedicalCheckupList = ({ refreshData }) => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="mb-2"
             >
-              <option value="">Tất cả trạng thái</option>
+              <option value="">Trạng thái</option>
               <option value="COMPLETED">Đã hoàn thành</option>
               <option value="NEED_FOLLOW_UP">Cần theo dõi</option>
             </Form.Select>
@@ -608,6 +635,7 @@ const MedicalCheckupList = ({ refreshData }) => {
         />
       )}
     </div>
+    </>
   );
 };
 

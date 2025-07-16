@@ -87,7 +87,9 @@ const DetailView = ({ data, reportType, isLoading, onViewDetail, onBack }) => {
   const headerConfig = getHeaderConfig();
 
   return (
-    <div className="reports-detail-view-container">
+    <div
+      className={`reports-detail-view-container theme-${headerConfig.colorTheme}`}
+    >
       {/* Header */}
       <ReportHeader
         title={headerConfig.title}

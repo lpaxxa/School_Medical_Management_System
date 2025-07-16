@@ -6,6 +6,7 @@ import UserManagement from "../pages/UserManagement";
 import { PlanManager } from "../pages/MedicalEventPlanning";
 import Reports from "../pages/Reports_co/index.jsx";
 import Notifications from "../pages/EmailManagement_co/Notifications";
+import ArticleManagement from "../pages/ArticleManagement";
 import ModernUIShowcase from "../components/ModernUIShowcase";
 import "../styles/modern-theme.css";
 import "./AdminLayout.css";
@@ -33,6 +34,8 @@ const AdminLayout = () => {
         return <Notifications />;
       case "reports":
         return <Reports />;
+      case "articles":
+        return <ArticleManagement />;
       case "ui-showcase":
         return <ModernUIShowcase />;
       default:

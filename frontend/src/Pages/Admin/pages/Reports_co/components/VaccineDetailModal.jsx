@@ -2,7 +2,7 @@ import React from "react";
 import vaccineService from "../../../../../services/APIAdmin/vaccineService";
 import "./VaccineDetailModal_new.css";
 
-const VaccineDetailModal = ({ vaccine, onClose }) => {
+const VaccineDetailModal = ({ vaccine, onClose, theme = "blue" }) => {
   if (!vaccine) return null;
 
   const handleBackdropClick = (e) => {
@@ -78,7 +78,7 @@ const VaccineDetailModal = ({ vaccine, onClose }) => {
 
   return (
     <div
-      className="reports-vaccine-modal-backdrop"
+      className={`reports-vaccine-modal-backdrop theme-${theme}`}
       onClick={handleBackdropClick}
     >
       <div className="reports-vaccine-modal-container">
