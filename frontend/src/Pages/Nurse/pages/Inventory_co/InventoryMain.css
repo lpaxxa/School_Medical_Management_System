@@ -3,19 +3,237 @@
 /* ======= MAIN LAYOUT STYLES ======= */
 /* Note: Most styles are now handled by inline CSS in the component for better control */
 
+/* ======= ENHANCED SEARCH STYLES ======= */
+.search-container {
+  position: relative;
+}
+
+.search-filter-btn {
+  border-color: #015C92 !important;
+  color: #015C92 !important;
+  transition: all 0.3s ease;
+}
+
+.search-filter-btn:hover {
+  background-color: #015C92 !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(1, 92, 146, 0.2);
+}
+
+.search-input {
+  border-color: #015C92 !important;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #2D82B5 !important;
+  box-shadow: 0 0 0 0.2rem rgba(1, 92, 146, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+.search-icon {
+  background-color: #f8f9fa;
+  border-color: #015C92 !important;
+  color: #015C92;
+}
+
+.clear-search-btn {
+  border-color: #015C92 !important;
+  color: #015C92 !important;
+  transition: all 0.3s ease;
+}
+
+.clear-search-btn:hover {
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+  color: white !important;
+}
+
+/* ======= LUKHANG INVENTORY FILTER DROPDOWN STYLES ======= */
+.lukhang-inventory-filter-dropdown {
+  position: relative;
+}
+
+.lukhang-inventory-search-filter-btn {
+  border: 1px solid #015C92 !important;
+  background-color: #fff;
+  color: #015C92 !important;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  height: 38px;
+  line-height: 1.5;
+}
+
+.lukhang-inventory-search-filter-btn:hover {
+  background-color: #015C92 !important;
+  border-color: #015C92 !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(1, 92, 146, 0.2);
+}
+
+.lukhang-inventory-search-filter-btn:focus {
+  box-shadow: 0 0 0 0.2rem rgba(1, 92, 146, 0.25) !important;
+  border-color: #2D82B5 !important;
+}
+
+.lukhang-inventory-filter-menu {
+  min-width: 200px;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  margin-top: 2px;
+  display: none;
+}
+
+.lukhang-inventory-filter-menu.show {
+  display: block;
+}
+
+.lukhang-inventory-filter-option {
+  padding: 0.5rem 1rem;
+  font-size: 14px;
+  color: #495057;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.lukhang-inventory-filter-option:hover {
+  background-color: #f8f9fa;
+  color: #015C92 !important;
+}
+
+.lukhang-inventory-filter-option:active {
+  background-color: #e9ecef;
+}
+
+.lukhang-inventory-filter-option i {
+  width: 16px;
+  text-align: center;
+}
+
+/* ======= LUKHANG INVENTORY SEARCH INPUT STYLES ======= */
+.lukhang-inventory-search-input-group {
+  display: flex;
+  align-items: center;
+}
+
+.lukhang-inventory-search-input {
+  height: 38px !important;
+  border-color: #015C92 !important;
+  transition: all 0.3s ease;
+}
+
+.lukhang-inventory-search-input:focus {
+  border-color: #2D82B5 !important;
+  box-shadow: 0 0 0 0.2rem rgba(1, 92, 146, 0.15) !important;
+}
+
+.lukhang-inventory-search-icon {
+  background-color: #f8f9fa;
+  border-color: #015C92 !important;
+  color: #015C92;
+  height: 38px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-results-info {
+  animation: fadeInUp 0.3s ease;
+}
+
+.search-suggestions {
+  animation: fadeInDown 0.3s ease;
+  border: 1px solid #dee2e6;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-suggestions .btn:hover {
+  background-color: #f8f9fa;
+  color: #015C92;
+}
+
+.add-item-btn:hover {
+  transform: translateY(-1px) !important;
+}
+
+/* ======= ANIMATIONS ======= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ======= RESPONSIVE STYLES ======= */
 @media (max-width: 768px) {
   .lukhang-inventory-main-wrapper {
     padding: 0.5rem !important;
   }
-  
+
   .lukhang-inventory-table-container {
     margin: 1rem 0 !important;
     padding: 0.5rem !important;
   }
-  
+
   .lukhang-inventory-table-container .card-body {
     padding: 0.75rem !important;
+  }
+
+  .search-filter-btn {
+    min-width: 80px !important;
+    font-size: 0.875rem;
+  }
+
+  .search-container .d-flex {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+
+  .search-container .dropdown {
+    width: 100%;
+  }
+
+  .search-filter-btn {
+    width: 100%;
+    border-radius: 0.375rem !important;
+  }
+
+  .search-results-info {
+    text-align: center;
   }
 }
 

@@ -5,9 +5,9 @@ import VaccinationPlanDetailsModal from './VaccinationPlanDetailsModal';
 import CreateRecordModal from './CreateRecordModal';
 
 const CreateVaccinationRecord = () => {
-  const { 
-    vaccinationPlans, 
-    loading, 
+  const {
+    vaccinationPlans,
+    loading,
     error,
     selectedPlanDetails,
     detailsLoading,
@@ -20,6 +20,8 @@ const CreateVaccinationRecord = () => {
     studentForRecord,
     handleCloseCreateRecordModal,
   } = useVaccination();
+
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -227,19 +229,42 @@ const CreateVaccinationRecord = () => {
     <>
       <style>
         {`
+          /* Fix dropdown arrow for Form.Select */
+          .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+            padding-right: 2.25rem !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+          }
+
+          .form-select:focus {
+            border-color: #86b7fe !important;
+            outline: 0 !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+
+          .form-select:disabled {
+            background-color: #e9ecef !important;
+            opacity: 1 !important;
+          }
+
           .vaccination-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 24px;
             margin-bottom: 32px;
           }
-          
+
           @media (max-width: 992px) {
             .vaccination-grid {
               grid-template-columns: repeat(2, 1fr);
             }
           }
-          
+
           @media (max-width: 576px) {
             .vaccination-grid {
               grid-template-columns: 1fr;

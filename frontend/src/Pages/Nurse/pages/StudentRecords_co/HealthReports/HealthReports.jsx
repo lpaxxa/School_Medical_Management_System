@@ -126,8 +126,13 @@ const HealthReports = () => {
       const bmiCategory = healthProfile?.bmi ? studentRecordsService.calculateBMICategory(healthProfile.bmi).category : '';
       const className = s.className || s.class;
       
+      // Class filter with pattern matching
+      const classMatch = filters.class === '' ||
+        className === filters.class ||
+        className?.toLowerCase().includes(filters.class.toLowerCase());
+
       return (
-        (filters.class === '' || className === filters.class) &&
+        classMatch &&
         (filters.bloodType === '' || healthProfile?.bloodType === filters.bloodType) &&
         (filters.bmiCategory === '' || bmiCategory === filters.bmiCategory)
       );
@@ -280,7 +285,125 @@ const HealthReports = () => {
   };
 
   return (
-    <div className="health-reports-container">
+    <>
+      <style>
+        {`
+          /* Fix dropdown arrow for Form.Select */
+          .form-select, .filter-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+            padding-right: 2.25rem !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+          }
+
+          .form-select:focus, .filter-select:focus {
+            border-color: #86b7fe !important;
+            outline: 0 !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+
+          .form-select:disabled, .filter-select:disabled {
+            background-color: #e9ecef !important;
+            opacity: 1 !important;
+          }
+
+          /* Fix header background for better title visibility */
+          .table-header {
+            background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%) !important;
+            border: none !important;
+            color: white !important;
+          }
+
+          .table-header h5 {
+            color: white !important;
+            font-weight: 600 !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+          }
+
+          /* Style for class input field */
+          .filter-input {
+            border: 1px solid #ced4da !important;
+            border-radius: 0.375rem !important;
+            padding: 0.375rem 0.75rem !important;
+            font-size: 1rem !important;
+            line-height: 1.5 !important;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+          }
+
+          .filter-input:focus {
+            border-color: #86b7fe !important;
+            outline: 0 !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+          }
+
+          .filter-input::placeholder {
+            color: #6c757d !important;
+            opacity: 1 !important;
+          }
+
+          /* Reset filter button styling */
+          .reset-filter-btn {
+            border: 1px solid #6c757d !important;
+            color: #6c757d !important;
+            background-color: transparent !important;
+            padding: 0.375rem 1rem !important;
+            font-size: 0.875rem !important;
+            border-radius: 0.375rem !important;
+            transition: all 0.15s ease-in-out !important;
+          }
+
+          .reset-filter-btn:hover {
+            background-color: #6c757d !important;
+            color: white !important;
+            border-color: #6c757d !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+          }
+
+          .reset-filter-btn:active {
+            transform: translateY(0) !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+          }
+
+          .reset-filter-btn i {
+            font-size: 0.8rem !important;
+          }
+
+          .reset-filter-btn:disabled {
+            opacity: 0.5 !important;
+            cursor: not-allowed !important;
+          }
+
+          .reset-filter-btn:disabled:hover {
+            background-color: transparent !important;
+            color: #6c757d !important;
+            transform: none !important;
+            box-shadow: none !important;
+          }
+
+          /* Filter status styling */
+          .filter-status {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+          }
+
+          .filter-tag {
+            background-color: #e9ecef !important;
+            color: #495057 !important;
+            padding: 0.25rem 0.5rem !important;
+            border-radius: 0.25rem !important;
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            border: 1px solid #dee2e6 !important;
+          }
+        `}
+      </style>
+      <div className="health-reports-container">
       {/* Header */}
       <div className="report-header mb-4">
         <div className="d-flex justify-content-between align-items-center">
@@ -437,14 +560,20 @@ const HealthReports = () => {
               <Col md={4}>
                 <Form.Group>
                   <Form.Label className="filter-label">Lớp học</Form.Label>
-                  <Form.Select 
-                    value={filters.class} 
+                  <Form.Control
+                    type="text"
+                    placeholder="Nhập lớp học (VD: 3, 3A1, 12B2...)"
+                    value={filters.class}
                     onChange={e => setFilters({...filters, class: e.target.value})}
-                    className="filter-select"
-                  >
-                    <option value="">Tất cả các lớp</option>
-                    {classList.map(c => <option key={c} value={c}>{c}</option>)}
-                  </Form.Select>
+                    className="filter-input"
+                    list="class-suggestions"
+                  />
+                  <datalist id="class-suggestions">
+                    {classList
+                      .filter(c => c.toLowerCase().includes(filters.class.toLowerCase()))
+                      .map(c => <option key={c} value={c}>{c}</option>)
+                    }
+                  </datalist>
                 </Form.Group>
               </Col>
               <Col md={4}>
@@ -455,7 +584,7 @@ const HealthReports = () => {
                     onChange={e => setFilters({...filters, bloodType: e.target.value})}
                     className="filter-select"
                   >
-                    <option value="">Tất cả nhóm máu</option>
+                    <option value="">Nhóm máu</option>
                     {Object.keys(stats.bloodTypes || {}).map(bt => 
                       <option key={bt} value={bt}>{bt}</option>
                     )}
@@ -470,12 +599,39 @@ const HealthReports = () => {
                     onChange={e => setFilters({...filters, bmiCategory: e.target.value})}
                     className="filter-select"
                   >
-                    <option value="">Tất cả phân loại</option>
+                    <option value="">Phân loại BMI</option>
                     {Object.keys(stats.bmiCategories || {}).map(cat => 
                       <option key={cat} value={cat}>{cat}</option>
                     )}
                   </Form.Select>
                 </Form.Group>
+              </Col>
+            </Row>
+
+            {/* Reset Button Row */}
+            <Row className="mt-3">
+              <Col className="d-flex justify-content-between align-items-center">
+                <div className="filter-status">
+                  {(filters.class || filters.bloodType || filters.bmiCategory) && (
+                    <small className="text-muted">
+                      <i className="fas fa-filter me-1"></i>
+                      Đang áp dụng bộ lọc
+                      {filters.class && <span className="filter-tag ms-2">Lớp: {filters.class}</span>}
+                      {filters.bloodType && <span className="filter-tag ms-2">Nhóm máu: {filters.bloodType}</span>}
+                      {filters.bmiCategory && <span className="filter-tag ms-2">BMI: {filters.bmiCategory}</span>}
+                    </small>
+                  )}
+                </div>
+                <Button
+                  variant="outline-secondary"
+                  onClick={() => setFilters({ class: '', bloodType: '', bmiCategory: '' })}
+                  className="reset-filter-btn"
+                  size="sm"
+                  disabled={!filters.class && !filters.bloodType && !filters.bmiCategory}
+                >
+                  <i className="fas fa-undo me-2"></i>
+                  Đặt lại bộ lọc
+                </Button>
               </Col>
             </Row>
           </Form>
@@ -633,6 +789,7 @@ const HealthReports = () => {
         </Card.Body>
       </Card>
     </div>
+    </>
   );
 };
 
