@@ -1,16 +1,61 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, Button, Container, Row, Col, Spinner, Alert, Form, InputGroup, Pagination } from 'react-bootstrap';
+import { Card, Button, Container, Row, Col, Spinner, Alert, Form, InputGroup } from 'react-bootstrap';
 import { useVaccination } from '../../../../../context/NurseContext/VaccinationContext';
 import StudentListModal from './StudentListModal';
 import HistoryModal from './HistoryModal';
 import UpdateNoteModal from './UpdateNoteModal';
+import CustomPagination from './CustomPagination';
 import vaccinationApiService from '../../../../../services/APINurse/vaccinationApiService';
 
 // Utility function to format date - moved outside component for reuse
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-  return new Date(dateString).toLocaleDateString('vi-VN', options);
+const formatDate = (dateInput) => {
+  if (!dateInput) return 'N/A';
+
+  try {
+    let date;
+
+    // Handle array format from backend [year, month, day, hour, minute, second, nanosecond]
+    if (Array.isArray(dateInput)) {
+      if (dateInput.length >= 3) {
+        // Month is 0-indexed in JavaScript Date constructor
+        const year = dateInput[0];
+        const month = dateInput[1] - 1; // Convert to 0-indexed
+        const day = dateInput[2];
+        const hour = dateInput[3] || 0;
+        const minute = dateInput[4] || 0;
+        const second = dateInput[5] || 0;
+        const nanosecond = dateInput[6] || 0;
+        // Convert nanoseconds to milliseconds for JavaScript Date
+        const millisecond = Math.floor(nanosecond / 1000000);
+
+        date = new Date(year, month, day, hour, minute, second, millisecond);
+      } else {
+        return 'Ngày không hợp lệ';
+      }
+    }
+    // Handle string format
+    else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+    }
+    // Handle Date object
+    else if (dateInput instanceof Date) {
+      date = dateInput;
+    }
+    else {
+      return 'Ngày không hợp lệ';
+    }
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Ngày không hợp lệ';
+    }
+
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return date.toLocaleDateString('vi-VN', options);
+  } catch (error) {
+    console.error('Error formatting date:', error, dateInput);
+    return 'Ngày không hợp lệ';
+  }
 };
 
 const PostVaccinationMonitoring = () => {
@@ -586,7 +631,7 @@ const PostVaccinationMonitoring = () => {
 
                   <div className="mb-2" style={{ fontSize: '0.875rem' }}>
                     <span style={{ marginRight: '8px' }}>📅</span>
-                    <strong>Ngày tiêm:</strong> {new Date(plan.vaccinationDate).toLocaleDateString('vi-VN')}
+                    <strong>Ngày tiêm:</strong> {formatDate(plan.vaccinationDate)}
                   </div>
                   
                   <div className="mb-2" style={{ fontSize: '0.875rem' }}>
@@ -649,78 +694,16 @@ const PostVaccinationMonitoring = () => {
             ))}
           </div>
 
-          {/* Simple Pagination with "1 / 3" style */}
-          {totalPages > 1 && (
-            <div className="d-flex justify-content-between align-items-center mt-4 px-3">
-              {/* Showing entries info */}
-              <div className="text-muted">
-                <small>
-                  Showing {startIndex + 1} to {Math.min(endIndex, filteredPlans.length)} of {filteredPlans.length} vaccination plans
-                </small>
-              </div>
-
-              {/* Pagination controls */}
-              <div className="d-flex align-items-center gap-2">
-                {/* First page button */}
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(1)}
-                  title="Trang đầu"
-                  style={{ minWidth: '40px' }}
-                >
-                  <i className="fas fa-angle-double-left"></i>
-                </button>
-
-                {/* Previous page button */}
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  title="Trang trước"
-                  style={{ minWidth: '40px' }}
-                >
-                  <i className="fas fa-angle-left"></i>
-                </button>
-
-                {/* Current page indicator */}
-                <div
-                  className="px-3 py-1 text-white rounded"
-                  style={{
-                    minWidth: '60px',
-                    textAlign: 'center',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'
-                  }}
-                >
-                  {currentPage} / {totalPages}
-                </div>
-
-                {/* Next page button */}
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  title="Trang tiếp"
-                  style={{ minWidth: '40px' }}
-                >
-                  <i className="fas fa-angle-right"></i>
-                </button>
-
-                {/* Last page button */}
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(totalPages)}
-                  title="Trang cuối"
-                  style={{ minWidth: '40px' }}
-                >
-                  <i className="fas fa-angle-double-right"></i>
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Custom Pagination */}
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            startIndex={startIndex}
+            endIndex={endIndex}
+            totalItems={filteredPlans.length}
+            itemName="vaccination plans"
+          />
 
           {/* Plan Details Section */}
           {selectedPlan && (
@@ -972,7 +955,7 @@ const PlanDetailsContent = ({
             </Col>
             
             {/* Reset Button */}
-            <Col md={2}>
+            <Col md={4}>
               {(studentSearchTerm || studentStatusFilter) && (
                 <Button
                   variant="outline-danger"
@@ -988,33 +971,6 @@ const PlanDetailsContent = ({
                   Xóa bộ lọc
                 </Button>
               )}
-            </Col>
-            
-            {/* Pagination Controls */}
-            <Col md={2}>
-              <div className="d-flex align-items-center justify-content-end">
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  onClick={() => setStudentCurrentPage(Math.max(1, studentCurrentPage - 1))}
-                  disabled={isFirstPage}
-                  style={{ marginRight: '4px' }}
-                >
-                  <i className="fas fa-chevron-left"></i>
-                </Button>
-                <span className="mx-2" style={{ fontSize: '14px', minWidth: '40px', textAlign: 'center' }}>
-                  {studentCurrentPage}/{totalStudentPages || 1}
-                </span>
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  onClick={() => setStudentCurrentPage(Math.min(totalStudentPages, studentCurrentPage + 1))}
-                  disabled={isLastPage}
-                  style={{ marginLeft: '4px' }}
-                >
-                  <i className="fas fa-chevron-right"></i>
-                </Button>
-              </div>
             </Col>
           </Row>
         </div>
@@ -1086,53 +1042,16 @@ const PlanDetailsContent = ({
           )}
         </div>
         
-        {/* Pagination Info */}
-        {filteredStudents.length > 0 && (
-          <div className="d-flex justify-content-between align-items-center mt-3">
-            <div>
-              Hiển thị từ {Math.min((studentCurrentPage - 1) * studentsPerPage + 1, filteredStudents.length)} đến {Math.min(studentCurrentPage * studentsPerPage, filteredStudents.length)} của {filteredStudents.length} học sinh
-              {(studentSearchTerm || studentStatusFilter) && (
-                <span className="text-muted ms-2">
-                  (lọc từ {planDetails.students?.length || 0} học sinh)
-                </span>
-              )}
-            </div>
-            <div>
-              <Button
-                variant="link"
-                onClick={() => setStudentCurrentPage(1)}
-                disabled={isFirstPage}
-                style={{ padding: 0, fontSize: '14px' }}
-              >
-                Đầu
-              </Button>
-              <Button
-                variant="link"
-                onClick={() => setStudentCurrentPage(Math.max(1, studentCurrentPage - 1))}
-                disabled={isFirstPage}
-                style={{ padding: 0, fontSize: '14px', marginRight: '8px' }}
-              >
-                Trước
-              </Button>
-              <Button
-                variant="link"
-                onClick={() => setStudentCurrentPage(Math.min(totalStudentPages, studentCurrentPage + 1))}
-                disabled={isLastPage}
-                style={{ padding: 0, fontSize: '14px', marginRight: '8px' }}
-              >
-                Tiếp
-              </Button>
-              <Button
-                variant="link"
-                onClick={() => setStudentCurrentPage(totalStudentPages)}
-                disabled={isLastPage}
-                style={{ padding: 0, fontSize: '14px' }}
-              >
-                Cuối
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Student Pagination */}
+        <CustomPagination
+          currentPage={studentCurrentPage}
+          totalPages={totalStudentPages}
+          onPageChange={setStudentCurrentPage}
+          startIndex={(studentCurrentPage - 1) * studentsPerPage}
+          endIndex={studentCurrentPage * studentsPerPage}
+          totalItems={filteredStudents.length}
+          itemName="học sinh"
+        />
       </div>
     </>
   );

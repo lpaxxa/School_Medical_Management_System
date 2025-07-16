@@ -1,0 +1,258 @@
+/* UpdateNoteModal.css */
+
+/* Modal styling to match system colors */
+.update-note-modal .modal-header {
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%);
+  color: white;
+  border: none;
+  border-radius: 12px 12px 0 0;
+  padding: 20px 25px;
+}
+
+.update-note-modal .modal-title {
+  color: white;
+  font-weight: 700;
+  font-size: 1.4rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.update-note-modal .modal-title::before {
+  content: '📝';
+  font-size: 1.2rem;
+}
+
+.update-note-modal .btn-close {
+  filter: brightness(0) invert(1);
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.update-note-modal .btn-close:hover {
+  opacity: 1;
+}
+
+/* Modal body styling */
+.update-note-modal .modal-body {
+  padding: 30px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+/* Student info section */
+.student-info-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e8f4fd;
+}
+
+.student-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.student-info-row:last-child {
+  border-bottom: none;
+}
+
+.student-info-label {
+  font-weight: 600;
+  color: #015C92;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-info-label::before {
+  content: '👤';
+  font-size: 1rem;
+}
+
+.student-info-row:last-child .student-info-label::before {
+  content: '🆔';
+}
+
+.student-info-value {
+  font-weight: 500;
+  color: #333;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+/* Form group styling */
+.form-group-enhanced {
+  margin-bottom: 0;
+}
+
+.form-label-enhanced {
+  font-weight: 700;
+  color: #015C92;
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-label-enhanced::before {
+  content: '📋';
+  font-size: 1rem;
+}
+
+.form-control-enhanced {
+  border: 2px solid #e8f4fd;
+  border-radius: 12px;
+  padding: 15px 18px;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: all 0.3s ease;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  resize: vertical;
+  min-height: 120px;
+}
+
+.form-control-enhanced:focus {
+  border-color: #015C92;
+  box-shadow: 0 0 0 0.2rem rgba(1, 92, 146, 0.25);
+  background: #fafbfc;
+}
+
+.form-control-enhanced::placeholder {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Modal footer styling */
+.update-note-modal .modal-footer {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: none;
+  padding: 20px 30px;
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+/* Button styling */
+.btn-cancel-enhanced {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-cancel-enhanced::before {
+  content: '❌';
+  font-size: 0.9rem;
+}
+
+.btn-cancel-enhanced:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4);
+  color: white;
+}
+
+.btn-save-enhanced {
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(1, 92, 146, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-save-enhanced::before {
+  content: '💾';
+  font-size: 0.9rem;
+}
+
+.btn-save-enhanced:hover {
+  background: linear-gradient(135deg, #014a7a 0%, #1e6b96 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(1, 92, 146, 0.4);
+  color: white;
+}
+
+.btn-save-enhanced:active,
+.btn-cancel-enhanced:active {
+  transform: translateY(0);
+}
+
+/* Modal dialog styling */
+.update-note-modal .modal-dialog {
+  max-width: 600px;
+}
+
+.update-note-modal .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .update-note-modal .modal-dialog {
+    margin: 10px;
+    max-width: calc(100% - 20px);
+  }
+  
+  .update-note-modal .modal-body {
+    padding: 20px;
+  }
+  
+  .update-note-modal .modal-footer {
+    padding: 15px 20px;
+    flex-direction: column;
+  }
+  
+  .btn-cancel-enhanced,
+  .btn-save-enhanced {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .student-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .student-info-value {
+    width: 100%;
+  }
+}
+
+/* Animation for modal appearance */
+.update-note-modal.fade .modal-dialog {
+  transition: transform 0.3s ease-out;
+  transform: translate(0, -50px);
+}
+
+.update-note-modal.show .modal-dialog {
+  transform: none;
+}

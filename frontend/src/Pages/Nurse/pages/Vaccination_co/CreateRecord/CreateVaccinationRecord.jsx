@@ -157,10 +157,55 @@ const CreateVaccinationRecord = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
+  // Helper function to format date from backend
+  const formatDate = (dateInput) => {
+    if (!dateInput) return 'N/A';
+
+    try {
+      let date;
+
+      // Handle array format from backend [year, month, day, hour, minute, second, nanosecond]
+      if (Array.isArray(dateInput)) {
+        if (dateInput.length >= 3) {
+          // Month is 0-indexed in JavaScript Date constructor
+          const year = dateInput[0];
+          const month = dateInput[1] - 1; // Convert to 0-indexed
+          const day = dateInput[2];
+          const hour = dateInput[3] || 0;
+          const minute = dateInput[4] || 0;
+          const second = dateInput[5] || 0;
+          const nanosecond = dateInput[6] || 0;
+          // Convert nanoseconds to milliseconds for JavaScript Date
+          const millisecond = Math.floor(nanosecond / 1000000);
+
+          date = new Date(year, month, day, hour, minute, second, millisecond);
+        } else {
+          return 'Ngày không hợp lệ';
+        }
+      }
+      // Handle string format
+      else if (typeof dateInput === 'string') {
+        date = new Date(dateInput);
+      }
+      // Handle Date object
+      else if (dateInput instanceof Date) {
+        date = dateInput;
+      }
+      else {
+        return 'Ngày không hợp lệ';
+      }
+
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'Ngày không hợp lệ';
+      }
+
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      return date.toLocaleDateString('vi-VN', options);
+    } catch (error) {
+      console.error('Error formatting date:', error, dateInput);
+      return 'Ngày không hợp lệ';
+    }
   };
 
   if (loading) {
