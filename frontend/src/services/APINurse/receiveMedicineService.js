@@ -3,9 +3,9 @@ import api from './../api.js';
 import axios from 'axios';
 
 // BASE_URL cho tab "Đơn nhận thuốc"
-const BASE_URL = "http://localhost:8080/api/v1/nurse-medication-approvals";
+const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/nurse-medication-approvals`;
 // BASE_URL1 cho tab "Lịch sử dùng thuốc"
-const BASE_URL1 = "http://localhost:8080/api/v1/medication-administrations";
+const BASE_URL1 = `${import.meta.env.VITE_BACKEND_URL}/api/v1/medication-administrations`;
 
 // Instance cho "Đơn nhận thuốc"
 const apiService = axios.create({

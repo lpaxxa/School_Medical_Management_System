@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // API Configuration - sử dụng env variables với fallback
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `${import.meta.env.VITE_BACKEND_URL}/api/v1`;
 
 // Community API endpoints
 const ENDPOINTS = {

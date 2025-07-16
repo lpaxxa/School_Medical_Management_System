@@ -36,7 +36,7 @@ const BlogTab = ({ onView, onEdit, onAdd }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:8080/api/v1/community/posts?page=${currentPage}&size=10`
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/community/posts?page=${currentPage}&size=10`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch blog posts");
@@ -66,7 +66,7 @@ const BlogTab = ({ onView, onEdit, onAdd }) => {
       // Try API first, fallback to local deletion
       try {
         const response = await fetch(
-          `http://localhost:8080/api/v1/community/posts/${id}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/community/posts/${id}`,
           {
             method: "DELETE",
           }

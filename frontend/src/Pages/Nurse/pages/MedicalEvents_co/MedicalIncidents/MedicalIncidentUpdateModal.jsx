@@ -386,7 +386,7 @@ const MedicalIncidentUpdateModal = ({
             // Kiểm tra bằng nhiều tiêu chí
             const exactMatch = itemName === normalizedName;
             const containsMatch = itemName.includes(normalizedName) || normalizedName.includes(itemName);
-            const wordMatch = normalizedName.split(' ').some(word => 
+            const wordMatch = normalizedName.split(' ').some(word =>
               word.length > 3 && itemName.includes(word)
             );
             

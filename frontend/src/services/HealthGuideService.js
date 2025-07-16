@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080/api";
+const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api`;
 
 /**
  * Service quản lý các API liên quan đến Health Guide (Cẩm nang y tế)

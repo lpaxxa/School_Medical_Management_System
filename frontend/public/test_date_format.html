@@ -230,8 +230,8 @@
             testCases.invalidCases.forEach((testCase, index) => {
                 const medicalResult = formatDateMedical(testCase);
                 const medicationResult = formatDateMedication(testCase);
-                const inputDisplay = testCase === null ? 'null' : 
-                                   testCase === undefined ? 'undefined' : 
+                const inputDisplay = testCase === null ? 'null' :
+                                   testCase === undefined ? 'undefined' :
                                    Array.isArray(testCase) ? `[${testCase.join(', ')}]` :
                                    typeof testCase === 'string' ? `"${testCase}"` : testCase;
                 html += `

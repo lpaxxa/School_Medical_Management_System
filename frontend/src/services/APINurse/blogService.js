@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Cấu hình URL base
-const BASE_URL = 'http://localhost:8080/api/health-articles';
-const COMMUNITY_BASE_URL = 'http://localhost:8080/api/v1/community';
+const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/health-articles`;
+const COMMUNITY_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/community`;
 
 // Avatar mặc định cho người dùng
 const DEFAULT_AVATAR = 'https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg';

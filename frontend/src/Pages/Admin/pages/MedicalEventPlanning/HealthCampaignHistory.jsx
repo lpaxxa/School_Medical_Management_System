@@ -150,7 +150,7 @@ const HealthCampaignHistory = () => {
       }
 
       const response = await fetch(
-        "http://localhost:8080/api/v1/health-campaigns",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns`,
         {
           method: "GET",
           headers,
@@ -449,7 +449,7 @@ const HealthCampaignHistory = () => {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const response = await fetch("http://localhost:8080/api/v1/students", {
+      const response = await fetch(import.meta.env.VITE_API_BASE_URL+"/students", {
         method: "GET",
         headers,
       });

@@ -86,7 +86,7 @@ import UserManagement from "./pages/UserManagement";
 Cập nhật `API_BASE_URL` trong `services/userService.js` nếu cần:
 
 ```javascript
-const API_BASE_URL = "http://localhost:8080/api/v1/account-members";
+const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/account-members";
 ```
 
 ## Validation rules

@@ -118,9 +118,9 @@ public class SecurityConfig {
             "http://127.0.0.1:5173",
             "http://127.0.0.1:3000",
             "https://www.medically.site",
-            "https://medically-sou-azure.southeastasia.cloudapp.azure.com",
-            "https://www.medically-sou-azure.southeastasia.cloudapp.azure.com",
-            "https://school-medical-management-system-qw29rju61.vercel.app"
+            "https://medically-backend.southeastasia.cloudapp.azure.com",
+            "https://medically-backend.southeastasia.cloudapp.azure.com",
+            "https://school-medical-management-system-9xmaxdhl3.vercel.app"
         ));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

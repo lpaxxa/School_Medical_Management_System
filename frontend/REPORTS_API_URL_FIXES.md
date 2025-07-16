@@ -21,7 +21,7 @@ Error fetching detail data: Error: Không thể kết nối đến máy chủ
 
 ```javascript
 // Trước:
-const response = await fetch("http://localhost:8080/api/v1/students");
+const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/students");
 
 // Sau:
 const response = await fetch("/api/v1/students");
@@ -31,7 +31,7 @@ const response = await fetch("/api/v1/students");
 
 ```javascript
 // Trước:
-const API_BASE_URL = "http://localhost:8080/api/v1";
+const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1";
 
 // Sau:
 const API_BASE_URL = "/api/v1";
@@ -41,7 +41,7 @@ const API_BASE_URL = "/api/v1";
 
 ```javascript
 // Trước:
-const API_URL = "http://localhost:8080/api/v1";
+const API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1";
 
 // Sau:
 const API_URL = "/api/v1";
@@ -51,7 +51,7 @@ const API_URL = "/api/v1";
 
 ```javascript
 // Trước:
-const API_BASE_URL = "http://localhost:8080/api/v1";
+const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1";
 
 // Sau:
 const API_BASE_URL = "/api/v1";

@@ -680,7 +680,7 @@ const MedicalIncidentsList = () => {
                       value={searchValue}
                       onChange={handleSearchValueChange}
                       placeholder={
-                        searchType === 'name' 
+                        searchType === 'name'
                           ? "Nhập tên học sinh..." 
                           : "Nhập tên lớp..."
                       }

@@ -427,7 +427,7 @@ const SendMedicine = () => {
 
       // Tạo yêu cầu thuốc
       const apiUrl =
-        "http://localhost:8080/api/v1/parent-medication-requests/submit-request";
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/parent-medication-requests/submit-request`;
       console.log("📡 Calling API:", apiUrl);
 
       const response = await fetch(apiUrl, {

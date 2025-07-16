@@ -102,10 +102,10 @@ const MedicalCheckupList = ({ refreshData }) => {
     
     const matchesStatus = statusFilter === '' || checkup.checkupStatus === statusFilter;
     
-    const matchesDate = dateFilter === '' || 
+    const matchesDate = dateFilter === '' ||
       (checkup.checkupDate && new Date(checkup.checkupDate).toISOString().split('T')[0] === dateFilter);
     
-    const matchesCampaign = campaignFilter === '' || 
+    const matchesCampaign = campaignFilter === '' ||
       checkup.campaignTitle?.toLowerCase().includes(campaignFilter.toLowerCase());
     
     return matchesSearch && matchesStatus && matchesDate && matchesCampaign;

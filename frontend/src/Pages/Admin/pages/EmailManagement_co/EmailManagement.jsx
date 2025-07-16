@@ -5,7 +5,7 @@ import EditUserModal from "./components/EditUserModal";
 import ConfirmModal from "./components/ConfirmModal";
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080/api/v1";
+const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1`;
 
 // API service functions
 const emailApiService = {

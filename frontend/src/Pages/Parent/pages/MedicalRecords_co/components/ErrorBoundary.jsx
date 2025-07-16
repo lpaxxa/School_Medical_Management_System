@@ -32,8 +32,8 @@ class ErrorBoundary extends React.Component {
             <details style={{ marginTop: '20px', textAlign: 'left' }}>
               <summary>Chi tiết lỗi (chỉ hiển thị trong development)</summary>
               <pre style={{ 
-                backgroundColor: '#f8f9fa', 
-                padding: '10px', 
+                backgroundColor: '#f8f9fa',
+                padding: '10px',
                 borderRadius: '4px',
                 fontSize: '12px',
                 overflow: 'auto'

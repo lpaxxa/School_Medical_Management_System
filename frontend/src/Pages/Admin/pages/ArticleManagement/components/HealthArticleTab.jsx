@@ -33,7 +33,7 @@ const HealthArticleTab = ({ onView, onEdit, onAdd }) => {
   const testDeleteAPI = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8080/api/health-articles/test",
+        "${import.meta.env.VITE_BACKEND_URL}/api/health-articles/test",
         {
           method: "GET",
         }
@@ -87,7 +87,7 @@ const HealthArticleTab = ({ onView, onEdit, onAdd }) => {
       // Try to fetch from API, fallback to mock data
       try {
         const response = await fetch(
-          "http://localhost:8080/api/health-articles"
+          "${import.meta.env.VITE_BACKEND_URL}/api/health-articles"
         );
         if (response.ok) {
           const data = await response.json();
@@ -115,7 +115,7 @@ const HealthArticleTab = ({ onView, onEdit, onAdd }) => {
     try {
       // Try API first
       const response = await fetch(
-        `http://localhost:8080/api/health-articles/${id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/health-articles/${id}`,
         {
           method: "DELETE",
           headers: {

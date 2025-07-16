@@ -94,51 +94,51 @@ const MedicationHistory = () => {
   // Status mapping for display - Updated to include both backend and mock data statuses
   const statusConfig = {
     // Backend enum statuses
-    'PENDING_APPROVAL': { 
-      color: 'warning', 
+    'PENDING_APPROVAL': {
+      color: 'warning',
       icon: <FaExclamationTriangle className="me-1" />, 
-      text: 'Chờ phê duyệt' 
+      text: 'Chờ phê duyệt'
     },
-    'APPROVED': { 
-      color: 'info', 
+    'APPROVED': {
+      color: 'info',
       icon: <FaCheckCircle className="me-1" />, 
-      text: 'Đã duyệt' 
+      text: 'Đã duyệt'
     },
-    'REJECTED': { 
-      color: 'danger', 
+    'REJECTED': {
+      color: 'danger',
       icon: <FaTimesCircle className="me-1" />, 
-      text: 'Từ chối' 
+      text: 'Từ chối'
     },
-    'FULLY_TAKEN': { 
-      color: 'success', 
+    'FULLY_TAKEN': {
+      color: 'success',
       icon: <FaCheckCircle className="me-1" />, 
-      text: 'Đã uống đầy đủ' 
+      text: 'Đã uống đầy đủ'
     },
-    'PARTIALLY_TAKEN': { 
-      color: 'warning', 
+    'PARTIALLY_TAKEN': {
+      color: 'warning',
       icon: <FaExclamationTriangle className="me-1" />, 
-      text: 'Uống một phần' 
+      text: 'Uống một phần'
     },
-    'EXPIRED': { 
-      color: 'danger', 
+    'EXPIRED': {
+      color: 'danger',
       icon: <FaTimesCircle className="me-1" />, 
-      text: 'Đã hết hạn' 
+      text: 'Đã hết hạn'
     },
     // Mock data statuses (for fallback when API is not available)
-    'SUCCESSFUL': { 
-      color: 'success', 
+    'SUCCESSFUL': {
+      color: 'success',
       icon: <FaCheckCircle className="me-1" />, 
-      text: 'Thành công' 
+      text: 'Thành công'
     },
-    'REFUSED': { 
-      color: 'danger', 
+    'REFUSED': {
+      color: 'danger',
       icon: <FaTimesCircle className="me-1" />, 
-      text: 'Từ chối' 
+      text: 'Từ chối'
     },
-    'PARTIAL': { 
-      color: 'warning', 
+    'PARTIAL': {
+      color: 'warning',
       icon: <FaExclamationTriangle className="me-1" />, 
-      text: 'Một phần' 
+      text: 'Một phần'
     }
   };
   // Format date for display
@@ -299,7 +299,7 @@ const MedicationHistory = () => {
   const filteredAdministrations = administrations && administrations.length > 0 ? 
     administrations.filter(medication => {
       // Search filter
-      const searchMatch = searchTerm === '' || 
+      const searchMatch = searchTerm === '' ||
         (medication.studentName && medication.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (medication.medicationName && medication.medicationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (medication.administeredBy && medication.administeredBy.toLowerCase().includes(searchTerm.toLowerCase()));

@@ -74,7 +74,7 @@ const VaccinationPlanHistory = () => {
       console.log("🔄 Đang tải danh sách kế hoạch tiêm chủng...");
       console.log(
         "📍 API URL:",
-        "http://localhost:8080/api/v1/vaccination-plans"
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/vaccination-plans`
       );
 
       const result = await vaccinationPlanService.getVaccinationPlans();

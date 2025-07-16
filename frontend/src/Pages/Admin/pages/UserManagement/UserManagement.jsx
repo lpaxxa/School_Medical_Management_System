@@ -621,7 +621,7 @@ const UserManagement = () => {
 
           // Gọi API gửi email
           const response = await axios.post(
-            "http://localhost:8080/api/v1/email/sendAccountEmail",
+            `${import.meta.env.VITE_BACKEND_URL}/api/v1/email/sendAccountEmail`,
             [user.id], // Gửi array chứa 1 user ID
             {
               headers: {

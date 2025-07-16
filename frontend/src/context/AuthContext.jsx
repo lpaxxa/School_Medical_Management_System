@@ -4,7 +4,7 @@ import axios from "axios";
 import googleAuthService from "../services/googleAuthService";
 
 // Base API URL
-const BASE_URL = "http://localhost:8080/api/v1";
+const BASE_URL = import.meta.env.BASE_URL;
 
 
 // Comprehensive API endpoints configuration

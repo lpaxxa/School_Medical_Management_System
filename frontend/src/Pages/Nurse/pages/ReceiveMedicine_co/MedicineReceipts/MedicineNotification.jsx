@@ -5,7 +5,7 @@ import './MedicineNotification.css';
 
 const MedicineNotification = ({ 
   show, 
-  type = 'success', 
+  type = 'success',
   title, 
   message, 
   onHide
@@ -78,8 +78,8 @@ const MedicineNotification = ({
             className="p-0 text-white ms-3"
             onClick={onHide}
             style={{ 
-              fontSize: '1.5em', 
-              textDecoration: 'none', 
+              fontSize: '1.5em',
+              textDecoration: 'none',
               lineHeight: '1',
               minWidth: '30px',
               textAlign: 'center'

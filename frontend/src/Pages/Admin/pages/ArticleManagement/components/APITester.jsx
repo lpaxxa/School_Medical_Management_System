@@ -10,7 +10,7 @@ const APITester = () => {
     
     try {
       // Test với ID 5 như bạn đã cung cấp
-      const response = await fetch("http://localhost:8080/api/health-articles/5", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/health-articles/5`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -35,7 +35,7 @@ const APITester = () => {
     setTestResult("Testing GET...");
     
     try {
-      const response = await fetch("http://localhost:8080/api/health-articles", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/health-articles`, {
         method: "GET",
       });
 
@@ -54,7 +54,7 @@ const APITester = () => {
 
   return (
     <div style={{ 
-      padding: "20px", 
+      padding: `20px`,
       border: "1px solid #ccc", 
       borderRadius: "8px", 
       margin: "20px",

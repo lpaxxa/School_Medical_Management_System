@@ -281,7 +281,7 @@ const HealthDeclaration = () => {
       try {
         // Sử dụng endpoint chính xác như yêu cầu
         const response = await axios.get(
-          "http://localhost:8080/api/v1/vaccines/getAllVaccine"
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/vaccines/getAllVaccine`
         );
         if (isMounted.current) {
           setVaccines(response.data);
@@ -740,7 +740,7 @@ const HealthDeclaration = () => {
             );
 
             await axios.post(
-              "http://localhost:8080/api/v1/notification-recipient-vaccines/create",
+              `${import.meta.env.VITE_BACKEND_URL}/api/v1/notification-recipient-vaccines/create`,
               notificationData,
               {
                 headers: {
@@ -1143,7 +1143,7 @@ const HealthDeclaration = () => {
       // Gọi API thực tế để cập nhật hồ sơ sức khỏe
       try {
         const response = await axios.post(
-          "http://localhost:8080/api/v1/health-profiles/full",
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-profiles/full`,
           submissionData,
           {
             headers: {

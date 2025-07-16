@@ -231,7 +231,7 @@ const HealthReports = () => {
     datasets: [{
       data: Object.values(stats.bloodTypes || {}).filter(v => v > 0),
       backgroundColor: [
-        '#e74c3c', '#3498db', '#2ecc71', '#f39c12', 
+        '#e74c3c', '#3498db', '#2ecc71', '#f39c12',
         '#9b59b6', '#1abc9c', '#e67e22', '#34495e'
       ],
       borderWidth: 2,
@@ -694,10 +694,10 @@ const HealthReports = () => {
                       </td>
                       <td>
                         <Badge bg={
-                          healthProfile?.allergies && healthProfile.allergies.toLowerCase() !== 'không có' 
+                          healthProfile?.allergies && healthProfile.allergies.toLowerCase() !== 'không có'
                             ? 'warning' : 'success'
                         }>
-                          {healthProfile?.allergies && healthProfile.allergies.toLowerCase() !== 'không có' 
+                          {healthProfile?.allergies && healthProfile.allergies.toLowerCase() !== 'không có'
                             ? 'Có' : 'Không'}
                         </Badge>
                       </td>
