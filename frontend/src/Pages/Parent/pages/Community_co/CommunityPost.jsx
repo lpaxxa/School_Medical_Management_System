@@ -26,10 +26,32 @@ const CommunityPost = () => {
   const [loadingComments, setLoadingComments] = useState(false); // State loading riêng cho bình luận
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
-  const [liked, setLiked] = useState(false);
   const [showAllComments, setShowAllComments] = useState(true);
   const [sortBy, setSortBy] = useState("latest");
   const [relatedPosts, setRelatedPosts] = useState([]);
+
+  // ✅ SYNC FIX: Add localStorage management like Community.jsx
+  // Helper function để lấy unique key từ user info thay vì token
+  const getUserStorageKey = (suffix) => {
+    // Ưu tiên sử dụng currentUser.id, fallback về token, cuối cùng là guest
+    if (currentUser?.id) {
+      return `user_${currentUser.id}_${suffix}`;
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      const tokenSuffix = token.slice(-10);
+      return `token_${tokenSuffix}_${suffix}`;
+    }
+
+    return `guest_${suffix}`;
+  };
+
+  // ✅ SYNC FIX: Add likedPosts state management like Community.jsx
+  const [likedPosts, setLikedPosts] = useState(() => {
+    const saved = localStorage.getItem(getUserStorageKey("likedPosts"));
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // States cho edit comments
   const [editingCommentId, setEditingCommentId] = useState(null);
@@ -43,6 +65,53 @@ const CommunityPost = () => {
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [editReplyContent, setEditReplyContent] = useState("");
   const [commentReplies, setCommentReplies] = useState({}); // Store replies by commentId
+
+  // ✅ SYNC FIX: Effect để lưu trạng thái liked posts vào localStorage theo user info
+  useEffect(() => {
+    if (currentUser?.id || localStorage.getItem("authToken")) {
+      localStorage.setItem(
+        getUserStorageKey("likedPosts"),
+        JSON.stringify(likedPosts)
+      );
+    }
+  }, [likedPosts, currentUser?.id]);
+
+  // ✅ SYNC FIX: Listen for like changes from Community.jsx
+  useEffect(() => {
+    const handlePostLikeChanged = (event) => {
+      const { postId: eventPostId, liked, likesCount, source } = event.detail;
+
+      // Only handle if it's for this post and from Community
+      if (eventPostId === postId && source === "Community") {
+        console.log("🔄 CommunityPost received postLikeChanged event:", {
+          postId: eventPostId,
+          liked,
+          likesCount,
+          source,
+          currentLikedPosts: likedPosts,
+        });
+
+        // Update likedPosts state
+        if (liked && !likedPosts.includes(postId)) {
+          setLikedPosts((prev) => [
+            ...prev.filter((id) => id !== postId),
+            postId,
+          ]);
+        } else if (!liked && likedPosts.includes(postId)) {
+          setLikedPosts((prev) => prev.filter((id) => id !== postId));
+        }
+
+        // Update post state
+        setPost((prev) => (prev ? { ...prev, likes: likesCount } : prev));
+      }
+    };
+
+    window.addEventListener("postLikeChanged", handlePostLikeChanged);
+
+    return () => {
+      window.removeEventListener("postLikeChanged", handlePostLikeChanged);
+    };
+  }, [postId, likedPosts]);
 
   // Lấy chi tiết bài đăng từ API
   useEffect(() => {
@@ -64,7 +133,25 @@ const CommunityPost = () => {
 
         if (result.status === "success") {
           setPost(result.data);
-          setLiked(result.data.likedByCurrentUser);
+
+          // ✅ SYNC FIX: Check localStorage first, then API
+          const isLikedInStorage = likedPosts.includes(postId);
+          const isLikedFromAPI = result.data.likedByCurrentUser;
+
+          console.log("📄 Post like state sync:", {
+            postId,
+            isLikedInStorage,
+            isLikedFromAPI,
+            likedPostsArray: likedPosts,
+          });
+
+          // ✅ SYNC FIX: Update localStorage if API has different state
+          if (isLikedFromAPI && !isLikedInStorage) {
+            setLikedPosts((prev) => [
+              ...prev.filter((id) => id !== postId),
+              postId,
+            ]);
+          }
 
           // Nếu có bài viết liên quan thì lưu vào state
           if (result.data.relatedPosts && result.data.relatedPosts.length > 0) {
@@ -88,7 +175,7 @@ const CommunityPost = () => {
     };
 
     fetchPostDetail();
-  }, [postId, navigate]);
+  }, [postId, navigate, likedPosts]);
 
   // Lấy bình luận của bài đăng
   useEffect(() => {
@@ -200,22 +287,115 @@ const CommunityPost = () => {
       return;
     }
 
+    // ✅ SYNC FIX: Check authentication like Community.jsx
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+      return;
+    }
+
+    const wasLiked = likedPosts.includes(postId);
+    const currentLikeCount = post?.likes || 0;
+
+    console.log("👍 BEFORE Like action (CommunityPost):", {
+      postId,
+      currentLikeCount,
+      wasLiked,
+      postTitle: post?.title?.substring(0, 50) + "...",
+      likedPostsState: likedPosts.includes(postId),
+    });
+
     try {
       const result = await communityService.toggleLike(postId);
 
       if (result.status === "success") {
         const { liked: isLiked, likesCount } = result.data;
 
-        // Cập nhật trạng thái like và số lượt like
-        setLiked(isLiked);
+        console.log("👍 AFTER API call (CommunityPost):", {
+          isLiked,
+          likesCount,
+          expectedChange: wasLiked
+            ? currentLikeCount - 1
+            : currentLikeCount + 1,
+        });
+
+        // ✅ SYNC FIX: Update localStorage like Community.jsx
+        const newLikedPosts = isLiked
+          ? [...likedPosts.filter((id) => id !== postId), postId]
+          : likedPosts.filter((id) => id !== postId);
+
+        console.log("👍 Updating likedPosts (CommunityPost):", {
+          before: likedPosts,
+          after: newLikedPosts,
+          action: isLiked ? "ADDED" : "REMOVED",
+          postId: postId,
+        });
+
+        setLikedPosts(newLikedPosts);
+
+        // Cập nhật số lượt like
         setPost((prevPost) => ({
           ...prevPost,
           likes: likesCount,
         }));
+
+        // ✅ SYNC FIX: Dispatch custom event để thông báo cho Community.jsx
+        window.dispatchEvent(
+          new CustomEvent("postLikeChanged", {
+            detail: {
+              postId: postId,
+              liked: isLiked,
+              likesCount: likesCount,
+              source: "CommunityPost",
+            },
+          })
+        );
+
+        console.log(
+          `✅ ${
+            isLiked ? "Đã thích" : "Đã bỏ thích"
+          } bài viết thành công! Số like: ${likesCount}`
+        );
       }
     } catch (error) {
-      console.error("Error toggling like:", error);
-      alert("Không thể thực hiện thao tác. Vui lòng thử lại sau.");
+      console.error("❌ Error toggling like (CommunityPost):", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        postId: postId,
+        wasLiked: wasLiked,
+        action: wasLiked ? "UNLIKE" : "LIKE",
+      });
+
+      // ✅ SYNC FIX: Enhanced error handling like Community.jsx
+      if (error.response) {
+        const status = error.response.status;
+
+        switch (status) {
+          case 401:
+            alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+            break;
+          case 400:
+            alert("Lỗi yêu cầu không hợp lệ. Vui lòng thử lại");
+            break;
+          case 403:
+            alert("Bạn không có quyền thực hiện thao tác này");
+            break;
+          case 404:
+            alert("Bài viết không tồn tại hoặc đã bị xóa");
+            break;
+          case 500:
+            alert("Lỗi server. Vui lòng thử lại sau");
+            break;
+          default:
+            alert(`Lỗi server (${status}). Vui lòng thử lại sau`);
+        }
+      } else if (error.request) {
+        alert("Lỗi kết nối mạng. Vui lòng kiểm tra internet và thử lại");
+      } else {
+        alert("Có lỗi xảy ra. Vui lòng thử lại sau");
+      }
     }
   };
 
@@ -560,10 +740,16 @@ const CommunityPost = () => {
 
           <div className="post-actions">
             <button
-              className={`like-button ${liked ? "liked" : ""}`}
+              className={`like-button ${
+                likedPosts.includes(postId) ? "liked" : ""
+              }`}
               onClick={handleLike}
             >
-              <i className={`${liked ? "fas" : "far"} fa-heart`}></i>
+              <i
+                className={`${
+                  likedPosts.includes(postId) ? "fas" : "far"
+                } fa-heart`}
+              ></i>
               <span>{post.likes} thích</span>
             </button>
 

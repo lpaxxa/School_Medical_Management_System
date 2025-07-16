@@ -213,9 +213,31 @@ const HealthGuideDetail = () => {
   );
 
   // Format date
-  const formatDate = (dateString) => {
+  const formatDate = (dateInput) => {
+    // Check if dateInput is valid
+    if (!dateInput) {
+      return "Chưa có ngày";
+    }
+
+    let date;
+
+    // Handle array format from Java LocalDateTime [year, month, day, hour, minute, second, nanosecond]
+    if (Array.isArray(dateInput) && dateInput.length >= 3) {
+      // Note: JavaScript months are 0-indexed, but Java months are 1-indexed
+      const [year, month, day] = dateInput;
+      date = new Date(year, month - 1, day);
+    } else {
+      // Handle string format
+      date = new Date(dateInput);
+    }
+
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return "Ngày không hợp lệ";
+    }
+
     const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("vi-VN", options);
+    return date.toLocaleDateString("vi-VN", options);
   };
 
   // Estimated reading time
