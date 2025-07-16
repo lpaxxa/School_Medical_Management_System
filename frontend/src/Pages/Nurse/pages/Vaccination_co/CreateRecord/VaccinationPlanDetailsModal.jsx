@@ -412,7 +412,7 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                 marginBottom: '8px',
                                                 display: 'block'
                                             }}>
-                                                👨‍👩‍👧‍👦 Phản hồi:
+                                                � Phản hồi:
                                             </label>
                                             <select
                                                 value={filterResponse}
@@ -427,7 +427,13 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                     backgroundColor: 'white',
                                                     transition: 'all 0.2s ease',
                                                     cursor: 'pointer',
-                                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                                    appearance: 'none',
+                                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                                                    backgroundPosition: 'right 8px center',
+                                                    backgroundRepeat: 'no-repeat',
+                                                    backgroundSize: '16px',
+                                                    paddingRight: '40px'
                                                 }}
                                                 onFocus={(e) => {
                                                     e.target.style.borderColor = '#3b82f6';
@@ -439,9 +445,9 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                 }}
                                             >
                                                 <option value="">Tất cả</option>
-                                                <option value="ACCEPTED">✅ Đồng ý</option>
-                                                <option value="REJECTED">❌ Từ chối</option>
-                                                <option value="PENDING">⏳ Chờ phản hồi</option>
+                                                <option value="ACCEPTED">Đồng ý</option>
+                                                <option value="REJECTED">Từ chối</option>
+                                                <option value="PENDING">Chờ phản hồi</option>
                                             </select>
                                         </div>
                                         <div className="filter-col">

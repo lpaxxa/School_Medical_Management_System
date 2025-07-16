@@ -324,22 +324,82 @@ export const addHealthCheckup = async (checkupData) => {
       const { id, ...dataToSend } = checkupData;
       
       // BẮT BUỘC phải chuyển đổi định dạng ngày tháng theo yêu cầu API
-      const formattedData = {
-        ...dataToSend,
+      const baseData = {
         // Chuyển đổi thành định dạng yyyy-MM-dd theo yêu cầu API
         checkupDate: dataToSend.checkupDate.split('T')[0],
         // Chuyển đổi studentId sang number
-        studentId: parseInt(dataToSend.studentId)
+        studentId: parseInt(dataToSend.studentId),
+        // Chuyển đổi healthCampaignId sang number
+        healthCampaignId: parseInt(dataToSend.healthCampaignId),
+        // Chuyển đổi parentConsentId sang number
+        parentConsentId: parseInt(dataToSend.parentConsentId),
+        // Chuyển đổi medicalStaffId sang number (bắt buộc phải là số)
+        medicalStaffId: parseInt(dataToSend.medicalStaffId) || 1,
+        // Đảm bảo specialCheckupItems là array
+        specialCheckupItems: Array.isArray(dataToSend.specialCheckupItems) ? dataToSend.specialCheckupItems : [],
+        // Các trường bắt buộc
+        checkupType: dataToSend.checkupType || "Khám tổng quát định kỳ",
+        checkupStatus: dataToSend.checkupStatus || "COMPLETED",
+        // Thêm các trường theo API schema
+        diagnosis: dataToSend.diagnosis || "",
+        recommendations: dataToSend.notes || "", // notes được map thành recommendations
+        followUpNeeded: dataToSend.followUpNeeded || false
       };
-      
+
+      // Thêm các trường số với giá trị mặc định theo API schema
+      if (dataToSend.height && !isNaN(parseFloat(dataToSend.height)) && parseFloat(dataToSend.height) > 0) {
+        baseData.height = parseFloat(dataToSend.height);
+      } else {
+        baseData.height = 0.1; // Giá trị mặc định theo schema
+      }
+
+      if (dataToSend.weight && !isNaN(parseFloat(dataToSend.weight)) && parseFloat(dataToSend.weight) > 0) {
+        baseData.weight = parseFloat(dataToSend.weight);
+      } else {
+        baseData.weight = 0.1; // Giá trị mặc định theo schema
+      }
+
+      if (dataToSend.bmi && !isNaN(parseFloat(dataToSend.bmi)) && parseFloat(dataToSend.bmi) > 0) {
+        baseData.bmi = parseFloat(dataToSend.bmi);
+      } else {
+        baseData.bmi = 0.1; // Giá trị mặc định theo schema
+      }
+
+      if (dataToSend.heartRate && !isNaN(parseInt(dataToSend.heartRate)) && parseInt(dataToSend.heartRate) > 0) {
+        baseData.heartRate = parseInt(dataToSend.heartRate);
+      } else {
+        baseData.heartRate = 0; // Giá trị mặc định theo schema
+      }
+
+      if (dataToSend.bodyTemperature && !isNaN(parseFloat(dataToSend.bodyTemperature)) && parseFloat(dataToSend.bodyTemperature) > 0) {
+        baseData.bodyTemperature = parseFloat(dataToSend.bodyTemperature);
+      } else {
+        baseData.bodyTemperature = 0.1; // Giá trị mặc định theo schema
+      }
+
+      // Thêm các trường text với giá trị mặc định theo API schema
+      baseData.bloodPressure = (dataToSend.bloodPressure && dataToSend.bloodPressure.trim()) ? dataToSend.bloodPressure.trim() : "string";
+      baseData.visionLeft = (dataToSend.visionLeft && dataToSend.visionLeft.trim()) ? dataToSend.visionLeft.trim() : "string";
+      baseData.visionRight = (dataToSend.visionRight && dataToSend.visionRight.trim()) ? dataToSend.visionRight.trim() : "string";
+      baseData.hearingStatus = (dataToSend.hearingStatus && dataToSend.hearingStatus.trim()) ? dataToSend.hearingStatus.trim() : "string";
+      // diagnosis và recommendations đã được set ở trên với giá trị mặc định
+
+      const formattedData = baseData;
+
+      console.log('Original data received:', dataToSend);
       console.log('Formatted data to send:', formattedData);
-      
+      console.log('API URL:', config.apiUrl);
+
+      // Lấy token xác thực từ localStorage
+      const token = localStorage.getItem('authToken');
+
       // Sử dụng axios để gọi API
       const response = await axios({
         method: 'POST',
         url: config.apiUrl,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         data: formattedData
       });
