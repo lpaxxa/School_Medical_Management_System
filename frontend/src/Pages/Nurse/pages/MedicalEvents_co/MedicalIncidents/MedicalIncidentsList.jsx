@@ -80,9 +80,9 @@ const MedicalIncidentsList = () => {
   // Context đã tự động lấy dữ liệu ban đầu
   useEffect(() => {
     if (!events || events.length === 0) {
-      fetchEvents();
+      // fetchEvents();netstat -ano | findstr :8080
     }
-  }, [fetchEvents, events]);
+  }, [ events]);
 
   useEffect(() => {
     // Debug logging để kiểm tra format dữ liệu
