@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Form, InputGroup, Modal, Spinner, Pagination, Nav } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Badge, Modal, Spinner } from 'react-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import { useBlog } from '../../../../../context/NurseContext/BlogContext';
 import { useAuth } from '../../../../../context/AuthContext';
@@ -381,6 +381,229 @@ const Posts = () => {
             color: #212529 !important;
             background-color: #fff !important;
           }
+
+          /* Enhanced Filter Section Styles for Posts */
+          .enhanced-filter-section-posts {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+          }
+
+          .filter-container-posts {
+            max-width: 100%;
+          }
+
+          .filter-header-posts {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+          }
+
+          .filter-title-posts {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+          }
+
+          .filter-title-posts i {
+            color: #3498db;
+            font-size: 1rem;
+          }
+
+          .filter-stats-posts {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+          }
+
+          .stats-number-posts {
+            color: #3498db;
+            font-weight: 700;
+            font-size: 1rem;
+          }
+
+          .filter-controls-posts {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 16px;
+            align-items: end;
+          }
+
+          @media (max-width: 768px) {
+            .filter-controls-posts {
+              grid-template-columns: 1fr;
+              gap: 12px;
+            }
+
+            .filter-header-posts {
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 8px;
+            }
+          }
+
+          .search-control-posts {
+            position: relative;
+          }
+
+          .search-wrapper-posts {
+            position: relative;
+            display: flex;
+            align-items: center;
+          }
+
+          .search-input-posts {
+            width: 100%;
+            padding: 12px 44px 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          }
+
+          .search-input-posts:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+          }
+
+          .search-input-posts::placeholder {
+            color: #adb5bd;
+            font-style: italic;
+          }
+
+
+
+          .clear-search-posts {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            z-index: 2;
+          }
+
+          .clear-search-posts:hover {
+            color: #dc3545;
+            background-color: rgba(220, 53, 69, 0.1);
+          }
+
+          .category-control-posts {
+            position: relative;
+          }
+
+          .category-wrapper-posts {
+            position: relative;
+            display: flex;
+            align-items: center;
+          }
+
+          .category-select-posts {
+            width: 100%;
+            padding: 12px 40px 12px 44px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: white !important;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: none !important;
+          }
+
+          /* Loại bỏ mũi tên mặc định trên tất cả browser */
+          .category-select-posts::-ms-expand {
+            display: none;
+          }
+
+          .category-select-posts:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+          }
+
+          .category-icon-posts {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 0.9rem;
+            z-index: 2;
+            transition: color 0.3s ease;
+            pointer-events: none;
+          }
+
+          .category-select-posts:focus ~ .category-icon-posts,
+          .category-wrapper-posts:hover .category-icon-posts {
+            color: #3498db;
+          }
+
+          .dropdown-arrow-posts {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 0.8rem;
+            pointer-events: none;
+            transition: all 0.3s ease;
+          }
+
+          .category-select-posts:focus ~ .dropdown-arrow-posts,
+          .category-wrapper-posts:hover .dropdown-arrow-posts {
+            color: #3498db;
+            transform: translateY(-50%) rotate(180deg);
+          }
+
+          .reset-filters-posts {
+            display: flex;
+            align-items: end;
+          }
+
+          .reset-btn-posts {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+            white-space: nowrap;
+          }
+
+          .reset-btn-posts:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+          }
+
+          .reset-btn-posts:active {
+            transform: translateY(0);
+          }
           
           .form-select:disabled {
             background-color: #e9ecef !important;
@@ -611,33 +834,76 @@ const Posts = () => {
         </Col>
       </Row>
 
-      {/* Search and filter */}
-      <Row className="mb-4">
-        <Col md={4}>
-          <InputGroup>
-            <InputGroup.Text>
-              <i className="fas fa-search"></i>
-            </InputGroup.Text>
-            <Form.Control
-              type="text"
-              placeholder="Tìm kiếm bài viết..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </InputGroup>
-        </Col>
-        <Col md={3}>
-          <Form.Select 
-            value={selectedCategory} 
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="">Tất cả danh mục</option>
-            {postCategories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </Form.Select>
-        </Col>
-      </Row>
+      {/* Enhanced Search and Filter Section */}
+      <div className="enhanced-filter-section-posts mb-4">
+        <div className="filter-container-posts">
+          <div className="filter-header-posts">
+            <div className="filter-title-posts">
+              <i className="fas fa-filter me-2"></i>
+              Bộ lọc tìm kiếm
+            </div>
+            <div className="filter-stats-posts">
+              Tìm thấy <span className="stats-number-posts">{filteredPosts.length}</span> bài viết
+            </div>
+          </div>
+
+          <div className="filter-controls-posts">
+            <div className="search-control-posts">
+              <div className="search-wrapper-posts">
+                <input
+                  type="text"
+                  className="search-input-posts"
+                  placeholder="Tìm kiếm theo tiêu đề, nội dung, thẻ..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    className="clear-search-posts"
+                    onClick={() => setSearchTerm('')}
+                    type="button"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="category-control-posts">
+              <div className="category-wrapper-posts">
+                <i className="fas fa-tags category-icon-posts"></i>
+                <select
+                  className="category-select-posts"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="">Tất cả danh mục</option>
+                  {postCategories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+                <i className="fas fa-chevron-down dropdown-arrow-posts"></i>
+              </div>
+            </div>
+
+            {(searchTerm || selectedCategory) && (
+              <div className="reset-filters-posts">
+                <button
+                  className="reset-btn-posts"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory('');
+                  }}
+                  type="button"
+                >
+                  <i className="fas fa-undo me-1"></i>
+                  Đặt lại
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Loading state */}
       {postsLoading && (

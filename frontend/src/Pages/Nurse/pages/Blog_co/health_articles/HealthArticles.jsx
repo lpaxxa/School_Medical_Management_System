@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SuccessNotification from './SuccessNotification';
-import { Container, Row, Col, Card, Button, Badge, Form, InputGroup, Modal, Spinner, Nav, Pagination } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Badge, Modal, Spinner, Nav, Pagination } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../../../context/AuthContext';
@@ -349,6 +349,234 @@ const HealthArticles = () => {
             color: #212529 !important;
             background-color: #fff !important;
           }
+
+          /* Enhanced Filter Section Styles for Health Articles */
+          .enhanced-filter-section-health {
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+          }
+
+          .filter-container-health {
+            max-width: 100%;
+          }
+
+          .filter-header-health {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+          }
+
+          .filter-title-health {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #155724;
+            display: flex;
+            align-items: center;
+          }
+
+          .filter-title-health i {
+            color: #28a745;
+            font-size: 1rem;
+          }
+
+          .filter-stats-health {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+          }
+
+          .stats-number-health {
+            color: #28a745;
+            font-weight: 700;
+            font-size: 1rem;
+          }
+
+          .page-info-health {
+            color: #6c757d;
+            font-size: 0.85rem;
+          }
+
+          .filter-controls-health {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 16px;
+            align-items: end;
+          }
+
+          @media (max-width: 768px) {
+            .filter-controls-health {
+              grid-template-columns: 1fr;
+              gap: 12px;
+            }
+
+            .filter-header-health {
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 8px;
+            }
+          }
+
+          .search-control-health {
+            position: relative;
+          }
+
+          .search-wrapper-health {
+            position: relative;
+            display: flex;
+            align-items: center;
+          }
+
+          .search-input-health {
+            width: 100%;
+            padding: 12px 44px 12px 16px;
+            border: 2px solid #d4edda;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+          }
+
+          .search-input-health:focus {
+            outline: none;
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15), 0 4px 12px rgba(40, 167, 69, 0.2);
+            transform: translateY(-1px);
+          }
+
+          .search-input-health::placeholder {
+            color: #adb5bd;
+            font-style: italic;
+          }
+
+
+
+          .clear-search-health {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            z-index: 2;
+          }
+
+          .clear-search-health:hover {
+            color: #dc3545;
+            background-color: rgba(220, 53, 69, 0.1);
+          }
+
+          .category-control-health {
+            position: relative;
+          }
+
+          .category-wrapper-health {
+            position: relative;
+            display: flex;
+            align-items: center;
+          }
+
+          .category-select-health {
+            width: 100%;
+            padding: 12px 40px 12px 44px;
+            border: 2px solid #d4edda;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: white !important;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: none !important;
+          }
+
+          /* Loại bỏ mũi tên mặc định trên tất cả browser */
+          .category-select-health::-ms-expand {
+            display: none;
+          }
+
+          .category-select-health:focus {
+            outline: none;
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15), 0 4px 12px rgba(40, 167, 69, 0.2);
+            transform: translateY(-1px);
+          }
+
+          .category-icon-health {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 0.9rem;
+            z-index: 2;
+            transition: color 0.3s ease;
+            pointer-events: none;
+          }
+
+          .category-select-health:focus ~ .category-icon-health,
+          .category-wrapper-health:hover .category-icon-health {
+            color: #28a745;
+          }
+
+          .dropdown-arrow-health {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 0.8rem;
+            pointer-events: none;
+            transition: all 0.3s ease;
+          }
+
+          .category-select-health:focus ~ .dropdown-arrow-health,
+          .category-wrapper-health:hover .dropdown-arrow-health {
+            color: #28a745;
+            transform: translateY(-50%) rotate(180deg);
+          }
+
+          .reset-filters-health {
+            display: flex;
+            align-items: end;
+          }
+
+          .reset-btn-health {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+            white-space: nowrap;
+          }
+
+          .reset-btn-health:hover {
+            background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+          }
+
+          .reset-btn-health:active {
+            transform: translateY(0);
+          }
           
           .form-select:disabled {
             background-color: #e9ecef !important;
@@ -422,41 +650,79 @@ const HealthArticles = () => {
         </Col>
       </Row>
 
-      {/* Search and filter */}
-      <Row className="mb-4">
-        <Col md={4}>
-          <InputGroup>
-            <InputGroup.Text>
-              <i className="fas fa-search"></i>
-            </InputGroup.Text>
-            <Form.Control
-              type="text"
-              placeholder="Tìm kiếm bài viết..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </InputGroup>
-        </Col>
-        <Col md={3}>
-          <Form.Select 
-            value={selectedCategory} 
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="">Tất cả danh mục</option>
-            {healthCategories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </Form.Select>
-        </Col>
-        <Col md={5} className="text-end">
-          <small className="text-muted">
-            Tìm thấy {totalArticles} bài viết
-            {totalArticles > 0 && (
-              <> • Trang {currentPage} / {totalPages}</>
+      {/* Enhanced Search and Filter Section */}
+      <div className="enhanced-filter-section-health mb-4">
+        <div className="filter-container-health">
+          <div className="filter-header-health">
+            <div className="filter-title-health">
+              <i className="fas fa-filter me-2"></i>
+              Bộ lọc tìm kiếm
+            </div>
+            <div className="filter-stats-health">
+              Tìm thấy <span className="stats-number-health">{totalArticles}</span> bài viết
+              {totalArticles > 0 && (
+                <span className="page-info-health"> • Trang {currentPage} / {totalPages}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="filter-controls-health">
+            <div className="search-control-health">
+              <div className="search-wrapper-health">
+                <input
+                  type="text"
+                  className="search-input-health"
+                  placeholder="Tìm kiếm theo tiêu đề, nội dung, thẻ..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    className="clear-search-health"
+                    onClick={() => setSearchTerm('')}
+                    type="button"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="category-control-health">
+              <div className="category-wrapper-health">
+                <i className="fas fa-heartbeat category-icon-health"></i>
+                <select
+                  className="category-select-health"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="">Tất cả danh mục</option>
+                  {healthCategories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+                <i className="fas fa-chevron-down dropdown-arrow-health"></i>
+              </div>
+            </div>
+
+            {(searchTerm || selectedCategory) && (
+              <div className="reset-filters-health">
+                <button
+                  className="reset-btn-health"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory('');
+                  }}
+                  type="button"
+                >
+                  <i className="fas fa-undo me-1"></i>
+                  Đặt lại
+                </button>
+              </div>
             )}
-          </small>
-        </Col>
-      </Row>
+          </div>
+        </div>
+      </div>
 
       {/* Loading state */}
       {loading && (
