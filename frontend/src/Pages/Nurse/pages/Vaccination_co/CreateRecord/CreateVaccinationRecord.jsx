@@ -121,6 +121,14 @@ const CreateVaccinationRecord = () => {
     });
   };
 
+  // Check if any filters are applied
+  const hasActiveFilters = useMemo(() => {
+    return searchTerm.trim() !== '' ||
+           statusFilter !== '' ||
+           dateRange.startDate !== '' ||
+           dateRange.endDate !== '';
+  }, [searchTerm, statusFilter, dateRange]);
+
   const handleResetFilters = () => {
     setSearchTerm('');
     setStatusFilter('');
@@ -318,17 +326,19 @@ const CreateVaccinationRecord = () => {
                     />
                 </InputGroup>
             </Col>
-            <Col md={2} className="d-flex align-items-end">
-              <Button 
-                variant="outline-secondary"
-                className="w-100"
-                onClick={handleResetFilters}
-                style={{ height: '38px' }}
-              >
-                <i className="fas fa-undo me-2"></i>
-                Đặt lại
-              </Button>
-            </Col>
+            {hasActiveFilters && (
+              <Col md={2} className="d-flex align-items-end">
+                <Button
+                  variant="outline-secondary"
+                  className="w-100"
+                  onClick={handleResetFilters}
+                  style={{ height: '38px' }}
+                >
+                  <i className="fas fa-undo me-2"></i>
+                  Đặt lại
+                </Button>
+              </Col>
+            )}
           </Row>
         </Card>
 

@@ -485,7 +485,7 @@ const MedicalCheckupList = ({ refreshData }) => {
           <div className="col-md-3">
             <Form.Control
               type="text"
-              placeholder="Tìm kiếm theo tên, mã học sinh hoặc lớp..."
+              placeholder="Tìm kiếm theo tên, mã học sinh"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="mb-2"
