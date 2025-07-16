@@ -22,6 +22,9 @@ const InventoryPage = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
+  const [searchFilter, setSearchFilter] = useState('all'); // 'all', 'name', 'type', 'unit', 'status'
+
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
   // const [inventoryItems, setInventoryItems] = useState([]);
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
@@ -81,59 +84,216 @@ const InventoryPage = () => {
       padding: 1.5rem !important;
       margin: 0 !important;
     }
-    
+
+    /* Dropdown styles */
+    .medical-incidents-dropdown {
+      background-color: #fff !important;
+      border: 1px solid #ced4da !important;
+      border-radius: 0.375rem !important;
+      padding: 0.375rem 2.25rem 0.375rem 0.75rem !important;
+      font-size: 1rem !important;
+      font-weight: 400 !important;
+      line-height: 1.5 !important;
+      color: #212529 !important;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 0.75rem center !important;
+      background-size: 16px 12px !important;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+    }
+
+    .medical-incidents-dropdown:focus {
+      border-color: #86b7fe !important;
+      outline: 0 !important;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+    }
+
+    .medical-incidents-dropdown:disabled {
+      background-color: #e9ecef !important;
+      opacity: 1 !important;
+    }
+
+    /* Reset button styles */
+    .lukhang-reset-button {
+      min-width: 120px !important;
+      height: 48px !important;
+      border-radius: 10px !important;
+      border: 2px solid #6c757d !important;
+      background: #f8f9fa !important;
+      color: #495057 !important;
+      font-weight: 600 !important;
+      transition: all 0.3s ease !important;
+      box-shadow: 0 4px 15px rgba(108, 117, 125, 0.2) !important;
+    }
+
+    .lukhang-reset-button:hover {
+      background: #6c757d !important;
+      color: white !important;
+      border-color: #6c757d !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4) !important;
+    }
+
+    .lukhang-reset-button:focus {
+      background: #6c757d !important;
+      color: white !important;
+      border-color: #6c757d !important;
+      box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;
+    }
+
+    .lukhang-reset-button:active {
+      background: #5a6268 !important;
+      color: white !important;
+      border-color: #5a6268 !important;
+      transform: translateY(0) !important;
+    }
+
     @media (max-width: 992px) {
       .lukhang-inventory-main-wrapper {
         padding: 1rem !important;
       }
-      
+
       .lukhang-inventory-title-custom {
         font-size: 1.5rem !important;
       }
     }
   `;
   
+  // Debounced search function
+  const performSearch = (term, filter) => {
+    if (!term.trim()) {
+      setFilteredItems(inventoryItems || []);
+      return;
+    }
+
+    if (inventoryItems && Array.isArray(inventoryItems)) {
+      const lowerCaseSearchTerm = term.toLowerCase().trim();
+      const filtered = inventoryItems.filter(item => {
+        // Hàm trợ giúp để lấy giá trị từ nhiều trường khả dụng
+        const getValue = (possibleFields) => {
+          for (let field of possibleFields) {
+            if (item[field]) return item[field].toLowerCase();
+          }
+          return '';
+        };
+
+        const itemName = getValue(['itemName', 'name']);
+        const itemType = getValue(['itemType', 'category']);
+        const unit = (item.unit || '').toLowerCase();
+        const status = getItemStatusForSearch(item).toLowerCase();
+
+        // Filter based on selected search filter
+        switch (filter) {
+          case 'name':
+            return itemName.includes(lowerCaseSearchTerm);
+          case 'type':
+            return itemType.includes(lowerCaseSearchTerm);
+          case 'unit':
+            return unit.includes(lowerCaseSearchTerm);
+          case 'status':
+            return status === lowerCaseSearchTerm;
+          default: // 'all'
+            return itemName.includes(lowerCaseSearchTerm) ||
+                   itemType.includes(lowerCaseSearchTerm) ||
+                   unit.includes(lowerCaseSearchTerm) ||
+                   status.includes(lowerCaseSearchTerm);
+        }
+      });
+      setFilteredItems(filtered);
+    } else {
+      setFilteredItems([]);
+    }
+    setCurrentPage(1);
+  };
+
+  // Handle search with debounce
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+
+    // Clear previous timer
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
+
+    // Set new timer
+    const newTimer = setTimeout(() => {
+      performSearch(value, searchFilter);
+
+
+    }, 300); // 300ms debounce
+
+    setSearchDebounceTimer(newTimer);
+  };
+
+  // Get item status for filtering
+  const getItemStatusForSearch = (item) => {
+    // Use the same logic as in table display to get quantity
+    const quantity = item.stockQuantity !== undefined && item.stockQuantity !== null ? item.stockQuantity :
+                   item.quantity !== undefined && item.quantity !== null ? item.quantity :
+                   item.currentStock !== undefined && item.currentStock !== null ? item.currentStock : 0;
+
+
+
+    if (quantity === 0) return 'hết hàng';
+    if (quantity > 0 && quantity <= 20) return 'sắp hết';
+    return 'có sẵn';
+  };
+
   // Combined useEffect to reduce renders
   useEffect(() => {
-    // Call fetchItems only once on component mount
     fetchItems();
   }, [fetchItems]);
-    // Update filtered items when inventory items or search term changes
+
+  // Update filtered items when inventory items or search filter change
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      // No search term, just use all items
-      setFilteredItems(inventoryItems || []);
-    } else {
-      // There's a search term, filter the items
-      if (inventoryItems && Array.isArray(inventoryItems)) {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
-        const filtered = inventoryItems.filter(item => {
-          // Hàm trợ giúp để lấy giá trị từ nhiều trường khả dụng
-          const getValue = (possibleFields) => {
-            for (let field of possibleFields) {
-              if (item[field]) return item[field].toLowerCase();
-            }
-            return '';
-          };
-          
-          // Tìm theo tên, loại hoặc đơn vị
-          const itemName = getValue(['itemName', 'name']);
-          const itemType = getValue(['itemType', 'category']);
-          const unit = (item.unit || '').toLowerCase();
-          
-          return itemName.includes(lowerCaseSearchTerm) || 
-                 itemType.includes(lowerCaseSearchTerm) ||
-                 unit.includes(lowerCaseSearchTerm);
-        });
-        setFilteredItems(filtered);
-      } else {
-        setFilteredItems([]);
+    performSearch(searchTerm, searchFilter);
+  }, [inventoryItems, searchFilter]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
       }
-    }
-    
-    // Reset về trang đầu tiên khi thay đổi bộ lọc hoặc searchTerm
-    setCurrentPage(1);
-  }, [searchTerm, inventoryItems]);
+    };
+  }, [searchDebounceTimer]);
+
+  // Keyboard shortcut for search (Ctrl+F)
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.ctrlKey && event.key === 'f') {
+        event.preventDefault();
+        const searchInput = document.querySelector('.lukhang-inventory-search-input');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+
+
+  // Function to highlight search terms in text
+  const highlightSearchTerm = (text, searchTerm) => {
+    if (!searchTerm || !text) return text;
+
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+
+    return parts.map((part, index) =>
+      regex.test(part) ?
+        <mark key={index} style={{ backgroundColor: '#fff3cd', padding: '0 2px', borderRadius: '2px' }}>
+          {part}
+        </mark> : part
+    );
+  };
   
   // Handlers cho việc thêm, sửa, xóa item
   const handleAddItem = async (newItem) => {
@@ -240,7 +400,9 @@ const InventoryPage = () => {
   const openViewDetailsModal = (item) => {
     setSelectedItem(item);
     setShowViewDetailsModal(true);
-  };  // Function to format date from ISO string to dd/mm/yyyy format
+  };
+
+  // Function to format date from ISO string to dd/mm/yyyy format
   const formatDate = (dateString) => {
     if (!dateString) return '';
 
@@ -382,15 +544,17 @@ const InventoryPage = () => {
     // Convert to number in case it's a string, handle null/undefined
     const qty = quantity !== undefined && quantity !== null ? Number(quantity) : 0;
     console.log('getItemStatus - quantity:', quantity, 'parsed qty:', qty, 'type:', typeof quantity);
-    
+
     if (qty === 0) {
       return 'Hết hàng';
-    } else if (qty <= 20) {
+    } else if (qty > 0 && qty <= 20) {
       return 'Sắp hết';
     } else {
-      return 'Sẵn có';
+      return 'Có sẵn';
     }
-  };  // Render inventory table with pagination
+  };
+
+  // Render inventory table with pagination
   const renderInventoryTable = () => {
     // Only show loading on initial load, not during filtering or other operations
     if (loading && (!inventoryItems || inventoryItems.length === 0)) {
@@ -467,10 +631,12 @@ const InventoryPage = () => {
               {currentItems.map((item, index) => (
                 <tr key={item.itemId || index}>
                   <td className="fw-bold text-primary">{item.itemId || 'N/A'}</td>
-                  <td className="fw-semibold">{item.itemName || item.name}</td>
+                  <td className="fw-semibold">
+                    {searchTerm ? highlightSearchTerm(item.itemName || item.name, searchTerm) : (item.itemName || item.name)}
+                  </td>
                   <td>
                     <span className="badge bg-info text-dark">
-                      {item.itemType || item.category}
+                      {searchTerm ? highlightSearchTerm(item.itemType || item.category, searchTerm) : (item.itemType || item.category)}
                     </span>
                   </td>
                   <td className="text-center fw-bold">
@@ -481,7 +647,9 @@ const InventoryPage = () => {
                       return quantity !== undefined && quantity !== null ? quantity : 0;
                     })()}
                   </td>
-                  <td className="text-dark">{item.unit}</td>
+                  <td className="text-dark">
+                    {searchTerm ? highlightSearchTerm(item.unit, searchTerm) : item.unit}
+                  </td>
                   <td className="text-dark">
                     {(() => {
                       console.log('🚨 DEBUG ITEM:', item.itemName, 'expiryDate:', item.expiryDate, 'type:', typeof item.expiryDate);
@@ -546,8 +714,8 @@ const InventoryPage = () => {
                       const status = getItemStatus(quantity);
                       return (
                         <span className={`badge ${
-                          status === 'Sẵn có' ? 'bg-success' : 
-                          status === 'Sắp hết' ? 'bg-warning text-dark' : 
+                          status === 'Có sẵn' ? 'bg-success' :
+                          status === 'Sắp hết' ? 'bg-warning text-dark' :
                           status === 'Hết hàng' ? 'bg-danger' : 'bg-secondary'
                         }`}>
                           <i className="fas fa-circle me-1" style={{ fontSize: '0.6rem' }}></i>
@@ -697,42 +865,128 @@ const InventoryPage = () => {
             <div className="card shadow-sm mb-4 lukhang-inventory-action-bar">
               <div className="card-body">
                 <div className="row align-items-center">
-                  {/* Search Area */}
-                  <div className="col-md-6 mb-3 mb-md-0">
-                    <div className="input-group">
-                      <span className="input-group-text">
-                        <i className="fas fa-search"></i>
-                      </span>
-                      <input 
-                        type="text" 
-                        className="form-control"
-                        placeholder="Tìm kiếm theo tên, loại hoặc đơn vị..." 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                      {searchTerm && (
-                        <button 
-                          className="btn btn-outline-secondary" 
-                          type="button"
-                          onClick={() => setSearchTerm('')}
-                          title="Xóa tìm kiếm"
-                        >
-                          <i className="fas fa-times"></i>
-                        </button>
-                      )}
+                  {/* Enhanced Search Area */}
+                  <div className="col-md-8 mb-3 mb-md-0">
+                    <div className="card shadow-sm border-0">
+                      <div className="card-body p-4">
+                        <div className="row g-3">
+                          {/* Hàng đầu tiên: Dropdown chọn loại tìm kiếm */}
+                          <div className="col-md-6">
+                            <label htmlFor="searchType" className="form-label fw-bold">
+                              <i className="fas fa-filter me-1"></i>
+                              LOẠI TÌM KIẾM
+                            </label>
+                            <select
+                              id="searchType"
+                              className="form-select form-select-lg medical-incidents-dropdown"
+                              value={searchFilter}
+                              onChange={(e) => {
+                                setSearchFilter(e.target.value);
+                                setSearchTerm('');
+                                setCurrentPage(1);
+                              }}
+                            >
+                              <option value="all">Tất cả</option>
+                              <option value="name">Theo tên vật phẩm</option>
+                              <option value="type">Theo loại</option>
+                              <option value="unit">Theo đơn vị</option>
+                              <option value="status">Theo trạng thái</option>
+                            </select>
+                          </div>
+
+                          {/* Hàng thứ hai: Input tìm kiếm và nút Đặt lại */}
+                          <div className="col-md-8">
+                            <label htmlFor="searchValue" className="form-label fw-bold">
+                              <i className={searchFilter === 'status' ? "fas fa-list me-1" : "fas fa-keyboard me-1"}></i>
+                              GIÁ TRỊ TÌM KIẾM
+                            </label>
+                            {searchFilter === 'status' ? (
+                              <select
+                                id="searchValue"
+                                className="form-select form-select-lg medical-incidents-dropdown"
+                                value={searchTerm}
+                                onChange={(e) => handleSearchChange(e.target.value)}
+                              >
+                                <option value="">-- Chọn trạng thái --</option>
+                                <option value="có sẵn">Có sẵn (&gt;20)</option>
+                                <option value="sắp hết">Sắp hết (0&lt;X≤20)</option>
+                                <option value="hết hàng">Hết hàng (=0)</option>
+                              </select>
+                            ) : (
+                              <input
+                                id="searchValue"
+                                type="text"
+                                className="form-control form-control-lg"
+                                value={searchTerm}
+                                onChange={(e) => handleSearchChange(e.target.value)}
+                                placeholder={
+                                  searchFilter === 'all' ? "Tìm kiếm theo tên, loại, đơn vị hoặc trạng thái..." :
+                                  searchFilter === 'name' ? "Nhập tên vật phẩm..." :
+                                  searchFilter === 'type' ? "Nhập loại vật phẩm..." :
+                                  searchFilter === 'unit' ? "Nhập đơn vị..." : "Nhập trạng thái..."
+                                }
+                              />
+                            )}
+                          </div>
+
+                          {/* Nút Đặt lại */}
+                          <div className="col-md-4 d-flex align-items-end">
+                            <button
+                              className="btn btn-outline-secondary btn-lg lukhang-reset-button"
+                              onClick={() => {
+                                setSearchTerm('');
+                                performSearch('', searchFilter);
+                              }}
+                              title="Xóa tìm kiếm"
+                            >
+                              <i className="fas fa-redo me-2"></i>
+                              Đặt lại
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Hiển thị trạng thái tìm kiếm */}
+                        {searchTerm && (
+                          <div className="row mt-3">
+                            <div className="col-12">
+                              <div className="alert alert-info mb-0">
+                                <i className="fas fa-info-circle me-2"></i>
+                                Tìm thấy <strong>{filteredItems.length}</strong> kết quả
+                                {searchFilter !== 'all' && (
+                                  <span> trong mục <strong>
+                                    {searchFilter === 'name' ? 'Tên vật phẩm' :
+                                     searchFilter === 'type' ? 'Loại' :
+                                     searchFilter === 'unit' ? 'Đơn vị' : 'Trạng thái'}
+                                  </strong></span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  
+
                   {/* Action Buttons */}
-                  <div className="col-md-6">
+                  <div className="col-md-4">
                     <div className="d-flex justify-content-end gap-2 flex-wrap">
                       <button
-                        className="btn"
+                        className="btn lukhang-inventory-add-item-btn"
                         onClick={() => setShowAddModal(true)}
                         style={{
                           background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)',
                           color: 'white',
-                          border: 'none'
+                          border: 'none',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 2px 4px rgba(1, 92, 146, 0.2)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-1px)';
+                          e.target.style.boxShadow = '0 4px 8px rgba(1, 92, 146, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 4px rgba(1, 92, 146, 0.2)';
                         }}
                       >
                         <i className="fas fa-plus me-1"></i>
