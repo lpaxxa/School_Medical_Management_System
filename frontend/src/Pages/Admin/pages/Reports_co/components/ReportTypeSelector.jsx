@@ -7,16 +7,16 @@ const ReportTypeSelector = ({ reportType, setReportType }) => {
       id: "health",
       icon: "fas fa-user-graduate",
       title: "Quản lý học sinh", // Đã thay đổi từ "Báo cáo sức khỏe"
-      desc: "Thống kê sức khỏe học sinh",
+      desc: "Thống kê học sinh",
       colorTheme: "teal",
     },
-    {
-      id: "vaccination",
-      icon: "fas fa-syringe",
-      title: "Báo cáo tiêm chủng",
-      desc: "Kết quả chiến dịch tiêm chủng",
-      colorTheme: "orange",
-    },
+    // {
+    //   id: "vaccination",
+    //   icon: "fas fa-syringe",
+    //   title: "Báo cáo tiêm chủng",
+    //   desc: "Kết quả chiến dịch tiêm chủng",
+    //   colorTheme: "orange",
+    // },
     {
       id: "vaccine",
       icon: "fas fa-syringe",
@@ -31,24 +31,24 @@ const ReportTypeSelector = ({ reportType, setReportType }) => {
       desc: "Thống kê sử dụng thuốc",
       colorTheme: "green",
     },
-    {
-      id: "checkup",
-      icon: "fas fa-heartbeat",
-      title: "Báo cáo khám sức khỏe định kỳ",
-      desc: "Thống kê khám sức khỏe định kỳ",
-      colorTheme: "purple",
-    },
+    // {
+    //   id: "checkup",
+    //   icon: "fas fa-heartbeat",
+    //   title: "Báo cáo khám sức khỏe định kỳ",
+    //   desc: "Thống kê khám sức khỏe định kỳ",
+    //   colorTheme: "purple",
+    // },
   ];
 
   return (
-    <div className="reports-type-selector">
-      <div className="reports-type-options">
+    <div className="admin-reports-type-selector">
+      <div className="admin-reports-type-options">
         {reportTypes.map((type) => (
           <div
             key={type.id}
-            className={`reports-type-option ${
+            className={`admin-reports-type-option ${
               reportType === type.id ? "selected" : ""
-            } reports-type-option-${type.colorTheme}`}
+            } admin-reports-type-option-${type.colorTheme}`}
             data-type={type.id}
             data-theme={type.colorTheme}
             onClick={() => setReportType(type.id)}
@@ -60,12 +60,12 @@ const ReportTypeSelector = ({ reportType, setReportType }) => {
               checked={reportType === type.id}
               onChange={() => setReportType(type.id)}
             />
-            <div className="reports-type-content">
-              <h3 className="reports-type-title">
+            <div className="admin-reports-type-content">
+              <h3 className="admin-reports-type-title">
                 <i className={type.icon}></i>
                 {type.title}
               </h3>
-              <p className="reports-type-description">{type.desc}</p>
+              <p className="admin-reports-type-description">{type.desc}</p>
             </div>
           </div>
         ))}

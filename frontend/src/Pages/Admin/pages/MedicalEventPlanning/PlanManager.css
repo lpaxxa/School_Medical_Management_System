@@ -1,5 +1,5 @@
 /* PlanManager - Modern Professional Design */
-.plan-manager {
+.admin-plan-manager {
   min-height: 100vh;
   background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
   font-family: var(--font-body);
@@ -9,7 +9,7 @@
 }
 
 /* Header */
-.plan-manager-header {
+.admin-plan-manager-header {
   background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   color: white;
   padding: 40px;
@@ -20,7 +20,7 @@
   overflow: hidden;
 }
 
-.plan-manager-header::before {
+.admin-plan-manager-header::before {
   content: '';
   position: absolute;
   top: -50%;
@@ -31,7 +31,7 @@
   transform: rotate(45deg);
 }
 
-.plan-manager-header-content {
+.admin-plan-manager-header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -39,7 +39,7 @@
   z-index: 1;
 }
 
-.header-text h1 {
+.admin-header-text h1 {
   margin: 0 0 4px 0;
   font-size: 2.5rem;
   font-weight: 700;
@@ -51,7 +51,7 @@
   background-clip: text;
 }
 
-.header-text h2 {
+.admin-header-text h2 {
   margin: 0 0 12px 0;
   font-size: 1.25rem;
   font-weight: 500;
@@ -60,7 +60,7 @@
   color: #cbd5e1;
 }
 
-.header-text p {
+.admin-header-text p {
   margin: 0;
   font-size: 1.1rem;
   opacity: 0.7;
@@ -112,14 +112,13 @@
   border: 1px solid #f1f5f9;
 }
 
-.selector-header {
+.admin-selector-header {
   display: flex;
   align-items: center;
   gap: 24px;
   margin-bottom: 32px;
   padding-bottom: 24px;
   border-bottom: 1px solid #e2e8f0;
-  text-align: center;
 }
 
 .back-button {
@@ -560,7 +559,7 @@
     display: none;
   }
 
-  .selector-header {
+  .admin-selector-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
@@ -615,7 +614,7 @@
     border-radius: 12px;
   }
 
-  .selector-header {
+  .admin-selector-header {
     flex-direction: column;
     text-align: center;
     gap: 8px;

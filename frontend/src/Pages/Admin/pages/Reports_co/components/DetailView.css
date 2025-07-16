@@ -1,9 +1,30 @@
-/* Reports Detail View - Modern Blue Theme */
+/* Reports Detail View - Multi-Theme Support */
 .reports-detail-view-container {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   min-height: 100vh;
   padding: 24px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Theme-specific backgrounds */
+.reports-detail-view-container.theme-blue {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.reports-detail-view-container.theme-green {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+}
+
+.reports-detail-view-container.theme-purple {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+}
+
+.reports-detail-view-container.theme-orange {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.reports-detail-view-container.theme-teal {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
 }
 
 /* Loading State */
@@ -103,10 +124,57 @@
   background: linear-gradient(90deg, #3b82f6, #2563eb);
 }
 
+/* Theme-specific stats card styling */
+.theme-blue .reports-detail-stats-card::before {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.theme-green .reports-detail-stats-card::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.theme-purple .reports-detail-stats-card::before {
+  background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+}
+
+.theme-orange .reports-detail-stats-card::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.theme-teal .reports-detail-stats-card::before {
+  background: linear-gradient(90deg, #14b8a6, #0d9488);
+}
+
 .reports-detail-stats-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
   border-color: #bfdbfe;
+}
+
+/* Theme-specific hover effects */
+.theme-blue .reports-detail-stats-card:hover {
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
+  border-color: #bfdbfe;
+}
+
+.theme-green .reports-detail-stats-card:hover {
+  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.15);
+  border-color: #a7f3d0;
+}
+
+.theme-purple .reports-detail-stats-card:hover {
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.15);
+  border-color: #ddd6fe;
+}
+
+.theme-orange .reports-detail-stats-card:hover {
+  box-shadow: 0 8px 30px rgba(245, 158, 11, 0.15);
+  border-color: #fde68a;
+}
+
+.theme-teal .reports-detail-stats-card:hover {
+  box-shadow: 0 8px 30px rgba(20, 184, 166, 0.15);
+  border-color: #99f6e4;
 }
 
 .reports-detail-stats-icon {

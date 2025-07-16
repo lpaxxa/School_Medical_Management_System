@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
+import { useAuth } from "../../../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
-const Sidebar = ({ activeSection, onSectionChange, userRole, user }) => {
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+const Sidebar = ({ activeSection, onSectionChange, userRole }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   // Cập nhật ID cho khớp với case trong AdminLayout.jsx
   const menuItems = [
     {
@@ -37,11 +39,17 @@ const Sidebar = ({ activeSection, onSectionChange, userRole, user }) => {
       roles: ["admin", "manager"],
     },
     {
-      id: "ui-showcase",
-      label: "Modern UI Showcase",
-      icon: "fas fa-palette",
-      roles: ["admin"],
+      id: "articles", // Thêm mục quản lý bài viết
+      label: "Quản lý bài viết",
+      icon: "fas fa-newspaper",
+      roles: ["admin", "nurse"],
     },
+    // {
+    //   id: "ui-showcase",
+    //   label: "Modern UI Showcase",
+    //   icon: "fas fa-palette",
+    //   roles: ["admin"],
+    // },
     // {
     //   id: "settings",
     //   label: "Cài đặt hệ thống",
@@ -60,9 +68,31 @@ const Sidebar = ({ activeSection, onSectionChange, userRole, user }) => {
     onSectionChange(id);
   };
 
-  const handleLogout = () => {
-    // Add logout logic here
-    console.log("Logout clicked");
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Logout clicked - starting logout process");
+
+    try {
+      // Call logout function
+      console.log("Calling logout function...");
+      logout();
+
+      // Add small delay to ensure logout completes
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      console.log("Navigating to login page...");
+      navigate("/login");
+
+      // Force page reload as backup
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 500);
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force redirect even if there's an error
+      window.location.href = "/login";
+    }
   };
 
   return (
@@ -76,66 +106,6 @@ const Sidebar = ({ activeSection, onSectionChange, userRole, user }) => {
           <div className="admin_ui_logo_text">
             <h1>Medical Admin</h1>
             <span>Hệ thống quản lý</span>
-          </div>
-        </div>
-
-        {/* User Info & Actions */}
-        <div className="admin_ui_header_actions">
-          {/* Notifications */}
-          <div className="admin_ui_notification_wrapper">
-            <button
-              className={`admin_ui_notification_btn ${
-                showNotifications ? "active" : ""
-              }`}
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
-              <i className="fas fa-bell"></i>
-              <span className="admin_ui_notification_badge">3</span>
-            </button>
-          </div>
-
-          {/* User Profile */}
-          <div className="admin_ui_user_wrapper">
-            <button
-              className={`admin_ui_user_btn ${
-                showUserDropdown ? "active" : ""
-              }`}
-              onClick={() => setShowUserDropdown(!showUserDropdown)}
-            >
-              <div className="admin_ui_user_avatar">
-                <i className="fas fa-user"></i>
-              </div>
-              <div className="admin_ui_user_info">
-                <span className="admin_ui_user_name">
-                  {user?.fullName || "Admin User"}
-                </span>
-                <span className="admin_ui_user_role">
-                  {user?.role || "Administrator"}
-                </span>
-              </div>
-              <i className="fas fa-chevron-down admin_ui_dropdown_arrow"></i>
-            </button>
-
-            {showUserDropdown && (
-              <div className="admin_ui_user_dropdown">
-                <div className="admin_ui_dropdown_item">
-                  <i className="fas fa-user-circle"></i>
-                  <span>Hồ sơ cá nhân</span>
-                </div>
-                <div className="admin_ui_dropdown_item">
-                  <i className="fas fa-cog"></i>
-                  <span>Cài đặt</span>
-                </div>
-                <div className="admin_ui_dropdown_divider"></div>
-                <div
-                  className="admin_ui_dropdown_item admin_ui_logout"
-                  onClick={handleLogout}
-                >
-                  <i className="fas fa-sign-out-alt"></i>
-                  <span>Đăng xuất</span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -158,6 +128,18 @@ const Sidebar = ({ activeSection, onSectionChange, userRole, user }) => {
           ))}
         </ul>
       </nav>
+
+      {/* Logout Section */}
+      <div className="admin_ui_sidebar_footer">
+        <div
+          className="admin_ui_logout_btn"
+          onClick={handleLogout}
+          data-tooltip="Đăng xuất"
+        >
+          <i className="fas fa-sign-out-alt"></i>
+          <span>Đăng xuất</span>
+        </div>
+      </div>
     </aside>
   );
 };

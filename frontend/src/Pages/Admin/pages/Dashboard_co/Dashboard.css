@@ -521,13 +521,13 @@
 }
 
 .admin_ui_dash_event-status-tag.completed {
-  background: #f3f4f6 !important;
-  color: #374151 !important;
+  background: #d1fae5 !important;
+  color: #059669 !important;
 }
 
 .admin_ui_dash_event-status-tag.upcoming {
-  background: #e5e7eb !important;
-  color: #4b5563 !important;
+  background: #fef3c7 !important;
+  color: #d97706 !important;
 }
 
 .admin_ui_dash_event-status-tag.in-progress {
@@ -855,13 +855,13 @@
 
 /* Override AdminLayout status tag styles */
 .admin-content .admin_ui_dash_content .admin_ui_dash_event-status-tag.completed {
-  background: #f3f4f6 !important;
-  color: #374151 !important;
+  background: #d1fae5 !important;
+  color: #059669 !important;
 }
 
 .admin-content .admin_ui_dash_content .admin_ui_dash_event-status-tag.upcoming {
-  background: #e5e7eb !important;
-  color: #4b5563 !important;
+  background: #fef3c7 !important;
+  color: #d97706 !important;
 }
 
 .admin-content .admin_ui_dash_content .admin_ui_dash_event-status-tag.in-progress {

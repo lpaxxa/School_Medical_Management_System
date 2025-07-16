@@ -127,7 +127,7 @@ const MedicationListView = ({ onBack }) => {
 
   if (loading) {
     return (
-      <div className="reports-medication-list-container">
+      <div className="reports-medication-list-container theme-green">
         <div className="reports-medication-loading-section">
           <div className="reports-medication-loading-spinner"></div>
           <p>Đang tải danh sách thuốc...</p>
@@ -137,7 +137,7 @@ const MedicationListView = ({ onBack }) => {
   }
 
   return (
-    <div className="reports-medication-list-container">
+    <div className="reports-medication-list-container theme-green">
       {/* Header */}
       <ReportHeader
         title="Báo cáo thuốc và vật tư y tế"
@@ -362,6 +362,7 @@ const MedicationListView = ({ onBack }) => {
         <MedicationDetailModal
           medication={selectedMedication}
           onClose={handleCloseModal}
+          theme="green"
         />
       )}
     </div>

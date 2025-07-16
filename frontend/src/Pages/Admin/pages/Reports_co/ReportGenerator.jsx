@@ -195,7 +195,7 @@ const ReportGenerator = () => {
           </div>
           <div className="reports-header-stats">
             <div className="reports-stat-item">
-              <span className="reports-stat-number">5</span>
+              <span className="reports-stat-number">3</span>
               <span className="reports-stat-label">Loại báo cáo</span>
             </div>
           </div>
@@ -289,6 +289,7 @@ const ReportGenerator = () => {
         <NotificationDetail
           notification={selectedNotification}
           onBack={handleBackToList}
+          reportType={reportType}
         />
       )}
 
@@ -296,6 +297,7 @@ const ReportGenerator = () => {
         <StudentDetailView
           student={selectedStudent}
           onBack={handleBackToList}
+          theme="teal"
         />
       )}
     </div>

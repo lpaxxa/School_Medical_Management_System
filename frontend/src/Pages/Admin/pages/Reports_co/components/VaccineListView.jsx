@@ -132,7 +132,7 @@ const VaccineListView = ({ onBack }) => {
 
   if (loading) {
     return (
-      <div className="reports-vaccine-list-container">
+      <div className="reports-vaccine-list-container theme-blue">
         <div className="reports-vaccine-loading-section">
           <i className="fas fa-spinner fa-spin fa-2x"></i>
           <p>Đang tải danh sách vaccine...</p>
@@ -142,7 +142,7 @@ const VaccineListView = ({ onBack }) => {
   }
 
   return (
-    <div className="reports-vaccine-list-container">
+    <div className="reports-vaccine-list-container theme-blue">
       {/* Header */}
       <ReportHeader
         title="Báo cáo vaccine"
@@ -339,6 +339,7 @@ const VaccineListView = ({ onBack }) => {
         <VaccineDetailModal
           vaccine={selectedVaccine}
           onClose={handleCloseModal}
+          theme="blue"
         />
       )}
     </div>
