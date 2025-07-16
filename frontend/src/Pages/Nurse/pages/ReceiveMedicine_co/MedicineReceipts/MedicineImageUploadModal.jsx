@@ -31,6 +31,24 @@ const MedicineImageUploadModal = ({
           <FaCamera className="me-2" />
           Xác nhận ảnh cung cấp thuốc
         </Modal.Title>
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          className="btn-close-custom"
+          onClick={onHide}
+          style={{
+            position: 'absolute',
+            right: '15px',
+            top: '15px',
+            border: 'none',
+            background: 'transparent',
+            fontSize: '18px',
+            color: '#6c757d'
+          }}
+          title="Đóng modal"
+        >
+          <FaTimes />
+        </Button>
       </Modal.Header>
 
       <Modal.Body>
@@ -64,9 +82,9 @@ const MedicineImageUploadModal = ({
                 Ảnh đã chọn:
               </h6>
               <div className="medicine-upload-image-container">
-                <img 
-                  src={imagePreview} 
-                  alt="Ảnh xác nhận cung cấp thuốc" 
+                <img
+                  src={imagePreview}
+                  alt="Ảnh xác nhận cung cấp thuốc"
                   className="medicine-upload-preview-image"
                 />
                 <div className="medicine-upload-file-info">

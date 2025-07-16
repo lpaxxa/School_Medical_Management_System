@@ -4,6 +4,65 @@ import '../InventoryMain.css';
 import './AddItem.css';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
 
+// Utility function to format datetime arrays from backend
+const formatDateTimeArray = (dateTimeValue) => {
+  if (!dateTimeValue) return '';
+
+  try {
+    console.log('🔍 formatDateTimeArray input:', dateTimeValue, 'type:', typeof dateTimeValue);
+
+    let date;
+
+    // Handle array format from Java LocalDateTime/LocalDate
+    if (Array.isArray(dateTimeValue)) {
+      console.log('📅 DateTime array detected:', dateTimeValue);
+      if (dateTimeValue.length >= 3) {
+        const [year, month, day, hour = 0, minute = 0, second = 0] = dateTimeValue;
+        // Create date with proper month conversion (Java 1-based to JS 0-based)
+        date = new Date(year, month - 1, day, hour, minute, second);
+        console.log(`📅 Converted array to Date:`, date);
+      } else {
+        console.warn('❌ Invalid datetime array format:', dateTimeValue);
+        return dateTimeValue.toString();
+      }
+    }
+    // Handle string format
+    else if (typeof dateTimeValue === 'string') {
+      date = new Date(dateTimeValue);
+    }
+    // Handle Date object
+    else if (dateTimeValue instanceof Date) {
+      date = dateTimeValue;
+    }
+    else {
+      console.warn('❌ Unknown datetime format:', dateTimeValue);
+      return dateTimeValue.toString();
+    }
+
+    // Validate date
+    if (isNaN(date.getTime())) {
+      console.warn('❌ Invalid date created from:', dateTimeValue);
+      return dateTimeValue.toString();
+    }
+
+    // Format as DD/MM/YYYY HH:mm for display
+    const formatted = date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }) + ' ' + date.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    console.log('✅ formatDateTimeArray result:', formatted);
+    return formatted;
+  } catch (error) {
+    console.error('❌ Error formatting datetime array:', error, 'Input:', dateTimeValue);
+    return dateTimeValue.toString();
+  }
+};
+
 // Custom styles để tránh xung đột Bootstrap
 const addItemStyles = `
   /* Add Item Modal - Namespaced Styles */
@@ -668,18 +727,53 @@ const AddItem = ({ onClose, onAddItem }) => {
       }
 
       const result = await onAddItem(itemToAdd);
-      
+
+      // Debug: Log the result to see if it contains datetime arrays
+      console.log('🔍 AddItem result from API:', result);
+      if (result && result.createdAt) {
+        console.log('🔍 CreatedAt in result:', result.createdAt, 'type:', typeof result.createdAt);
+      }
+      if (result && result.expiryDate) {
+        console.log('🔍 ExpiryDate in result:', result.expiryDate, 'type:', typeof result.expiryDate);
+      }
+      if (result && result.manufactureDate) {
+        console.log('🔍 ManufactureDate in result:', result.manufactureDate, 'type:', typeof result.manufactureDate);
+      }
+
       if (result) {
+        // Format datetime information for success message if available
+        let additionalInfo = '';
+        if (result.createdAt) {
+          const formattedCreatedAt = formatDateTimeArray(result.createdAt);
+          additionalInfo = `\nNgày tạo: ${formattedCreatedAt}`;
+        }
+
         // Hiển thị thông báo thành công
         Swal.fire({
           icon: 'success',
           title: 'Thêm vật phẩm thành công!',
-          text: `Vật phẩm "${itemToAdd.itemName}" đã được thêm thành công vào kho y tế.`,
+          text: `Vật phẩm "${itemToAdd.itemName}" đã được thêm thành công vào kho y tế.${additionalInfo}`,
         });
       }
       
     } catch (err) {
       console.error("Lỗi khi thêm vật phẩm:", err);
+
+      // Debug: Log error response to check for datetime arrays
+      if (err.response?.data) {
+        console.log('🔍 Error response data:', err.response.data);
+
+        // Check if error data contains datetime arrays that need formatting
+        const errorData = err.response.data;
+        if (errorData && typeof errorData === 'object') {
+          Object.keys(errorData).forEach(key => {
+            if (Array.isArray(errorData[key]) && errorData[key].length >= 3) {
+              console.log(`🔍 Potential datetime array in error.${key}:`, errorData[key]);
+            }
+          });
+        }
+      }
+
       const errorMessage = err.response?.data?.message || err.message || "Lỗi không xác định";
       
       // Check for specific error messages to provide better feedback

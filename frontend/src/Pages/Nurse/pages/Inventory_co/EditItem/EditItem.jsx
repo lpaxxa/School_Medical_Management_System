@@ -297,6 +297,63 @@ const formatDateForApi = (dateString) => {
   }
 };
 
+// Hàm chuyển đổi từ array/string sang định dạng input date (yyyy-MM-dd)
+const formatDateForInput = (dateValue) => {
+  if (!dateValue) return '';
+
+  try {
+    console.log('🔍 formatDateForInput input:', dateValue, 'type:', typeof dateValue);
+
+    let date;
+
+    // Handle array format from Java LocalDate [year, month, day]
+    if (Array.isArray(dateValue)) {
+      console.log('📅 Array format detected:', dateValue);
+      if (dateValue.length >= 3) {
+        const [year, month, day] = dateValue;
+        // Create date with proper month conversion (Java 1-based to JS 0-based)
+        date = new Date(year, month - 1, day);
+        console.log(`📅 Converted array [${year}, ${month}, ${day}] to Date:`, date);
+      } else {
+        console.warn('❌ Invalid array format:', dateValue);
+        return '';
+      }
+    }
+    // Handle string format
+    else if (typeof dateValue === 'string') {
+      console.log('📝 String format detected:', dateValue);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        // Already in correct format
+        return dateValue;
+      } else {
+        date = new Date(dateValue);
+      }
+    }
+    // Handle Date object
+    else if (dateValue instanceof Date) {
+      date = dateValue;
+    }
+    else {
+      console.warn('❌ Unknown date format:', dateValue);
+      return '';
+    }
+
+    // Validate date
+    if (isNaN(date.getTime())) {
+      console.warn('❌ Invalid date created from:', dateValue);
+      return '';
+    }
+
+    // Format as YYYY-MM-DD for input[type="date"]
+    const formatted = date.toISOString().split('T')[0];
+    console.log('✅ formatDateForInput result:', formatted);
+    return formatted;
+  } catch (error) {
+    console.error('❌ Error formatting date for input:', error, 'Input:', dateValue);
+    return '';
+  }
+};
+
 // Component chỉnh sửa vật phẩm
 const EditItem = ({ item, onClose, onEditItem }) => {
   const [editedItem, setEditedItem] = useState(null);
@@ -306,16 +363,23 @@ const EditItem = ({ item, onClose, onEditItem }) => {
 
   useEffect(() => {
     if (item) {
+      console.log('🔍 EditItem received item:', item);
+      console.log('🔍 Original expiryDate:', item.expiryDate, 'type:', typeof item.expiryDate);
+      console.log('🔍 Original manufactureDate:', item.manufactureDate, 'type:', typeof item.manufactureDate);
+
       setEditedItem({
         itemId: item.itemId,
         itemName: item.itemName || item.name || '',
         unit: item.unit || '',
         stockQuantity: item.stockQuantity || item.quantity || 0,
         itemType: item.itemType || item.category || '',
-        expiryDate: item.expiryDate || '',
-        manufactureDate: item.manufactureDate || item.dateAdded || '',
+        expiryDate: formatDateForInput(item.expiryDate),
+        manufactureDate: formatDateForInput(item.manufactureDate || item.dateAdded),
         itemDescription: item.itemDescription || item.description || ''
       });
+
+      console.log('🔍 Formatted expiryDate for input:', formatDateForInput(item.expiryDate));
+      console.log('🔍 Formatted manufactureDate for input:', formatDateForInput(item.manufactureDate || item.dateAdded));
     }
   }, [item]);
 

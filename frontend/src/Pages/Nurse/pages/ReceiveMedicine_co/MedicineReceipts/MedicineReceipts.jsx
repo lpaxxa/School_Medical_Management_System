@@ -305,6 +305,18 @@ const MedicineReceipts = () => {
 
   // Handle image selection
   const handleImageSelect = (e) => {
+    // If e is null, reset the image (called from X button)
+    if (e === null) {
+      setSelectedImage(null);
+      setImagePreview(null);
+      // Reset file input if it exists
+      const fileInput = document.querySelector('input[type="file"][accept="image/*"]');
+      if (fileInput) {
+        fileInput.value = '';
+      }
+      return;
+    }
+
     const file = e.target.files[0];
     if (file) {
       // Validate file type
@@ -312,15 +324,15 @@ const MedicineReceipts = () => {
         showNotification('error', 'Lỗi file', 'Vui lòng chọn file ảnh hợp lệ');
         return;
       }
-      
+
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
         showNotification('error', 'Lỗi kích thước', 'Kích thước file không được vượt quá 5MB');
         return;
       }
-      
+
       setSelectedImage(file);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => setImagePreview(e.target.result);
@@ -349,7 +361,13 @@ const MedicineReceipts = () => {
       // Prepare data for API
       const selectedDateTime = new Date(formData.administeredAt);
       const currentTime = new Date();
-      
+
+      // Validate datetime is valid
+      if (isNaN(selectedDateTime.getTime())) {
+        showNotification('warning', 'Thời gian không hợp lệ', 'Vui lòng chọn thời gian hợp lệ');
+        return;
+      }
+
       // Validate against start date
       if (selectedRequest && selectedRequest.startDate) {
         const startDate = new Date(selectedRequest.startDate);
@@ -374,9 +392,10 @@ const MedicineReceipts = () => {
         }
       }
       
-      // Validate against future time (but allow future dates within medication period)
-      if (selectedDateTime > currentTime) {
-        showNotification('warning', 'Thời gian không hợp lệ', 'Thời gian ghi nhận không được là thời gian tương lai');
+      // Validate against future time - only check if it's more than 5 minutes in the future to account for clock differences
+      const futureThreshold = new Date(currentTime.getTime() + 5 * 60 * 1000); // 5 minutes buffer
+      if (selectedDateTime > futureThreshold) {
+        showNotification('warning', 'Thời gian không hợp lệ', 'Thời gian ghi nhận không được quá xa trong tương lai');
         return;
       }
       
@@ -436,6 +455,10 @@ const MedicineReceipts = () => {
               errorMessage = 'Thời gian ghi nhận không được sau ngày kết thúc của đơn thuốc';
             } else if (serverMessage.includes('Administration date cannot be in the future')) {
               errorMessage = 'Thời gian ghi nhận không được là thời gian tương lai';
+            } else if (serverMessage.includes('Invalid date format') || serverMessage.includes('date')) {
+              errorMessage = 'Định dạng thời gian không hợp lệ. Vui lòng chọn lại thời gian.';
+            } else if (serverMessage.includes('required') || serverMessage.includes('missing')) {
+              errorMessage = 'Thiếu thông tin bắt buộc. Vui lòng kiểm tra lại form.';
             } else {
               errorMessage = `Lỗi xác thực: ${serverMessage}`;
             }

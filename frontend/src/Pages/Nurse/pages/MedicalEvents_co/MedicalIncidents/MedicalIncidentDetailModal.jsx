@@ -7,9 +7,38 @@ const MedicalIncidentDetailModal = ({
 }) => {
   if (!selectedEvent) return null;
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+  const formatDate = (dateInput) => {
+    if (!dateInput) return 'N/A';
+
+    let date;
+
+    // Handle array format from backend [year, month, day]
+    if (Array.isArray(dateInput)) {
+      if (dateInput.length >= 3) {
+        // Month is 0-indexed in JavaScript Date constructor
+        date = new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
+      } else {
+        return 'N/A';
+      }
+    }
+    // Handle string format
+    else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+    }
+    // Handle Date object
+    else if (dateInput instanceof Date) {
+      date = dateInput;
+    }
+    else {
+      return 'N/A';
+    }
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+
+    return date.toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
