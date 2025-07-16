@@ -305,6 +305,229 @@
   transform: translateY(-1px);
 }
 
+.admin-btn-delete.disabled,
+.admin-btn-delete:disabled {
+  background: var(--health-article-gray-300);
+  color: var(--health-article-gray-500);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.admin-btn-delete.disabled:hover,
+.admin-btn-delete:disabled:hover {
+  background: var(--health-article-gray-300);
+  transform: none;
+}
+
+/* ===== AUTHENTICATION WARNING ===== */
+.admin-auth-warning {
+  margin-bottom: var(--health-article-space-6);
+  padding: var(--health-article-space-4);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+  border-radius: var(--health-article-radius-lg);
+  box-shadow: var(--health-article-shadow-sm);
+}
+
+.admin-auth-warning-content {
+  display: flex;
+  align-items: center;
+  gap: var(--health-article-space-3);
+  color: #92400e;
+  font-size: var(--health-article-font-size-sm);
+  font-weight: 500;
+}
+
+.admin-auth-warning-icon {
+  font-size: var(--health-article-font-size-lg);
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+/* ===== DELETE CONFIRMATION MODAL ===== */
+.admin-delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: admin-modal-fade-in 0.3s ease-out;
+}
+
+.admin-delete-modal-content {
+  background: var(--health-article-white);
+  border-radius: var(--health-article-radius-2xl);
+  max-width: 480px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: var(--health-article-shadow-xl);
+  border: 1px solid var(--health-article-gray-200);
+  animation: admin-modal-slide-up 0.3s ease-out;
+}
+
+.admin-delete-modal-header {
+  padding: var(--health-article-space-6) var(--health-article-space-6) var(--health-article-space-4);
+  border-bottom: 1px solid var(--health-article-gray-200);
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.admin-delete-modal-header h3 {
+  margin: 0;
+  font-size: var(--health-article-font-size-xl);
+  font-weight: 700;
+  color: var(--health-article-gray-800);
+  text-align: center;
+}
+
+.admin-delete-modal-body {
+  padding: var(--health-article-space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--health-article-space-4);
+}
+
+.admin-delete-modal-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, var(--health-article-danger), #dc2626);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--health-article-white);
+  font-size: var(--health-article-font-size-2xl);
+  box-shadow: var(--health-article-shadow-lg);
+}
+
+.admin-delete-modal-text {
+  flex: 1;
+}
+
+.admin-delete-modal-text p {
+  margin: 0 0 var(--health-article-space-3) 0;
+  font-size: var(--health-article-font-size-base);
+  color: var(--health-article-gray-700);
+  line-height: 1.6;
+}
+
+.admin-delete-modal-article-info {
+  padding: var(--health-article-space-3);
+  background: var(--health-article-gray-50);
+  border-radius: var(--health-article-radius-lg);
+  margin: var(--health-article-space-3) 0;
+  border-left: 4px solid var(--health-article-danger);
+}
+
+.admin-delete-modal-article-info strong {
+  color: var(--health-article-gray-800);
+  font-size: var(--health-article-font-size-sm);
+}
+
+.admin-delete-modal-warning {
+  font-size: var(--health-article-font-size-sm) !important;
+  color: var(--health-article-danger) !important;
+  font-weight: 600 !important;
+}
+
+.admin-delete-modal-footer {
+  padding: var(--health-article-space-4) var(--health-article-space-6) var(--health-article-space-6);
+  display: flex;
+  gap: var(--health-article-space-3);
+  justify-content: center;
+  background: var(--health-article-gray-50);
+}
+
+.admin-delete-modal-btn {
+  padding: var(--health-article-space-3) var(--health-article-space-6);
+  border: none;
+  border-radius: var(--health-article-radius-lg);
+  font-size: var(--health-article-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-delete-modal-btn-cancel {
+  background: var(--health-article-gray-200);
+  color: var(--health-article-gray-700);
+  border: 2px solid var(--health-article-gray-300);
+}
+
+.admin-delete-modal-btn-cancel:hover {
+  background: var(--health-article-gray-300);
+  border-color: var(--health-article-gray-400);
+  transform: translateY(-1px);
+}
+
+.admin-delete-modal-btn-confirm {
+  background: linear-gradient(135deg, var(--health-article-danger), #dc2626);
+  color: var(--health-article-white);
+  border: 2px solid var(--health-article-danger);
+}
+
+.admin-delete-modal-btn-confirm:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: var(--health-article-shadow-lg);
+}
+
+/* Modal Animations */
+@keyframes admin-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes admin-modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .admin-delete-modal-content {
+    width: 95%;
+    margin: var(--health-article-space-4);
+  }
+
+  .admin-delete-modal-header,
+  .admin-delete-modal-body,
+  .admin-delete-modal-footer {
+    padding: var(--health-article-space-4);
+  }
+
+  .admin-delete-modal-footer {
+    flex-direction: column;
+  }
+
+  .admin-delete-modal-btn {
+    width: 100%;
+  }
+}
+
 /* ===== LOADING STATE ===== */
 .admin-health-article-loading {
   display: flex;
