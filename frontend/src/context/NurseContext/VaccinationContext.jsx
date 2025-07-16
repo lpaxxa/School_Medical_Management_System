@@ -145,7 +145,13 @@ export const VaccinationProvider = ({ children }) => {
 
   const handleCreateRecord = async (recordData) => {
     if (!studentForRecord || !vaccineForRecord) {
-        toast.error('Thông tin học sinh hoặc vaccine bị thiếu!', { autoClose: 2500 });
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi!',
+          text: 'Thông tin học sinh hoặc vaccine bị thiếu!',
+          confirmButtonText: 'Đóng',
+          confirmButtonColor: '#dc3545'
+        });
         return;
     }
     try {
@@ -156,17 +162,39 @@ export const VaccinationProvider = ({ children }) => {
         vaccineId: vaccineForRecord.vaccineId, // Use the stored vaccine ID
       };
       await vaccinationApiService.createVaccinationRecord(newRecord);
-      // Show success notification
-      toast.success('Tạo hồ sơ tiêm chủng thành công!', { autoClose: 2500 });
+
+      // Show success notification with SweetAlert2
+      Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: 'Tạo hồ sơ tiêm chủng thành công!',
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#015C92',
+        timer: 3000,
+        timerProgressBar: true,
+        showClass: {
+          popup: 'animate__animated animate__fadeInDown'
+        },
+        hideClass: {
+          popup: 'animate__animated animate__fadeOutUp'
+        }
+      });
+
       handleCloseCreateRecordModal();
-      
+
       // Reload the page after successful creation
       setTimeout(() => {
         window.location.reload();
       }, 2000); // Wait 2 seconds for user to see the success message
     } catch (error) {
-      // Show error notification
-      toast.error('Tạo hồ sơ thất bại. Vui lòng thử lại.', { autoClose: 2500 });
+      // Show error notification with SweetAlert2
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: 'Tạo hồ sơ thất bại. Vui lòng thử lại.',
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#dc3545'
+      });
       console.error("Failed to create record", error);
     }
   };
