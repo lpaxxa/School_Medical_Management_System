@@ -13,7 +13,7 @@ export default defineConfig(({ command, mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: env.VITE_BACKEND_URL || 'http://localhost:8080',
+          target: env.VITE_BACKEND_URL || `${import.meta.env.VITE_BACKEND_URL}`,
           changeOrigin: true,
           secure: false,
           // You can add any additional headers or rewrite path logic here

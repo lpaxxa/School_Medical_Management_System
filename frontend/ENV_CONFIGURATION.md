@@ -76,7 +76,7 @@ import { API_ENDPOINTS, getAuthHeaders } from '../config/apiConfig';
 ### Use predefined endpoints:
 ```javascript
 // Instead of hardcoded URLs
-const response = await fetch('http://localhost:8080/api/v1/students');
+const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/students');
 
 // Use the configuration
 const response = await fetch(API_ENDPOINTS.STUDENTS.GET_ALL, {
@@ -115,7 +115,7 @@ The `vite.config.js` file includes proxy configuration for development:
 server: {
   proxy: {
     '/api': {
-      target: 'http://localhost:8080',
+      target: `${import.meta.env.VITE_BACKEND_URL}',
       changeOrigin: true,
     }
   }

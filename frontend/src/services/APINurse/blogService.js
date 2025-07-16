@@ -183,7 +183,7 @@ export const uploadImage = async (file, articleId = null) => {
     } else {
       // Khi thêm bài viết mới, sử dụng endpoint chung
       // Giả sử bạn có endpoint upload ảnh tạm thời
-      const response = await axios.post('http://localhost:8080/api/upload-temp-image', formData, {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/upload-temp-image`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`

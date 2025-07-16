@@ -3,7 +3,7 @@ import axios from 'axios';
 /**
  * Service for medication request operations
  */
-const BASE_URL = 'http://localhost:8080/api/v1/parent-medication-requests';
+const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/parent-medication-requests`;
 
 /**
  * Get auth token from localStorage

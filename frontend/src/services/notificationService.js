@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Tạo một instance axios khác trỏ trực tiếp đến backend mà không qua proxy
 const directApi = axios.create({
-  baseURL: 'http://localhost:8080', // Bỏ /api/v1 trong baseURL vì endpoint đã bao gồm nó
+  baseURL: `${import.meta.env.VITE_BACKEND_URL}`, // Bỏ /api/v1 trong baseURL vì endpoint đã bao gồm nó
   headers: {
     'Content-Type': 'application/json',
   },

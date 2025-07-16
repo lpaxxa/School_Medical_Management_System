@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1`;
 
 // Tạo axios instance với config cơ bản cho Admin
 const apiClient = axios.create({

@@ -3,12 +3,11 @@ import axios from 'axios';
 // Cấu hình sử dụng dữ liệu giả hay API thật
 const config = {
   useMockData: false,  // Đây là cài đặt, nhưng có thể bị ghi đè
-  apiUrl: 'http://localhost:8080/api/v1/medical-checkups'
+  apiUrl: `${import.meta.env.VITE_BACKEND_URL}/api/v1/medical-checkups`
 };
 
 // API base URL
-const API_BASE_URL = 'http://localhost:8080/api/v1';
-
+const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1`;
 // Hàm trễ để mô phỏng API delay
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -494,7 +493,7 @@ export const deleteHealthCheckup = async (id) => {
 // Lấy tất cả các chiến dịch khám sức khỏe (API cũ)
 export const getHealthCampaigns = async () => {
   try {
-    const response = await fetch('http://localhost:8080/api/v1/health-campaigns');
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns`);
     
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -513,7 +512,7 @@ export const getHealthCampaigns = async () => {
 // Lấy danh sách phụ huynh (API cũ)
 export const getParents = async () => {
   try {
-    const response = await fetch('http://localhost:8080/api/v1/parents');
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/parents`);
     
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -576,7 +575,7 @@ export const sendHealthCheckupNotification = async (notificationData) => {
     
     console.log('Sending notification with payload:', JSON.stringify(payload, null, 2));
     
-    const response = await fetch('http://localhost:8080/api/v1/notifications/create', {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/notifications/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

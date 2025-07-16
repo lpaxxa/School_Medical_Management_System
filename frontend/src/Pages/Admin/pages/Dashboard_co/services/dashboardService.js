@@ -1,7 +1,7 @@
 // Import safe date utilities
 import { formatDate as safeDateFormat, safeParseDate } from '../../../utils/dateUtils';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Dashboard service để lấy dữ liệu cho các biểu đồ
 export const dashboardService = {

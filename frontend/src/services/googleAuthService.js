@@ -1,7 +1,7 @@
 // Google OAuth2 Configuration
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id';
 const GOOGLE_REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI || 'http://localhost:3000/auth/oauth2/callback';
-const BACKEND_OAUTH_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+const BACKEND_OAUTH_URL = import.meta.env.VITE_BACKEND_URL || `${import.meta.env.VITE_BACKEND_URL}`;
 
 class GoogleAuthService {
   /**

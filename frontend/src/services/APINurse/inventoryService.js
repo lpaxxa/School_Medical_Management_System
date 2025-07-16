@@ -23,7 +23,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-const API_URL = 'http://localhost:8080/api/v1/medication-items';
+const API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/medication-items`;
 
 const inventoryService = {
   API_URL,

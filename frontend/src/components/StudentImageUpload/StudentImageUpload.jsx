@@ -66,7 +66,7 @@ const StudentImageUpload = ({
       formData.append('image', selectedFile);
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/students/${student.id}/upload-image`,
+        `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_BACKEND_URL}`}/api/v1/students/${student.id}/upload-image`,
         {
           method: 'POST',
           // No Authorization header needed - endpoint is permitAll due to authentication issues
