@@ -218,6 +218,188 @@
   background: var(--table-gray-50);
 }
 
+/* ===== BULK EMAIL ACTIONS ===== */
+.admin-bulk-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--table-space-4) var(--table-space-6);
+  background: linear-gradient(135deg, var(--table-blue-50), var(--table-white));
+  border-bottom: 1px solid var(--table-gray-200);
+  gap: var(--table-space-4);
+}
+
+.admin-bulk-selection {
+  display: flex;
+  align-items: center;
+  gap: var(--table-space-3);
+}
+
+.admin-selection-info {
+  font-size: var(--table-font-size-sm);
+  color: var(--table-gray-600);
+  font-weight: 500;
+}
+
+.admin-bulk-buttons {
+  display: flex;
+  gap: var(--table-space-3);
+}
+
+.admin-bulk-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--table-space-2);
+  padding: var(--table-space-2) var(--table-space-4);
+  border: none;
+  border-radius: var(--table-radius);
+  font-size: var(--table-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-bulk-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.admin-bulk-btn-all {
+  background: var(--table-blue-100);
+  color: var(--table-blue-600);
+  border: 1px solid var(--table-blue-200);
+}
+
+.admin-bulk-btn-all:hover:not(:disabled) {
+  background: var(--table-blue-500);
+  color: var(--table-white);
+  transform: scale(1.05);
+  box-shadow: var(--table-shadow);
+}
+
+.admin-bulk-btn-selected {
+  background: var(--table-green-light);
+  color: var(--table-green);
+  border: 1px solid var(--table-green);
+}
+
+.admin-bulk-btn-selected:hover:not(:disabled) {
+  background: var(--table-green);
+  color: var(--table-white);
+  transform: scale(1.05);
+  box-shadow: var(--table-shadow);
+}
+
+/* ===== CHECKBOX COLUMN ===== */
+.admin-col-checkbox,
+.col-checkbox {
+  width: 50px;
+  text-align: center;
+}
+
+.admin-checkbox-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--table-blue-600);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.admin-checkbox-input:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px var(--table-blue-100);
+}
+
+.admin-checkbox-input:checked {
+  background-color: var(--table-blue-600);
+  border-color: var(--table-blue-600);
+}
+
+.admin-checkbox-input:focus {
+  outline: 2px solid var(--table-blue-300);
+  outline-offset: 2px;
+}
+
+/* ===== SELECTED ROW STYLING ===== */
+.admin-table-row.selected {
+  background: var(--table-blue-50) !important;
+  border-left: 3px solid var(--table-blue-500);
+}
+
+.admin-table-row.selected:hover {
+  background: var(--table-blue-100) !important;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .admin-bulk-actions {
+    flex-direction: column;
+    gap: var(--table-space-3);
+    align-items: stretch;
+  }
+
+  .admin-bulk-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .admin-bulk-btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  .admin-bulk-btn span {
+    display: none;
+  }
+
+  .admin-bulk-btn-selected span {
+    display: inline;
+  }
+
+  .admin-col-checkbox {
+    width: 40px;
+  }
+
+  .admin-checkbox-input {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-bulk-actions {
+    padding: var(--table-space-3);
+  }
+
+  .admin-selection-info {
+    font-size: var(--table-font-size-xs);
+    text-align: center;
+  }
+
+  .admin-bulk-buttons {
+    gap: var(--table-space-2);
+  }
+
+  .admin-bulk-btn {
+    padding: var(--table-space-2) var(--table-space-3);
+    font-size: var(--table-font-size-xs);
+  }
+
+  .admin-col-checkbox {
+    width: 35px;
+  }
+
+  .admin-checkbox-input {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 /* ===== TABLE COLUMNS ===== */
 .admin-col-id,
 .col-id {

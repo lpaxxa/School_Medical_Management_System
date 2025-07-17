@@ -81,6 +81,21 @@ const UserManagement = () => {
   // State cho chức năng gửi email
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [sendingUserId, setSendingUserId] = useState(null);
+  const [isSendingBulkEmail, setIsSendingBulkEmail] = useState(false);
+
+  // ✅ NEW: State để track users đã được cập nhật (để reset email sent status)
+  const [updatedUserIds, setUpdatedUserIds] = useState([]);
+
+  // ✅ NEW: Effect để clear updatedUserIds sau 5 giây để tránh memory leak
+  useEffect(() => {
+    if (updatedUserIds.length > 0) {
+      const timer = setTimeout(() => {
+        setUpdatedUserIds([]);
+      }, 5000); // Clear sau 5 giây
+
+      return () => clearTimeout(timer);
+    }
+  }, [updatedUserIds]);
 
   // State cho pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -546,6 +561,10 @@ const UserManagement = () => {
 
         console.log("Edit mode - sending data:", editData);
         await updateUser(userData.id, editData);
+
+        // ✅ NEW: Thêm user ID vào danh sách đã cập nhật để reset email sent status
+        setUpdatedUserIds((prev) => [...prev, userData.id]);
+
         showSuccess(
           "Cập nhật người dùng thành công!",
 
@@ -687,6 +706,110 @@ const UserManagement = () => {
     );
   };
 
+  // ✅ NEW: Handle bulk send email
+  const handleBulkSendEmail = async (usersToSend, type) => {
+    if (!usersToSend || usersToSend.length === 0) {
+      showError(
+        "Không có người dùng",
+        "Không có người dùng nào để gửi email.",
+        "Vui lòng chọn ít nhất một người dùng hoặc kiểm tra danh sách."
+      );
+      return;
+    }
+
+    const typeText = type === "all" ? "tất cả" : "đã chọn";
+    const userCount = usersToSend.length;
+
+    // Confirm trước khi gửi bulk email
+    showConfirm(
+      `Xác nhận gửi email ${typeText}`,
+      `Gửi email thông tin tài khoản cho ${userCount} người dùng:\n\n` +
+        usersToSend
+          .slice(0, 3)
+          .map((user) => `- ${user.username} (${user.email})`)
+          .join("\n") +
+        (userCount > 3 ? `\n... và ${userCount - 3} người dùng khác` : "") +
+        `\n\nBạn có chắc chắn muốn gửi?`,
+      async () => {
+        // Callback khi xác nhận gửi bulk email
+        try {
+          setIsSendingBulkEmail(true);
+
+          const token = localStorage.getItem("authToken");
+          if (!token) {
+            throw new Error("Không tìm thấy token xác thực");
+          }
+
+          // Gọi API gửi bulk email
+          const userIds = usersToSend.map((user) => user.id);
+          const response = await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/v1/email/sendAccountEmail`,
+            userIds, // Gửi array chứa nhiều user IDs
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.status === 200) {
+            // Cập nhật state local để hiển thị trạng thái đã gửi cho tất cả users
+            const updatedUserIds = usersToSend.map((u) => u.id);
+
+            setUsers((prevUsers) =>
+              prevUsers.map((u) =>
+                updatedUserIds.includes(u.id) ? { ...u, emailSent: true } : u
+              )
+            );
+            setFilteredUsers((prevUsers) =>
+              prevUsers.map((u) =>
+                updatedUserIds.includes(u.id) ? { ...u, emailSent: true } : u
+              )
+            );
+
+            showSuccess(
+              `Gửi email ${typeText} thành công!`,
+              `Email thông tin tài khoản đã được gửi cho ${userCount} người dùng.`,
+              `Tất cả ${userCount} email đã được gửi thành công.`
+            );
+          }
+        } catch (error) {
+          console.error("Error sending bulk email:", error);
+
+          let errorMessage = `Có lỗi xảy ra khi gửi email ${typeText}. `;
+          if (error.response?.status === 401) {
+            errorMessage +=
+              "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+            setAuthRequired(true);
+          } else if (error.response?.status === 403) {
+            errorMessage += "Bạn không có quyền thực hiện thao tác này.";
+          } else if (error.response?.status === 400) {
+            errorMessage +=
+              error.response?.data?.message || "Dữ liệu không hợp lệ.";
+          } else if (error.response?.status === 500) {
+            errorMessage += "Lỗi máy chủ. Vui lòng thử lại sau.";
+          } else {
+            errorMessage += "Vui lòng thử lại.";
+          }
+
+          showError(
+            `Lỗi gửi email ${typeText}`,
+            `Không thể gửi email cho ${userCount} người dùng.`,
+            errorMessage
+          );
+        } finally {
+          setIsSendingBulkEmail(false);
+        }
+      },
+      {
+        type: "default",
+        confirmText: "Xác nhận",
+        cancelText: "Hủy",
+      }
+    );
+  };
+
   // Handle retry connection
   const handleRetry = () => {
     checkAuthAndTestConnection();
@@ -794,7 +917,7 @@ const UserManagement = () => {
           <div className="admin-error-details">
             <p>
               <strong>API Endpoint:</strong>{" "}
-              `${import.meta.env.VITE_BACKEND_URL}/api/v1/account-members/getAll`
+              http://localhost:8080/api/v1/account-members/getAll
             </p>
             {currentUser ? (
               <p>
@@ -973,9 +1096,12 @@ const UserManagement = () => {
           onDelete={handleDeleteUser}
           onToggleStatus={handleToggleStatus}
           onSendEmail={handleSendEmail}
+          onBulkSendEmail={handleBulkSendEmail}
           getRoleDisplayName={getRoleDisplayName}
           isSendingEmail={isSendingEmail}
           sendingUserId={sendingUserId}
+          isSendingBulkEmail={isSendingBulkEmail}
+          updatedUserIds={updatedUserIds}
         />
 
         {/* Pagination Controls */}
