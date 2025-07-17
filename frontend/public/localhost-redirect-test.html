@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localhost Redirect Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .info { background-color: #e3f2fd; color: #1976d2; }
+        .success { background-color: #e8f5e8; color: #2e7d32; }
+        .warning { background-color: #fff3e0; color: #f57c00; }
+        .error { background-color: #ffebee; color: #c62828; }
+        button {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #1565c0;
+        }
+        .url-display {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Localhost Redirect Test</h1>
+        <p>Trang này để test việc redirect từ localhost về production URL khi có OAuth parameters.</p>
+        
+        <div id="status" class="status info">
+            Đang kiểm tra URL hiện tại...
+        </div>
+        
+        <div class="url-display">
+            <strong>Current URL:</strong><br>
+            <span id="currentUrl"></span>
+        </div>
+        
+        <h3>Test Cases:</h3>
+        <button onclick="testWithToken()">Test với Token Parameter</button>
+        <button onclick="testWithCode()">Test với Code Parameter</button>
+        <button onclick="testWithError()">Test với Error Parameter</button>
+        <button onclick="clearParams()">Clear Parameters</button>
+        
+        <h3>Redirect Logic:</h3>
+        <ul>
+            <li>Nếu URL chứa localhost + OAuth parameters → Redirect về production</li>
+            <li>Production URL: <code>https://school-medical-management-system-red.vercel.app</code></li>
+            <li>Parameters được giữ nguyên trong redirect</li>
+        </ul>
+        
+        <div id="log" style="margin-top: 20px;">
+            <h3>Log:</h3>
+            <div id="logContent" style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logContent = document.getElementById('logContent');
+            const timestamp = new Date().toLocaleTimeString();
+            logContent.innerHTML += `[${timestamp}] ${message}<br>`;
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function updateCurrentUrl() {
+            document.getElementById('currentUrl').textContent = window.location.href;
+        }
+
+        function checkForRedirect() {
+            const currentUrl = window.location.href;
+            const currentOrigin = window.location.origin;
+            
+            log(`Checking URL: ${currentUrl}`);
+            
+            // Kiểm tra nếu đang ở localhost và có OAuth parameters
+            const isLocalhost = currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1');
+            const hasOAuthParams = currentUrl.includes('token=') || currentUrl.includes('code=') || currentUrl.includes('error=');
+            
+            if (isLocalhost && hasOAuthParams) {
+                log('🔄 Detected localhost OAuth redirect condition');
+                updateStatus('Phát hiện localhost với OAuth parameters - Sẽ redirect...', 'warning');
+                
+                // Production URL
+                const productionOrigin = 'https://school-medical-management-system-red.vercel.app';
+                
+                // Replace localhost với production URL
+                const fixedUrl = currentUrl.replace(currentOrigin, productionOrigin);
+                
+                log(`🔄 Would redirect to: ${fixedUrl}`);
+                updateStatus(`Sẽ redirect đến: ${fixedUrl}`, 'success');
+                
+                // Uncomment dòng dưới để thực hiện redirect thật
+                // window.location.href = fixedUrl;
+                
+                return true;
+            } else if (isLocalhost) {
+                log('ℹ️ Localhost detected but no OAuth parameters');
+                updateStatus('Đang ở localhost nhưng không có OAuth parameters', 'info');
+            } else if (hasOAuthParams) {
+                log('ℹ️ OAuth parameters detected but not on localhost');
+                updateStatus('Có OAuth parameters nhưng không ở localhost', 'info');
+            } else {
+                log('ℹ️ Normal URL, no redirect needed');
+                updateStatus('URL bình thường, không cần redirect', 'info');
+            }
+            
+            return false;
+        }
+
+        function testWithToken() {
+            const newUrl = window.location.origin + window.location.pathname + '?token=test_token_123&user=test_user';
+            log(`Testing with token: ${newUrl}`);
+            window.history.pushState({}, '', newUrl);
+            updateCurrentUrl();
+            checkForRedirect();
+        }
+
+        function testWithCode() {
+            const newUrl = window.location.origin + window.location.pathname + '?code=test_code_123&state=test_state';
+            log(`Testing with code: ${newUrl}`);
+            window.history.pushState({}, '', newUrl);
+            updateCurrentUrl();
+            checkForRedirect();
+        }
+
+        function testWithError() {
+            const newUrl = window.location.origin + window.location.pathname + '?error=access_denied&error_description=User%20denied%20access';
+            log(`Testing with error: ${newUrl}`);
+            window.history.pushState({}, '', newUrl);
+            updateCurrentUrl();
+            checkForRedirect();
+        }
+
+        function clearParams() {
+            const newUrl = window.location.origin + window.location.pathname;
+            log(`Clearing parameters: ${newUrl}`);
+            window.history.pushState({}, '', newUrl);
+            updateCurrentUrl();
+            checkForRedirect();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Localhost Redirect Test initialized');
+            updateCurrentUrl();
+            checkForRedirect();
+        });
+    </script>
+</body>
+</html>
