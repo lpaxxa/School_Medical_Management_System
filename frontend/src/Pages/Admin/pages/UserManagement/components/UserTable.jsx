@@ -32,9 +32,9 @@ const UserTable = ({
   // Modern Loading State
   if (isLoading) {
     return (
-      <div className="table-loading-state">
-        <div className="loading-content">
-          <FaSpinner className="loading-icon" />
+      <div className="admin-table-loading-state">
+        <div className="admin-loading-content">
+          <FaSpinner className="admin-loading-icon" />
           <h3>Đang tải dữ liệu</h3>
           <p>Vui lòng đợi trong giây lát...</p>
         </div>
@@ -45,9 +45,9 @@ const UserTable = ({
   // Modern Empty State
   if (!users || users.length === 0) {
     return (
-      <div className="table-empty-state">
-        <div className="empty-content">
-          <FaInbox className="empty-icon" />
+      <div className="admin-table-empty-state">
+        <div className="admin-empty-content">
+          <FaInbox className="admin-empty-icon" />
           <h3>Không có dữ liệu</h3>
           <p>
             Hiện tại chưa có người dùng nào trong hệ thống hoặc không có kết quả
@@ -59,56 +59,60 @@ const UserTable = ({
   }
 
   return (
-    <div className="modern-table-container">
-      <div className="table-header">
+    <div className="admin-modern-table-container">
+      <div className="admin-table-header">
         <h3>Danh sách người dùng</h3>
-        <span className="table-count">
+        <span className="admin-table-count">
           {totalUsers > 0
             ? `Trang ${currentPage} - ${users.length} người dùng (${totalUsers} tổng)`
             : `${users.length} người dùng`}
         </span>
       </div>
 
-      <div className="table-scroll">
-        <table className="modern-table">
+      <div className="admin-table-scroll">
+        <table className="admin-modern-table">
           <thead>
             <tr>
-              <th className="col-id">ID</th>
-              <th className="col-email">Email</th>
-              <th className="col-phone">Số điện thoại</th>
-              <th className="col-role">Vai trò</th>
-              <th className="col-status">Trạng thái</th>
-              <th className="col-email-action">Gửi email</th>
-              <th className="col-actions">Thao tác</th>
+              <th className="admin-col-id">ID</th>
+              <th className="admin-col-email">Email</th>
+              <th className="admin-col-phone">Số điện thoại</th>
+              <th className="admin-col-role">Vai trò</th>
+              <th className="admin-col-status">Trạng thái</th>
+              <th className="admin-col-email-action">Gửi email</th>
+              <th className="admin-col-actions">Thao tác</th>
             </tr>
           </thead>
           <tbody>
             {users.map((user, index) => (
               <tr
                 key={user.id}
-                className={`table-row ${index % 2 === 0 ? "even" : "odd"}`}
+                className={`admin-table-row ${
+                  index % 2 === 0 ? "even" : "odd"
+                }`}
               >
-                <td className="col-id">
-                  <span className="user-id">{user.id}</span>
+                <td className="admin-col-id">
+                  <span className="admin-user-id">{user.id}</span>
                 </td>
 
-                <td className="col-email">
-                  <span className="user-email">{user.email}</span>
+                <td className="admin-col-email">
+                  <span className="admin-user-email">{user.email}</span>
                 </td>
 
-                <td className="col-phone">
-                  <span className="user-phone">{user.phoneNumber}</span>
+                <td className="admin-col-phone">
+                  <span className="admin-user-phone">{user.phoneNumber}</span>
                 </td>
 
-                <td className="col-role">
-                  <span className={`role-badge ${user.role?.toLowerCase()}`}>
+                <td className="admin-col-role">
+                  <span
+                    className={`admin-role-badge ${user.role?.toLowerCase()}`}
+                  >
                     {getRoleDisplayName(user.role)}
                   </span>
                 </td>
 
-                <td className="col-status">
+                <td className="admin-col-status">
                   <button
-                    className={`status-toggle ${
+                    className={`admin-status-toggle ${
                       user.isActive ? "active" : "inactive"
                     }`}
                     onClick={() => {
@@ -125,31 +129,31 @@ const UserTable = ({
                   >
                     {user.isActive ? (
                       <>
-                        <FaToggleOn className="toggle-icon" />
+                        <FaToggleOn className="admin-toggle-icon" />
                         <span>HOẠT ĐỘNG</span>
                       </>
                     ) : (
                       <>
-                        <FaToggleOff className="toggle-icon" />
+                        <FaToggleOff className="admin-toggle-icon" />
                         <span>TẠM NGƯNG</span>
                       </>
                     )}
                   </button>
                 </td>
 
-                <td className="col-email-action">
+                <td className="admin-col-email-action">
                   <button
-                    className={`email-btn ${
+                    className={`admin-email-btn ${
                       sentEmailUsers.includes(user.id) ? "sent" : ""
                     }`}
                     onClick={() => {
                       if (onSendEmail) {
                         onSendEmail(user);
-                        setSentEmailUsers(prev => [...prev, user.id]);
+                        setSentEmailUsers((prev) => [...prev, user.id]);
                       }
                     }}
                     disabled={
-                      isSendingEmail && sendingUserId === user.id ||
+                      (isSendingEmail && sendingUserId === user.id) ||
                       sentEmailUsers.includes(user.id)
                     }
                     title={
@@ -159,26 +163,26 @@ const UserTable = ({
                     }
                   >
                     {isSendingEmail && sendingUserId === user.id ? (
-                      <FaSpinner className="spin-icon" />
+                      <FaSpinner className="admin-spin-icon" />
                     ) : sentEmailUsers.includes(user.id) ? (
-                      <FaCheck className="check-icon" />
+                      <FaCheck className="admin-check-icon" />
                     ) : (
-                      <FaEnvelope className="envelope-icon" />
+                      <FaEnvelope className="admin-envelope-icon" />
                     )}
                   </button>
                 </td>
 
-                <td className="col-actions">
-                  <div className="action-buttons">
+                <td className="admin-col-actions">
+                  <div className="admin-action-buttons">
                     <button
-                      className="action-btn view"
+                      className="admin-action-btn view"
                       onClick={() => onView(user)}
                       title="Xem chi tiết"
                     >
                       <FaEye />
                     </button>
                     <button
-                      className="action-btn edit"
+                      className="admin-action-btn edit"
                       onClick={() => onEdit(user)}
                       title="Chỉnh sửa"
                     >
