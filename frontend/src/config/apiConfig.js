@@ -10,7 +10,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || `${import.meta.env.VITE_
 // Google OAuth Configuration
 const GOOGLE_CONFIG = {
   clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id',
-  redirectUri: import.meta.env.VITE_GOOGLE_REDIRECT_URI || 'http://localhost:5173/auth/oauth2/callback',
+  redirectUri: import.meta.env.VITE_GOOGLE_REDIRECT_URI || 'https://school-medical-management-system-red.vercel.app/auth/oauth2/callback',
   backendUrl: BACKEND_URL
 };
 

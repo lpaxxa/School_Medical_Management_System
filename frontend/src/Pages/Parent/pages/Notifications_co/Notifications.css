@@ -39,7 +39,7 @@
   --pn-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   
   /* Typography */
-  --pn-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --pn-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --pn-text-xs: 0.75rem;
   --pn-text-sm: 0.875rem;
   --pn-text-base: 1rem;
@@ -297,7 +297,8 @@
 }
 
 /* Filter Controls */
-.pn-filters {
+.pn-filters,
+.parentfix-filters {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   border: 2px solid var(--pn-gray-200);
@@ -307,14 +308,16 @@
   box-shadow: var(--pn-shadow-lg);
 }
 
-.pn-filters-header {
+.pn-filters-header,
+.parentfix-filters-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--pn-space-6);
 }
 
-.pn-filters-title {
+.pn-filters-title,
+.parentfix-filters-title {
   display: flex;
   align-items: center;
   gap: var(--pn-space-3);
@@ -323,7 +326,8 @@
   color: var(--pn-gray-800);
 }
 
-.pn-filter-count {
+.pn-filter-count,
+.parentfix-filter-count {
   background: var(--pn-primary);
   color: var(--pn-white);
   padding: var(--pn-space-1) var(--pn-space-3);
@@ -332,7 +336,8 @@
   font-weight: 600;
 }
 
-.pn-clear-filters {
+.pn-clear-filters,
+.parentfix-clear-filters {
   background: var(--pn-danger);
   color: var(--pn-white);
   border: none;
@@ -347,26 +352,33 @@
   gap: var(--pn-space-2);
 }
 
-.pn-clear-filters:hover {
+.pn-clear-filters:hover,
+.parentfix-clear-filters:hover {
   background: #dc2626;
   transform: translateY(-1px);
   box-shadow: var(--pn-shadow-md);
 }
 
-.pn-filters-row {
+.pn-filters-row,
+.parentfix-filters-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--pn-space-6);
   margin-bottom: var(--pn-space-6);
+  align-items: end;
 }
 
-.pn-filter-group {
+.pn-filter-group,
+.parentfix-filter-group {
   display: flex;
   flex-direction: column;
   gap: var(--pn-space-2);
+  min-height: 72px;
+  justify-content: flex-end;
 }
 
-.pn-filter-label {
+.pn-filter-label,
+.parentfix-filter-label {
   display: flex;
   align-items: center;
   gap: var(--pn-space-2);
@@ -376,22 +388,182 @@
 }
 
 .pn-filter-select,
-.pn-filter-group .selectstudentfix {
+.pn-filter-group .selectstudentfix,
+.parentfix-filter-select {
   padding: var(--pn-space-3) var(--pn-space-4);
   border: 2px solid var(--pn-gray-300);
   border-radius: var(--pn-radius);
+  font-family: var(--pn-font);
   font-size: var(--pn-text-base);
   color: var(--pn-gray-700);
   background: var(--pn-white);
   cursor: pointer;
   transition: var(--pn-transition);
+  height: 48px;
+  min-width: 180px;
+  box-sizing: border-box;
+  /* Remove default arrow completely */
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
 }
 
 .pn-filter-select:focus,
-.pn-filter-group .selectstudentfix:focus {
+.pn-filter-group .selectstudentfix:focus,
+.parentfix-filter-select:focus {
   border-color: var(--pn-primary);
   outline: none;
   box-shadow: 0 0 0 3px rgba(1, 92, 146, 0.1);
+}
+
+/* Option elements styling */
+.pn-filter-select option,
+.pn-filter-group .selectstudentfix option,
+.parentfix-filter-select option {
+  font-family: var(--pn-font);
+  font-size: var(--pn-text-base);
+  color: var(--pn-gray-700) !important;
+  background: var(--pn-white) !important;
+  padding: 8px 12px;
+  line-height: 1.5;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Selected option styling */
+.pn-filter-select option:checked,
+.pn-filter-group .selectstudentfix option:checked,
+.parentfix-filter-select option:checked {
+  background: var(--pn-primary-light) !important;
+  color: var(--pn-white) !important;
+}
+
+/* Option hover styling */
+.pn-filter-select option:hover,
+.pn-filter-group .selectstudentfix option:hover,
+.parentfix-filter-select option:hover {
+  background: var(--pn-gray-100) !important;
+  color: var(--pn-gray-800) !important;
+}
+
+/* Ensure proper text rendering and remove default arrows */
+.pn-filter-select,
+.pn-filter-group .selectstudentfix,
+.parentfix-filter-select {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Remove IE default arrow */
+.pn-filter-select::-ms-expand,
+.pn-filter-group .selectstudentfix::-ms-expand,
+.parentfix-filter-select::-ms-expand {
+  display: none;
+}
+
+/* Remove Firefox default arrow */
+.pn-filter-select:-moz-focusring,
+.pn-filter-group .selectstudentfix:-moz-focusring,
+.parentfix-filter-select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 var(--pn-gray-700);
+}
+
+/* Additional browser compatibility fixes */
+select.pn-filter-select,
+select.selectstudentfix,
+select.parentfix-filter-select {
+  background-color: var(--pn-white) !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+}
+
+/* Force remove all default select styling */
+.pn-filter-container select,
+.pn-filter-group select,
+.parentfix-filter-container select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
+}
+
+/* Hover and active states for select */
+.pn-filter-select:hover,
+.pn-filter-group .selectstudentfix:hover,
+.parentfix-filter-select:hover {
+  border-color: var(--pn-primary-light);
+}
+
+.pn-filter-select:active,
+.pn-filter-group .selectstudentfix:active,
+.parentfix-filter-select:active {
+  border-color: var(--pn-primary);
+}
+
+/* Sort Toggle Button */
+.pn-sort-toggle,
+.parentfix-sort-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--pn-space-2);
+  padding: var(--pn-space-3) var(--pn-space-4);
+  border: 2px solid var(--pn-gray-300);
+  border-radius: var(--pn-radius);
+  background: var(--pn-white);
+  color: var(--pn-gray-700);
+  font-size: var(--pn-text-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--pn-transition);
+  height: 48px;
+  min-width: 180px;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.pn-sort-toggle:hover,
+.parentfix-sort-toggle:hover {
+  border-color: var(--pn-primary-light);
+  background: var(--pn-gray-50);
+  transform: translateY(-1px);
+}
+
+.pn-sort-toggle.active,
+.parentfix-sort-toggle.parentfix-active {
+  border-color: var(--pn-primary);
+  background: var(--pn-primary);
+  color: var(--pn-white);
+  box-shadow: 0 0 0 3px rgba(1, 92, 146, 0.1);
+}
+
+.pn-sort-toggle.active:hover,
+.parentfix-sort-toggle.parentfix-active:hover {
+  background: var(--pn-primary-dark);
+  border-color: var(--pn-primary-dark);
+}
+
+.pn-sort-toggle i,
+.parentfix-sort-toggle i {
+  font-size: var(--pn-text-sm);
 }
 
 .pn-filters-results {
