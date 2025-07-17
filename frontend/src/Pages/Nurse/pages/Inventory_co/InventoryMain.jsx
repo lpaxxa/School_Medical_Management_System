@@ -861,115 +861,13 @@ const InventoryPage = () => {
         <div className="row">
           <div className="col-12">
           
-            {/* Action Bar */}
-            <div className="card shadow-sm mb-4 lukhang-inventory-action-bar">
+            {/* Unified Card - Filter, Action and Table */}
+            <div className="card shadow-sm lukhang-inventory-unified-container">
               <div className="card-body">
-                <div className="row align-items-center">
-                  {/* Enhanced Search Area */}
-                  <div className="col-md-8 mb-3 mb-md-0">
-                    <div className="card shadow-sm border-0">
-                      <div className="card-body p-4">
-                        <div className="row g-3">
-                          {/* Hàng đầu tiên: Dropdown chọn loại tìm kiếm */}
-                          <div className="col-md-6">
-                            <label htmlFor="searchType" className="form-label fw-bold">
-                              <i className="fas fa-filter me-1"></i>
-                              LOẠI TÌM KIẾM
-                            </label>
-                            <select
-                              id="searchType"
-                              className="form-select form-select-lg medical-incidents-dropdown"
-                              value={searchFilter}
-                              onChange={(e) => {
-                                setSearchFilter(e.target.value);
-                                setSearchTerm('');
-                                setCurrentPage(1);
-                              }}
-                            >
-                              <option value="all">Tất cả</option>
-                              <option value="name">Theo tên vật phẩm</option>
-                              <option value="type">Theo loại</option>
-                              <option value="unit">Theo đơn vị</option>
-                              <option value="status">Theo trạng thái</option>
-                            </select>
-                          </div>
-
-                          {/* Hàng thứ hai: Input tìm kiếm và nút Đặt lại */}
-                          <div className="col-md-8">
-                            <label htmlFor="searchValue" className="form-label fw-bold">
-                              <i className={searchFilter === 'status' ? "fas fa-list me-1" : "fas fa-keyboard me-1"}></i>
-                              GIÁ TRỊ TÌM KIẾM
-                            </label>
-                            {searchFilter === 'status' ? (
-                              <select
-                                id="searchValue"
-                                className="form-select form-select-lg medical-incidents-dropdown"
-                                value={searchTerm}
-                                onChange={(e) => handleSearchChange(e.target.value)}
-                              >
-                                <option value="">-- Chọn trạng thái --</option>
-                                <option value="có sẵn">Có sẵn (&gt;20)</option>
-                                <option value="sắp hết">Sắp hết (0&lt;X≤20)</option>
-                                <option value="hết hàng">Hết hàng (=0)</option>
-                              </select>
-                            ) : (
-                              <input
-                                id="searchValue"
-                                type="text"
-                                className="form-control form-control-lg"
-                                value={searchTerm}
-                                onChange={(e) => handleSearchChange(e.target.value)}
-                                placeholder={
-                                  searchFilter === 'all' ? "Tìm kiếm theo tên, loại, đơn vị hoặc trạng thái..." :
-                                  searchFilter === 'name' ? "Nhập tên vật phẩm..." :
-                                  searchFilter === 'type' ? "Nhập loại vật phẩm..." :
-                                  searchFilter === 'unit' ? "Nhập đơn vị..." : "Nhập trạng thái..."
-                                }
-                              />
-                            )}
-                          </div>
-
-                          {/* Nút Đặt lại */}
-                          <div className="col-md-4 d-flex align-items-end">
-                            <button
-                              className="btn btn-outline-secondary btn-lg lukhang-reset-button"
-                              onClick={() => {
-                                setSearchTerm('');
-                                performSearch('', searchFilter);
-                              }}
-                              title="Xóa tìm kiếm"
-                            >
-                              <i className="fas fa-redo me-2"></i>
-                              Đặt lại
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Hiển thị trạng thái tìm kiếm */}
-                        {searchTerm && (
-                          <div className="row mt-3">
-                            <div className="col-12">
-                              <div className="alert alert-info mb-0">
-                                <i className="fas fa-info-circle me-2"></i>
-                                Tìm thấy <strong>{filteredItems.length}</strong> kết quả
-                                {searchFilter !== 'all' && (
-                                  <span> trong mục <strong>
-                                    {searchFilter === 'name' ? 'Tên vật phẩm' :
-                                     searchFilter === 'type' ? 'Loại' :
-                                     searchFilter === 'unit' ? 'Đơn vị' : 'Trạng thái'}
-                                  </strong></span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="col-md-4">
-                    <div className="d-flex justify-content-end gap-2 flex-wrap">
+                {/* Action Bar - Moved to top */}
+                <div className="row mb-4">
+                  <div className="col-12">
+                    <div className="d-flex justify-content-end">
                       <button
                         className="btn lukhang-inventory-add-item-btn"
                         onClick={() => setShowAddModal(true)}
@@ -995,13 +893,110 @@ const InventoryPage = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            
-            {/* Content */}
-            <div className="card shadow-sm lukhang-inventory-table-container">
-              <div className="card-body">
-                {renderInventoryTable()}
+
+                {/* Filter Section */}
+                <div className="row g-3 align-items-end mb-4">
+                  {/* Dropdown chọn loại tìm kiếm */}
+                  <div className="col-md-4">
+                    <label htmlFor="searchType" className="form-label fw-bold">
+                      <i className="fas fa-filter me-1"></i>
+                      Loại tìm kiếm
+                    </label>
+                    <select
+                      id="searchType"
+                      className="form-select form-select-lg medical-incidents-dropdown"
+                      value={searchFilter}
+                      onChange={(e) => {
+                        setSearchFilter(e.target.value);
+                        setSearchTerm('');
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <option value="all">Tất cả</option>
+                      <option value="name">Theo tên vật phẩm</option>
+                      <option value="type">Theo loại</option>
+                      <option value="unit">Theo đơn vị</option>
+                      <option value="status">Theo trạng thái</option>
+                    </select>
+                  </div>
+
+                  {/* Input tìm kiếm */}
+                  <div className="col-md-6">
+                    <label htmlFor="searchValue" className="form-label fw-bold">
+                      <i className={searchFilter === 'status' ? "fas fa-list me-1" : "fas fa-keyboard me-1"}></i>
+                      Giá trị tìm kiếm
+                    </label>
+                    {searchFilter === 'status' ? (
+                      <select
+                        id="searchValue"
+                        className="form-select form-select-lg medical-incidents-dropdown"
+                        value={searchTerm}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                      >
+                        <option value="">-- Chọn trạng thái --</option>
+                        <option value="có sẵn">Có sẵn (&gt;20)</option>
+                        <option value="sắp hết">Sắp hết (0&lt;X≤20)</option>
+                        <option value="hết hàng">Hết hàng (=0)</option>
+                      </select>
+                    ) : (
+                      <input
+                        id="searchValue"
+                        type="text"
+                        className="form-control form-control-lg"
+                        value={searchTerm}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                        placeholder={
+                          searchFilter === 'all' ? "Tìm kiếm theo tên, loại, đơn vị hoặc trạng thái..." :
+                          searchFilter === 'name' ? "Nhập tên vật phẩm..." :
+                          searchFilter === 'type' ? "Nhập loại vật phẩm..." :
+                          searchFilter === 'unit' ? "Nhập đơn vị..." : "Nhập trạng thái..."
+                        }
+                      />
+                    )}
+                  </div>
+
+                  {/* Nút Đặt lại */}
+                  <div className="col-md-2">
+                    <button
+                      className="btn btn-outline-secondary btn-lg w-100"
+                      onClick={() => {
+                        setSearchTerm('');
+                        performSearch('', searchFilter);
+                      }}
+                      title="Xóa tìm kiếm"
+                    >
+                      <i className="fas fa-redo me-2"></i>
+                      Đặt lại
+                    </button>
+                  </div>
+                </div>
+
+                {/* Hiển thị trạng thái tìm kiếm */}
+                {searchTerm && (
+                  <div className="row mb-3">
+                    <div className="col-12">
+                      <div className="alert alert-info mb-0">
+                        <i className="fas fa-info-circle me-2"></i>
+                        Tìm thấy <strong>{filteredItems.length}</strong> kết quả
+                        {searchFilter !== 'all' && (
+                          <span> trong mục <strong>
+                            {searchFilter === 'name' ? 'Tên vật phẩm' :
+                             searchFilter === 'type' ? 'Loại' :
+                             searchFilter === 'unit' ? 'Đơn vị' : 'Trạng thái'}
+                          </strong></span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Divider */}
+                <hr className="my-3" />
+
+                {/* Table Content */}
+                <div className="lukhang-inventory-table-content">
+                  {renderInventoryTable()}
+                </div>
               </div>
             </div>
             

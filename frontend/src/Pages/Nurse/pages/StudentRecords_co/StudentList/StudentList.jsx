@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStudentRecords } from '../../../../../context/NurseContext/StudentRecordsContext';
 import './StudentList.css';
 import StudentDetail from '../StudentDetail/StudentDetail';
-import { Form, Container, Row, Col, Card, Table, Button, InputGroup, Badge, Spinner, Alert, Pagination } from 'react-bootstrap';
+import { Form, Container, Card, Table, Button, InputGroup, Badge, Spinner, Alert, Pagination } from 'react-bootstrap';
 
 const StudentList = () => {
   // Sử dụng context thay vì local state và API calls
@@ -321,68 +321,121 @@ const StudentList = () => {
     );
   };
 
+  // Check if any filters are active
+  const hasActiveFilters = () => {
+    return keyword.trim() !== "" || selectedClass.trim() !== "" || selectedGrade.trim() !== "";
+  };
+
   // Hiển thị danh sách học sinh
   return (
     <Container fluid className="py-4">
-      <Card className="shadow-sm mb-4">
-        <Card.Body>
-          <Form onSubmit={handleSearchSubmit}>
-            <Row className="mb-3">
-              <Col md={12}>
-                <Form.Control
-                  type="text"
-                  name="keyword"
-                  placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
-                  value={keyword}
-                  onChange={handleSearchInputChange}
-                />
-              </Col>
-            </Row>
+      {/* Enhanced Filter Section - Styled like MedicineReceipts */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="card shadow-sm">
+            <div className="card-header text-white" style={{background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'}}>
+              <h5 className="mb-0" style={{color: 'white'}}>
+                <i className="fas fa-filter me-2"></i>
+                Quản lý danh sách học sinh
+              </h5>
+            </div>
+            <div className="card-body">
+              <Form onSubmit={handleSearchSubmit}>
+                <div className="row g-3 align-items-end">
+                  {/* Search by Name/ID */}
+                  <div className="col-md-4">
+                    <label htmlFor="searchKeyword" className="form-label fw-bold">
+                      <i className="fas fa-search me-1"></i>
+                      Tìm kiếm
+                    </label>
+                    <Form.Control
+                      id="searchKeyword"
+                      type="text"
+                      name="keyword"
+                      className="form-control form-control-lg"
+                      placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
+                      value={keyword}
+                      onChange={handleSearchInputChange}
+                    />
+                  </div>
 
-            <Row>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    <i className="fas fa-layer-group me-1"></i> Khối
-                  </Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="grade"
-                    placeholder="Nhập khối (vd: 10, 11, 12...)"
-                    value={selectedGrade}
-                    onChange={handleSearchInputChange}
-                    min="1"
-                    max="12"
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    <i className="fas fa-chalkboard me-1"></i> Lớp
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="class"
-                    placeholder="Nhập tên lớp (vd: 12A1, 11B2...)"
-                    value={selectedClass}
-                    onChange={handleSearchInputChange}
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4} className="d-flex align-items-end">
-                <Button 
-                  variant="outline-secondary" 
-                  onClick={handleResetFilters}
-                  className="w-100 mb-3"
-                >
-                  <i className="fas fa-redo me-1"></i> Đặt lại bộ lọc
-                </Button>
-              </Col>
-            </Row>
-          </Form>
-        </Card.Body>
-      </Card>
+                  {/* Grade Filter */}
+                  <div className="col-md-3">
+                    <label htmlFor="gradeFilter" className="form-label fw-bold">
+                      <i className="fas fa-layer-group me-1"></i>
+                      Khối
+                    </label>
+                    <Form.Control
+                      id="gradeFilter"
+                      type="number"
+                      name="grade"
+                      className="form-control form-control-lg"
+                      placeholder="Nhập khối (vd: 10, 11, 12...)"
+                      value={selectedGrade}
+                      onChange={handleSearchInputChange}
+                      min="1"
+                      max="12"
+                    />
+                  </div>
+
+                  {/* Class Filter */}
+                  <div className={hasActiveFilters() ? "col-md-3" : "col-md-5"}>
+                    <label htmlFor="classFilter" className="form-label fw-bold">
+                      <i className="fas fa-users me-1"></i>
+                      Lớp
+                    </label>
+                    <Form.Control
+                      id="classFilter"
+                      type="text"
+                      name="class"
+                      className="form-control form-control-lg"
+                      placeholder="Nhập tên lớp (vd: 12A1, 11B2...)"
+                      value={selectedClass}
+                      onChange={handleSearchInputChange}
+                    />
+                  </div>
+
+                  {/* Reset Button - Only show when filters are active */}
+                  {hasActiveFilters() && (
+                    <div className="col-md-2">
+                      <Button
+                        variant="outline-secondary"
+                        className="btn btn-outline-secondary btn-lg w-100"
+                        onClick={handleResetFilters}
+                        title="Xóa bộ lọc"
+                      >
+                        <i className="fas fa-redo me-2"></i>
+                        Đặt lại
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Filter Summary */}
+                {hasActiveFilters() && (
+                  <div className="row mt-3">
+                    <div className="col-12">
+                      <div className="alert alert-info mb-0">
+                        <i className="fas fa-info-circle me-2"></i>
+                        Tìm thấy <strong>{gradeFilteredStudents.length}</strong> học sinh
+                        {keyword.trim() !== "" && (
+                          <span> có tên/mã chứa "<strong>{keyword}</strong>"</span>
+                        )}
+                        {selectedGrade && (
+                          <span> thuộc khối <strong>{selectedGrade}</strong></span>
+                        )}
+                        {selectedClass.trim() !== "" && (
+                          <span> thuộc lớp "<strong>{selectedClass}</strong>"</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Form>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 className="mb-0">
