@@ -9,46 +9,20 @@ import { toast } from "react-toastify";
 import ConsentDetailModal from "./ConsentDetailModal";
 import VaccinationDetailModal from "./VaccinationDetailModal";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { formatDate, safeParseDate } from "../Community_co/utils/dateUtils";
 
 const Notifications = () => {
-  // Utility function to format Java LocalDateTime arrays
+  // Utility function to format dates using the improved dateUtils
   const formatDateTime = (timestamp) => {
-    console.log("formatDateTime input:", timestamp);
-
     if (!timestamp) return "N/A";
 
     try {
-      let date;
-
-      // Kiểm tra nếu timestamp là mảng Java LocalDateTime
-      if (Array.isArray(timestamp)) {
-        console.log("Processing array timestamp:", timestamp);
-
-        if (timestamp.length >= 5) {
-          const [year, month, day, hour = 0, minute = 0, second = 0] =
-            timestamp;
-          // Java month là 1-based, JavaScript month là 0-based
-          date = new Date(year, month - 1, day, hour, minute, second);
-          console.log("Created date from array:", date);
-        } else {
-          console.log("Array too short:", timestamp.length);
-          return "Dữ liệu không hợp lệ";
-        }
-      } else {
-        // Xử lý timestamp dạng string hoặc number
-        date = new Date(timestamp);
-      }
-
-      if (isNaN(date.getTime())) {
-        console.log("Invalid date created:", date);
-        return "Thời gian không hợp lệ";
-      }
-
-      // Format thành dd/MM/yyyy
-      const result = date.toLocaleDateString("vi-VN");
-
-      console.log("formatDateTime result:", result);
-      return result;
+      // Use the improved formatDate from dateUtils with date-only format
+      return formatDate(timestamp, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
     } catch (error) {
       console.error("Error in formatDateTime:", error);
       return "Lỗi xử lý thời gian";
@@ -60,20 +34,7 @@ const Notifications = () => {
     if (!timestamp) return new Date(0);
 
     try {
-      // Kiểm tra nếu timestamp là mảng Java LocalDateTime
-      if (Array.isArray(timestamp)) {
-        if (timestamp.length >= 5) {
-          const [year, month, day, hour = 0, minute = 0, second = 0] =
-            timestamp;
-          // Java month là 1-based, JavaScript month là 0-based
-          return new Date(year, month - 1, day, hour, minute, second);
-        } else {
-          return new Date(0); // Return epoch if array is too short
-        }
-      } else {
-        // Xử lý timestamp dạng string hoặc number
-        return new Date(timestamp);
-      }
+      return safeParseDate(timestamp);
     } catch (error) {
       console.error("Error parsing date:", error);
       return new Date(0);
@@ -117,15 +78,20 @@ const Notifications = () => {
   const [filters, setFilters] = useState({
     studentId: "", // Lọc theo học sinh
     consentStatus: "", // Lọc theo trạng thái phản hồi
-    academicYear: "", // Lọc theo năm học
   });
+
+  // State cho sort order cho health checkup
+  const [healthCheckupSortOrder, setHealthCheckupSortOrder] =
+    useState("newest"); // "newest" hoặc "oldest"
 
   // State cho bộ lọc vaccination
   const [vaccinationFilters, setVaccinationFilters] = useState({
-    studentId: "", // Lọc theo học sinh
     vaccinationType: "", // Lọc theo loại vaccine
     dateRange: "", // Lọc theo khoảng thời gian
   });
+
+  // State cho sort order cho vaccination
+  const [vaccinationSortOrder, setVaccinationSortOrder] = useState("newest"); // "newest" hoặc "oldest"
 
   // Context hooks
   const { currentUser } = useAuth();
@@ -235,29 +201,7 @@ const Notifications = () => {
       );
     }
 
-    // Lọc theo năm học
-    if (filters.academicYear) {
-      // Kiểm tra nhiều định dạng của năm học
-      filtered = filtered.filter((item) => {
-        const itemYear = item.academicYear;
-        const filterYear = filters.academicYear;
-
-        // So sánh chính xác
-        if (itemYear === filterYear) return true;
-
-        // Xử lý các định dạng khác nhau
-        if (
-          itemYear &&
-          filterYear &&
-          itemYear.replace(/\s+/g, "") === filterYear.replace(/\s+/g, "")
-        )
-          return true;
-
-        return false;
-      });
-    }
-
-    // Sắp xếp theo ngày mới nhất từ trên xuống
+    // Sắp xếp theo sort order
     filtered.sort((a, b) => {
       const dateA = parseDate(
         a.createdAt || a.campaignStartDate || a.updatedAt || 0
@@ -265,7 +209,12 @@ const Notifications = () => {
       const dateB = parseDate(
         b.createdAt || b.campaignStartDate || b.updatedAt || 0
       );
-      return dateB - dateA; // Ngày mới nhất trước
+
+      if (healthCheckupSortOrder === "newest") {
+        return dateB - dateA; // Ngày mới nhất trước
+      } else {
+        return dateA - dateB; // Ngày cũ nhất trước
+      }
     });
 
     return filtered;
@@ -372,14 +321,6 @@ const Notifications = () => {
   const getFilteredVaccinationData = () => {
     let filtered = [...vaccinationNotifications];
 
-    // Lọc theo học sinh
-    if (vaccinationFilters.studentId) {
-      filtered = filtered.filter((item) => {
-        // Giả sử vaccination notification có thông tin student
-        return item.studentId === vaccinationFilters.studentId;
-      });
-    }
-
     // Lọc theo loại vaccine
     if (vaccinationFilters.vaccinationType) {
       filtered = filtered.filter((item) => {
@@ -419,11 +360,16 @@ const Notifications = () => {
       }
     }
 
-    // Sắp xếp theo ngày mới nhất từ trên xuống
+    // Sắp xếp theo sort order
     filtered.sort((a, b) => {
       const dateA = parseDate(a.receivedDate || a.createdAt || 0);
       const dateB = parseDate(b.receivedDate || b.createdAt || 0);
-      return dateB - dateA; // Ngày mới nhất trước
+
+      if (vaccinationSortOrder === "newest") {
+        return dateB - dateA; // Ngày mới nhất trước
+      } else {
+        return dateA - dateB; // Ngày cũ nhất trước
+      }
     });
 
     return filtered;
@@ -901,18 +847,18 @@ const Notifications = () => {
     const activeFilters = getActiveFilterCount();
 
     return (
-      <div className="pn-filters">
-        <div className="pn-filters-header">
-          <h3 className="pn-filters-title">
+      <div className="parentfix-filters">
+        <div className="parentfix-filters-header">
+          <h3 className="parentfix-filters-title">
             <i className="fas fa-filter"></i>
             Bộ lọc
             {activeFilters > 0 && (
-              <span className="pn-filter-count">({activeFilters})</span>
+              <span className="parentfix-filter-count">({activeFilters})</span>
             )}
           </h3>
           {activeFilters > 0 && (
             <button
-              className="pn-clear-filters"
+              className="parentfix-clear-filters"
               onClick={clearAllFilters}
               title="Xóa tất cả bộ lọc"
             >
@@ -922,39 +868,49 @@ const Notifications = () => {
           )}
         </div>
 
-        <div className="pn-filters-row">
-          {/* Lọc theo năm học */}
-          <div className="pn-filter-group">
-            <label className="pn-filter-label">
-              <i className="fas fa-calendar-alt"></i>
-              Năm học
+        <div className="parentfix-filters-row">
+          {/* Sắp xếp theo thời gian */}
+          <div className="parentfix-filter-group">
+            <label className="parentfix-filter-label">
+              <i className="fas fa-sort"></i>
+              Sắp xếp theo thời gian
             </label>
-            <select
-              value={filters.academicYear}
-              onChange={(e) =>
-                handleFilterChange("academicYear", e.target.value)
+            <button
+              className={`parentfix-sort-toggle ${
+                healthCheckupSortOrder === "newest" ? "parentfix-active" : ""
+              }`}
+              onClick={() =>
+                setHealthCheckupSortOrder(
+                  healthCheckupSortOrder === "newest" ? "oldest" : "newest"
+                )
               }
-              className="pn-filter-select"
+              title={
+                healthCheckupSortOrder === "newest"
+                  ? "Đang hiển thị mới nhất trước, bấm để xem cũ nhất trước"
+                  : "Đang hiển thị cũ nhất trước, bấm để xem mới nhất trước"
+              }
             >
-              <option value="">Tất cả năm học</option>
-              {uniqueAcademicYears.map((year) => (
-                <option key={year.id} value={year.name}>
-                  {year.name}
-                </option>
-              ))}
-            </select>
+              <i
+                className={`fas ${
+                  healthCheckupSortOrder === "newest"
+                    ? "fa-sort-amount-down"
+                    : "fa-sort-amount-up"
+                }`}
+              ></i>
+              {healthCheckupSortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}
+            </button>
           </div>
 
           {/* Lọc theo học sinh */}
-          <div className="pn-filter-group">
-            <label className="pn-filter-label">
+          <div className="parentfix-filter-group">
+            <label className="parentfix-filter-label">
               <i className="fas fa-user-graduate"></i>
               Học sinh
             </label>
             <select
               value={filters.studentId}
               onChange={(e) => handleFilterChange("studentId", e.target.value)}
-              className="selectstudentfix"
+              className="parentfix-filter-select"
             >
               <option value="">Tất cả học sinh</option>
               {uniqueStudents.map((student) => (
@@ -966,8 +922,8 @@ const Notifications = () => {
           </div>
 
           {/* Lọc theo trạng thái phản hồi */}
-          <div className="pn-filter-group">
-            <label className="pn-filter-label">
+          <div className="parentfix-filter-group">
+            <label className="parentfix-filter-label">
               <i className="fas fa-check-circle"></i>
               Trạng thái phản hồi
             </label>
@@ -976,7 +932,7 @@ const Notifications = () => {
               onChange={(e) =>
                 handleFilterChange("consentStatus", e.target.value)
               }
-              className="pn-filter-select"
+              className="parentfix-filter-select"
             >
               <option value="">Tất cả trạng thái</option>
               <option value="PENDING">Chờ phản hồi</option>
@@ -987,8 +943,8 @@ const Notifications = () => {
         </div>
 
         {/* Hiển thị số kết quả */}
-        <div className="pn-filters-results">
-          <span className="pn-result-count">
+        <div className="parentfix-filters-results">
+          <span className="parentfix-result-count">
             <i className="fas fa-list"></i>
             Hiển thị {filteredConsentList.length} / {consentList.length} thông
             báo
@@ -1035,18 +991,18 @@ const Notifications = () => {
     const uniqueVaccineTypes = getUniqueVaccineTypes();
 
     return (
-      <div className="pn-filters">
-        <div className="pn-filters-header">
-          <h3 className="pn-filters-title">
+      <div className="parentfix-filters">
+        <div className="parentfix-filters-header">
+          <h3 className="parentfix-filters-title">
             <i className="fas fa-filter"></i>
             Bộ lọc
             {activeFilters > 0 && (
-              <span className="pn-filter-count">({activeFilters})</span>
+              <span className="parentfix-filter-count">({activeFilters})</span>
             )}
           </h3>
           {activeFilters > 0 && (
             <button
-              className="pn-clear-filters"
+              className="parentfix-clear-filters"
               onClick={clearAllVaccinationFilters}
               title="Xóa tất cả bộ lọc"
             >
@@ -1056,32 +1012,42 @@ const Notifications = () => {
           )}
         </div>
 
-        <div className="pn-filters-row">
-          {/* Lọc theo học sinh */}
-          <div className="pn-filter-group">
-            <label className="pn-filter-label">
-              <i className="fas fa-user-graduate"></i>
-              Học sinh
+        <div className="parentfix-filters-row">
+          {/* Sắp xếp theo thời gian */}
+          <div className="parentfix-filter-group">
+            <label className="parentfix-filter-label">
+              <i className="fas fa-sort"></i>
+              Sắp xếp theo thời gian
             </label>
-            <select
-              value={vaccinationFilters.studentId}
-              onChange={(e) =>
-                handleVaccinationFilterChange("studentId", e.target.value)
+            <button
+              className={`parentfix-sort-toggle ${
+                vaccinationSortOrder === "newest" ? "parentfix-active" : ""
+              }`}
+              onClick={() =>
+                setVaccinationSortOrder(
+                  vaccinationSortOrder === "newest" ? "oldest" : "newest"
+                )
               }
-              className="selectstudentfix"
+              title={
+                vaccinationSortOrder === "newest"
+                  ? "Đang hiển thị mới nhất trước, bấm để xem cũ nhất trước"
+                  : "Đang hiển thị cũ nhất trước, bấm để xem mới nhất trước"
+              }
             >
-              <option value="">Tất cả học sinh</option>
-              {uniqueStudents.map((student) => (
-                <option key={student.id} value={student.id}>
-                  {student.name} ({student.class})
-                </option>
-              ))}
-            </select>
+              <i
+                className={`fas ${
+                  vaccinationSortOrder === "newest"
+                    ? "fa-sort-amount-down"
+                    : "fa-sort-amount-up"
+                }`}
+              ></i>
+              {vaccinationSortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}
+            </button>
           </div>
 
           {/* Lọc theo loại vaccine */}
-          <div className="pn-filter-group">
-            <label className="pn-filter-label">
+          <div className="parentfix-filter-group">
+            <label className="parentfix-filter-label">
               <i className="fas fa-syringe"></i>
               Loại vaccine
             </label>
@@ -1090,7 +1056,7 @@ const Notifications = () => {
               onChange={(e) =>
                 handleVaccinationFilterChange("vaccinationType", e.target.value)
               }
-              className="pn-filter-select"
+              className="parentfix-filter-select"
             >
               <option value="">Tất cả loại vaccine</option>
               {uniqueVaccineTypes.map((type) => (
@@ -1102,8 +1068,8 @@ const Notifications = () => {
           </div>
 
           {/* Lọc theo thời gian */}
-          <div className="pn-filter-group">
-            <label className="pn-filter-label">
+          <div className="parentfix-filter-group">
+            <label className="parentfix-filter-label">
               <i className="fas fa-calendar-alt"></i>
               Thời gian
             </label>
@@ -1112,7 +1078,7 @@ const Notifications = () => {
               onChange={(e) =>
                 handleVaccinationFilterChange("dateRange", e.target.value)
               }
-              className="pn-filter-select"
+              className="parentfix-filter-select"
             >
               <option value="">Tất cả thời gian</option>
               <option value="week">7 ngày qua</option>
@@ -1123,8 +1089,8 @@ const Notifications = () => {
         </div>
 
         {/* Hiển thị số kết quả */}
-        <div className="pn-filters-results">
-          <span className="pn-result-count">
+        <div className="parentfix-filters-results">
+          <span className="parentfix-result-count">
             <i className="fas fa-list"></i>
             Hiển thị {filteredVaccinationData.length} /{" "}
             {vaccinationNotifications.length} thông báo

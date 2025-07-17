@@ -4,8 +4,8 @@
  */
 
 /**
- * Safely parse a date string, returning current date for invalid inputs
- * @param {string|Date} dateInput - Date string or Date object to parse
+ * Safely parse a date from various formats including Java LocalDateTime array
+ * @param {string|Array|Date|null|undefined} dateInput - Date to parse
  * @returns {Date} Valid Date object
  */
 export const safeParseDate = (dateInput) => {
@@ -23,28 +23,32 @@ export const safeParseDate = (dateInput) => {
     return dateInput;
   }
 
-  // Handle array format [year, month, day, hour, minute, second, millisecond]
+  // Handle array format [year, month, day, hour, minute, second, nanosecond]
+  // This is the format from Java LocalDateTime
   if (Array.isArray(dateInput)) {
     try {
       // Convert array to Date - JavaScript months are 0-based
-      const [year, month, day, hour = 0, minute = 0, second = 0, millisecond = 0] = dateInput;
-      
+      const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = dateInput;
+
       // Validate array components
       if (year < 1970 || year > 3000 || month < 1 || month > 12 || day < 1 || day > 31) {
-        console.warn('Invalid date array components:', dateInput, 'using current date instead');
+        console.warn('safeParseDate: Invalid date array components:', dateInput, 'using current date instead');
         return new Date();
       }
-      
+
+      // Convert nanoseconds to milliseconds (nanosecond / 1,000,000)
+      const millisecond = Math.floor(nanosecond / 1000000);
+
       const date = new Date(year, month - 1, day, hour, minute, second, millisecond);
-      
+
       if (isNaN(date.getTime())) {
-        console.warn('Invalid date created from array:', dateInput, 'using current date instead');
+        console.warn('safeParseDate: Invalid date created from array:', dateInput, 'using current date instead');
         return new Date();
       }
-      
+
       return date;
     } catch (error) {
-      console.warn('Error parsing date array:', dateInput, error, 'using current date instead');
+      console.warn('safeParseDate: Error parsing date array:', dateInput, error, 'using current date instead');
       return new Date();
     }
   }
