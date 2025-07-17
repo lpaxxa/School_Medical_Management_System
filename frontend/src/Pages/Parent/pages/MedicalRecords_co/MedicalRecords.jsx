@@ -356,7 +356,7 @@ const MedicalRecord = () => {
             {/* Student Selector */}
             <section className="student-section">
               <div className="chonhocsinhtabparent">
-                <div className="selector-header">
+                <div className="parent-selector-header">
                   <h2>Chọn học sinh</h2>
                   <p>Xem hồ sơ y tế của học sinh</p>
                 </div>
@@ -385,9 +385,6 @@ const MedicalRecord = () => {
               {/* Selected Student Info */}
               {selectedStudent && (
                 <div className="student-info">
-                  <div className="student-avatar">
-                    <FaUser />
-                  </div>
                   <div className="student-details">
                     <h3>{selectedStudent.fullName}</h3>
                     <div className="student-meta">
@@ -397,6 +394,31 @@ const MedicalRecord = () => {
                       <span className="meta-item">
                         Lớp: {selectedStudent.className}
                       </span>
+                    </div>
+                  </div>
+                  <div className="student-avatar">
+                    {selectedStudent.imageUrl ? (
+                      <img
+                        src={selectedStudent.imageUrl}
+                        alt={selectedStudent.fullName}
+                        onError={(e) => {
+                          // Fallback to default icon if image fails to load
+                          e.target.style.display = "none";
+                          e.target.nextSibling.style.display = "flex";
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className="avatar-fallback"
+                      style={{
+                        display: selectedStudent.imageUrl ? "none" : "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    >
+                      <FaUser />
                     </div>
                   </div>
                 </div>
