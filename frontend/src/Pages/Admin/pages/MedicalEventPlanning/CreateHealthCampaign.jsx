@@ -103,7 +103,7 @@ const CreateHealthCampaign = () => {
     try {
       console.log("🚀 Tạo chiến dịch kiểm tra sức khỏe:", formData);
 
-      // Gọi API tạo mới: http://localhost:8080/api/v1/health-campaigns
+      // Gọi API tạo mới: `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns`,
         {

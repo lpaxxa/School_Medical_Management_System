@@ -794,7 +794,7 @@ const UserManagement = () => {
           <div className="admin-error-details">
             <p>
               <strong>API Endpoint:</strong>{" "}
-              http://localhost:8080/api/v1/account-members/getAll
+              `${import.meta.env.VITE_BACKEND_URL}/api/v1/account-members/getAll`
             </p>
             {currentUser ? (
               <p>

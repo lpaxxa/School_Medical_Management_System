@@ -532,7 +532,7 @@ export const getParents = async () => {
 export const getParentById = async (id) => {
   try {
     const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/parents/${id}`, {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/parents/${id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -623,7 +623,7 @@ export const sendHealthCheckupNotification = async (notificationData) => {
 export const getCampaignStudents = async (campaignId) => {
   try {
     const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/health-campaigns/${campaignId}/students`, {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${campaignId}/students`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -644,7 +644,7 @@ export const getCampaignStudents = async (campaignId) => {
 export const getConsentDetails = async (consentId) => {
   try {
     const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8080/api/v1/parent-consents/${consentId}/details`, {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/parent-consents/${consentId}/details`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

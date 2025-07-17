@@ -192,7 +192,7 @@ const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/account-members
 ### API Endpoint đã cập nhật
 
 ```
-PUT http://localhost:8080/api/v1/account-members/update/{userId}
+PUT `${import.meta.env.VITE_BACKEND_URL}/api/v1/account-members/update/{userId}
 ```
 
 ### Request Body (chỉ 3 fields bắt buộc)
@@ -268,7 +268,7 @@ PUT http://localhost:8080/api/v1/account-members/update/{userId}
 ```javascript
 // Console output khi delete user
 Deleting user: {userId: "PARENT001", userName: "parent1"}
-Delete API endpoint: http://localhost:8080/api/v1/account-members/PARENT001
+Delete API endpoint: `${import.meta.env.VITE_BACKEND_URL}/api/v1/account-members/PARENT001
 Using auth token: Yes
 Delete response status: 200
 User deleted successfully: {success: true, message: "User deleted successfully"}

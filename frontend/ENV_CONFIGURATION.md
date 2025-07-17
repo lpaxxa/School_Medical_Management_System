@@ -29,8 +29,8 @@ This guide explains how to configure your frontend application to connect to dif
 
 2. Update `.env.local` with your local backend URL:
    ```env
-   VITE_API_BASE_URL=http://localhost:8080/api/v1
-   VITE_BACKEND_URL=http://localhost:8080
+   VITE_API_BASE_URL=`${import.meta.env.VITE_BACKEND_URL}/api/v1
+   VITE_BACKEND_URL=`${import.meta.env.VITE_BACKEND_URL}
    ```
 
 ### For Production Deployment:
@@ -128,7 +128,7 @@ This allows API calls to `/api/*` to be proxied to your backend during developme
 
 ### 1. Local Development
 - Frontend: `http://localhost:5173`
-- Backend: `http://localhost:8080`
+- Backend: ``${import.meta.env.VITE_BACKEND_URL}`
 - Configuration: Use `.env.local`
 
 ### 2. Staging Environment

@@ -330,7 +330,7 @@ const HealthDeclaration = () => {
         // Lấy thông tin hồ sơ sức khỏe đầy đủ từ API
         // studentId đã có định dạng đúng từ context (HS001, HS002, etc.)
         const response = await axios.get(
-          `http://localhost:8080/api/v1/health-profiles/getStudentProfileByID/${studentId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-profiles/getStudentProfileByID/${studentId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -1210,7 +1210,7 @@ const HealthDeclaration = () => {
           // Thử với endpoint khác
           try {
             const response = await axios.post(
-              `http://localhost:8080/api/v1/health-profiles/${studentNumericId}`,
+              `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-profiles/${studentNumericId}`,
               submissionData,
               {
                 headers: {

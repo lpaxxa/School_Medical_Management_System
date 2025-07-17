@@ -6,7 +6,7 @@ Cập nhật trang **Khai báo sức khỏe học sinh** để:
 
 1. **Phần "Thông tin sức khỏe cơ bản"**: Hiển thị dữ liệu từ API làm text mẫu cho người dùng xem và chỉnh sửa
 2. **Phần "Thông tin y tế bổ sung"**: Không hiển thị text mẫu, để trống cho người dùng tự nhập
-3. API endpoint: `http://localhost:8080/api/v1/health-profiles/getStudentProfileByID/{studentId}`
+3. API endpoint: ``${import.meta.env.VITE_BACKEND_URL}/api/v1/health-profiles/getStudentProfileByID/{studentId}`
 4. studentId thay đổi theo học sinh được chọn (HS001, HS002, ...)
 
 ## ✅ Các thay đổi đã thực hiện

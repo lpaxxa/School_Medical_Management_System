@@ -112,7 +112,7 @@ const HealthGuideDetail = () => {
             console.log("🧪 Testing Article Detail API...");
             try {
               const testResponse = await fetch(
-                `http://localhost:8080/api/health-articles/${articleId}`,
+                `${import.meta.env.VITE_BACKEND_URL}/api/health-articles/${articleId}`,
                 {
                   headers: {
                     Authorization: `Bearer ${localStorage.getItem(

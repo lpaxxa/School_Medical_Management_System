@@ -236,7 +236,7 @@ export const BlogProvider = ({ children }) => {
     
     // Nếu là URL tương đối (/images/...)
     if (url.startsWith('/')) {
-      return `http://localhost:8080${url}`;
+      return `${import.meta.env.VITE_BACKEND_URL}${url}`;
     }
     
     return url;

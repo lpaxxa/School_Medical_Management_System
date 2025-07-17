@@ -8,7 +8,7 @@
 
 ### 1. POST - Khai báo sức khỏe
 
-- **URL**: `http://localhost:8080/api/v1/health-profiles/full`
+- **URL**: ``${import.meta.env.VITE_BACKEND_URL}/api/v1/health-profiles/full`
 - **Method**: POST
 - **Content-Type**: application/json
 - **Authorization**: Bearer Token
@@ -48,7 +48,7 @@
 
 ### 2. GET - Danh sách Vaccines
 
-- **URL**: `http://localhost:8080/api/v1/vaccines/getAllVaccine`
+- **URL**: ``${import.meta.env.VITE_BACKEND_URL}/api/v1/vaccines/getAllVaccine`
 - **Method**: GET
 
 #### Response Format:

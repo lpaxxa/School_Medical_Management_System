@@ -15,7 +15,7 @@
 
 - **Action**: Open notification modal
 - **Expected**:
-  - API call to `http://localhost:8080/api/v1/students`
+  - API call to ``${import.meta.env.VITE_BACKEND_URL}/api/v1/students`
   - Students data loaded and displayed
   - Student count shown for each grade
 
@@ -48,7 +48,7 @@
 
 - **Action**: Select grades and click "Gửi Thông Báo"
 - **Expected**:
-  - API call to `http://localhost:8080/api/v1/health-campaigns/{campaignId}/send-notifications`
+  - API call to ``${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/{campaignId}/send-notifications`
   - Request body contains array of student IDs
   - Success modal shows after successful send
   - Modal closes and states reset

@@ -287,7 +287,7 @@ const HealthCampaignHistory = () => {
     try {
       console.log("🔄 Updating campaign...", editFormData);
 
-      const url = `http://localhost:8080/api/v1/health-campaigns/${selectedCampaign.id}`;
+      const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${selectedCampaign.id}`;
       console.log("📡 PUT API URL:", url);
       console.log("📡 Request body:", JSON.stringify(editFormData, null, 2));
 
@@ -371,7 +371,7 @@ const HealthCampaignHistory = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/v1/health-campaigns/${selectedCampaign.id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${selectedCampaign.id}`,
         {
           method: "DELETE",
           headers,
@@ -580,7 +580,7 @@ const HealthCampaignHistory = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/v1/health-campaigns/${selectedCampaign.id}/send-notifications`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${selectedCampaign.id}/send-notifications`,
         {
           method: "POST",
           headers,
@@ -657,7 +657,7 @@ const HealthCampaignHistory = () => {
         `🔄 Updating status for campaign ${campaign.id} from ${campaign.status} to ${newStatus}...`
       );
 
-      const url = `http://localhost:8080/api/v1/health-campaigns/${campaign.id}/status?status=${newStatus}`;
+      const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${campaign.id}/status?status=${newStatus}`;
       console.log("📡 PATCH API URL:", url);
 
       // Get auth token from localStorage

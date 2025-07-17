@@ -39,7 +39,7 @@ Quản lý thuốc và vật tư y tế cho Admin:
 
 ## API Endpoints
 
-Tất cả services đều sử dụng base URL: `http://localhost:8080/api/v1`
+Tất cả services đều sử dụng base URL: ``${import.meta.env.VITE_BACKEND_URL}/api/v1`
 
 ### Vaccination Plans
 

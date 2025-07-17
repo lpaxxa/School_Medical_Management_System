@@ -9,8 +9,8 @@ Service để quản lý các tính năng cộng đồng trong ứng dụng Scho
 ### Environment Variables
 
 ```env
-VITE_API_BASE_URL=http://localhost:8080/api/v1
-VITE_BACKEND_URL=http://localhost:8080
+VITE_API_BASE_URL=`${import.meta.env.VITE_BACKEND_URL}/api/v1
+VITE_BACKEND_URL=`${import.meta.env.VITE_BACKEND_URL}
 NODE_ENV=development
 ```
 

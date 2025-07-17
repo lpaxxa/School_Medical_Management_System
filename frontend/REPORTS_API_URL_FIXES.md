@@ -11,8 +11,8 @@ Error fetching detail data: Error: Không thể kết nối đến máy chủ
 
 ### 🔍 **Nguyên nhân:**
 
-1. **Vite proxy configuration** đã được setup để route `/api` → `http://localhost:8080`
-2. Nhưng code vẫn sử dụng **absolute URLs** (`http://localhost:8080/api/v1/...`)
+1. **Vite proxy configuration** đã được setup để route `/api` → ``${import.meta.env.VITE_BACKEND_URL}`
+2. Nhưng code vẫn sử dụng **absolute URLs** (``${import.meta.env.VITE_BACKEND_URL}/api/v1/...`)
 3. Dẫn đến **double routing** và malformed URLs
 
 ### ✅ **Các file đã sửa:**
