@@ -115,6 +115,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
           <i className="fas fa-arrow-left"></i> Quay lại
         </button>
         <h2 className="detail-title">Thông tin chi tiết học sinh</h2>
+        <div></div> {/* Cột trống để cân bằng layout */}
       </div>
       
       <div className="detail-content">

@@ -732,6 +732,14 @@ const MedicineReceipts = () => {
     setCurrentPage(1); // Reset to first page when filter changes
   };
 
+  // Check if any filters are active
+  const hasActiveFilters = () => {
+    return filterStatus !== "all" ||
+           searchStudentName.trim() !== "" ||
+           dateRange.startDate !== "" ||
+           dateRange.endDate !== "";
+  };
+
   // Clear all filters
   const clearDateFilters = () => {
     setFilterStatus("all");
@@ -839,7 +847,7 @@ const MedicineReceipts = () => {
                 </div>
 
                 {/* Date Range Filter */}
-                <div className="col-md-4">
+                <div className={hasActiveFilters() ? "col-md-4" : "col-md-6"}>
                   <label className="form-label fw-bold">
                     <i className="fas fa-calendar-alt me-1"></i>
                     Khoảng thời gian
@@ -863,18 +871,20 @@ const MedicineReceipts = () => {
                   </div>
                 </div>
 
-                {/* Reset Button */}
-                <div className="col-md-2">
-                  <Button
-                    variant="outline-secondary"
-                    className="btn btn-outline-secondary btn-lg w-100"
-                    onClick={clearDateFilters}
-                    title="Xóa bộ lọc"
-                  >
-                    <i className="fas fa-redo me-2"></i>
-                    Đặt lại
-                  </Button>
-                </div>
+                {/* Reset Button - Only show when filters are active */}
+                {hasActiveFilters() && (
+                  <div className="col-md-2">
+                    <Button
+                      variant="outline-secondary"
+                      className="btn btn-outline-secondary btn-lg w-100"
+                      onClick={clearDateFilters}
+                      title="Xóa bộ lọc"
+                    >
+                      <i className="fas fa-redo me-2"></i>
+                      Đặt lại
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Results Info */}

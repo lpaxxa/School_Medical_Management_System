@@ -497,7 +497,7 @@ const HealthReports = () => {
         <Col lg={4} md={6} className="mb-4">
           <Card className="chart-card h-100">
             <Card.Header className="chart-header">
-              <h5 className="mb-0" style={{color : 'white'}}>
+              <h5 className="mb-0" style={{color : 'black'}}>
                 <FaWeight className="me-2" />
                 Phân loại chỉ số BMI
               </h5>
@@ -512,7 +512,7 @@ const HealthReports = () => {
         <Col lg={4} md={6} className="mb-4">
           <Card className="chart-card h-100">
             <Card.Header className="chart-header">
-              <h5 className="mb-0" style={{color : 'white'}}>
+              <h5 className="mb-0" style={{color : 'black'}}>
                 <FaTint className="me-2" />
                 Phân bố nhóm máu
               </h5>
@@ -527,7 +527,7 @@ const HealthReports = () => {
         <Col lg={4} md={6} className="mb-4">
           <Card className="chart-card h-100">
             <Card.Header className="chart-header">
-              <h5 className="mb-0" style={{color : 'white'}}>
+              <h5 className="mb-0" style={{color : 'black'}}>
                 <FaSyringe className="me-2" />
                 Tình hình tiêm chủng
               </h5>
