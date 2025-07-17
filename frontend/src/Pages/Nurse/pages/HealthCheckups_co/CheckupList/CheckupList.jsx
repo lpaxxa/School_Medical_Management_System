@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Modal, Table, Badge, Row, Col, Alert, Spinner, ProgressBar, Form, ListGroup } from 'react-bootstrap';
+import { Card, Button, Modal, Table, Badge, Alert, Spinner, ProgressBar, Form, ListGroup } from 'react-bootstrap';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
 import { useAuth } from '../../../../../context/AuthContext';
 import Swal from 'sweetalert2';
@@ -113,10 +113,20 @@ const CheckupList = () => {
     setResponseFilter('');
   };
 
+  // Check if any student filters are active
+  const hasActiveStudentFilters = () => {
+    return nameFilter.trim() !== "" || classFilter.trim() !== "" || responseFilter !== "";
+  };
+
   // Handle reset main filters
   const handleResetMainFilters = () => {
     setSearchTerm('');
     setStatusFilter('');
+  };
+
+  // Check if any main filters are active
+  const hasActiveMainFilters = () => {
+    return searchTerm.trim() !== "" || statusFilter !== "";
   };
 
   // Handle opening the consent details modal
@@ -433,46 +443,92 @@ const CheckupList = () => {
       <div className="checkup-list-container lukhang-checkuplist-wrapper">
         {error && <Alert variant="danger">{error}</Alert>}
         
-        <div className="page-header lukhang-checkuplist-header-section">
-          <div className="header-title-section lukhang-checkuplist-title-section">
-            <h2 className="lukhang-checkuplist-main-title">
-              <FaCalendarAlt /> 
-              Quản lý Chiến dịch Khám sức khỏe
-            </h2>
-            <div className="header-reset-action">
-              <Button 
-                variant="primary" 
-                size="sm" 
-                onClick={handleResetMainFilters}
-                className="lukhang-checkuplist-reset-button"
-              >
-                Đặt lại
-              </Button>
-            </div>
-          </div>
-          <div className="header-filters">
-            <div className="filter-row lukhang-checkuplist-filters-row">
-              <div className="status-filter lukhang-checkuplist-status-filter">
-                <Form.Select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="status-filter-select lukhang-checkuplist-status-select"
-                >
-                  <option value="">Tất cả trạng thái</option>
-                  <option value="PREPARING">Đang chuẩn bị</option>
-                  <option value="ONGOING">Đang tiến hành</option>
-                  <option value="COMPLETED">Đã hoàn thành</option>
-                  <option value="CANCELLED">Đã hủy</option>
-                </Form.Select>
+        {/* Enhanced Filter Section - Styled like StudentList */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="card shadow-sm">
+              <div className="card-header text-white" style={{background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'}}>
+                <h5 className="mb-0" style={{color: 'white'}}>
+                  <i className="fas fa-filter me-2"></i>
+                  Bộ lọc Chiến dịch Khám sức khỏe
+                </h5>
               </div>
-              <div className="search-container lukhang-checkuplist-search-container">
-                <Form.Control
-                  type="text"
-                  placeholder="Tìm kiếm chiến dịch..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input lukhang-checkuplist-search-input"
-                />
+              <div className="card-body">
+                <div className="row g-3 align-items-end">
+                  {/* Status Filter */}
+                  <div className="col-md-4">
+                    <label htmlFor="statusFilter" className="form-label fw-bold">
+                      <i className="fas fa-tasks me-1"></i>
+                      Trạng thái
+                    </label>
+                    <Form.Select
+                      id="statusFilter"
+                      className="form-select form-select-lg"
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                      <option value="">Tất cả trạng thái</option>
+                      <option value="PREPARING">Đang chuẩn bị</option>
+                      <option value="ONGOING">Đang tiến hành</option>
+                      <option value="COMPLETED">Đã hoàn thành</option>
+                      <option value="CANCELLED">Đã hủy</option>
+                    </Form.Select>
+                  </div>
+
+                  {/* Search Filter */}
+                  <div className={hasActiveMainFilters() ? "col-md-6" : "col-md-8"}>
+                    <label htmlFor="searchTerm" className="form-label fw-bold">
+                      <i className="fas fa-search me-1"></i>
+                      Tìm kiếm chiến dịch
+                    </label>
+                    <Form.Control
+                      id="searchTerm"
+                      type="text"
+                      className="form-control form-control-lg"
+                      placeholder="Tìm kiếm theo tên hoặc mô tả chiến dịch..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Reset Button - Only show when filters are active */}
+                  {hasActiveMainFilters() && (
+                    <div className="col-md-2">
+                      <Button
+                        variant="outline-secondary"
+                        className="btn btn-outline-secondary btn-lg w-100"
+                        onClick={handleResetMainFilters}
+                        title="Xóa bộ lọc"
+                      >
+                        <i className="fas fa-redo me-2"></i>
+                        Đặt lại
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Filter Summary */}
+                {hasActiveMainFilters() && (
+                  <div className="row mt-3">
+                    <div className="col-12">
+                      <div className="alert alert-info mb-0">
+                        <i className="fas fa-info-circle me-2"></i>
+                        Tìm thấy <strong>{filteredCampaigns.length}</strong> chiến dịch
+                        {searchTerm.trim() !== "" && (
+                          <span> có tên/mô tả chứa "<strong>{searchTerm}</strong>"</span>
+                        )}
+                        {statusFilter !== "" && (
+                          <span> với trạng thái <strong>
+                            {statusFilter === 'PREPARING' && 'Đang chuẩn bị'}
+                            {statusFilter === 'ONGOING' && 'Đang tiến hành'}
+                            {statusFilter === 'COMPLETED' && 'Đã hoàn thành'}
+                            {statusFilter === 'CANCELLED' && 'Đã hủy'}
+                          </strong></span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -584,35 +640,57 @@ const CheckupList = () => {
               </div>
             ) : (
               <div className="students-table-container">
-                {/* Student Filter Section */}
-                <div className="student-filters mb-3">
-                  <Row>
-                    <Col md={4}>
-                      <Form.Group>
-                        <Form.Label>Tìm theo tên học sinh:</Form.Label>
+                {/* Enhanced Student Filter Section */}
+                <div className="card shadow-sm mb-4">
+                  <div className="card-header" style={{background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)'}}>
+                    <h6 className="mb-0 text-white">
+                      <i className="fas fa-filter me-2"></i>
+                      Lọc danh sách học sinh
+                    </h6>
+                  </div>
+                  <div className="card-body">
+                    <div className="row g-3 align-items-end">
+                      {/* Name Filter */}
+                      <div className="col-md-4">
+                        <label htmlFor="nameFilter" className="form-label fw-bold">
+                          <i className="fas fa-user me-1"></i>
+                          Tên học sinh
+                        </label>
                         <Form.Control
+                          id="nameFilter"
                           type="text"
+                          className="form-control form-control-lg"
                           placeholder="Nhập tên học sinh..."
                           value={nameFilter}
                           onChange={(e) => setNameFilter(e.target.value)}
                         />
-                      </Form.Group>
-                    </Col>
-                    <Col md={4}>
-                      <Form.Group>
-                        <Form.Label>Tìm theo lớp:</Form.Label>
+                      </div>
+
+                      {/* Class Filter */}
+                      <div className="col-md-3">
+                        <label htmlFor="classFilter" className="form-label fw-bold">
+                          <i className="fas fa-users me-1"></i>
+                          Lớp
+                        </label>
                         <Form.Control
+                          id="classFilter"
                           type="text"
+                          className="form-control form-control-lg"
                           placeholder="Nhập lớp..."
                           value={classFilter}
                           onChange={(e) => setClassFilter(e.target.value)}
                         />
-                      </Form.Group>
-                    </Col>
-                    <Col md={4}>
-                      <Form.Group>
-                        <Form.Label>Tìm theo phản hồi:</Form.Label>
+                      </div>
+
+                      {/* Response Filter */}
+                      <div className={hasActiveStudentFilters() ? "col-md-3" : "col-md-5"}>
+                        <label htmlFor="responseFilter" className="form-label fw-bold">
+                          <i className="fas fa-comment-dots me-1"></i>
+                          Phản hồi
+                        </label>
                         <Form.Select
+                          id="responseFilter"
+                          className="form-select form-select-lg"
                           value={responseFilter}
                           onChange={(e) => setResponseFilter(e.target.value)}
                         >
@@ -621,16 +699,49 @@ const CheckupList = () => {
                           <option value="REJECTED">Đã từ chối</option>
                           <option value="PENDING">Chờ phản hồi</option>
                         </Form.Select>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  <Row className="mt-2">
-                    <Col md={12} className="text-end">
-                      <Button variant="outline-secondary" size="sm" onClick={handleResetFilters}>
-                        Đặt lại bộ lọc
-                      </Button>
-                    </Col>
-                  </Row>
+                      </div>
+
+                      {/* Reset Button - Only show when filters are active */}
+                      {hasActiveStudentFilters() && (
+                        <div className="col-md-2">
+                          <Button
+                            variant="outline-secondary"
+                            className="btn btn-outline-secondary btn-lg w-100"
+                            onClick={handleResetFilters}
+                            title="Xóa bộ lọc học sinh"
+                          >
+                            <i className="fas fa-redo me-2"></i>
+                            Đặt lại
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Student Filter Summary */}
+                    {hasActiveStudentFilters() && (
+                      <div className="row mt-3">
+                        <div className="col-12">
+                          <div className="alert alert-success mb-0">
+                            <i className="fas fa-info-circle me-2"></i>
+                            Tìm thấy <strong>{filteredStudents.length}</strong> học sinh
+                            {nameFilter.trim() !== "" && (
+                              <span> có tên chứa "<strong>{nameFilter}</strong>"</span>
+                            )}
+                            {classFilter.trim() !== "" && (
+                              <span> thuộc lớp "<strong>{classFilter}</strong>"</span>
+                            )}
+                            {responseFilter !== "" && (
+                              <span> với phản hồi <strong>
+                                {responseFilter === 'APPROVED' && 'Đã đồng ý'}
+                                {responseFilter === 'REJECTED' && 'Đã từ chối'}
+                                {responseFilter === 'PENDING' && 'Chờ phản hồi'}
+                              </strong></span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <Table striped bordered hover responsive>
