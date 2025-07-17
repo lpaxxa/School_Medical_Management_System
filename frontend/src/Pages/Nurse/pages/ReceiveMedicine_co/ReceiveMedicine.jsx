@@ -10,14 +10,9 @@ const ReceiveMedicineMain = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Giả lập hiệu ứng loading
+  // Loại bỏ loading giả lập - trang sẽ load ngay lập tức
   useEffect(() => {
-    // Thiết lập timeout để hiện loading indicator
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500); // 1.5 giây để giả lập loading
-    
-    return () => clearTimeout(timer);
+    setIsLoading(false);
   }, []);
 
   if (isLoading) {
