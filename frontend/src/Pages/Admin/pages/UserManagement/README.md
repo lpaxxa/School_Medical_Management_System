@@ -570,4 +570,135 @@ Response:
 
 ---
 
+## 📧 Bulk Email Features (v2.3.0)
+
+### Tính năng mới được thêm
+
+**1. Checkbox Selection System:**
+
+- Checkbox ở header để select/deselect tất cả users
+- Checkbox ở mỗi row để chọn individual users
+- Visual feedback cho selected rows (highlight màu xanh)
+
+**2. Bulk Actions Header:**
+
+- Hiển thị số lượng users đã chọn
+- 2 buttons chính: "Gửi tất cả" và "Gửi đã chọn"
+- Smart disable logic dựa trên trạng thái
+
+**3. Send All Functionality:**
+
+- Gửi email cho tất cả users chưa được gửi email
+- Tự động filter out users đã gửi email
+- Confirmation dialog với preview danh sách
+
+**4. Send Selected Functionality:**
+
+- Gửi email cho users được tích chọn
+- Tự động filter out users đã gửi email
+- Clear selection sau khi gửi thành công
+
+### Cách sử dụng Bulk Email
+
+**Gửi email cho tất cả:**
+
+```
+1. Click button "Gửi tất cả"
+2. Xem preview trong confirmation dialog
+3. Confirm → API gửi email cho tất cả users chưa gửi
+4. Success notification + update UI
+```
+
+**Gửi email cho users đã chọn:**
+
+```
+1. Tick checkbox các users cần gửi email
+2. Click "Gửi đã chọn (X)" với X là số lượng
+3. Xem preview trong confirmation dialog
+4. Confirm → API gửi email cho selected users
+5. Clear selection + success notification
+```
+
+### Technical Implementation
+
+**API Integration:**
+
+- Endpoint: `POST /api/v1/email/sendAccountEmail`
+- Payload: Array of user IDs `["USER001", "USER002", ...]`
+- Same endpoint cho single và bulk email
+
+**State Management:**
+
+- `selectedUsers`: Array chứa IDs của users được chọn
+- `selectAll`: Boolean cho select all checkbox
+- `isSendingBulkEmail`: Loading state cho bulk operations
+
+**localStorage Integration:**
+
+- Bulk email results được sync với localStorage
+- Persist trạng thái qua page refresh
+- Reset khi user được cập nhật
+
+### UI/UX Improvements
+
+**Responsive Design:**
+
+- Desktop: Full layout với text labels
+- Tablet: Compact buttons, responsive spacing
+- Mobile: Icon-only buttons, stacked layout
+
+**Visual Feedback:**
+
+- Selected rows có background màu xanh nhạt
+- Button states với loading spinners
+- Smart tooltips và disable logic
+
+**Error Handling:**
+
+- Comprehensive error messages
+- Fallback cho network issues
+- User-friendly notifications
+
+---
+
+## 🔄 Email Sent Status Persistence (v2.2.0)
+
+### Vấn đề đã giải quyết
+
+- **Trước**: Trạng thái email đã gửi bị mất khi refresh trang
+- **Sau**: Trạng thái được lưu trong localStorage, persist qua sessions
+
+### localStorage Management
+
+- **Key**: `admin_sentEmailUsers`
+- **Format**: Array of user IDs `[1, 2, 3, ...]`
+- **Auto-save**: Mỗi khi state thay đổi
+- **Error handling**: Try-catch cho tất cả operations
+
+### Utility Functions (Development Mode)
+
+```javascript
+// Trong browser console
+window.emailSentStatusUtils.clearAllSentStatus(); // Clear tất cả
+window.emailSentStatusUtils.clearUserSentStatus(userId); // Clear user cụ thể
+window.emailSentStatusUtils.getSentEmailUsers(); // Xem danh sách
+window.emailSentStatusUtils.isEmailSent(userId); // Kiểm tra user
+```
+
+### Workflow Mới
+
+1. **Gửi email lần đầu**: Nút disable, hiển thị check icon, lưu vào localStorage
+2. **Refresh trang**: Trạng thái được khôi phục từ localStorage
+3. **Cập nhật user**: Admin edit thông tin → Save → Reset trạng thái email
+4. **Nút được kích hoạt lại**: Có thể gửi email mới
+
+### Technical Implementation
+
+- **State initialization**: Load từ localStorage với error handling
+- **Auto-save**: useEffect sync state với localStorage
+- **Reset logic**: Filter out updated user IDs
+- **Debug logging**: Console logs cho development mode
+
+---
+
 _Cập nhật lần cuối: $(new Date().toLocaleDateString('vi-VN'))_
