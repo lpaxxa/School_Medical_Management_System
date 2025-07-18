@@ -1,6 +1,6 @@
 // Google OAuth2 Configuration
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id';
-const GOOGLE_REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI || 'http://localhost:3000/auth/oauth2/callback';
+const GOOGLE_REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI || 'https://school-medical-management-system-red.vercel.app/auth/oauth2/callback';
 const BACKEND_OAUTH_URL = import.meta.env.VITE_BACKEND_URL || `${import.meta.env.VITE_BACKEND_URL}`;
 
 class GoogleAuthService {
@@ -9,9 +9,10 @@ class GoogleAuthService {
    */
   initiateGoogleLogin() {
     try {
-      // Redirect đến backend OAuth2 authorization endpoint
-      const oauthUrl = `${BACKEND_OAUTH_URL}/oauth2/authorization/google`;
+      // Redirect đến backend OAuth2 authorization endpoint với redirect_uri parameter
+      const oauthUrl = `${BACKEND_OAUTH_URL}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}`;
       console.log('🔄 Redirecting to Google OAuth:', oauthUrl);
+      console.log('🔄 Redirect URI:', GOOGLE_REDIRECT_URI);
       window.location.href = oauthUrl;
     } catch (error) {
       console.error('❌ Error initiating Google login:', error);
