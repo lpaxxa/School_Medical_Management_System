@@ -19,8 +19,7 @@ const LocalhostRedirectHandler = () => {
         console.log('Current URL:', currentUrl);
         
         // Production URL
-        const productionOrigin = 'https://school-medical-management-system-red.vercel.app';
-        
+        const productionOrigin = 'https://www.medically.site';
         // Replace localhost với production URL
         const fixedUrl = currentUrl.replace(currentOrigin, productionOrigin);
         

@@ -6,7 +6,7 @@ console.log('🧪 Testing OAuth Solutions...\n');
 
 // Test URLs
 const BACKEND_URL = 'https://medically-backend.southeastasia.cloudapp.azure.com';
-const FRONTEND_URL = 'https://school-medical-management-system-red.vercel.app';
+const FRONTEND_URL = 'https://medically.site';
 const LOCALHOST_URL = 'http://localhost:5173';
 
 console.log('📋 Configuration:');
