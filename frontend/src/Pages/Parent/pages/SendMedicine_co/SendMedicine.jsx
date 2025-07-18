@@ -73,6 +73,11 @@ const SendMedicine = () => {
   const [currentConfirmationIndex, setCurrentConfirmationIndex] = useState(0);
   const [confirmationLoading, setConfirmationLoading] = useState(false);
 
+  // State cho delete confirmation modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteRequestId, setDeleteRequestId] = useState(null);
+  const [deleteRequestName, setDeleteRequestName] = useState("");
+
   const { students } = useStudentData();
 
   const timeOptions = [
@@ -301,14 +306,22 @@ const SendMedicine = () => {
     if (!selectedStudentFilter) return medicationHistory;
 
     return medicationHistory.filter(
-        (request) => request.studentId === selectedStudentFilter
+      (request) => request.studentId === selectedStudentFilter
     );
   };
-  // Function để xóa request
-  const handleDeleteRequest = async (requestId) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa yêu cầu này?")) {
-      return;
+  // Function để mở modal xác nhận xóa
+  const openDeleteModal = (requestId) => {
+    const requestToDelete = medicationHistory.find((r) => r.id === requestId);
+    if (requestToDelete) {
+      setDeleteRequestId(requestId);
+      setDeleteRequestName(requestToDelete.medicationName || "yêu cầu thuốc");
+      setIsDeleteModalOpen(true);
     }
+  };
+
+  // Function để xóa request
+  const handleDeleteRequest = async () => {
+    if (!deleteRequestId) return;
 
     try {
       setLoading(true);
@@ -321,7 +334,7 @@ const SendMedicine = () => {
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/v1/parent-medication-requests/cancel-request/${requestId}`,
+        }/api/v1/parent-medication-requests/cancel-request/${deleteRequestId}`,
         {
           method: "DELETE",
           headers: {
@@ -336,6 +349,9 @@ const SendMedicine = () => {
 
       showNotification("success", "Xóa thành công", "Yêu cầu đã được xóa");
       fetchMedicationHistory();
+      setIsDeleteModalOpen(false);
+      setDeleteRequestId(null);
+      setDeleteRequestName("");
     } catch (error) {
       console.error("Error deleting request:", error);
       showNotification(
@@ -641,12 +657,25 @@ const SendMedicine = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdateRequest = (requestId) => {
+    console.log("🔄 handleUpdateRequest called with ID:", requestId);
     const requestToUpdate = medicationHistory.find((r) => r.id === requestId);
+    console.log(
+      "📋 Request to update (full object):",
+      JSON.stringify(requestToUpdate, null, 2)
+    );
+
     if (!requestToUpdate) {
+      console.error("❌ Request not found in history");
       showNotification("error", "Lỗi", "Không tìm thấy yêu cầu thuốc!");
       return;
     }
+
+    console.log("📊 Request status:", requestToUpdate.status);
     if (requestToUpdate.status !== "PENDING_APPROVAL") {
+      console.warn(
+        "⚠️ Cannot update request with status:",
+        requestToUpdate.status
+      );
       showNotification(
         "error",
         "Không thể cập nhật",
@@ -654,15 +683,42 @@ const SendMedicine = () => {
       );
       return;
     }
+    // Parse timeOfDay từ request data
+    let timeToTakeArray = [];
+    console.log("⏰ Raw timeOfDay:", requestToUpdate.timeOfDay);
+    if (requestToUpdate.timeOfDay) {
+      try {
+        timeToTakeArray = parseTimeOfDay(requestToUpdate.timeOfDay);
+        console.log("⏰ Parsed timeToTake:", timeToTakeArray);
+      } catch (error) {
+        console.error("❌ Error parsing timeOfDay:", error);
+        timeToTakeArray = [];
+      }
+    }
+
+    // Safely parse dates
+    const startDate = requestToUpdate.startDate
+      ? typeof requestToUpdate.startDate === "string"
+        ? requestToUpdate.startDate.substring(0, 10)
+        : ""
+      : "";
+    const endDate = requestToUpdate.endDate
+      ? typeof requestToUpdate.endDate === "string"
+        ? requestToUpdate.endDate.substring(0, 10)
+        : ""
+      : "";
+
+    console.log("📅 Parsed dates:", { startDate, endDate });
+
     setEditFormData({
       id: requestToUpdate.id,
       medicationName: requestToUpdate.medicationName || "",
       dosageInstructions: requestToUpdate.dosageInstructions || "",
       frequencyPerDay: requestToUpdate.frequencyPerDay || "",
-      startDate: requestToUpdate.startDate?.substring(0, 10) || "",
-      endDate: requestToUpdate.endDate?.substring(0, 10) || "",
-      timeToTake: [],
-      specialInstructions: "",
+      startDate: startDate,
+      endDate: endDate,
+      timeToTake: timeToTakeArray,
+      specialInstructions: requestToUpdate.specialInstructions || "",
       submittedAt: requestToUpdate.submittedAt,
       healthProfileId: requestToUpdate.healthProfileId,
       studentName: requestToUpdate.studentName,
@@ -696,6 +752,7 @@ const SendMedicine = () => {
       console.log("No prescription image URL found");
     }
 
+    console.log("✅ Opening update modal");
     setIsModalOpen(true);
   };
 
@@ -1175,6 +1232,7 @@ const SendMedicine = () => {
     const shouldHideHeader =
       isModalOpen ||
       isConfirmationModalOpen ||
+      isDeleteModalOpen ||
       notificationModal.show ||
       zoomedImage;
 
@@ -1217,6 +1275,7 @@ const SendMedicine = () => {
   }, [
     isModalOpen,
     isConfirmationModalOpen,
+    isDeleteModalOpen,
     notificationModal.show,
     zoomedImage,
   ]);
@@ -1587,7 +1646,6 @@ const SendMedicine = () => {
                     if (isUpdating) {
                       // Nếu đang cập nhật thì hủy và reset form
                       setIsUpdating(false);
-                      setUpdateRequestId(null);
                       setFormData({
                         studentId: "",
                         medicineName: "",
@@ -1632,16 +1690,16 @@ const SendMedicine = () => {
                 <div className="fix-history-filter">
                   <label htmlFor="studentFilter">Lọc theo học sinh:</label>
                   <select
-                      id="studentFilter"
-                      className="selectstudentfix"
-                      value={selectedStudentFilter}
-                      onChange={(e) => setSelectedStudentFilter(e.target.value)}
+                    id="studentFilter"
+                    className="selectstudentfix"
+                    value={selectedStudentFilter}
+                    onChange={(e) => setSelectedStudentFilter(e.target.value)}
                   >
                     <option value="">Tất cả học sinh</option>
                     {students.map((student) => (
-                        <option key={student.id} value={student.studentId}>
-                          {student.name}
-                        </option>
+                      <option key={student.id} value={student.studentId}>
+                        {student.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -1692,7 +1750,7 @@ const SendMedicine = () => {
                             </button>
                             <button
                               className="fix-med-btn fix-med-btn-danger"
-                              onClick={() => handleDeleteRequest(request.id)}
+                              onClick={() => openDeleteModal(request.id)}
                             >
                               Xóa
                             </button>
@@ -2473,6 +2531,98 @@ const SendMedicine = () => {
                 />
               </svg>
             </button>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && (
+          <div className="fix-med-modal-overlay">
+            <div className="fix-med-modal" style={{ maxWidth: "400px" }}>
+              <div className="fix-med-modal-header">
+                <h3>Xác nhận xóa</h3>
+                <button
+                  className="fix-med-modal-close"
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setDeleteRequestId(null);
+                    setDeleteRequestName("");
+                  }}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M18 6L6 18M6 6L18 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div className="fix-med-modal-body">
+                <div style={{ textAlign: "center", padding: "20px" }}>
+                  <div
+                    style={{
+                      fontSize: "48px",
+                      color: "#ff6b6b",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    ⚠️
+                  </div>
+                  <h4 style={{ marginBottom: "12px", color: "#333" }}>
+                    Bạn có chắc chắn muốn xóa yêu cầu này?
+                  </h4>
+                  <p style={{ color: "#666", marginBottom: "24px" }}>
+                    Yêu cầu thuốc "<strong>{deleteRequestName}</strong>" sẽ bị
+                    xóa vĩnh viễn và không thể khôi phục.
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="fix-btn-secondary"
+                      onClick={() => {
+                        setIsDeleteModalOpen(false);
+                        setDeleteRequestId(null);
+                        setDeleteRequestName("");
+                      }}
+                      disabled={loading}
+                    >
+                      Hủy bỏ
+                    </button>
+                    <button
+                      type="button"
+                      className="fix-btn-danger"
+                      onClick={handleDeleteRequest}
+                      disabled={loading}
+                      style={{
+                        backgroundColor: "#ff6b6b",
+                        color: "white",
+                        border: "none",
+                        padding: "10px 20px",
+                        borderRadius: "6px",
+                        cursor: loading ? "not-allowed" : "pointer",
+                        opacity: loading ? 0.7 : 1,
+                      }}
+                    >
+                      {loading ? "Đang xóa..." : "Xóa"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
