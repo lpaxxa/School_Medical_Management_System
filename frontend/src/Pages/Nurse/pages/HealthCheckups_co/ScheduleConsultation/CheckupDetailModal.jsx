@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Button, Row, Col, Badge, Spinner, Alert, Card, ListGroup } from 'react-bootstrap';
+import { Modal, Row, Col, Badge, Spinner, Alert, Card, ListGroup } from 'react-bootstrap';
 import { 
     FaUser, FaBuilding, FaCalendarAlt, FaStethoscope, FaClipboardList, FaInfoCircle,
     FaRulerVertical, FaWeight, FaHeartbeat, FaThermometerHalf, FaEye, FaNotesMedical, FaUserMd
@@ -116,18 +116,13 @@ const CheckupDetailModal = ({ show, onHide, checkup, loading }) => {
                                 <h6 className="card-subtitle mb-2 text-muted">Chẩn đoán của bác sĩ</h6>
                                 <p className="card-text">{checkup.diagnosis || 'Chưa có chẩn đoán.'}</p>
                         <hr />
-                                <h6 className="card-subtitle mb-2 mt-3 text-muted">Đề nghị</h6>
-                                <p className="card-text">{checkup.notes || 'Chưa có đề nghị.'}</p>
+                                <h6 className="card-subtitle mb-2 mt-3 text-muted">Đề nghị của bác sĩ</h6>
+                                <p className="card-text">{checkup.recommendations || 'Chưa có đề nghị.'}</p>
                             </Card.Body>
                         </Card>
                     </>
                 )}
             </Modal.Body>
-            <Modal.Footer className="checkup-detail-modal-footer">
-                <Button variant="outline-secondary" onClick={onHide}>
-                    Đóng
-                </Button>
-            </Modal.Footer>
         </Modal>
     );
 };

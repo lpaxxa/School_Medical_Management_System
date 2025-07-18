@@ -74,8 +74,8 @@ const MedicalIncidentDetailModal = ({
         <div className="modal-dialog modal-lg">
           <div className="modal-content">
             <div className="modal-header bg-gradient bg-primary text-white border-0">
-              <h5 className="modal-title fw-bold d-flex align-items-center">
-                <i className="fas fa-notes-medical me-2"></i>
+              <h5 className="modal-title fw-bold d-flex align-items-center" style={{color: 'white'}}>
+                <i className="fas fa-notes-medical me-2" style={{color: 'white'}}></i>
                 Chi tiết Sự kiện Y tế
               </h5>
               <button 

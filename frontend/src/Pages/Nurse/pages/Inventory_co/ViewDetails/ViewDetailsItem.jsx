@@ -127,8 +127,8 @@ const ViewDetailsItem = ({ itemId, onClose, show }) => {
       <div className="vtu-modal-dialog vtu-modal-lg" onClick={(e) => e.stopPropagation()}>
         <div className="vtu-modal-content">
           <div className="vtu-modal-header">
-            <h5 className="vtu-modal-title">
-              <i className="fas fa-info-circle me-2"></i>
+            <h5 className="vtu-modal-title" style={{color: 'white'}}> 
+              <i className="fas fa-info-circle me-2" style={{color: 'white'}}></i>
               Chi tiết vật tư y tế
             </h5>
             <button type="button" className="vtu-btn-close" onClick={onClose}>

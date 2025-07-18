@@ -1418,8 +1418,8 @@ const MedicalIncidentUpdateModal = ({
                 <Col>
                   <Card className="border-primary">
                     <Card.Header className="bg-primary text-white">
-                      <h6 className="mb-0">
-                        <i className="fas fa-pills me-2"></i>
+                      <h6 className="mb-0" style={{color: 'white'}}>
+                        <i className="fas fa-pills me-2" style={{color: 'white'}}></i>
                         Thuốc sử dụng
                       </h6>
                     </Card.Header>
@@ -1560,8 +1560,8 @@ const MedicalIncidentUpdateModal = ({
                 <Col>
                   <Card className="border-primary">
                     <Card.Header className="bg-primary text-white">
-                      <h6 className="mb-0">
-                        <i className="fas fa-image me-2"></i>
+                      <h6 className="mb-0" style={{color: 'white'}}>
+                        <i className="fas fa-image me-2" style={{color: 'white'}}></i>
                         Hình ảnh sự cố y tế
                       </h6>
                     </Card.Header>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Modal, Spinner } from 'react-bootstrap';
+import { createPortal } from 'react-dom';
+import { Container, Row, Col, Card, Button, Badge, Spinner } from 'react-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import { useBlog } from '../../../../../context/NurseContext/BlogContext';
 import { useAuth } from '../../../../../context/AuthContext';
@@ -9,6 +10,194 @@ import './Posts.css';
 
 // Avatar mặc định cho người dùng
 const DEFAULT_AVATAR = 'https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg';
+
+// Custom styles for delete modal
+const deleteModalStyles = `
+  /* Posts Delete Modal - Namespaced Styles */
+  .posts-delete-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .posts-delete-modal-dialog {
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    margin: 1rem;
+  }
+
+  .posts-delete-modal-content {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+  }
+
+  .posts-delete-modal-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: none;
+  }
+
+  .posts-delete-modal-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+
+  .posts-delete-btn-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s ease;
+  }
+
+  .posts-delete-btn-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .posts-delete-modal-body {
+    padding: 1.75rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .posts-delete-text-center {
+    text-align: center;
+  }
+
+  .posts-delete-mb-4 {
+    margin-bottom: 1.5rem;
+  }
+
+  .posts-delete-mb-3 {
+    margin-bottom: 1rem;
+  }
+
+  .posts-delete-warning-icon {
+    font-size: 3.5rem;
+    color: #ffc107;
+    margin-bottom: 1rem;
+  }
+
+  .posts-delete-confirmation-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 1rem;
+  }
+
+  .posts-delete-post-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #dc3545;
+    background-color: #f8d7da;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f5c6cb;
+  }
+
+  .posts-delete-alert {
+    padding: 1rem 1.25rem;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.5rem;
+    background-color: #fff8e1;
+    color: #856404;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .posts-delete-modal-footer {
+    background-color: #f8f9fa;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  .posts-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.5;
+    border-radius: 0.375rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .posts-delete-btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+  }
+
+  .posts-delete-btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+  }
+
+  .posts-delete-btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+  }
+
+  .posts-delete-btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+  }
+
+  .posts-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    .posts-delete-modal-dialog {
+      width: 95%;
+      margin: 0.5rem;
+    }
+
+    .posts-delete-modal-body {
+      padding: 1.25rem;
+    }
+  }
+
+  /* Utility Classes */
+  .posts-delete-me-1 { margin-right: 0.25rem; }
+  .posts-delete-me-2 { margin-right: 0.5rem; }
+`;
 
 const Posts = () => {
   const { 
@@ -34,6 +223,8 @@ const Posts = () => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [currentLocalPage, setCurrentLocalPage] = useState(1);
   const [postsWithLikeStatus, setPostsWithLikeStatus] = useState([]);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Fetch posts when component mounts
   useEffect(() => {
@@ -145,18 +336,36 @@ const Posts = () => {
     }
   };
 
-  // Filter posts based on search term and category
+  // Filter posts based on search term, category, and date range
   const filteredPosts = (postsWithLikeStatus.length > 0 ? postsWithLikeStatus : posts).filter(post => {
-    const matchesSearch = 
+    const matchesSearch =
       post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.excerpt?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (post.tags && Array.isArray(post.tags) && 
+      (post.tags && Array.isArray(post.tags) &&
         post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
-    
+
     const matchesCategory = selectedCategory === '' || post.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
+
+    // Date range filtering
+    let matchesDateRange = true;
+    if (dateFrom || dateTo) {
+      const postDate = parseDate(post.createdAt);
+
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        fromDate.setHours(0, 0, 0, 0); // Start of day
+        matchesDateRange = matchesDateRange && postDate >= fromDate;
+      }
+
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999); // End of day
+        matchesDateRange = matchesDateRange && postDate <= toDate;
+      }
+    }
+
+    return matchesSearch && matchesCategory && matchesDateRange;
   }).sort((a, b) => {
     // Sắp xếp theo bookmark trước (bài ghim lên đầu), sau đó theo createdAt (mới nhất trước)
     if (a.bookmarked && !b.bookmarked) return -1;
@@ -181,7 +390,7 @@ const Posts = () => {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentLocalPage(1);
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, dateFrom, dateTo]);
 
   // Handle view post detail
   const handleViewPostDetail = (post) => {
@@ -313,514 +522,9 @@ const Posts = () => {
   };
 
   return (
-    <Container fluid className="py-4">
-      <style>
-        {`
-          /* Đồng bộ màu sắc với hệ thống */
-          .btn-primary {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-            border-color: #0d6efd !important;
-            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2) !important;
-          }
-          
-          .btn-primary:hover {
-            background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%) !important;
-            border-color: #0b5ed7 !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
-          }
-          
-          .btn-outline-primary {
-            color: #0d6efd !important;
-            border-color: #0d6efd !important;
-          }
-          
-          .btn-outline-primary:hover {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-          }
-          
-          /* Badge info đồng bộ màu */
-          .badge.bg-info {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-            color: white !important;
-          }
-          
-          /* Thẻ tags đồng bộ màu */
-          .badge.bg-secondary {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-            color: white !important;
-          }
-          
-          /* Focus state cho form controls */
-          .form-control:focus {
-            border-color: #86b7fe !important;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-          }
-          
-          /* Form select focus */
-          .form-select:focus {
-            border-color: #86b7fe !important;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-          }
-          
-          /* Fix dropdown arrow */
-          .form-select {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 0.75rem center !important;
-            background-size: 16px 12px !important;
-            padding-right: 2.25rem !important;
-            appearance: none !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-          }
-          
-          /* Ensure dropdown works properly */
-          .form-select option {
-            color: #212529 !important;
-            background-color: #fff !important;
-          }
-
-          /* Enhanced Filter Section Styles for Posts */
-          .enhanced-filter-section-posts {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            margin-bottom: 2rem;
-          }
-
-          .filter-container-posts {
-            max-width: 100%;
-          }
-
-          .filter-header-posts {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-          }
-
-          .filter-title-posts {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2c3e50;
-            display: flex;
-            align-items: center;
-          }
-
-          .filter-title-posts i {
-            color: #3498db;
-            font-size: 1rem;
-          }
-
-          .filter-stats-posts {
-            font-size: 0.9rem;
-            color: #6c757d;
-            font-weight: 500;
-          }
-
-          .stats-number-posts {
-            color: #3498db;
-            font-weight: 700;
-            font-size: 1rem;
-          }
-
-          .filter-controls-posts {
-            display: grid;
-            grid-template-columns: 2fr 1fr auto;
-            gap: 16px;
-            align-items: end;
-          }
-
-          @media (max-width: 768px) {
-            .filter-controls-posts {
-              grid-template-columns: 1fr;
-              gap: 12px;
-            }
-
-            .filter-header-posts {
-              flex-direction: column;
-              align-items: flex-start;
-              gap: 8px;
-            }
-          }
-
-          .search-control-posts {
-            position: relative;
-          }
-
-          .search-wrapper-posts {
-            position: relative;
-            display: flex;
-            align-items: center;
-          }
-
-          .search-input-posts {
-            width: 100%;
-            padding: 12px 44px 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            background: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-          }
-
-          .search-input-posts:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
-          }
-
-          .search-input-posts::placeholder {
-            color: #adb5bd;
-            font-style: italic;
-          }
+    <Container fluid className="py-4 posts-wrapper">
 
 
-
-          .clear-search-posts {
-            position: absolute;
-            right: 12px;
-            background: none;
-            border: none;
-            color: #6c757d;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            z-index: 2;
-          }
-
-          .clear-search-posts:hover {
-            color: #dc3545;
-            background-color: rgba(220, 53, 69, 0.1);
-          }
-
-          .category-control-posts {
-            position: relative;
-          }
-
-          .category-wrapper-posts {
-            position: relative;
-            display: flex;
-            align-items: center;
-          }
-
-          .category-select-posts {
-            width: 100%;
-            padding: 12px 40px 12px 44px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            background: white !important;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            appearance: none !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            background-image: none !important;
-          }
-
-          /* Loại bỏ mũi tên mặc định trên tất cả browser */
-          .category-select-posts::-ms-expand {
-            display: none;
-          }
-
-          .category-select-posts:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
-          }
-
-          .category-icon-posts {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-            font-size: 0.9rem;
-            z-index: 2;
-            transition: color 0.3s ease;
-            pointer-events: none;
-          }
-
-          .category-select-posts:focus ~ .category-icon-posts,
-          .category-wrapper-posts:hover .category-icon-posts {
-            color: #3498db;
-          }
-
-          .dropdown-arrow-posts {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-            font-size: 0.8rem;
-            pointer-events: none;
-            transition: all 0.3s ease;
-          }
-
-          .category-select-posts:focus ~ .dropdown-arrow-posts,
-          .category-wrapper-posts:hover .dropdown-arrow-posts {
-            color: #3498db;
-            transform: translateY(-50%) rotate(180deg);
-          }
-
-          .reset-filters-posts {
-            display: flex;
-            align-items: end;
-          }
-
-          .reset-btn-posts {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
-            white-space: nowrap;
-          }
-
-          .reset-btn-posts:hover {
-            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
-          }
-
-          .reset-btn-posts:active {
-            transform: translateY(0);
-          }
-          
-          .form-select:disabled {
-            background-color: #e9ecef !important;
-            opacity: 1 !important;
-          }
-          
-          /* Pagination active */
-          .pagination .page-item.active .page-link {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-          }
-          
-          .pagination .page-link {
-            color: #0d6efd !important;
-          }
-          
-          .pagination .page-link:hover {
-            color: #0b5ed7 !important;
-            background-color: #e7f1ff !important;
-            border-color: #86b7fe !important;
-          }
-
-          /* Modal delete styling - chuyên nghiệp */
-          .modal-header.delete-modal-header {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-            color: white !important;
-            border-bottom: none !important;
-            border-radius: 12px 12px 0 0 !important;
-            padding: 25px 30px !important;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2) !important;
-          }
-
-          .modal-header.delete-modal-header .modal-title {
-            color: white !important;
-            font-weight: 700 !important;
-            font-size: 1.4rem !important;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 10px !important;
-          }
-
-          .modal-header.delete-modal-header .btn-close {
-            filter: brightness(0) invert(1) !important;
-            opacity: 0.8 !important;
-            transition: all 0.3s ease !important;
-            border-radius: 50% !important;
-            padding: 8px !important;
-            width: 40px !important;
-            height: 40px !important;
-          }
-
-          .modal-header.delete-modal-header .btn-close:hover {
-            opacity: 1 !important;
-            background: rgba(255, 255, 255, 0.2) !important;
-            transform: rotate(90deg) !important;
-          }
-
-          .modal-content.delete-modal-content {
-            border: none !important;
-            border-radius: 12px !important;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
-            overflow: hidden !important;
-          }
-
-          .modal-body.delete-modal-body {
-            padding: 30px !important;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-          }
-
-          .delete-warning-box {
-            background: white !important;
-            border: 2px solid #fee2e2 !important;
-            border-radius: 12px !important;
-            padding: 20px !important;
-            margin-bottom: 20px !important;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.1) !important;
-            text-align: center !important;
-          }
-
-          .delete-warning-icon {
-            color: #dc3545 !important;
-            font-size: 2.5rem !important;
-            margin-bottom: 15px !important;
-          }
-
-          .delete-warning-text {
-            color: #333 !important;
-            font-size: 1.1rem !important;
-            line-height: 1.6 !important;
-            margin-bottom: 15px !important;
-          }
-
-          .delete-item-preview {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-            border: 1px solid #dee2e6 !important;
-            border-radius: 8px !important;
-            padding: 15px !important;
-            font-style: italic !important;
-            color: #666 !important;
-            border-left: 4px solid #dc3545 !important;
-            font-weight: 600 !important;
-          }
-
-          .modal-footer.delete-modal-footer {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-            border-top: 2px solid #e8f4fd !important;
-            padding: 20px 30px !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            gap: 15px !important;
-          }
-
-          .btn-danger.delete-confirm-btn {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-            border: none !important;
-            padding: 12px 24px !important;
-            border-radius: 10px !important;
-            font-weight: 600 !important;
-            color: white !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 8px !important;
-          }
-
-          .btn-danger.delete-confirm-btn:hover {
-            background: linear-gradient(135deg, #c82333 0%, #b21e2f 100%) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4) !important;
-            color: white !important;
-          }
-
-          .btn-secondary.delete-cancel-btn {
-            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
-            border: none !important;
-            padding: 12px 24px !important;
-            border-radius: 10px !important;
-            font-weight: 600 !important;
-            color: white !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 8px !important;
-          }
-
-          .btn-secondary.delete-cancel-btn:hover {
-            background: linear-gradient(135deg, #5a6268 0%, #495057 100%) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
-            color: white !important;
-          }
-
-          /* Fix button hover issue - đảm bảo text không bị mất */
-          .btn-outline-primary {
-            color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            background-color: transparent !important;
-            transition: all 0.3s ease !important;
-          }
-
-          .btn-outline-primary:hover {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            color: white !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
-          }
-
-          .btn-outline-primary:focus {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            color: white !important;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-          }
-
-          .btn-outline-primary:active {
-            background-color: #0b5ed7 !important;
-            border-color: #0b5ed7 !important;
-            color: white !important;
-          }
-
-          /* Sweet2 custom styling */
-          .swal2-popup {
-            border-radius: 15px !important;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
-          }
-
-          .swal2-title {
-            font-weight: 700 !important;
-            color: #333 !important;
-          }
-
-          .swal2-content {
-            font-size: 1.1rem !important;
-            color: #666 !important;
-          }
-
-          .swal2-confirm {
-            border-radius: 10px !important;
-            padding: 12px 24px !important;
-            font-weight: 600 !important;
-            transition: all 0.3s ease !important;
-          }
-
-          .swal2-confirm:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
-          }
-
-          .swal2-timer-progress-bar {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-          }
-        `}
-      </style>
 
       {/* Posts Header */}
       <Row className="mb-4">
@@ -844,6 +548,17 @@ const Posts = () => {
             </div>
             <div className="filter-stats-posts">
               Tìm thấy <span className="stats-number-posts">{filteredPosts.length}</span> bài viết
+              {(searchTerm || selectedCategory || dateFrom || dateTo) && (
+                <div className="active-filters-posts">
+                  {searchTerm && <span className="filter-tag-posts">Tìm kiếm: "{searchTerm}"</span>}
+                  {selectedCategory && <span className="filter-tag-posts">Danh mục: {selectedCategory}</span>}
+                  {(dateFrom || dateTo) && (
+                    <span className="filter-tag-posts">
+                      Thời gian: {dateFrom ? new Date(dateFrom).toLocaleDateString('vi-VN') : '...'} → {dateTo ? new Date(dateTo).toLocaleDateString('vi-VN') : '...'}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -857,6 +572,7 @@ const Posts = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                {!searchTerm && <i className="fas fa-search search-icon-posts"></i>}
                 {searchTerm && (
                   <button
                     className="clear-search-posts"
@@ -886,13 +602,45 @@ const Posts = () => {
               </div>
             </div>
 
-            {(searchTerm || selectedCategory) && (
+            {/* Date Range Filter */}
+            <div className="date-range-control-posts">
+              <div className="date-filters-posts">
+                <div className="date-control-posts">
+                  <label className="date-label-posts">
+                    Từ ngày
+                  </label>
+                  <input
+                    type="date"
+                    className="date-input-posts"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    max={dateTo || undefined}
+                  />
+                </div>
+                <div className="date-control-posts">
+                  <label className="date-label-posts">
+                    Đến ngày
+                  </label>
+                  <input
+                    type="date"
+                    className="date-input-posts"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    min={dateFrom || undefined}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {(searchTerm || selectedCategory || dateFrom || dateTo) && (
               <div className="reset-filters-posts">
                 <button
                   className="reset-btn-posts"
                   onClick={() => {
                     setSearchTerm('');
                     setSelectedCategory('');
+                    setDateFrom('');
+                    setDateTo('');
                   }}
                   type="button"
                 >
@@ -907,7 +655,7 @@ const Posts = () => {
 
       {/* Loading state */}
       {postsLoading && (
-        <div className="text-center py-5">
+        <div className="posts-loading-posts">
           <Spinner animation="border" role="status" variant="primary">
             <span className="visually-hidden">Đang tải...</span>
           </Spinner>
@@ -917,12 +665,12 @@ const Posts = () => {
 
       {/* Error state */}
       {postsError && !postsLoading && (
-        <div className="alert alert-danger">
+        <div className="posts-error-posts">
           <i className="fas fa-exclamation-triangle me-2"></i>
           {postsError}
-          <Button 
-            variant="outline-danger" 
-            size="sm" 
+          <Button
+            variant="outline-danger"
+            size="sm"
             className="ms-3"
             onClick={() => fetchPosts(currentPage, pageSize)}
           >
@@ -936,119 +684,112 @@ const Posts = () => {
         <Row>
           {currentPagePosts.map(post => (
             <Col md={6} lg={4} key={post.id} className="mb-4">
-              <Card className="h-100 shadow-sm">
-                {post.imageUrl && (
-                  <Card.Img 
-                    variant="top" 
-                    src={post.imageUrl} 
-                    style={{ height: '200px', objectFit: 'cover' }}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                )}
-                <Card.Body className="d-flex flex-column">
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <div className="d-flex flex-wrap gap-1">
-                      <Badge bg="light" className="mb-2" style={{
-                        background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
-                        color: 'white',
-                        border: 'none',
-                        fontWeight: '500'
-                      }}>
+              <Card className="h-100 enhanced-post-card-posts">
+                <Card.Body className="d-flex flex-column card-body-posts">
+                  {/* Bookmark Badge - moved to top right of card */}
+                  {post.bookmarked && (
+                    <div className="bookmark-badge-top-posts">
+                      <i className="fas fa-bookmark me-1"></i>
+                      Ghim
+                    </div>
+                  )}
+                  {/* Header Badges */}
+                  <div className="card-header-badges-posts mb-3">
+                    <div className="d-flex flex-wrap gap-2 align-items-center">
+                      <Badge className="id-badge-posts">
                         ID: {post.id}
                       </Badge>
-                      <Badge bg="info" className="mb-2">{post.category || 'Chưa phân loại'}</Badge>
-                      {post.bookmarked && (
-                        <Badge bg="warning" className="mb-2">
-                          <i className="fas fa-bookmark me-1"></i> Ghim
+                      <Badge className="category-badge-posts">
+                        <i className="fas fa-tag me-1"></i>
+                        {post.category || 'Chưa phân loại'}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <Card.Title className="card-title-posts mb-3">
+                    {post.title}
+                  </Card.Title>
+
+                  {/* Content Preview */}
+                  <Card.Text className="card-content-posts flex-grow-1 mb-3">
+                    {post.excerpt || post.content?.substring(0, 120) + '...'}
+                  </Card.Text>
+
+                  {/* Tags */}
+                  {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
+                    <div className="tags-container-posts mb-3">
+                      {post.tags.slice(0, 3).map((tag, index) => (
+                        <Badge key={index} className="tag-badge-posts">
+                          #{tag}
+                        </Badge>
+                      ))}
+                      {post.tags.length > 3 && (
+                        <Badge className="tag-more-posts">
+                          +{post.tags.length - 3}
                         </Badge>
                       )}
                     </div>
-                  </div>
-                  
-                  <Card.Title className="h6 mb-2">{post.title}</Card.Title>
-                  <Card.Text className="text-muted small flex-grow-1">
-                    {post.excerpt || post.content?.substring(0, 150) + '...'}
-                  </Card.Text>
-                  
-                  <div className="mb-2">
-                    {post.tags && Array.isArray(post.tags) && post.tags.map((tag, index) => (
-                      <Badge key={index} bg="secondary" className="me-1 mb-1" style={{
-                        background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
-                        color: 'white',
-                        border: 'none'
-                      }}>
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <div className="d-flex justify-content-between align-items-center text-muted small mb-2">
-                    <span>
-                      <i className="fas fa-user me-1"></i>
-                      {post.author?.name || 'Không có tác giả'}
-                    </span>
-                  </div>
-                  
-                  <div className="text-muted small mb-3">
-                    <i className="fas fa-calendar me-1"></i>
-                    {formatDate(post.createdAt)}
-                  </div>
-                  
-                  <div className="d-flex justify-content-center align-items-center text-muted small mb-3">
-                    <div className="d-flex gap-4">
-                      <span
-                        className={post.liked ? 'text-danger' : ''}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleToggleLike(post)}
-                        title={post.liked ? 'Bỏ thích bài viết' : 'Thích bài viết'}
-                      >
-                        <i className={`${post.liked ? 'fas' : 'far'} fa-heart me-1`}></i>
-                        {post.likesCount || 0} thích
-                      </span>
-                      <span
-                        className={post.bookmarked ? 'text-warning' : ''}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleToggleBookmark(post)}
-                        title={post.bookmarked ? 'Bỏ ghim bài viết' : 'Ghim bài viết'}
-                      >
-                        <i className={`${post.bookmarked ? 'fas' : 'far'} fa-bookmark me-1`}></i>
-                        {post.bookmarked ? 'Đã ghim' : 'Ghim'}
-                      </span>
+                  )}
+
+                  {/* Author & Date Info */}
+                  <div className="card-meta-posts mb-3">
+                    <div className="author-info-posts">
+                      <i className="fas fa-user-circle me-2"></i>
+                      <span>{post.author?.name || 'Không có tác giả'}</span>
+                    </div>
+                    <div className="date-info-posts">
+                      <i className="fas fa-clock me-2"></i>
+                      <span>{formatDate(post.createdAt)}</span>
                     </div>
                   </div>
-                  
-                  <div className="d-flex gap-2">
-                    <Button 
-                      variant="outline-primary" 
-                      size="sm" 
-                      className="flex-fill"
+
+                  {/* Interaction Stats */}
+                  <div className="interaction-stats-posts mb-3">
+                    <div
+                      className={`like-stat-posts ${post.liked ? 'liked' : ''}`}
+                      onClick={() => handleToggleLike(post)}
+                      title={post.liked ? 'Bỏ thích bài viết' : 'Thích bài viết'}
+                    >
+                      <i className={`${post.liked ? 'fas' : 'far'} fa-heart`}></i>
+                      <span>{post.likesCount || 0}</span>
+                    </div>
+                    <div
+                      className={`bookmark-stat-posts ${post.bookmarked ? 'bookmarked' : ''}`}
+                      onClick={() => handleToggleBookmark(post)}
+                      title={post.bookmarked ? 'Bỏ ghim bài viết' : 'Ghim bài viết'}
+                    >
+                      <i className={`${post.bookmarked ? 'fas' : 'far'} fa-bookmark`}></i>
+                      <span>{post.bookmarked ? 'Đã ghim' : 'Ghim'}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="card-actions-posts">
+                    <Button
+                      className="view-btn-posts"
                       onClick={() => handleViewPostDetail(post)}
                     >
-                      <i className="fas fa-eye me-1"></i>
-                      Xem
+                      <i className="fas fa-eye me-2"></i>
+                      Xem chi tiết
                     </Button>
-                    {/* Only show edit and delete buttons if user is the author */}
+
+                    {/* Author-only actions */}
                     {currentUser?.id === post.author?.id && (
-                      <>
-                        <Button 
-                          variant="outline-warning" 
-                          size="sm" 
-                          className="flex-fill"
+                      <div className="author-actions-posts">
+                        <Button
+                          className="edit-btn-posts"
                           onClick={() => handleEditPost(post)}
                         >
-                          <i className="fas fa-edit me-1"></i>
-                          Sửa
+                          <i className="fas fa-edit"></i>
                         </Button>
-                        <Button 
-                          variant="outline-danger" 
-                          size="sm"
+                        <Button
+                          className="delete-btn-posts"
                           onClick={() => handleDeletePost(post)}
                         >
                           <i className="fas fa-trash"></i>
                         </Button>
-                      </>
+                      </div>
                     )}
                   </div>
                 </Card.Body>
@@ -1061,10 +802,12 @@ const Posts = () => {
       {/* Empty state */}
       {!postsLoading && !postsError && filteredPosts.length === 0 && (
         <Row>
-          <Col className="text-center py-5">
-            <i className="fas fa-search fa-3x text-muted mb-3"></i>
-            <h5 className="text-muted">Không tìm thấy bài viết nào</h5>
-            <p className="text-muted">Thử thay đổi từ khóa tìm kiếm hoặc thêm bài viết mới</p>
+          <Col>
+            <div className="posts-empty-posts">
+              <i className="fas fa-search fa-3x mb-3"></i>
+              <h5 className="text-muted">Không tìm thấy bài viết nào</h5>
+              <p className="text-muted">Thử thay đổi từ khóa tìm kiếm hoặc thêm bài viết mới</p>
+            </div>
           </Col>
         </Row>
       )}
@@ -1073,9 +816,9 @@ const Posts = () => {
       {!postsLoading && !postsError && totalPagesLocal > 1 && (
         <Row className="mt-4">
           <Col>
-            <div className="d-flex justify-content-between align-items-center px-3">
+            <div className="pagination-controls-posts d-flex justify-content-between align-items-center">
               {/* Showing entries info */}
-              <div className="text-muted">
+              <div className="pagination-info-posts">
                 <small>
                   Showing {startIndex + 1} to {Math.min(endIndex, totalPosts)} of {totalPosts} posts
                 </small>
@@ -1146,54 +889,73 @@ const Posts = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      <Modal
-        show={showDeleteModal}
-        onHide={() => setShowDeleteModal(false)}
-        centered
-        dialogClassName="delete-modal-content"
-      >
-        <Modal.Header closeButton className="delete-modal-header">
-          <Modal.Title>
-            <i className="fas fa-exclamation-triangle"></i>
-            Xác nhận xóa bài viết
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="delete-modal-body">
-          <div className="delete-warning-box">
-            <div className="delete-warning-icon">
-              <i className="fas fa-trash-alt"></i>
-            </div>
-            <div className="delete-warning-text">
-              Bạn có chắc chắn muốn xóa bài viết này không?
-            </div>
-            <div className="delete-item-preview">
-              "{selectedPost?.title}"
-            </div>
-            <div className="mt-3">
-              <i className="fas fa-exclamation-triangle me-2 text-danger"></i>
-              <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
+      {showDeleteModal && createPortal(
+        <>
+          <style>{deleteModalStyles}</style>
+          <div className="posts-delete-modal-overlay">
+            <div className="posts-delete-modal-dialog">
+              <div className="posts-delete-modal-content">
+                {/* Modal Header */}
+                <div className="posts-delete-modal-header">
+                  <h5 className="posts-delete-modal-title" style={{color: 'white'}}>
+                    <i className="fas fa-trash-alt posts-delete-me-2" style={{color: 'white'}}></i>
+                    Xác nhận xóa bài viết
+                  </h5>
+                  <button
+                    type="button"
+                    className="posts-delete-btn-close"
+                    onClick={() => setShowDeleteModal(false)}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="posts-delete-modal-body">
+                  <div className="posts-delete-text-center posts-delete-mb-4">
+                    <i className="fas fa-exclamation-triangle posts-delete-warning-icon"></i>
+                  </div>
+
+                  <div className="posts-delete-text-center posts-delete-mb-4">
+                    <p className="posts-delete-confirmation-text">
+                      Bạn có chắc chắn muốn xóa bài viết này không?
+                    </p>
+                    <div className="posts-delete-post-name">
+                      "{selectedPost?.title}"
+                    </div>
+                  </div>
+
+                  <div className="posts-delete-alert">
+                    <i className="fas fa-exclamation-triangle posts-delete-me-2"></i>
+                    <span><strong>Lưu ý:</strong> Hành động này không thể hoàn tác.</span>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="posts-delete-modal-footer">
+                  <button
+                    type="button"
+                    className="posts-delete-btn posts-delete-btn-secondary"
+                    onClick={() => setShowDeleteModal(false)}
+                  >
+                    <i className="fas fa-times posts-delete-me-1"></i>
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    className="posts-delete-btn posts-delete-btn-danger"
+                    onClick={confirmDeletePost}
+                  >
+                    <i className="fas fa-trash posts-delete-me-1"></i>
+                    Xóa bài viết
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </Modal.Body>
-        <Modal.Footer className="delete-modal-footer">
-          <Button
-            variant="secondary"
-            onClick={() => setShowDeleteModal(false)}
-            className="delete-cancel-btn"
-          >
-            <i className="fas fa-times"></i>
-            Hủy
-          </Button>
-          <Button
-            variant="danger"
-            onClick={confirmDeletePost}
-            className="delete-confirm-btn"
-          >
-            <i className="fas fa-trash"></i>
-            Xóa bài viết
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        </>,
+        document.body
+      )}
     </Container>
   );
 };

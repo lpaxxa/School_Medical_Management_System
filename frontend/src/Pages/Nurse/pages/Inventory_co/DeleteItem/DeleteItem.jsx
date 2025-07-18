@@ -352,8 +352,8 @@ const DeleteItemModal = ({ item, onClose, onDeleteItem }) => {
           <div className="delete-item-modal-content">
             {/* Modal Header */}
             <div className="delete-item-modal-header">
-              <h5 className="delete-item-modal-title">
-                <i className="fas fa-trash-alt delete-item-me-2"></i>
+              <h5 className="delete-item-modal-title" style={{color: 'white'}}>
+                <i className="fas fa-trash-alt delete-item-me-2" style={{color: 'white'}}></i>
                 Xác nhận xóa vật phẩm
               </h5>
               <button 

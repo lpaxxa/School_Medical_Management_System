@@ -73,7 +73,7 @@ const HistoryModal = () => {
         <div className="history-modal-header">
           <div className="modal-title">
             <span className="title-icon">📋</span>
-            <h2>Lịch sử tiêm chủng</h2>
+            <h2 style={{color: 'white'}}>Lịch sử tiêm chủng</h2>
           </div>
           <button
             className="close-button"
@@ -132,7 +132,7 @@ const HistoryModal = () => {
                     <div className="record-header">
                       <div className="record-title">
                         <span className="dose-icon">💉</span>
-                        <h4>Lần tiêm {record.doseNumber}</h4>
+                        <h4 style={{color: 'white'}}>Lần tiêm {record.doseNumber}</h4>
                       </div>
                       <div className="record-status">
                         <span className="record-number">#{index + 1}</span>
