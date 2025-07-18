@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-b
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../context/AuthContext';
 import * as healthArticleService from '../../../../../services/APINurse/blogService';
+import './AddHealthArticle.css';
 import SuccessNotification from './SuccessNotification';
 
 const AddHealthArticle = () => {
@@ -341,8 +342,7 @@ const AddHealthArticle = () => {
                         <img 
                           src={imagePreview} 
                           alt="Xem trước" 
-                          className="img-fluid rounded shadow-sm"
-                          style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'cover' }}
+                          className="img-fluid rounded shadow-sm image-preview"
                           onError={(e) => {
                             console.error('Image preview failed to load:', imagePreview);
                             e.target.style.display = 'none';

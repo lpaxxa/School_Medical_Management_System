@@ -864,8 +864,8 @@ const AddItem = ({ onClose, onAddItem }) => {
           <div className="add-item-modal-content">
             {/* Modal Header */}
             <div className="add-item-modal-header">
-              <h5 className="add-item-modal-title">
-                <i className="fas fa-plus-circle add-item-me-2"></i>
+              <h5 className="add-item-modal-title" style={{color: 'white'}}>
+                <i className="fas fa-plus-circle add-item-me-2" style={{color: 'white'}}></i>
                 Thêm vật phẩm mới
               </h5>
               <button 
@@ -1117,21 +1117,6 @@ const AddItem = ({ onClose, onAddItem }) => {
 
             {/* Modal Footer */}
             <div className="add-item-modal-footer">
-              {/* Nút test thông báo */}
-              <button 
-                type="button" 
-                className="add-item-btn add-item-btn-secondary"
-                onClick={() => {
-                  setNotificationType('success');
-                  setNotificationTitle('Test thông báo thành công!');
-                  setNotificationMessage('Đây là thông báo test để kiểm tra giao diện.');
-                  setShowNotification(true);
-                }}
-                style={{ marginRight: 'auto' }}
-              >
-                <i className="fas fa-bell add-item-me-1"></i>
-                Test
-              </button>
               
               <button 
                 type="button" 

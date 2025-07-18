@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Badge, Card, Modal, Spinner, Form, Row, Col } from 'react-bootstrap';
+import { Table, Button, Badge, Card, Spinner, Form } from 'react-bootstrap';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
 import Swal from 'sweetalert2';
 import './ScheduleConsultation.css';
-import './ScheduleEditModal.css';
 import CheckupDetailModal from './CheckupDetailModal';
+import ScheduleEditModal from './ScheduleEditModal';
 
 const MedicalCheckupList = ({ refreshData }) => {
   // Get data from context
@@ -231,8 +231,16 @@ const MedicalCheckupList = ({ refreshData }) => {
     try {
       setDetailLoading(true);
       const checkupDetail = await fetchMedicalCheckupById(checkup.id);
-      
-      setEditFormData({ ...checkupDetail, specialCheckupItems: checkupDetail.specialCheckupItems || [] });
+
+      // Đảm bảo mapping đúng field recommendations
+      const mappedData = {
+        ...checkupDetail,
+        specialCheckupItems: checkupDetail.specialCheckupItems || [],
+        // Đảm bảo có field recommendations để hiển thị trong form
+        recommendations: checkupDetail.recommendations || checkupDetail.notes || ''
+      };
+
+      setEditFormData(mappedData);
       setShowEditModal(true);
       setValidated(false); // Reset validation state
       setErrors({});
@@ -261,17 +269,40 @@ const MedicalCheckupList = ({ refreshData }) => {
         }
     });
 
-    // Blood pressure validation
-    if (data.bloodPressure && !/^\d+\/\d+$/.test(data.bloodPressure)) {
-        newErrors.bloodPressure = 'Định dạng huyết áp không hợp lệ (ví dụ: 120/80).';
+    // Validate huyết áp: số bất kỳ/80 (VD: 120/80)
+    if (data.bloodPressure) {
+        const bloodPressurePattern = /^(\d+)\/80$/;
+        if (!bloodPressurePattern.test(data.bloodPressure)) {
+            newErrors.bloodPressure = 'Huyết áp phải có định dạng: [số]/80 (ví dụ: 120/80).';
+        }
     }
 
-    // Vision validation for both eyes
-    if (data.visionLeft && !/^\d+\/\d+$/.test(data.visionLeft)) {
-        newErrors.visionLeft = 'Định dạng không hợp lệ (VD: 10/10).';
+    // Validate thị lực mắt trái: số từ 0 đến 20/20 (VD: 12/20, 20/20)
+    if (data.visionLeft) {
+        const visionPattern = /^(\d+)\/20$/;
+        const match = data.visionLeft.match(visionPattern);
+        if (!match) {
+            newErrors.visionLeft = 'Thị lực mắt trái phải có định dạng: [số]/20 (ví dụ: 12/20, 20/20).';
+        } else {
+            const visionValue = parseInt(match[1]);
+            if (visionValue < 0 || visionValue > 20) {
+                newErrors.visionLeft = 'Thị lực mắt trái phải từ 0/20 đến 20/20.';
+            }
+        }
     }
-    if (data.visionRight && !/^\d+\/\d+$/.test(data.visionRight)) {
-        newErrors.visionRight = 'Định dạng không hợp lệ (VD: 10/10).';
+
+    // Validate thị lực mắt phải: số từ 0 đến 20/20 (VD: 12/20, 20/20)
+    if (data.visionRight) {
+        const visionPattern = /^(\d+)\/20$/;
+        const match = data.visionRight.match(visionPattern);
+        if (!match) {
+            newErrors.visionRight = 'Thị lực mắt phải phải có định dạng: [số]/20 (ví dụ: 12/20, 20/20).';
+        } else {
+            const visionValue = parseInt(match[1]);
+            if (visionValue < 0 || visionValue > 20) {
+                newErrors.visionRight = 'Thị lực mắt phải phải từ 0/20 đến 20/20.';
+            }
+        }
     }
 
     setErrors(newErrors);
@@ -623,7 +654,7 @@ const MedicalCheckupList = ({ refreshData }) => {
       
       {/* Edit Modal */}
       {showEditModal && (
-      <ScheduleEditCheckupModal
+      <ScheduleEditModal
         show={showEditModal}
         onHide={() => setShowEditModal(false)}
         checkupData={editFormData}
@@ -639,237 +670,6 @@ const MedicalCheckupList = ({ refreshData }) => {
   );
 };
 
-// =================================================================
-// Edit Checkup Modal Component
-// =================================================================
-const ScheduleEditCheckupModal = ({ show, onHide, checkupData, onSubmit, loading, validated, errors, setCheckupData }) => {
-    
-    const [formData, setFormData] = useState(checkupData);
 
-    useEffect(() => {
-        setFormData(checkupData);
-    }, [checkupData]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-        if (setCheckupData) {
-            setCheckupData(prev => ({ ...prev, [name]: value }));
-        }
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSubmit(formData);
-    };
-
-    const formatDateForInput = (dateString) => {
-        if (!dateString) return '';
-        // Handles both ISO strings and simple date strings
-        return new Date(dateString).toISOString().split('T')[0];
-    };
-
-    return (
-        <Modal 
-            show={show} 
-            onHide={onHide} 
-            size="xl" 
-            dialogClassName="schedule-edit-checkup-modal"
-            aria-labelledby="edit-checkup-modal"
-            centered
-        >
-            <Modal.Header closeButton className="schedule-edit-modal-header">
-                <Modal.Title id="edit-checkup-modal" className="schedule-edit-modal-title">
-                    Chỉnh sửa Hồ sơ khám: {formData.studentName}
-                </Modal.Title>
-            </Modal.Header>
-            <Form noValidate validated={validated} onSubmit={handleSubmit}>
-                <Modal.Body className="schedule-edit-modal-body">
-                    {/* General Info Section */}
-                    <div className="schedule-form-section">
-                        <h5>Thông tin chung (Không thể thay đổi)</h5>
-                        <Row>
-                            <Col md={4}>
-                                <Form.Group>
-                                    <Form.Label>Mã học sinh</Form.Label>
-                                    <Form.Control type="text" value={formData.studentId || ''} readOnly disabled />
-                                </Form.Group>
-                            </Col>
-                            <Col md={4}>
-                                <Form.Group>
-                                    <Form.Label>Học sinh</Form.Label>
-                                    <Form.Control type="text" value={formData.studentName || ''} readOnly disabled />
-                                </Form.Group>
-                            </Col>
-                            <Col md={4}>
-                                <Form.Group>
-                                    <Form.Label>Lớp</Form.Label>
-                                    <Form.Control type="text" value={formData.studentClass || ''} readOnly disabled />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        <Row>
-                             <Col md={12}>
-                                <Form.Group>
-                                    <Form.Label>Chiến dịch khám</Form.Label>
-                                    <Form.Control as="textarea" rows={2} value={formData.campaignTitle || ''} readOnly disabled />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                    </div>
-
-                    {/* Checkup Info Section */}
-                    <div className="schedule-form-section">
-                        <h5>Thông tin khám</h5>
-                        <Row>
-                            <Col md={4}>
-                                <Form.Group controlId="checkupDate">
-                                    <Form.Label>Ngày khám</Form.Label>
-                                    <Form.Control
-                                        type="date"
-                                        name="checkupDate"
-                                        value={formatDateForInput(formData.checkupDate)}
-                                        onChange={handleChange}
-                                        required
-                                        isInvalid={!!errors.checkupDate}
-                                    />
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.checkupDate}
-                                    </Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                            <Col md={4}>
-                                 <Form.Group controlId="checkupStatus">
-                                    <Form.Label>Trạng thái khám</Form.Label>
-                                    <Form.Select
-                                        name="checkupStatus"
-                                        value={formData.checkupStatus || ''}
-                                        onChange={handleChange}
-                                        required
-                                        isInvalid={!!errors.checkupStatus}
-                                    >
-                                        <option value="">Chọn trạng thái</option>
-                                        <option value="COMPLETED">Đã hoàn thành</option>
-                                        <option value="NEED_FOLLOW_UP">Cần theo dõi</option>
-                                        <option value="CANCELLED">Đã hủy</option>
-                                    </Form.Select>
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.checkupStatus}
-                                    </Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                             <Col md={4}>
-                                <Form.Group controlId="checkupType">
-                                    <Form.Label>Loại hình khám</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        name="checkupType"
-                                        value={formData.checkupType || ''}
-                                        onChange={handleChange}
-                                        placeholder="Ví dụ: Định kỳ giữa năm"
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                    </div>
-
-                    {/* Health Metrics Section */}
-                    <div className="schedule-form-section">
-                        <h5>Kết quả khám</h5>
-                        <Row>
-                            <Col md={3} sm={6}>
-                                <Form.Group controlId="height">
-                                    <Form.Label>Chiều cao (cm)</Form.Label>
-                                    <Form.Control type="number" name="height" value={formData.height || ''} onChange={handleChange} isInvalid={!!errors.height} />
-                                    <Form.Control.Feedback type="invalid">{errors.height}</Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                            <Col md={3} sm={6}>
-                                <Form.Group controlId="weight">
-                                    <Form.Label>Cân nặng (kg)</Form.Label>
-                                    <Form.Control type="number" name="weight" value={formData.weight || ''} onChange={handleChange} isInvalid={!!errors.weight} />
-                                    <Form.Control.Feedback type="invalid">{errors.weight}</Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                            <Col md={3} sm={6}>
-                                <Form.Group controlId="bmi">
-                                    <Form.Label>BMI</Form.Label>
-                                    <Form.Control type="number" name="bmi" value={formData.bmi || ''} onChange={handleChange} isInvalid={!!errors.bmi} />
-                                    <Form.Control.Feedback type="invalid">{errors.bmi}</Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                             <Col md={3} sm={6}>
-                                <Form.Group controlId="bodyTemperature">
-                                    <Form.Label>Nhiệt độ (°C)</Form.Label>
-                                    <Form.Control type="number" name="bodyTemperature" value={formData.bodyTemperature || ''} onChange={handleChange} isInvalid={!!errors.bodyTemperature} />
-                                    <Form.Control.Feedback type="invalid">{errors.bodyTemperature}</Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col md={3} sm={6}>
-                                <Form.Group controlId="heartRate">
-                                    <Form.Label>Nhịp tim (bpm)</Form.Label>
-                                    <Form.Control type="number" name="heartRate" value={formData.heartRate || ''} onChange={handleChange} isInvalid={!!errors.heartRate} />
-                                    <Form.Control.Feedback type="invalid">{errors.heartRate}</Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                            <Col md={3} sm={6}>
-                                <Form.Group controlId="bloodPressure">
-                                    <Form.Label>Huyết áp</Form.Label>
-                                    <Form.Control type="text" name="bloodPressure" placeholder="VD: 120/80" value={formData.bloodPressure || ''} onChange={handleChange} isInvalid={!!errors.bloodPressure} />
-                                     <Form.Control.Feedback type="invalid">{errors.bloodPressure}</Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                            <Col md={3} sm={6}>
-                                <Form.Group controlId="visionLeft">
-                                    <Form.Label>Thị lực (Trái)</Form.Label>
-                                    <Form.Control type="text" name="visionLeft" placeholder="VD: 10/10" value={formData.visionLeft || ''} onChange={handleChange} isInvalid={!!errors.visionLeft} />
-                                    <Form.Control.Feedback type="invalid">{errors.visionLeft}</Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                            <Col md={3} sm={6}>
-                                <Form.Group controlId="visionRight">
-                                    <Form.Label>Thị lực (Phải)</Form.Label>
-                                    <Form.Control type="text" name="visionRight" placeholder="VD: 10/10" value={formData.visionRight || ''} onChange={handleChange} isInvalid={!!errors.visionRight} />
-                                    <Form.Control.Feedback type="invalid">{errors.visionRight}</Form.Control.Feedback>
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                    </div>
-
-                    {/* Diagnosis and Notes Section */}
-                    <div className="schedule-form-section">
-                        <h5>Chẩn đoán và Đề nghị</h5>
-                         <Row>
-                            <Col md={12}>
-                                <Form.Group controlId="diagnosis">
-                            <Form.Label>Chẩn đoán</Form.Label>
-                            <Form.Control as="textarea" rows={3} name="diagnosis" value={formData.diagnosis || ''} onChange={handleChange} />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col md={12}>
-                                <Form.Group controlId="notes">
-                                    <Form.Label>Đề nghị của bác sĩ</Form.Label>
-                                    <Form.Control as="textarea" rows={3} name="notes" value={formData.notes || ''} onChange={handleChange} />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                    </div>
-                </Modal.Body>
-                <Modal.Footer className="schedule-edit-modal-footer">
-                    <Button variant="secondary" onClick={onHide} className="schedule-close-btn" disabled={loading}>
-                        Đóng
-                    </Button>
-                    <Button variant="primary" type="submit" className="schedule-save-btn" disabled={loading}>
-                        {loading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : 'Lưu thay đổi'}
-                    </Button>
-                </Modal.Footer>
-            </Form>
-        </Modal>
-    );
-};
 
 export default MedicalCheckupList;

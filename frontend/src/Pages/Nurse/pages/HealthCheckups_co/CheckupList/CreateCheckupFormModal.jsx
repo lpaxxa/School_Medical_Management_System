@@ -62,14 +62,40 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
       }
     });
 
-    if (formData.bloodPressure && !/^\d+\/\d+$/.test(formData.bloodPressure)) {
-      newErrors.bloodPressure = 'Định dạng huyết áp không hợp lệ (ví dụ: 120/80).';
+    // Validate huyết áp: số bất kỳ/80 (VD: 120/80)
+    if (formData.bloodPressure) {
+      const bloodPressurePattern = /^(\d+)\/80$/;
+      if (!bloodPressurePattern.test(formData.bloodPressure)) {
+        newErrors.bloodPressure = 'Huyết áp phải có định dạng: [số]/80 (ví dụ: 120/80).';
+      }
     }
-    if (formData.visionLeft && !/^\d+\/\d+$/.test(formData.visionLeft)) {
-      newErrors.visionLeft = 'Định dạng thị lực không hợp lệ (ví dụ: 10/10).';
+
+    // Validate thị lực mắt trái: số từ 0 đến 20/20 (VD: 12/20, 20/20)
+    if (formData.visionLeft) {
+      const visionPattern = /^(\d+)\/20$/;
+      const match = formData.visionLeft.match(visionPattern);
+      if (!match) {
+        newErrors.visionLeft = 'Thị lực mắt trái phải có định dạng: [số]/20 (ví dụ: 12/20, 20/20).';
+      } else {
+        const visionValue = parseInt(match[1]);
+        if (visionValue < 0 || visionValue > 20) {
+          newErrors.visionLeft = 'Thị lực mắt trái phải từ 0/20 đến 20/20.';
+        }
+      }
     }
-    if (formData.visionRight && !/^\d+\/\d+$/.test(formData.visionRight)) {
-      newErrors.visionRight = 'Định dạng thị lực không hợp lệ (ví dụ: 10/10).';
+
+    // Validate thị lực mắt phải: số từ 0 đến 20/20 (VD: 12/20, 20/20)
+    if (formData.visionRight) {
+      const visionPattern = /^(\d+)\/20$/;
+      const match = formData.visionRight.match(visionPattern);
+      if (!match) {
+        newErrors.visionRight = 'Thị lực mắt phải phải có định dạng: [số]/20 (ví dụ: 12/20, 20/20).';
+      } else {
+        const visionValue = parseInt(match[1]);
+        if (visionValue < 0 || visionValue > 20) {
+          newErrors.visionRight = 'Thị lực mắt phải phải từ 0/20 đến 20/20.';
+        }
+      }
     }
 
     setErrors(newErrors);
@@ -161,8 +187,8 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
             </Row>
             <Row className="mb-3">
               <Col md={3}><Form.Group><Form.Label>Huyết áp</Form.Label><Form.Control type="text" name="bloodPressure" value={formData.bloodPressure || ''} onChange={handleChange} isInvalid={!!errors.bloodPressure} placeholder="VD: 120/80" /><Form.Control.Feedback type="invalid">{errors.bloodPressure}</Form.Control.Feedback></Form.Group></Col>
-              <Col md={3}><Form.Group><Form.Label>Thị lực (Trái)</Form.Label><Form.Control type="text" name="visionLeft" value={formData.visionLeft || ''} onChange={handleChange} isInvalid={!!errors.visionLeft} placeholder="VD: 10/10" /><Form.Control.Feedback type="invalid">{errors.visionLeft}</Form.Control.Feedback></Form.Group></Col>
-              <Col md={3}><Form.Group><Form.Label>Thị lực (Phải)</Form.Label><Form.Control type="text" name="visionRight" value={formData.visionRight || ''} onChange={handleChange} isInvalid={!!errors.visionRight} placeholder="VD: 10/10" /><Form.Control.Feedback type="invalid">{errors.visionRight}</Form.Control.Feedback></Form.Group></Col>
+              <Col md={3}><Form.Group><Form.Label>Thị lực (Trái)</Form.Label><Form.Control type="text" name="visionLeft" value={formData.visionLeft || ''} onChange={handleChange} isInvalid={!!errors.visionLeft} placeholder="VD: 12/20, 20/20" /><Form.Control.Feedback type="invalid">{errors.visionLeft}</Form.Control.Feedback></Form.Group></Col>
+              <Col md={3}><Form.Group><Form.Label>Thị lực (Phải)</Form.Label><Form.Control type="text" name="visionRight" value={formData.visionRight || ''} onChange={handleChange} isInvalid={!!errors.visionRight} placeholder="VD: 12/20, 20/20" /><Form.Control.Feedback type="invalid">{errors.visionRight}</Form.Control.Feedback></Form.Group></Col>
               <Col md={3}><Form.Group><Form.Label>Thính lực</Form.Label><Form.Control type="text" name="hearingStatus" value={formData.hearingStatus || ''} onChange={handleChange} placeholder="VD: Bình thường" /></Form.Group></Col>
             </Row>
             <Row className="mb-3">

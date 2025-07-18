@@ -1,12 +1,202 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import SuccessNotification from './SuccessNotification';
-import { Container, Row, Col, Card, Button, Badge, Modal, Spinner, Nav, Pagination } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import HealthArticleDetailModal from './HealthArticleDetailModal';
+import { Container, Row, Col, Card, Button, Badge, Spinner } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../../../context/AuthContext';
 import * as healthArticleService from '../../../../../services/APINurse/blogService';
 import {  getAuthorDisplayName } from '../../../../../context/NurseContext/BlogContext';
 import './HealthArticles.css';
+
+// Custom styles for delete modal
+const deleteModalStyles = `
+  /* Health Article Delete Modal - Namespaced Styles */
+  .health-article-delete-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .health-article-delete-modal-dialog {
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    margin: 1rem;
+  }
+
+  .health-article-delete-modal-content {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+  }
+
+  .health-article-delete-modal-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: none;
+  }
+
+  .health-article-delete-modal-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+
+  .health-article-delete-btn-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s ease;
+  }
+
+  .health-article-delete-btn-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .health-article-delete-modal-body {
+    padding: 1.75rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .health-article-delete-text-center {
+    text-align: center;
+  }
+
+  .health-article-delete-mb-4 {
+    margin-bottom: 1.5rem;
+  }
+
+  .health-article-delete-mb-3 {
+    margin-bottom: 1rem;
+  }
+
+  .health-article-delete-warning-icon {
+    font-size: 3.5rem;
+    color: #ffc107;
+    margin-bottom: 1rem;
+  }
+
+  .health-article-delete-confirmation-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 1rem;
+  }
+
+  .health-article-delete-article-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #dc3545;
+    background-color: #f8d7da;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f5c6cb;
+  }
+
+  .health-article-delete-alert {
+    padding: 1rem 1.25rem;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.5rem;
+    background-color: #fff8e1;
+    color: #856404;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .health-article-delete-modal-footer {
+    background-color: #f8f9fa;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  .health-article-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.5;
+    border-radius: 0.375rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .health-article-delete-btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+  }
+
+  .health-article-delete-btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+  }
+
+  .health-article-delete-btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+  }
+
+  .health-article-delete-btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+  }
+
+  .health-article-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    .health-article-delete-modal-dialog {
+      width: 95%;
+      margin: 0.5rem;
+    }
+
+    .health-article-delete-modal-body {
+      padding: 1.25rem;
+    }
+  }
+
+  /* Utility Classes */
+  .health-article-delete-me-1 { margin-right: 0.25rem; }
+  .health-article-delete-me-2 { margin-right: 0.5rem; }
+`;
 
 const HealthArticles = () => {
   const { currentUser } = useAuth();
@@ -23,6 +213,8 @@ const HealthArticles = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [articlesPerPage] = useState(6);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   
   // Success notification states
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
@@ -177,30 +369,42 @@ const HealthArticles = () => {
     }
   };
 
-  // Get difficulty badge variant
+  // Get difficulty badge variant - All badges will be blue
   const getDifficultyVariant = (category) => {
-    switch (category) {
-      case 'Dinh dưỡng': return 'success';
-      case 'Xương khớp': return 'warning';
-      case 'Nhãn khoa': return 'danger';
-      case 'Dinh dưỡng học đường': return 'success';
-      case 'Sức khỏe học đường': return 'info';
-      default: return 'secondary';
-    }
+    // Return 'primary' for all categories to have consistent blue color
+    return 'primary';
   };
 
-  // Filter articles based on search term and category
+  // Filter articles based on search term, category, and date range
   const filteredArticles = articles.filter(article => {
-    const matchesSearch = 
+    const matchesSearch =
       article.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (article.tags && Array.isArray(article.tags) && 
+      (article.tags && Array.isArray(article.tags) &&
         article.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
-    
+
     const matchesCategory = selectedCategory === '' || article.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
+
+    // Date range filtering
+    let matchesDateRange = true;
+    if (dateFrom || dateTo) {
+      const articleDate = parseDate(article.publishDate);
+
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        fromDate.setHours(0, 0, 0, 0); // Start of day
+        matchesDateRange = matchesDateRange && articleDate >= fromDate;
+      }
+
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999); // End of day
+        matchesDateRange = matchesDateRange && articleDate <= toDate;
+      }
+    }
+
+    return matchesSearch && matchesCategory && matchesDateRange;
   });
 
   // Pagination logic
@@ -213,7 +417,7 @@ const HealthArticles = () => {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, dateFrom, dateTo]);
 
   // Handle page change
   const handlePageChange = (pageNumber) => {
@@ -277,362 +481,9 @@ const HealthArticles = () => {
   };
 
   return (
-    <Container fluid className="py-4">
-      <style>
-        {`
-          /* Đồng bộ màu sắc với hệ thống */
-          .btn-primary {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-            border-color: #0d6efd !important;
-            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2) !important;
-          }
-          
-          .btn-primary:hover {
-            background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%) !important;
-            border-color: #0b5ed7 !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
-          }
-          
-          .btn-outline-primary {
-            color: #0d6efd !important;
-            border-color: #0d6efd !important;
-          }
-          
-          .btn-outline-primary:hover {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-          }
-          
-          /* Badge ID đồng bộ với hệ thống */
-          .badge.bg-info {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-            color: white !important;
-          }
-          
-          /* Badge secondary (tags) đồng bộ với hệ thống */
-          .badge.bg-secondary {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-            color: white !important;
-          }
-          
-          /* Text primary cho các element khác */
-          .text-primary {
-            color: #0d6efd !important;
-          }
-          
-          /* Focus state cho form controls */
-          .form-control:focus {
-            border-color: #86b7fe !important;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-          }
-          
-          .form-select:focus {
-            border-color: #86b7fe !important;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-          }
-          
-          /* Fix dropdown arrow */
-          .form-select {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 0.75rem center !important;
-            background-size: 16px 12px !important;
-            padding-right: 2.25rem !important;
-            appearance: none !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-          }
-          
-          /* Ensure dropdown works properly */
-          .form-select option {
-            color: #212529 !important;
-            background-color: #fff !important;
-          }
-
-          /* Enhanced Filter Section Styles for Health Articles */
-          .enhanced-filter-section-health {
-            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(40, 167, 69, 0.2);
-            backdrop-filter: blur(10px);
-            margin-bottom: 2rem;
-          }
-
-          .filter-container-health {
-            max-width: 100%;
-          }
-
-          .filter-header-health {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-          }
-
-          .filter-title-health {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #155724;
-            display: flex;
-            align-items: center;
-          }
-
-          .filter-title-health i {
-            color: #28a745;
-            font-size: 1rem;
-          }
-
-          .filter-stats-health {
-            font-size: 0.9rem;
-            color: #6c757d;
-            font-weight: 500;
-          }
-
-          .stats-number-health {
-            color: #28a745;
-            font-weight: 700;
-            font-size: 1rem;
-          }
-
-          .page-info-health {
-            color: #6c757d;
-            font-size: 0.85rem;
-          }
-
-          .filter-controls-health {
-            display: grid;
-            grid-template-columns: 2fr 1fr auto;
-            gap: 16px;
-            align-items: end;
-          }
-
-          @media (max-width: 768px) {
-            .filter-controls-health {
-              grid-template-columns: 1fr;
-              gap: 12px;
-            }
-
-            .filter-header-health {
-              flex-direction: column;
-              align-items: flex-start;
-              gap: 8px;
-            }
-          }
-
-          .search-control-health {
-            position: relative;
-          }
-
-          .search-wrapper-health {
-            position: relative;
-            display: flex;
-            align-items: center;
-          }
-
-          .search-input-health {
-            width: 100%;
-            padding: 12px 44px 12px 16px;
-            border: 2px solid #d4edda;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            background: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
-          }
-
-          .search-input-health:focus {
-            outline: none;
-            border-color: #28a745;
-            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15), 0 4px 12px rgba(40, 167, 69, 0.2);
-            transform: translateY(-1px);
-          }
-
-          .search-input-health::placeholder {
-            color: #adb5bd;
-            font-style: italic;
-          }
+    <Container fluid className="py-4 health-articles-wrapper">
 
 
-
-          .clear-search-health {
-            position: absolute;
-            right: 12px;
-            background: none;
-            border: none;
-            color: #6c757d;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            z-index: 2;
-          }
-
-          .clear-search-health:hover {
-            color: #dc3545;
-            background-color: rgba(220, 53, 69, 0.1);
-          }
-
-          .category-control-health {
-            position: relative;
-          }
-
-          .category-wrapper-health {
-            position: relative;
-            display: flex;
-            align-items: center;
-          }
-
-          .category-select-health {
-            width: 100%;
-            padding: 12px 40px 12px 44px;
-            border: 2px solid #d4edda;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            background: white !important;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
-            appearance: none !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            background-image: none !important;
-          }
-
-          /* Loại bỏ mũi tên mặc định trên tất cả browser */
-          .category-select-health::-ms-expand {
-            display: none;
-          }
-
-          .category-select-health:focus {
-            outline: none;
-            border-color: #28a745;
-            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15), 0 4px 12px rgba(40, 167, 69, 0.2);
-            transform: translateY(-1px);
-          }
-
-          .category-icon-health {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-            font-size: 0.9rem;
-            z-index: 2;
-            transition: color 0.3s ease;
-            pointer-events: none;
-          }
-
-          .category-select-health:focus ~ .category-icon-health,
-          .category-wrapper-health:hover .category-icon-health {
-            color: #28a745;
-          }
-
-          .dropdown-arrow-health {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-            font-size: 0.8rem;
-            pointer-events: none;
-            transition: all 0.3s ease;
-          }
-
-          .category-select-health:focus ~ .dropdown-arrow-health,
-          .category-wrapper-health:hover .dropdown-arrow-health {
-            color: #28a745;
-            transform: translateY(-50%) rotate(180deg);
-          }
-
-          .reset-filters-health {
-            display: flex;
-            align-items: end;
-          }
-
-          .reset-btn-health {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-            white-space: nowrap;
-          }
-
-          .reset-btn-health:hover {
-            background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
-          }
-
-          .reset-btn-health:active {
-            transform: translateY(0);
-          }
-          
-          .form-select:disabled {
-            background-color: #e9ecef !important;
-            opacity: 1 !important;
-          }
-          
-          /* Modal styling đồng bộ hệ thống */
-          .modal-header {
-            border-bottom: 2px solid #dee2e6 !important;
-          }
-          
-          /* Modal xóa - theme đỏ cho delete */
-          .modal-header.delete-modal-header {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-            color: white !important;
-            border-bottom: 2px solid #c82333 !important;
-          }
-          
-          .modal-header.delete-modal-header .modal-title {
-            color: white !important;
-            font-weight: 600 !important;
-          }
-          
-          .modal-header.delete-modal-header .btn-close {
-            filter: brightness(0) invert(1) !important;
-          }
-          
-          /* Button danger enhancement */
-          .btn-danger {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-            border-color: #dc3545 !important;
-            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2) !important;
-          }
-          
-          .btn-danger:hover {
-            background: linear-gradient(135deg, #c82333 0%, #b21e2f 100%) !important;
-            border-color: #c82333 !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
-          }
-          
-          /* Button secondary enhancement */
-          .btn-secondary {
-            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
-            border-color: #6c757d !important;
-            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2) !important;
-          }
-          
-          .btn-secondary:hover {
-            background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%) !important;
-            border-color: #5a6268 !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3) !important;
-          }
-        `}
-      </style>
 
       {/* Articles Header */}
       <Row className="mb-4">
@@ -663,6 +514,17 @@ const HealthArticles = () => {
               {totalArticles > 0 && (
                 <span className="page-info-health"> • Trang {currentPage} / {totalPages}</span>
               )}
+              {(searchTerm || selectedCategory || dateFrom || dateTo) && (
+                <div className="active-filters-health">
+                  {searchTerm && <span className="filter-tag-health">Tìm kiếm: "{searchTerm}"</span>}
+                  {selectedCategory && <span className="filter-tag-health">Danh mục: {selectedCategory}</span>}
+                  {(dateFrom || dateTo) && (
+                    <span className="filter-tag-health">
+                      Thời gian: {dateFrom ? new Date(dateFrom).toLocaleDateString('vi-VN') : '...'} → {dateTo ? new Date(dateTo).toLocaleDateString('vi-VN') : '...'}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -676,6 +538,7 @@ const HealthArticles = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                {!searchTerm && <i className="fas fa-search search-icon-health"></i>}
                 {searchTerm && (
                   <button
                     className="clear-search-health"
@@ -705,13 +568,45 @@ const HealthArticles = () => {
               </div>
             </div>
 
-            {(searchTerm || selectedCategory) && (
+            {/* Date Range Filter */}
+            <div className="date-range-control-health">
+              <div className="date-filters-health">
+                <div className="date-control-health">
+                  <label className="date-label-health">
+                    Từ ngày
+                  </label>
+                  <input
+                    type="date"
+                    className="date-input-health"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    max={dateTo || undefined}
+                  />
+                </div>
+                <div className="date-control-health">
+                  <label className="date-label-health">
+                    Đến ngày
+                  </label>
+                  <input
+                    type="date"
+                    className="date-input-health"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    min={dateFrom || undefined}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {(searchTerm || selectedCategory || dateFrom || dateTo) && (
               <div className="reset-filters-health">
                 <button
                   className="reset-btn-health"
                   onClick={() => {
                     setSearchTerm('');
                     setSelectedCategory('');
+                    setDateFrom('');
+                    setDateTo('');
                   }}
                   type="button"
                 >
@@ -770,7 +665,7 @@ const HealthArticles = () => {
                   <Card.Body className="d-flex flex-column">
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <Badge bg={getDifficultyVariant(article.category)} className="mb-2">{article.category || 'Chưa phân loại'}</Badge>
-                      <Badge bg="info" className="mb-2">ID: {article.id}</Badge>
+                      <Badge bg="secondary" className="mb-2">ID: {article.id}</Badge>
                     </div>
                     
                     <Card.Title className="h6 mb-2">{article.title}</Card.Title>
@@ -780,7 +675,7 @@ const HealthArticles = () => {
                     
                     <div className="mb-2">
                       {article.tags && Array.isArray(article.tags) && article.tags.map((tag, index) => (
-                        <Badge key={index} bg="secondary" className="me-1 mb-1">
+                        <Badge key={index} bg="primary" className="me-1 mb-1">
                           {tag}
                         </Badge>
                       ))}
@@ -928,146 +823,88 @@ const HealthArticles = () => {
       {/* Add/Edit Article Modal - Removed because we use separate pages */}
       
       {/* Article Detail Modal */}
-      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
-        <Modal.Header closeButton className="system-modal-header" style={{
-          background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
-          color: 'white',
-          borderBottom: '2px solid #0b5ed7'
-        }}>
-          <Modal.Title style={{ color: 'white', fontWeight: '600' }}>
-            <i className="fas fa-file-alt me-2"></i>
-            Chi tiết bài viết y tế
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {detailLoading ? (
-            <div className="text-center py-4">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-2 text-muted">Đang tải chi tiết bài viết...</p>
-            </div>
-          ) : selectedArticle ? (
-            <div className="article-detail">
-              {selectedArticle.imageUrl && (
-                <div className="text-center mb-4">
-                  <img 
-                    src={selectedArticle.imageUrl} 
-                    alt={selectedArticle.title}
-                    className="img-fluid rounded mx-auto d-block" 
-                    style={{ maxHeight: '300px', maxWidth: '100%' }}
-                    onError={(e) => {e.target.style.display = 'none'}}
-                  />
-                </div>
-              )}
-              
-              <h4 className="mb-3">{selectedArticle.title}</h4>
-              
-              <div className="d-flex justify-content-between text-muted small mb-3">
-                <span>
-                  <i className="fas fa-user me-1"></i>
-                  {getAuthorDisplayName(selectedArticle, currentUser)}
-                </span>
-                <span>
-                  <i className="fas fa-calendar me-1"></i>
-                  {formatDate(selectedArticle.publishDate)}
-                </span>
-              </div>
-              
-              <Badge bg="info" className="mb-3" style={{
-                background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
-                color: 'white'
-              }}>
-                {selectedArticle.category || 'Chưa phân loại'}
-              </Badge>
-              
-              {selectedArticle.summary && (
-                <div className="summary mb-3 p-3 bg-light rounded">
-                  <strong>Tóm tắt:</strong> {selectedArticle.summary}
-                </div>
-              )}
-              
-              <div className="content mb-4">
-                <h6>Nội dung:</h6>
-                <div className="p-2" style={{ whiteSpace: 'pre-wrap' }}>
-                  {selectedArticle.content}
-                </div>
-              </div>
-              
-              {selectedArticle.tags && selectedArticle.tags.length > 0 && (
-                <div className="tags mb-3">
-                  <h6>Thẻ:</h6>
-                  <div>
-                    {selectedArticle.tags.map((tag, index) => (
-                      <Badge key={index} bg="secondary" className="me-1 mb-1" style={{
-                        background: 'linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%)',
-                        color: 'white'
-                      }}>
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <div className="metadata mt-4 pt-3 border-top">
-                <small className="text-muted">
-                  <strong>ID bài viết:</strong> {selectedArticle.id}<br />
-                  <strong>ID tác giả:</strong> {selectedArticle.memberId || 'N/A'}<br />
-                  <strong>Tên tác giả:</strong> {selectedArticle.author || 'N/A'}<br />
-                  <strong>Tên thành viên:</strong> {selectedArticle.memberName || 'N/A'}
-                </small>
-              </div>
-            </div>
-          ) : (
-            <p className="text-center text-muted">Không tìm thấy thông tin bài viết</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
-            Đóng
-          </Button>
-          {selectedArticle && canEditDelete(selectedArticle) && (
-            <Button 
-              variant="warning" 
-              onClick={() => {
-                setShowDetailModal(false);
-                handleEditArticle(selectedArticle);
-              }}
-            >
-              <i className="fas fa-edit me-1"></i> Chỉnh sửa
-            </Button>
-          )}
-        </Modal.Footer>
-      </Modal>
+      <HealthArticleDetailModal
+        show={showDetailModal}
+        onHide={() => setShowDetailModal(false)}
+        selectedArticle={selectedArticle}
+        detailLoading={detailLoading}
+        currentUser={currentUser}
+        getAuthorDisplayName={getAuthorDisplayName}
+        formatDate={formatDate}
+        canEditDelete={canEditDelete}
+        handleEditArticle={handleEditArticle}
+      />
+
+
 
       {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
-        <Modal.Header closeButton className="delete-modal-header">
-          <Modal.Title>
-            <i className="fas fa-exclamation-triangle me-2"></i>
-            Xác nhận xóa bài viết
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="text-center mb-3">
-            <i className="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+      {showDeleteModal && createPortal(
+        <>
+          <style>{deleteModalStyles}</style>
+          <div className="health-article-delete-modal-overlay">
+            <div className="health-article-delete-modal-dialog">
+              <div className="health-article-delete-modal-content">
+                {/* Modal Header */}
+                <div className="health-article-delete-modal-header">
+                  <h5 className="health-article-delete-modal-title" style={{color: 'white'}}>
+                    <i className="fas fa-trash-alt health-article-delete-me-2" style={{color: 'white'}}></i>
+                    Xác nhận xóa bài viết
+                  </h5>
+                  <button
+                    type="button"
+                    className="health-article-delete-btn-close"
+                    onClick={() => setShowDeleteModal(false)}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="health-article-delete-modal-body">
+                  <div className="health-article-delete-text-center health-article-delete-mb-4">
+                    <i className="fas fa-exclamation-triangle health-article-delete-warning-icon"></i>
+                  </div>
+
+                  <div className="health-article-delete-text-center health-article-delete-mb-4">
+                    <p className="health-article-delete-confirmation-text">
+                      Bạn có chắc chắn muốn xóa bài viết
+                    </p>
+                    <div className="health-article-delete-article-name">
+                      "{selectedArticle?.title}"
+                    </div>
+                  </div>
+
+                  <div className="health-article-delete-alert">
+                    <i className="fas fa-exclamation-triangle health-article-delete-me-2"></i>
+                    <span><strong>Lưu ý:</strong> Hành động này không thể hoàn tác.</span>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="health-article-delete-modal-footer">
+                  <button
+                    type="button"
+                    className="health-article-delete-btn health-article-delete-btn-secondary"
+                    onClick={() => setShowDeleteModal(false)}
+                  >
+                    <i className="fas fa-times health-article-delete-me-1"></i>
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    className="health-article-delete-btn health-article-delete-btn-danger"
+                    onClick={confirmDeleteArticle}
+                  >
+                    <i className="fas fa-trash-alt health-article-delete-me-1"></i>
+                    Xóa bài viết
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="text-center mb-3">Bạn có chắc chắn muốn xóa bài viết "{selectedArticle?.title}"?</p>
-          <div className="alert alert-danger">
-            <i className="fas fa-exclamation-triangle me-2"></i>
-            <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            <i className="fas fa-times me-1"></i>
-            Hủy
-          </Button>
-          <Button variant="danger" onClick={confirmDeleteArticle}>
-            <i className="fas fa-trash me-1"></i>
-            Xóa bài viết
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        </>,
+        document.body
+      )}
 
       {/* Success Notification Modal */}
       <SuccessNotification
