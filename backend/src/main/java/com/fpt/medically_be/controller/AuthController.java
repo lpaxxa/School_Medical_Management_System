@@ -12,6 +12,7 @@ import com.fpt.medically_be.service.AuthService;
 import com.fpt.medically_be.service.JwtService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -42,6 +43,9 @@ public class AuthController {
     private final AuthService authService;
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
 //    @PostMapping("/register")
 //  //  @PreAuthorize("hasRole('ADMIN')")
@@ -130,12 +134,13 @@ public class AuthController {
             @RequestParam(required = false) String code, 
             @RequestParam(required = false) String state, 
             @RequestParam(required = false) String error) {
-        
-        String frontendUrl = "http://localhost:5173/auth/oauth2/callback";
+
+        // Use injected frontendUrl
+        String redirectBaseUrl = frontendUrl;
         
         if (error != null) {
             logger.warning("OAuth2 login failed: " + error);
-            return new RedirectView(frontendUrl + "?error=" + URLEncoder.encode(error, StandardCharsets.UTF_8));
+            return new RedirectView(redirectBaseUrl + "?error=" + URLEncoder.encode(error, StandardCharsets.UTF_8));
         }
 
         try {
@@ -144,7 +149,7 @@ public class AuthController {
                 // User tried to login with Google but no account exists
                 logger.warning("OAuth2 login failed: No account found. User must be created by admin first.");
                 String errorMessage = "Your Google account is not registered. Please contact admin to create your account.";
-                return new RedirectView(frontendUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
+                return new RedirectView(redirectBaseUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
             }
 
             // Generate JWT token
@@ -158,7 +163,7 @@ public class AuthController {
             // Redirect to frontend with user data
             String redirectUrl = String.format(
                 "%s?token=%s&memberId=%s&email=%s&role=%s&phoneNumber=%s",
-                frontendUrl,
+                redirectBaseUrl,
                 URLEncoder.encode(token, StandardCharsets.UTF_8),
                 URLEncoder.encode(accountMember.getId(), StandardCharsets.UTF_8),
                 URLEncoder.encode(accountMember.getEmail(), StandardCharsets.UTF_8),
@@ -172,16 +177,16 @@ public class AuthController {
         } catch (Exception e) {
             logger.warning("OAuth2 processing error: " + e.getMessage());
             String errorMessage = "OAuth2 authentication failed: " + e.getMessage();
-            return new RedirectView(frontendUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
+            return new RedirectView(redirectBaseUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
         }
     }
 
     @GetMapping("/oauth2/failure")
     public RedirectView oauth2Failure() {
-        String frontendUrl = "http://localhost:5173/auth/oauth2/callback";
+        String redirectBaseUrl = frontendUrl;
         String errorMessage = "OAuth2 authentication failed";
         logger.warning("OAuth2 authentication failed, redirecting to frontend");
-        return new RedirectView(frontendUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
+        return new RedirectView(redirectBaseUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
     }
 
     @GetMapping("/me")

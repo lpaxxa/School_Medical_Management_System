@@ -25,7 +25,7 @@ public class HealthArticle {
     @Column(nullable = false, columnDefinition = "NVARCHAR(500)")
     private String summary;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(2000)")
+    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String content;
 
     @Column(columnDefinition = "NVARCHAR(100)")
