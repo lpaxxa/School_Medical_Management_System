@@ -299,11 +299,11 @@ const SendMedicine = () => {
   // Function để lọc history theo student
   const getFilteredHistory = () => {
     if (!selectedStudentFilter) return medicationHistory;
+
     return medicationHistory.filter(
-      (request) => request.studentId?.toString() === selectedStudentFilter
+        (request) => request.studentId === selectedStudentFilter
     );
   };
-
   // Function để xóa request
   const handleDeleteRequest = async (requestId) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa yêu cầu này?")) {
@@ -1632,16 +1632,16 @@ const SendMedicine = () => {
                 <div className="fix-history-filter">
                   <label htmlFor="studentFilter">Lọc theo học sinh:</label>
                   <select
-                    id="studentFilter"
-                    className="selectstudentfix"
-                    value={selectedStudentFilter}
-                    onChange={(e) => setSelectedStudentFilter(e.target.value)}
+                      id="studentFilter"
+                      className="selectstudentfix"
+                      value={selectedStudentFilter}
+                      onChange={(e) => setSelectedStudentFilter(e.target.value)}
                   >
                     <option value="">Tất cả học sinh</option>
                     {students.map((student) => (
-                      <option key={student.id} value={student.id}>
-                        {student.name}
-                      </option>
+                        <option key={student.id} value={student.studentId}>
+                          {student.name}
+                        </option>
                     ))}
                   </select>
                 </div>
