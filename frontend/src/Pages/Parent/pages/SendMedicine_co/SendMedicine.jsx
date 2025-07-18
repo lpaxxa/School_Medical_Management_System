@@ -321,7 +321,7 @@ const SendMedicine = () => {
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/v1/parent-medication-requests/${requestId}`,
+        }/api/v1/parent-medication-requests/cancel-request/${requestId}`,
         {
           method: "DELETE",
           headers: {

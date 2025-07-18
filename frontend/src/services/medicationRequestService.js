@@ -185,13 +185,12 @@ export const updateMedicationRequest = async (requestId, requestData) => {
 export const cancelMedicationRequest = async (requestId) => {
   try {
     const response = await axios.delete(
-      `${BASE_URL}/cancel-request/${requestId}`,
-      getHeaders()
+        `${BASE_URL}/cancel-request/${requestId}`, // ✅ đúng endpoint
+        getHeaders() // ✅ include Authorization header
     );
-    
     return response.data;
   } catch (error) {
-    console.error('Error canceling medication request:', error);
+    console.error('Error canceling medication request:', error?.response?.data || error);
     throw error;
   }
 };
