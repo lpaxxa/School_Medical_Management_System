@@ -416,7 +416,7 @@ const VaccinationPlanHistory = () => {
 
                       <td className="admin-plan-name-cell">
                         <div className="admin-name-with-icon">
-                          <FaSyringe className="admin-vaccine-icon" />
+                          {/* <FaSyringe className="admin-vaccine-icon" /> */}
                           <span>{plan.name}</span>
                         </div>
                       </td>
