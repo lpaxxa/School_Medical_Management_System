@@ -141,19 +141,30 @@ const ReportGenerator = () => {
   // Hàm xử lý nút quay lại từ DetailView
   const handleStudentDeleted = async (studentId) => {
     // Refresh the student data after deletion
+    console.log("🔄 handleStudentDeleted called with ID:", studentId);
     try {
       setIsLoadingDetail(true);
       const token = localStorage.getItem("authToken");
-      const response = await fetch("/api/v1/students", {
+      const backendUrl =
+        import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+      const refreshUrl = `${backendUrl}/api/v1/students`;
+      console.log("🌐 Backend URL:", backendUrl);
+      console.log("🌐 Refresh URL:", refreshUrl);
+
+      const response = await fetch(refreshUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
+      console.log("📡 Refresh response status:", response.status);
       if (response.ok) {
         const updatedData = await response.json();
+        console.log("✅ Updated data received:", updatedData);
         setDetailData(updatedData);
+      } else {
+        console.error("❌ Failed to refresh data:", response.status);
       }
     } catch (error) {
       console.error("Error refreshing student data:", error);

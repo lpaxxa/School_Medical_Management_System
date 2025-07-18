@@ -53,14 +53,53 @@ const StudentListView = ({
     hideSuccess,
   } = useSuccessModal();
 
+  // Helper function to normalize gender display
+  const normalizeGender = (gender) => {
+    if (!gender) return "Không xác định";
+    const genderLower = gender.toLowerCase();
+    if (genderLower === "male" || genderLower === "nam") return "Nam";
+    if (
+      genderLower === "female" ||
+      genderLower === "nữ" ||
+      genderLower === "nu"
+    )
+      return "Nữ";
+    return gender; // Return original if not recognized
+  };
+
+  // Helper function to get gender class
+  const getGenderClass = (gender) => {
+    const normalized = normalizeGender(gender);
+    return normalized === "Nam" ? "male" : "female";
+  };
+
   // Delete student function
   const handleDeleteStudent = async (student) => {
+    // Validate student object
+    if (!student || !student.id) {
+      console.error("❌ Invalid student object:", student);
+      showError(
+        "Lỗi dữ liệu",
+        "Thông tin học sinh không hợp lệ.",
+        "Vui lòng thử lại hoặc tải lại trang."
+      );
+      return;
+    }
+
+    console.log("🔔 Showing confirm modal for student:", student.fullName);
     showConfirm(
       "Xác nhận xóa học sinh",
-      `Bạn có chắc chắn muốn xóa học sinh "${student.fullName}"?\n\nThao tác này không thể hoàn tác.`,
-      "danger",
+      `Bạn có chắc chắn muốn xóa học sinh "${
+        student.fullName || "N/A"
+      }"?\n\nThao tác này không thể hoàn tác.`,
       async () => {
+        console.log("✅ User confirmed deletion, proceeding...");
         try {
+          console.log("🗑️ Attempting to delete student:", {
+            id: student.id,
+            name: student.fullName,
+            studentId: student.studentId,
+          });
           const token = localStorage.getItem("authToken");
           if (!token) {
             showError(
@@ -71,15 +110,42 @@ const StudentListView = ({
             return;
           }
 
-          const response = await fetch(`/api/v1/students/${student.id}`, {
+          // Get backend URL safely
+          const backendUrl =
+            import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+          const deleteUrl = `${backendUrl}/api/v1/students/${student.id}`;
+          console.log("🌐 Backend URL:", backendUrl);
+          console.log("🌐 Delete URL:", deleteUrl);
+
+          // Create AbortController for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+          const response = await fetch(deleteUrl, {
             method: "DELETE",
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
+            signal: controller.signal,
           });
 
+          clearTimeout(timeoutId);
+
+          console.log("📡 Delete response status:", response.status);
+          console.log("📡 Delete response ok:", response.ok);
+
           if (!response.ok) {
+            // Try to get error details from response
+            let errorDetails = "";
+            try {
+              const errorData = await response.text();
+              console.log("❌ Error response body:", errorData);
+              errorDetails = errorData;
+            } catch (e) {
+              console.log("❌ Could not read error response");
+            }
+
             if (response.status === 401) {
               showError(
                 "Phiên đăng nhập hết hạn",
@@ -93,10 +159,25 @@ const StudentListView = ({
                 "Vui lòng liên hệ quản trị viên."
               );
             } else {
-              throw new Error(`Không thể xóa học sinh (${response.status})`);
+              showError(
+                "Lỗi xóa học sinh",
+                `Không thể xóa học sinh (${response.status})`,
+                errorDetails || "Vui lòng thử lại sau."
+              );
             }
             return;
           }
+
+          // Try to get success response data
+          let responseData = null;
+          try {
+            responseData = await response.text();
+            console.log("✅ Success response data:", responseData);
+          } catch (e) {
+            console.log("✅ No response data to read");
+          }
+
+          console.log("✅ Student deleted successfully");
 
           showSuccess(
             "Xóa học sinh thành công!",
@@ -105,17 +186,37 @@ const StudentListView = ({
           );
 
           // Notify parent component to refresh data
+          console.log("🔄 Calling onStudentDeleted with ID:", student.id);
           if (onStudentDeleted) {
             onStudentDeleted(student.id);
+          } else {
+            console.warn("⚠️ onStudentDeleted callback not provided");
           }
         } catch (error) {
           console.error("Error deleting student:", error);
-          showError(
-            "Lỗi xóa học sinh",
-            "Có lỗi xảy ra khi xóa học sinh.",
-            `Chi tiết lỗi: ${error.message}`
-          );
+
+          let errorTitle = "Lỗi xóa học sinh";
+          let errorMessage = "Có lỗi xảy ra khi xóa học sinh.";
+          let errorDetails = error.message;
+
+          if (error.name === "AbortError") {
+            errorTitle = "Timeout";
+            errorMessage = "Yêu cầu xóa học sinh bị timeout.";
+            errorDetails = "Vui lòng kiểm tra kết nối mạng và thử lại.";
+          } else if (error.message.includes("fetch")) {
+            errorTitle = "Lỗi kết nối";
+            errorMessage = "Không thể kết nối đến server.";
+            errorDetails =
+              "Vui lòng kiểm tra kết nối mạng và đảm bảo server đang chạy.";
+          }
+
+          showError(errorTitle, errorMessage, errorDetails);
         }
+      },
+      {
+        type: "danger",
+        confirmText: "Xác nhận",
+        cancelText: "Hủy",
       }
     );
   };
@@ -160,8 +261,9 @@ const StudentListView = ({
   // Tính toán thống kê
   const genderStats = students.reduce(
     (acc, student) => {
-      if (student.gender === "Nam") acc.male++;
-      else if (student.gender === "Nữ") acc.female++;
+      const normalizedGender = normalizeGender(student.gender);
+      if (normalizedGender === "Nam") acc.male++;
+      else if (normalizedGender === "Nữ") acc.female++;
       return acc;
     },
     { male: 0, female: 0 }
@@ -313,11 +415,11 @@ const StudentListView = ({
                     </td>
                     <td className="reports-student-table-gender">
                       <span
-                        className={`reports-student-gender-badge ${
-                          student.gender === "Nam" ? "male" : "female"
-                        }`}
+                        className={`reports-student-gender-badge ${getGenderClass(
+                          student.gender
+                        )}`}
                       >
-                        {student.gender}
+                        {normalizeGender(student.gender)}
                       </span>
                     </td>
                     <td className="reports-student-table-actions">
@@ -331,7 +433,13 @@ const StudentListView = ({
                         </button>
                         <button
                           className="reports-student-action-btn reports-student-delete-btn"
-                          onClick={() => handleDeleteStudent(student)}
+                          onClick={() => {
+                            console.log(
+                              "🖱️ Delete button clicked for student:",
+                              student
+                            );
+                            handleDeleteStudent(student);
+                          }}
                           title="Xóa học sinh"
                         >
                           <FaTrashAlt />
