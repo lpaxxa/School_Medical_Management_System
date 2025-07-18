@@ -111,7 +111,10 @@ public class AuthController {
 //      ]
 //    }
 
-
+    @GetMapping("/ping")
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("pong");
+    }
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
         AccountMember member = authService.login(loginRequest);
@@ -129,65 +132,7 @@ public class AuthController {
         return ResponseEntity.ok(authResponseDTO);
     }
 
-    @GetMapping("/oauth2/success")
-    public RedirectView oauth2Success(
-            @RequestParam(required = false) String code, 
-            @RequestParam(required = false) String state, 
-            @RequestParam(required = false) String error) {
 
-        // Use injected frontendUrl
-        String redirectBaseUrl = frontendUrl;
-        
-        if (error != null) {
-            logger.warning("OAuth2 login failed: " + error);
-            return new RedirectView(redirectBaseUrl + "?error=" + URLEncoder.encode(error, StandardCharsets.UTF_8));
-        }
-
-        try {
-            AccountMember accountMember = authService.processOAuth2Callback(code, state);
-            if (accountMember == null) {
-                // User tried to login with Google but no account exists
-                logger.warning("OAuth2 login failed: No account found. User must be created by admin first.");
-                String errorMessage = "Your Google account is not registered. Please contact admin to create your account.";
-                return new RedirectView(redirectBaseUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
-            }
-
-            // Generate JWT token
-            String token = jwtService.generateToken(
-                    accountMember.getId(),
-                    accountMember.getEmail(),
-                    accountMember.getPhoneNumber(),
-                    accountMember.getRole()
-            );
-
-            // Redirect to frontend with user data
-            String redirectUrl = String.format(
-                "%s?token=%s&memberId=%s&email=%s&role=%s&phoneNumber=%s",
-                redirectBaseUrl,
-                URLEncoder.encode(token, StandardCharsets.UTF_8),
-                URLEncoder.encode(accountMember.getId(), StandardCharsets.UTF_8),
-                URLEncoder.encode(accountMember.getEmail(), StandardCharsets.UTF_8),
-                URLEncoder.encode(accountMember.getRole().name(), StandardCharsets.UTF_8),
-                URLEncoder.encode(accountMember.getPhoneNumber() != null ? accountMember.getPhoneNumber() : "", StandardCharsets.UTF_8)
-            );
-            
-            logger.info("OAuth2 login successful, redirecting to: " + redirectUrl);
-            return new RedirectView(redirectUrl);
-            
-        } catch (Exception e) {
-            logger.warning("OAuth2 processing error: " + e.getMessage());
-            String errorMessage = "OAuth2 authentication failed: " + e.getMessage();
-            return new RedirectView(redirectBaseUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
-        }
-    }
-
-    @GetMapping("/oauth2/failure")
-    public RedirectView oauth2Failure() {
-        String redirectBaseUrl = frontendUrl;
-        String errorMessage = "OAuth2 authentication failed";
-        logger.warning("OAuth2 authentication failed, redirecting to frontend");
-        return new RedirectView(redirectBaseUrl + "?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
-    }
 
     @GetMapping("/me")
     public ResponseEntity<MemberRole> getCurrentUser() {
