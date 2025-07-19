@@ -124,7 +124,11 @@ const AddHealthArticle = () => {
         content: formData.content.trim(),
         category: formData.category,
         tags: processedTags,
-        imageUrl: finalImageUrl // Use uploaded image URL or empty string
+        imageUrl: finalImageUrl, // Use uploaded image URL or empty string
+        // Thêm thông tin author để đảm bảo phân quyền edit/delete
+        author: currentUser.fullName || currentUser.name || currentUser.email || 'Unknown',
+        authorId: currentUser.id || currentUser.memberId,
+        memberId: currentUser.memberId || currentUser.id
       };
 
       // Debug: Try different tag formats to see what backend expects
@@ -134,8 +138,7 @@ const AddHealthArticle = () => {
       // Alternative: Try sending tags as string if array doesn't work
       const alternativeData = {
         ...articleTextData,
-        tags: formData.tags || '',
-        imageUrl: finalImageUrl // Use uploaded image URL or empty string
+        tags: formData.tags || ''
       };
 
       // Try with minimal required fields only + imageUrl (required by database)
@@ -144,7 +147,11 @@ const AddHealthArticle = () => {
         summary: formData.summary.trim(),
         content: formData.content.trim(),
         category: formData.category,
-        imageUrl: finalImageUrl // Use uploaded image URL or empty string
+        imageUrl: finalImageUrl, // Use uploaded image URL or empty string
+        // Thêm thông tin author để đảm bảo phân quyền edit/delete
+        author: currentUser.fullName || currentUser.name || currentUser.email || 'Unknown',
+        authorId: currentUser.id || currentUser.memberId,
+        memberId: currentUser.memberId || currentUser.id
       };
 
       console.log('Alternative data with string tags:', alternativeData);
