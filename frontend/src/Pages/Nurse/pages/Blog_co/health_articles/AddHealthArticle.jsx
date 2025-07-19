@@ -101,7 +101,20 @@ const AddHealthArticle = () => {
         return;
       }
 
-      // Step 1: Create the article with text data first
+      // Step 1: Prepare imageUrl (use placeholder if image selected, empty if not)
+      let finalImageUrl = '';
+      if (imageFile) {
+        console.log('Step 1: Image file selected, using placeholder URL...');
+        // Use a placeholder URL that indicates image will be uploaded
+        // This satisfies the NOT NULL constraint while allowing post-creation upload
+        finalImageUrl = 'PENDING_UPLOAD';
+        console.log('Using placeholder imageUrl:', finalImageUrl);
+      } else {
+        console.log('No image selected, using empty string');
+        finalImageUrl = '';
+      }
+
+      // Step 2: Create the article with text data and imageUrl
       // Sử dụng cấu trúc dữ liệu giống như EditHealthArticle để tránh lỗi 400 Bad Request
       const processedTags = formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : [];
 
@@ -110,7 +123,8 @@ const AddHealthArticle = () => {
         summary: formData.summary.trim(),
         content: formData.content.trim(),
         category: formData.category,
-        tags: processedTags
+        tags: processedTags,
+        imageUrl: finalImageUrl // Use uploaded image URL or empty string
       };
 
       // Debug: Try different tag formats to see what backend expects
@@ -120,21 +134,24 @@ const AddHealthArticle = () => {
       // Alternative: Try sending tags as string if array doesn't work
       const alternativeData = {
         ...articleTextData,
-        tags: formData.tags || ''
+        tags: formData.tags || '',
+        imageUrl: finalImageUrl // Use uploaded image URL or empty string
       };
 
-      // Try with minimal required fields only
+      // Try with minimal required fields only + imageUrl (required by database)
       const minimalData = {
         title: formData.title.trim(),
         summary: formData.summary.trim(),
         content: formData.content.trim(),
-        category: formData.category
+        category: formData.category,
+        imageUrl: finalImageUrl // Use uploaded image URL or empty string
       };
 
       console.log('Alternative data with string tags:', alternativeData);
       console.log('Minimal data:', minimalData);
 
-      console.log('Step 1: Creating health article with text data:', articleTextData);
+      console.log('Step 2: Creating health article with text data and imageUrl:', articleTextData);
+      console.log('Final imageUrl:', finalImageUrl ? 'Has image' : 'No image');
       console.log('Current user info:', {
         id: currentUser?.id,
         role: currentUser?.role,
@@ -171,11 +188,16 @@ const AddHealthArticle = () => {
       const newArticleId = createdArticle.id;
       console.log('Article created successfully with ID:', newArticleId);
 
-      // Step 2: If an image file was selected, upload it
-      if (imageFile && newArticleId) {
-        console.log(`Step 2: Uploading image for article ID: ${newArticleId}`);
-        await healthArticleService.uploadImageForHealthArticle(imageFile, newArticleId);
-        console.log('Image uploaded successfully.');
+      // Step 3: If image was selected, upload it and update the article
+      if (imageFile && newArticleId && finalImageUrl === 'PENDING_UPLOAD') {
+        console.log(`Step 3: Uploading actual image for article ID: ${newArticleId}`);
+        try {
+          await healthArticleService.uploadImageForHealthArticle(imageFile, newArticleId);
+          console.log('Image uploaded and article updated successfully.');
+        } catch (imageUploadError) {
+          console.error('Image upload failed, but article was created:', imageUploadError);
+          // Article is still created successfully, just without image
+        }
       }
 
       // Show success notification instead of alert
