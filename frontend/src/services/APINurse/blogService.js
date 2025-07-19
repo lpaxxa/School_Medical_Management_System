@@ -246,7 +246,35 @@ export const createHealthArticle = async (articleData) => {
     console.log('User role:', localStorage.getItem('userRole'));
     console.log('User ID:', localStorage.getItem('currentUserId'));
 
-    const response = await api.post('', articleData);
+    // Try multiple endpoints
+    let response;
+    let successEndpoint = '';
+
+    try {
+      // Try current endpoint first
+      console.log('Trying current endpoint:', `${BASE_URL}`);
+      response = await api.post('', articleData);
+      successEndpoint = 'current';
+    } catch (currentError) {
+      console.log('Current endpoint failed, trying v1 endpoint...');
+      console.error('Current endpoint error:', currentError.response?.data);
+
+      // Try v1 endpoint
+      const v1Url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-articles`;
+      console.log('Trying v1 endpoint:', v1Url);
+
+      response = await axios.post(v1Url, articleData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'X-User-Role': localStorage.getItem('userRole'),
+          'X-User-ID': localStorage.getItem('currentUserId')
+        }
+      });
+      successEndpoint = 'v1';
+    }
+
+    console.log(`✅ Success with endpoint: ${successEndpoint}`);
     console.log('Health article created:', response.data);
     return response.data;
   } catch (error) {
