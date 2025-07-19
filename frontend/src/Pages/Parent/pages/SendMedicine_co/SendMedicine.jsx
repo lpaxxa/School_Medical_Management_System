@@ -63,8 +63,16 @@ const SendMedicine = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({});
   const [modalErrors, setModalErrors] = useState({});
-  const [modalPrescriptionImage, setModalPrescriptionImage] = useState(null);
-  const [modalImagePreview, setModalImagePreview] = useState(null);
+
+  // State for modal image upload (similar to tempImageUpload)
+  const [modalTempImageUpload, setModalTempImageUpload] = useState({
+    file: null,
+    preview: null,
+    uploadedImageBase64: null,
+    isUploading: false,
+    uploadError: null,
+    isReady: false,
+  });
 
   // State cho confirmation modal
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
@@ -153,11 +161,49 @@ const SendMedicine = () => {
   // Helper function để parse time of day
   const parseTimeOfDay = (timeOfDay) => {
     if (!timeOfDay) return [];
-    if (Array.isArray(timeOfDay)) return timeOfDay;
+
+    // Mapping từ index sang time string
+    const timeMapping = {
+      0: "before_breakfast",
+      1: "after_breakfast",
+      2: "before_lunch",
+      3: "after_lunch",
+      4: "before_dinner", // Fixed: index 4 should be before_dinner
+      5: "after_dinner", // Fixed: index 5 should be after_dinner
+      6: "bedtime",
+    };
+
+    if (Array.isArray(timeOfDay)) {
+      // Nếu là array of indices, map sang time strings
+      return timeOfDay.map((index) => {
+        if (typeof index === "number") {
+          return timeMapping[index] || `unknown_${index}`;
+        }
+        // Nếu là nested array, flatten nó
+        if (Array.isArray(index)) {
+          return index[0]; // Lấy phần tử đầu tiên
+        }
+        return index; // Nếu đã là string thì giữ nguyên
+      });
+    }
+
     if (typeof timeOfDay === "string") {
       try {
         // Nếu là JSON string
-        return JSON.parse(timeOfDay);
+        const parsed = JSON.parse(timeOfDay);
+        if (Array.isArray(parsed)) {
+          return parsed.map((index) => {
+            if (typeof index === "number") {
+              return timeMapping[index] || `unknown_${index}`;
+            }
+            // Nếu là nested array, flatten nó
+            if (Array.isArray(index)) {
+              return index[0]; // Lấy phần tử đầu tiên
+            }
+            return index;
+          });
+        }
+        return parsed;
       } catch {
         // Nếu là string đơn giản, split bằng dấu phẩy
         return timeOfDay.split(",").map((time) => time.trim());
@@ -179,8 +225,12 @@ const SendMedicine = () => {
       time = time[0];
     }
 
+    // Normalize input - convert to lowercase and trim
+    const normalizedTime =
+      typeof time === "string" ? time.toLowerCase().trim() : time;
+
     const timeLabels = {
-      // Mapping cho các giá trị từ timeOptions
+      // Mapping cho các giá trị từ timeOptions (lowercase)
       before_breakfast: "Trước bữa sáng",
       after_breakfast: "Sau bữa sáng",
       before_lunch: "Trước bữa trưa",
@@ -188,7 +238,24 @@ const SendMedicine = () => {
       before_dinner: "Trước bữa tối",
       after_dinner: "Sau bữa tối",
       bedtime: "Trước khi đi ngủ",
+
       // Mapping cho các giá trị cũ (để tương thích ngược)
+      morning: "Sáng",
+      afternoon: "Chiều",
+      evening: "Tối",
+      night: "Đêm",
+      before_meal: "Trước ăn",
+      after_meal: "Sau ăn",
+      with_meal: "Trong bữa ăn",
+
+      // Uppercase versions for backward compatibility
+      BEFORE_BREAKFAST: "Trước bữa sáng",
+      AFTER_BREAKFAST: "Sau bữa sáng",
+      BEFORE_LUNCH: "Trước bữa trưa",
+      AFTER_LUNCH: "Sau bữa trưa",
+      BEFORE_DINNER: "Trước bữa tối",
+      AFTER_DINNER: "Sau bữa tối",
+      BEDTIME: "Trước khi đi ngủ",
       MORNING: "Sáng",
       AFTERNOON: "Chiều",
       EVENING: "Tối",
@@ -198,10 +265,24 @@ const SendMedicine = () => {
       WITH_MEAL: "Trong bữa ăn",
     };
 
-    // Nếu có mapping trực tiếp, sử dụng nó
-    if (timeLabels[time]) {
-      console.log(`✅ Found mapping: ${time} → ${timeLabels[time]}`);
+    // Debug: Check what we're looking for
+    console.log(
+      `🔍 Looking for mapping for: "${time}" (normalized: "${normalizedTime}")`
+    );
+    console.log(`🔍 Available mappings:`, Object.keys(timeLabels));
+
+    // Nếu có mapping trực tiếp với original value, sử dụng nó
+    if (timeLabels.hasOwnProperty(time)) {
+      console.log(`✅ Found mapping (original): ${time} → ${timeLabels[time]}`);
       return timeLabels[time];
+    }
+
+    // Nếu có mapping với normalized value, sử dụng nó
+    if (timeLabels.hasOwnProperty(normalizedTime)) {
+      console.log(
+        `✅ Found mapping (normalized): ${normalizedTime} → ${timeLabels[normalizedTime]}`
+      );
+      return timeLabels[normalizedTime];
     }
 
     // Nếu là thời gian cụ thể (HH:MM), chuyển đổi thành label tiếng Việt
@@ -219,6 +300,29 @@ const SendMedicine = () => {
       } else {
         return "Đêm";
       }
+    }
+
+    console.log(
+      `❌ No mapping found for time: "${time}" (normalized: "${normalizedTime}")`
+    );
+    console.log(`🔍 Available mappings:`, Object.keys(timeLabels));
+
+    // Last resort: try to create a reasonable Vietnamese translation
+    if (typeof time === "string") {
+      const lowerTime = time.toLowerCase();
+      if (lowerTime.includes("before") && lowerTime.includes("breakfast"))
+        return "Trước bữa sáng";
+      if (lowerTime.includes("after") && lowerTime.includes("breakfast"))
+        return "Sau bữa sáng";
+      if (lowerTime.includes("before") && lowerTime.includes("lunch"))
+        return "Trước bữa trưa";
+      if (lowerTime.includes("after") && lowerTime.includes("lunch"))
+        return "Sau bữa trưa";
+      if (lowerTime.includes("before") && lowerTime.includes("dinner"))
+        return "Trước bữa tối";
+      if (lowerTime.includes("after") && lowerTime.includes("dinner"))
+        return "Sau bữa tối";
+      if (lowerTime.includes("bedtime")) return "Trước khi đi ngủ";
     }
 
     return time || "Không xác định";
@@ -377,6 +481,18 @@ const SendMedicine = () => {
           "📋 First item responseDate:",
           medicationHistory[0].responseDate
         );
+        console.log(
+          "🖼️ First item prescriptionImageUrl:",
+          medicationHistory[0].prescriptionImageUrl
+        );
+
+        // Debug all items' image URLs
+        medicationHistory.forEach((item, index) => {
+          console.log(
+            `🖼️ Item ${index} (ID: ${item.id}) prescriptionImageUrl:`,
+            item.prescriptionImageUrl
+          );
+        });
       }
       setMedicationHistory(medicationHistory || []);
     } catch (error) {
@@ -658,6 +774,7 @@ const SendMedicine = () => {
 
   const handleUpdateRequest = (requestId) => {
     console.log("🔄 handleUpdateRequest called with ID:", requestId);
+    console.log("🔧 timeOptions available:", timeOptions);
     const requestToUpdate = medicationHistory.find((r) => r.id === requestId);
     console.log(
       "📋 Request to update (full object):",
@@ -686,10 +803,81 @@ const SendMedicine = () => {
     // Parse timeOfDay từ request data
     let timeToTakeArray = [];
     console.log("⏰ Raw timeOfDay:", requestToUpdate.timeOfDay);
+    console.log("⏰ Raw timeOfDay type:", typeof requestToUpdate.timeOfDay);
+    console.log(
+      "⏰ Raw timeOfDay isArray:",
+      Array.isArray(requestToUpdate.timeOfDay)
+    );
     if (requestToUpdate.timeOfDay) {
       try {
         timeToTakeArray = parseTimeOfDay(requestToUpdate.timeOfDay);
         console.log("⏰ Parsed timeToTake:", timeToTakeArray);
+        console.log("⏰ Parsed timeToTake type:", typeof timeToTakeArray);
+        console.log(
+          "⏰ Parsed timeToTake isArray:",
+          Array.isArray(timeToTakeArray)
+        );
+
+        // Flatten array if needed (fix nested arrays)
+        if (Array.isArray(timeToTakeArray)) {
+          // Recursively flatten and ensure all elements are strings
+          timeToTakeArray = timeToTakeArray
+            .flat(Infinity)
+            .filter((item) => typeof item === "string" && item.trim() !== "")
+            .map((item) => item.trim().replace(/^\[|\]$/g, "")); // Remove whitespace and brackets
+          console.log("⏰ Flattened timeToTake:", timeToTakeArray);
+        }
+
+        // Debug: Check which values are in timeOptions
+        const availableOptions = timeOptions.map((opt) => opt.value);
+        console.log("📋 Available timeOptions:", availableOptions);
+
+        const matchedValues = timeToTakeArray.filter((time) =>
+          availableOptions.includes(time)
+        );
+        const unmatchedValues = timeToTakeArray.filter(
+          (time) => !availableOptions.includes(time)
+        );
+
+        console.log("✅ Matched values:", matchedValues);
+        console.log("❌ Unmatched values:", unmatchedValues);
+
+        // Debug: Check exact string comparison
+        console.log("🔍 Detailed comparison:");
+        timeToTakeArray.forEach((time, index) => {
+          const isMatched = availableOptions.includes(time);
+          console.log(
+            `  [${index}] "${time}" (length: ${time.length}) -> ${
+              isMatched ? "✅" : "❌"
+            }`
+          );
+          if (!isMatched) {
+            console.log(`    Available options that might match:`);
+            availableOptions.forEach((opt) => {
+              if (
+                opt.toLowerCase().includes(time.toLowerCase()) ||
+                time.toLowerCase().includes(opt.toLowerCase())
+              ) {
+                console.log(`      "${opt}" (length: ${opt.length})`);
+              }
+            });
+
+            // Debug: Show character codes
+            console.log(`    Character codes for "${time}":`);
+            for (let i = 0; i < time.length; i++) {
+              console.log(
+                `      [${i}] "${time[i]}" (code: ${time.charCodeAt(i)})`
+              );
+            }
+          }
+        });
+
+        if (unmatchedValues.length > 0) {
+          console.warn(
+            "⚠️ Some timeOfDay values don't match timeOptions:",
+            unmatchedValues
+          );
+        }
       } catch (error) {
         console.error("❌ Error parsing timeOfDay:", error);
         timeToTakeArray = [];
@@ -709,6 +897,15 @@ const SendMedicine = () => {
       : "";
 
     console.log("📅 Parsed dates:", { startDate, endDate });
+
+    // Debug: Check timeToTakeArray before setting to form
+    console.log("🔧 Setting timeToTake to form:", timeToTakeArray);
+    console.log("🔧 timeToTakeArray type:", typeof timeToTakeArray);
+    console.log("🔧 timeToTakeArray length:", timeToTakeArray.length);
+    console.log(
+      "🔧 timeToTakeArray contents:",
+      JSON.stringify(timeToTakeArray)
+    );
 
     setEditFormData({
       id: requestToUpdate.id,
@@ -731,26 +928,22 @@ const SendMedicine = () => {
       prescriptionImageUrl: requestToUpdate.prescriptionImageUrl || null,
     });
 
-    setModalPrescriptionImage(null);
+    // Reset modal image upload state
+    setModalTempImageUpload({
+      file: null,
+      preview: null,
+      uploadedImageBase64: null,
+      isUploading: false,
+      uploadError: null,
+      isReady: false,
+    });
     console.log("Request to update:", requestToUpdate);
 
-    if (
-      requestToUpdate.prescriptionImageUrl &&
-      requestToUpdate.prescriptionImageUrl.trim() !== ""
-    ) {
-      let imageUrl = requestToUpdate.prescriptionImageUrl;
-      // If it's a relative path, make it absolute
-      if (!imageUrl.startsWith("http")) {
-        imageUrl = `${import.meta.env.VITE_BACKEND_URL}${
-          imageUrl.startsWith("/") ? "" : "/"
-        }${imageUrl}`;
-      }
-      setModalImagePreview(imageUrl);
-      console.log("Set modal image preview to:", imageUrl);
-    } else {
-      setModalImagePreview(null);
-      console.log("No prescription image URL found");
-    }
+    // Note: Image preview is now handled by modalTempImageUpload state
+    console.log(
+      "Prescription image URL:",
+      requestToUpdate.prescriptionImageUrl
+    );
 
     console.log("✅ Opening update modal");
     setIsModalOpen(true);
@@ -1009,35 +1202,61 @@ const SendMedicine = () => {
     }
   };
 
-  // Thêm handler cho modal image upload
+  // Handler cho modal image upload (similar to main form)
   const handleModalImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setModalErrors({
-          ...modalErrors,
-          prescriptionImage: "File không được vượt quá 5MB",
+        setModalTempImageUpload({
+          ...modalTempImageUpload,
+          uploadError: "File không được vượt quá 5MB",
         });
         return;
       }
-
       if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
-        setModalErrors({
-          ...modalErrors,
-          prescriptionImage: "Chỉ chấp nhận file ảnh (JPEG, PNG, JPG)",
+        setModalTempImageUpload({
+          ...modalTempImageUpload,
+          uploadError: "Chỉ chấp nhận file ảnh (JPEG, PNG, JPG)",
         });
         return;
       }
-
-      setModalPrescriptionImage(file);
-
-      // Tạo preview
+      setModalTempImageUpload({ ...modalTempImageUpload, uploadError: null });
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setModalImagePreview(reader.result);
-      };
+      reader.onloadend = () =>
+        setModalTempImageUpload((prev) => ({
+          ...prev,
+          file,
+          preview: reader.result,
+        }));
       reader.readAsDataURL(file);
+      if (modalErrors.prescriptionImage)
+        setModalErrors({ ...modalErrors, prescriptionImage: null });
     }
+  };
+
+  // Function to prepare modal image for upload (similar to main form)
+  const uploadModalImageTemporary = async () => {
+    if (!modalTempImageUpload.file) {
+      setModalTempImageUpload({
+        ...modalTempImageUpload,
+        uploadError: "Vui lòng chọn file ảnh trước",
+      });
+      return;
+    }
+    console.log(
+      "⚡ Modal image file prepared for upload:",
+      modalTempImageUpload.file.name
+    );
+    setModalTempImageUpload((prev) => ({
+      ...prev,
+      isReady: true,
+      uploadError: null,
+    }));
+    showNotification(
+      "success",
+      "Ảnh đã sẵn sàng!",
+      "Ảnh sẽ được upload khi bạn cập nhật yêu cầu thuốc."
+    );
   };
 
   // Thêm hàm kiểm tra form trước khi submit
@@ -1109,9 +1328,9 @@ const SendMedicine = () => {
         editFormData.specialInstructions || ""
       );
 
-      // Thêm hình ảnh nếu có
-      if (modalPrescriptionImage) {
-        formData.append("prescriptionImage", modalPrescriptionImage);
+      // Thêm hình ảnh nếu có (using new modal temp upload)
+      if (modalTempImageUpload.file) {
+        formData.append("prescriptionImage", modalTempImageUpload.file);
       }
 
       // Lấy token xác thực
@@ -1126,11 +1345,11 @@ const SendMedicine = () => {
         return;
       }
 
-      // Xử lý hình ảnh nếu có
+      // Xử lý hình ảnh nếu có (using new modal temp upload)
       let imageBase64 = null;
-      if (modalPrescriptionImage) {
+      if (modalTempImageUpload.file) {
         imageBase64 = await medicationRequestService.convertImageToBase64(
-          modalPrescriptionImage
+          modalTempImageUpload.file
         );
       }
 
@@ -1159,18 +1378,59 @@ const SendMedicine = () => {
       };
 
       // Sử dụng service để cập nhật yêu cầu
-      await medicationRequestService.updateMedicationRequest(
-        editFormData.id,
-        updateData
-      );
+      const updateResponse =
+        await medicationRequestService.updateMedicationRequest(
+          editFormData.id,
+          updateData
+        );
+
+      // Upload image separately if there's a new image (similar to main form)
+      if (modalTempImageUpload.file) {
+        console.log("Uploading new image for request:", editFormData.id);
+        const uploadFormData = new FormData();
+        uploadFormData.append("image", modalTempImageUpload.file);
+        const uploadUrl = `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/v1/parent-medication-requests/${
+          editFormData.id
+        }/upload-confirmation-image`;
+
+        try {
+          const uploadRes = await fetch(uploadUrl, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: uploadFormData,
+          });
+          if (!uploadRes.ok) {
+            console.warn("⚠️ Image upload failed");
+          } else {
+            console.log("✅ Image uploaded successfully");
+          }
+        } catch (uploadError) {
+          console.error("❌ Image upload error:", uploadError);
+        }
+      }
 
       // Show success notification modal
       showNotification(
         "success",
         "Cập nhật thành công!",
-        "Yêu cầu gửi thuốc đã được cập nhật thành công."
+        modalTempImageUpload.file
+          ? "Yêu cầu thuốc và ảnh đã được cập nhật thành công."
+          : "Yêu cầu thuốc đã được cập nhật thành công."
       );
       setIsModalOpen(false);
+
+      // Reset modal image states
+      setModalTempImageUpload({
+        file: null,
+        preview: null,
+        uploadedImageBase64: null,
+        isUploading: false,
+        uploadError: null,
+        isReady: false,
+      });
+
       fetchMedicationHistory();
     } catch (error) {
       console.error("Lỗi khi cập nhật yêu cầu thuốc:", error);
@@ -2057,23 +2317,39 @@ const SendMedicine = () => {
                   <div className="fix-form-group">
                     <label htmlFor="time-options">Thời gian uống thuốc:</label>
                     <div className="fix-checkbox-group">
-                      {timeOptions.map((option) => (
-                        <div className="fix-checkbox-item" key={option.value}>
-                          <input
-                            type="checkbox"
-                            id={`modal-${option.value}`}
-                            name="timeToTake"
-                            value={option.value}
-                            checked={editFormData.timeToTake.includes(
-                              option.value
-                            )}
-                            onChange={handleModalTimeChange}
-                          />
-                          <label htmlFor={`modal-${option.value}`}>
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
+                      {timeOptions
+                        .filter((option) => option.value !== "bedtime")
+                        .map((option) => {
+                          const isChecked = editFormData.timeToTake.includes(
+                            option.value
+                          );
+                          console.log(
+                            `🔍 Modal checkbox "${option.label}" (${option.value}): checked=${isChecked}`
+                          );
+                          console.log(
+                            `🔍 editFormData.timeToTake:`,
+                            editFormData.timeToTake
+                          );
+
+                          return (
+                            <div
+                              className="fix-checkbox-item"
+                              key={option.value}
+                            >
+                              <input
+                                type="checkbox"
+                                id={`modal-${option.value}`}
+                                name="timeToTake"
+                                value={option.value}
+                                checked={isChecked}
+                                onChange={handleModalTimeChange}
+                              />
+                              <label htmlFor={`modal-${option.value}`}>
+                                {option.label}
+                              </label>
+                            </div>
+                          );
+                        })}
                     </div>
                     {editFormData.timeToTake.length === 0 && (
                       <span className="fix-error-text">
@@ -2101,21 +2377,27 @@ const SendMedicine = () => {
                     <label htmlFor="modal-prescriptionImage">
                       Hình ảnh đơn thuốc:
                     </label>
+                    <div className="fix-help-text">
+                      📋 Bước 1: Chọn ảnh → Bước 2: Nhấn "Tải ảnh lên" → Bước 3:
+                      Cập nhật yêu cầu
+                    </div>
                     <div className="fix-image-upload-container">
-                      {/* Show existing image info if available */}
+                      {/* Show existing image info if available and no new image selected */}
                       {editFormData.prescriptionImageUrl &&
-                        !modalPrescriptionImage && (
+                        !modalTempImageUpload.file && (
                           <div className="fix-existing-image-info">
                             <p className="fix-existing-image-label">
                               <strong>Hình ảnh hiện tại:</strong>
                             </p>
                             <div className="fix-existing-image-preview">
                               <img
-                                src={modalImagePreview}
+                                src={editFormData.prescriptionImageUrl}
                                 alt="Đơn thuốc hiện tại"
                                 className="fix-image-preview"
                                 onClick={() =>
-                                  handleImageClick(modalImagePreview)
+                                  handleImageClick(
+                                    editFormData.prescriptionImageUrl
+                                  )
                                 }
                               />
                               <p className="fix-image-note">
@@ -2135,18 +2417,79 @@ const SendMedicine = () => {
                       />
                       <label
                         htmlFor="modal-prescriptionImage"
-                        className="fix-upload-button"
+                        className={`fix-upload-button ${
+                          modalTempImageUpload.isUploading ? "disabled" : ""
+                        }`}
                       >
-                        {editFormData.prescriptionImageUrl
+                        {modalTempImageUpload.isUploading
+                          ? "Đang tải..."
+                          : editFormData.prescriptionImageUrl
                           ? "Thay đổi hình ảnh"
                           : "Chọn ảnh"}
                       </label>
 
-                      {modalPrescriptionImage && (
+                      {/* Show selected file name */}
+                      {modalTempImageUpload.file && (
                         <span className="fix-file-name">
-                          <strong>Hình mới:</strong>{" "}
-                          {modalPrescriptionImage.name}
+                          {modalTempImageUpload.file.name}
                         </span>
+                      )}
+
+                      {/* Upload button - only show when file is selected and not uploaded yet */}
+                      {modalTempImageUpload.file &&
+                        !modalTempImageUpload.isReady &&
+                        !modalTempImageUpload.isUploading && (
+                          <button
+                            type="button"
+                            onClick={uploadModalImageTemporary}
+                            className="fix-upload-image-btn"
+                            disabled={modalTempImageUpload.isUploading}
+                          >
+                            Tải ảnh lên
+                          </button>
+                        )}
+
+                      {/* Loading indicator */}
+                      {modalTempImageUpload.isUploading && (
+                        <div className="fix-upload-loading">
+                          <span>Đang tải ảnh lên...</span>
+                        </div>
+                      )}
+
+                      {/* Success indicator */}
+                      {modalTempImageUpload.isReady && (
+                        <div className="fix-upload-success">
+                          <span>✓ Ảnh đã được tải lên thành công</span>
+                        </div>
+                      )}
+
+                      {/* Error display */}
+                      {(modalTempImageUpload.uploadError ||
+                        modalErrors.prescriptionImage) && (
+                        <div className="fix-error-text">
+                          {modalTempImageUpload.uploadError ||
+                            modalErrors.prescriptionImage}
+                        </div>
+                      )}
+
+                      {/* Image preview for new image */}
+                      {modalTempImageUpload.preview && (
+                        <div className="fix-image-preview-container">
+                          <p className="fix-new-image-label">
+                            <strong>Hình ảnh mới:</strong>
+                          </p>
+                          <img
+                            src={modalTempImageUpload.preview}
+                            alt="Đơn thuốc mới"
+                            className="fix-image-preview"
+                            onClick={() =>
+                              handleImageClick(modalTempImageUpload.preview)
+                            }
+                          />
+                          <p className="fix-image-note">
+                            Nhấn vào hình để xem chi tiết
+                          </p>
+                        </div>
                       )}
 
                       <span className="fix-help-text">
@@ -2154,25 +2497,6 @@ const SendMedicine = () => {
                           ? "Chọn hình ảnh mới để thay thế hình hiện tại. Tối đa 5MB. Định dạng: JPG, PNG."
                           : "Tối đa 5MB. Định dạng: JPG, PNG."}
                       </span>
-
-                      {/* Show new image preview if selected */}
-                      {modalPrescriptionImage && modalImagePreview && (
-                        <div className="fix-new-image-preview">
-                          <p className="fix-new-image-label">
-                            <strong>Hình ảnh mới:</strong>
-                          </p>
-                          <div className="fix-image-preview-container">
-                            <img
-                              src={modalImagePreview}
-                              alt="Đơn thuốc mới"
-                              className="fix-image-preview"
-                              onClick={() =>
-                                handleImageClick(modalImagePreview)
-                              }
-                            />
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
 

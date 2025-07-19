@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Load Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .controls {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .stats {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .error {
+            background: #ffe8e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Browser Load Test</h1>
+    <p>Test concurrent users accessing your School Medical Management System</p>
+
+    <div class="controls">
+        <h3>Test Configuration</h3>
+        <label>
+            Backend URL:
+            <input type="text" id="backendUrl" value="http://localhost:8080" style="width: 200px;">
+        </label>
+        <br>
+        <label>
+            Frontend URL:
+            <input type="text" id="frontendUrl" value="http://localhost:5173" style="width: 200px;">
+        </label>
+        <br>
+        <label>
+            Concurrent Users:
+            <input type="number" id="concurrentUsers" value="10" min="1" max="100">
+        </label>
+        <br>
+        <label>
+            Test Duration (seconds):
+            <input type="number" id="testDuration" value="60" min="10" max="300">
+        </label>
+        <br>
+        <label>
+            Request Interval (ms):
+            <input type="number" id="requestInterval" value="2000" min="500" max="10000">
+        </label>
+        <br>
+        <button onclick="startLoadTest()" id="startBtn">🚀 Start Load Test</button>
+        <button onclick="stopLoadTest()" id="stopBtn" disabled>🛑 Stop Test</button>
+        <button onclick="clearLog()">🗑️ Clear Log</button>
+    </div>
+
+    <div class="stats" id="stats">
+        <h3>📊 Real-time Statistics</h3>
+        <div id="statsContent">
+            <p>Total Requests: <span id="totalRequests">0</span></p>
+            <p>Successful Requests: <span id="successfulRequests">0</span></p>
+            <p>Failed Requests: <span id="failedRequests">0</span></p>
+            <p>Success Rate: <span id="successRate">0%</span></p>
+            <p>Average Response Time: <span id="avgResponseTime">0ms</span></p>
+            <p>Active Users: <span id="activeUsers">0</span></p>
+        </div>
+    </div>
+
+    <div class="log">
+        <h3>📝 Test Log</h3>
+        <div id="logContent"></div>
+    </div>
+
+    <script>
+        let testRunning = false;
+        let userIntervals = [];
+        let stats = {
+            totalRequests: 0,
+            successfulRequests: 0,
+            failedRequests: 0,
+            responseTimes: [],
+            activeUsers: 0
+        };
+
+        function log(message) {
+            const logContent = document.getElementById('logContent');
+            const timestamp = new Date().toLocaleTimeString();
+            logContent.innerHTML += `[${timestamp}] ${message}<br>`;
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        function updateStats() {
+            document.getElementById('totalRequests').textContent = stats.totalRequests;
+            document.getElementById('successfulRequests').textContent = stats.successfulRequests;
+            document.getElementById('failedRequests').textContent = stats.failedRequests;
+            
+            const successRate = stats.totalRequests > 0 ? 
+                ((stats.successfulRequests / stats.totalRequests) * 100).toFixed(2) : 0;
+            document.getElementById('successRate').textContent = successRate + '%';
+            
+            const avgResponseTime = stats.responseTimes.length > 0 ?
+                (stats.responseTimes.reduce((a, b) => a + b, 0) / stats.responseTimes.length).toFixed(2) : 0;
+            document.getElementById('avgResponseTime').textContent = avgResponseTime + 'ms';
+            
+            document.getElementById('activeUsers').textContent = stats.activeUsers;
+        }
+
+        async function simulateUser(userId, backendUrl, frontendUrl, requestInterval) {
+            log(`👤 User ${userId} started`);
+            stats.activeUsers++;
+            updateStats();
+
+            try {
+                // Login first
+                const loginResponse = await fetch(`${backendUrl}/api/v1/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'admin@school.com',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!loginResponse.ok) {
+                    throw new Error(`Login failed: ${loginResponse.status}`);
+                }
+
+                const loginData = await loginResponse.json();
+                const token = loginData.token;
+                log(`✅ User ${userId} logged in successfully`);
+
+                // Start making requests
+                const interval = setInterval(async () => {
+                    if (!testRunning) {
+                        clearInterval(interval);
+                        return;
+                    }
+
+                    try {
+                        await performRandomActivity(userId, backendUrl, frontendUrl, token);
+                    } catch (error) {
+                        log(`❌ User ${userId} activity error: ${error.message}`);
+                        stats.failedRequests++;
+                        updateStats();
+                    }
+                }, requestInterval);
+
+                userIntervals.push(interval);
+
+            } catch (error) {
+                log(`❌ User ${userId} login failed: ${error.message}`);
+                stats.failedRequests++;
+                stats.activeUsers--;
+                updateStats();
+            }
+        }
+
+        async function performRandomActivity(userId, backendUrl, frontendUrl, token) {
+            const activities = [
+                () => testStudentsList(userId, backendUrl, token),
+                () => testSpecificStudent(userId, backendUrl, token),
+                () => testFrontendPage(userId, frontendUrl),
+                () => testReports(userId, backendUrl, token)
+            ];
+
+            const activity = activities[Math.floor(Math.random() * activities.length)];
+            await activity();
+        }
+
+        async function testStudentsList(userId, backendUrl, token) {
+            const start = Date.now();
+            const response = await fetch(`${backendUrl}/api/v1/students`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            const responseTime = Date.now() - start;
+            recordRequest(responseTime, response.ok);
+            log(`📋 User ${userId} got students list (${responseTime}ms) - ${response.status}`);
+        }
+
+        async function testSpecificStudent(userId, backendUrl, token) {
+            const studentId = Math.floor(Math.random() * 100) + 1;
+            const start = Date.now();
+            const response = await fetch(`${backendUrl}/api/v1/students/${studentId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            const responseTime = Date.now() - start;
+            recordRequest(responseTime, response.ok || response.status === 404);
+            log(`👤 User ${userId} got student ${studentId} (${responseTime}ms) - ${response.status}`);
+        }
+
+        async function testFrontendPage(userId, frontendUrl) {
+            const start = Date.now();
+            const response = await fetch(frontendUrl);
+            
+            const responseTime = Date.now() - start;
+            recordRequest(responseTime, response.ok);
+            log(`🌐 User ${userId} loaded frontend (${responseTime}ms) - ${response.status}`);
+        }
+
+        async function testReports(userId, backendUrl, token) {
+            const start = Date.now();
+            const response = await fetch(`${backendUrl}/api/v1/reports/students`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            const responseTime = Date.now() - start;
+            recordRequest(responseTime, response.ok);
+            log(`📊 User ${userId} got reports (${responseTime}ms) - ${response.status}`);
+        }
+
+        function recordRequest(responseTime, success) {
+            stats.totalRequests++;
+            stats.responseTimes.push(responseTime);
+            
+            if (success) {
+                stats.successfulRequests++;
+            } else {
+                stats.failedRequests++;
+            }
+            
+            updateStats();
+        }
+
+        function startLoadTest() {
+            if (testRunning) return;
+
+            testRunning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+
+            const backendUrl = document.getElementById('backendUrl').value;
+            const frontendUrl = document.getElementById('frontendUrl').value;
+            const concurrentUsers = parseInt(document.getElementById('concurrentUsers').value);
+            const testDuration = parseInt(document.getElementById('testDuration').value) * 1000;
+            const requestInterval = parseInt(document.getElementById('requestInterval').value);
+
+            // Reset stats
+            stats = {
+                totalRequests: 0,
+                successfulRequests: 0,
+                failedRequests: 0,
+                responseTimes: [],
+                activeUsers: 0
+            };
+            updateStats();
+
+            log(`🚀 Starting load test with ${concurrentUsers} concurrent users`);
+            log(`⏱️ Test duration: ${testDuration / 1000} seconds`);
+            log(`🎯 Backend: ${backendUrl}`);
+            log(`🌐 Frontend: ${frontendUrl}`);
+
+            // Start all users
+            for (let i = 1; i <= concurrentUsers; i++) {
+                setTimeout(() => {
+                    simulateUser(i, backendUrl, frontendUrl, requestInterval);
+                }, i * 100); // Stagger user starts by 100ms
+            }
+
+            // Auto-stop after duration
+            setTimeout(() => {
+                if (testRunning) {
+                    stopLoadTest();
+                }
+            }, testDuration);
+        }
+
+        function stopLoadTest() {
+            if (!testRunning) return;
+
+            testRunning = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+
+            // Clear all intervals
+            userIntervals.forEach(interval => clearInterval(interval));
+            userIntervals = [];
+
+            stats.activeUsers = 0;
+            updateStats();
+
+            log('🛑 Load test stopped');
+            log(`📊 Final Results: ${stats.successfulRequests}/${stats.totalRequests} successful requests`);
+        }
+
+        function clearLog() {
+            document.getElementById('logContent').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
