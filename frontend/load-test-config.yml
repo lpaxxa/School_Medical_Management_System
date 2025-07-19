@@ -1,0 +1,85 @@
+config:
+  target: 'http://localhost:8080'  # Backend URL
+  phases:
+    # Warm up phase
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm up"
+    # Ramp up phase  
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp up load"
+    # Sustained load phase
+    - duration: 300
+      arrivalRate: 50
+      name: "Sustained load"
+    # Peak load phase
+    - duration: 60
+      arrivalRate: 100
+      name: "Peak load"
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+
+scenarios:
+  - name: "Student Management Load Test"
+    weight: 100
+    flow:
+      # Login flow
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            username: "admin@school.com"
+            password: "admin123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Get students list
+      - get:
+          url: "/api/v1/students"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          
+      # Get specific student
+      - get:
+          url: "/api/v1/students/{{ $randomInt(1, 100) }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+            
+      # Create new student (optional)
+      - post:
+          url: "/api/v1/students"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            fullName: "Test Student {{ $randomInt(1000, 9999) }}"
+            studentId: "TS{{ $randomInt(1000, 9999) }}"
+            className: "{{ $randomString() }}"
+            gender: "{{ $randomString() }}"
+            
+      # Update student
+      - put:
+          url: "/api/v1/students/{{ $randomInt(1, 100) }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            fullName: "Updated Student {{ $randomInt(1000, 9999) }}"
+            
+      # Delete student (be careful with this)
+      # - delete:
+      #     url: "/api/v1/students/{{ $randomInt(1, 100) }}"
+      #     headers:
+      #       Authorization: "Bearer {{ authToken }}"
+
+  - name: "Frontend Load Test"
+    weight: 50
+    flow:
+      # Test static assets
+      - get:
+          url: "http://localhost:5173/"  # Frontend URL
+          
+      # Test API calls from frontend
+      - get:
+          url: "http://localhost:5173/admin/reports"

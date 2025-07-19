@@ -195,7 +195,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
     }
   };
 
-  // Xử lý thay đổi thông tin sinh viên
+  // Xử lý thay đổi thông tin học sinh
   const handleStudentChange = (index, field, value) => {
     const updatedStudents = [...formData.students];
     updatedStudents[index] = {
@@ -219,7 +219,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
     }
   };
 
-  // Thêm sinh viên mới
+  // Thêm học sinh mới
   const addStudent = () => {
     setFormData((prev) => ({
       ...prev,
@@ -236,7 +236,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
     }));
   };
 
-  // Xóa sinh viên
+  // Xóa học sinh
   const removeStudent = (index) => {
     if (formData.students.length > 1) {
       setFormData((prev) => ({
@@ -325,11 +325,11 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
           newErrors.confirmPassword = "Mật khẩu không khớp";
       }
 
-      // Validation sinh viên
+      // Validation học sinh
       formData.students.forEach((student, index) => {
         if (!student.fullName.trim())
           newErrors[`student_${index}_fullName`] =
-            "Vui lòng nhập tên sinh viên";
+            "Vui lòng nhập tên học sinh";
 
         if (!student.dateOfBirth)
           newErrors[`student_${index}_dateOfBirth`] = "Vui lòng chọn ngày sinh";
@@ -1400,7 +1400,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                   {formData.students.map((student, index) => (
                     <div key={index} className="student-form">
                       <div className="student-header">
-                        <h4>Sinh viên #{index + 1}</h4>
+                        <h4>Học sinh #{index + 1}</h4>
                         {mode !== "view" && formData.students.length > 1 && (
                           <button
                             type="button"
@@ -1431,7 +1431,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                             className={
                               errors[`student_${index}_fullName`] ? "error" : ""
                             }
-                            placeholder="Tên sinh viên"
+                            placeholder="Tên học sinh"
                           />
                           {errors[`student_${index}_fullName`] && (
                             <span className="error-message">
