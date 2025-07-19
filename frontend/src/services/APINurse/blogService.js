@@ -241,11 +241,19 @@ export const getHealthArticleById = async (id) => {
 export const createHealthArticle = async (articleData) => {
   try {
     console.log('Creating health article:', articleData);
+    console.log('Request URL:', `${BASE_URL}`);
+    console.log('Auth token exists:', !!localStorage.getItem('authToken'));
+    console.log('User role:', localStorage.getItem('userRole'));
+    console.log('User ID:', localStorage.getItem('currentUserId'));
+
     const response = await api.post('', articleData);
     console.log('Health article created:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error creating health article:', error);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    console.error('Error headers:', error.response?.headers);
     throw error;
   }
 };

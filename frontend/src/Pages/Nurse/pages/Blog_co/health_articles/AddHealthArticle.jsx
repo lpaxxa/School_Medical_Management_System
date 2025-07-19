@@ -83,18 +83,91 @@ const AddHealthArticle = () => {
     setSuccess('');
 
     try {
+      // Validate required fields
+      if (!formData.title.trim()) {
+        setError('Tiêu đề không được để trống');
+        return;
+      }
+      if (!formData.summary.trim()) {
+        setError('Tóm tắt không được để trống');
+        return;
+      }
+      if (!formData.content.trim()) {
+        setError('Nội dung không được để trống');
+        return;
+      }
+      if (!formData.category) {
+        setError('Vui lòng chọn danh mục');
+        return;
+      }
+
       // Step 1: Create the article with text data first
       // Sử dụng cấu trúc dữ liệu giống như EditHealthArticle để tránh lỗi 400 Bad Request
+      const processedTags = formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : [];
+
       const articleTextData = {
         title: formData.title.trim(),
         summary: formData.summary.trim(),
         content: formData.content.trim(),
         category: formData.category,
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : []
+        tags: processedTags
       };
 
+      // Debug: Try different tag formats to see what backend expects
+      console.log('Tags as array:', processedTags);
+      console.log('Tags as string:', formData.tags);
+
+      // Alternative: Try sending tags as string if array doesn't work
+      const alternativeData = {
+        ...articleTextData,
+        tags: formData.tags || ''
+      };
+
+      // Try with minimal required fields only
+      const minimalData = {
+        title: formData.title.trim(),
+        summary: formData.summary.trim(),
+        content: formData.content.trim(),
+        category: formData.category
+      };
+
+      console.log('Alternative data with string tags:', alternativeData);
+      console.log('Minimal data:', minimalData);
+
       console.log('Step 1: Creating health article with text data:', articleTextData);
-      const createdArticle = await healthArticleService.createHealthArticle(articleTextData);
+      console.log('Current user info:', {
+        id: currentUser?.id,
+        role: currentUser?.role,
+        email: currentUser?.email
+      });
+
+      // Try different data formats to find what works
+      let createdArticle;
+      let successfulFormat = '';
+
+      try {
+        console.log('Trying with minimal data (no tags)...');
+        createdArticle = await healthArticleService.createHealthArticle(minimalData);
+        successfulFormat = 'minimal';
+      } catch (minimalError) {
+        console.log('Minimal data failed, trying with string tags...');
+        console.error('Minimal data error:', minimalError.response?.data);
+
+        try {
+          console.log('Trying with tags as string...');
+          createdArticle = await healthArticleService.createHealthArticle(alternativeData);
+          successfulFormat = 'string-tags';
+        } catch (stringError) {
+          console.log('String tags failed, trying with array tags...');
+          console.error('String tags error:', stringError.response?.data);
+
+          console.log('Trying with tags as array...');
+          createdArticle = await healthArticleService.createHealthArticle(articleTextData);
+          successfulFormat = 'array-tags';
+        }
+      }
+
+      console.log(`✅ Success with format: ${successfulFormat}`);
       const newArticleId = createdArticle.id;
       console.log('Article created successfully with ID:', newArticleId);
 
@@ -128,7 +201,27 @@ const AddHealthArticle = () => {
 
     } catch (error) {
       console.error('Error adding health article:', error);
-      setError(error.response?.data?.message || error.message || 'Có lỗi xảy ra khi thêm bài viết');
+      console.error('Error response data:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
+
+      let errorMessage = 'Có lỗi xảy ra khi thêm bài viết';
+
+      if (error.response?.status === 400) {
+        errorMessage = `Lỗi dữ liệu không hợp lệ (400): ${error.response?.data?.message || 'Vui lòng kiểm tra lại thông tin'}`;
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Lỗi xác thực (401): Vui lòng đăng nhập lại';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Lỗi phân quyền (403): Bạn không có quyền thực hiện thao tác này';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Lỗi server (500): Vui lòng thử lại sau';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
