@@ -84,15 +84,38 @@ Sau khi sửa:
 - **Không cần gửi thông tin author** trong request body
 - **Cấu trúc này đã được test** và hoạt động tốt trong EditHealthArticle.jsx
 
+## 🔧 Debug Enhancements (Cập nhật mới)
+
+### Thêm logging chi tiết
+- ✅ **Enhanced error logging** trong blogService.js
+- ✅ **Validation chi tiết** cho các trường bắt buộc
+- ✅ **Multiple fallback strategies** để test các format dữ liệu khác nhau
+
+### Thử nghiệm nhiều format dữ liệu
+1. **Minimal data** (chỉ title, summary, content, category)
+2. **String tags** (tags dưới dạng string)
+3. **Array tags** (tags dưới dạng array)
+
+### Test script
+- 📁 **File test**: `frontend/test-health-article-api.js`
+- 🧪 **Cách sử dụng**: Chạy trong browser console để test API trực tiếp
+
+```javascript
+// Trong browser console
+testGetHealthArticles()  // Test GET endpoint
+testHealthArticleAPI()   // Test POST endpoint với nhiều format
+```
+
 ## 🧪 Test
 
 Để test fix này:
 
 1. Deploy code lên production
 2. Đăng nhập với tài khoản nurse
-3. Thử tạo bài viết y tế mới
-4. Kiểm tra console không còn lỗi 400
-5. Xác nhận bài viết được tạo thành công
+3. Mở Developer Tools > Console
+4. Thử tạo bài viết y tế mới
+5. Kiểm tra console logs để xem format nào thành công
+6. Nếu vẫn lỗi, chạy test script để debug API trực tiếp
 
 ## 📚 Tham khảo
 
