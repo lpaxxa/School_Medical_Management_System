@@ -84,15 +84,13 @@ const AddHealthArticle = () => {
 
     try {
       // Step 1: Create the article with text data first
+      // Sử dụng cấu trúc dữ liệu giống như EditHealthArticle để tránh lỗi 400 Bad Request
       const articleTextData = {
         title: formData.title.trim(),
         summary: formData.summary.trim(),
         content: formData.content.trim(),
         category: formData.category,
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : [],
-        author_id: currentUser.id || currentUser.memberId,
-        author: currentUser.fullName || currentUser.name || currentUser.email,
-        member_id: currentUser.memberId || currentUser.id
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : []
       };
 
       console.log('Step 1: Creating health article with text data:', articleTextData);
