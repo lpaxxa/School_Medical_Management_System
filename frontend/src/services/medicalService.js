@@ -60,10 +60,21 @@ const medicalService = {
   // API mới cho lịch sử tiêm chủng của phụ huynh - format mới
   getStudentVaccinations: async (parentId, studentId) => {
     try {
-      const response = await api.get(`/vaccinations/parents/${parentId}/students/${studentId}/vaccinations`);
+      const url = `/vaccinations/parents/${parentId}/students/${studentId}/vaccinations`;
+      console.log('Making API call to:', url);
+      console.log('With parentId:', parentId, 'studentId:', studentId);
+
+      const response = await api.get(url);
+      console.log('API response received:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching student vaccinations:', error);
+      console.error('API URL was:', `/vaccinations/parents/${parentId}/students/${studentId}/vaccinations`);
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
       throw error;
     }
   },
