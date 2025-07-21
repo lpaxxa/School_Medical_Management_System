@@ -679,8 +679,13 @@ const SendMedicine = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
+      console.log("🔍 Checking localStorage for authToken...");
+      console.log("🔍 All localStorage keys:", Object.keys(localStorage));
+      console.log("🔍 AuthToken exists:", !!token);
+      console.log("🔍 AuthToken length:", token ? token.length : 0);
+
       if (!token) {
-        console.error("❌ No auth token");
+        console.error("❌ No auth token found in localStorage");
         showNotification("error", "Lỗi xác thực", "Vui lòng đăng nhập lại");
         setLoading(false);
         return;
@@ -697,9 +702,18 @@ const SendMedicine = () => {
         prescriptionImageBase64: null,
       };
       console.log("Posting request:", requestData);
+      console.log(
+        "🔑 Auth token:",
+        token ? `${token.substring(0, 20)}...` : "NO TOKEN"
+      );
+      console.log("🌐 Environment:", import.meta.env.NODE_ENV);
+      console.log("🔗 Backend URL:", import.meta.env.VITE_BACKEND_URL);
+
       const apiUrl = `${
         import.meta.env.VITE_BACKEND_URL
       }/api/v1/parent-medication-requests/submit-request`;
+      console.log("📡 Full API URL:", apiUrl);
+
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -708,9 +722,17 @@ const SendMedicine = () => {
         },
         body: JSON.stringify(requestData),
       });
-      console.log("📨 Status:", response.status);
+      console.log("📨 Response Status:", response.status);
+      console.log(
+        "📨 Response Headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+
       if (!response.ok) {
         const errText = await response.text();
+        console.error("❌ Error Response Body:", errText);
+        console.error("❌ Error Response Status:", response.status);
+        console.error("❌ Error Response StatusText:", response.statusText);
         throw new Error(`API Error: ${response.status} - ${errText}`);
       }
       const resData = await response.json();

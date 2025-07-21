@@ -18,6 +18,7 @@ import VaccinationModal from "../modals/VaccinationModal";
 const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
   // Debug logging
   console.log("VaccinationsTab props:", { studentId, parentInfo, studentCode });
+  console.log("Parent ID from parentInfo:", parentInfo?.id);
 
   // Sub-tab navigation state
   const [activeSubTab, setActiveSubTab] = useState("confirmation");
@@ -117,14 +118,26 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
       return;
     }
 
+    // Lấy parentId từ parentInfo prop
+    const parentId = parentInfo?.id;
+    if (!parentId) {
+      console.log("Missing parentId from parentInfo:", parentInfo);
+      setHistoryError("Không thể xác định thông tin phụ huynh");
+      setIsLoadingHistory(false);
+      return;
+    }
+
     setIsLoadingHistory(true);
     setHistoryError(null);
 
     try {
-      console.log("Fetching vaccination history for studentId:", studentId);
+      console.log(
+        "Fetching vaccination history for studentId:",
+        studentId,
+        "parentId:",
+        parentId
+      );
 
-      // Sử dụng API mới - tạm thời dùng parentId = 1 (có thể lấy từ context sau)
-      const parentId = 1; // TODO: Lấy từ AuthContext hoặc props
       const data = await medicalService.getStudentVaccinations(
         parentId,
         studentId
@@ -159,7 +172,7 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
         setIsLoadingHistory(false);
       }
     }
-  }, [studentId]);
+  }, [studentId, parentInfo]);
 
   // Open vaccination modal
   const openVaccinationModal = (vaccination) => {
@@ -424,7 +437,7 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
   useEffect(() => {
     componentMountedRef.current = true;
 
-    if (studentId) {
+    if (studentId && parentInfo?.id) {
       // Fetch vaccination plans for confirmation
       fetchVaccinationPlans();
       // Fetch vaccination history using new API
@@ -437,7 +450,7 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
         clearInterval(refreshIntervalRef.current);
       }
     };
-  }, [studentId, fetchVaccinationPlans, fetchVaccinationHistory]);
+  }, [studentId, parentInfo, fetchVaccinationPlans, fetchVaccinationHistory]);
 
   // Cleanup effect when component unmounts
   useEffect(() => {
