@@ -41,134 +41,17 @@ const InventoryPage = () => {
   const [showViewDetailsModal, setShowViewDetailsModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   
-  // Custom styles for header - similar to MedicalEventsMain
-  const inventoryStyles = `
-    .lukhang-inventory-main-wrapper {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-      min-height: 100vh !important;
-      padding: 2rem !important;
-    }
-    
-    .lukhang-inventory-header-card {
-      background: linear-gradient(135deg, #015C92 0%, #2D82B5 30%, #428CD4 60%, #88CDF6 100%) !important;
-      border: none !important;
-      border-radius: 1rem !important;
-      box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2) !important;
-      margin-bottom: 2rem !important;
-    }
-    
-    .lukhang-inventory-title-custom {
-      color: white !important;
-      font-weight: 700 !important;
-      font-size: 2rem !important;
-      margin: 0 !important;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    .lukhang-inventory-title-custom i {
-      color: white !important;
-    }
-    
-    .lukhang-inventory-action-bar {
-      background: white !important;
-      border-radius: 1rem !important;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
-      margin-bottom: 2rem !important;
-      padding: 1.5rem !important;
-    }
-    
-    .lukhang-inventory-table-container {
-      background: white !important;
-      border-radius: 1rem !important;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
-      padding: 1.5rem !important;
-      margin: 0 !important;
-    }
 
-    /* Dropdown styles */
-    .medical-incidents-dropdown {
-      background-color: #fff !important;
-      border: 1px solid #ced4da !important;
-      border-radius: 0.375rem !important;
-      padding: 0.375rem 2.25rem 0.375rem 0.75rem !important;
-      font-size: 1rem !important;
-      font-weight: 400 !important;
-      line-height: 1.5 !important;
-      color: #212529 !important;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
-      background-repeat: no-repeat !important;
-      background-position: right 0.75rem center !important;
-      background-size: 16px 12px !important;
-      appearance: none !important;
-      -webkit-appearance: none !important;
-      -moz-appearance: none !important;
-    }
-
-    .medical-incidents-dropdown:focus {
-      border-color: #86b7fe !important;
-      outline: 0 !important;
-      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-    }
-
-    .medical-incidents-dropdown:disabled {
-      background-color: #e9ecef !important;
-      opacity: 1 !important;
-    }
-
-    /* Reset button styles */
-    .lukhang-reset-button {
-      min-width: 120px !important;
-      height: 48px !important;
-      border-radius: 10px !important;
-      border: 2px solid #6c757d !important;
-      background: #f8f9fa !important;
-      color: #495057 !important;
-      font-weight: 600 !important;
-      transition: all 0.3s ease !important;
-      box-shadow: 0 4px 15px rgba(108, 117, 125, 0.2) !important;
-    }
-
-    .lukhang-reset-button:hover {
-      background: #6c757d !important;
-      color: white !important;
-      border-color: #6c757d !important;
-      transform: translateY(-2px) !important;
-      box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4) !important;
-    }
-
-    .lukhang-reset-button:focus {
-      background: #6c757d !important;
-      color: white !important;
-      border-color: #6c757d !important;
-      box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;
-    }
-
-    .lukhang-reset-button:active {
-      background: #5a6268 !important;
-      color: white !important;
-      border-color: #5a6268 !important;
-      transform: translateY(0) !important;
-    }
-
-    @media (max-width: 992px) {
-      .lukhang-inventory-main-wrapper {
-        padding: 1rem !important;
-      }
-
-      .lukhang-inventory-title-custom {
-        font-size: 1.5rem !important;
-      }
-    }
-  `;
   
   // Debounced search function
   const performSearch = (term, filter) => {
-    if (!term.trim()) {
-      setFilteredItems(inventoryItems || []);
-      return;
-    }
-
     if (inventoryItems && Array.isArray(inventoryItems)) {
+      // Nếu không có term, hiển thị tất cả
+      if (!term.trim()) {
+        setFilteredItems(inventoryItems || []);
+        return;
+      }
+
       const lowerCaseSearchTerm = term.toLowerCase().trim();
       const filtered = inventoryItems.filter(item => {
         // Hàm trợ giúp để lấy giá trị từ nhiều trường khả dụng
@@ -234,7 +117,8 @@ const InventoryPage = () => {
                    item.quantity !== undefined && item.quantity !== null ? item.quantity :
                    item.currentStock !== undefined && item.currentStock !== null ? item.currentStock : 0;
 
-
+    // Check if item is expired first (highest priority)
+    if (isItemExpired(item)) return 'hết hạn';
 
     if (quantity === 0) return 'hết hàng';
     if (quantity > 0 && quantity <= 20) return 'sắp hết';
@@ -293,6 +177,27 @@ const InventoryPage = () => {
           {part}
         </mark> : part
     );
+  };
+
+  // Helper function để kiểm tra ngày hết hạn
+  const isItemExpired = (item) => {
+    if (!item.expiryDate) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let expiryDate;
+
+    // Handle array format from backend
+    if (Array.isArray(item.expiryDate)) {
+      const [year, month, day] = item.expiryDate;
+      expiryDate = new Date(year, month - 1, day);
+    } else {
+      expiryDate = new Date(item.expiryDate);
+    }
+
+    expiryDate.setHours(0, 0, 0, 0);
+    return expiryDate < today;
   };
   
   // Handlers cho việc thêm, sửa, xóa item
@@ -539,11 +444,16 @@ const InventoryPage = () => {
     }
   };
 
-  // Function to calculate status based on quantity
-  const getItemStatus = (quantity) => {
+  // Function to calculate status based on quantity and expiry date
+  const getItemStatus = (quantity, item = null) => {
     // Convert to number in case it's a string, handle null/undefined
     const qty = quantity !== undefined && quantity !== null ? Number(quantity) : 0;
     console.log('getItemStatus - quantity:', quantity, 'parsed qty:', qty, 'type:', typeof quantity);
+
+    // Check if item is expired first (highest priority)
+    if (item && isItemExpired(item)) {
+      return 'Hết hạn';
+    }
 
     if (qty === 0) {
       return 'Hết hàng';
@@ -635,7 +545,7 @@ const InventoryPage = () => {
                     {searchTerm ? highlightSearchTerm(item.itemName || item.name, searchTerm) : (item.itemName || item.name)}
                   </td>
                   <td>
-                    <span className="badge bg-info text-dark">
+                    <span className="badge bg-info text-white">
                       {searchTerm ? highlightSearchTerm(item.itemType || item.category, searchTerm) : (item.itemType || item.category)}
                     </span>
                   </td>
@@ -711,12 +621,13 @@ const InventoryPage = () => {
                                      item.quantity !== undefined && item.quantity !== null ? item.quantity : 
                                      item.currentStock !== undefined && item.currentStock !== null ? item.currentStock : 0;
                       console.log('Item:', item.itemName, 'stockQuantity:', item.stockQuantity, 'quantity:', item.quantity, 'currentStock:', item.currentStock, 'final quantity:', quantity);
-                      const status = getItemStatus(quantity);
+                      const status = getItemStatus(quantity, item);
                       return (
                         <span className={`badge ${
                           status === 'Có sẵn' ? 'bg-success' :
                           status === 'Sắp hết' ? 'bg-warning text-dark' :
-                          status === 'Hết hàng' ? 'bg-danger' : 'bg-secondary'
+                          status === 'Hết hàng' ? 'bg-danger' :
+                          status === 'Hết hạn' ? 'bg-danger' : 'bg-secondary'
                         }`}>
                           <i className="fas fa-circle me-1" style={{ fontSize: '0.6rem' }}></i>
                           {status}
@@ -848,7 +759,6 @@ const InventoryPage = () => {
 
   return (
     <>
-      <style>{inventoryStyles}</style>
       <div className="container-fluid lukhang-inventory-main-wrapper">
         <div className="card lukhang-inventory-header-card">
           <div className="card-body text-center py-4">
@@ -907,9 +817,11 @@ const InventoryPage = () => {
                       className="form-select form-select-lg medical-incidents-dropdown"
                       value={searchFilter}
                       onChange={(e) => {
-                        setSearchFilter(e.target.value);
+                        const newFilter = e.target.value;
+                        setSearchFilter(newFilter);
                         setSearchTerm('');
                         setCurrentPage(1);
+                        performSearch('', newFilter);
                       }}
                     >
                       <option value="all">Tất cả</option>
@@ -937,6 +849,7 @@ const InventoryPage = () => {
                         <option value="có sẵn">Có sẵn (&gt;20)</option>
                         <option value="sắp hết">Sắp hết (0&lt;X≤20)</option>
                         <option value="hết hàng">Hết hàng (=0)</option>
+                        <option value="hết hạn">Hết hạn (đã quá ngày hết hạn)</option>
                       </select>
                     ) : (
                       <input
@@ -982,7 +895,8 @@ const InventoryPage = () => {
                           <span> trong mục <strong>
                             {searchFilter === 'name' ? 'Tên vật phẩm' :
                              searchFilter === 'type' ? 'Loại' :
-                             searchFilter === 'unit' ? 'Đơn vị' : 'Trạng thái'}
+                             searchFilter === 'unit' ? 'Đơn vị' :
+                             searchFilter === 'status' ? 'Trạng thái' : 'Tất cả'}
                           </strong></span>
                         )}
                       </div>

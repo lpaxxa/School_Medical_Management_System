@@ -63,480 +63,23 @@ const formatDateTimeArray = (dateTimeValue) => {
   }
 };
 
-// Custom styles để tránh xung đột Bootstrap
-const addItemStyles = `
-  /* Add Item Modal - Namespaced Styles */
-  .add-item-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1050;
-    opacity: 1;
-    visibility: visible;
-  }
-  
-  .add-item-modal-dialog {
-    width: 90%;
-    max-width: 700px;
-    max-height: 90vh;
-    margin: 1rem;
-  }
-  
-  .add-item-modal-content {
-    background: white;
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-  }
-  
-  .add-item-modal-header {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    color: white;
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: none;
-  }
-  
-  .add-item-modal-title {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-  }
-  
-  .add-item-btn-close {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-    transition: background-color 0.2s ease;
-  }
-  
-  .add-item-btn-close:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .add-item-modal-body {
-    padding: 1.5rem;
-    flex: 1;
-    overflow-y: auto;
-  }
-  
-  .add-item-form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .add-item-form-label {
-    display: block;
-    margin-bottom: 0.375rem;
-    font-weight: 500;
-    color: #495057;
-    font-size: 0.875rem;
-  }
-  
-  .add-item-form-control {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: #495057;
-    background-color: #fff;
-    border: 1px solid #ced4da;
-    border-radius: 0.375rem;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    box-sizing: border-box;
-  }
-  
-  .add-item-form-control:focus {
-    border-color: #007bff;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  }
-  
-  .add-item-form-control.is-invalid {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-  }
-  
-  .add-item-alert {
-    padding: 0.75rem 1rem;
-    margin-top: 0.5rem;
-    border: 1px solid transparent;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-  }
-  
-  .add-item-alert-danger {
-    color: #721c24;
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-  }
-  
-  .add-item-alert-success {
-    color: #155724;
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-  }
-  
-  .add-item-status-badge {
-    padding: 0.375rem 0.75rem;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-  }
-  
-  .add-item-status-available {
-    color: #155724;
-    background-color: #d4edda;
-  }
-  
-  .add-item-status-low {
-    color: #856404;
-    background-color: #fff3cd;
-  }
-  
-  .add-item-status-out {
-    color: #721c24;
-    background-color: #f8d7da;
-  }
-  
-  .add-item-modal-footer {
-    background-color: #f8f9fa;
-    padding: 1rem 1.5rem;
-    border-top: 1px solid #e9ecef;
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-  }
-  
-  .add-item-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.5;
-    border-radius: 0.375rem;
-    border: 1px solid transparent;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-  
-  .add-item-btn-secondary {
-    background-color: #6c757d;
-    border-color: #6c757d;
-    color: white;
-  }
-  
-  .add-item-btn-secondary:hover {
-    background-color: #5a6268;
-    border-color: #545b62;
-  }
-  
-  .add-item-btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-    color: white;
-  }
-  
-  .add-item-btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #004085;
-  }
-  
-  .add-item-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-  
-  .add-item-spinner {
-    width: 1rem;
-    height: 1rem;
-    border: 2px solid transparent;
-    border-top: 2px solid currentColor;
-    border-radius: 50%;
-    animation: add-item-spin 1s linear infinite;
-    margin-right: 0.5rem;
-  }
-  
-  @keyframes add-item-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  .add-item-row {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 -0.75rem;
-  }
-  
-  .add-item-col-6 {
-    flex: 0 0 50%;
-    max-width: 50%;
-    padding: 0 0.75rem;
-  }
-  
-  .add-item-col-12 {
-    flex: 0 0 100%;
-    max-width: 100%;
-    padding: 0 0.75rem;
-  }
-  
-  @media (max-width: 768px) {
-    .add-item-col-6 {
-      flex: 0 0 100%;
-      max-width: 100%;
-    }
-    
-    .add-item-modal-dialog {
-      width: 95%;
-      margin: 0.5rem;
-    }
-    
-    .add-item-modal-body {
-      padding: 1rem;
-    }
-  }
-  
-  /* Utility Classes */
-  .add-item-me-1 { margin-right: 0.25rem; }
-  .add-item-me-2 { margin-right: 0.5rem; }
-  .add-item-text-danger { color: #dc3545; }
-  .add-item-text-muted { color: #6c757d; }
-  .add-item-fw-bold { font-weight: 600; }
+// Helper function để kiểm tra lỗi trùng tên
+const isDuplicateNameError = (errorMessage) => {
+  const duplicatePatterns = [
+    'already exists',
+    'đã tồn tại',
+    'trùng lặp',
+    'duplicate',
+    'unique constraint',
+    'tên vật phẩm bị trùng'
+  ];
 
-  /* Notification Styles */
-  .add-item-notification-overlay {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    z-index: 2050 !important;
-    animation: fadeIn 0.3s ease-out !important;
-  }
-  
-  .add-item-notification-dialog {
-    max-width: 450px !important;
-    width: 90% !important;
-    margin: 1.75rem auto !important;
-    animation: slideIn 0.4s ease-out !important;
-  }
+  return duplicatePatterns.some(pattern =>
+    errorMessage.toLowerCase().includes(pattern.toLowerCase())
+  );
+};
 
-  .add-item-notification-content {
-    background: white !important;
-    border-radius: 1rem !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
-    border: none !important;
-    overflow: hidden !important;
-    position: relative !important;
-  }
-  
-  .add-item-notification-close {
-    position: absolute !important;
-    top: 1rem !important;
-    right: 1rem !important;
-    background: transparent !important;
-    border: none !important;
-    font-size: 1.2rem !important;
-    color: #6c757d !important;
-    cursor: pointer !important;
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition: all 0.3s ease !important;
-    z-index: 10 !important;
-  }
-  
-  .add-item-notification-close:hover {
-    background: #f8f9fa !important;
-    color: #495057 !important;
-    transform: scale(1.1) !important;
-  }
-  
-  .add-item-notification-body {
-    padding: 2.5rem 2rem 1.5rem 2rem !important;
-    text-align: center !important;
-  }
-  
-  .add-item-notification-icon {
-    width: 80px !important;
-    height: 80px !important;
-    border-radius: 50% !important;
-    margin: 0 auto 1.5rem auto !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    animation: iconPulse 0.6s ease-out !important;
-  }
-  
-  .add-item-notification-icon.success {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
-    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3) !important;
-  }
-  
-  .add-item-notification-icon.error {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3) !important;
-  }
-  
-  .add-item-notification-icon i {
-    font-size: 2.5rem !important;
-    color: white !important;
-  }
-  
-  .add-item-notification-title {
-    color: #2d3436 !important;
-    font-weight: 700 !important;
-    font-size: 1.5rem !important;
-    margin-bottom: 0.75rem !important;
-    animation: titleSlide 0.8s ease-out 0.2s both !important;
-  }
-  
-  .add-item-notification-message {
-    color: #636e72 !important;
-    font-size: 1rem !important;
-    line-height: 1.5 !important;
-    margin-bottom: 0 !important;
-    animation: messageSlide 0.8s ease-out 0.4s both !important;
-  }
-  
-  .add-item-notification-progress {
-    position: relative !important;
-    height: 4px !important;
-    background: #e9ecef !important;
-    overflow: hidden !important;
-  }
-  
-  .add-item-notification-progress-bar {
-    height: 100% !important;
-    transition: width 0.1s linear !important;
-    position: relative !important;
-  }
-  
-  .add-item-notification-progress-bar.success {
-    background: linear-gradient(90deg, #28a745 0%, #20c997 100%) !important;
-  }
-  
-  .add-item-notification-progress-bar.error {
-    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
-  }
-  
-  .add-item-notification-timer {
-    padding: 0.75rem 1rem !important;
-    background: #f8f9fa !important;
-    color: #6c757d !important;
-    font-size: 0.875rem !important;
-    text-align: center !important;
-    font-weight: 500 !important;
-  }
-  
-  @keyframes fadeIn {
-    0% { opacity: 0 !important; }
-    100% { opacity: 1 !important; }
-  }
-  
-  @keyframes slideIn {
-    0% {
-      opacity: 0 !important;
-      transform: translateY(-50px) scale(0.8) !important;
-    }
-    100% {
-      opacity: 1 !important;
-      transform: translateY(0) scale(1) !important;
-    }
-  }
-  
-  @keyframes iconPulse {
-    0% {
-      transform: scale(0) rotate(-180deg) !important;
-      opacity: 0 !important;
-    }
-    50% {
-      transform: scale(1.2) rotate(-90deg) !important;
-      opacity: 0.8 !important;
-    }
-    100% {
-      transform: scale(1) rotate(0deg) !important;
-      opacity: 1 !important;
-    }
-  }
-  
-  @keyframes titleSlide {
-    0% {
-      opacity: 0 !important;
-      transform: translateY(20px) !important;
-    }
-    100% {
-      opacity: 1 !important;
-      transform: translateY(0) !important;
-    }
-  }
-  
-  @keyframes messageSlide {
-    0% {
-      opacity: 0 !important;
-      transform: translateY(15px) !important;
-    }
-    100% {
-      opacity: 1 !important;
-      transform: translateY(0) !important;
-    }
-  }
-  
-  @media (max-width: 576px) {
-    .add-item-notification-dialog {
-      max-width: 350px !important;
-      margin: 1rem auto !important;
-    }
-    
-    .add-item-notification-body {
-      padding: 2rem 1.5rem 1rem 1.5rem !important;
-    }
-    
-    .add-item-notification-icon {
-      width: 70px !important;
-      height: 70px !important;
-    }
-    
-    .add-item-notification-icon i {
-      font-size: 2rem !important;
-    }
-    
-    .add-item-notification-title {
-      font-size: 1.3rem !important;
-    }
-    
-    .add-item-notification-message {
-      font-size: 0.9rem !important;
-    }
-  }
-`;
+
 
 const AddItem = ({ onClose, onAddItem }) => {
   const [categories, setCategories] = useState([]);
@@ -647,20 +190,39 @@ const AddItem = ({ onClose, onAddItem }) => {
       newErrors.stockQuantity = "Số lượng không được vượt quá 10000";
     }
 
-    if (newItem.expiryDate && newItem.manufactureDate) {
-      const expiryDate = new Date(newItem.expiryDate);
+    // Lấy ngày hiện tại (chỉ ngày, không có giờ)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Validation cho ngày sản xuất
+    if (newItem.manufactureDate) {
       const manufactureDate = new Date(newItem.manufactureDate);
-      if (expiryDate < manufactureDate) {
-        newErrors.expiryDate = "Ngày hết hạn không được trước ngày sản xuất";
+      manufactureDate.setHours(0, 0, 0, 0);
+
+      if (manufactureDate > today) {
+        newErrors.manufactureDate = "Ngày sản xuất không được nhập trong tương lai, chỉ được nhập trong quá khứ hoặc hôm nay";
       }
     }
 
-    if (newItem.manufactureDate) {
-        const manufactureDate = new Date(newItem.manufactureDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); 
-        if (manufactureDate > today) {
-            newErrors.manufactureDate = "Ngày sản xuất không được ở tương lai";
+    // Validation cho ngày hết hạn
+    if (newItem.expiryDate) {
+      const expiryDate = new Date(newItem.expiryDate);
+      expiryDate.setHours(0, 0, 0, 0);
+
+      if (expiryDate < today) {
+        newErrors.expiryDate = "Ngày hết hạn không được nhập trong quá khứ, chỉ được nhập từ hôm nay trở đi";
+      }
+    }
+
+    // Validation so sánh ngày sản xuất và ngày hết hạn
+    if (newItem.expiryDate && newItem.manufactureDate) {
+      const expiryDate = new Date(newItem.expiryDate);
+      const manufactureDate = new Date(newItem.manufactureDate);
+      expiryDate.setHours(0, 0, 0, 0);
+      manufactureDate.setHours(0, 0, 0, 0);
+
+      if (expiryDate <= manufactureDate) {
+        newErrors.expiryDate = "Ngày hết hạn phải sau ngày sản xuất";
       }
     }
 
@@ -675,13 +237,88 @@ const AddItem = ({ onClose, onAddItem }) => {
       parsedValue = value === '' ? '' : parseInt(value, 10);
     }
 
-    setNewItem({
+    const updatedItem = {
       ...newItem,
       [name]: parsedValue
-    });
+    };
+
+    setNewItem(updatedItem);
+
+    // Real-time validation cho ngày
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (name === 'manufactureDate' && value) {
+      const manufactureDate = new Date(value);
+      manufactureDate.setHours(0, 0, 0, 0);
+
+      if (manufactureDate > today) {
+        setErrors(prev => ({
+          ...prev,
+          manufactureDate: "Ngày sản xuất không được nhập trong tương lai, chỉ được nhập trong quá khứ hoặc hôm nay"
+        }));
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          manufactureDate: null
+        }));
+      }
+    }
+
+    if (name === 'expiryDate' && value) {
+      const expiryDate = new Date(value);
+      expiryDate.setHours(0, 0, 0, 0);
+
+      if (expiryDate < today) {
+        setErrors(prev => ({
+          ...prev,
+          expiryDate: "Ngày hết hạn không được nhập trong quá khứ, chỉ được nhập từ hôm nay trở đi"
+        }));
+      } else if (updatedItem.manufactureDate) {
+        const manufactureDate = new Date(updatedItem.manufactureDate);
+        manufactureDate.setHours(0, 0, 0, 0);
+
+        if (expiryDate <= manufactureDate) {
+          setErrors(prev => ({
+            ...prev,
+            expiryDate: "Ngày hết hạn phải sau ngày sản xuất"
+          }));
+        } else {
+          setErrors(prev => ({
+            ...prev,
+            expiryDate: null
+          }));
+        }
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          expiryDate: null
+        }));
+      }
+    }
+
+    // Kiểm tra lại ngày hết hạn khi ngày sản xuất thay đổi
+    if (name === 'manufactureDate' && updatedItem.expiryDate) {
+      const expiryDate = new Date(updatedItem.expiryDate);
+      const manufactureDate = new Date(value);
+      expiryDate.setHours(0, 0, 0, 0);
+      manufactureDate.setHours(0, 0, 0, 0);
+
+      if (expiryDate <= manufactureDate) {
+        setErrors(prev => ({
+          ...prev,
+          expiryDate: "Ngày hết hạn phải sau ngày sản xuất"
+        }));
+      } else if (expiryDate >= today) {
+        setErrors(prev => ({
+          ...prev,
+          expiryDate: null
+        }));
+      }
+    }
 
     // Don't clear the error if it's from the API check
-    if (errors[name] && name !== 'itemName') {
+    if (errors[name] && name !== 'itemName' && name !== 'manufactureDate' && name !== 'expiryDate') {
       setErrors(prev => ({
         ...prev,
         [name]: null
@@ -858,7 +495,6 @@ const AddItem = ({ onClose, onAddItem }) => {
 
   return (
     <>
-      <style>{addItemStyles}</style>
       <div className="add-item-modal-overlay">
         <div className="add-item-modal-dialog">
           <div className="add-item-modal-content">
@@ -1017,6 +653,7 @@ const AddItem = ({ onClose, onAddItem }) => {
                         name="manufactureDate"
                         value={newItem.manufactureDate}
                         onChange={handleInputChange}
+                        max={new Date().toISOString().split('T')[0]} // Không cho phép chọn ngày tương lai
                       />
                       {errors.manufactureDate && (
                         <div className="add-item-alert add-item-alert-danger">
@@ -1039,6 +676,7 @@ const AddItem = ({ onClose, onAddItem }) => {
                         name="expiryDate"
                         value={newItem.expiryDate}
                         onChange={handleInputChange}
+                        min={new Date().toISOString().split('T')[0]} // Không cho phép chọn ngày quá khứ
                         placeholder="dd/mm/yyyy"
                       />
                       {errors.expiryDate && (
