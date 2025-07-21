@@ -26,7 +26,7 @@ public class CommentReply {
     @JoinColumn(name = "author_id", nullable = false)
     private AccountMember author;
 
-    @Column(columnDefinition = "NVARCHAR(1000)", nullable = false)
+    @Column(columnDefinition = "NVARCHAR(MAX)", nullable = false)
     private String content;
 
     @Column(name = "likes_count")

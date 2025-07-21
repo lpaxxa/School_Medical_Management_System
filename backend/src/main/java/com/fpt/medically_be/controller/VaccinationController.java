@@ -97,5 +97,20 @@ public class VaccinationController {
     }
 
 
+    @Operation(summary = "Lấy ra id số của y tá từ id string")
+    @GetMapping("/getNurseIdByStringId/{nurseId}")
+    public ResponseEntity<Long> getNurseIdByStringId(@PathVariable("nurseId") String nurseId) {
+        return ResponseEntity.ok(vaccinationService.getNurseByStringId(nurseId).getId());
+
+    }
+
+    @Operation(summary = "Lấy ra id int của phụ huynh thông qua id String ")
+    @GetMapping("/getParetIdByStringId/{parentId}")
+    public ResponseEntity<Long> getParetIdByStringId(@PathVariable("parentId") String parentId) {
+        return ResponseEntity.ok(vaccinationService.getParentByStringId(parentId).getId());
+    }
+
+
+
 
 }
