@@ -97,9 +97,6 @@ const Navigation = () => {
             </button>
           {userDropdownOpen && (
             <div className="user-dropdown-sidebar">
-              <button className="dropdown-item" onClick={() => {}}><i className="fas fa-user"></i><span>Hồ sơ</span></button>
-              <button className="dropdown-item" onClick={() => {}}><i className="fas fa-cog"></i><span>Cài đặt</span></button>
-              <div className="dropdown-divider"></div>
               <button className="dropdown-item logout" onClick={handleLogout}><i className="fas fa-sign-out-alt"></i><span>Đăng xuất</span></button>
             </div>
           )}

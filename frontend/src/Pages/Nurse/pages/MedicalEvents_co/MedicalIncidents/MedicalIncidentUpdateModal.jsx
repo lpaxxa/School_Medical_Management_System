@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 import { Modal, Form, Button, Container, Row, Col, Card, Alert, Badge, Spinner } from 'react-bootstrap';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
 import { useMedicalEvents } from '../../../../../context/NurseContext/MedicalEventsContext';
+import './MedicalIncidents.css';
 
 const MedicalIncidentUpdateModal = ({ 
   show, 
@@ -528,10 +529,31 @@ const MedicalIncidentUpdateModal = ({
     }));
   };
 
+  // Helper function để kiểm tra ngày hết hạn
+  const isItemExpired = (item) => {
+    if (!item.expiryDate) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let expiryDate;
+
+    // Handle array format from backend
+    if (Array.isArray(item.expiryDate)) {
+      const [year, month, day] = item.expiryDate;
+      expiryDate = new Date(year, month - 1, day);
+    } else {
+      expiryDate = new Date(item.expiryDate);
+    }
+
+    expiryDate.setHours(0, 0, 0, 0);
+    return expiryDate < today;
+  };
+
   // Handle medication search
   const handleMedicationSearch = async (searchTerm) => {
     setMedicationSearch(searchTerm);
-    
+
     if (searchTerm.trim().length < 2) {
       setMedicationResults([]);
       setShowMedicationDropdown(false);
@@ -541,13 +563,24 @@ const MedicalIncidentUpdateModal = ({
     setSearchingMedications(true);
     try {
       const results = await inventoryService.searchItemsByName(searchTerm);
+      let filteredResults = [];
+
       if (results && Array.isArray(results)) {
-        setMedicationResults(results);
-        setShowMedicationDropdown(true);
+        // Lọc bỏ thuốc hết hạn
+        filteredResults = results.filter(item => !isItemExpired(item));
+      } else if (results) {
+        // If single result, check if not expired
+        if (!isItemExpired(results)) {
+          filteredResults = [results];
+        }
       }
+
+      setMedicationResults(filteredResults);
+      setShowMedicationDropdown(filteredResults.length > 0);
     } catch (error) {
       console.error('Error searching medications:', error);
       setMedicationResults([]);
+      setShowMedicationDropdown(false);
     } finally {
       setSearchingMedications(false);
     }
@@ -978,259 +1011,7 @@ const MedicalIncidentUpdateModal = ({
 
   return (
     <>
-      <style>
-        {`
-          .lukhang-medical-update-modal-wrapper {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            min-height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            z-index: 1055 !important;
-          }
 
-          /* Fix dropdown arrow display issues */
-          .lukhang-medical-update-modal-wrapper .form-select,
-          .lukhang-medical-update-modal-wrapper select.form-control,
-          .lukhang-medical-update-modal-wrapper select {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 0.75rem center !important;
-            background-size: 16px 12px !important;
-            appearance: none !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-          }
-
-          /* Remove multiple arrows from dropdown */
-          .lukhang-medical-update-modal-wrapper select::-ms-expand {
-            display: none !important;
-          }
-
-          .lukhang-medical-update-modal-wrapper .form-select::after,
-          .lukhang-medical-update-modal-wrapper select::after {
-            display: none !important;
-          }
-
-          /* Ensure only one arrow per dropdown */
-          .lukhang-medical-update-modal-wrapper .dropdown-toggle::after {
-            display: none !important;
-          }
-          
-          .lukhang-medical-update-modal-wrapper .modal-dialog {
-            margin: 2rem auto !important;
-            width: 90vw !important;
-            max-width: 1200px !important;
-            display: flex !important;
-            align-items: center !important;
-            min-height: auto !important;
-            position: relative !important;
-          }
-          
-          .lukhang-medical-update-modal-content-custom {
-            border-radius: 1rem !important;
-            overflow: hidden !important;
-            box-shadow: 0 20px 60px rgba(255, 193, 7, 0.2) !important;
-            border: none !important;
-            width: 100% !important;
-            max-height: 90vh !important;
-            display: flex !important;
-            flex-direction: column !important;
-            background: white !important;
-            position: relative !important;
-          }
-          
-          .lukhang-medical-update-header-custom {
-            background: #0d6efd !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 1rem 1rem 0 0 !important;
-            padding: 1.5rem 2rem !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            flex-shrink: 0 !important;
-            min-height: 80px !important;
-          }
-          
-          .lukhang-medical-update-title-custom {
-            color: white !important;
-            font-weight: 600 !important;
-            font-size: 1.4rem !important;
-            margin: 0 !important;
-            flex: 1 !important;
-            display: flex !important;
-            align-items: center !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-          }
-          
-          .lukhang-medical-update-title-custom i {
-            color: white !important;
-            margin-right: 0.75rem !important;
-            font-size: 1.2rem !important;
-          }
-          
-          .lukhang-medical-update-close-button-custom {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border: 2px solid rgba(255, 255, 255, 0.4) !important;
-            color: white !important;
-            border-radius: 50% !important;
-            width: 48px !important;
-            height: 48px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            transition: all 0.3s ease !important;
-            flex-shrink: 0 !important;
-            margin-left: 1.5rem !important;
-            font-size: 1.1rem !important;
-            text-decoration: none !important;
-            outline: none !important;
-            box-shadow: none !important;
-          }
-          
-          .lukhang-medical-update-close-button-custom:hover {
-            background: rgba(255, 255, 255, 0.3) !important;
-            border-color: rgba(255, 255, 255, 0.6) !important;
-            color: white !important;
-            transform: rotate(90deg) scale(1.15) !important;
-            text-decoration: none !important;
-          }
-          
-          .lukhang-medical-update-close-button-custom:focus {
-            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3) !important;
-            color: white !important;
-            outline: none !important;
-            text-decoration: none !important;
-          }
-          
-          .lukhang-medical-update-close-button-custom:active {
-            color: white !important;
-            text-decoration: none !important;
-          }
-          
-          .lukhang-medical-update-body-custom {
-            flex: 1 !important;
-            overflow-y: auto !important;
-            max-height: calc(90vh - 240px) !important;
-            padding: 2rem !important;
-            min-height: 300px !important;
-          }
-          
-          .lukhang-medical-update-footer-custom {
-            flex-shrink: 0 !important;
-            padding: 2.5rem 2rem !important;
-            background: #f8f9fa !important;
-            border-top: 1px solid #e9ecef !important;
-            min-height: 120px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 1.5rem !important;
-            position: relative !important;
-            z-index: 10 !important;
-            margin-top: auto !important;
-          }
-          
-          @media (max-width: 992px) {
-            .lukhang-medical-update-modal-wrapper .modal-dialog {
-              width: 95vw !important;
-              margin: 1rem auto !important;
-            }
-            
-            .lukhang-medical-update-header-custom {
-              padding: 1.25rem 1.5rem !important;
-              min-height: 70px !important;
-            }
-            
-            .lukhang-medical-update-title-custom {
-              font-size: 1.2rem !important;
-            }
-            
-            .lukhang-medical-update-close-button-custom {
-              width: 42px !important;
-              height: 42px !important;
-              margin-left: 1rem !important;
-            }
-            
-            .lukhang-medical-update-body-custom {
-              padding: 1.5rem !important;
-              max-height: calc(90vh - 220px) !important;
-            }
-            
-            .lukhang-medical-update-footer-custom {
-              padding: 2rem 1.5rem !important;
-              min-height: 110px !important;
-            }
-          }
-          
-          @media (max-width: 768px) {
-            .lukhang-medical-update-modal-wrapper .modal-dialog {
-              width: 98vw !important;
-              margin: 0.5rem auto !important;
-            }
-            
-            .lukhang-medical-update-header-custom {
-              padding: 1rem 1.25rem !important;
-              min-height: 65px !important;
-            }
-            
-            .lukhang-medical-update-title-custom {
-              font-size: 1.1rem !important;
-            }
-            
-            .lukhang-medical-update-close-button-custom {
-              width: 38px !important;
-              height: 38px !important;
-              margin-left: 0.75rem !important;
-              font-size: 1rem !important;
-            }
-            
-            .lukhang-medical-update-body-custom {
-              padding: 1.25rem !important;
-              max-height: calc(90vh - 200px) !important;
-            }
-            
-            .lukhang-medical-update-footer-custom {
-              padding: 1.75rem 1.25rem !important;
-              min-height: 100px !important;
-            }
-          }
-
-          /* Additional styling for dropdown elements */
-          .lukhang-medical-update-modal-wrapper .form-select:focus {
-            border-color: #0d6efd !important;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
-          }
-
-          .lukhang-medical-update-modal-wrapper .form-control:focus {
-            border-color: #0d6efd !important;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
-          }
-
-          /* Dropdown menu styling for update modal */
-          .lukhang-medical-update-modal-wrapper .dropdown-menu {
-            border: 1px solid #0d6efd !important;
-            border-radius: 0.375rem !important;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-          }
-
-          .lukhang-medical-update-modal-wrapper .dropdown-item:hover {
-            background-color: #e7f1ff !important;
-            color: #084298 !important;
-          }
-
-          /* Fix severity level dropdown styling */
-          .lukhang-medical-update-modal-wrapper select[name="severityLevel"] {
-            padding-right: 2.5rem !important;
-          }
-        `}
-      </style>
       <Modal 
         show={show} 
         onHide={handleClose}

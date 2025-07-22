@@ -2,7 +2,6 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 import NurseLayout from "../Pages/Nurse/layout/NurseLayout";
-import Consultation from "../Pages/Nurse/pages/Consultation_co/ConsultationMain";
 import StudentRecordsPage from "../Pages/Nurse/pages/StudentRecords_co";
 import HealthCheckupsPage from "../Pages/Nurse/pages/HealthCheckups_co";
 import InventoryPage from "../Pages/Nurse/pages/Inventory_co";
@@ -24,7 +23,6 @@ const NurseRoutes = () => {
           <NurseLayout>
             <Routes>
               <Route index element={<VaccinationPage />} />
-              <Route path="consultations" element={<Consultation />} />
               <Route
                 path="student-records"
                 element={<StudentRecordsPage />}
