@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +40,8 @@ public class VaccinationServiceImpl implements VaccinationService {
     private NotificationRecipientsRepo notificationRecipientsRepo;
     @Autowired
     private NurseRepository nurseRepository;
+    @Autowired
+    private ParentRepository parentRepository;
     @Autowired
     private VaccineRepository vaccineRepository;
 
@@ -251,6 +254,19 @@ public class VaccinationServiceImpl implements VaccinationService {
                 .map(vaccinationMapper::toCreateWithHealthResponse)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Nurse getNurseByStringId(String nurseId) {
+       return nurseRepository.findByAccountId(nurseId).orElseThrow(()-> new RuntimeException("Nurse not found with ID: " + nurseId));
+    }
+
+    @Override
+    public Parent getParentByStringId(String parentId) {
+        return parentRepository.findByAccount_Id(parentId)
+                .orElseThrow(() -> new RuntimeException("Parent not found with ID: " + parentId));
+    }
+
+
 
 
 }
