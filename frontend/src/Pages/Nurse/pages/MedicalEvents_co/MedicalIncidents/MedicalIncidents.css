@@ -1,5 +1,4 @@
 /* MedicalIncidents.css - Enhanced styles for Medical Incidents management */
-/* Các lớp không cần thiết đã được loại bỏ để tinh gọn code */
 
 /* CSS cho container chứa bộ lọc */
 .filter-section {
@@ -1151,4 +1150,750 @@ td .severity-unknown,
   text-align: center;
   color: #666;
   z-index: 1000;
+}
+
+/* ======= CSS FROM DeleteConfirmModal.jsx (styled-jsx) ======= */
+.delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.delete-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+  overflow: hidden;
+}
+
+.delete-modal-header {
+  background: #dc3545;
+  color: white;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: none;
+}
+
+.delete-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.delete-modal-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.delete-modal-close:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.delete-modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delete-modal-body {
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.delete-icon-container {
+  width: 80px;
+  height: 80px;
+  background: #fff2f2;
+  border: 3px solid #dc3545;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.delete-icon {
+  font-size: 32px;
+  color: #dc3545;
+}
+
+.delete-question {
+  color: #333;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+
+.delete-warning {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.warning-icon {
+  color: #ffc107;
+}
+
+.delete-modal-footer {
+  background: #f8f9fa;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #dee2e6;
+}
+
+.delete-btn-cancel,
+.delete-btn-confirm {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.delete-btn-cancel {
+  background: #6c757d;
+  color: white;
+}
+
+.delete-btn-cancel:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.delete-btn-confirm {
+  background: #dc3545;
+  color: white;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.delete-btn-confirm:hover:not(:disabled) {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+}
+
+.delete-btn-cancel:disabled,
+.delete-btn-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.delete-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .delete-modal {
+    margin: 20px;
+    width: calc(100% - 40px);
+  }
+
+  .delete-modal-body {
+    padding: 30px 20px;
+  }
+
+  .delete-modal-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .delete-btn-cancel,
+  .delete-btn-confirm {
+    width: 100%;
+  }
+}
+
+/* ======= CSS FROM DeleteConfirmModal.css ======= */
+/* Enhanced version with !important for better specificity */
+.delete-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 99999 !important;
+  animation: fadeIn 0.3s ease-out;
+  box-sizing: border-box !important;
+}
+
+.delete-modal {
+  position: relative !important;
+  background: white !important;
+  border-radius: 12px !important;
+  width: 90% !important;
+  max-width: 450px !important;
+  min-width: 300px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  animation: slideIn 0.3s ease-out;
+  overflow: hidden !important;
+  margin: 0 auto !important;
+  transform: translateX(0) translateY(0) !important;
+}
+
+/* ======= CSS FROM MedicalIncidentAddModal.jsx ======= */
+.lukhang-medical-incident-modal-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  z-index: 1055 !important;
+}
+
+/* Fix dropdown arrow display issues */
+.lukhang-medical-incident-modal-wrapper .form-select,
+.lukhang-medical-incident-modal-wrapper select.form-control,
+.lukhang-medical-incident-modal-wrapper .medical-severity-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 16px 12px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+/* Remove multiple arrows from dropdown */
+.lukhang-medical-incident-modal-wrapper select::-ms-expand {
+  display: none !important;
+}
+
+.lukhang-medical-incident-modal-wrapper .form-select::after,
+.lukhang-medical-incident-modal-wrapper .medical-severity-select::after {
+  display: none !important;
+}
+
+/* Ensure only one arrow per dropdown */
+.lukhang-medical-incident-modal-wrapper .dropdown-toggle::after {
+  display: none !important;
+}
+
+.lukhang-medical-incident-modal-wrapper .modal-dialog {
+  margin: 2rem auto !important;
+  width: 90vw !important;
+  max-width: 1200px !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: auto !important;
+  position: relative !important;
+}
+
+.lukhang-medical-modal-content-custom {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+  box-shadow: 0 20px 60px rgba(0, 123, 255, 0.2) !important;
+  border: none !important;
+  width: 100% !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: white !important;
+  position: relative !important;
+}
+
+.lukhang-medical-header-custom {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 1rem 1rem 0 0 !important;
+  padding: 1.5rem 2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-shrink: 0 !important;
+  min-height: 80px !important;
+}
+
+.lukhang-medical-title-custom {
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 1.4rem !important;
+  margin: 0 !important;
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.lukhang-medical-title-custom i {
+  color: white !important;
+  margin-right: 0.75rem !important;
+  font-size: 1.2rem !important;
+}
+
+.lukhang-medical-close-button-custom {
+  background: rgba(255,255,255,0.15) !important;
+  border: 2px solid rgba(255,255,255,0.4) !important;
+  color: white !important;
+  border-radius: 50% !important;
+  width: 48px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.3s ease !important;
+  flex-shrink: 0 !important;
+  margin-left: 1.5rem !important;
+  font-size: 1.1rem !important;
+  text-decoration: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.lukhang-medical-close-button-custom:hover {
+  background: rgba(255,255,255,0.3) !important;
+  border-color: rgba(255,255,255,0.6) !important;
+  color: white !important;
+  transform: rotate(90deg) scale(1.15) !important;
+  text-decoration: none !important;
+}
+
+.lukhang-medical-close-button-custom:focus {
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.3) !important;
+  color: white !important;
+  outline: none !important;
+  text-decoration: none !important;
+}
+
+.lukhang-medical-close-button-custom:active {
+  color: white !important;
+  text-decoration: none !important;
+}
+
+.lukhang-medical-body-custom {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  max-height: calc(90vh - 240px) !important;
+  padding: 2rem !important;
+  min-height: 300px !important;
+}
+
+.lukhang-medical-footer-custom {
+  flex-shrink: 0 !important;
+  padding: 2.5rem 2rem !important;
+  background: #f8f9fa !important;
+  border-top: 1px solid #e9ecef !important;
+  min-height: 120px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 1.5rem !important;
+  position: relative !important;
+  z-index: 10 !important;
+  margin-top: auto !important;
+}
+
+@media (max-width: 992px) {
+  .lukhang-medical-incident-modal-wrapper .modal-dialog {
+    width: 95vw !important;
+    margin: 1rem auto !important;
+  }
+
+  .lukhang-medical-header-custom {
+    padding: 1.25rem 1.5rem !important;
+    min-height: 70px !important;
+  }
+
+  .lukhang-medical-title-custom {
+    font-size: 1.2rem !important;
+  }
+
+  .lukhang-medical-close-button-custom {
+    width: 42px !important;
+    height: 42px !important;
+    margin-left: 1rem !important;
+  }
+
+  .lukhang-medical-body-custom {
+    padding: 1.5rem !important;
+    max-height: calc(90vh - 220px) !important;
+  }
+
+  .lukhang-medical-footer-custom {
+    padding: 2rem 1.5rem !important;
+    min-height: 110px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .lukhang-medical-incident-modal-wrapper .modal-dialog {
+    width: 98vw !important;
+    margin: 0.5rem auto !important;
+  }
+
+  .lukhang-medical-header-custom {
+    padding: 1rem 1.25rem !important;
+    min-height: 65px !important;
+  }
+
+  .lukhang-medical-title-custom {
+    font-size: 1.1rem !important;
+  }
+
+  .lukhang-medical-close-button-custom {
+    width: 38px !important;
+    height: 38px !important;
+    margin-left: 0.75rem !important;
+    font-size: 1rem !important;
+  }
+
+  .lukhang-medical-body-custom {
+    padding: 1.25rem !important;
+    max-height: calc(90vh - 200px) !important;
+  }
+
+  .lukhang-medical-footer-custom {
+    padding: 1.75rem 1.25rem !important;
+    min-height: 100px !important;
+  }
+}
+
+/* Additional styling for dropdown elements */
+.lukhang-medical-incident-modal-wrapper .medical-severity-select:focus {
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+}
+
+.lukhang-medical-incident-modal-wrapper .medical-student-input:focus,
+.lukhang-medical-incident-modal-wrapper .medical-medication-search:focus {
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Dropdown menu styling */
+.lukhang-medical-incident-modal-wrapper .dropdown-menu {
+  border: 1px solid #0d6efd !important;
+  border-radius: 0.375rem !important;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.lukhang-medical-incident-modal-wrapper .dropdown-item:hover {
+  background-color: #f8f9fa !important;
+  color: #0d6efd !important;
+}
+
+/* ======= CSS FROM MedicalIncidentUpdateModal.jsx ======= */
+.lukhang-medical-update-modal-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  z-index: 1055 !important;
+}
+
+/* Fix dropdown arrow display issues */
+.lukhang-medical-update-modal-wrapper .form-select,
+.lukhang-medical-update-modal-wrapper select.form-control,
+.lukhang-medical-update-modal-wrapper select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 16px 12px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+/* Remove multiple arrows from dropdown */
+.lukhang-medical-update-modal-wrapper select::-ms-expand {
+  display: none !important;
+}
+
+.lukhang-medical-update-modal-wrapper .form-select::after,
+.lukhang-medical-update-modal-wrapper select::after {
+  display: none !important;
+}
+
+/* Ensure only one arrow per dropdown */
+.lukhang-medical-update-modal-wrapper .dropdown-toggle::after {
+  display: none !important;
+}
+
+.lukhang-medical-update-modal-wrapper .modal-dialog {
+  margin: 2rem auto !important;
+  width: 90vw !important;
+  max-width: 1200px !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: auto !important;
+  position: relative !important;
+}
+
+.lukhang-medical-update-modal-content-custom {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+  box-shadow: 0 20px 60px rgba(255, 193, 7, 0.2) !important;
+  border: none !important;
+  width: 100% !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: white !important;
+  position: relative !important;
+}
+
+.lukhang-medical-update-header-custom {
+  background: #0d6efd !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 1rem 1rem 0 0 !important;
+  padding: 1.5rem 2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-shrink: 0 !important;
+  min-height: 80px !important;
+}
+
+.lukhang-medical-update-title-custom {
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 1.4rem !important;
+  margin: 0 !important;
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.lukhang-medical-update-title-custom i {
+  color: white !important;
+  margin-right: 0.75rem !important;
+  font-size: 1.2rem !important;
+}
+
+.lukhang-medical-update-close-button-custom {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  color: white !important;
+  border-radius: 50% !important;
+  width: 48px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.3s ease !important;
+  flex-shrink: 0 !important;
+  margin-left: 1.5rem !important;
+  font-size: 1.1rem !important;
+  text-decoration: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.lukhang-medical-update-close-button-custom:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  color: white !important;
+  transform: rotate(90deg) scale(1.15) !important;
+  text-decoration: none !important;
+}
+
+.lukhang-medical-update-close-button-custom:focus {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  outline: none !important;
+  text-decoration: none !important;
+}
+
+.lukhang-medical-update-close-button-custom:active {
+  color: white !important;
+  text-decoration: none !important;
+}
+
+.lukhang-medical-update-body-custom {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  max-height: calc(90vh - 240px) !important;
+  padding: 2rem !important;
+  min-height: 300px !important;
+}
+
+.lukhang-medical-update-footer-custom {
+  flex-shrink: 0 !important;
+  padding: 2.5rem 2rem !important;
+  background: #f8f9fa !important;
+  border-top: 1px solid #e9ecef !important;
+  min-height: 120px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 1.5rem !important;
+  position: relative !important;
+  z-index: 10 !important;
+  margin-top: auto !important;
+}
+
+@media (max-width: 992px) {
+  .lukhang-medical-update-modal-wrapper .modal-dialog {
+    width: 95vw !important;
+    margin: 1rem auto !important;
+  }
+
+  .lukhang-medical-update-header-custom {
+    padding: 1.25rem 1.5rem !important;
+    min-height: 70px !important;
+  }
+
+  .lukhang-medical-update-title-custom {
+    font-size: 1.2rem !important;
+  }
+
+  .lukhang-medical-update-close-button-custom {
+    width: 42px !important;
+    height: 42px !important;
+    margin-left: 1rem !important;
+  }
+
+  .lukhang-medical-update-body-custom {
+    padding: 1.5rem !important;
+    max-height: calc(90vh - 220px) !important;
+  }
+
+  .lukhang-medical-update-footer-custom {
+    padding: 2rem 1.5rem !important;
+    min-height: 110px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .lukhang-medical-update-modal-wrapper .modal-dialog {
+    width: 98vw !important;
+    margin: 0.5rem auto !important;
+  }
+
+  .lukhang-medical-update-header-custom {
+    padding: 1rem 1.25rem !important;
+    min-height: 65px !important;
+  }
+
+  .lukhang-medical-update-title-custom {
+    font-size: 1.1rem !important;
+  }
+
+  .lukhang-medical-update-close-button-custom {
+    width: 38px !important;
+    height: 38px !important;
+    margin-left: 0.75rem !important;
+    font-size: 1rem !important;
+  }
+
+  .lukhang-medical-update-body-custom {
+    padding: 1.25rem !important;
+    max-height: calc(90vh - 200px) !important;
+  }
+
+  .lukhang-medical-update-footer-custom {
+    padding: 1.75rem 1.25rem !important;
+    min-height: 100px !important;
+  }
+}
+
+/* Additional styling for dropdown elements */
+.lukhang-medical-update-modal-wrapper .form-select:focus {
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+}
+
+.lukhang-medical-update-modal-wrapper .form-control:focus {
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Dropdown menu styling for update modal */
+.lukhang-medical-update-modal-wrapper .dropdown-menu {
+  border: 1px solid #0d6efd !important;
+  border-radius: 0.375rem !important;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.lukhang-medical-update-modal-wrapper .dropdown-item:hover {
+  background-color: #e7f1ff !important;
+  color: #084298 !important;
+}
+
+/* Fix severity level dropdown styling */
+.lukhang-medical-update-modal-wrapper select[name="severityLevel"] {
+  padding-right: 2.5rem !important;
 }

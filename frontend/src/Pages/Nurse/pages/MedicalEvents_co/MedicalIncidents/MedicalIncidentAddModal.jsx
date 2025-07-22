@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 import { Modal, Form, Button, Container, Row, Col, Card, Alert, Badge, Spinner } from 'react-bootstrap';
 import inventoryService from '../../../../../services/APINurse/inventoryService';
 import { getAllStudents } from '../../../../../services/APINurse/studentRecordsService';
+import './MedicalIncidents.css';
 
 const MedicalIncidentAddModal = ({ 
   show, 
@@ -43,6 +44,18 @@ const MedicalIncidentAddModal = ({
   const [studentSuggestions, setStudentSuggestions] = useState([]);
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
+
+  // State cho validation học sinh
+  const [studentValidation, setStudentValidation] = useState({
+    isValidating: false,
+    isValid: null,
+    validatedStudent: null,
+    error: null
+  });
+
+  // Cache danh sách học sinh để tránh gọi API nhiều lần
+  const [studentsCache, setStudentsCache] = useState(null);
+  const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
   // Utility function to handle different date formats
   const formatDateForInput = (dateInput) => {
@@ -151,11 +164,32 @@ const MedicalIncidentAddModal = ({
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     setFormData(prevData => ({
       ...prevData,
       [name]: type === 'checkbox' ? checked : value
     }));
+
+    // Validate student ID when it changes
+    if (name === 'studentId') {
+      // Clear previous search when manually typing
+      setStudentSearch('');
+      setShowStudentDropdown(false);
+
+      // Debounce validation to avoid too many API calls
+      if (value.trim()) {
+        setTimeout(() => {
+          validateStudentId(value);
+        }, 500);
+      } else {
+        setStudentValidation({
+          isValidating: false,
+          isValid: null,
+          validatedStudent: null,
+          error: null
+        });
+      }
+    }
   };
 
   // Handle student search
@@ -177,18 +211,142 @@ const MedicalIncidentAddModal = ({
     }
   };
 
+  // Get students list with caching
+  const getStudentsList = async () => {
+    const now = Date.now();
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+
+    // Use cache if available and not expired
+    if (studentsCache && cacheTimestamp && (now - cacheTimestamp < CACHE_DURATION)) {
+      console.log('Using cached students data');
+      return studentsCache;
+    }
+
+    try {
+      console.log('Fetching fresh students data');
+      const studentsData = await getAllStudents();
+
+      // Handle different response formats
+      let studentsList = [];
+      if (Array.isArray(studentsData)) {
+        studentsList = studentsData;
+      } else if (studentsData && studentsData.content && Array.isArray(studentsData.content)) {
+        studentsList = studentsData.content;
+      } else if (studentsData && studentsData.data && Array.isArray(studentsData.data)) {
+        studentsList = studentsData.data;
+      }
+
+      // Update cache
+      setStudentsCache(studentsList);
+      setCacheTimestamp(now);
+
+      return studentsList;
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      throw error;
+    }
+  };
+
+  // Validate student ID exists in database using getAllStudents
+  const validateStudentId = async (studentId) => {
+    if (!studentId || !studentId.trim()) {
+      setStudentValidation({
+        isValidating: false,
+        isValid: null,
+        validatedStudent: null,
+        error: null
+      });
+      return;
+    }
+
+    setStudentValidation(prev => ({ ...prev, isValidating: true, error: null }));
+
+    try {
+      console.log('Validating student ID:', studentId);
+
+      // Get students list (with caching)
+      const studentsList = await getStudentsList();
+      console.log('Students list for validation:', studentsList);
+
+      // Find student by studentId (string comparison)
+      const foundStudent = studentsList.find(student => {
+        const studentIdToCheck = student.studentId || student.id;
+        return studentIdToCheck && studentIdToCheck.toString().trim().toLowerCase() === studentId.trim().toLowerCase();
+      });
+
+      if (foundStudent) {
+        console.log('Student found:', foundStudent);
+        setStudentValidation({
+          isValidating: false,
+          isValid: true,
+          validatedStudent: foundStudent,
+          error: null
+        });
+
+        // Auto-fill student name if found
+        const studentName = foundStudent.fullName || foundStudent.name || 'Không có tên';
+        setStudentSearch(`${foundStudent.studentId || foundStudent.id} - ${studentName}`);
+      } else {
+        console.log('Student not found with ID:', studentId);
+        setStudentValidation({
+          isValidating: false,
+          isValid: false,
+          validatedStudent: null,
+          error: `Không tìm thấy học sinh với mã "${studentId}"`
+        });
+      }
+    } catch (error) {
+      console.error('Error validating student:', error);
+      setStudentValidation({
+        isValidating: false,
+        isValid: false,
+        validatedStudent: null,
+        error: 'Không thể kết nối đến hệ thống để xác thực học sinh'
+      });
+    }
+  };
+
   // Handle selecting a student
   const handleSelectStudent = (student) => {
     setFormData(prev => ({ ...prev, studentId: student.studentId }));
     setStudentSearch(`${student.studentId} - ${student.fullName || student.name}`);
     setShowStudentDropdown(false);
     setStudentSuggestions([]);
+
+    // Set validation state for selected student
+    setStudentValidation({
+      isValidating: false,
+      isValid: true,
+      validatedStudent: student,
+      error: null
+    });
+  };
+
+  // Helper function để kiểm tra ngày hết hạn
+  const isItemExpired = (item) => {
+    if (!item.expiryDate) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let expiryDate;
+
+    // Handle array format from backend
+    if (Array.isArray(item.expiryDate)) {
+      const [year, month, day] = item.expiryDate;
+      expiryDate = new Date(year, month - 1, day);
+    } else {
+      expiryDate = new Date(item.expiryDate);
+    }
+
+    expiryDate.setHours(0, 0, 0, 0);
+    return expiryDate < today;
   };
 
   // Handle medication search
   const handleMedicationSearch = async (searchTerm) => {
     setMedicationSearch(searchTerm);
-    
+
     if (searchTerm.trim().length < 2) {
       setMedicationResults([]);
       setShowMedicationDropdown(false);
@@ -198,17 +356,20 @@ const MedicalIncidentAddModal = ({
     setSearchingMedications(true);
     try {
       const results = await inventoryService.searchItemsByName(searchTerm);
+      let filteredResults = [];
+
       if (results && Array.isArray(results)) {
-        setMedicationResults(results);
-        setShowMedicationDropdown(true);
+        // Lọc bỏ thuốc hết hạn
+        filteredResults = results.filter(item => !isItemExpired(item));
       } else if (results) {
-        // If single result, wrap in array
-        setMedicationResults([results]);
-        setShowMedicationDropdown(true);
-      } else {
-        setMedicationResults([]);
-        setShowMedicationDropdown(false);
+        // If single result, check if not expired
+        if (!isItemExpired(results)) {
+          filteredResults = [results];
+        }
       }
+
+      setMedicationResults(filteredResults);
+      setShowMedicationDropdown(filteredResults.length > 0);
     } catch (error) {
       console.error('Error searching medications:', error);
       setMedicationResults([]);
@@ -343,20 +504,98 @@ const MedicalIncidentAddModal = ({
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (!formData.studentId.trim()) {
-      Swal.fire('Lỗi!', 'Vui lòng nhập mã học sinh', 'error');
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: 'Vui lòng nhập mã học sinh',
+        confirmButtonText: 'OK'
+      });
       return;
     }
-    
+
+    // Check if student validation is in progress
+    if (studentValidation.isValidating) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Đang xác thực...',
+        text: 'Vui lòng đợi hệ thống xác thực mã học sinh',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    // Check if student ID is valid
+    if (studentValidation.isValid === false) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Mã học sinh không hợp lệ!',
+        text: studentValidation.error || 'Không tìm thấy học sinh với mã này trong hệ thống',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    // If student ID hasn't been validated yet, validate it now
+    if (studentValidation.isValid === null) {
+      try {
+        // Validate student ID synchronously before proceeding
+        const studentsList = await getStudentsList();
+
+        const foundStudent = studentsList.find(student => {
+          const studentIdToCheck = student.studentId || student.id;
+          return studentIdToCheck && studentIdToCheck.toString().trim().toLowerCase() === formData.studentId.trim().toLowerCase();
+        });
+
+        if (!foundStudent) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Mã học sinh không hợp lệ!',
+            text: `Không tìm thấy học sinh với mã "${formData.studentId}" trong hệ thống`,
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
+
+        // Update validation state for successful validation
+        setStudentValidation({
+          isValidating: false,
+          isValid: true,
+          validatedStudent: foundStudent,
+          error: null
+        });
+
+      } catch (error) {
+        console.error('Error validating student during submit:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi xác thực!',
+          text: 'Không thể kết nối đến hệ thống để xác thực học sinh. Vui lòng thử lại.',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+    }
+
     if (!formData.incidentType.trim()) {
-      Swal.fire('Lỗi!', 'Vui lòng nhập loại sự kiện', 'error');
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: 'Vui lòng nhập loại sự kiện',
+        confirmButtonText: 'OK'
+      });
       return;
     }
-    
+
     if (!formData.description.trim()) {
-      Swal.fire('Lỗi!', 'Vui lòng nhập mô tả sự kiện', 'error');
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: 'Vui lòng nhập mô tả sự kiện',
+        confirmButtonText: 'OK'
+      });
       return;
     }
     
@@ -419,6 +658,18 @@ const MedicalIncidentAddModal = ({
     setMedicationSearch('');
     setMedicationResults([]);
     setShowMedicationDropdown(false);
+
+    // Reset student search and validation
+    setStudentSearch('');
+    setStudentSuggestions([]);
+    setShowStudentDropdown(false);
+    setStudentValidation({
+      isValidating: false,
+      isValid: null,
+      validatedStudent: null,
+      error: null
+    });
+
     // Reset image upload states
     setImageFile(null);
     setImagePreview('');
@@ -433,255 +684,7 @@ const MedicalIncidentAddModal = ({
 
   return (
     <>
-      <style>
-        {`
-          .lukhang-medical-incident-modal-wrapper {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            min-height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            z-index: 1055 !important;
-          }
 
-          /* Fix dropdown arrow display issues */
-          .lukhang-medical-incident-modal-wrapper .form-select,
-          .lukhang-medical-incident-modal-wrapper select.form-control,
-          .lukhang-medical-incident-modal-wrapper .medical-severity-select {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 0.75rem center !important;
-            background-size: 16px 12px !important;
-            appearance: none !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-          }
-
-          /* Remove multiple arrows from dropdown */
-          .lukhang-medical-incident-modal-wrapper select::-ms-expand {
-            display: none !important;
-          }
-
-          .lukhang-medical-incident-modal-wrapper .form-select::after,
-          .lukhang-medical-incident-modal-wrapper .medical-severity-select::after {
-            display: none !important;
-          }
-
-          /* Ensure only one arrow per dropdown */
-          .lukhang-medical-incident-modal-wrapper .dropdown-toggle::after {
-            display: none !important;
-          }
-          
-          .lukhang-medical-incident-modal-wrapper .modal-dialog {
-            margin: 2rem auto !important;
-            width: 90vw !important;
-            max-width: 1200px !important;
-            display: flex !important;
-            align-items: center !important;
-            min-height: auto !important;
-            position: relative !important;
-          }
-          
-          .lukhang-medical-modal-content-custom {
-            border-radius: 1rem !important;
-            overflow: hidden !important;
-            box-shadow: 0 20px 60px rgba(0, 123, 255, 0.2) !important;
-            border: none !important;
-            width: 100% !important;
-            max-height: 90vh !important;
-            display: flex !important;
-            flex-direction: column !important;
-            background: white !important;
-            position: relative !important;
-          }
-          
-          .lukhang-medical-header-custom {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 1rem 1rem 0 0 !important;
-            padding: 1.5rem 2rem !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            flex-shrink: 0 !important;
-            min-height: 80px !important;
-          }
-          
-          .lukhang-medical-title-custom {
-            color: white !important;
-            font-weight: 600 !important;
-            font-size: 1.4rem !important;
-            margin: 0 !important;
-            flex: 1 !important;
-            display: flex !important;
-            align-items: center !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-          }
-          
-          .lukhang-medical-title-custom i {
-            color: white !important;
-            margin-right: 0.75rem !important;
-            font-size: 1.2rem !important;
-          }
-          
-          .lukhang-medical-close-button-custom {
-            background: rgba(255,255,255,0.15) !important;
-            border: 2px solid rgba(255,255,255,0.4) !important;
-            color: white !important;
-            border-radius: 50% !important;
-            width: 48px !important;
-            height: 48px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            transition: all 0.3s ease !important;
-            flex-shrink: 0 !important;
-            margin-left: 1.5rem !important;
-            font-size: 1.1rem !important;
-            text-decoration: none !important;
-            outline: none !important;
-            box-shadow: none !important;
-          }
-          
-          .lukhang-medical-close-button-custom:hover {
-            background: rgba(255,255,255,0.3) !important;
-            border-color: rgba(255,255,255,0.6) !important;
-            color: white !important;
-            transform: rotate(90deg) scale(1.15) !important;
-            text-decoration: none !important;
-          }
-          
-          .lukhang-medical-close-button-custom:focus {
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.3) !important;
-            color: white !important;
-            outline: none !important;
-            text-decoration: none !important;
-          }
-          
-          .lukhang-medical-close-button-custom:active {
-            color: white !important;
-            text-decoration: none !important;
-          }
-          
-          .lukhang-medical-body-custom {
-            flex: 1 !important;
-            overflow-y: auto !important;
-            max-height: calc(90vh - 240px) !important;
-            padding: 2rem !important;
-            min-height: 300px !important;
-          }
-          
-          .lukhang-medical-footer-custom {
-            flex-shrink: 0 !important;
-            padding: 2.5rem 2rem !important;
-            background: #f8f9fa !important;
-            border-top: 1px solid #e9ecef !important;
-            min-height: 120px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 1.5rem !important;
-            position: relative !important;
-            z-index: 10 !important;
-            margin-top: auto !important;
-          }
-          
-          @media (max-width: 992px) {
-            .lukhang-medical-incident-modal-wrapper .modal-dialog {
-              width: 95vw !important;
-              margin: 1rem auto !important;
-            }
-            
-            .lukhang-medical-header-custom {
-              padding: 1.25rem 1.5rem !important;
-              min-height: 70px !important;
-            }
-            
-            .lukhang-medical-title-custom {
-              font-size: 1.2rem !important;
-            }
-            
-            .lukhang-medical-close-button-custom {
-              width: 42px !important;
-              height: 42px !important;
-              margin-left: 1rem !important;
-            }
-            
-            .lukhang-medical-body-custom {
-              padding: 1.5rem !important;
-              max-height: calc(90vh - 220px) !important;
-            }
-            
-            .lukhang-medical-footer-custom {
-              padding: 2rem 1.5rem !important;
-              min-height: 110px !important;
-            }
-          }
-          
-          @media (max-width: 768px) {
-            .lukhang-medical-incident-modal-wrapper .modal-dialog {
-              width: 98vw !important;
-              margin: 0.5rem auto !important;
-            }
-            
-            .lukhang-medical-header-custom {
-              padding: 1rem 1.25rem !important;
-              min-height: 65px !important;
-            }
-            
-            .lukhang-medical-title-custom {
-              font-size: 1.1rem !important;
-            }
-            
-            .lukhang-medical-close-button-custom {
-              width: 38px !important;
-              height: 38px !important;
-              margin-left: 0.75rem !important;
-              font-size: 1rem !important;
-            }
-            
-            .lukhang-medical-body-custom {
-              padding: 1.25rem !important;
-              max-height: calc(90vh - 200px) !important;
-            }
-            
-            .lukhang-medical-footer-custom {
-              padding: 1.75rem 1.25rem !important;
-              min-height: 100px !important;
-            }
-          }
-
-          /* Additional styling for dropdown elements */
-          .lukhang-medical-incident-modal-wrapper .medical-severity-select:focus {
-            border-color: #0d6efd !important;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
-          }
-
-          .lukhang-medical-incident-modal-wrapper .medical-student-input:focus,
-          .lukhang-medical-incident-modal-wrapper .medical-medication-search:focus {
-            border-color: #0d6efd !important;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
-          }
-
-          /* Dropdown menu styling */
-          .lukhang-medical-incident-modal-wrapper .dropdown-menu {
-            border: 1px solid #0d6efd !important;
-            border-radius: 0.375rem !important;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-          }
-
-          .lukhang-medical-incident-modal-wrapper .dropdown-item:hover {
-            background-color: #f8f9fa !important;
-            color: #0d6efd !important;
-          }
-        `}
-      </style>
       <Modal 
         show={show} 
         onHide={handleClose}
@@ -724,19 +727,70 @@ const MedicalIncidentAddModal = ({
                     <Form.Label className="fw-semibold">
                       Mã học sinh <span className="text-danger">*</span>
                     </Form.Label>
+
+                    {/* Direct Student ID Input */}
+                    <div className="mb-2">
+                      <div className="input-group">
+                        <Form.Control
+                          type="text"
+                          name="studentId"
+                          value={formData.studentId}
+                          onChange={handleInputChange}
+                          placeholder="Nhập mã học sinh (bắt buộc)"
+                          required
+                          className={`medical-student-input ${
+                            studentValidation.isValid === true ? 'is-valid' :
+                            studentValidation.isValid === false ? 'is-invalid' : ''
+                          }`}
+                        />
+                        <span className="input-group-text">
+                          {studentValidation.isValidating ? (
+                            <Spinner size="sm" />
+                          ) : studentValidation.isValid === true ? (
+                            <i className="fas fa-check text-success"></i>
+                          ) : studentValidation.isValid === false ? (
+                            <i className="fas fa-times text-danger"></i>
+                          ) : (
+                            <i className="fas fa-user text-muted"></i>
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Validation Messages */}
+                      {studentValidation.isValid === true && studentValidation.validatedStudent && (
+                        <div className="text-success small mt-1">
+                          <i className="fas fa-check-circle me-1"></i>
+                          Học sinh: {studentValidation.validatedStudent.fullName || studentValidation.validatedStudent.name}
+                        </div>
+                      )}
+                      {studentValidation.isValid === false && (
+                        <div className="text-danger small mt-1">
+                          <i className="fas fa-exclamation-circle me-1"></i>
+                          {studentValidation.error}
+                        </div>
+                      )}
+                      {studentValidation.isValidating && (
+                        <div className="text-info small mt-1">
+                          <i className="fas fa-spinner fa-spin me-1"></i>
+                          Đang xác thực mã học sinh...
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Student Search Dropdown */}
                     <div className="position-relative">
                       <Form.Control
                         type="text"
                         value={studentSearch}
                         onChange={(e) => handleStudentSearch(e.target.value)}
-                        placeholder="Nhập mã hoặc tên học sinh"
+                        placeholder="Hoặc tìm kiếm theo tên học sinh"
                         autoComplete="off"
                         onFocus={() => setShowStudentDropdown(studentSuggestions.length > 0)}
                         onBlur={() => setTimeout(() => setShowStudentDropdown(false), 200)}
-                        className="medical-student-input"
+                        className="medical-student-search"
                       />
                       {showStudentDropdown && (
-                        <div 
+                        <div
                           className="position-absolute w-100 bg-white border border-info rounded shadow-sm"
                           style={{ top: '100%', zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}
                         >
@@ -747,8 +801,8 @@ const MedicalIncidentAddModal = ({
                             </div>
                           ) : studentSuggestions.length > 0 ? (
                             studentSuggestions.map(student => (
-                              <div 
-                                key={student.id} 
+                              <div
+                                key={student.id}
                                 className="p-2 border-bottom cursor-pointer hover-bg-light"
                                 onMouseDown={() => handleSelectStudent(student)}
                                 style={{ cursor: 'pointer' }}
@@ -877,8 +931,8 @@ const MedicalIncidentAddModal = ({
                 <Col>
                   <Card className="border-info medical-medication-card">
                     <Card.Header className="bg-info text-white">
-                      <h6 className="mb-0">
-                        <i className="fas fa-pills me-2"></i>
+                      <h6 className="mb-0" style={{color: 'white'}}>
+                        <i className="fas fa-pills me-2" style={{color: 'white'}}></i>
                         Thuốc sử dụng
                       </h6>
                     </Card.Header>
@@ -1015,7 +1069,7 @@ const MedicalIncidentAddModal = ({
                 <Col>
                   <Card className="border-secondary medical-image-card">
                     <Card.Header className="bg-secondary text-white">
-                      <h6 className="mb-0">
+                      <h6 className="mb-0" style={{color: 'white'}}>
                         <i className="fas fa-image me-2"></i>
                         Hình ảnh sự cố y tế
                       </h6>

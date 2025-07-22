@@ -1,6 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Modal, Button, Form, FloatingLabel } from 'react-bootstrap';
 import { VaccinationContext } from '../../../../../context/NurseContext/VaccinationContext';
+import Swal from 'sweetalert2';
+import './CreateRecord.css';
 
 const CreateRecordModal = ({ show, handleClose, student, plan }) => {
     const { handleCreateRecord, vaccineForRecord } = useContext(VaccinationContext);
@@ -12,18 +14,100 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
     });
     const [validated, setValidated] = useState(false);
 
-    // Set vaccination date from student when modal opens
+    // Helper function to format date from backend with timezone handling
+    const formatDate = (dateInput) => {
+        if (!dateInput) return null;
+
+        try {
+            let date;
+
+            // Handle array format from backend [year, month, day, hour, minute, second, nanosecond]
+            if (Array.isArray(dateInput)) {
+                if (dateInput.length >= 3) {
+                    // Create date in local timezone to avoid UTC conversion issues
+                    const year = dateInput[0];
+                    const month = dateInput[1] - 1; // Convert to 0-indexed
+                    const day = dateInput[2];
+                    const hour = dateInput[3] || 0;
+                    const minute = dateInput[4] || 0;
+                    const second = dateInput[5] || 0;
+
+                    // Use local timezone constructor to avoid UTC offset issues
+                    date = new Date(year, month, day, hour, minute, second);
+                } else {
+                    return null;
+                }
+            }
+            // Handle string format
+            else if (typeof dateInput === 'string') {
+                // If it's an ISO string, parse it carefully
+                if (dateInput.includes('T') || dateInput.includes('Z')) {
+                    date = new Date(dateInput);
+                } else {
+                    // Assume it's a date string without timezone info
+                    date = new Date(dateInput + 'T00:00:00');
+                }
+            }
+            // Handle Date object
+            else if (dateInput instanceof Date) {
+                date = new Date(dateInput);
+            }
+            else {
+                return null;
+            }
+
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+
+            return date;
+        } catch (error) {
+            console.error('Error formatting date:', error, dateInput);
+            return null;
+        }
+    };
+
+    // Convert date to datetime-local format without timezone issues
+    const toDateTimeLocalString = (date) => {
+        if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+            return '';
+        }
+
+        // Get local date components to avoid timezone conversion
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
+    // Get the vaccination date from plan
+    const getVaccinationDateFromPlan = () => {
+        if (!plan || !plan.vaccinationDate) return new Date();
+
+        const planDate = formatDate(plan.vaccinationDate);
+        if (planDate instanceof Date && !isNaN(planDate.getTime())) {
+            return planDate;
+        }
+        return new Date();
+    };
+
+    // Set vaccination date from plan when modal opens
     useEffect(() => {
-        if (student && student.vaccinationDate) {
+        if (plan && plan.vaccinationDate) {
+            const planDate = getVaccinationDateFromPlan();
             setFormData(prev => ({
                 ...prev,
-                vaccinationDate: new Date(student.vaccinationDate).toISOString(),
+                vaccinationDate: toDateTimeLocalString(planDate),
                 nurseId: '1' // Ensure nurse ID remains 1
             }));
         }
-    }, [student]);
+    }, [plan]);
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         const form = event.currentTarget;
         event.preventDefault();
         event.stopPropagation();
@@ -33,23 +117,57 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
             return;
         }
 
-        handleCreateRecord(formData);
-        // Reset form for next time, though the modal will close anyway
-        setFormData({
-            nurseId: '1', // Keep nurse ID as 1
-            vaccinationDate: student?.vaccinationDate ? new Date(student.vaccinationDate).toISOString() : new Date().toISOString(),
-            administeredAt: '',
-            notes: '',
-        });
-        setValidated(false);
+        try {
+            // Convert datetime-local to ISO string for backend
+            const submitData = {
+                ...formData,
+                vaccinationDate: formData.vaccinationDate ? new Date(formData.vaccinationDate).toISOString() : new Date().toISOString()
+            };
+
+            await handleCreateRecord(submitData);
+
+            // Show success message with SweetAlert2
+            await Swal.fire({
+                icon: 'success',
+                title: 'Thành công!',
+                text: `Đã tạo hồ sơ tiêm chủng cho học sinh ${student.fullName}`,
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#667eea',
+                timer: 3000,
+                timerProgressBar: true
+            });
+
+            // Reset form for next time
+            const planDate = getVaccinationDateFromPlan();
+            setFormData({
+                nurseId: '1', // Keep nurse ID as 1
+                vaccinationDate: toDateTimeLocalString(planDate),
+                administeredAt: '',
+                notes: '',
+            });
+            setValidated(false);
+
+            // Close modal
+            handleClose();
+        } catch (error) {
+            console.error('Error creating vaccination record:', error);
+
+            // Show error message with SweetAlert2
+            await Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Có lỗi xảy ra khi tạo hồ sơ tiêm chủng. Vui lòng thử lại.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#dc3545'
+            });
+        }
     };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name === 'vaccinationDate') {
-            // Convert datetime-local value to ISO string
-            const date = new Date(value);
-            setFormData(prev => ({ ...prev, [name]: date.toISOString() }));
+            // Store the datetime-local value directly without timezone conversion
+            setFormData(prev => ({ ...prev, [name]: value }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -57,64 +175,92 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
 
     if (!student || !plan || !vaccineForRecord) return null;
 
-    const acceptedParticipants = plan.students?.filter(s => s.vaccineResponses?.some(vr => vr.response === 'ACCEPTED')).length || 0;
-    const totalStudents = plan.students?.length || 0;
+    // Format plan vaccination date for display
+    const formatDateForDisplay = (dateInput) => {
+        const date = formatDate(dateInput);
+        if (date instanceof Date && !isNaN(date.getTime())) {
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return date.toLocaleDateString('vi-VN', options);
+        }
+        return 'N/A';
+    };
 
     return (
-        <Modal show={show} onHide={handleClose} centered size="lg">
+        <Modal
+            show={show}
+            onHide={handleClose}
+            centered
+            size="lg"
+            className="create-vaccination-record-modal"
+        >
             <Modal.Header closeButton>
                 <Modal.Title>Tạo Hồ sơ Tiêm chủng</Modal.Title>
             </Modal.Header>
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
                 <Modal.Body>
-                    <h6>Học sinh: <span className="fw-normal">{student.fullName} (Lớp: {student.className})</span></h6>
-                    <h6>Kế hoạch: <span className="fw-normal">{plan.name}</span></h6>
-                    <h6>Vaccine đang tạo: <span className="fw-normal text-primary">{vaccineForRecord.vaccineName}</span></h6>
-                    <hr />
+                    <div className="student-info-section">
+                        <h6>Học sinh: <span className="fw-normal">{student.fullName} (Lớp: {student.className})</span></h6>
+                        <h6>Kế hoạch: <span className="fw-normal">{plan.name}</span></h6>
+                        <h6>Ngày tiêm: <span className="fw-normal text-info">{formatDateForDisplay(plan.vaccinationDate)}</span></h6>
+                        <h6>Vaccine đang tạo: <span className="fw-normal text-primary">{vaccineForRecord.vaccineName}</span></h6>
+                        <hr />
+                    </div>
 
-                    <Form.Group className="mb-3" controlId="formVaccinationDate">
-                        <FloatingLabel label="Ngày tiêm">
-                            <Form.Control
-                                type="datetime-local"
-                                name="vaccinationDate"
-                                value={formData.vaccinationDate ? new Date(formData.vaccinationDate).toISOString().slice(0, 16) : ''}
-                                onChange={handleChange}
-                                required
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                Vui lòng chọn ngày tiêm.
-                            </Form.Control.Feedback>
-                        </FloatingLabel>
-                    </Form.Group>
+                    <div className="form-section">
+                        <Form.Group className="mb-3" controlId="formVaccinationDate">
+                            <FloatingLabel label="Thời gian tiêm *">
+                                <Form.Control
+                                    type="datetime-local"
+                                    name="vaccinationDate"
+                                    value={formData.vaccinationDate || ''}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    Vui lòng chọn thời gian tiêm.
+                                </Form.Control.Feedback>
+                            </FloatingLabel>
+                            <small className="text-muted">
+                                <i className="fas fa-info-circle me-1"></i>
+                                Lưu ý: Ngày tiêm được lấy từ kế hoạch, bạn chỉ có thể thay đổi giờ tiêm.
+                            </small>
+                        </Form.Group>
 
-                     <Form.Group className="mb-3" controlId="formAdministeredAt">
-                        <FloatingLabel label="Nơi tiêm">
-                            <Form.Control
-                                type="text"
-                                name="administeredAt"
-                                placeholder="Nhập nơi tiêm"
-                                value={formData.administeredAt}
-                                onChange={handleChange}
-                                required
-                            />
-                             <Form.Control.Feedback type="invalid">
-                                Vui lòng nhập nơi tiêm.
-                            </Form.Control.Feedback>
-                        </FloatingLabel>
-                    </Form.Group>
+                        <Form.Group className="mb-3" controlId="formAdministeredAt">
+                            <FloatingLabel label="Nơi tiêm *">
+                                <Form.Control
+                                    type="text"
+                                    name="administeredAt"
+                                    placeholder="Nhập nơi tiêm"
+                                    value={formData.administeredAt}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    Vui lòng nhập nơi tiêm.
+                                </Form.Control.Feedback>
+                            </FloatingLabel>
+                        </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="formNotes">
-                        <FloatingLabel label="Ghi chú">
-                            <Form.Control
-                                as="textarea"
-                                name="notes"
-                                placeholder="Nhập ghi chú (nếu có)"
-                                style={{ height: '100px' }}
-                                value={formData.notes}
-                                onChange={handleChange}
-                            />
-                        </FloatingLabel>
-                    </Form.Group>
+                        <Form.Group className="mb-3" controlId="formNotes">
+                            <FloatingLabel label="Ghi chú (tùy chọn)">
+                                <Form.Control
+                                    as="textarea"
+                                    name="notes"
+                                    placeholder="Nhập ghi chú (nếu có)"
+                                    style={{ height: '120px' }}
+                                    value={formData.notes}
+                                    onChange={handleChange}
+                                />
+                            </FloatingLabel>
+                        </Form.Group>
+                    </div>
 
                 </Modal.Body>
                 <Modal.Footer>
