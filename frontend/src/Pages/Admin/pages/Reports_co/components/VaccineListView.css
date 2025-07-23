@@ -590,6 +590,153 @@
   }
 }
 
+/* Admin History Toolbar */
+.admin-history-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  padding: 24px 28px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.admin-search-filter-group {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-width: 320px;
+}
+
+.admin-search-box {
+  position: relative;
+  flex: 2;
+  max-width: 420px;
+}
+
+.admin-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #3b82f6;
+  font-size: 1.1rem;
+  z-index: 1;
+}
+
+.admin-search-box input {
+  width: 100%;
+  padding: 14px 20px 14px 44px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  color: #1e293b;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.admin-search-box input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.admin-search-box input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.admin-filter-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 200px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.admin-filter-dropdown:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.admin-filter-icon {
+  position: absolute;
+  left: 16px;
+  color: #3b82f6;
+  font-size: 1.1rem;
+  z-index: 1;
+}
+
+.admin-filter-dropdown select {
+  padding: 14px 20px 14px 44px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 0.875rem;
+  min-width: 200px;
+  cursor: pointer;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.admin-filter-dropdown select:focus {
+  outline: none;
+}
+
+.admin-toolbar-buttons {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.admin-results-count {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.admin-refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.admin-refresh-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+.admin-refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 @media (max-width: 768px) {
   .reports-vaccine-list-container {
     padding: 15px;
@@ -668,5 +815,85 @@
   
   .reports-vaccine-no-data p {
     font-size: 14px;
+  }
+}
+
+/* Pagination Styles */
+.admin-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  margin-top: 0;
+}
+
+.admin-pagination-info {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.admin-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-pagination-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.admin-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-pagination-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.admin-pagination-btn.active:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.admin-pagination-ellipsis {
+  padding: 8px 4px;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .admin-pagination {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .admin-pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }

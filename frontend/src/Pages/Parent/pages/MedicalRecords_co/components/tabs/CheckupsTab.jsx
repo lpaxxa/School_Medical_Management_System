@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import {
   FaCalendarCheck,
   FaExclamationCircle,
@@ -6,6 +12,8 @@ import {
   FaCalendarAlt,
   FaChevronRight,
   FaSync,
+  FaSortAmountDown,
+  FaSortAmountUp,
 } from "react-icons/fa";
 import medicalService from "../../../../../../services/medicalService";
 import { formatDate } from "../../utils/formatters";
@@ -20,6 +28,7 @@ const CheckupsTab = ({ studentId }) => {
   const [selectedCheckup, setSelectedCheckup] = useState(null);
   const [isCheckupModalOpen, setIsCheckupModalOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
 
   // Refs for managing intervals and component state
   const refreshIntervalRef = useRef(null);
@@ -126,18 +135,55 @@ const CheckupsTab = ({ studentId }) => {
     setSelectedCheckup(null);
   };
 
+  // Sort checkups by date using useMemo for proper re-rendering
+  const sortedCheckups = useMemo(() => {
+    return [...checkups].sort((a, b) => {
+      const dateA = new Date(a.checkupDate || a.createdAt || a.date);
+      const dateB = new Date(b.checkupDate || b.createdAt || b.date);
+
+      if (sortOrder === "newest") {
+        return dateB - dateA; // Newest first
+      } else {
+        return dateA - dateB; // Oldest first
+      }
+    });
+  }, [checkups, sortOrder]);
+
+  // Toggle sort order
+  const toggleSortOrder = () => {
+    const newOrder = sortOrder === "newest" ? "oldest" : "newest";
+    console.log(
+      "🔄 Toggling checkups sort order from",
+      sortOrder,
+      "to",
+      newOrder
+    );
+    console.log("📋 Current checkups data:", checkups);
+    setSortOrder(newOrder);
+  };
+
   return (
     <div className="checkups-panel">
       <div className="checkups-header">
         <div className="checkups-title-section">
           <h3>Lịch sử kiểm tra sức khỏe định kỳ</h3>
-          {lastUpdated && (
+          {/* {lastUpdated && (
             <div className="last-updated">
               Cập nhật: {lastUpdated.toLocaleTimeString("vi-VN")}
             </div>
-          )}
+          )} */}
         </div>
         <div className="checkups-controls">
+          <button
+            className="sort-btn"
+            onClick={toggleSortOrder}
+            title={`Sắp xếp theo ${
+              sortOrder === "newest" ? "cũ nhất" : "mới nhất"
+            }`}
+          >
+            {sortOrder === "newest" ? <FaSortAmountDown /> : <FaSortAmountUp />}
+            <span>{sortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}</span>
+          </button>
           <button
             className={`refresh-btn ${isRefreshing ? "refreshing" : ""}`}
             onClick={handleManualRefresh}
@@ -172,7 +218,7 @@ const CheckupsTab = ({ studentId }) => {
         </div>
       ) : (
         <div className="checkups-list-simple">
-          {checkups.map((checkup) => (
+          {sortedCheckups.map((checkup) => (
             <div
               className="checkup-row"
               key={checkup.id}

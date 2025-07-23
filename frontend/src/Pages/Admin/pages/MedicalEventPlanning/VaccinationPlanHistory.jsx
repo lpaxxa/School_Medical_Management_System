@@ -31,6 +31,9 @@ const VaccinationPlanHistory = () => {
   // Status change state
   const [statusChanging, setStatusChanging] = useState({});
 
+  // Dropdown states
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(null); // ID của plan đang mở dropdown
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -150,6 +153,28 @@ const VaccinationPlanHistory = () => {
     setSortOrder((current) => (current === "newest" ? "oldest" : "newest"));
   };
 
+  // Handle status click - toggle dropdown
+  const handleStatusClick = (plan, event) => {
+    event.stopPropagation(); // Prevent row click
+    if (statusDropdownOpen === plan.id) {
+      setStatusDropdownOpen(null); // Close if already open
+    } else {
+      setStatusDropdownOpen(plan.id); // Open dropdown for this plan
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setStatusDropdownOpen(null);
+    };
+
+    if (statusDropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [statusDropdownOpen]);
+
   // Handle status change
   const handleStatusChange = async (planId, newStatus) => {
     setStatusChanging((prev) => ({ ...prev, [planId]: true }));
@@ -193,6 +218,22 @@ const VaccinationPlanHistory = () => {
         return "admin-status-canceled";
       default:
         return "admin-status-default";
+    }
+  };
+
+  // Get status label
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "WAITING_PARENT":
+        return "Chờ phụ huynh";
+      case "IN_PROGRESS":
+        return "Đang triển khai";
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "CANCELED":
+        return "Đã hủy";
+      default:
+        return "Chờ phụ huynh";
     }
   };
 
@@ -360,11 +401,11 @@ const VaccinationPlanHistory = () => {
 
       {/* Error Banner */}
       {error && (
-        <div className="error-banner">
-          <FaInfoCircle className="error-banner-icon" />
+        <div className="admin-error-banner">
+          <FaInfoCircle className="admin-error-banner-icon" />
           <span>{error}</span>
           <button
-            className="error-close-btn"
+            className="admin-error-close-btn"
             onClick={() => setError(null)}
             title="Đóng thông báo"
           >
@@ -375,16 +416,16 @@ const VaccinationPlanHistory = () => {
 
       {/* Content */}
       {loading ? (
-        <div className="loading-section">
-          <FaSpinner className="spinning large" />
+        <div className="admin-loading-section">
+          <FaSpinner className="admin-spinning admin-large" />
           <p>Đang tải dữ liệu...</p>
         </div>
       ) : error ? (
-        <div className="error-section">
-          <FaInfoCircle className="error-icon" />
+        <div className="admin-error-section">
+          <FaInfoCircle className="admin-error-icon" />
           <h3>Có lỗi xảy ra</h3>
           <p>{error}</p>
-          <button className="retry-button" onClick={loadVaccinationPlans}>
+          <button className="admin-retry-button" onClick={loadVaccinationPlans}>
             Thử lại
           </button>
         </div>
@@ -404,7 +445,7 @@ const VaccinationPlanHistory = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedPlans.map((plan) => {
+                {paginatedPlans.map((plan, index) => {
                   const timeStatus = vaccinationPlanService.getTimeStatus(
                     plan.vaccinationDate,
                     plan.deadlineDate
@@ -412,7 +453,9 @@ const VaccinationPlanHistory = () => {
 
                   return (
                     <tr key={plan.id}>
-                      <td className="admin-plan-id-cell">{plan.id}</td>
+                      <td className="admin-plan-id-cell">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
 
                       <td className="admin-plan-name-cell">
                         <div className="admin-name-with-icon">
@@ -432,24 +475,71 @@ const VaccinationPlanHistory = () => {
                       </td>
 
                       <td className="admin-status-cell">
-                        <select
-                          className={`admin-status-select ${getStatusBadgeClass(
-                            plan.status
-                          )}`}
-                          value={plan.status}
-                          onChange={(e) =>
-                            handleStatusChange(plan.id, e.target.value)
-                          }
-                          disabled={statusChanging[plan.id]}
-                        >
-                          <option value="WAITING_PARENT">Chờ phụ huynh</option>
-                          <option value="IN_PROGRESS">Đang triển khai</option>
-                          <option value="COMPLETED">Hoàn thành</option>
-                          <option value="CANCELED">Đã hủy</option>
-                        </select>
-                        {statusChanging[plan.id] && (
-                          <FaSpinner className="admin-status-spinner spinning" />
-                        )}
+                        <div className="admin-status-dropdown-container">
+                          <span
+                            className={`admin-status-badge ${getStatusBadgeClass(
+                              plan.status
+                            )} admin-clickable`}
+                            onClick={(e) => handleStatusClick(plan, e)}
+                            title="Click để thay đổi trạng thái"
+                          >
+                            {getStatusLabel(plan.status)}
+                          </span>
+
+                          {/* Status Dropdown */}
+                          {statusDropdownOpen === plan.id && (
+                            <div
+                              className="admin-status-dropdown"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {[
+                                {
+                                  value: "WAITING_PARENT",
+                                  label: "Chờ phụ huynh",
+                                  color: "admin-status-waiting",
+                                },
+                                {
+                                  value: "IN_PROGRESS",
+                                  label: "Đang triển khai",
+                                  color: "admin-status-progress",
+                                },
+                                {
+                                  value: "COMPLETED",
+                                  label: "Hoàn thành",
+                                  color: "admin-status-completed",
+                                },
+                                {
+                                  value: "CANCELED",
+                                  label: "Đã hủy",
+                                  color: "admin-status-canceled",
+                                },
+                              ]
+                                .filter(
+                                  (status) => status.value !== plan.status
+                                ) // Loại bỏ trạng thái hiện tại
+                                .map((status) => (
+                                  <div
+                                    key={status.value}
+                                    className={`admin-status-dropdown-item ${status.color}`}
+                                    onClick={() => {
+                                      handleStatusChange(plan.id, status.value);
+                                      setStatusDropdownOpen(null);
+                                    }}
+                                  >
+                                    <span
+                                      className={`admin-status-badge ${status.color}`}
+                                    >
+                                      {status.label}
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+
+                          {statusChanging[plan.id] && (
+                            <FaSpinner className="admin-status-spinner spinning" />
+                          )}
+                        </div>
                       </td>
 
                       <td className="admin-time-status-cell">
@@ -475,17 +565,17 @@ const VaccinationPlanHistory = () => {
             {/* Pagination Controls */}
             {filteredPlans.length > itemsPerPage && (
               <div className="admin-pagination-container">
-                <div className="pagination-info">
+                <div className="admin-pagination-info">
                   <span>
                     Hiển thị {startIndex}-{endIndex} trong tổng số{" "}
                     {filteredPlans.length} kế hoạch
                   </span>
                 </div>
 
-                <div className="pagination-controls">
+                <div className="admin-pagination-controls">
                   <button
-                    className={`pagination-btn ${
-                      !hasPreviousPage ? "disabled" : ""
+                    className={`admin-pagination-btn ${
+                      !hasPreviousPage ? "admin-disabled" : ""
                     }`}
                     onClick={handlePreviousPage}
                     disabled={!hasPreviousPage}
@@ -494,7 +584,7 @@ const VaccinationPlanHistory = () => {
                     <FaChevronLeft />
                   </button>
 
-                  <div className="pagination-pages">
+                  <div className="admin-pagination-pages">
                     {Array.from({ length: totalPages }, (_, index) => {
                       const page = index + 1;
                       const isCurrentPage = page === currentPage;
@@ -512,7 +602,10 @@ const VaccinationPlanHistory = () => {
                           page === currentPage + 2
                         ) {
                           return (
-                            <span key={page} className="pagination-ellipsis">
+                            <span
+                              key={page}
+                              className="admin-pagination-ellipsis"
+                            >
                               ...
                             </span>
                           );
@@ -523,8 +616,8 @@ const VaccinationPlanHistory = () => {
                       return (
                         <button
                           key={page}
-                          className={`pagination-page ${
-                            isCurrentPage ? "active" : ""
+                          className={`admin-pagination-page ${
+                            isCurrentPage ? "admin-active" : ""
                           }`}
                           onClick={() => handlePageChange(page)}
                         >
@@ -550,15 +643,15 @@ const VaccinationPlanHistory = () => {
           </div>
         </>
       ) : (
-        <div className="no-data-section">
-          <FaSyringe className="no-data-icon" />
+        <div className="admin-no-data-section">
+          <FaSyringe className="admin-no-data-icon" />
           <h3>Không có dữ liệu hiển thị</h3>
           <p>
             {searchTerm || statusFilter !== "ALL"
               ? "Không tìm thấy kế hoạch nào phù hợp với bộ lọc"
               : "Không có dữ liệu từ API hoặc chưa tải thành công"}
           </p>
-          <button className="retry-button" onClick={loadVaccinationPlans}>
+          <button className="admin-retry-button" onClick={loadVaccinationPlans}>
             Thử tải lại từ API
           </button>
         </div>
