@@ -304,16 +304,13 @@ export const VaccinationProvider = ({ children }) => {
   // For PostVaccinationMonitoring - just close without opening StudentListModal
   const handleCloseHistoryModalOnly = () => {
     setShowHistoryModal(false);
-    setSelectedStudentHistory({ 
-      student: null, 
+    setSelectedStudentHistory({
+      student: null,
       history: [],
       studentInfo: null,
-      vaccinationDate: null 
+      vaccinationDate: null
     });
-    // Reload the page when closing history modal
-    setTimeout(() => {
-      window.location.reload();
-    }, 100); // Small delay to ensure modal closes first
+    // Không reload trang nữa - chỉ đóng modal
   };
 
   // 3. Update Note Modal
@@ -339,15 +336,20 @@ export const VaccinationProvider = ({ children }) => {
 
         await vaccinationApiService.updateVaccinationNote(vaccinationId, notes);
 
-        // Close modal first
-        handleCloseUpdateNoteModal();
+        // Delay việc đóng modal để tránh xung đột với SweetAlert2
+        setTimeout(() => {
+            handleCloseUpdateNoteModal();
 
-        // Refresh history data after update
-        if (selectedStudentHistory.student) {
-            const studentData = selectedStudentHistory.student;
-            const vaccinationDate = selectedStudentHistory.vaccinationDate;
-            handleShowHistoryModal(studentData, vaccinationDate);
-        }
+            // Refresh history data after update
+            if (selectedStudentHistory.student) {
+                const studentData = selectedStudentHistory.student;
+                const vaccinationDate = selectedStudentHistory.vaccinationDate;
+                handleShowHistoryModal(studentData, vaccinationDate);
+            }
+        }, 200);
+
+        // Tự động refresh danh sách vaccination plans để cập nhật trạng thái mới nhất
+        await fetchVaccinationPlans();
 
         // Success will be handled by UpdateNoteModal component with SweetAlert2
         return Promise.resolve();

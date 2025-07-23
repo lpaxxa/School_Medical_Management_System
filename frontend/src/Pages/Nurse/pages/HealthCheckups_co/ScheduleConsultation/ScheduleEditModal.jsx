@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
+import './ScheduleEditModal.css';
 
 const ScheduleEditModal = ({ show, onHide, checkupData, onSubmit, loading, validated, errors, setCheckupData }) => {
     
@@ -126,127 +127,132 @@ const ScheduleEditModal = ({ show, onHide, checkupData, onSubmit, loading, valid
 
                     {/* Physical Measurements Section */}
                     <div className="schedule-form-section">
-                        <h5>Chỉ số cơ thể</h5>
-                        <Row>
-                            <Col md={4} sm={6}>
+                        <h5>Các chỉ số sức khỏe</h5>
+                        {/* Hàng 1: Chiều cao, Cân nặng, BMI */}
+                        <Row className="mb-3">
+                            <Col md={4}>
                                 <Form.Group controlId="height">
                                     <Form.Label>Chiều cao (cm)</Form.Label>
-                                    <Form.Control 
-                                        type="number" 
-                                        step="0.1" 
-                                        name="height" 
-                                        placeholder="VD: 165" 
-                                        value={formData.height || ''} 
-                                        onChange={handleChange} 
-                                        isInvalid={!!errors.height} 
+                                    <Form.Control
+                                        type="number"
+                                        step="0.1"
+                                        name="height"
+                                        placeholder="VD: 165"
+                                        value={formData.height || ''}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.height}
                                     />
                                     <Form.Control.Feedback type="invalid">{errors.height}</Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
-                            <Col md={4} sm={6}>
+                            <Col md={4}>
                                 <Form.Group controlId="weight">
                                     <Form.Label>Cân nặng (kg)</Form.Label>
-                                    <Form.Control 
-                                        type="number" 
-                                        step="0.1" 
-                                        name="weight" 
-                                        placeholder="VD: 55" 
-                                        value={formData.weight || ''} 
-                                        onChange={handleChange} 
-                                        isInvalid={!!errors.weight} 
+                                    <Form.Control
+                                        type="number"
+                                        step="0.1"
+                                        name="weight"
+                                        placeholder="VD: 55"
+                                        value={formData.weight || ''}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.weight}
                                     />
                                     <Form.Control.Feedback type="invalid">{errors.weight}</Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
-                            <Col md={4} sm={6}>
+                            <Col md={4}>
                                 <Form.Group controlId="bmi">
                                     <Form.Label>BMI</Form.Label>
-                                    <Form.Control 
-                                        type="number" 
-                                        name="bmi" 
-                                        value={formData.bmi || ''} 
-                                        readOnly 
-                                        placeholder="Tự động tính" 
+                                    <Form.Control
+                                        type="number"
+                                        name="bmi"
+                                        value={formData.bmi || ''}
+                                        readOnly
+                                        placeholder="Tự động tính"
                                     />
                                 </Form.Group>
                             </Col>
                         </Row>
-                        <Row>
-                            <Col md={3} sm={6}>
+
+                        {/* Hàng 2: Huyết áp, Thị lực (Trái), Thị lực (Phải) */}
+                        <Row className="mb-3">
+                            <Col md={4}>
                                 <Form.Group controlId="bloodPressure">
                                     <Form.Label>Huyết áp</Form.Label>
-                                    <Form.Control 
-                                        type="text" 
-                                        name="bloodPressure" 
-                                        placeholder="VD: 120/80" 
-                                        value={formData.bloodPressure || ''} 
-                                        onChange={handleChange} 
-                                        isInvalid={!!errors.bloodPressure} 
+                                    <Form.Control
+                                        type="text"
+                                        name="bloodPressure"
+                                        placeholder="VD: 120/80"
+                                        value={formData.bloodPressure || ''}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.bloodPressure}
                                     />
-                                     <Form.Control.Feedback type="invalid">{errors.bloodPressure}</Form.Control.Feedback>
+                                    <Form.Control.Feedback type="invalid">{errors.bloodPressure}</Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
-                            <Col md={3} sm={6}>
+                            <Col md={4}>
                                 <Form.Group controlId="visionLeft">
                                     <Form.Label>Thị lực (Trái)</Form.Label>
-                                    <Form.Control 
-                                        type="text" 
-                                        name="visionLeft" 
-                                        placeholder="VD: 12/20, 20/20" 
-                                        value={formData.visionLeft || ''} 
-                                        onChange={handleChange} 
-                                        isInvalid={!!errors.visionLeft} 
+                                    <Form.Control
+                                        type="text"
+                                        name="visionLeft"
+                                        placeholder="VD: 12/20, 20/20"
+                                        value={formData.visionLeft || ''}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.visionLeft}
                                     />
                                     <Form.Control.Feedback type="invalid">{errors.visionLeft}</Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
-                            <Col md={3} sm={6}>
+                            <Col md={4}>
                                 <Form.Group controlId="visionRight">
                                     <Form.Label>Thị lực (Phải)</Form.Label>
-                                    <Form.Control 
-                                        type="text" 
-                                        name="visionRight" 
-                                        placeholder="VD: 12/20, 20/20" 
-                                        value={formData.visionRight || ''} 
-                                        onChange={handleChange} 
-                                        isInvalid={!!errors.visionRight} 
+                                    <Form.Control
+                                        type="text"
+                                        name="visionRight"
+                                        placeholder="VD: 12/20, 20/20"
+                                        value={formData.visionRight || ''}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.visionRight}
                                     />
                                     <Form.Control.Feedback type="invalid">{errors.visionRight}</Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
-                            <Col md={3} sm={6}>
+                        </Row>
+
+                        {/* Hàng 3: Thính lực, Nhịp tim, Nhiệt độ */}
+                        <Row className="mb-3">
+                            <Col md={4}>
                                 <Form.Group controlId="hearingStatus">
                                     <Form.Label>Thính lực</Form.Label>
-                                    <Form.Control 
-                                        type="text" 
-                                        name="hearingStatus" 
-                                        placeholder="VD: Bình thường" 
-                                        value={formData.hearingStatus || ''} 
-                                        onChange={handleChange} 
+                                    <Form.Control
+                                        type="text"
+                                        name="hearingStatus"
+                                        placeholder="VD: Bình thường"
+                                        value={formData.hearingStatus || ''}
+                                        onChange={handleChange}
                                     />
                                 </Form.Group>
                             </Col>
-                        </Row>
-                        <Row>
-                            <Col md={6} sm={6}>
+                            <Col md={4}>
                                 <Form.Group controlId="heartRate">
                                     <Form.Label>Nhịp tim (bpm)</Form.Label>
-                                    <Form.Control 
-                                        type="number" 
-                                        name="heartRate" 
-                                        placeholder="VD: 80" 
-                                        value={formData.heartRate || ''} 
-                                        onChange={handleChange} 
-                                        isInvalid={!!errors.heartRate} 
+                                    <Form.Control
+                                        type="number"
+                                        name="heartRate"
+                                        placeholder="VD: 80"
+                                        value={formData.heartRate || ''}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.heartRate}
                                     />
                                     <Form.Control.Feedback type="invalid">{errors.heartRate}</Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
-                            <Col md={6} sm={6}>
+                            <Col md={4}>
                                 <Form.Group controlId="bodyTemperature">
                                     <Form.Label>Nhiệt độ (°C)</Form.Label>
-                                    <Form.Control 
-                                        type="number" 
+                                    <Form.Control
+                                        type="number"
                                         step="0.1" 
                                         name="bodyTemperature" 
                                         placeholder="VD: 36.5" 
@@ -294,10 +300,18 @@ const ScheduleEditModal = ({ show, onHide, checkupData, onSubmit, loading, valid
                     </div>
                 </Modal.Body>
                 <Modal.Footer className="schedule-edit-modal-footer">
-                    <Button 
-                        variant="primary" 
-                        type="submit" 
-                        className="schedule-save-btn" 
+                    <Button
+                        variant="secondary"
+                        onClick={onHide}
+                        disabled={loading}
+                    >
+                        <i className="fas fa-times me-1"></i>
+                        Hủy
+                    </Button>
+                    <Button
+                        variant="primary"
+                        type="submit"
+                        className="schedule-save-btn"
                         disabled={loading}
                     >
                         {loading ? (
