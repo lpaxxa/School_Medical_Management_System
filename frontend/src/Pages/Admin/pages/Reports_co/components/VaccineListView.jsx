@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaSearch, FaFilter, FaSync } from "react-icons/fa";
 import vaccineService from "../../../../../services/APIAdmin/vaccineService";
 import VaccineDetailModal from "./VaccineDetailModal";
 import ReportHeader from "./ReportHeader";
@@ -19,10 +20,19 @@ const VaccineListView = ({ onBack }) => {
   const [ageFilter, setAgeFilter] = useState("all");
   const [doseFilter, setDoseFilter] = useState("all");
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     fetchVaccines();
     fetchStatistics();
   }, []);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, ageFilter, doseFilter]);
 
   useEffect(() => {
     filterVaccines();
@@ -197,11 +207,11 @@ const VaccineListView = ({ onBack }) => {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="reports-vaccine-filters">
-        <div className="reports-vaccine-filter-group">
-          <div className="reports-vaccine-search-box">
-            <i className="fas fa-search"></i>
+      {/* Toolbar */}
+      <div className="admin-history-toolbar">
+        <div className="admin-search-filter-group">
+          <div className="admin-search-box">
+            <FaSearch className="admin-search-icon" />
             <input
               type="text"
               placeholder="Tìm kiếm theo tên vaccine hoặc mô tả..."
@@ -210,40 +220,56 @@ const VaccineListView = ({ onBack }) => {
             />
           </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="reports-vaccine-filter-select"
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="active">Đang sử dụng</option>
-            <option value="inactive">Tạm dừng</option>
-          </select>
+          <div className="admin-filter-dropdown">
+            <FaFilter className="admin-filter-icon" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="active">Đang sử dụng</option>
+              <option value="inactive">Tạm dừng</option>
+            </select>
+          </div>
 
-          <select
-            value={ageFilter}
-            onChange={(e) => setAgeFilter(e.target.value)}
-            className="reports-vaccine-filter-select"
-          >
-            <option value="all">Tất cả độ tuổi</option>
-            <option value="infant">Trẻ sơ sinh (0-1 tuổi)</option>
-            <option value="children">Trẻ em (1-5 tuổi)</option>
-            <option value="teens">Thiếu niên (5+ tuổi)</option>
-          </select>
+          <div className="admin-filter-dropdown">
+            <FaFilter className="admin-filter-icon" />
+            <select
+              value={ageFilter}
+              onChange={(e) => setAgeFilter(e.target.value)}
+            >
+              <option value="all">Tất cả độ tuổi</option>
+              <option value="infant">Trẻ sơ sinh (0-1 tuổi)</option>
+              <option value="children">Trẻ em (1-5 tuổi)</option>
+              <option value="teens">Thiếu niên (5+ tuổi)</option>
+            </select>
+          </div>
 
-          <select
-            value={doseFilter}
-            onChange={(e) => setDoseFilter(e.target.value)}
-            className="reports-vaccine-filter-select"
-          >
-            <option value="all">Tất cả loại liều</option>
-            <option value="single">Tiêm 1 lần</option>
-            <option value="multiple">Nhiều liều</option>
-          </select>
+          <div className="admin-filter-dropdown">
+            <FaFilter className="admin-filter-icon" />
+            <select
+              value={doseFilter}
+              onChange={(e) => setDoseFilter(e.target.value)}
+            >
+              <option value="all">Tất cả loại liều</option>
+              <option value="single">Tiêm 1 lần</option>
+              <option value="multiple">Nhiều liều</option>
+            </select>
+          </div>
         </div>
 
-        <div className="reports-vaccine-results-count">
-          Hiển thị {filteredVaccines.length} / {vaccines.length} vaccine
+        <div className="admin-toolbar-buttons">
+          <div className="admin-results-count">
+            Tổng cộng {filteredVaccines.length} / {vaccines.length} vaccine
+          </div>
+          <button
+            className="admin-refresh-button"
+            onClick={fetchVaccines}
+            disabled={loading}
+          >
+            <FaSync />
+            Làm mới
+          </button>
         </div>
       </div>
 
@@ -258,67 +284,136 @@ const VaccineListView = ({ onBack }) => {
 
       {/* Vaccine Table */}
       {filteredVaccines.length > 0 ? (
-        <div className="reports-vaccine-table-container">
-          <table className="reports-vaccine-table">
-            <thead>
-              <tr>
-                <th>STT</th>
-                <th>Tên vaccine</th>
-                <th>Nhóm tuổi</th>
-                <th>Số liều</th>
-                <th>Khoảng cách</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredVaccines.map((vaccine, index) => (
-                <tr key={vaccine.id} className="reports-vaccine-table-row">
-                  <td className="reports-vaccine-table-stt">{index + 1}</td>
-                  <td className="reports-vaccine-table-name">
-                    <div className="reports-vaccine-name-info">
-                      <strong className="reports-vaccine-item-name">
-                        {vaccine.name}
-                      </strong>
-                      <div className="reports-vaccine-item-description">
-                        {vaccine.description.length > 60
-                          ? `${vaccine.description.substring(0, 60)}...`
-                          : vaccine.description}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="reports-vaccine-table-age-range">
-                    <span className="reports-vaccine-age-badge">
-                      {vaccineService.getAgeRange(vaccine)}
-                    </span>
-                  </td>
-                  <td className="reports-vaccine-table-dose-count">
-                    <span className="reports-vaccine-dose-badge">
-                      {vaccine.totalDoses} liều
-                    </span>
-                  </td>
-                  <td className="reports-vaccine-table-interval">
-                    {vaccine.intervalDays > 0
-                      ? `${vaccine.intervalDays} ngày`
-                      : "Không có"}
-                  </td>
-                  <td className="reports-vaccine-table-status">
-                    {getStatusBadge(vaccine.isActive)}
-                  </td>
-                  <td className="reports-vaccine-table-actions">
+        (() => {
+          // Calculate pagination
+          const totalPages = Math.ceil(filteredVaccines.length / itemsPerPage);
+          const startIndex = (currentPage - 1) * itemsPerPage;
+          const endIndex = startIndex + itemsPerPage;
+          const currentVaccines = filteredVaccines.slice(startIndex, endIndex);
+
+          return (
+            <div className="reports-vaccine-table-container">
+              <table className="reports-vaccine-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên vaccine</th>
+                    <th>Nhóm tuổi</th>
+                    <th>Số liều</th>
+                    <th>Khoảng cách</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentVaccines.map((vaccine, index) => (
+                    <tr key={vaccine.id} className="reports-vaccine-table-row">
+                      <td className="reports-vaccine-table-stt">
+                        {startIndex + index + 1}
+                      </td>
+                      <td className="reports-vaccine-table-name">
+                        <div className="reports-vaccine-name-info">
+                          <strong className="reports-vaccine-item-name">
+                            {vaccine.name}
+                          </strong>
+                          <div className="reports-vaccine-item-description">
+                            {vaccine.description.length > 60
+                              ? `${vaccine.description.substring(0, 60)}...`
+                              : vaccine.description}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="reports-vaccine-table-age-range">
+                        <span className="reports-vaccine-age-badge">
+                          {vaccineService.getAgeRange(vaccine)}
+                        </span>
+                      </td>
+                      <td className="reports-vaccine-table-dose-count">
+                        <span className="reports-vaccine-dose-badge">
+                          {vaccine.totalDoses} liều
+                        </span>
+                      </td>
+                      <td className="reports-vaccine-table-interval">
+                        {vaccine.intervalDays > 0
+                          ? `${vaccine.intervalDays} ngày`
+                          : "Không có"}
+                      </td>
+                      <td className="reports-vaccine-table-status">
+                        {getStatusBadge(vaccine.isActive)}
+                      </td>
+                      <td className="reports-vaccine-table-actions">
+                        <button
+                          className="reports-vaccine-action-button"
+                          onClick={() => handleViewDetail(vaccine)}
+                          title="Xem chi tiết"
+                        >
+                          <i className="fas fa-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="admin-pagination">
+                  <div className="admin-pagination-info">
+                    Hiển thị {startIndex + 1}-
+                    {Math.min(endIndex, filteredVaccines.length)} của{" "}
+                    {filteredVaccines.length} vaccine
+                  </div>
+                  <div className="admin-pagination-controls">
                     <button
-                      className="reports-vaccine-action-button"
-                      onClick={() => handleViewDetail(vaccine)}
-                      title="Xem chi tiết"
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className="admin-pagination-btn"
                     >
-                      <i className="fas fa-eye"></i>
+                      ‹ Trước
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(
+                        (page) =>
+                          page === 1 ||
+                          page === totalPages ||
+                          Math.abs(page - currentPage) <= 1
+                      )
+                      .map((page, index, array) => (
+                        <React.Fragment key={page}>
+                          {index > 0 && array[index - 1] !== page - 1 && (
+                            <span className="admin-pagination-ellipsis">
+                              ...
+                            </span>
+                          )}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={`admin-pagination-btn ${
+                              currentPage === page ? "active" : ""
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      ))}
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="admin-pagination-btn"
+                    >
+                      Tiếp ›
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()
       ) : (
         <div className="reports-vaccine-no-data">
           <i className="fas fa-syringe fa-3x"></i>

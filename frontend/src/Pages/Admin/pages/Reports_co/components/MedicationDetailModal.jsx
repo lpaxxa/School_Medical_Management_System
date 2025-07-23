@@ -77,47 +77,47 @@ const MedicationDetailModal = ({ medication, onClose, theme = "green" }) => {
 
   return (
     <div
-      className={`reports-medication-modal-overlay theme-${theme}`}
+      className={`admin-medication-modal-overlay theme-${theme}`}
       onClick={handleOverlayClick}
     >
-      <div className="reports-medication-modal">
-        <div className="reports-medication-modal-header">
-          <div className="reports-medication-modal-title">
+      <div className="admin-medication-modal">
+        <div className="admin-medication-modal-header">
+          <div className="admin-medication-modal-title">
             <i className="fas fa-pills"></i>
             <h2>Chi tiết thuốc và vật tư y tế</h2>
           </div>
-          <button className="reports-medication-close-button" onClick={onClose}>
+          <button className="admin-medication-close-button" onClick={onClose}>
             <i className="fas fa-times"></i>
           </button>
         </div>
 
-        <div className="reports-medication-modal-body">
+        <div className="admin-medication-modal-body">
           {/* Basic Information */}
-          <div className="reports-medication-info-section">
+          <div className="admin-medication-info-section">
             <h3>
               <i className="fas fa-info-circle"></i>
               Thông tin cơ bản
             </h3>
-            <div className="reports-medication-info-grid">
-              <div className="reports-medication-info-item">
+            <div className="admin-medication-info-grid">
+              <div className="admin-medication-info-item">
                 <label>ID:</label>
-                <span className="reports-medication-id-badge">
+                <span className="admin-medication-id-badge">
                   {medication.itemId}
                 </span>
               </div>
-              <div className="reports-medication-info-item">
+              <div className="admin-medication-info-item">
                 <label>Tên thuốc/vật tư:</label>
-                <span className="reports-medication-name">
+                <span className="admin-medication-name">
                   {medication.itemName}
                 </span>
               </div>
-              <div className="reports-medication-info-item">
+              <div className="admin-medication-info-item">
                 <label>Loại:</label>
-                <span className="reports-medication-type">
+                <span className="admin-medication-type">
                   {medication.itemType}
                 </span>
               </div>
-              <div className="reports-medication-info-item">
+              <div className="admin-medication-info-item">
                 <label>Đơn vị tính:</label>
                 <span>{medication.unit}</span>
               </div>
@@ -125,22 +125,22 @@ const MedicationDetailModal = ({ medication, onClose, theme = "green" }) => {
           </div>
 
           {/* Stock Information */}
-          <div className="reports-medication-info-section">
+          <div className="admin-medication-info-section">
             <h3>
               <i className="fas fa-warehouse"></i>
               Thông tin tồn kho
             </h3>
-            <div className="reports-medication-stock-info">
-              <div className="reports-medication-stock-item">
-                <div className="reports-medication-stock-icon">
+            <div className="admin-medication-stock-info">
+              <div className="admin-medication-stock-item">
+                <div className="admin-medication-stock-icon">
                   <i className={stockStatus.icon}></i>
                 </div>
-                <div className="reports-medication-stock-details">
-                  <span className="reports-medication-stock-quantity">
+                <div className="admin-medication-stock-details">
+                  <span className="admin-medication-stock-quantity">
                     {medication.stockQuantity} {medication.unit}
                   </span>
                   <span
-                    className={`reports-medication-stock-status ${stockStatus.class}`}
+                    className={`admin-medication-stock-status ${stockStatus.class}`}
                   >
                     {stockStatus.text}
                   </span>
@@ -150,22 +150,22 @@ const MedicationDetailModal = ({ medication, onClose, theme = "green" }) => {
           </div>
 
           {/* Date Information */}
-          <div className="reports-medication-info-section">
+          <div className="admin-medication-info-section">
             <h3>
               <i className="fas fa-calendar-alt"></i>
               Thông tin ngày tháng
             </h3>
-            <div className="reports-medication-date-grid">
-              <div className="reports-medication-date-item">
+            <div className="admin-medication-date-grid">
+              <div className="admin-medication-date-item">
                 <label>Ngày sản xuất:</label>
                 <span>{formatDate(medication.manufactureDate)}</span>
               </div>
-              <div className="reports-medication-date-item">
+              <div className="admin-medication-date-item">
                 <label>Ngày hết hạn:</label>
-                <div className="reports-medication-expiry-info">
+                <div className="admin-medication-expiry-info">
                   <span>{formatDate(medication.expiryDate)}</span>
                   <span
-                    className={`reports-medication-expiry-status ${expiryStatus.class}`}
+                    className={`admin-medication-expiry-status ${expiryStatus.class}`}
                   >
                     <i className={expiryStatus.icon}></i>
                     {expiryStatus.text}
@@ -181,7 +181,7 @@ const MedicationDetailModal = ({ medication, onClose, theme = "green" }) => {
                   </span>
                 </div>
               </div>
-              <div className="reports-medication-date-item">
+              <div className="admin-medication-date-item">
                 <label>Ngày nhập kho:</label>
                 <span>{formatDateTimeLocale(medication.createdAt)}</span>
               </div>
@@ -189,12 +189,12 @@ const MedicationDetailModal = ({ medication, onClose, theme = "green" }) => {
           </div>
 
           {/* Description */}
-          <div className="reports-medication-info-section">
+          <div className="admin-medication-info-section">
             <h3>
               <i className="fas fa-file-text"></i>
               Mô tả chi tiết
             </h3>
-            <div className="reports-medication-description">
+            <div className="admin-medication-description">
               <p>{medication.itemDescription}</p>
             </div>
           </div>
@@ -202,26 +202,26 @@ const MedicationDetailModal = ({ medication, onClose, theme = "green" }) => {
           {/* Alerts */}
           {(stockStatus.class !== "in-stock" ||
             expiryStatus.class !== "expiry-good") && (
-            <div className="reports-medication-info-section reports-medication-alerts">
+            <div className="admin-medication-info-section admin-medication-alerts">
               <h3>
                 <i className="fas fa-bell"></i>
                 Cảnh báo
               </h3>
-              <div className="reports-medication-alert-list">
+              <div className="admin-medication-alert-list">
                 {stockStatus.class === "out-of-stock" && (
-                  <div className="reports-medication-alert-item reports-medication-danger">
+                  <div className="admin-medication-alert-item admin-medication-danger">
                     <i className="fas fa-times-circle"></i>
                     <span>Hết hàng! Cần nhập thêm ngay lập tức</span>
                   </div>
                 )}
                 {stockStatus.class === "low-stock" && (
-                  <div className="reports-medication-alert-item reports-medication-warning">
+                  <div className="admin-medication-alert-item admin-medication-warning">
                     <i className="fas fa-exclamation-triangle"></i>
                     <span>Tồn kho thấp! Cần chuẩn bị nhập thêm</span>
                   </div>
                 )}
                 {expiryStatus.class === "expired" && (
-                  <div className="reports-medication-alert-item reports-medication-danger">
+                  <div className="admin-medication-alert-item admin-medication-danger">
                     <i className="fas fa-ban"></i>
                     <span>
                       Đã hết hạn {expiryStatus.days} ngày! Không được sử dụng
@@ -229,13 +229,13 @@ const MedicationDetailModal = ({ medication, onClose, theme = "green" }) => {
                   </div>
                 )}
                 {expiryStatus.class === "expiring-soon" && (
-                  <div className="reports-medication-alert-item reports-medication-warning">
+                  <div className="admin-medication-alert-item admin-medication-warning">
                     <i className="fas fa-clock"></i>
                     <span>Sắp hết hạn trong {expiryStatus.days} ngày!</span>
                   </div>
                 )}
                 {expiryStatus.class === "expiring-warning" && (
-                  <div className="reports-medication-alert-item reports-medication-info">
+                  <div className="admin-medication-alert-item admin-medication-info">
                     <i className="fas fa-info-circle"></i>
                     <span>
                       Cần theo dõi hạn sử dụng (còn {expiryStatus.days} ngày)
@@ -247,9 +247,9 @@ const MedicationDetailModal = ({ medication, onClose, theme = "green" }) => {
           )}
         </div>
 
-        <div className="reports-medication-modal-footer">
+        <div className="admin-medication-modal-footer">
           <button
-            className="reports-medication-btn-secondary"
+            className="admin-medication-btn-secondary"
             onClick={onClose}
           >
             <i className="fas fa-times"></i>

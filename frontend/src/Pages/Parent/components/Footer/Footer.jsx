@@ -5,36 +5,36 @@ import "./Footer.css";
 
 export default function Footer() {
   useEffect(() => {
-    const footerContent = document.querySelector(".footer-content");
+    const footerContent = document.querySelector(".phFooterContent");
     if (footerContent) {
-      footerContent.classList.add("visible");
+      footerContent.classList.add("phFooterVisible");
     }
   }, []);
 
   return (
-    <footer className="footer">
-      <div className="footer-inner">
-        <div className="footer-content">
-          <div className="footer-column info-column">
-            <Link to="/" className="footer-logo">
+    <footer className="phFooter">
+      <div className="phFooterInner">
+        <div className="phFooterContent">
+          <div className="phFooterColumn phFooterInfoColumn">
+            <Link to="/" className="phFooterLogo">
               <img src={logoImage} alt="School Medical System" />
             </Link>
-            <p className="footer-description">
+            <p className="phFooterDescription">
               Hệ thống quản lý y tế học đường hỗ trợ chăm sóc sức khỏe toàn diện
               cho học sinh, tạo nền tảng vững chắc cho tương lai.
             </p>
-            <address className="school-address">
-              <div className="address-item">
+            <address className="phFooterSchoolAddress">
+              <div className="phFooterAddressItem">
                 <i className="fas fa-map-marker-alt"></i>
                 <span>123 Võ Văn Tần, Phường 11, Quận 3, TP.HCM</span>
               </div>
-              <div className="address-item">
+              <div className="phFooterAddressItem">
                 <i className="fas fa-phone"></i>
                 <span>
                   Hotline: <a href="tel:+84982345678">0982 345 678</a>
                 </span>
               </div>
-              <div className="address-item">
+              <div className="phFooterAddressItem">
                 <i className="fas fa-envelope"></i>
                 <span>
                   Email:{" "}
@@ -46,41 +46,41 @@ export default function Footer() {
             </address>
           </div>
 
-          <div className="footer-column connect-column">
-            <h3 className="footer-title">Kết nối với chúng tôi</h3>
-            <div className="social-icons-container">
-              <div className="social-icons">
+          <div className="phFooterColumn phFooterConnectColumn">
+            <h3 className="phFooterTitle">Kết nối với chúng tôi</h3>
+            <div className="phFooterSocialIconsContainer">
+              <div className="phFooterSocialIcons">
                 <a
                   href="#"
-                  className="social-icon facebook"
+                  className="phFooterSocialIcon phFooterFacebook"
                   aria-label="Facebook"
                 >
                   <i className="fab fa-facebook-f"></i>
                 </a>
                 <a
                   href="#"
-                  className="social-icon twitter"
+                  className="phFooterSocialIcon phFooterTwitter"
                   aria-label="Twitter"
                 >
                   <i className="fab fa-twitter"></i>
                 </a>
                 <a
                   href="#"
-                  className="social-icon instagram"
+                  className="phFooterSocialIcon phFooterInstagram"
                   aria-label="Instagram"
                 >
                   <i className="fab fa-instagram"></i>
                 </a>
                 <a
                   href="#"
-                  className="social-icon linkedin"
+                  className="phFooterSocialIcon phFooterLinkedin"
                   aria-label="LinkedIn"
                 >
                   <i className="fab fa-linkedin-in"></i>
                 </a>
                 <a
                   href="#"
-                  className="social-icon youtube"
+                  className="phFooterSocialIcon phFooterYoutube"
                   aria-label="YouTube"
                 >
                   <i className="fab fa-youtube"></i>
@@ -88,46 +88,46 @@ export default function Footer() {
               </div>
             </div>
 
-            <p className="connect-description">
+            <p className="phFooterConnectDescription">
               Theo dõi chúng tôi trên các kênh mạng xã hội để cập nhật thông tin
               mới nhất về y tế học đường.
             </p>
           </div>
 
-          <div className="footer-column contact-column">
-            <h3 className="footer-title">Thông tin liên hệ</h3>
-            <div className="contact-info">
-              <div className="contact-item">
-                <div className="contact-icon">
+          <div className="phFooterColumn phFooterContactColumn">
+            <h3 className="phFooterTitle">Thông tin liên hệ</h3>
+            <div className="phFooterContactInfo">
+              <div className="phFooterContactItem">
+                <div className="phFooterContactIcon">
                   <i className="fas fa-headset"></i>
                 </div>
-                <div className="contact-detail">
-                  <div className="contact-label">Hỗ trợ kỹ thuật</div>
-                  <div className="contact-value">
+                <div className="phFooterContactDetail">
+                  <div className="phFooterContactLabel">Hỗ trợ kỹ thuật</div>
+                  <div className="phFooterContactValue">
                     <a href="tel:+84901234567">0901 234 567</a>
                   </div>
                 </div>
               </div>
 
-              <div className="contact-item">
-                <div className="contact-icon">
+              <div className="phFooterContactItem">
+                <div className="phFooterContactIcon">
                   <i className="fas fa-clock"></i>
                 </div>
-                <div className="contact-detail">
-                  <div className="contact-label">Giờ làm việc</div>
-                  <div className="contact-value">
+                <div className="phFooterContactDetail">
+                  <div className="phFooterContactLabel">Giờ làm việc</div>
+                  <div className="phFooterContactValue">
                     Thứ 2 - Thứ 6: 7:30 - 17:00
                   </div>
                 </div>
               </div>
 
-              <div className="contact-item">
-                <div className="contact-icon">
+              <div className="phFooterContactItem">
+                <div className="phFooterContactIcon">
                   <i className="fas fa-user-nurse"></i>
                 </div>
-                <div className="contact-detail">
-                  <div className="contact-label">Y tá trực</div>
-                  <div className="contact-value">
+                <div className="phFooterContactDetail">
+                  <div className="phFooterContactLabel">Y tá trực</div>
+                  <div className="phFooterContactValue">
                     <a href="tel:+84909876543">0909 876 543</a>
                   </div>
                 </div>
@@ -136,24 +136,24 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="footer-divider"></div>
+        <div className="phFooterDivider"></div>
 
-        <div className="footer-bottom">
-          <p className="copyright">
+        <div className="phFooterBottom">
+          <p className="phFooterCopyright">
             &copy; {new Date().getFullYear()} Hệ thống Quản lý Y tế Học đường.
             Đã đăng ký bản quyền. Phát triển bởi{" "}
             <a href="#" target="_blank" rel="noopener noreferrer">
               School Medical Team
             </a>
           </p>
-          <div className="footer-bottom-links">
-            <a href="/terms" className="footer-bottom-link">
+          <div className="phFooterBottomLinks">
+            <a href="/terms" className="phFooterBottomLink">
               Điều khoản sử dụng
             </a>
-            <a href="/privacy" className="footer-bottom-link">
+            <a href="/privacy" className="phFooterBottomLink">
               Chính sách bảo mật
             </a>
-            <a href="/security" className="footer-bottom-link">
+            <a href="/security" className="phFooterBottomLink">
               Bảo mật
             </a>
           </div>

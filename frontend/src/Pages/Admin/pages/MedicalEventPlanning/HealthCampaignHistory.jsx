@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   FaSearch,
+  FaFilter,
   FaSync,
   FaEye,
   FaEdit,
@@ -45,9 +46,11 @@ const HealthCampaignHistory = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+
+  // Dropdown states
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(null); // ID của campaign đang mở dropdown
 
   // Modal hooks
   const {
@@ -235,8 +238,8 @@ const HealthCampaignHistory = () => {
     setEditFormData({
       title: campaign.title || "",
       description: campaign.description || "",
-      startDate: campaign.startDate || "",
-      endDate: campaign.endDate || "",
+      startDate: formatDateForInput(campaign.startDate),
+      endDate: formatDateForInput(campaign.endDate),
       notes: campaign.notes || "",
       status: campaign.status || "PREPARING",
       specialCheckupItems: campaign.specialCheckupItems || [],
@@ -287,7 +290,9 @@ const HealthCampaignHistory = () => {
     try {
       console.log("🔄 Updating campaign...", editFormData);
 
-      const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${selectedCampaign.id}`;
+      const url = `${
+        import.meta.env.VITE_BACKEND_URL
+      }/api/v1/health-campaigns/${selectedCampaign.id}`;
       console.log("📡 PUT API URL:", url);
       console.log("📡 Request body:", JSON.stringify(editFormData, null, 2));
 
@@ -371,7 +376,9 @@ const HealthCampaignHistory = () => {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${selectedCampaign.id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${
+          selectedCampaign.id
+        }`,
         {
           method: "DELETE",
           headers,
@@ -449,10 +456,13 @@ const HealthCampaignHistory = () => {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const response = await fetch(import.meta.env.VITE_API_BASE_URL+"/students", {
-        method: "GET",
-        headers,
-      });
+      const response = await fetch(
+        import.meta.env.VITE_API_BASE_URL + "/students",
+        {
+          method: "GET",
+          headers,
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -580,7 +590,9 @@ const HealthCampaignHistory = () => {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${selectedCampaign.id}/send-notifications`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${
+          selectedCampaign.id
+        }/send-notifications`,
         {
           method: "POST",
           headers,
@@ -657,7 +669,9 @@ const HealthCampaignHistory = () => {
         `🔄 Updating status for campaign ${campaign.id} from ${campaign.status} to ${newStatus}...`
       );
 
-      const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${campaign.id}/status?status=${newStatus}`;
+      const url = `${
+        import.meta.env.VITE_BACKEND_URL
+      }/api/v1/health-campaigns/${campaign.id}/status?status=${newStatus}`;
       console.log("📡 PATCH API URL:", url);
 
       // Get auth token from localStorage
@@ -740,12 +754,27 @@ const HealthCampaignHistory = () => {
     }
   };
 
-  // Handle status click
+  // Handle status click - toggle dropdown
   const handleStatusClick = (campaign, event) => {
     event.stopPropagation(); // Prevent row click
-    setSelectedCampaign(campaign);
-    setShowStatusModal(true);
+    if (statusDropdownOpen === campaign.id) {
+      setStatusDropdownOpen(null); // Close if already open
+    } else {
+      setStatusDropdownOpen(campaign.id); // Open dropdown for this campaign
+    }
   };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setStatusDropdownOpen(null);
+    };
+
+    if (statusDropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [statusDropdownOpen]);
 
   // Add special checkup item to edit form
   const addEditCheckupItem = () => {
@@ -783,6 +812,19 @@ const HealthCampaignHistory = () => {
       CANCELLED: "Đã hủy",
     };
     return statusMap[status] || status;
+  };
+
+  // Format date for input[type="date"] (YYYY-MM-DD format)
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "";
+      return date.toISOString().split("T")[0];
+    } catch (error) {
+      console.error("Error formatting date for input:", error);
+      return "";
+    }
   };
 
   // Get status class
@@ -902,11 +944,11 @@ const HealthCampaignHistory = () => {
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="controls-section">
-        <div className="search-group">
-          <div className="search-box">
-            <FaSearch className="search-icon" />
+      {/* Toolbar */}
+      <div className="admin-history-toolbar">
+        <div className="admin-search-filter-group">
+          <div className="admin-search-box">
+            <FaSearch className="admin-search-icon" />
             <input
               type="text"
               placeholder="Tìm kiếm theo tiêu đề hoặc ghi chú..."
@@ -914,42 +956,31 @@ const HealthCampaignHistory = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+
+          <div className="admin-filter-dropdown">
+            <FaFilter className="admin-filter-icon" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="ALL">Tất cả trạng thái</option>
+              <option value="PREPARING">Đang chuẩn bị</option>
+              <option value="ONGOING">Đang thực hiện</option>
+              <option value="COMPLETED">Đã hoàn thành</option>
+              <option value="CANCELLED">Đã hủy</option>
+            </select>
+          </div>
         </div>
 
-        <div className="filter-group">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="status-filter"
-          >
-            <option value="ALL">Tất cả trạng thái</option>
-            <option value="PREPARING">Đang chuẩn bị</option>
-            <option value="ONGOING">Đang thực hiện</option>
-            <option value="COMPLETED">Đã hoàn thành</option>
-            <option value="CANCELLED">Đã hủy</option>
-          </select>
-
+        <div className="admin-toolbar-buttons">
           <button
-            className="sort-btn"
+            className="admin-sort-button"
             onClick={toggleSortOrder}
             title={
               sortOrder === "newest"
                 ? "Sắp xếp từ cũ nhất"
                 : "Sắp xếp từ mới nhất"
             }
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "8px 12px",
-              backgroundColor: "#f8f9fa",
-              border: "1px solid #dee2e6",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "14px",
-              color: "#495057",
-              transition: "all 0.2s ease",
-            }}
           >
             {sortOrder === "newest" ? (
               <>
@@ -965,11 +996,11 @@ const HealthCampaignHistory = () => {
           </button>
 
           <button
-            className="refresh-btn"
+            className="admin-refresh-button"
             onClick={loadHealthCampaigns}
             disabled={loading}
           >
-            <FaSync className={loading ? "spinning" : ""} />
+            {loading ? <FaSpinner className="spinning" /> : <FaSync />}
             Làm mới
           </button>
         </div>
@@ -1006,25 +1037,77 @@ const HealthCampaignHistory = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedCampaigns.map((campaign) => (
+                {paginatedCampaigns.map((campaign, index) => (
                   <tr
                     key={campaign.id}
                     onClick={() => handleRowClick(campaign)}
                     className="table-row"
                   >
-                    <td>#{campaign.id}</td>
+                    <td>#{(currentPage - 1) * itemsPerPage + index + 1}</td>
                     <td className="title-cell">{campaign.title}</td>
                     <td>{formatDate(campaign.startDate)}</td>
                     <td>
-                      <span
-                        className={`status-badge ${getStatusClass(
-                          campaign.status
-                        )} clickable`}
-                        onClick={(e) => handleStatusClick(campaign, e)}
-                        title="Click để thay đổi trạng thái"
-                      >
-                        {getStatusLabel(campaign.status)}
-                      </span>
+                      <div className="status-dropdown-container">
+                        <span
+                          className={`status-badge ${getStatusClass(
+                            campaign.status
+                          )} clickable`}
+                          onClick={(e) => handleStatusClick(campaign, e)}
+                          title="Click để thay đổi trạng thái"
+                        >
+                          {getStatusLabel(campaign.status)}
+                        </span>
+
+                        {/* Status Dropdown */}
+                        {statusDropdownOpen === campaign.id && (
+                          <div
+                            className="status-dropdown"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {[
+                              {
+                                value: "PREPARING",
+                                label: "Đang chuẩn bị",
+                                color: "preparing",
+                              },
+                              {
+                                value: "ONGOING",
+                                label: "Đang thực hiện",
+                                color: "ongoing",
+                              },
+                              {
+                                value: "COMPLETED",
+                                label: "Đã hoàn thành",
+                                color: "completed",
+                              },
+                              {
+                                value: "CANCELLED",
+                                label: "Đã hủy",
+                                color: "cancelled",
+                              },
+                            ]
+                              .filter(
+                                (status) => status.value !== campaign.status
+                              ) // Loại bỏ trạng thái hiện tại
+                              .map((status) => (
+                                <div
+                                  key={status.value}
+                                  className={`status-dropdown-item ${status.color}`}
+                                  onClick={() => {
+                                    handleStatusChange(campaign, status.value);
+                                    setStatusDropdownOpen(null);
+                                  }}
+                                >
+                                  <span
+                                    className={`status-badge ${status.color}`}
+                                  >
+                                    {status.label}
+                                  </span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <button
@@ -1466,88 +1549,6 @@ const HealthCampaignHistory = () => {
                 )}
                 Xóa
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Status Modal */}
-      {showStatusModal && selectedCampaign && (
-        <div
-          className="hch-modal-overlay"
-          onClick={() => setShowStatusModal(false)}
-        >
-          <div
-            className="hch-modal-content hch-status-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="hch-modal-header">
-              <h2>
-                <FaHeartbeat /> Thay Đổi Trạng Thái
-              </h2>
-              <button
-                className="hch-close-btn"
-                onClick={() => setShowStatusModal(false)}
-              >
-                <FaTimes />
-              </button>
-            </div>
-            <div className="hch-modal-body">
-              <p>Chọn trạng thái mới cho chiến dịch:</p>
-              <div className="hch-status-info">
-                <strong>{selectedCampaign.title}</strong>
-                <br />
-                Trạng thái hiện tại:{" "}
-                <span
-                  className={`status-badge ${getStatusClass(
-                    selectedCampaign.status
-                  )}`}
-                >
-                  {getStatusLabel(selectedCampaign.status)}
-                </span>
-              </div>
-
-              <div className="hch-status-options">
-                {[
-                  {
-                    value: "PREPARING",
-                    label: "Đang chuẩn bị",
-                    color: "preparing",
-                  },
-                  {
-                    value: "ONGOING",
-                    label: "Đang thực hiện",
-                    color: "ongoing",
-                  },
-                  {
-                    value: "COMPLETED",
-                    label: "Đã hoàn thành",
-                    color: "completed",
-                  },
-                  { value: "CANCELLED", label: "Đã hủy", color: "cancelled" },
-                ].map((status) => (
-                  <button
-                    key={status.value}
-                    className={`hch-status-option ${status.color} ${
-                      selectedCampaign.status === status.value ? "current" : ""
-                    }`}
-                    onClick={() => {
-                      if (selectedCampaign.status !== status.value) {
-                        handleStatusChange(selectedCampaign, status.value);
-                        setShowStatusModal(false);
-                      }
-                    }}
-                    disabled={selectedCampaign.status === status.value}
-                  >
-                    <span className={`status-badge ${status.color}`}>
-                      {status.label}
-                    </span>
-                    {selectedCampaign.status === status.value && (
-                      <span className="hch-current-indicator">(Hiện tại)</span>
-                    )}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaSearch, FaFilter, FaSync } from "react-icons/fa";
 import medicationService from "../../../../../services/APIAdmin/medicationService";
 import MedicationDetailModal from "./MedicationDetailModal";
 import ReportHeader from "./ReportHeader";
@@ -18,10 +19,19 @@ const MedicationListView = ({ onBack }) => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     fetchMedications();
     fetchStatistics();
   }, []);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter, stockFilter]);
 
   useEffect(() => {
     filterMedications();
@@ -192,11 +202,11 @@ const MedicationListView = ({ onBack }) => {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="reports-medication-filters">
-        <div className="reports-medication-filter-group">
-          <div className="reports-medication-search-box">
-            <i className="fas fa-search"></i>
+      {/* Toolbar */}
+      <div className="admin-history-toolbar">
+        <div className="admin-search-filter-group">
+          <div className="admin-search-box">
+            <FaSearch className="admin-search-icon" />
             <input
               type="text"
               placeholder="Tìm kiếm theo tên thuốc hoặc mô tả..."
@@ -205,33 +215,47 @@ const MedicationListView = ({ onBack }) => {
             />
           </div>
 
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="reports-medication-filter-select"
-          >
-            <option value="all">Tất cả loại</option>
-            {uniqueTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+          <div className="admin-filter-dropdown">
+            <FaFilter className="admin-filter-icon" />
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <option value="all">Tất cả loại</option>
+              {uniqueTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <select
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
-            className="reports-medication-filter-select"
-          >
-            <option value="all">Tất cả tình trạng</option>
-            <option value="low">Sắp hết hàng</option>
-            <option value="out">Hết hàng</option>
-          </select>
+          <div className="admin-filter-dropdown">
+            <FaFilter className="admin-filter-icon" />
+            <select
+              value={stockFilter}
+              onChange={(e) => setStockFilter(e.target.value)}
+            >
+              <option value="all">Tất cả tình trạng</option>
+              <option value="low">Sắp hết hàng</option>
+              <option value="out">Hết hàng</option>
+            </select>
+          </div>
         </div>
 
-        <div className="reports-medication-results-count">
-          Hiển thị {filteredMedications.length} / {medications.length} loại
-          thuốc
+        <div className="admin-toolbar-buttons">
+          <div className="admin-results-count">
+            Tổng cộng {filteredMedications.length} / {medications.length} loại
+            thuốc
+          </div>
+          <button
+            className="admin-refresh-button"
+            onClick={fetchMedications}
+            disabled={loading}
+          >
+            <FaSync />
+            Làm mới
+          </button>
         </div>
       </div>
 
@@ -246,105 +270,180 @@ const MedicationListView = ({ onBack }) => {
 
       {/* Medication Table */}
       {filteredMedications.length > 0 ? (
-        <div className="reports-medication-table-container">
-          <table className="reports-medication-table">
-            <thead>
-              <tr>
-                <th>STT</th>
-                <th>Tên thuốc</th>
-                <th>Loại</th>
-                <th>Đơn vị</th>
-                <th>Tồn kho</th>
-                <th>Hết hạn</th>
-                <th>Trạng thái kho</th>
-                <th>Trạng thái hạn</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMedications.map((medication, index) => {
-                const stockStatus = getStockStatus(medication.stockQuantity);
-                const expiryStatus = getExpiryStatus(medication.expiryDate);
+        (() => {
+          // Calculate pagination
+          const totalPages = Math.ceil(
+            filteredMedications.length / itemsPerPage
+          );
+          const startIndex = (currentPage - 1) * itemsPerPage;
+          const endIndex = startIndex + itemsPerPage;
+          const currentMedications = filteredMedications.slice(
+            startIndex,
+            endIndex
+          );
 
-                return (
-                  <tr
-                    key={medication.itemId}
-                    className="reports-medication-table-row"
-                  >
-                    <td className="reports-medication-table-stt">
-                      {index + 1}
-                    </td>
-                    <td className="reports-medication-table-name">
-                      <div className="reports-medication-name-info">
-                        <strong className="reports-medication-item-name">
-                          {medication.itemName || "Chưa có tên"}
-                        </strong>
-                        <div className="reports-medication-item-description">
-                          {medication.itemDescription &&
-                          medication.itemDescription.length > 60
-                            ? `${medication.itemDescription.substring(
-                                0,
-                                60
-                              )}...`
-                            : medication.itemDescription || "Không có mô tả"}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="reports-medication-table-type">
-                      <span className="reports-medication-type-badge">
-                        {medication.itemType || "N/A"}
-                      </span>
-                    </td>
-                    <td className="reports-medication-table-unit">
-                      {medication.unit || "N/A"}
-                    </td>
-                    <td className="reports-medication-table-stock">
-                      <span
-                        className={`reports-medication-stock-badge reports-medication-${stockStatus.class}`}
-                      >
-                        {typeof medication.stockQuantity === "number"
-                          ? medication.stockQuantity
-                          : "N/A"}
-                      </span>
-                    </td>
-                    <td className="reports-medication-table-expiry">
-                      <span
-                        className={`reports-medication-expiry-badge reports-medication-${expiryStatus.class}`}
-                      >
-                        {medication.expiryDate
-                          ? formatDate(medication.expiryDate)
-                          : "N/A"}
-                      </span>
-                    </td>
-                    <td className="reports-medication-table-stock-status">
-                      <span
-                        className={`reports-medication-status-badge reports-medication-${stockStatus.class}`}
-                      >
-                        {stockStatus.text}
-                      </span>
-                    </td>
-                    <td className="reports-medication-table-expiry-status">
-                      <span
-                        className={`reports-medication-status-badge reports-medication-${expiryStatus.class}`}
-                      >
-                        {expiryStatus.text}
-                      </span>
-                    </td>
-                    <td className="reports-medication-table-actions">
-                      <button
-                        className="reports-medication-action-button"
-                        onClick={() => handleViewDetail(medication)}
-                        title="Xem chi tiết"
-                      >
-                        <i className="fas fa-eye"></i>
-                      </button>
-                    </td>
+          return (
+            <div className="reports-medication-table-container">
+              <table className="reports-medication-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên thuốc</th>
+                    <th>Loại</th>
+                    <th>Đơn vị</th>
+                    <th>Tồn kho</th>
+                    <th>Hết hạn</th>
+                    <th>Trạng thái kho</th>
+                    <th>Trạng thái hạn</th>
+                    <th>Hành động</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {currentMedications.map((medication, index) => {
+                    const stockStatus = getStockStatus(
+                      medication.stockQuantity
+                    );
+                    const expiryStatus = getExpiryStatus(medication.expiryDate);
+
+                    return (
+                      <tr
+                        key={medication.itemId}
+                        className="reports-medication-table-row"
+                      >
+                        <td className="reports-medication-table-stt">
+                          {startIndex + index + 1}
+                        </td>
+                        <td className="reports-medication-table-name">
+                          <div className="reports-medication-name-info">
+                            <strong className="reports-medication-item-name">
+                              {medication.itemName || "Chưa có tên"}
+                            </strong>
+                            <div className="reports-medication-item-description">
+                              {medication.itemDescription &&
+                              medication.itemDescription.length > 60
+                                ? `${medication.itemDescription.substring(
+                                    0,
+                                    60
+                                  )}...`
+                                : medication.itemDescription ||
+                                  "Không có mô tả"}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="reports-medication-table-type">
+                          <span className="reports-medication-type-badge">
+                            {medication.itemType || "N/A"}
+                          </span>
+                        </td>
+                        <td className="reports-medication-table-unit">
+                          {medication.unit || "N/A"}
+                        </td>
+                        <td className="reports-medication-table-stock">
+                          <span
+                            className={`reports-medication-stock-badge reports-medication-${stockStatus.class}`}
+                          >
+                            {typeof medication.stockQuantity === "number"
+                              ? medication.stockQuantity
+                              : "N/A"}
+                          </span>
+                        </td>
+                        <td className="reports-medication-table-expiry">
+                          <span
+                            className={`reports-medication-expiry-badge reports-medication-${expiryStatus.class}`}
+                          >
+                            {medication.expiryDate
+                              ? formatDate(medication.expiryDate)
+                              : "N/A"}
+                          </span>
+                        </td>
+                        <td className="reports-medication-table-stock-status">
+                          <span
+                            className={`reports-medication-status-badge reports-medication-${stockStatus.class}`}
+                          >
+                            {stockStatus.text}
+                          </span>
+                        </td>
+                        <td className="reports-medication-table-expiry-status">
+                          <span
+                            className={`reports-medication-status-badge reports-medication-${expiryStatus.class}`}
+                          >
+                            {expiryStatus.text}
+                          </span>
+                        </td>
+                        <td className="reports-medication-table-actions">
+                          <button
+                            className="reports-medication-action-button"
+                            onClick={() => handleViewDetail(medication)}
+                            title="Xem chi tiết"
+                          >
+                            <i className="fas fa-eye"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="admin-pagination">
+                  <div className="admin-pagination-info">
+                    Hiển thị {startIndex + 1}-
+                    {Math.min(endIndex, filteredMedications.length)} của{" "}
+                    {filteredMedications.length} thuốc
+                  </div>
+                  <div className="admin-pagination-controls">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className="admin-pagination-btn"
+                    >
+                      ‹ Trước
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(
+                        (page) =>
+                          page === 1 ||
+                          page === totalPages ||
+                          Math.abs(page - currentPage) <= 1
+                      )
+                      .map((page, index, array) => (
+                        <React.Fragment key={page}>
+                          {index > 0 && array[index - 1] !== page - 1 && (
+                            <span className="admin-pagination-ellipsis">
+                              ...
+                            </span>
+                          )}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={`admin-pagination-btn ${
+                              currentPage === page ? "active" : ""
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      ))}
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="admin-pagination-btn"
+                    >
+                      Tiếp ›
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()
       ) : (
         <div className="reports-medication-no-data">
           <i className="fas fa-pills fa-3x"></i>
