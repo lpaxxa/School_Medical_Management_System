@@ -93,22 +93,27 @@ const MedicalCheckupList = ({ refreshData }) => {
     return studentIdMap[normalizedName] || 'N/A';
   };
 
-  // Filter checkups based on search term, status, date, and campaign
+  // Filter and sort checkups based on search term, status, date, and campaign
   const filteredCheckups = medicalCheckups.filter(checkup => {
-    const matchesSearch = 
+    const matchesSearch =
       checkup.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       checkup.studentId?.toString().includes(searchTerm) ||
       checkup.studentClass?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = statusFilter === '' || checkup.checkupStatus === statusFilter;
-    
+
     const matchesDate = dateFilter === '' ||
       (checkup.checkupDate && new Date(checkup.checkupDate).toISOString().split('T')[0] === dateFilter);
-    
+
     const matchesCampaign = campaignFilter === '' ||
       checkup.campaignTitle?.toLowerCase().includes(campaignFilter.toLowerCase());
-    
+
     return matchesSearch && matchesStatus && matchesDate && matchesCampaign;
+  }).sort((a, b) => {
+    // Sắp xếp theo ngày khám (mới nhất trước)
+    const dateA = new Date(a.checkupDate);
+    const dateB = new Date(b.checkupDate);
+    return dateB - dateA;
   });
 
   // Pagination logic

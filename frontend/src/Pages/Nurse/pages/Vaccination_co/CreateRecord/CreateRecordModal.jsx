@@ -6,6 +6,29 @@ import './CreateRecord.css';
 
 const CreateRecordModal = ({ show, handleClose, student, plan }) => {
     const { handleCreateRecord, vaccineForRecord } = useContext(VaccinationContext);
+
+    // Helper function to convert datetime-local for backend
+    const convertDateTimeForBackend = (datetimeLocal) => {
+        if (!datetimeLocal) {
+            // Return current time in local format
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        }
+
+        // Add seconds if not present and return as local datetime string
+        // Backend LocalDateTime should parse this as local time
+        if (datetimeLocal.length === 16) { // Format: YYYY-MM-DDTHH:MM
+            return `${datetimeLocal}:00`;
+        }
+
+        return datetimeLocal;
+    };
     const [formData, setFormData] = useState({
         nurseId: '1', // Default nurse ID to 1
         vaccinationDate: new Date().toISOString(),
@@ -118,11 +141,22 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
         }
 
         try {
-            // Convert datetime-local to ISO string for backend
+            // Convert datetime-local for backend (send as local datetime string)
+            const convertedDate = convertDateTimeForBackend(formData.vaccinationDate);
+
             const submitData = {
                 ...formData,
-                vaccinationDate: formData.vaccinationDate ? new Date(formData.vaccinationDate).toISOString() : new Date().toISOString()
+                vaccinationDate: convertedDate
             };
+
+            console.log('🔍 DETAILED DATE DEBUG:', {
+                originalInput: formData.vaccinationDate,
+                convertedForBackend: convertedDate,
+                backendWillReceive: convertedDate,
+                expectedBehavior: 'Backend LocalDateTime should parse as local time',
+                currentTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timezoneOffset: new Date().getTimezoneOffset()
+            });
 
             await handleCreateRecord(submitData);
 

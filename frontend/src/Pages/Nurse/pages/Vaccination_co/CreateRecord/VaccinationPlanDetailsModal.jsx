@@ -257,6 +257,45 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                     {error && <Alert variant="danger">{error}</Alert>}
                     {planDetails && !loading && (
                         <>
+                            {/* Status Warning for Completed or Canceled Plans */}
+                            {(planDetails.status === 'COMPLETED' || planDetails.status === 'CANCELED') && (
+                                <div style={{
+                                    backgroundColor: planDetails.status === 'COMPLETED' ? '#f0fdf4' : '#fef2f2',
+                                    border: `1px solid ${planDetails.status === 'COMPLETED' ? '#059669' : '#dc2626'}`,
+                                    borderRadius: '8px',
+                                    padding: '16px',
+                                    marginBottom: '20px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px'
+                                }}>
+                                    <div style={{
+                                        fontSize: '24px'
+                                    }}>
+                                        {planDetails.status === 'COMPLETED' ? '✅' : '❌'}
+                                    </div>
+                                    <div>
+                                        <div style={{
+                                            fontWeight: 'bold',
+                                            color: planDetails.status === 'COMPLETED' ? '#059669' : '#dc2626',
+                                            fontSize: '16px',
+                                            marginBottom: '4px'
+                                        }}>
+                                            {planDetails.status === 'COMPLETED' ? 'Kế hoạch đã hoàn thành' : 'Kế hoạch đã bị hủy'}
+                                        </div>
+                                        <div style={{
+                                            fontSize: '14px',
+                                            color: '#6b7280'
+                                        }}>
+                                            {planDetails.status === 'COMPLETED'
+                                                ? 'Không thể tạo thêm hồ sơ tiêm chủng mới cho kế hoạch này.'
+                                                : 'Kế hoạch này đã bị hủy và không thể tạo hồ sơ tiêm chủng.'
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* General Info */}
                             <div style={{ marginBottom: '20px' }}>
                                 <p style={{
@@ -637,8 +676,33 @@ const VaccinationPlanDetailsModal = ({ show, handleClose, planDetails, loading, 
                                                                         (() => {
                                                                             const monitoringStatus = monitoringStatuses[student.healthProfileId];
                                                                             const canCreate = canCreateVaccinationRecord(monitoringStatus);
-                                                                            
-                                                                            return canCreate ? (
+
+                                                                            // Kiểm tra trạng thái vaccine plan
+                                                                            const isPlanCompleted = planDetails?.status === 'COMPLETED';
+                                                                            const isPlanCanceled = planDetails?.status === 'CANCELED';
+                                                                            const canCreateRecord = canCreate && !isPlanCompleted && !isPlanCanceled;
+
+                                                                            // Nếu plan đã hoàn thành hoặc bị hủy
+                                                                            if (isPlanCompleted || isPlanCanceled) {
+                                                                                return (
+                                                                                    <span style={{
+                                                                                        color: isPlanCompleted ? '#059669' : '#dc2626',
+                                                                                        fontWeight: 'bold',
+                                                                                        fontSize: '11px',
+                                                                                        padding: '3px 6px',
+                                                                                        borderRadius: '4px',
+                                                                                        backgroundColor: isPlanCompleted ? '#f0fdf4' : '#fef2f2',
+                                                                                        border: `1px solid ${isPlanCompleted ? '#059669' : '#dc2626'}`,
+                                                                                        display: 'inline-block',
+                                                                                        lineHeight: '1.2',
+                                                                                        whiteSpace: 'nowrap'
+                                                                                    }}>
+                                                                                        {isPlanCompleted ? 'Kế hoạch đã hoàn thành' : 'Kế hoạch đã hủy'}
+                                                                                    </span>
+                                                                                );
+                                                                            }
+
+                                                                            return canCreateRecord ? (
                                                                                 <button
                                                                                     onClick={() => handleShowCreateRecordModal(student, response)}
                                                                                     style={{

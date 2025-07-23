@@ -1,2 +1,3 @@
-import HealthCheckupsPage from './HealthCheckupsMain.jsx';
-export default HealthCheckupsPage;
+import HealthCheckupsMain from './HealthCheckupsMain';
+
+export default HealthCheckupsMain;
