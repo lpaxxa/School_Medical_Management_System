@@ -658,63 +658,69 @@ const CommunityPost = () => {
 
   if (!post) {
     return (
-      <div className="error-container">
-        <h2>Không tìm thấy bài viết</h2>
-        <Link to="/parent/community" className="back-link">
-          <i className="fas fa-arrow-left"></i> Quay lại trang cộng đồng
-        </Link>
+      <div className="parent-content-wrapper">
+        <div className="parent-community-post-container">
+          <div className="parent-error-container">
+            <h2>Không tìm thấy bài viết</h2>
+            <Link to="/parent/community" className="parent-back-link">
+              <i className="fas fa-arrow-left"></i> Quay lại trang cộng đồng
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="parent-content-wrapper">
-      <div className="community-post-container">
-        <div className="post-navigation">
-          <Link to="/parent/community" className="back-link">
+      <div className="parent-community-post-container">
+        <div className="parent-post-navigation">
+          <Link to="/parent/community" className="parent-back-link">
             <i className="fas fa-arrow-left"></i> Quay lại cộng đồng
           </Link>
         </div>
 
-        <article className="post-content-container">
-          <header className="post-header">
-            <div className="post-meta">
-              <div className="post-category">
+        <article className="parent-post-content-container">
+          <header className="parent-post-header">
+            <div className="parent-post-meta">
+              <div className="parent-post-category">
                 <i className={`fas ${getCategoryIcon(post.category)}`}></i>
                 {getCategoryName(post.category)}
               </div>
-              <div className="post-time">{formatDate(post.createdAt)}</div>
+              <div className="parent-post-time">
+                {formatDate(post.createdAt)}
+              </div>
             </div>
 
-            <h1 className="post-title">{post.title}</h1>
+            <h1 className="parent-post-title">{post.title}</h1>
 
-            <div className="post-author">
+            <div className="parent-post-author">
               {post.author.role === "PARENT" ? (
                 // Icon cho phụ huynh
-                <div className="author-icon parent-icon">
+                <div className="parent-author-icon parent-icon">
                   <i className="fas fa-user-friends"></i>
                 </div>
               ) : post.author.role === "NURSE" ? (
                 // Icon cho y tá
-                <div className="author-icon nurse-icon">
+                <div className="parent-author-icon nurse-icon">
                   <i className="fas fa-user-nurse"></i>
                 </div>
               ) : (
                 // Icon mặc định cho các vai trò khác
-                <div className="author-icon default-icon">
+                <div className="parent-author-icon default-icon">
                   <i className="fas fa-user"></i>
                 </div>
               )}
-              <div className="author-info">
-                <div className="author-name">
+              <div className="parent-author-info">
+                <div className="parent-author-name">
                   {post.author.name}
                   {post.author.role === "NURSE" && (
-                    <span className="author-badge nurse">
+                    <span className="parent-author-badge nurse">
                       <i className="fas fa-user-nurse"></i> Y tá
                     </span>
                   )}
                   {post.author.role === "PARENT" && (
-                    <span className="author-badge parent">
+                    <span className="parent-author-badge parent">
                       <i className="fas fa-users"></i> Phụ huynh
                     </span>
                   )}
@@ -724,9 +730,9 @@ const CommunityPost = () => {
           </header>
 
           {post.tags && post.tags.length > 0 && (
-            <div className="post-tags">
+            <div className="parent-post-tags">
               {post.tags.map((tag, index) => (
-                <span key={index} className="post-tag">
+                <span key={index} className="parent-post-tag">
                   <i className="fas fa-tag"></i> {tag}
                 </span>
               ))}
@@ -734,13 +740,13 @@ const CommunityPost = () => {
           )}
 
           <div
-            className="post-content"
+            className="parent-post-content"
             dangerouslySetInnerHTML={{ __html: post.content }}
           ></div>
 
-          <div className="post-actions">
+          <div className="parent-post-actions">
             <button
-              className={`like-button ${
+              className={`parent-like-button ${
                 likedPosts.includes(postId) ? "liked" : ""
               }`}
               onClick={handleLike}
@@ -753,12 +759,12 @@ const CommunityPost = () => {
               <span>{post.likes} thích</span>
             </button>
 
-            <button className="share-button">
+            <button className="parent-share-button">
               <i className="fas fa-share-alt"></i>
               <span>Chia sẻ</span>
             </button>
 
-            <button className="report-button">
+            <button className="parent-report-button">
               <i className="fas fa-flag"></i>
               <span>Báo cáo</span>
             </button>
@@ -766,10 +772,10 @@ const CommunityPost = () => {
         </article>
 
         {/* Phần bình luận */}
-        <div className="comments-section">
-          <div className="comments-header">
+        <div className="parent-comments-section">
+          <div className="parent-comments-header">
             <h3>Bình luận ({post.commentsCount || 0})</h3>
-            <div className="comments-filter">
+            <div className="parent-comments-filter">
               <label>Sắp xếp:</label>
               <select
                 value={sortBy}
@@ -782,7 +788,7 @@ const CommunityPost = () => {
           </div>
 
           {/* Form thêm bình luận mới */}
-          <form className="comment-form" onSubmit={handleCommentSubmit}>
+          <form className="parent-comment-form" onSubmit={handleCommentSubmit}>
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
@@ -793,7 +799,7 @@ const CommunityPost = () => {
             <button
               type="submit"
               disabled={submittingComment || !newComment.trim()}
-              className="comment-submit-btn"
+              className="parent-comment-submit-btn"
             >
               {submittingComment ? (
                 <>
@@ -809,49 +815,49 @@ const CommunityPost = () => {
 
           {/* Danh sách bình luận */}
           {loadingComments ? (
-            <div className="loading-comments">
+            <div className="parent-loading-comments">
               <LoadingSpinner text="Đang tải bình luận..." />
             </div>
           ) : comments.length === 0 ? (
-            <div className="no-comments">
+            <div className="parent-no-comments">
               <i className="fas fa-comment-slash"></i>
               <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
             </div>
           ) : (
-            <div className="comments-list">
+            <div className="parent-comments-list">
               {sortedComments.map((comment) => (
-                <div key={comment.id} className="comment-item">
-                  <div className="comment-header">
-                    <div className="comment-author">
+                <div key={comment.id} className="parent-comment-item">
+                  <div className="parent-comment-header">
+                    <div className="parent-comment-author">
                       {comment.author.role === "PARENT" ? (
-                        <div className="comment-author-icon parent-icon">
+                        <div className="parent-comment-author-icon parent-icon">
                           <i className="fas fa-user-friends"></i>
                         </div>
                       ) : comment.author.role === "NURSE" ? (
-                        <div className="comment-author-icon nurse-icon">
+                        <div className="parent-comment-author-icon nurse-icon">
                           <i className="fas fa-user-nurse"></i>
                         </div>
                       ) : (
-                        <div className="comment-author-icon default-icon">
+                        <div className="parent-comment-author-icon default-icon">
                           <i className="fas fa-user"></i>
                         </div>
                       )}
-                      <div className="comment-author-info">
-                        <span className="comment-author-name">
+                      <div className="parent-comment-author-info">
+                        <span className="parent-comment-author-name">
                           {comment.author.name}
                           {comment.author.role === "NURSE" && (
-                            <span className="author-badge nurse">
+                            <span className="parent-author-badge nurse">
                               <i className="fas fa-user-nurse"></i> Y tá
                             </span>
                           )}
                         </span>
-                        <span className="comment-time">
+                        <span className="parent-comment-time">
                           {formatDate(comment.createdAt)}
                           {areDatesDifferent(
                             comment.updatedAt,
                             comment.createdAt
                           ) && (
-                            <span className="edited-indicator">
+                            <span className="parent-edited-indicator">
                               {" "}
                               • đã chỉnh sửa
                             </span>
