@@ -288,20 +288,20 @@ const HealthGuide = () => {
                   ))}
                 </div>
 
-                {/* Thêm phân trang */}
+                {/* Phân trang với prefix parent- */}
                 {totalPages > 1 && (
-                  <div className="pagination">
+                  <div className="parent-health-pagination">
                     <button
-                      className="pagination-btn"
+                      className="parent-health-pagination-btn parent-health-prev-btn"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
                     >
                       <i className="fas fa-chevron-left"></i> Trang trước
                     </button>
 
-                    <div className="pagination-info">
+                    <div className="parent-health-pagination-info">
                       {/* Hiển thị số trang */}
-                      <div className="pagination-pages">
+                      <div className="parent-health-pagination-pages">
                         {Array.from({ length: totalPages }, (_, index) => {
                           const pageNumber = index + 1;
                           // Hiển thị các trang xung quanh trang hiện tại
@@ -315,7 +315,7 @@ const HealthGuide = () => {
                               <button
                                 key={pageNumber}
                                 onClick={() => handlePageChange(pageNumber)}
-                                className={`page-number ${
+                                className={`parent-health-page-number ${
                                   currentPage === pageNumber ? "active" : ""
                                 }`}
                               >
@@ -327,7 +327,10 @@ const HealthGuide = () => {
                             pageNumber === currentPage + 2
                           ) {
                             return (
-                              <span key={pageNumber} className="page-ellipsis">
+                              <span
+                                key={pageNumber}
+                                className="parent-health-page-ellipsis"
+                              >
                                 ...
                               </span>
                             );
@@ -338,7 +341,7 @@ const HealthGuide = () => {
                     </div>
 
                     <button
-                      className="pagination-btn"
+                      className="parent-health-pagination-btn parent-health-next-btn"
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
                     >

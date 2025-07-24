@@ -329,15 +329,20 @@
 
 
 .admin-form-header-section select {
-  cursor: pointer;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right var(--modal-space-3) center;
-  background-size: 1rem;
-  padding-right: 3rem;
+  cursor: pointer !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right var(--modal-space-3) center !important;
+  background-size: 1rem !important;
+  padding-right: 3rem !important;
+}
+
+/* Remove IE/Edge default dropdown arrow */
+.admin-form-header-section select::-ms-expand {
+  display: none !important;
 }
 
 .admin-form-header-section select:focus {
@@ -1196,51 +1201,15 @@ input[type="date"].error {
   font-weight: normal;
 }
 
-/* ===== ADMIN STATUS TOGGLE ===== */
-.admin-status-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--modal-space-3);
-  padding: var(--modal-space-3);
-  background: linear-gradient(135deg, var(--modal-blue-50), var(--modal-white));
-  border: 2px solid var(--modal-blue-200);
-  border-radius: var(--modal-radius-lg);
-  transition: all 0.3s ease;
-}
-
-.admin-status-toggle:hover {
-  background: linear-gradient(135deg, var(--modal-blue-100), var(--modal-blue-50));
-  border-color: var(--modal-blue-300);
-}
-
-.admin-status-toggle input[type="checkbox"] {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin: 0;
-  cursor: pointer;
-  accent-color: var(--modal-blue-500);
-  border-radius: var(--modal-radius-sm);
-}
-
-.admin-toggle-label {
-  font-size: var(--modal-font-size-base);
-  color: var(--modal-blue-700);
-  cursor: pointer;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.admin-toggle-label:hover {
-  color: var(--modal-blue-800);
-}
-
-/* Legacy support */
+/* ===== STATUS TOGGLE ===== */
+.admin-status-toggle,
 .status-toggle {
   display: flex;
   align-items: center;
   gap: var(--modal-space-2);
 }
 
+.admin-toggle-label,
 .toggle-label {
   font-size: var(--modal-font-size-base);
   color: var(--modal-gray-700);
@@ -1306,47 +1275,8 @@ input[type="date"].error {
   transform: scale(1.1);
 }
 
-/* ===== ADMIN STUDENT CARDS ===== */
-.admin-existing-student-card {
-  background: linear-gradient(135deg, var(--modal-blue-50), var(--modal-white));
-  border: 2px solid var(--modal-blue-200);
-  border-radius: var(--modal-radius-xl);
-  margin-bottom: var(--modal-space-4);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: var(--modal-shadow-sm);
-  position: relative;
-  animation: adminStudentCardSlideIn 0.4s ease-out;
-}
-
-@keyframes adminStudentCardSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.admin-existing-student-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--modal-blue-500), var(--modal-blue-600));
-}
-
-.admin-existing-student-card:hover {
-  box-shadow: var(--modal-shadow-lg);
-  border-color: var(--modal-blue-400);
-  transform: translateY(-2px);
-}
-
-/* Legacy support for existing cards */
+/* ===== STUDENT CARDS ===== */
+.admin-existing-student-card,
 .existing-student-card {
   background: var(--modal-gray-50);
   border: 1px solid var(--modal-gray-200);
@@ -1356,29 +1286,13 @@ input[type="date"].error {
   transition: all 0.3s ease;
 }
 
+.admin-existing-student-card:hover,
 .existing-student-card:hover {
   box-shadow: var(--modal-shadow-md);
   border-color: var(--modal-blue-300);
 }
 
-.admin-student-card-header {
-  padding: var(--modal-space-5);
-  background: linear-gradient(135deg, var(--modal-white), var(--modal-blue-50));
-  border-bottom: 2px solid var(--modal-blue-200);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.admin-student-card-header:hover {
-  background: linear-gradient(135deg, var(--modal-blue-100), var(--modal-blue-200));
-  border-bottom-color: var(--modal-blue-400);
-}
-
-/* Legacy support */
+.admin-student-card-header,
 .student-card-header {
   padding: var(--modal-space-4);
   background: var(--modal-white);
@@ -1390,143 +1304,39 @@ input[type="date"].error {
   transition: background-color 0.3s ease;
 }
 
+.admin-student-card-header:hover,
 .student-card-header:hover {
   background: var(--modal-blue-50);
 }
 
-.admin-student-basic-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--modal-space-2);
-  flex: 1;
-}
-
-.admin-student-name {
-  font-weight: 700;
-  color: var(--modal-blue-900);
-  font-size: var(--modal-font-size-lg);
-  letter-spacing: -0.025em;
-  position: relative;
-  padding-left: var(--modal-space-3);
-}
-
-.admin-student-name::before {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: var(--modal-font-size-base);
-}
-
-.admin-expand-icon {
-  color: var(--modal-blue-500);
-  transition: all 0.3s ease;
-  font-size: var(--modal-font-size-lg);
-  padding: var(--modal-space-2);
-  border-radius: var(--modal-radius);
-  background: var(--modal-blue-100);
-}
-
-.admin-expand-icon:hover {
-  background: var(--modal-blue-200);
-  transform: scale(1.1);
-}
-
-/* Legacy support */
+.admin-student-basic-info,
 .student-basic-info {
   display: flex;
   flex-direction: column;
   gap: var(--modal-space-1);
 }
 
+.admin-student-name,
 .student-name {
   font-weight: 600;
   color: var(--modal-gray-900);
   font-size: var(--modal-font-size-base);
 }
 
+.admin-expand-icon,
 .expand-icon {
   color: var(--modal-gray-500);
   transition: transform 0.3s ease;
 }
 
-.admin-student-details {
-  padding: var(--modal-space-6);
-  background: var(--modal-white);
-  border-top: 2px solid var(--modal-blue-200);
-  position: relative;
-}
-
-.admin-student-details::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: var(--modal-space-6);
-  right: var(--modal-space-6);
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--modal-blue-300), transparent);
-}
-
-.admin-student-edit-form {
-  background: var(--modal-white);
-  padding: var(--modal-space-4);
-  border-radius: var(--modal-radius-lg);
-  border: 1px solid var(--modal-blue-100);
-}
-
-.admin-student-edit-form .admin-form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--modal-space-4);
-  margin-bottom: var(--modal-space-4);
-}
-
-.admin-student-edit-form .admin-form-group {
-  margin-bottom: var(--modal-space-4);
-}
-
-.admin-student-edit-form label {
-  display: block;
-  margin-bottom: var(--modal-space-2);
-  font-size: var(--modal-font-size-sm);
-  font-weight: 600;
-  color: var(--modal-blue-700);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.admin-student-edit-form input,
-.admin-student-edit-form select {
-  width: 100%;
-  padding: var(--modal-space-3);
-  border: 2px solid var(--modal-blue-200);
-  border-radius: var(--modal-radius);
-  font-size: var(--modal-font-size-sm);
-  font-family: inherit;
-  transition: all 0.3s ease;
-  background: var(--modal-white);
-  height: 3rem;
-}
-
-.admin-student-edit-form input:focus,
-.admin-student-edit-form select:focus {
-  outline: none;
-  border-color: var(--modal-blue-500);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.admin-student-edit-form input.error {
-  border-color: var(--modal-red);
-  background: var(--modal-red-light);
-}
-
-/* Legacy support */
+.admin-student-details,
 .student-details {
   padding: var(--modal-space-6);
   background: var(--modal-white);
   border-top: 1px solid var(--modal-gray-200);
 }
 
+.admin-student-form,
 .student-form {
   background: var(--modal-white);
   border: 1px solid var(--modal-gray-200);
@@ -1535,6 +1345,7 @@ input[type="date"].error {
   margin-bottom: var(--modal-space-4);
 }
 
+.admin-student-header,
 .student-header {
   display: flex;
   justify-content: space-between;
@@ -1544,95 +1355,43 @@ input[type="date"].error {
   border-bottom: 1px solid var(--modal-gray-200);
 }
 
+.admin-student-header h4,
 .student-header h4 {
   margin: 0;
   color: var(--modal-gray-900);
   font-size: var(--modal-font-size-lg);
 }
 
+.admin-student-edit-form,
 .student-edit-form {
   background: var(--modal-white);
 }
 
-.admin-student-view-container {
-  background: var(--modal-white);
-  padding: var(--modal-space-4);
-  border-radius: var(--modal-radius-lg);
-  border: 1px solid var(--modal-blue-100);
-}
-
-.admin-student-image-section {
-  margin-bottom: var(--modal-space-5);
-  text-align: center;
-  padding: var(--modal-space-4);
-  background: var(--modal-blue-50);
-  border-radius: var(--modal-radius-lg);
-  border: 1px solid var(--modal-blue-200);
-}
-
-.admin-student-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--modal-space-4);
-}
-
-.admin-detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--modal-space-2);
-  padding: var(--modal-space-3);
-  background: var(--modal-blue-50);
-  border-radius: var(--modal-radius);
-  border: 1px solid var(--modal-blue-200);
-  transition: all 0.3s ease;
-}
-
-.admin-detail-item:hover {
-  background: var(--modal-blue-100);
-  border-color: var(--modal-blue-300);
-  transform: translateY(-1px);
-}
-
-.admin-detail-label {
-  font-size: var(--modal-font-size-xs);
-  color: var(--modal-blue-600);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: var(--modal-space-1);
-}
-
-.admin-detail-value {
-  font-size: var(--modal-font-size-base);
-  color: var(--modal-blue-900);
-  font-weight: 600;
-  padding: var(--modal-space-2);
-  background: var(--modal-white);
-  border-radius: var(--modal-radius-sm);
-  border: 1px solid var(--modal-blue-200);
-}
-
-/* Legacy support */
+.admin-student-view-container,
 .student-view-container {
   background: var(--modal-white);
 }
 
+.admin-student-image-section,
 .student-image-section {
   margin-bottom: var(--modal-space-4);
 }
 
+.admin-student-detail-grid,
 .student-detail-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--modal-space-4);
 }
 
+.admin-detail-item,
 .detail-item {
   display: flex;
   flex-direction: column;
   gap: var(--modal-space-1);
 }
 
+.admin-detail-label,
 .detail-label {
   font-size: var(--modal-font-size-xs);
   color: var(--modal-gray-500);
@@ -1641,6 +1400,7 @@ input[type="date"].error {
   letter-spacing: 0.05em;
 }
 
+.admin-detail-value,
 .detail-value {
   font-size: var(--modal-font-size-base);
   color: var(--modal-gray-900);
@@ -1665,20 +1425,64 @@ textarea {
   min-height: 80px;
 }
 
-/* Select Styling */
+/* Select Styling - Fixed to prevent multiple arrows */
 select {
   cursor: pointer;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23525252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right var(--space-3) center;
-  background-size: 0.875em;
-  padding-right: 2.5rem;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23525252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right var(--space-3) center !important;
+  background-size: 0.875em !important;
+  padding-right: 2.5rem !important;
   height: 3rem;
   display: flex;
   align-items: center;
+}
+
+/* Specific fix for role selection dropdown */
+.admin-form-group select[name="role"] {
+  cursor: pointer !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
+  background-color: var(--modal-white) !important;
+}
+
+/* Remove any inherited background images */
+.admin-form-group select[name="role"]::-ms-expand {
+  display: none !important;
+}
+
+/* Global fix for all select elements in modal to prevent multiple arrows */
+.admin-modal-content select,
+.admin-modal select,
+.modal-content select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Remove IE/Edge default arrows for all selects in modal */
+.admin-modal-content select::-ms-expand,
+.admin-modal select::-ms-expand,
+.modal-content select::-ms-expand {
+  display: none !important;
+}
+
+/* Ensure only one background image per select */
+.admin-form-group select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
 }
 
 select:focus {
@@ -1730,64 +1534,6 @@ select:focus {
 
 .student-details * {
   box-sizing: border-box;
-}
-
-/* ===== ADMIN STUDENT CARDS RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .admin-existing-student-card {
-    margin-bottom: var(--modal-space-3);
-  }
-
-  .admin-student-card-header {
-    padding: var(--modal-space-3);
-  }
-
-  .admin-student-name {
-    font-size: var(--modal-font-size-base);
-  }
-
-  .admin-student-details {
-    padding: var(--modal-space-4);
-  }
-
-  .admin-student-edit-form .admin-form-row {
-    grid-template-columns: 1fr;
-    gap: var(--modal-space-3);
-  }
-
-  .admin-student-detail-grid {
-    grid-template-columns: 1fr;
-    gap: var(--modal-space-3);
-  }
-
-  .admin-detail-item {
-    padding: var(--modal-space-2);
-  }
-}
-
-@media (max-width: 480px) {
-  .admin-student-name::before {
-    display: none;
-  }
-
-  .admin-student-name {
-    padding-left: 0;
-    font-size: var(--modal-font-size-sm);
-  }
-
-  .admin-expand-icon {
-    font-size: var(--modal-font-size-base);
-    padding: var(--modal-space-1);
-  }
-
-  .admin-student-edit-form {
-    padding: var(--modal-space-3);
-  }
-
-  .admin-detail-value {
-    font-size: var(--modal-font-size-sm);
-    padding: var(--modal-space-1);
-  }
 }
 
 /* Responsive Design */

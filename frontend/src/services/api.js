@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base API URL for your backend
-const API_URL =import.meta.env.VITE_API_BASE_URL;
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create axios instance with timeout to prevent hanging
 const api = axios.create({

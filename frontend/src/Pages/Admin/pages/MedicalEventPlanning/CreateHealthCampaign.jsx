@@ -56,34 +56,59 @@ const CreateHealthCampaign = () => {
   // State cho special checkup items
   const [newCheckupItem, setNewCheckupItem] = useState("");
 
+  // Helper function to get today's date in YYYY-MM-DD format
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
   // Validate form
   const validateForm = () => {
+    // Validate title
     if (!formData.title.trim()) {
       setErrorMessage("Vui lòng nhập tiêu đề chiến dịch");
       return false;
     }
+
+    // Validate description
     if (!formData.description.trim()) {
       setErrorMessage("Vui lòng nhập mô tả chiến dịch");
       return false;
     }
+
+    // Validate start date - required and must be from today onwards
     if (!formData.startDate) {
       setErrorMessage("Vui lòng chọn ngày bắt đầu");
       return false;
     }
-    if (!formData.notes.trim()) {
-      setErrorMessage("Vui lòng nhập ghi chú");
+
+    // Check if start date is from today onwards
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+    const startDate = new Date(formData.startDate);
+
+    if (startDate < today) {
+      setErrorMessage("Ngày bắt đầu phải từ ngày hôm nay trở đi");
+      return false;
+    }
+
+    // Validate end date - required
+    if (!formData.endDate) {
+      setErrorMessage("Vui lòng chọn ngày kết thúc");
       return false;
     }
 
     // Validate end date is on or after start date
-    if (formData.endDate && formData.startDate) {
-      const startDate = new Date(formData.startDate);
-      const endDate = new Date(formData.endDate);
+    const endDate = new Date(formData.endDate);
+    if (endDate < startDate) {
+      setErrorMessage("Ngày kết thúc phải bằng hoặc sau ngày bắt đầu");
+      return false;
+    }
 
-      if (endDate < startDate) {
-        setErrorMessage("Ngày kết thúc phải bằng hoặc sau ngày bắt đầu");
-        return false;
-      }
+    // Validate notes - required
+    if (!formData.notes.trim()) {
+      setErrorMessage("Vui lòng nhập ghi chú chiến dịch");
+      return false;
     }
 
     return true;
@@ -261,6 +286,7 @@ const CreateHealthCampaign = () => {
                 id="startDate"
                 type="date"
                 value={formData.startDate}
+                min={getTodayDate()}
                 onChange={(e) => handleInputChange("startDate", e.target.value)}
                 required
               />
@@ -269,13 +295,15 @@ const CreateHealthCampaign = () => {
             <div className="form-group">
               <label htmlFor="endDate">
                 <FaCalendarAlt className="label-icon" />
-                Ngày Kết Thúc
+                Ngày Kết Thúc *
               </label>
               <input
                 id="endDate"
                 type="date"
                 value={formData.endDate}
+                min={formData.startDate || getTodayDate()}
                 onChange={(e) => handleInputChange("endDate", e.target.value)}
+                required
               />
             </div>
 
@@ -339,7 +367,7 @@ const CreateHealthCampaign = () => {
                   placeholder="Nhập tên mục kiểm tra..."
                   value={newCheckupItem}
                   onChange={(e) => setNewCheckupItem(e.target.value)}
-                  onKeyPress={(e) =>
+                  onKeyDown={(e) =>
                     e.key === "Enter" && (e.preventDefault(), addCheckupItem())
                   }
                 />

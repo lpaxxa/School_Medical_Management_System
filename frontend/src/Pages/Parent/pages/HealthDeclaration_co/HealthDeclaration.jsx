@@ -50,28 +50,6 @@ const HEARING_OPTIONS = [
   { value: "Khác", label: "Khác" },
 ];
 
-// Helper function để đảm bảo định dạng ngày tháng đúng YYYY-MM-DD
-const formatDateToYYYYMMDD = (date) => {
-  if (!date) return new Date().toLocaleDateString("en-CA");
-
-  // Nếu đã là string với định dạng YYYY-MM-DD
-  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return date;
-  }
-
-  // Nếu là Date object hoặc string khác
-  try {
-    const dateObj = new Date(date);
-    if (isNaN(dateObj.getTime())) {
-      return new Date().toLocaleDateString("en-CA");
-    }
-    return dateObj.toLocaleDateString("en-CA");
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return new Date().toLocaleDateString("en-CA");
-  }
-};
-
 const HealthDeclaration = () => {
   const { currentUser } = useAuth();
 
@@ -167,7 +145,7 @@ const HealthDeclaration = () => {
       dietaryRestrictions: "",
       emergencyContactInfo: "",
       immunizationStatus: "",
-      lastPhysicalExamDate: formatDateToYYYYMMDD(), // Format: YYYY-MM-DD
+      lastPhysicalExamDate: new Date().toISOString().split("T")[0],
       specialNeeds: "",
     },
     vaccinations: [],
@@ -448,7 +426,9 @@ const HealthDeclaration = () => {
               if (matchingVaccine) {
                 formVaccinations.push({
                   vaccineId: matchingVaccine.id,
-                  vaccinationDate: formatDateToYYYYMMDD(v.vaccinationDate),
+                  vaccinationDate: v.vaccinationDate
+                    ? new Date(v.vaccinationDate).toISOString()
+                    : new Date().toISOString(),
                   administeredAt: v.administeredAt || "string",
                   notes: v.notes || "string",
                   parentNotes: v.parentNotes || "string",
@@ -532,7 +512,7 @@ const HealthDeclaration = () => {
           visionLeft: "Chưa kiểm tra",
           visionRight: "Chưa kiểm tra",
           hearingStatus: "",
-          lastPhysicalExamDate: formatDateToYYYYMMDD(), // Format: YYYY-MM-DD
+          lastPhysicalExamDate: new Date().toISOString().split("T")[0],
           immunizationStatus: "",
           // Các trường bổ sung luôn để trống để người dùng tự nhập
           allergies: "",
@@ -608,7 +588,7 @@ const HealthDeclaration = () => {
         visionLeft: "Chưa kiểm tra",
         visionRight: "Chưa kiểm tra",
         hearingStatus: "",
-        lastPhysicalExamDate: formatDateToYYYYMMDD(), // Format: YYYY-MM-DD
+        lastPhysicalExamDate: new Date().toISOString().split("T")[0],
         immunizationStatus: "",
         // Các trường bổ sung luôn để trống để người dùng tự nhập
         allergies: "",
@@ -724,7 +704,7 @@ const HealthDeclaration = () => {
             ...prevState.vaccinations,
             {
               vaccineId: vaccineId,
-              vaccinationDate: formatDateToYYYYMMDD(), // Format: YYYY-MM-DD
+              vaccinationDate: new Date().toISOString(),
               administeredAt: "Trường học", // Mặc định "Trường học"
               notes: "",
               parentNotes: "", // Khởi tạo ghi chú trống
@@ -747,73 +727,55 @@ const HealthDeclaration = () => {
         // Hiển thị thông báo thành công ngay lập tức
         showSuccessToast(`✅ Đã chọn vaccine: ${vaccineName}`);
 
-        // Gọi API thông báo chọn vaccine (optional - không ảnh hưởng đến UX)
-        if (
-          studentNumericId &&
-          typeof studentNumericId === "number" &&
-          studentNumericId > 0
-        ) {
-          try {
-            // Validate data before sending
-            const notificationData = {
-              studentId: parseInt(studentNumericId), // Ensure it's a number
-              vaccineId: parseInt(vaccineId), // Ensure it's a number
-              recipientType: "PARENT", // Hoặc theo yêu cầu hệ thống
-            };
+        // TODO: Gọi API thông báo chọn vaccine (tạm thời comment out để tránh lỗi 400)
+        // Sẽ được xử lý trong phần submit form chính
+        if (studentNumericId) {
+          console.log(
+            `Vaccine ${vaccineName} selected for student ${studentNumericId}. Notification will be sent during form submission.`
+          );
+          // try {
+          //   const notificationData = {
+          //     studentId: studentNumericId, // Sử dụng ID số
+          //     vaccineId: vaccineId,
+          //     recipientType: "PARENT", // Hoặc theo yêu cầu hệ thống
+          //     response: "ACCEPTED", // Thêm response mặc định
+          //     responseDate: new Date().toISOString(), // Thêm ngày phản hồi
+          //   };
 
-            // Additional validation
-            if (
-              isNaN(notificationData.studentId) ||
-              isNaN(notificationData.vaccineId)
-            ) {
-              console.warn(
-                "Invalid studentId or vaccineId for notification, skipping API call"
-              );
-              return;
-            }
+          //   console.log(
+          //     "Sending vaccine selection notification:",
+          //     notificationData
+          //   );
 
-            console.log(
-              "Sending vaccine selection notification:",
-              notificationData
-            );
+          //   await axios.post(
+          //     `${
+          //       import.meta.env.VITE_BACKEND_URL
+          //     }/api/v1/notification-recipients`,
+          //     notificationData,
+          //     {
+          //       headers: {
+          //         "Content-Type": "application/json",
+          //         Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          //       },
+          //     }
+          //   );
 
-            await axios.post(
-              `${
-                import.meta.env.VITE_BACKEND_URL
-              }/api/v1/notification-recipient-vaccines/create`,
-              notificationData,
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-                },
-                timeout: 5000, // 5 second timeout
-              }
-            );
-
-            console.log(
-              `Successfully notified vaccine selection: ${vaccineName}`
-            );
-          } catch (error) {
-            console.error(
-              "Error sending vaccine selection notification:",
-              error
-            );
-
-            // Log more detailed error information
-            if (error.response) {
-              console.error("Response status:", error.response.status);
-              console.error("Response data:", error.response.data);
-            }
-
-            // Chỉ log lỗi, không hiển thị thông báo cho user vì đây là tính năng phụ
-            console.warn(
-              `Notification API failed for vaccine ${vaccineName}, but selection is still valid.`
-            );
-          }
+          //   console.log(
+          //     `Successfully notified vaccine selection: ${vaccineName}`
+          //   );
+          // } catch (error) {
+          //   console.error(
+          //     "Error sending vaccine selection notification:",
+          //     error
+          //   );
+          //   // Chỉ log lỗi, không hiển thị thông báo cho user vì đây là tính năng phụ
+          //   console.warn(
+          //     `Notification API failed for vaccine ${vaccineName}, but selection is still valid.`
+          //   );
+          // }
         } else {
           console.warn(
-            `Invalid or missing studentNumericId (${studentNumericId}), skipping notification API call`
+            "No studentNumericId available, skipping notification API call"
           );
         }
       }
@@ -1132,15 +1094,15 @@ const HealthDeclaration = () => {
             formData.healthProfile.emergencyContactInfo || "Liên hệ phụ huynh",
           immunizationStatus:
             formData.healthProfile.immunizationStatus || "string",
-          lastPhysicalExamDate: formatDateToYYYYMMDD(
-            formData.healthProfile.lastPhysicalExamDate
-          ), // Format: YYYY-MM-DD
+          lastPhysicalExamDate:
+            formData.healthProfile.lastPhysicalExamDate ||
+            new Date().toISOString().split("T")[0],
           specialNeeds: formData.healthProfile.specialNeeds || "string",
           checkupStatus: "COMPLETED",
         },
         vaccinations: filteredVaccinations.map((vaccination) => ({
           vaccineId: vaccination.vaccineId,
-          vaccinationDate: formatDateToYYYYMMDD(vaccination.vaccinationDate), // Ensure YYYY-MM-DD format
+          vaccinationDate: new Date(vaccination.vaccinationDate).toISOString(),
           administeredAt:
             vaccineAdministeredAt[vaccination.vaccineId] ||
             vaccination.administeredAt ||

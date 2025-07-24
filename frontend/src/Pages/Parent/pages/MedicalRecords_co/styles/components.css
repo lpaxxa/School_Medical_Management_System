@@ -3701,30 +3701,32 @@ body.modal-open header,
 
 .vaccination-type-badge span {
   display: inline-block;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-2);
   font-size: var(--text-xs);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .vaccination-type-badge .type-school_plan {
-  background: var(--color-blue-100);
-  color: var(--color-blue-700);
-  border: 1px solid var(--color-blue-200);
+  background-color: #BBDEFB; /* Xanh dương nhạt */
+  color: #1976D2;            /* Xanh dương đậm */
 }
 
 .vaccination-type-badge .type-parent_declared {
-  background: var(--color-green-100);
-  color: var(--color-green-700);
-  border: 1px solid var(--color-green-200);
+  background-color: #FFF9C4; /* Vàng nhạt */
+  color: #FBC02D;            /* Vàng đậm */
+}
+
+.vaccination-type-badge .type-individual {
+  background-color: #C8E6C9; /* Xanh lá nhạt */
+  color: #388E3C;            /* Xanh lá đậm */
 }
 
 .vaccination-type-badge .type-campaign {
-  background: var(--color-purple-100);
-  color: var(--color-purple-700);
-  border: 1px solid var(--color-purple-200);
+  background-color: #E1BEE7; /* Tím nhạt */
+  color: #8E24AA;            /* Tím đậm */
 }
 
 /* Responsive Design for Vaccination Section */

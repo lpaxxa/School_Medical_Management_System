@@ -1485,16 +1485,16 @@ const Community = () => {
 
         {/* Pagination Controls */}
         {totalFilteredPages > 1 && (
-          <div className="pagination-controls">
+          <div className="parent-pagination-controls">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage <= 1}
-              className="pagination-btn prev-btn"
+              className="parent-pagination-btn parent-prev-btn"
             >
               <i className="fas fa-chevron-left"></i> Trang trước
             </button>
 
-            <span className="pagination-info">
+            <span className="parent-pagination-info">
               Trang {currentPage} / {totalFilteredPages}
             </span>
 
@@ -1503,7 +1503,7 @@ const Community = () => {
                 setCurrentPage((prev) => Math.min(totalFilteredPages, prev + 1))
               }
               disabled={currentPage >= totalFilteredPages}
-              className="pagination-btn next-btn"
+              className="parent-pagination-btn parent-next-btn"
             >
               Trang sau <i className="fas fa-chevron-right"></i>
             </button>
