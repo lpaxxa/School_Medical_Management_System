@@ -66,49 +66,262 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
       }
     }
 
-    if (!formData.checkupType) newErrors.checkupType = 'Loại hình khám là bắt buộc.';
-    if (!formData.checkupStatus) newErrors.checkupStatus = 'Trạng thái là bắt buộc.';
+    // Validate loại hình khám
+    if (!formData.checkupType || !formData.checkupType.toString().trim()) {
+      newErrors.checkupType = 'Loại hình khám là bắt buộc.';
+    }
 
-    const numericFields = ['height', 'weight', 'heartRate', 'bodyTemperature'];
-    numericFields.forEach(field => {
-      if (formData[field] && (isNaN(formData[field]) || Number(formData[field]) <= 0)) {
-        newErrors[field] = 'Giá trị phải là một số dương.';
-      }
-    });
+    // Validate trạng thái khám
+    if (!formData.checkupStatus || !formData.checkupStatus.toString().trim()) {
+      newErrors.checkupStatus = 'Trạng thái là bắt buộc.';
+    }
 
-    // Validate huyết áp: số bất kỳ/80 (VD: 120/80)
-    if (formData.bloodPressure) {
-      const bloodPressurePattern = /^(\d+)\/80$/;
-      if (!bloodPressurePattern.test(formData.bloodPressure)) {
-        newErrors.bloodPressure = 'Huyết áp phải có định dạng: [số]/80 (ví dụ: 120/80).';
+    // ===== VALIDATE TẤT CẢ CÁC CHỈ SỐ SỨC KHỎE =====
+
+    // 1. CHIỀU CAO (CM) - BẮT BUỘC
+    if (!formData.height || !formData.height.toString().trim()) {
+      newErrors.height = 'Chiều cao là bắt buộc.';
+    } else {
+      const heightValue = Number(formData.height);
+      if (isNaN(heightValue)) {
+        newErrors.height = 'Chiều cao phải là một số.';
+      } else if (heightValue <= 0) {
+        newErrors.height = 'Chiều cao phải lớn hơn 0.';
+      } else if (heightValue < 50) {
+        newErrors.height = 'Chiều cao quá thấp (tối thiểu 50cm).';
+      } else if (heightValue > 250) {
+        newErrors.height = 'Chiều cao quá cao (tối đa 250cm).';
+      } else if (!Number.isInteger(heightValue * 10)) {
+        newErrors.height = 'Chiều cao chỉ được có tối đa 1 chữ số thập phân.';
       }
     }
 
-    // Validate thị lực mắt trái: số từ 0 đến 20/20 (VD: 12/20, 20/20)
-    if (formData.visionLeft) {
-      const visionPattern = /^(\d+)\/20$/;
-      const match = formData.visionLeft.match(visionPattern);
+    // 2. CÂN NẶNG (KG) - BẮT BUỘC
+    if (!formData.weight || !formData.weight.toString().trim()) {
+      newErrors.weight = 'Cân nặng là bắt buộc.';
+    } else {
+      const weightValue = Number(formData.weight);
+      if (isNaN(weightValue)) {
+        newErrors.weight = 'Cân nặng phải là một số.';
+      } else if (weightValue <= 0) {
+        newErrors.weight = 'Cân nặng phải lớn hơn 0.';
+      } else if (weightValue < 5) {
+        newErrors.weight = 'Cân nặng quá nhẹ (tối thiểu 5kg).';
+      } else if (weightValue > 200) {
+        newErrors.weight = 'Cân nặng quá nặng (tối đa 200kg).';
+      } else if (!Number.isInteger(weightValue * 10)) {
+        newErrors.weight = 'Cân nặng chỉ được có tối đa 1 chữ số thập phân.';
+      }
+    }
+
+    // 3. BMI - TỰ ĐỘNG TÍNH (không cần validate)
+    // BMI được tính tự động từ chiều cao và cân nặng
+
+    // 4. NHỊP TIM (BPM) - BẮT BUỘC
+    if (!formData.heartRate || !formData.heartRate.toString().trim()) {
+      newErrors.heartRate = 'Nhịp tim là bắt buộc.';
+    } else {
+      const heartRateValue = Number(formData.heartRate);
+      if (isNaN(heartRateValue)) {
+        newErrors.heartRate = 'Nhịp tim phải là một số.';
+      } else if (heartRateValue <= 0) {
+        newErrors.heartRate = 'Nhịp tim phải lớn hơn 0.';
+      } else if (!Number.isInteger(heartRateValue)) {
+        newErrors.heartRate = 'Nhịp tim phải là số nguyên.';
+      } else if (heartRateValue < 30) {
+        newErrors.heartRate = 'Nhịp tim quá chậm (tối thiểu 30 bpm).';
+      } else if (heartRateValue > 220) {
+        newErrors.heartRate = 'Nhịp tim quá nhanh (tối đa 220 bpm).';
+      }
+    }
+
+    // 5. NHIỆT ĐỘ (°C) - BẮT BUỘC
+    if (!formData.bodyTemperature || !formData.bodyTemperature.toString().trim()) {
+      newErrors.bodyTemperature = 'Nhiệt độ là bắt buộc.';
+    } else {
+      const tempValue = Number(formData.bodyTemperature);
+      if (isNaN(tempValue)) {
+        newErrors.bodyTemperature = 'Nhiệt độ phải là một số.';
+      } else if (tempValue <= 0) {
+        newErrors.bodyTemperature = 'Nhiệt độ phải lớn hơn 0.';
+      } else if (!Number.isInteger(tempValue * 10)) {
+        newErrors.bodyTemperature = 'Nhiệt độ chỉ được có tối đa 1 chữ số thập phân.';
+      } else if (tempValue < 30) {
+        newErrors.bodyTemperature = 'Nhiệt độ quá thấp (tối thiểu 30°C).';
+      } else if (tempValue > 45) {
+        newErrors.bodyTemperature = 'Nhiệt độ quá cao (tối đa 45°C).';
+      }
+    }
+
+    // 6. HUYẾT ÁP - BẮT BUỘC
+    if (!formData.bloodPressure || !formData.bloodPressure.toString().trim()) {
+      newErrors.bloodPressure = 'Huyết áp là bắt buộc.';
+    } else {
+      const bloodPressureValue = formData.bloodPressure.toString().trim();
+
+      // Kiểm tra định dạng: số/số
+      const bloodPressurePattern = /^(\d+)\/(\d+)$/;
+      const match = bloodPressureValue.match(bloodPressurePattern);
+
       if (!match) {
-        newErrors.visionLeft = 'Thị lực mắt trái phải có định dạng: [số]/20 (ví dụ: 12/20, 20/20).';
+        newErrors.bloodPressure = 'Huyết áp phải có định dạng: [số]/[số] (ví dụ: 120/80).';
       } else {
-        const visionValue = parseInt(match[1]);
-        if (visionValue < 0 || visionValue > 20) {
-          newErrors.visionLeft = 'Thị lực mắt trái phải từ 0/20 đến 20/20.';
+        const systolic = parseInt(match[1]);
+        const diastolic = parseInt(match[2]);
+
+        // Validate systolic (tâm thu)
+        if (systolic < 50) {
+          newErrors.bloodPressure = 'Huyết áp tâm thu quá thấp (tối thiểu 50).';
+        } else if (systolic > 300) {
+          newErrors.bloodPressure = 'Huyết áp tâm thu quá cao (tối đa 300).';
+        }
+        // Validate diastolic (tâm trương)
+        else if (diastolic < 20) {
+          newErrors.bloodPressure = 'Huyết áp tâm trương quá thấp (tối thiểu 20).';
+        } else if (diastolic > 200) {
+          newErrors.bloodPressure = 'Huyết áp tâm trương quá cao (tối đa 200).';
+        }
+        // Validate logic: systolic should be higher than diastolic
+        else if (systolic <= diastolic) {
+          newErrors.bloodPressure = 'Huyết áp tâm thu phải cao hơn tâm trương.';
+        }
+        // Warning for abnormal values
+        else if (systolic < 80 || systolic > 200 || diastolic < 40 || diastolic > 120) {
+          // This is just a warning, not an error - could be implemented as a separate warning system
         }
       }
     }
 
-    // Validate thị lực mắt phải: số từ 0 đến 20/20 (VD: 12/20, 20/20)
-    if (formData.visionRight) {
-      const visionPattern = /^(\d+)\/20$/;
-      const match = formData.visionRight.match(visionPattern);
+    // 7. THỊ LỰC MẮT TRÁI - BẮT BUỘC
+    if (!formData.visionLeft || !formData.visionLeft.toString().trim()) {
+      newErrors.visionLeft = 'Thị lực mắt trái là bắt buộc.';
+    } else {
+      const visionLeftValue = formData.visionLeft.toString().trim();
+
+      // Kiểm tra định dạng: số/số
+      const visionPattern = /^(\d+)\/(\d+)$/;
+      const match = visionLeftValue.match(visionPattern);
+
       if (!match) {
-        newErrors.visionRight = 'Thị lực mắt phải phải có định dạng: [số]/20 (ví dụ: 12/20, 20/20).';
+        newErrors.visionLeft = 'Thị lực mắt trái phải có định dạng: [số]/[số] (ví dụ: 10/10, 20/20).';
       } else {
-        const visionValue = parseInt(match[1]);
-        if (visionValue < 0 || visionValue > 20) {
-          newErrors.visionRight = 'Thị lực mắt phải phải từ 0/20 đến 20/20.';
+        const numerator = parseInt(match[1]);
+        const denominator = parseInt(match[2]);
+
+        // Validate numerator
+        if (numerator < 1) {
+          newErrors.visionLeft = 'Thị lực mắt trái: tử số phải ≥ 1.';
+        } else if (numerator > 100) {
+          newErrors.visionLeft = 'Thị lực mắt trái: tử số phải ≤ 100.';
         }
+        // Validate denominator
+        else if (denominator < 1) {
+          newErrors.visionLeft = 'Thị lực mắt trái: mẫu số phải ≥ 1.';
+        } else if (denominator > 100) {
+          newErrors.visionLeft = 'Thị lực mắt trái: mẫu số phải ≤ 100.';
+        }
+        // Validate logic: common vision values
+        else if (![5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100].includes(denominator)) {
+          newErrors.visionLeft = 'Thị lực mắt trái: mẫu số nên là một trong các giá trị chuẩn (5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100).';
+        }
+      }
+    }
+
+    // 8. THỊ LỰC MẮT PHẢI - BẮT BUỘC
+    if (!formData.visionRight || !formData.visionRight.toString().trim()) {
+      newErrors.visionRight = 'Thị lực mắt phải là bắt buộc.';
+    } else {
+      const visionRightValue = formData.visionRight.toString().trim();
+
+      // Kiểm tra định dạng: số/số
+      const visionPattern = /^(\d+)\/(\d+)$/;
+      const match = visionRightValue.match(visionPattern);
+
+      if (!match) {
+        newErrors.visionRight = 'Thị lực mắt phải phải có định dạng: [số]/[số] (ví dụ: 10/10, 20/20).';
+      } else {
+        const numerator = parseInt(match[1]);
+        const denominator = parseInt(match[2]);
+
+        // Validate numerator
+        if (numerator < 1) {
+          newErrors.visionRight = 'Thị lực mắt phải: tử số phải ≥ 1.';
+        } else if (numerator > 100) {
+          newErrors.visionRight = 'Thị lực mắt phải: tử số phải ≤ 100.';
+        }
+        // Validate denominator
+        else if (denominator < 1) {
+          newErrors.visionRight = 'Thị lực mắt phải: mẫu số phải ≥ 1.';
+        } else if (denominator > 100) {
+          newErrors.visionRight = 'Thị lực mắt phải: mẫu số phải ≤ 100.';
+        }
+        // Validate logic: common vision values
+        else if (![5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100].includes(denominator)) {
+          newErrors.visionRight = 'Thị lực mắt phải: mẫu số nên là một trong các giá trị chuẩn (5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100).';
+        }
+      }
+    }
+
+    // 9. THÍNH LỰC - BẮT BUỘC
+    if (!formData.hearingStatus || !formData.hearingStatus.toString().trim()) {
+      newErrors.hearingStatus = 'Thính lực là bắt buộc.';
+    } else {
+      const hearingValue = formData.hearingStatus.toString().trim();
+
+      // Validate length
+      if (hearingValue.length < 2) {
+        newErrors.hearingStatus = 'Thính lực phải có ít nhất 2 ký tự.';
+      } else if (hearingValue.length > 100) {
+        newErrors.hearingStatus = 'Thính lực không được vượt quá 100 ký tự.';
+      }
+      // Validate content - không chứa ký tự đặc biệt không phù hợp
+      else if (!/^[a-zA-ZÀ-ỹ0-9\s\-\.\,\(\)\/]+$/.test(hearingValue)) {
+        newErrors.hearingStatus = 'Thính lực chỉ được chứa chữ cái, số, dấu cách và các ký tự: - . , ( ) /';
+      }
+      // Validate meaningful content
+      else {
+        const validHearingKeywords = [
+          // Tiếng Việt có dấu
+          'bình thường', 'tốt', 'khỏe', 'giảm nhẹ', 'giảm vừa', 'giảm nặng',
+          'điếc', 'khiếm thính', 'cần kiểm tra', 'không rõ', 'bất thường',
+          'yếu', 'kém', 'mất', 'suy giảm', 'có vấn đề', 'bình thường',
+          // Tiếng Việt không dấu
+          'binh thuong', 'tot', 'khoe', 'giam nhe', 'giam vua', 'giam nang',
+          'diec', 'khiem thinh', 'can kiem tra', 'khong ro', 'bat thuong',
+          'yeu', 'kem', 'mat', 'suy giam', 'co van de',
+          // Tiếng Anh
+          'normal', 'good', 'healthy', 'mild', 'moderate', 'severe', 'profound',
+          'deaf', 'hearing loss', 'impaired', 'unclear', 'abnormal', 'poor',
+          'needs', 'examination', 'check', 'test', 'problem', 'issue',
+          // Số liệu
+          'db', 'hz', 'khz', '%'
+        ];
+
+        const hasValidKeyword = validHearingKeywords.some(keyword =>
+          hearingValue.toLowerCase().includes(keyword.toLowerCase())
+        );
+
+        if (!hasValidKeyword) {
+          newErrors.hearingStatus = 'Thính lực nên mô tả tình trạng nghe (VD: Bình thường, Giảm nhẹ, Cần kiểm tra, v.v.).';
+        }
+      }
+    }
+
+    // 10. CHẨN ĐOÁN - BẮT BUỘC (chỉ kiểm tra không được để trống)
+    if (!formData.diagnosis || !formData.diagnosis.toString().trim()) {
+      newErrors.diagnosis = 'Chẩn đoán là bắt buộc.';
+    }
+
+    // 11. ĐỀ NGHỊ/GHI CHÚ - TÙY CHỌN
+    if (formData.notes && formData.notes.toString().trim()) {
+      const notesValue = formData.notes.toString().trim();
+
+      if (notesValue.length > 1000) {
+        newErrors.notes = 'Đề nghị không được vượt quá 1000 ký tự.';
+      }
+      // Validate content - không chứa ký tự đặc biệt không phù hợp
+      else if (!/^[a-zA-ZÀ-ỹ0-9\s\-\.\,\(\)\[\]\:\;\!\?\+\=\/\%\&]+$/.test(notesValue)) {
+        newErrors.notes = 'Đề nghị chứa ký tự không hợp lệ.';
       }
     }
 
@@ -124,10 +337,25 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
+      // Count errors and show detailed message
+      const errorCount = Object.keys(errors).length;
+
       Swal.fire({
         icon: 'error',
-        title: 'Dữ liệu không hợp lệ',
-        text: 'Vui lòng kiểm tra lại các trường đã tô đỏ.',
+        title: 'Dữ liệu không hợp lệ!',
+        html: `
+          <div style="text-align: left;">
+            <p><strong>Có ${errorCount} lỗi cần sửa:</strong></p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              ${Object.entries(errors).map(([, message]) => `<li>${message}</li>`).join('')}
+            </ul>
+            <p style="color: #666; font-size: 14px; margin-top: 15px;">
+              <i class="fas fa-info-circle"></i> Vui lòng kiểm tra lại các trường đã tô đỏ.
+            </p>
+          </div>
+        `,
+        confirmButtonText: 'Tôi hiểu',
+        width: '500px'
       });
       return;
     }
@@ -252,6 +480,7 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
                     onChange={handleChange}
                     isInvalid={!!errors.bloodPressure}
                     placeholder="VD: 120/80"
+                    required
                   />
                   <Form.Control.Feedback type="invalid">{errors.bloodPressure}</Form.Control.Feedback>
                 </Form.Group>
@@ -266,6 +495,7 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
                     onChange={handleChange}
                     isInvalid={!!errors.visionLeft}
                     placeholder="VD: 12/20, 20/20"
+                    required
                   />
                   <Form.Control.Feedback type="invalid">{errors.visionLeft}</Form.Control.Feedback>
                 </Form.Group>
@@ -280,6 +510,7 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
                     onChange={handleChange}
                     isInvalid={!!errors.visionRight}
                     placeholder="VD: 12/20, 20/20"
+                    required
                   />
                   <Form.Control.Feedback type="invalid">{errors.visionRight}</Form.Control.Feedback>
                 </Form.Group>
@@ -296,8 +527,11 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
                     name="hearingStatus"
                     value={formData.hearingStatus || ''}
                     onChange={handleChange}
+                    isInvalid={!!errors.hearingStatus}
                     placeholder="VD: Bình thường"
+                    required
                   />
+                  <Form.Control.Feedback type="invalid">{errors.hearingStatus}</Form.Control.Feedback>
                 </Form.Group>
               </Col>
               <Col md={4}>
@@ -310,6 +544,7 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
                     onChange={handleChange}
                     isInvalid={!!errors.heartRate}
                     placeholder="VD: 80"
+                    required
                   />
                   <Form.Control.Feedback type="invalid">{errors.heartRate}</Form.Control.Feedback>
                 </Form.Group>
@@ -325,6 +560,7 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
                     onChange={handleChange}
                     isInvalid={!!errors.bodyTemperature}
                     placeholder="VD: 36.5"
+                    required
                   />
                   <Form.Control.Feedback type="invalid">{errors.bodyTemperature}</Form.Control.Feedback>
                 </Form.Group>
@@ -348,8 +584,36 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
           <div className="form-section">
             <h5>Kết luận & Đề nghị</h5>
             <Row>
-              <Col md={12} className="mb-3"><Form.Group controlId="diagnosis"><Form.Label>Chẩn đoán</Form.Label><Form.Control as="textarea" rows={3} name="diagnosis" value={formData.diagnosis || ''} onChange={handleChange} placeholder="Nhập chẩn đoán sức khỏe của học sinh..."/></Form.Group></Col>
-              <Col md={12}><Form.Group controlId="notes"><Form.Label>Đề nghị</Form.Label><Form.Control as="textarea" rows={3} name="notes" value={formData.notes || ''} onChange={handleChange} placeholder="Nhập các đề nghị, khuyến cáo cho học sinh..."/></Form.Group></Col>
+              <Col md={12} className="mb-3">
+                <Form.Group controlId="diagnosis">
+                  <Form.Label>Chẩn đoán</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    name="diagnosis"
+                    value={formData.diagnosis || ''}
+                    onChange={handleChange}
+                    isInvalid={!!errors.diagnosis}
+                    placeholder="Nhập chẩn đoán sức khỏe của học sinh..."
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.diagnosis}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={12}>
+                <Form.Group controlId="notes">
+                  <Form.Label>Đề nghị</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    name="notes"
+                    value={formData.notes || ''}
+                    onChange={handleChange}
+                    isInvalid={!!errors.notes}
+                    placeholder="Nhập các đề nghị, khuyến cáo cho học sinh..."
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.notes}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
             </Row>
           </div>
         </Modal.Body>
