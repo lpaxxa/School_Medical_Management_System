@@ -50,6 +50,28 @@ const HEARING_OPTIONS = [
   { value: "Khác", label: "Khác" },
 ];
 
+// Helper function để đảm bảo định dạng ngày tháng đúng YYYY-MM-DD
+const formatDateToYYYYMMDD = (date) => {
+  if (!date) return new Date().toLocaleDateString("en-CA");
+
+  // Nếu đã là string với định dạng YYYY-MM-DD
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date;
+  }
+
+  // Nếu là Date object hoặc string khác
+  try {
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      return new Date().toLocaleDateString("en-CA");
+    }
+    return dateObj.toLocaleDateString("en-CA");
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return new Date().toLocaleDateString("en-CA");
+  }
+};
+
 const HealthDeclaration = () => {
   const { currentUser } = useAuth();
 
@@ -145,7 +167,7 @@ const HealthDeclaration = () => {
       dietaryRestrictions: "",
       emergencyContactInfo: "",
       immunizationStatus: "",
-      lastPhysicalExamDate: new Date().toISOString().split("T")[0],
+      lastPhysicalExamDate: formatDateToYYYYMMDD(), // Format: YYYY-MM-DD
       specialNeeds: "",
     },
     vaccinations: [],
@@ -330,7 +352,9 @@ const HealthDeclaration = () => {
         // Lấy thông tin hồ sơ sức khỏe đầy đủ từ API
         // studentId đã có định dạng đúng từ context (HS001, HS002, etc.)
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-profiles/getStudentProfileByID/${studentId}`,
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/v1/health-profiles/getStudentProfileByID/${studentId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -424,9 +448,7 @@ const HealthDeclaration = () => {
               if (matchingVaccine) {
                 formVaccinations.push({
                   vaccineId: matchingVaccine.id,
-                  vaccinationDate: v.vaccinationDate
-                    ? new Date(v.vaccinationDate).toISOString()
-                    : new Date().toISOString(),
+                  vaccinationDate: formatDateToYYYYMMDD(v.vaccinationDate),
                   administeredAt: v.administeredAt || "string",
                   notes: v.notes || "string",
                   parentNotes: v.parentNotes || "string",
@@ -510,7 +532,7 @@ const HealthDeclaration = () => {
           visionLeft: "Chưa kiểm tra",
           visionRight: "Chưa kiểm tra",
           hearingStatus: "",
-          lastPhysicalExamDate: new Date().toISOString().split("T")[0],
+          lastPhysicalExamDate: formatDateToYYYYMMDD(), // Format: YYYY-MM-DD
           immunizationStatus: "",
           // Các trường bổ sung luôn để trống để người dùng tự nhập
           allergies: "",
@@ -586,7 +608,7 @@ const HealthDeclaration = () => {
         visionLeft: "Chưa kiểm tra",
         visionRight: "Chưa kiểm tra",
         hearingStatus: "",
-        lastPhysicalExamDate: new Date().toISOString().split("T")[0],
+        lastPhysicalExamDate: formatDateToYYYYMMDD(), // Format: YYYY-MM-DD
         immunizationStatus: "",
         // Các trường bổ sung luôn để trống để người dùng tự nhập
         allergies: "",
@@ -702,7 +724,7 @@ const HealthDeclaration = () => {
             ...prevState.vaccinations,
             {
               vaccineId: vaccineId,
-              vaccinationDate: new Date().toISOString(),
+              vaccinationDate: formatDateToYYYYMMDD(), // Format: YYYY-MM-DD
               administeredAt: "Trường học", // Mặc định "Trường học"
               notes: "",
               parentNotes: "", // Khởi tạo ghi chú trống
@@ -726,13 +748,29 @@ const HealthDeclaration = () => {
         showSuccessToast(`✅ Đã chọn vaccine: ${vaccineName}`);
 
         // Gọi API thông báo chọn vaccine (optional - không ảnh hưởng đến UX)
-        if (studentNumericId) {
+        if (
+          studentNumericId &&
+          typeof studentNumericId === "number" &&
+          studentNumericId > 0
+        ) {
           try {
+            // Validate data before sending
             const notificationData = {
-              studentId: studentNumericId, // Sử dụng ID số
-              vaccineId: vaccineId,
+              studentId: parseInt(studentNumericId), // Ensure it's a number
+              vaccineId: parseInt(vaccineId), // Ensure it's a number
               recipientType: "PARENT", // Hoặc theo yêu cầu hệ thống
             };
+
+            // Additional validation
+            if (
+              isNaN(notificationData.studentId) ||
+              isNaN(notificationData.vaccineId)
+            ) {
+              console.warn(
+                "Invalid studentId or vaccineId for notification, skipping API call"
+              );
+              return;
+            }
 
             console.log(
               "Sending vaccine selection notification:",
@@ -740,13 +778,16 @@ const HealthDeclaration = () => {
             );
 
             await axios.post(
-              `${import.meta.env.VITE_BACKEND_URL}/api/v1/notification-recipient-vaccines/create`,
+              `${
+                import.meta.env.VITE_BACKEND_URL
+              }/api/v1/notification-recipient-vaccines/create`,
               notificationData,
               {
                 headers: {
                   "Content-Type": "application/json",
                   Authorization: `Bearer ${localStorage.getItem("authToken")}`,
                 },
+                timeout: 5000, // 5 second timeout
               }
             );
 
@@ -758,6 +799,13 @@ const HealthDeclaration = () => {
               "Error sending vaccine selection notification:",
               error
             );
+
+            // Log more detailed error information
+            if (error.response) {
+              console.error("Response status:", error.response.status);
+              console.error("Response data:", error.response.data);
+            }
+
             // Chỉ log lỗi, không hiển thị thông báo cho user vì đây là tính năng phụ
             console.warn(
               `Notification API failed for vaccine ${vaccineName}, but selection is still valid.`
@@ -765,7 +813,7 @@ const HealthDeclaration = () => {
           }
         } else {
           console.warn(
-            "No studentNumericId available, skipping notification API call"
+            `Invalid or missing studentNumericId (${studentNumericId}), skipping notification API call`
           );
         }
       }
@@ -1084,15 +1132,15 @@ const HealthDeclaration = () => {
             formData.healthProfile.emergencyContactInfo || "Liên hệ phụ huynh",
           immunizationStatus:
             formData.healthProfile.immunizationStatus || "string",
-          lastPhysicalExamDate:
-            formData.healthProfile.lastPhysicalExamDate ||
-            new Date().toISOString().split("T")[0],
+          lastPhysicalExamDate: formatDateToYYYYMMDD(
+            formData.healthProfile.lastPhysicalExamDate
+          ), // Format: YYYY-MM-DD
           specialNeeds: formData.healthProfile.specialNeeds || "string",
           checkupStatus: "COMPLETED",
         },
         vaccinations: filteredVaccinations.map((vaccination) => ({
           vaccineId: vaccination.vaccineId,
-          vaccinationDate: new Date(vaccination.vaccinationDate).toISOString(),
+          vaccinationDate: formatDateToYYYYMMDD(vaccination.vaccinationDate), // Ensure YYYY-MM-DD format
           administeredAt:
             vaccineAdministeredAt[vaccination.vaccineId] ||
             vaccination.administeredAt ||
@@ -1210,7 +1258,9 @@ const HealthDeclaration = () => {
           // Thử với endpoint khác
           try {
             const response = await axios.post(
-              `${import.meta.env.VITE_BACKEND_URL}/api/v1/health-profiles/${studentNumericId}`,
+              `${
+                import.meta.env.VITE_BACKEND_URL
+              }/api/v1/health-profiles/${studentNumericId}`,
               submissionData,
               {
                 headers: {

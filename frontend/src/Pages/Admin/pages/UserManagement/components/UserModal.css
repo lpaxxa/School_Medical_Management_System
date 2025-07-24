@@ -202,6 +202,307 @@
   overflow-y: auto;
 }
 
+/* ===== ADMIN FORM HEADER SECTION ===== */
+.admin-form-header-section {
+  background: linear-gradient(135deg, var(--modal-blue-50), var(--modal-white));
+  border: 1px solid var(--modal-blue-200);
+  border-radius: var(--modal-radius-xl);
+  padding: var(--modal-space-6);
+  margin: var(--modal-space-6);
+  margin-bottom: var(--modal-space-4);
+  box-shadow: var(--modal-shadow-sm);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: adminHeaderSlideIn 0.4s ease-out;
+}
+
+@keyframes adminHeaderSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-form-header-section:hover {
+  box-shadow: var(--modal-shadow-md);
+  border-color: var(--modal-blue-300);
+}
+
+.admin-form-header-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--modal-blue-500), var(--modal-blue-600), var(--modal-blue-700));
+}
+
+.admin-form-header-section h3 {
+  margin: 0 0 var(--modal-space-5) 0;
+  font-size: var(--modal-font-size-lg);
+  font-weight: 700;
+  color: var(--modal-gray-900);
+  display: flex;
+  align-items: center;
+  gap: var(--modal-space-3);
+  padding-bottom: var(--modal-space-3);
+  border-bottom: 2px solid var(--modal-blue-200);
+}
+
+.admin-form-header-section h3 svg {
+  color: var(--modal-blue-600);
+  font-size: 1.25rem;
+}
+
+.admin-form-header-section .admin-form-group {
+  margin-bottom: var(--modal-space-4);
+}
+
+.admin-form-header-section .admin-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--modal-space-4);
+  margin-bottom: var(--modal-space-4);
+}
+
+.admin-form-header-section label {
+  display: block;
+  margin-bottom: var(--modal-space-2);
+  font-size: var(--modal-font-size-sm);
+  font-weight: 700;
+  color: var(--modal-blue-700);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-form-header-section input,
+.admin-form-header-section select {
+  width: 100%;
+  padding: var(--modal-space-4);
+  border: 2px solid var(--modal-blue-200);
+  border-radius: var(--modal-radius-lg);
+  font-size: var(--modal-font-size-base);
+  font-family: var(--modal-font-family);
+  transition: all 0.3s ease;
+  background: var(--modal-white);
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.admin-form-header-section input:focus,
+.admin-form-header-section select:focus {
+  outline: none;
+  border-color: var(--modal-blue-500);
+  background: var(--modal-white);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), var(--modal-shadow-md);
+  transform: translateY(-1px);
+}
+
+.admin-form-header-section input.disabled-field {
+  background: var(--modal-blue-50) !important;
+  color: var(--modal-blue-600) !important;
+  cursor: not-allowed !important;
+  border-color: var(--modal-blue-200) !important;
+  font-weight: 600;
+}
+
+.admin-form-header-section .admin-field-note {
+  font-size: var(--modal-font-size-xs);
+  color: var(--modal-blue-600);
+  margin-top: var(--modal-space-1);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.admin-form-header-section .admin-required {
+  color: var(--modal-red);
+  font-weight: 700;
+}
+
+
+
+.admin-form-header-section select {
+  cursor: pointer !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right var(--modal-space-3) center !important;
+  background-size: 1rem !important;
+  padding-right: 3rem !important;
+}
+
+/* Remove IE/Edge default dropdown arrow */
+.admin-form-header-section select::-ms-expand {
+  display: none !important;
+}
+
+.admin-form-header-section select:focus {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+.admin-form-header-section input.error,
+.admin-form-header-section select.error {
+  border-color: var(--modal-red);
+  background: var(--modal-red-light);
+  animation: adminErrorShake 0.4s ease-in-out;
+}
+
+@keyframes adminErrorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.admin-form-header-section input.error:focus,
+.admin-form-header-section select.error:focus {
+  border-color: var(--modal-red);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15), 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.admin-form-header-section .admin-error-message {
+  color: var(--modal-red);
+  font-size: var(--modal-font-size-xs);
+  margin-top: var(--modal-space-1);
+  display: block;
+  font-weight: 600;
+  animation: adminErrorFadeIn 0.3s ease-out;
+}
+
+@keyframes adminErrorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced hover effects for admin header section */
+.admin-form-header-section input:hover:not(:disabled),
+.admin-form-header-section select:hover:not(:disabled) {
+  border-color: var(--modal-blue-400);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.admin-form-header-section input:disabled:hover {
+  cursor: not-allowed;
+}
+
+/* Enhanced focus states */
+.admin-form-header-section input:focus,
+.admin-form-header-section select:focus {
+  border-color: var(--modal-blue-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+/* Improved label styling */
+.admin-form-header-section label {
+  position: relative;
+  padding-left: var(--modal-space-1);
+}
+
+.admin-form-header-section label::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--modal-blue-500);
+  border-radius: 2px;
+}
+
+/* ===== ADMIN SPECIAL FORM SECTIONS ===== */
+/* Username field styling */
+.admin-form-group input[name="username"] {
+  background: var(--modal-blue-50);
+  border-color: var(--modal-blue-300);
+  color: var(--modal-blue-800);
+  font-weight: 600;
+}
+
+.admin-form-group input[name="username"]:disabled {
+  background: var(--modal-blue-100);
+  color: var(--modal-blue-600);
+  cursor: not-allowed;
+}
+
+/* Password field styling */
+.admin-form-group input[type="password"] {
+  border-color: var(--modal-blue-200);
+  background: var(--modal-white);
+}
+
+.admin-form-group input[type="password"]:focus {
+  border-color: var(--modal-blue-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.admin-form-group input[type="password"]::placeholder {
+  color: var(--modal-blue-400);
+  font-style: italic;
+}
+
+/* Enhanced styling for special admin form groups */
+.admin-form-group:has(input[name="username"]),
+.admin-form-group:has(input[type="password"]),
+.admin-form-group:has(.admin-status-toggle) {
+  padding: var(--modal-space-4);
+  background: linear-gradient(135deg, var(--modal-blue-50), var(--modal-white));
+  border: 1px solid var(--modal-blue-200);
+  border-radius: var(--modal-radius-lg);
+  margin-bottom: var(--modal-space-4);
+  position: relative;
+}
+
+.admin-form-group:has(input[name="username"])::before,
+.admin-form-group:has(input[type="password"])::before,
+.admin-form-group:has(.admin-status-toggle)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--modal-blue-400), var(--modal-blue-500));
+  border-radius: var(--modal-radius-lg) var(--modal-radius-lg) 0 0;
+}
+
+/* Responsive adjustments for admin header section */
+@media (max-width: 768px) {
+  .admin-form-header-section .admin-form-row {
+    grid-template-columns: 1fr;
+    gap: var(--modal-space-3);
+  }
+
+  .admin-form-header-section {
+    padding: var(--modal-space-4);
+    margin: var(--modal-space-4);
+  }
+
+  .admin-form-header-section h3 {
+    font-size: var(--modal-font-size-base);
+  }
+
+  .admin-form-group:has(input[name="username"]),
+  .admin-form-group:has(input[type="password"]),
+  .admin-form-group:has(.admin-status-toggle) {
+    padding: var(--modal-space-3);
+  }
+}
+
 /* Modern Form Sections */
 .form-section {
   margin-bottom: var(--modal-space-6);
@@ -1124,20 +1425,64 @@ textarea {
   min-height: 80px;
 }
 
-/* Select Styling */
+/* Select Styling - Fixed to prevent multiple arrows */
 select {
   cursor: pointer;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23525252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right var(--space-3) center;
-  background-size: 0.875em;
-  padding-right: 2.5rem;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23525252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right var(--space-3) center !important;
+  background-size: 0.875em !important;
+  padding-right: 2.5rem !important;
   height: 3rem;
   display: flex;
   align-items: center;
+}
+
+/* Specific fix for role selection dropdown */
+.admin-form-group select[name="role"] {
+  cursor: pointer !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
+  background-color: var(--modal-white) !important;
+}
+
+/* Remove any inherited background images */
+.admin-form-group select[name="role"]::-ms-expand {
+  display: none !important;
+}
+
+/* Global fix for all select elements in modal to prevent multiple arrows */
+.admin-modal-content select,
+.admin-modal select,
+.modal-content select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Remove IE/Edge default arrows for all selects in modal */
+.admin-modal-content select::-ms-expand,
+.admin-modal select::-ms-expand,
+.modal-content select::-ms-expand {
+  display: none !important;
+}
+
+/* Ensure only one background image per select */
+.admin-form-group select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 40px !important;
 }
 
 select:focus {
