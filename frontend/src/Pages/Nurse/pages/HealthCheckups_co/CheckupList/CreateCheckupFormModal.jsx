@@ -59,9 +59,10 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
       const selectedDate = new Date(formData.checkupDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Reset time to compare only dates
+      selectedDate.setHours(0, 0, 0, 0); // Reset time for selected date too
 
-      if (selectedDate.getTime() !== today.getTime()) {
-        newErrors.checkupDate = 'Ngày khám chỉ được phép là ngày hôm nay.';
+      if (selectedDate.getTime() < today.getTime()) {
+        newErrors.checkupDate = 'Ngày khám không được là ngày trong quá khứ.';
       }
     }
 
