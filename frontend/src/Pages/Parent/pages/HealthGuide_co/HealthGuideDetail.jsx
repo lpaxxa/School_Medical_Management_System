@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import "./HealthGuideDetail.css";
-import { CATEGORIES } from "./HealthGuide";
 import HealthGuideService from "../../../../services/HealthGuideService";
 
 const HealthGuideDetail = () => {
@@ -112,7 +111,9 @@ const HealthGuideDetail = () => {
             console.log("🧪 Testing Article Detail API...");
             try {
               const testResponse = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL}/api/health-articles/${articleId}`,
+                `${
+                  import.meta.env.VITE_BACKEND_URL
+                }/api/health-articles/${articleId}`,
                 {
                   headers: {
                     Authorization: `Bearer ${localStorage.getItem(

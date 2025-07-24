@@ -94,7 +94,7 @@ const medicalService = {
   confirmVaccination: async (data) => {
     try {
       const response = await api.post(
-        "/notification-recipient-vaccines/create",
+        "/notification-recipients",
         data
       );
       return response.data;

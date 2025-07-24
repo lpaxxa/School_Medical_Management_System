@@ -618,6 +618,172 @@
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 
+/* Parent Health Guide Pagination - Modern Design */
+.parent-health-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 40px auto;
+  gap: 20px;
+  padding: 25px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(1, 92, 146, 0.15);
+  max-width: 800px;
+  width: 100%;
+}
+
+.parent-health-pagination-btn {
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  box-shadow: 0 6px 20px rgba(1, 92, 146, 0.3);
+  min-width: 140px;
+  justify-content: center;
+}
+
+.parent-health-pagination-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2D82B5 0%, #428CD4 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(1, 92, 146, 0.4);
+}
+
+.parent-health-pagination-btn:disabled {
+  background: linear-gradient(135deg, #9ca3af, #d1d5db);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.parent-health-pagination-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parent-health-pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(1, 92, 146, 0.08);
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: 1px solid rgba(1, 92, 146, 0.2);
+}
+
+.parent-health-page-number {
+  background: transparent;
+  border: none;
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  min-width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parent-health-page-number:hover {
+  background: rgba(1, 92, 146, 0.15);
+  color: #015C92;
+  transform: scale(1.1);
+}
+
+.parent-health-page-number.active {
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.4);
+  transform: scale(1.1);
+}
+
+.parent-health-page-ellipsis {
+  color: #6b7280;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive Design for Parent Health Pagination */
+@media (max-width: 768px) {
+  .parent-health-pagination {
+    margin: 30px auto;
+    padding: 20px;
+    gap: 15px;
+    max-width: 95%;
+  }
+
+  .parent-health-pagination-btn {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    min-width: 120px;
+  }
+
+  .parent-health-pagination-pages {
+    padding: 10px 16px;
+  }
+
+  .parent-health-page-number {
+    min-width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .parent-health-pagination {
+    flex-direction: column;
+    gap: 15px;
+    margin: 25px auto;
+    padding: 18px;
+    max-width: 98%;
+  }
+
+  .parent-health-pagination-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
+    min-width: auto;
+  }
+
+  .parent-health-pagination-info {
+    order: -1;
+    width: 100%;
+  }
+
+  .parent-health-pagination-pages {
+    justify-content: center;
+    width: 100%;
+    padding: 12px 20px;
+  }
+
+  .parent-health-page-number {
+    min-width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+  }
+}
+
 /* Keyframes Animations */
 @keyframes fadeIn {
   from {

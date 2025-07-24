@@ -264,7 +264,7 @@
 
 .pin-indicator {
   position: absolute;
-  top: 12px;
+  top: 8px;
   right: 12px;
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: white;
@@ -276,7 +276,7 @@
   align-items: center;
   gap: 4px;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-  z-index: 2;
+  z-index: 3;
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 
@@ -440,6 +440,7 @@
   align-items: center;
   gap: 6px;
   font-family: 'Be Vietnam Pro', sans-serif;
+  margin-right: 120px; /* Tạo khoảng trống cho pin indicator */
 }
 
 .post-content {
@@ -1020,6 +1021,107 @@
   font-size: 0.95rem;
   color: var(--text-medium);
   font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+/* Parent Pagination Controls - Modern Design */
+.parent-pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 40px auto;
+  gap: 20px;
+  padding: 20px;
+  background: #ffffff;
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(1, 92, 146, 0.1);
+  grid-column: 1 / -1; /* Span across all grid columns */
+  width: 100%;
+  max-width: 600px; /* Limit maximum width */
+}
+
+.parent-pagination-btn {
+  background: linear-gradient(135deg, #015C92 0%, #2D82B5 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  box-shadow: 0 4px 15px rgba(1, 92, 146, 0.3);
+}
+
+.parent-pagination-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2D82B5 0%, #428CD4 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(1, 92, 146, 0.4);
+}
+
+.parent-pagination-btn:disabled {
+  background: linear-gradient(135deg, #9ca3af, #d1d5db);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.parent-pagination-info {
+  font-size: 1rem;
+  color: #374151;
+  font-weight: 600;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  padding: 10px 20px;
+  background: rgba(1, 92, 146, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(1, 92, 146, 0.2);
+}
+
+/* Responsive Design for Parent Pagination */
+@media (max-width: 768px) {
+  .parent-pagination-controls {
+    margin: 30px auto;
+    padding: 15px;
+    gap: 15px;
+    max-width: 90%;
+  }
+
+  .parent-pagination-btn {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  .parent-pagination-info {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .parent-pagination-controls {
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px auto;
+    padding: 12px;
+    max-width: 95%;
+  }
+
+  .parent-pagination-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+  }
+
+  .parent-pagination-info {
+    order: -1;
+    text-align: center;
+    width: 100%;
+  }
 }
 
 /* Style cho nút bookmark - thêm vào file Community.css */

@@ -11,8 +11,8 @@ import IntroductionPage from "../Pages/Parent/pages/Introduction_co/Introduction
 import StudentProfile from "../Pages/Parent/pages/StudentProfile_co/StudentProfile";
 import Notifications from "../Pages/Parent/pages/Notifications_co/Notifications";
 import ParentContact from "../Pages/Parent/pages/Contact_co/Contact";
-import HealthGuide from "../Pages/Parent/pages/HealthGuide_co/HealthGuide";
-import HealthGuideDetail from "../Pages/Parent/pages/HealthGuide_co/HealthGuideDetail";
+import HealthGuide from "../Pages/Parent/pages/HealthGuide_co/HealthGuide.jsx";
+import HealthGuideDetail from "../Pages/Parent/pages/HealthGuide_co/HealthGuideDetail.jsx";
 import HealthDeclaration from "../Pages/Parent/pages/HealthDeclaration_co/HealthDeclaration";
 import SendMedicine from "../Pages/Parent/pages/SendMedicine_co/SendMedicine";
 import MedicalRecords from "../Pages/Parent/pages/MedicalRecords_co/MedicalRecords";
@@ -153,7 +153,7 @@ const ParentRoutes = () => {
           </MainLayout>
         </ProtectedRoute>
       }
-/>,
+    />,
 
     <Route
       key="parent-community"
