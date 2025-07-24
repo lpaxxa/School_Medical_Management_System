@@ -51,7 +51,20 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.checkupDate) newErrors.checkupDate = 'Ngày khám là bắt buộc.';
+
+    // Validate ngày khám
+    if (!formData.checkupDate) {
+      newErrors.checkupDate = 'Ngày khám là bắt buộc.';
+    } else {
+      const selectedDate = new Date(formData.checkupDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to compare only dates
+
+      if (selectedDate.getTime() !== today.getTime()) {
+        newErrors.checkupDate = 'Ngày khám chỉ được phép là ngày hôm nay.';
+      }
+    }
+
     if (!formData.checkupType) newErrors.checkupType = 'Loại hình khám là bắt buộc.';
     if (!formData.checkupStatus) newErrors.checkupStatus = 'Trạng thái là bắt buộc.';
 
@@ -180,20 +193,141 @@ const CreateCheckupFormModal = ({ show, onClose, student, campaign, onSubmit }) 
 
           <div className="form-section">
             <h5>Các chỉ số sức khỏe</h5>
+            {/* Hàng 1: Chiều cao, Cân nặng, BMI */}
             <Row className="mb-3">
-              <Col md={4}><Form.Group><Form.Label>Chiều cao (cm)</Form.Label><Form.Control type="number" step="0.1" name="height" value={formData.height || ''} onChange={handleChange} isInvalid={!!errors.height} placeholder="Nhập chiều cao..." /><Form.Control.Feedback type="invalid">{errors.height}</Form.Control.Feedback></Form.Group></Col>
-              <Col md={4}><Form.Group><Form.Label>Cân nặng (kg)</Form.Label><Form.Control type="number" step="0.1" name="weight" value={formData.weight || ''} onChange={handleChange} isInvalid={!!errors.weight} placeholder="Nhập cân nặng..." /><Form.Control.Feedback type="invalid">{errors.weight}</Form.Control.Feedback></Form.Group></Col>
-              <Col md={4}><Form.Group><Form.Label>BMI</Form.Label><Form.Control type="number" name="bmi" value={formData.bmi || ''} readOnly placeholder="Tự động tính"/></Form.Group></Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Chiều cao (cm)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    step="0.1"
+                    name="height"
+                    value={formData.height || ''}
+                    onChange={handleChange}
+                    isInvalid={!!errors.height}
+                    placeholder="Nhập chiều cao..."
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.height}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Cân nặng (kg)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    step="0.1"
+                    name="weight"
+                    value={formData.weight || ''}
+                    onChange={handleChange}
+                    isInvalid={!!errors.weight}
+                    placeholder="Nhập cân nặng..."
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.weight}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>BMI</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="bmi"
+                    value={formData.bmi || ''}
+                    readOnly
+                    placeholder="Tự động tính"
+                  />
+                </Form.Group>
+              </Col>
             </Row>
+
+            {/* Hàng 2: Huyết áp, Thị lực (Trái), Thị lực (Phải) */}
             <Row className="mb-3">
-              <Col md={3}><Form.Group><Form.Label>Huyết áp</Form.Label><Form.Control type="text" name="bloodPressure" value={formData.bloodPressure || ''} onChange={handleChange} isInvalid={!!errors.bloodPressure} placeholder="VD: 120/80" /><Form.Control.Feedback type="invalid">{errors.bloodPressure}</Form.Control.Feedback></Form.Group></Col>
-              <Col md={3}><Form.Group><Form.Label>Thị lực (Trái)</Form.Label><Form.Control type="text" name="visionLeft" value={formData.visionLeft || ''} onChange={handleChange} isInvalid={!!errors.visionLeft} placeholder="VD: 12/20, 20/20" /><Form.Control.Feedback type="invalid">{errors.visionLeft}</Form.Control.Feedback></Form.Group></Col>
-              <Col md={3}><Form.Group><Form.Label>Thị lực (Phải)</Form.Label><Form.Control type="text" name="visionRight" value={formData.visionRight || ''} onChange={handleChange} isInvalid={!!errors.visionRight} placeholder="VD: 12/20, 20/20" /><Form.Control.Feedback type="invalid">{errors.visionRight}</Form.Control.Feedback></Form.Group></Col>
-              <Col md={3}><Form.Group><Form.Label>Thính lực</Form.Label><Form.Control type="text" name="hearingStatus" value={formData.hearingStatus || ''} onChange={handleChange} placeholder="VD: Bình thường" /></Form.Group></Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Huyết áp</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="bloodPressure"
+                    value={formData.bloodPressure || ''}
+                    onChange={handleChange}
+                    isInvalid={!!errors.bloodPressure}
+                    placeholder="VD: 120/80"
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.bloodPressure}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Thị lực (Trái)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="visionLeft"
+                    value={formData.visionLeft || ''}
+                    onChange={handleChange}
+                    isInvalid={!!errors.visionLeft}
+                    placeholder="VD: 12/20, 20/20"
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.visionLeft}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Thị lực (Phải)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="visionRight"
+                    value={formData.visionRight || ''}
+                    onChange={handleChange}
+                    isInvalid={!!errors.visionRight}
+                    placeholder="VD: 12/20, 20/20"
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.visionRight}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
             </Row>
+
+            {/* Hàng 3: Thính lực, Nhịp tim, Nhiệt độ */}
             <Row className="mb-3">
-              <Col md={4}><Form.Group><Form.Label>Nhịp tim (bpm)</Form.Label><Form.Control type="number" name="heartRate" value={formData.heartRate || ''} onChange={handleChange} isInvalid={!!errors.heartRate} placeholder="VD: 80" /><Form.Control.Feedback type="invalid">{errors.heartRate}</Form.Control.Feedback></Form.Group></Col>
-              <Col md={4}><Form.Group><Form.Label>Nhiệt độ (°C)</Form.Label><Form.Control type="number" step="0.1" name="bodyTemperature" value={formData.bodyTemperature || ''} onChange={handleChange} isInvalid={!!errors.bodyTemperature} placeholder="VD: 36.5" /><Form.Control.Feedback type="invalid">{errors.bodyTemperature}</Form.Control.Feedback></Form.Group></Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Thính lực</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="hearingStatus"
+                    value={formData.hearingStatus || ''}
+                    onChange={handleChange}
+                    placeholder="VD: Bình thường"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Nhịp tim (bpm)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="heartRate"
+                    value={formData.heartRate || ''}
+                    onChange={handleChange}
+                    isInvalid={!!errors.heartRate}
+                    placeholder="VD: 80"
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.heartRate}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Nhiệt độ (°C)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    step="0.1"
+                    name="bodyTemperature"
+                    value={formData.bodyTemperature || ''}
+                    onChange={handleChange}
+                    isInvalid={!!errors.bodyTemperature}
+                    placeholder="VD: 36.5"
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.bodyTemperature}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
             </Row>
           </div>
 

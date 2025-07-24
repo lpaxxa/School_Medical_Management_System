@@ -1,4 +1,5 @@
-.footer {
+/* Parent Footer Styles - phFooter prefix to avoid CSS conflicts */
+.phFooter {
   margin-top: -1px !important; /* -1px để loại bỏ đường viền trắng */
   padding-top: 40px;
   background: linear-gradient(135deg, #1a374d 0%, #2c3e50 100%);
@@ -12,12 +13,12 @@
   font-family: var(--font-body);
 }
 
-.svg {
+.phFooterSvg {
   height: 80px;
 }
 
 /* Wave effect at the top of footer */
-.footer-wave {
+.phFooterWave {
   display: block;
   line-height: 0;
   width: 100%;
@@ -26,21 +27,21 @@
   margin-bottom: -1px;
 }
 
-.footer-wave svg {
+.phFooterWave svg {
   display: block;
   width: 100%;
   height: 100%;
 }
 
 /* Footer inner container */
-.footer-inner {
+.phFooterInner {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 20px;
 }
 
 /* Footer content with columns */
-.footer-content {
+.phFooterContent {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 40px;
@@ -50,39 +51,39 @@
   transition: all 0.6s ease;
 }
 
-.footer-content.visible {
+.phFooterContent.phFooterVisible {
   opacity: 1;
   transform: translateY(0);
 }
 
-.footer-column {
+.phFooterColumn {
   display: flex;
   flex-direction: column;
 }
 
 /* Info column - first column */
-.info-column {
+.phFooterInfoColumn {
   padding-right: 20px;
 }
 
-.footer-logo {
+.phFooterLogo {
   margin-bottom: 20px;
   display: inline-block;
   transition: transform 0.3s ease;
 }
 
-.footer-logo img {
+.phFooterLogo img {
   max-width: 180px;
   height: auto;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.footer-logo:hover img {
+.phFooterLogo:hover img {
   transform: scale(1.05);
 }
 
-.footer-description {
+.phFooterDescription {
   margin-bottom: 20px;
   color: #e0e0e0;
   font-size: 0.95rem;
@@ -90,37 +91,37 @@
 }
 
 /* School address styling */
-.school-address {
+.phFooterSchoolAddress {
   font-style: normal;
   font-size: 0.95rem;
 }
 
-.address-item {
+.phFooterAddressItem {
   display: flex;
   align-items: flex-start;
   margin-bottom: 10px;
 }
 
-.address-item i {
+.phFooterAddressItem i {
   margin-right: 10px;
   color: #6aafdb;
   min-width: 16px;
   margin-top: 4px;
 }
 
-.school-address a {
+.phFooterSchoolAddress a {
   color: #6aafdb;
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.school-address a:hover {
+.phFooterSchoolAddress a:hover {
   color: #fff;
   text-decoration: underline;
 }
 
 /* Footer titles */
-.footer-title {
+.phFooterTitle {
   position: relative;
   font-size: 1.25rem;
   margin-bottom: 25px;
@@ -129,7 +130,7 @@
 }
 
 /* Add underline for title */
-.footer-title::after {
+.phFooterTitle::after {
   content: "";
   position: absolute;
   left: 0;
@@ -141,17 +142,17 @@
 }
 
 /* Social icons container */
-.social-icons-container {
+.phFooterSocialIconsContainer {
   margin-bottom: 20px;
 }
 
-.social-icons {
+.phFooterSocialIcons {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.social-icon {
+.phFooterSocialIcon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -164,35 +165,35 @@
   transition: all 0.3s ease;
 }
 
-.social-icon:hover {
+.phFooterSocialIcon:hover {
   transform: translateY(-3px);
 }
 
-.social-icon.facebook:hover { background-color: #1877F2; }
-.social-icon.twitter:hover { background-color: #1DA1F2; }
-.social-icon.instagram:hover { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-.social-icon.linkedin:hover { background-color: #0077B5; }
-.social-icon.youtube:hover { background-color: #FF0000; }
+.phFooterSocialIcon.phFooterFacebook:hover { background-color: #1877F2; }
+.phFooterSocialIcon.phFooterTwitter:hover { background-color: #1DA1F2; }
+.phFooterSocialIcon.phFooterInstagram:hover { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+.phFooterSocialIcon.phFooterLinkedin:hover { background-color: #0077B5; }
+.phFooterSocialIcon.phFooterYoutube:hover { background-color: #FF0000; }
 
-.connect-description {
+.phFooterConnectDescription {
   color: #e0e0e0;
   font-size: 0.95rem;
   line-height: 1.5;
 }
 
 /* Contact info styling */
-.contact-info {
+.phFooterContactInfo {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.contact-item {
+.phFooterContactItem {
   display: flex;
   align-items: center;
 }
 
-.contact-icon {
+.phFooterContactIcon {
   width: 45px;
   height: 45px;
   border-radius: 50%;
@@ -205,45 +206,45 @@
   transition: all 0.3s ease;
 }
 
-.contact-item:hover .contact-icon {
+.phFooterContactItem:hover .phFooterContactIcon {
   background: rgba(106, 175, 219, 0.2);
   transform: scale(1.05);
 }
 
-.contact-detail {
+.phFooterContactDetail {
   flex: 1;
 }
 
-.contact-label {
+.phFooterContactLabel {
   font-size: 0.85rem;
   color: #aaa;
   margin-bottom: 3px;
 }
 
-.contact-value {
+.phFooterContactValue {
   font-weight: 600;
   color: #fff;
 }
 
-.contact-value a {
+.phFooterContactValue a {
   color: inherit;
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.contact-value a:hover {
+.phFooterContactValue a:hover {
   color: #6aafdb;
 }
 
 /* Divider line */
-.footer-divider {
+.phFooterDivider {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   margin: 20px 0;
 }
 
 /* Footer bottom */
-.footer-bottom {
+.phFooterBottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -252,72 +253,72 @@
   font-size: 0.9rem;
 }
 
-.copyright {
+.phFooterCopyright {
   color: #a0a0a0;
 }
 
-.copyright a {
+.phFooterCopyright a {
   color: #6aafdb;
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.copyright a:hover {
+.phFooterCopyright a:hover {
   color: #fff;
   text-decoration: underline;
 }
 
-.footer-bottom-links {
+.phFooterBottomLinks {
   display: flex;
   gap: 20px;
 }
 
-.footer-bottom-link {
+.phFooterBottomLink {
   color: #a0a0a0;
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.footer-bottom-link:hover {
+.phFooterBottomLink:hover {
   color: #fff;
 }
 
 /* Responsive styles */
 @media (max-width: 992px) {
-  .footer-content {
+  .phFooterContent {
     grid-template-columns: 1fr 1fr;
   }
-  
-  .contact-column {
+
+  .phFooterContactColumn {
     grid-column: span 2;
     margin-top: 20px;
   }
 }
 
 @media (max-width: 768px) {
-  .footer-content {
+  .phFooterContent {
     grid-template-columns: 1fr;
     gap: 30px;
   }
-  
-  .contact-column {
+
+  .phFooterContactColumn {
     grid-column: auto;
   }
-  
-  .footer-bottom {
+
+  .phFooterBottom {
     flex-direction: column;
     text-align: center;
   }
-  
-  .footer-bottom-links {
+
+  .phFooterBottomLinks {
     justify-content: center;
   }
-  
-  .contact-info {
+
+  .phFooterContactInfo {
     margin-top: 10px;
   }
-  
-  .info-column {
+
+  .phFooterInfoColumn {
     padding-right: 0;
   }
 }

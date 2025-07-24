@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import {
   FaBandAid,
   FaExclamationCircle,
@@ -15,6 +21,8 @@ import {
   FaFlag,
   FaClipboardList,
   FaSync,
+  FaSortAmountDown,
+  FaSortAmountUp,
 } from "react-icons/fa";
 import medicalService from "../../../../../../services/medicalService";
 import { formatDate } from "../../utils/formatters";
@@ -29,6 +37,8 @@ const IncidentsTab = ({ studentId }) => {
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
+  const [sortChangeNotification, setSortChangeNotification] = useState(null);
 
   // Refs for managing intervals and component state
   const refreshIntervalRef = useRef(null);
@@ -130,6 +140,57 @@ const IncidentsTab = ({ studentId }) => {
     setSelectedIncident(null);
   };
 
+  // Sort incidents using useMemo for proper re-rendering
+  const sortedIncidents = useMemo(() => {
+    console.log("🔄 Sorting incidents with order:", sortOrder);
+    console.log("📋 Raw incidents data:", medicalIncidents);
+
+    return [...medicalIncidents].sort((a, b) => {
+      // Primary sort: by incidentId (assuming higher ID = newer)
+      const idA = a.incidentId || 0;
+      const idB = b.incidentId || 0;
+
+      console.log("📊 Comparing incidents:", {
+        a: { id: idA, type: a.incidentType, dateTime: a.dateTime },
+        b: { id: idB, type: b.incidentType, dateTime: b.dateTime },
+      });
+
+      if (sortOrder === "newest") {
+        return idB - idA; // Higher ID first (newer)
+      } else {
+        return idA - idB; // Lower ID first (older)
+      }
+    });
+  }, [medicalIncidents, sortOrder]);
+
+  // Toggle sort order
+  const toggleSortOrder = () => {
+    const newOrder = sortOrder === "newest" ? "oldest" : "newest";
+    console.log(
+      "🔄 Toggling incidents sort order from",
+      sortOrder,
+      "to",
+      newOrder
+    );
+    console.log("📋 Current incidents data:", medicalIncidents);
+    console.log(
+      "📅 Incidents with dates:",
+      medicalIncidents.map((incident) => ({
+        id: incident.incidentId,
+        type: incident.incidentType,
+        date: incident.incidentDate || incident.createdAt || incident.date,
+        dateTime: incident.dateTime,
+      }))
+    );
+    setSortOrder(newOrder);
+
+    // Show sort change notification
+    setSortChangeNotification(
+      `Đã sắp xếp theo ${newOrder === "newest" ? "mới nhất" : "cũ nhất"}`
+    );
+    setTimeout(() => setSortChangeNotification(null), 2000);
+  };
+
   const getSeverityConfig = (severityLevel) => {
     const level = severityLevel?.toLowerCase();
     switch (level) {
@@ -197,13 +258,23 @@ const IncidentsTab = ({ studentId }) => {
       <div className="incidents-header">
         <div className="incidents-title-section">
           <h3>Lịch sử sự cố y tế</h3>
-          {lastUpdated && (
+          {/* {lastUpdated && (
             <div className="last-updated">
               Cập nhật: {lastUpdated.toLocaleTimeString("vi-VN")}
             </div>
-          )}
+          )} */}
         </div>
         <div className="incidents-controls">
+          <button
+            className="sort-btn"
+            onClick={toggleSortOrder}
+            title={`Sắp xếp theo ${
+              sortOrder === "newest" ? "cũ nhất" : "mới nhất"
+            }`}
+          >
+            {sortOrder === "newest" ? <FaSortAmountDown /> : <FaSortAmountUp />}
+            <span>{sortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}</span>
+          </button>
           <button
             className={`refresh-btn ${isRefreshing ? "refreshing" : ""}`}
             onClick={handleManualRefresh}
@@ -215,6 +286,14 @@ const IncidentsTab = ({ studentId }) => {
           </button>
         </div>
       </div>
+
+      {/* Sort change notification */}
+      {sortChangeNotification && (
+        <div className="sort-notification">
+          <FaSync className="notification-icon" />
+          {sortChangeNotification}
+        </div>
+      )}
 
       {incidentsError ? (
         <div className="error-message">
@@ -233,7 +312,7 @@ const IncidentsTab = ({ studentId }) => {
         </div>
       ) : (
         <div className="incidents-list">
-          {medicalIncidents.map((incident) => (
+          {sortedIncidents.map((incident) => (
             <div
               className={`incident-card ${incident.severityLevel.toLowerCase()}`}
               key={incident.incidentId}
@@ -250,7 +329,15 @@ const IncidentsTab = ({ studentId }) => {
                 </div>
                 <div className="incident-date">
                   <FaCalendarAlt />
-                  {formatDate(incident.dateTime)}
+                  <span className="date-text">
+                    {formatDate(incident.dateTime)}
+                  </span>
+                  {/* <span className="sort-indicator">
+                    #
+                    {sortedIncidents.findIndex(
+                      (i) => i.incidentId === incident.incidentId
+                    ) + 1}
+                  </span> */}
                 </div>
               </div>
             </div>

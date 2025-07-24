@@ -117,12 +117,11 @@ const Login = () => {
 
           {/* Test accounts information (deleted)*/}
 
-
           {/* Thông báo lỗi */}
           {(error || authError) && (
-            <div className="error-message">
-              <i className="fas fa-exclamation-circle"></i>
-              {error || authError}
+            <div className="loginErrorMessage">
+              <i className="fas fa-exclamation-circle loginErrorIcon"></i>
+              <span className="loginErrorText">{error || authError}</span>
             </div>
           )}
 

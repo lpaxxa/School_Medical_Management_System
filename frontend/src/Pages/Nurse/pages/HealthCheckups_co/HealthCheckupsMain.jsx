@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Nav, Tab, Card, Row, Col } from 'react-bootstrap';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Container, Nav, Card, Row, Col } from 'react-bootstrap';
 import { HealthCheckupProvider } from '../../../../context/NurseContext/HealthCheckupContext';
 import CheckupList from './CheckupList/CheckupList';
 import './HealthCheckupsMain.css';
@@ -7,36 +8,36 @@ import './HealthCheckupsMain.css';
 // Import renamed component
 import MedicalCheckupList from './ScheduleConsultation/ScheduleConsultation';
 
-// Export the HealthCheckupsPage component for routes
-export const HealthCheckupsPage = () => {
-  return (
-    <HealthCheckupProvider>
-      <HealthCheckups />
-    </HealthCheckupProvider>
-  );
-};
+const HealthCheckupsMain = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-const HealthCheckups = () => {
-  const [activeTab, setActiveTab] = useState(() => {
-    const savedTab = sessionStorage.getItem('healthCheckupsActiveTab');
-    return (savedTab && savedTab !== 'dashboard') ? savedTab : 'campaign-list';
-  });
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  useEffect(() => {
-    sessionStorage.setItem('healthCheckupsActiveTab', activeTab);
-  }, [activeTab]);
-
-  const refreshData = () => {
-    setRefreshTrigger(prev => prev + 1);
+  // Determine active tab based on current route
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path.includes('/schedule-consultation')) {
+      return 'schedule-consultation';
+    } else {
+      return 'campaign-list';
+    }
   };
+
+  const [activeTab, setActiveTab] = useState('campaign-list');
+
+  // Sync tab state when URL changes
+  useEffect(() => {
+    setActiveTab(getActiveTab());
+  }, [location.pathname]);
 
   const handleTabSelect = (selectedTab) => {
     setActiveTab(selectedTab);
+    // Navigate to absolute path to avoid URL accumulation
+    const basePath = '/nurse/health-checkups';
+    navigate(`${basePath}/${selectedTab}`, { replace: true });
   };
 
   return (
-    <>
+    <HealthCheckupProvider>
       <style>
         {`
           .lukhang-healthcheckup-main-wrapper {
@@ -179,6 +180,11 @@ const HealthCheckups = () => {
             background: transparent !important;
             padding: 0 !important;
           }
+
+          .lukhang-healthcheckup-routes-container {
+            background: transparent !important;
+            min-height: 400px !important;
+          }
           
           @media (max-width: 992px) {
             .lukhang-healthcheckup-main-wrapper {
@@ -239,34 +245,35 @@ const HealthCheckups = () => {
           </Card.Body>
         </Card>
         
-        <Tab.Container activeKey={activeTab} onSelect={handleTabSelect}>
-          <Card className="lukhang-healthcheckup-tabs-container">
-            <Card.Header className="lukhang-healthcheckup-tabs-header">
-              <Nav variant="tabs" className="lukhang-healthcheckup-nav-tabs d-flex justify-content-center">
-                <Nav.Item className="lukhang-healthcheckup-nav-item">
-                  <Nav.Link 
-                    eventKey="campaign-list" 
-                    className="lukhang-healthcheckup-nav-link"
-                  >
-                    <i className="fas fa-list"></i>
-                    Danh sách đợt khám
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item className="lukhang-healthcheckup-nav-item">
-                  <Nav.Link 
-                    eventKey="schedule-consultation" 
-                    className="lukhang-healthcheckup-nav-link"
-                  >
-                    <i className="fas fa-calendar-alt"></i>
-                    Danh sách khám sức khỏe
-                  </Nav.Link>
-                </Nav.Item>
-              </Nav>
-            </Card.Header>
-            
-            <div className="lukhang-healthcheckup-tab-content-wrapper">
-              <Tab.Content>
-                <Tab.Pane eventKey="campaign-list">
+        <Card className="lukhang-healthcheckup-tabs-container">
+          <Card.Header className="lukhang-healthcheckup-tabs-header">
+            <Nav variant="tabs" className="lukhang-healthcheckup-nav-tabs d-flex justify-content-center">
+              <Nav.Item className="lukhang-healthcheckup-nav-item">
+                <Nav.Link
+                  className={`lukhang-healthcheckup-nav-link ${activeTab === 'campaign-list' ? 'active' : ''}`}
+                  onClick={() => handleTabSelect('campaign-list')}
+                >
+                  <i className="fas fa-list"></i>
+                  Danh sách đợt khám
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item className="lukhang-healthcheckup-nav-item">
+                <Nav.Link
+                  className={`lukhang-healthcheckup-nav-link ${activeTab === 'schedule-consultation' ? 'active' : ''}`}
+                  onClick={() => handleTabSelect('schedule-consultation')}
+                >
+                  <i className="fas fa-calendar-alt"></i>
+                  Danh sách khám sức khỏe
+                </Nav.Link>
+              </Nav.Item>
+            </Nav>
+          </Card.Header>
+
+          <div className="lukhang-healthcheckup-tab-content-wrapper">
+            <div className="lukhang-healthcheckup-routes-container">
+              <Routes>
+                <Route index element={<Navigate to="campaign-list" replace />} />
+                <Route path="campaign-list" element={
                   <Card className="lukhang-healthcheckup-content-card">
                     <Card.Header className="lukhang-healthcheckup-content-header">
                       <h4 className="lukhang-healthcheckup-content-title">
@@ -278,9 +285,8 @@ const HealthCheckups = () => {
                       <CheckupList />
                     </Card.Body>
                   </Card>
-                </Tab.Pane>
-                
-                <Tab.Pane eventKey="schedule-consultation">
+                } />
+                <Route path="schedule-consultation" element={
                   <Card className="lukhang-healthcheckup-content-card">
                     <Card.Header className="lukhang-healthcheckup-content-header">
                       <h4 className="lukhang-healthcheckup-content-title">
@@ -289,21 +295,17 @@ const HealthCheckups = () => {
                       </h4>
                     </Card.Header>
                     <Card.Body className="lukhang-healthcheckup-content-body">
-                      <MedicalCheckupList 
-                        refreshData={refreshData}
-                      />
+                      <MedicalCheckupList />
                     </Card.Body>
                   </Card>
-                </Tab.Pane>
-              </Tab.Content>
+                } />
+              </Routes>
             </div>
-          </Card>
-        </Tab.Container>
+          </div>
+        </Card>
       </Container>
-    </>
+    </HealthCheckupProvider>
   );
 };
 
-// Export both components but make HealthCheckupsPage the default
-export { HealthCheckups };
-export default HealthCheckupsPage;
+export default HealthCheckupsMain;

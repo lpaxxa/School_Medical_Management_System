@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import {
   FaSyringe,
   FaExclamationCircle,
@@ -10,9 +16,13 @@ import {
   FaChevronRight,
   FaCheckCircle,
   FaTag,
+  FaSortAmountDown,
+  FaSortAmountUp,
+  FaSync,
 } from "react-icons/fa";
 import medicalService from "../../../../../../services/medicalService";
 import { formatDate } from "../../utils/formatters";
+import { cacheData, getCachedData } from "../../utils/helpers";
 import VaccinationModal from "../modals/VaccinationModal";
 
 const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
@@ -56,6 +66,11 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
   const [itemsPerPage] = useState(5); // Số items mỗi trang cho kế hoạch tiêm chủng
   const [historyCurrentPage, setHistoryCurrentPage] = useState(1);
   const [historyItemsPerPage] = useState(8); // Số items mỗi trang cho lịch sử tiêm chủng
+
+  // State for sorting
+  const [plansSortOrder, setPlansSortOrder] = useState("newest"); // "newest" or "oldest"
+  const [historySortOrder, setHistorySortOrder] = useState("newest"); // "newest" or "oldest"
+  const [sortChangeNotification, setSortChangeNotification] = useState(null);
 
   // Refs for managing intervals and component state
   const refreshIntervalRef = useRef(null);
@@ -393,17 +408,232 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
     [confirmations]
   );
 
+  // Sorting helper functions using useMemo for proper re-rendering
+  const sortedPlans = useMemo(() => {
+    console.log("🔄 Recalculating sortedPlans with order:", plansSortOrder);
+    console.log("📋 Plans data:", vaccinationPlans);
+
+    const sorted = [...vaccinationPlans].sort((a, b) => {
+      // Primary sort: by plan ID (assuming higher ID = newer)
+      const idA = a.id || 0;
+      const idB = b.id || 0;
+
+      // Secondary sort: by plan name
+      const nameA = a.name || "";
+      const nameB = b.name || "";
+
+      console.log("📊 Comparing plans:", {
+        a: { id: idA, name: nameA, status: a.status },
+        b: { id: idB, name: nameB, status: b.status },
+      });
+
+      // Sort by ID first
+      if (idA !== idB) {
+        if (plansSortOrder === "newest") {
+          return idB - idA; // Higher ID first (newer)
+        } else {
+          return idA - idB; // Lower ID first (older)
+        }
+      }
+
+      // If IDs are same, sort by name
+      if (plansSortOrder === "newest") {
+        return nameB.localeCompare(nameA); // Z to A
+      } else {
+        return nameA.localeCompare(nameB); // A to Z
+      }
+    });
+
+    console.log("✅ Sorted plans result:", sorted);
+    return sorted;
+  }, [vaccinationPlans, plansSortOrder]);
+
+  const sortedHistory = useMemo(() => {
+    console.log("🔄 Sorting vaccination history with order:", historySortOrder);
+    console.log("📋 Raw vaccination history:", vaccinationHistory);
+
+    return [...vaccinationHistory].sort((a, b) => {
+      // Primary sort: by vaccinationDate (same field used in modal)
+      let dateA = null;
+      let dateB = null;
+
+      // Parse vaccinationDate (handle DD/MM/YYYY format from modal)
+      const parseVaccinationDate = (dateValue) => {
+        if (!dateValue) return null;
+
+        if (typeof dateValue === "string") {
+          // Handle DD/MM/YYYY format (as shown in modal: 17/07/2025)
+          if (dateValue.includes("/")) {
+            const parts = dateValue.split("/");
+            if (parts.length === 3) {
+              const [day, month, year] = parts;
+              return new Date(
+                parseInt(year),
+                parseInt(month) - 1,
+                parseInt(day)
+              );
+            }
+          }
+          // Try standard date parsing
+          const standardDate = new Date(dateValue);
+          if (!isNaN(standardDate.getTime())) {
+            return standardDate;
+          }
+        } else if (Array.isArray(dateValue) && dateValue.length >= 3) {
+          // Handle array format [year, month, day]
+          return new Date(dateValue[0], dateValue[1] - 1, dateValue[2]);
+        }
+
+        return null;
+      };
+
+      dateA = parseVaccinationDate(a.vaccinationDate);
+      dateB = parseVaccinationDate(b.vaccinationDate);
+
+      console.log("📊 Comparing vaccinations by date (DD/MM/YYYY format):", {
+        a: {
+          vaccineName: a.vaccineName,
+          vaccinationDate: a.vaccinationDate,
+          parsedDate: dateA,
+          parsedDateString: dateA ? dateA.toLocaleDateString("vi-VN") : null,
+          isValidDate: dateA && !isNaN(dateA.getTime()),
+          doseNumber: a.doseNumber,
+        },
+        b: {
+          vaccineName: b.vaccineName,
+          vaccinationDate: b.vaccinationDate,
+          parsedDate: dateB,
+          parsedDateString: dateB ? dateB.toLocaleDateString("vi-VN") : null,
+          isValidDate: dateB && !isNaN(dateB.getTime()),
+          doseNumber: b.doseNumber,
+        },
+        sortOrder: historySortOrder,
+      });
+
+      // Handle cases where dates are available
+      const hasValidDateA = dateA && !isNaN(dateA.getTime());
+      const hasValidDateB = dateB && !isNaN(dateB.getTime());
+
+      let result = 0;
+
+      if (hasValidDateA && hasValidDateB) {
+        // Both have valid dates - sort by date
+        if (historySortOrder === "newest") {
+          result = dateB - dateA; // Newest first
+        } else {
+          result = dateA - dateB; // Oldest first
+        }
+        console.log(
+          `🔄 Date comparison result: ${result} (${historySortOrder})`
+        );
+      } else if (hasValidDateA && !hasValidDateB) {
+        // Only A has date - A comes first (has been vaccinated)
+        result = historySortOrder === "newest" ? -1 : 1;
+        console.log(`🔄 Only A has date, result: ${result}`);
+      } else if (!hasValidDateA && hasValidDateB) {
+        // Only B has date - B comes first (has been vaccinated)
+        result = historySortOrder === "newest" ? 1 : -1;
+        console.log(`🔄 Only B has date, result: ${result}`);
+      } else {
+        // Neither has valid date - sort by dose number, then by name
+        const doseA = a.doseNumber || 0;
+        const doseB = b.doseNumber || 0;
+
+        if (doseA !== doseB) {
+          if (historySortOrder === "newest") {
+            result = doseB - doseA; // Higher dose first
+          } else {
+            result = doseA - doseB; // Lower dose first
+          }
+        } else {
+          // Fallback to vaccine name
+          const nameA = a.vaccineName || "";
+          const nameB = b.vaccineName || "";
+          if (historySortOrder === "newest") {
+            result = nameB.localeCompare(nameA); // Z to A
+          } else {
+            result = nameA.localeCompare(nameB); // A to Z
+          }
+        }
+        console.log(`🔄 No dates, fallback sort result: ${result}`);
+      }
+
+      return result;
+    });
+  }, [vaccinationHistory, historySortOrder]);
+
   // Pagination helper functions
   const getPaginatedPlans = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return vaccinationPlans.slice(startIndex, endIndex);
+    return sortedPlans.slice(startIndex, endIndex);
   };
 
   const getPaginatedHistory = () => {
     const startIndex = (historyCurrentPage - 1) * historyItemsPerPage;
     const endIndex = startIndex + historyItemsPerPage;
-    return vaccinationHistory.slice(startIndex, endIndex);
+    return sortedHistory.slice(startIndex, endIndex);
+  };
+
+  // Toggle sort order functions
+  const togglePlansSortOrder = () => {
+    const newOrder = plansSortOrder === "newest" ? "oldest" : "newest";
+    console.log(
+      "🔄 Toggling plans sort order from",
+      plansSortOrder,
+      "to",
+      newOrder
+    );
+    console.log("📋 Current plans data:", vaccinationPlans);
+    console.log(
+      "📅 Plans with dates:",
+      vaccinationPlans.map((plan) => ({
+        id: plan.id,
+        name: plan.name,
+        createdAt: plan.createdAt,
+        scheduledDate: plan.scheduledDate,
+        vaccinationDate: plan.vaccinationDate,
+        date: plan.date,
+      }))
+    );
+    setPlansSortOrder(newOrder);
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
+  const toggleHistorySortOrder = () => {
+    const newOrder = historySortOrder === "newest" ? "oldest" : "newest";
+    console.log(
+      "🔄 Toggling history sort order from",
+      historySortOrder,
+      "to",
+      newOrder
+    );
+    console.log("📋 Current history data:", vaccinationHistory);
+    console.log(
+      "📅 History with vaccination dates (from modal):",
+      vaccinationHistory.map((vaccination) => ({
+        id: vaccination.id,
+        vaccineName: vaccination.vaccineName,
+        vaccinationDate: vaccination.vaccinationDate,
+        parsedDate: vaccination.vaccinationDate
+          ? new Date(vaccination.vaccinationDate)
+          : null,
+        isValidDate: vaccination.vaccinationDate
+          ? !isNaN(new Date(vaccination.vaccinationDate).getTime())
+          : false,
+        doseNumber: vaccination.doseNumber,
+      }))
+    );
+    setHistorySortOrder(newOrder);
+    setHistoryCurrentPage(1); // Reset to first page when sorting changes
+
+    // Show sort change notification
+    setSortChangeNotification(
+      `Đã sắp xếp lịch sử tiêm chủng theo ${
+        newOrder === "newest" ? "mới nhất" : "cũ nhất"
+      }`
+    );
+    setTimeout(() => setSortChangeNotification(null), 2000);
   };
 
   const getTotalPages = () => {
@@ -503,8 +733,30 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
         // Existing confirmation content
         <div className="confirmation-section">
           <div className="section-header">
-            <h3>Xác nhận tiêm chủng</h3>
-            <p>Xác nhận hoặc từ chối các kế hoạch tiêm chủng cho con em mình</p>
+            <div className="section-title">
+              <h3>Xác nhận tiêm chủng</h3>
+              <p>
+                Xác nhận hoặc từ chối các kế hoạch tiêm chủng cho con em mình
+              </p>
+            </div>
+            <div className="section-controls">
+              <button
+                className="sort-btn"
+                onClick={togglePlansSortOrder}
+                title={`Sắp xếp theo ${
+                  plansSortOrder === "newest" ? "cũ nhất" : "mới nhất"
+                }`}
+              >
+                {plansSortOrder === "newest" ? (
+                  <FaSortAmountDown />
+                ) : (
+                  <FaSortAmountUp />
+                )}
+                <span>
+                  {plansSortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}
+                </span>
+              </button>
+            </div>
           </div>
 
           {plansError ? (
@@ -540,6 +792,9 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
                     <div className="plan-date">
                       <FaCalendarAlt />
                       <span>Ngày tiêm: {formatDate(plan.vaccinationDate)}</span>
+                      <span className="sort-indicator">
+                        #{sortedPlans.findIndex((p) => p.id === plan.id) + 1}
+                      </span>
                     </div>
                   </div>
 
@@ -910,7 +1165,34 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
 
               {/* Vaccination History */}
               <div className="vaccination-history-list">
-                <h4>Lịch sử tiêm chủng</h4>
+                <div className="history-header">
+                  <h4>Lịch sử tiêm chủng</h4>
+                  <button
+                    className="sort-btn"
+                    onClick={toggleHistorySortOrder}
+                    title={`Sắp xếp theo ${
+                      historySortOrder === "newest" ? "cũ nhất" : "mới nhất"
+                    }`}
+                  >
+                    {historySortOrder === "newest" ? (
+                      <FaSortAmountDown />
+                    ) : (
+                      <FaSortAmountUp />
+                    )}
+                    <span>
+                      {historySortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Sort change notification for history */}
+                {sortChangeNotification && (
+                  <div className="sort-notification">
+                    <FaSync className="notification-icon" />
+                    {sortChangeNotification}
+                  </div>
+                )}
+
                 {vaccinationHistory.length === 0 ? (
                   <div className="no-data-message">
                     <FaSyringe />
@@ -947,6 +1229,12 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
                                 {vaccination.vaccinationDate
                                   ? formatDate(vaccination.vaccinationDate)
                                   : "Chưa tiêm"}
+                              </span>
+                              <span className="sort-indicator">
+                                #
+                                {sortedHistory.findIndex(
+                                  (v) => v === vaccination
+                                ) + 1}
                               </span>
                             </div>
                             <div className="vaccination-type">

@@ -1483,6 +1483,43 @@
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
+/* Bar Chart Styles */
+.chart-bar {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chart-bar:hover {
+  filter: brightness(1.1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+  transform: translateY(-1px);
+}
+
+/* Value labels on bars */
+.growth-chart-svg text {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive chart adjustments */
+@media (max-width: 768px) {
+  .growth-chart-svg text {
+    font-size: 10px;
+  }
+
+  .chart-bar {
+    stroke-width: 0.5;
+  }
+
+  .chart-dot {
+    r: 3;
+  }
+
+  .chart-dot:hover {
+    r: 5;
+  }
+}
+
 /* Growth Statistics */
 .growth-stats {
   margin-top: var(--space-6);
@@ -1759,6 +1796,200 @@
   .incidents-controls {
     justify-content: flex-end;
     margin-top: var(--space-2);
+  }
+}
+
+/* ================================================
+   SORT BUTTON STYLING
+   ================================================ */
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-white);
+  color: var(--color-gray-600);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.sort-btn:hover {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.sort-btn:active {
+  transform: translateY(0);
+  background-color: var(--color-blue-50);
+  border-color: var(--color-blue-300);
+  color: var(--color-blue-700);
+}
+
+.sort-btn.active {
+  background-color: var(--color-blue-100);
+  border-color: var(--color-blue-400);
+  color: var(--color-blue-800);
+  font-weight: 600;
+}
+
+.sort-btn svg {
+  font-size: var(--text-base);
+  flex-shrink: 0;
+}
+
+/* Sort indicator styling */
+.sort-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 20px;
+  padding: 2px 6px;
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-700);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  margin-left: var(--space-2);
+  border: 1px solid var(--color-blue-200);
+  animation: sortIndicatorFadeIn 0.3s ease-in-out;
+}
+
+/* Animation for sort changes */
+@keyframes sortIndicatorFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Add animation to list items when sorting */
+.incident-card,
+.vaccination-plan-card,
+.vaccination-row {
+  animation: listItemSlideIn 0.4s ease-out;
+}
+
+@keyframes listItemSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Sort notification styling */
+.sort-notification {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-green-50);
+  color: var(--color-green-700);
+  border: 1px solid var(--color-green-200);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-3);
+  animation: notificationSlideDown 0.3s ease-out;
+}
+
+.sort-notification .notification-icon {
+  font-size: var(--text-base);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes notificationSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Section controls styling for VaccinationsTab */
+.section-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.section-title {
+  flex: 1;
+}
+
+/* History header styling for VaccinationsTab */
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.history-header h4 {
+  margin: 0;
+  flex: 1;
+}
+
+/* Responsive design for sort buttons */
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .section-controls {
+    justify-content: flex-end;
+  }
+
+  .history-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+
+  .sort-btn {
+    align-self: flex-end;
+    width: auto;
   }
 }
 

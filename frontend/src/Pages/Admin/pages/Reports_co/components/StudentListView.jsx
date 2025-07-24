@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaUser,
   FaIdCard,
@@ -7,6 +7,8 @@ import {
   FaEye,
   FaTrashAlt,
   FaSearch,
+  FaFilter,
+  FaSync,
   FaArrowLeft,
   FaUsers,
   FaChild,
@@ -30,6 +32,15 @@ const StudentListView = ({
   onStudentDeleted,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Reset to first page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Modal hooks
   const {
@@ -341,25 +352,23 @@ const StudentListView = ({
         </div>
       </div>
 
-      {/* Controls Section */}
-      <div className="reports-student-list-controls-section">
-        <div className="reports-student-list-controls">
-          <div className="reports-student-search-section">
-            <div className="reports-student-search">
-              <FaSearch />
-              <input
-                type="text"
-                placeholder="Tìm kiếm học sinh..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+      {/* Toolbar */}
+      <div className="admin-history-toolbar">
+        <div className="admin-search-filter-group">
+          <div className="admin-search-box">
+            <FaSearch className="admin-search-icon" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm học sinh..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <div className="reports-student-stats-section-controls">
-            <div className="reports-student-count">
-              <FaUsers /> Danh sách học sinh ({filteredStudents.length} học
-              sinh)
-            </div>
+        </div>
+
+        <div className="admin-toolbar-buttons">
+          <div className="admin-results-count">
+            <FaUsers /> Tổng cộng {filteredStudents.length} học sinh
           </div>
         </div>
       </div>
@@ -373,84 +382,163 @@ const StudentListView = ({
             <p>Thử thay đổi từ khóa tìm kiếm</p>
           </div>
         ) : (
-          <div className="reports-student-table-container">
-            <table className="reports-student-table">
-              <thead>
-                <tr>
-                  <th>STT</th>
-                  <th>Mã học sinh</th>
-                  <th>Họ và tên</th>
-                  <th>Lớp học</th>
-                  <th>Khối lớp</th>
-                  <th>Giới tính</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.map((student, index) => (
-                  <tr key={student.id} className="reports-student-table-row">
-                    <td className="reports-student-table-stt">{index + 1}</td>
-                    <td className="reports-student-table-id">
-                      <span className="reports-student-id-badge">
-                        {student.studentId}
-                      </span>
-                    </td>
-                    <td className="reports-student-table-name">
-                      <div className="reports-student-name-info">
-                        <FaUser className="reports-student-table-icon" />
-                        <span className="reports-student-name">
-                          {student.fullName}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="reports-student-table-class">
-                      <span className="reports-student-class-badge">
-                        {student.className}
-                      </span>
-                    </td>
-                    <td className="reports-student-table-grade">
-                      <span className="reports-student-grade-badge">
-                        {student.gradeLevel}
-                      </span>
-                    </td>
-                    <td className="reports-student-table-gender">
-                      <span
-                        className={`reports-student-gender-badge ${getGenderClass(
-                          student.gender
-                        )}`}
+          (() => {
+            // Calculate pagination
+            const totalPages = Math.ceil(
+              filteredStudents.length / itemsPerPage
+            );
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const currentStudents = filteredStudents.slice(
+              startIndex,
+              endIndex
+            );
+
+            return (
+              <div className="reports-student-table-container">
+                <table className="reports-student-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Mã học sinh</th>
+                      <th>Họ và tên</th>
+                      <th>Lớp học</th>
+                      <th>Khối lớp</th>
+                      <th>Giới tính</th>
+                      <th>Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentStudents.map((student, index) => (
+                      <tr
+                        key={student.id}
+                        className="reports-student-table-row"
                       >
-                        {normalizeGender(student.gender)}
-                      </span>
-                    </td>
-                    <td className="reports-student-table-actions">
-                      <div className="reports-student-action-buttons">
-                        <button
-                          className="reports-student-action-btn reports-student-view-btn"
-                          onClick={() => onViewDetail(student)}
-                          title="Xem chi tiết"
-                        >
-                          <FaEye />
-                        </button>
-                        <button
-                          className="reports-student-action-btn reports-student-delete-btn"
-                          onClick={() => {
-                            console.log(
-                              "🖱️ Delete button clicked for student:",
-                              student
-                            );
-                            handleDeleteStudent(student);
-                          }}
-                          title="Xóa học sinh"
-                        >
-                          <FaTrashAlt />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        <td className="reports-student-table-stt">
+                          {startIndex + index + 1}
+                        </td>
+                        <td className="reports-student-table-id">
+                          <span className="reports-student-id-badge">
+                            {student.studentId}
+                          </span>
+                        </td>
+                        <td className="reports-student-table-name">
+                          <div className="reports-student-name-info">
+                            <FaUser className="reports-student-table-icon" />
+                            <span className="reports-student-name">
+                              {student.fullName}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="reports-student-table-class">
+                          <span className="reports-student-class-badge">
+                            {student.className}
+                          </span>
+                        </td>
+                        <td className="reports-student-table-grade">
+                          <span className="reports-student-grade-badge">
+                            {student.gradeLevel}
+                          </span>
+                        </td>
+                        <td className="reports-student-table-gender">
+                          <span
+                            className={`reports-student-gender-badge ${getGenderClass(
+                              student.gender
+                            )}`}
+                          >
+                            {normalizeGender(student.gender)}
+                          </span>
+                        </td>
+                        <td className="reports-student-table-actions">
+                          <div className="reports-student-action-buttons">
+                            <button
+                              className="reports-student-action-btn reports-student-view-btn"
+                              onClick={() => onViewDetail(student)}
+                              title="Xem chi tiết"
+                            >
+                              <FaEye />
+                            </button>
+                            <button
+                              className="reports-student-action-btn reports-student-delete-btn"
+                              onClick={() => {
+                                console.log(
+                                  "🖱️ Delete button clicked for student:",
+                                  student
+                                );
+                                handleDeleteStudent(student);
+                              }}
+                              title="Xóa học sinh"
+                            >
+                              <FaTrashAlt />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="admin-pagination">
+                    <div className="admin-pagination-info">
+                      Hiển thị {startIndex + 1}-
+                      {Math.min(endIndex, filteredStudents.length)} của{" "}
+                      {filteredStudents.length} học sinh
+                    </div>
+                    <div className="admin-pagination-controls">
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                        className="admin-pagination-btn"
+                      >
+                        ‹ Trước
+                      </button>
+
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page === totalPages ||
+                            Math.abs(page - currentPage) <= 1
+                        )
+                        .map((page, index, array) => (
+                          <React.Fragment key={page}>
+                            {index > 0 && array[index - 1] !== page - 1 && (
+                              <span className="admin-pagination-ellipsis">
+                                ...
+                              </span>
+                            )}
+                            <button
+                              onClick={() => setCurrentPage(page)}
+                              className={`admin-pagination-btn ${
+                                currentPage === page ? "active" : ""
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        ))}
+
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                        className="admin-pagination-btn"
+                      >
+                        Tiếp ›
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()
         )}
       </div>
 

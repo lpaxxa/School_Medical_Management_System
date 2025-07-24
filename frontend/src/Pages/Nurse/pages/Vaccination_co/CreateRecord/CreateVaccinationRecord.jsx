@@ -348,8 +348,8 @@ const CreateVaccinationRecord = () => {
           <>
             <div className="vaccination-grid">
               {currentPlans.map((plan) => (
-                <Card 
-                  key={plan.id} 
+                <Card
+                  key={plan.id}
                   className="h-100 shadow-sm border-0"
                   style={{
                     borderRadius: '12px',
@@ -420,7 +420,7 @@ const CreateVaccinationRecord = () => {
 
                   {/* Card Footer */}
                   <Card.Footer className="bg-transparent border-0 p-4 pt-0">
-                    <Button 
+                    <Button
                       className="w-100 fw-medium border-0"
                       onClick={() => handleShowDetailsWithScroll(plan.id)}
                       style={{
@@ -432,6 +432,11 @@ const CreateVaccinationRecord = () => {
                       }}
                       onMouseEnter={(e) => e.target.style.opacity = '0.85'}
                       onMouseLeave={(e) => e.target.style.opacity = '1'}
+                      title={
+                        (plan.status === 'COMPLETED' || plan.status === 'CANCELED')
+                          ? `Kế hoạch đã ${plan.status === 'COMPLETED' ? 'hoàn thành' : 'bị hủy'} - Không thể tạo hồ sơ mới`
+                          : 'Xem chi tiết kế hoạch tiêm chủng'
+                      }
                     >
                       <span style={{ marginRight: '8px' }}>👁</span>
                       Xem chi tiết

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Nav, Tab, Alert, Spinner } from 'react-bootstrap';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Container, Row, Col, Card, Nav, Alert, Spinner } from 'react-bootstrap';
 import './ReceiveMedicine.css';
 import MedicineReceipts from './MedicineReceipts/MedicineReceipts';
 import MedicationHistory from './MedicationHistory/MedicationHistory';
@@ -7,9 +8,35 @@ import { MedicineApprovalProvider } from '../../../../context/NurseContext/Medic
 
 // Component ReceiveMedicineMain (đã gộp từ file ReceiveMedicineMain.jsx và áp dụng Bootstrap)
 const ReceiveMedicineMain = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine active tab based on current route
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path.includes('/medication-history')) {
+      return 'medication-history';
+    } else {
+      return 'medicine-receipts';
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState('medicine-receipts');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
+  // Sync tab state when URL changes
+  useEffect(() => {
+    setActiveTab(getActiveTab());
+  }, [location.pathname]);
+
+  const handleTabSelect = (selectedTab) => {
+    setActiveTab(selectedTab);
+    // Navigate to absolute path to avoid URL accumulation
+    const basePath = '/nurse/receive-medicine';
+    navigate(`${basePath}/${selectedTab}`, { replace: true });
+  };
+
   // Loại bỏ loading giả lập - trang sẽ load ngay lập tức
   useEffect(() => {
     setIsLoading(false);
@@ -36,7 +63,7 @@ const ReceiveMedicineMain = () => {
   }
 
   return (
-    <>
+    <MedicineApprovalProvider>
       <style>
         {`
           .lukhang-receivemedicine-main-wrapper {
@@ -183,6 +210,11 @@ const ReceiveMedicineMain = () => {
             background: transparent !important;
             padding: 0 !important;
           }
+
+          .lukhang-receivemedicine-routes-container {
+            background: transparent !important;
+            min-height: 400px !important;
+          }
           
           @media (max-width: 992px) {
             .lukhang-receivemedicine-main-wrapper {
@@ -243,34 +275,35 @@ const ReceiveMedicineMain = () => {
           </Card.Body>
         </Card>
         
-        <Tab.Container defaultActiveKey="receipts">
-          <Card className="lukhang-receivemedicine-tabs-container">
-            <Card.Header className="lukhang-receivemedicine-tabs-header">
-              <Nav variant="tabs" className="lukhang-receivemedicine-nav-tabs d-flex justify-content-center">
-                <Nav.Item className="lukhang-receivemedicine-nav-item">
-                  <Nav.Link 
-                    eventKey="receipts" 
-                    className="lukhang-receivemedicine-nav-link"
-                  >
-                    <i className="fas fa-prescription-bottle-alt"></i>
-                    Đơn nhận thuốc
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item className="lukhang-receivemedicine-nav-item" >
-                  <Nav.Link 
-                    eventKey="history" 
-                    className="lukhang-receivemedicine-nav-link"
-                  >
-                    <i className="fas fa-history"></i>
-                    Lịch sử dùng thuốc
-                  </Nav.Link>
-                </Nav.Item>
-              </Nav>
-            </Card.Header>
-            
-            <div className="lukhang-receivemedicine-tab-content-wrapper">
-              <Tab.Content>
-                <Tab.Pane eventKey="receipts">
+        <Card className="lukhang-receivemedicine-tabs-container">
+          <Card.Header className="lukhang-receivemedicine-tabs-header">
+            <Nav variant="tabs" className="lukhang-receivemedicine-nav-tabs d-flex justify-content-center">
+              <Nav.Item className="lukhang-receivemedicine-nav-item">
+                <Nav.Link
+                  className={`lukhang-receivemedicine-nav-link ${activeTab === 'medicine-receipts' ? 'active' : ''}`}
+                  onClick={() => handleTabSelect('medicine-receipts')}
+                >
+                  <i className="fas fa-prescription-bottle-alt"></i>
+                  Đơn nhận thuốc
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item className="lukhang-receivemedicine-nav-item" >
+                <Nav.Link
+                  className={`lukhang-receivemedicine-nav-link ${activeTab === 'medication-history' ? 'active' : ''}`}
+                  onClick={() => handleTabSelect('medication-history')}
+                >
+                  <i className="fas fa-history"></i>
+                  Lịch sử dùng thuốc
+                </Nav.Link>
+              </Nav.Item>
+            </Nav>
+          </Card.Header>
+
+          <div className="lukhang-receivemedicine-tab-content-wrapper">
+            <div className="lukhang-receivemedicine-routes-container">
+              <Routes>
+                <Route index element={<Navigate to="medicine-receipts" replace />} />
+                <Route path="medicine-receipts" element={
                   <Card className="lukhang-receivemedicine-content-card">
                     <Card.Header className="lukhang-receivemedicine-content-header">
                       <h4 className="lukhang-receivemedicine-content-title">
@@ -282,8 +315,8 @@ const ReceiveMedicineMain = () => {
                       <MedicineReceipts />
                     </Card.Body>
                   </Card>
-                </Tab.Pane>
-                <Tab.Pane eventKey="history">
+                } />
+                <Route path="medication-history" element={
                   <Card className="lukhang-receivemedicine-content-card">
                     <Card.Header className="lukhang-receivemedicine-content-header">
                       <h4 className="lukhang-receivemedicine-content-title">
@@ -295,27 +328,14 @@ const ReceiveMedicineMain = () => {
                       <MedicationHistory />
                     </Card.Body>
                   </Card>
-                </Tab.Pane>
-              </Tab.Content>
+                } />
+              </Routes>
             </div>
-          </Card>
-        </Tab.Container>
+          </div>
+        </Card>
       </Container>
-    </>
-  );
-};
-
-// Component chính ReceiveMedicine
-const ReceiveMedicine = () => {
-  return (
-    <MedicineApprovalProvider>
-      <ReceiveMedicineMain />
     </MedicineApprovalProvider>
   );
 };
 
-// Xuất component riêng để có thể tái sử dụng ở nơi khác nếu cần
-export { ReceiveMedicineMain };
-
-// Export component chính
-export default ReceiveMedicine;
+export default ReceiveMedicineMain;

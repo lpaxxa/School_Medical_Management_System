@@ -171,7 +171,7 @@ const GrowthTab = ({ studentId }) => {
     return bounds;
   };
 
-  // Tạo path cho SVG line chart
+  // Tạo path cho SVG line chart (đường nối các điểm trên đỉnh cột)
   const createPath = (data, field, bounds, chartWidth, chartHeight) => {
     if (!data.length) return "";
 
@@ -182,16 +182,25 @@ const GrowthTab = ({ studentId }) => {
       chartHeight,
     });
 
+    const groupWidth = chartWidth / data.length;
+    const barWidth = Math.min(groupWidth * 0.35, 40);
+    const barSpacing = 4;
+
     const points = data
       .map((item, index) => {
-        const x =
-          data.length === 1
-            ? chartWidth / 2
-            : (index / (data.length - 1)) * chartWidth;
+        const groupCenterX = index * groupWidth + groupWidth / 2;
         const value = parseFloat(item[field]);
-        const y =
-          chartHeight -
-          ((value - bounds.min) / (bounds.max - bounds.min)) * chartHeight;
+
+        // Sử dụng cùng logic với createBars để đảm bảo đường nối đi qua đỉnh cột
+        const valueRatio = (value - bounds.min) / (bounds.max - bounds.min);
+        const barHeight = valueRatio * chartHeight * 0.8;
+        const y = chartHeight - barHeight;
+
+        // Tính x dựa trên loại cột (height = trái, weight = phải)
+        const x =
+          field === "height"
+            ? groupCenterX - barWidth - barSpacing / 2 + barWidth / 2 // Center of height bar
+            : groupCenterX + barSpacing / 2 + barWidth / 2; // Center of weight bar
 
         console.log(`Point ${index} for ${field}:`, {
           date: formatDate(item.checkupDate),
@@ -207,19 +216,29 @@ const GrowthTab = ({ studentId }) => {
     return `M${points.replace(/ /g, " L")}`;
   };
 
-  // Tạo points cho dots
+  // Tạo points cho dots (trên đỉnh cột)
   const createDots = (data, field, bounds, chartWidth, chartHeight) => {
     if (!data.length) return [];
 
+    const groupWidth = chartWidth / data.length;
+    const barWidth = Math.min(groupWidth * 0.35, 40);
+    const barSpacing = 4;
+
     return data.map((item, index) => {
-      const x =
-        data.length === 1
-          ? chartWidth / 2
-          : (index / (data.length - 1)) * chartWidth;
+      const groupCenterX = index * groupWidth + groupWidth / 2;
       const value = parseFloat(item[field]);
-      const y =
-        chartHeight -
-        ((value - bounds.min) / (bounds.max - bounds.min)) * chartHeight;
+
+      // Sử dụng cùng logic với createBars
+      const valueRatio = (value - bounds.min) / (bounds.max - bounds.min);
+      const barHeight = valueRatio * chartHeight * 0.8;
+      const y = chartHeight - barHeight;
+
+      // Tính x dựa trên loại cột
+      const x =
+        field === "height"
+          ? groupCenterX - barWidth - barSpacing / 2 + barWidth / 2 // Center of height bar
+          : groupCenterX + barSpacing / 2 + barWidth / 2; // Center of weight bar
+
       return {
         x,
         y,
@@ -228,6 +247,83 @@ const GrowthTab = ({ studentId }) => {
         formattedDate: formatDate(item.checkupDate),
       };
     });
+  };
+
+  // Tạo bars cho biểu đồ cột - 2 cột cho mỗi ngày (cùng scale trục Y)
+  const createBars = (data, chartWidth, chartHeight) => {
+    if (!data.length) return [];
+
+    const groupWidth = chartWidth / data.length; // Không gian cho mỗi nhóm ngày
+    const barWidth = Math.min(groupWidth * 0.35, 40); // Mỗi cột chiếm 35% không gian nhóm
+    const barSpacing = 4; // Khoảng cách giữa 2 cột trong cùng nhóm
+
+    // Tạo một scale chung cho cả chiều cao và cân nặng
+    const allValues = [];
+    data.forEach((item) => {
+      allValues.push(parseFloat(item.height));
+      allValues.push(parseFloat(item.weight));
+    });
+
+    const minValue = Math.min(...allValues);
+    const maxValue = Math.max(...allValues);
+    const padding = (maxValue - minValue) * 0.1;
+    const commonBounds = {
+      min: Math.max(0, minValue - padding),
+      max: maxValue + padding,
+    };
+
+    const bars = [];
+
+    data.forEach((item, index) => {
+      const groupCenterX = index * groupWidth + groupWidth / 2;
+      const heightValue = parseFloat(item.height);
+      const weightValue = parseFloat(item.weight);
+
+      // Tính chiều cao cột dựa trên scale chung
+      const heightRatio =
+        (heightValue - commonBounds.min) /
+        (commonBounds.max - commonBounds.min);
+      const weightRatio =
+        (weightValue - commonBounds.min) /
+        (commonBounds.max - commonBounds.min);
+
+      const heightBarHeight = heightRatio * chartHeight * 0.8;
+      const weightBarHeight = weightRatio * chartHeight * 0.8;
+
+      // Cột chiều cao (bên trái)
+      bars.push({
+        type: "height",
+        x: groupCenterX - barWidth - barSpacing / 2,
+        y: chartHeight - heightBarHeight,
+        width: barWidth,
+        height: heightBarHeight,
+        value: heightValue,
+        unit: "cm",
+        date: item.checkupDate,
+        formattedDate: formatDate(item.checkupDate),
+        index,
+        color: "#6366f1",
+        label: `${heightValue}cm`,
+      });
+
+      // Cột cân nặng (bên phải)
+      bars.push({
+        type: "weight",
+        x: groupCenterX + barSpacing / 2,
+        y: chartHeight - weightBarHeight,
+        width: barWidth,
+        height: weightBarHeight,
+        value: weightValue,
+        unit: "kg",
+        date: item.checkupDate,
+        formattedDate: formatDate(item.checkupDate),
+        index,
+        color: "#dc2626",
+        label: `${weightValue}kg`,
+      });
+    });
+
+    return { bars, commonBounds };
   };
 
   if (error) {
@@ -275,6 +371,11 @@ const GrowthTab = ({ studentId }) => {
   const chartHeight = 300;
   const heightBounds = getChartBounds(checkupsData, "height");
   const weightBounds = getChartBounds(checkupsData, "weight");
+  const { bars, commonBounds } = createBars(
+    checkupsData,
+    chartWidth,
+    chartHeight
+  );
 
   // Debug: Log final data being used for chart
   console.log("Final chart data:", {
@@ -400,95 +501,62 @@ const GrowthTab = ({ studentId }) => {
             rx="8"
           />
 
-          {/* Y-axis labels for height */}
-          {(activeChart === "height" || activeChart === "both") && (
-            <g className="y-axis-height">
-              {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
-                const y = 20 + chartHeight - ratio * chartHeight;
-                const value = (
-                  heightBounds.min +
-                  (heightBounds.max - heightBounds.min) * ratio
-                ).toFixed(1);
-                return (
-                  <g key={`height-y-${index}`}>
-                    <line
-                      x1="55"
-                      y1={y}
-                      x2="60"
-                      y2={y}
-                      stroke="#6366f1"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x="50"
-                      y={y + 4}
-                      textAnchor="end"
-                      fontSize="12"
-                      fill="#6366f1"
-                      fontWeight="500"
-                    >
-                      {value}cm
-                    </text>
-                  </g>
-                );
-              })}
-            </g>
-          )}
+          {/* Y-axis labels - Left side (alternating height and weight values) */}
+          <g className="y-axis-left">
+            {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
+              const y = 20 + chartHeight - ratio * chartHeight;
+              const commonValue =
+                commonBounds.min +
+                (commonBounds.max - commonBounds.min) * ratio;
 
-          {/* Y-axis labels for weight */}
-          {(activeChart === "weight" || activeChart === "both") && (
-            <g className="y-axis-weight">
-              {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
-                const y = 20 + chartHeight - ratio * chartHeight;
-                const value = (
-                  weightBounds.min +
-                  (weightBounds.max - weightBounds.min) * ratio
-                ).toFixed(1);
-                return (
-                  <g key={`weight-y-${index}`}>
-                    <line
-                      x1={chartWidth + 60}
-                      y1={y}
-                      x2={chartWidth + 65}
-                      y2={y}
-                      stroke="#dc2626"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={chartWidth + 70}
-                      y={y + 4}
-                      textAnchor="start"
-                      fontSize="12"
-                      fill="#dc2626"
-                      fontWeight="500"
-                    >
-                      {value}kg
-                    </text>
-                  </g>
-                );
-              })}
-            </g>
-          )}
+              // Xen kẽ giữa chiều cao và cân nặng
+              const isHeightTurn = index % 2 === 0; // Chẵn = chiều cao, lẻ = cân nặng
+              const value = commonValue.toFixed(1);
+              const displayText = isHeightTurn ? `${value}cm` : `${value}kg`;
+              const textColor = isHeightTurn ? "#6366f1" : "#dc2626";
+
+              return (
+                <g key={`left-y-${index}`}>
+                  <line
+                    x1="55"
+                    y1={y}
+                    x2="60"
+                    y2={y}
+                    stroke="#64748b"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x="50"
+                    y={y + 4}
+                    textAnchor="end"
+                    fontSize="12"
+                    fill={textColor}
+                    fontWeight="500"
+                  >
+                    {displayText}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
 
           {/* X-axis labels */}
           <g className="x-axis">
             {checkupsData.map((item, index) => {
-              const x =
-                checkupsData.length === 1
-                  ? 60 + chartWidth / 2
-                  : 60 + (index / (checkupsData.length - 1)) * chartWidth;
+              const groupWidth = chartWidth / checkupsData.length;
+              const groupCenterX = 60 + index * groupWidth + groupWidth / 2;
               return (
                 <g key={`x-${index}`}>
                   <line
-                    x1={x}
+                    x1={groupCenterX}
                     y1={chartHeight + 20}
-                    x2={x}
+                    x2={groupCenterX}
                     y2={chartHeight + 25}
                     stroke="#64748b"
                     strokeWidth="1"
                   />
                   <text
-                    x={x}
+                    x={groupCenterX}
                     y={chartHeight + 40}
                     textAnchor="middle"
                     fontSize="11"
@@ -501,56 +569,123 @@ const GrowthTab = ({ studentId }) => {
             })}
           </g>
 
-          {/* Height line chart */}
-          {(activeChart === "height" || activeChart === "both") && (
-            <g className="height-chart" transform="translate(60, 20)">
-              {/* Gradient for height line */}
-              <defs>
-                <linearGradient
-                  id="heightGradient"
-                  x1="0%"
-                  y1="0%"
-                  x2="0%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0.05" />
-                </linearGradient>
-              </defs>
+          {/* Bar Chart with Separate Height and Weight Bars */}
+          <g className="bar-chart" transform="translate(60, 20)">
+            {/* Gradient definitions */}
+            <defs>
+              <linearGradient
+                id="heightBarGradient"
+                x1="0%"
+                y1="0%"
+                x2="0%"
+                y2="100%"
+              >
+                <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#6366f1" stopOpacity="0.8" />
+              </linearGradient>
+              <linearGradient
+                id="weightBarGradient"
+                x1="0%"
+                y1="0%"
+                x2="0%"
+                y2="100%"
+              >
+                <stop offset="0%" stopColor="#f87171" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#dc2626" stopOpacity="0.8" />
+              </linearGradient>
+            </defs>
 
-              {/* Fill area under height line */}
-              <path
-                d={`${createPath(
-                  checkupsData,
-                  "height",
-                  heightBounds,
-                  chartWidth,
-                  chartHeight
-                )} L${chartWidth},${chartHeight} L0,${chartHeight} Z`}
-                fill="url(#heightGradient)"
-              />
+            {/* Bars */}
+            {bars.map((bar) => {
+              // Chỉ hiển thị cột theo activeChart
+              const shouldShow =
+                activeChart === "both" ||
+                (activeChart === "height" && bar.type === "height") ||
+                (activeChart === "weight" && bar.type === "weight");
 
-              {/* Height line */}
+              if (!shouldShow) return null;
+
+              return (
+                <g key={`bar-${bar.type}-${bar.index}`}>
+                  {/* Bar */}
+                  <rect
+                    x={bar.x}
+                    y={bar.y}
+                    width={bar.width}
+                    height={bar.height}
+                    fill={
+                      bar.type === "height"
+                        ? "url(#heightBarGradient)"
+                        : "url(#weightBarGradient)"
+                    }
+                    stroke={bar.color}
+                    strokeWidth="1"
+                    rx="3"
+                    className="chart-bar"
+                  >
+                    <title>{`${bar.formattedDate}: ${bar.label}`}</title>
+                  </rect>
+
+                  {/* Value label on top of bar */}
+                  <text
+                    x={bar.x + bar.width / 2}
+                    y={bar.y - 3}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill={bar.color}
+                    fontWeight="600"
+                  >
+                    {bar.label}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Height line connecting the tops */}
+            {(activeChart === "height" || activeChart === "both") && (
               <path
                 d={createPath(
                   checkupsData,
                   "height",
-                  heightBounds,
+                  commonBounds,
                   chartWidth,
                   chartHeight
                 )}
                 fill="none"
                 stroke="#6366f1"
-                strokeWidth="3"
+                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                opacity="0.8"
               />
+            )}
 
-              {/* Height dots */}
-              {createDots(
+            {/* Weight line connecting the tops */}
+            {(activeChart === "weight" || activeChart === "both") && (
+              <path
+                d={createPath(
+                  checkupsData,
+                  "weight",
+                  commonBounds,
+                  chartWidth,
+                  chartHeight
+                )}
+                fill="none"
+                stroke="#dc2626"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray={activeChart === "both" ? "5,5" : "none"}
+                opacity="0.8"
+              />
+            )}
+
+            {/* Height dots */}
+            {(activeChart === "height" || activeChart === "both") &&
+              createDots(
                 checkupsData,
                 "height",
-                heightBounds,
+                commonBounds,
                 chartWidth,
                 chartHeight
               ).map((dot, index) => (
@@ -558,7 +693,7 @@ const GrowthTab = ({ studentId }) => {
                   key={`height-dot-${index}`}
                   cx={dot.x}
                   cy={dot.y}
-                  r="5"
+                  r="4"
                   fill="#6366f1"
                   stroke="#ffffff"
                   strokeWidth="2"
@@ -567,62 +702,13 @@ const GrowthTab = ({ studentId }) => {
                   <title>{`${dot.formattedDate}: ${dot.value}cm`}</title>
                 </circle>
               ))}
-            </g>
-          )}
 
-          {/* Weight line chart */}
-          {(activeChart === "weight" || activeChart === "both") && (
-            <g className="weight-chart" transform="translate(60, 20)">
-              {/* Gradient for weight line */}
-              <defs>
-                <linearGradient
-                  id="weightGradient"
-                  x1="0%"
-                  y1="0%"
-                  x2="0%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#dc2626" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#dc2626" stopOpacity="0.05" />
-                </linearGradient>
-              </defs>
-
-              {/* Fill area under weight line */}
-              {activeChart === "weight" && (
-                <path
-                  d={`${createPath(
-                    checkupsData,
-                    "weight",
-                    weightBounds,
-                    chartWidth,
-                    chartHeight
-                  )} L${chartWidth},${chartHeight} L0,${chartHeight} Z`}
-                  fill="url(#weightGradient)"
-                />
-              )}
-
-              {/* Weight line */}
-              <path
-                d={createPath(
-                  checkupsData,
-                  "weight",
-                  weightBounds,
-                  chartWidth,
-                  chartHeight
-                )}
-                fill="none"
-                stroke="#dc2626"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeDasharray={activeChart === "both" ? "5,5" : "none"}
-              />
-
-              {/* Weight dots */}
-              {createDots(
+            {/* Weight dots */}
+            {(activeChart === "weight" || activeChart === "both") &&
+              createDots(
                 checkupsData,
                 "weight",
-                weightBounds,
+                commonBounds,
                 chartWidth,
                 chartHeight
               ).map((dot, index) => (
@@ -630,7 +716,7 @@ const GrowthTab = ({ studentId }) => {
                   key={`weight-dot-${index}`}
                   cx={dot.x}
                   cy={dot.y}
-                  r="5"
+                  r="4"
                   fill="#dc2626"
                   stroke="#ffffff"
                   strokeWidth="2"
@@ -639,8 +725,7 @@ const GrowthTab = ({ studentId }) => {
                   <title>{`${dot.formattedDate}: ${dot.value}kg`}</title>
                 </circle>
               ))}
-            </g>
-          )}
+          </g>
 
           {/* Chart legend */}
           <g
@@ -649,24 +734,19 @@ const GrowthTab = ({ studentId }) => {
           >
             {(activeChart === "height" || activeChart === "both") && (
               <g>
-                <line
-                  x1="0"
-                  y1="15"
-                  x2="20"
-                  y2="15"
+                {/* Height bar icon */}
+                <rect
+                  x="0"
+                  y="8"
+                  width="8"
+                  height="14"
+                  fill="url(#heightBarGradient)"
                   stroke="#6366f1"
-                  strokeWidth="3"
-                />
-                <circle
-                  cx="10"
-                  cy="15"
-                  r="4"
-                  fill="#6366f1"
-                  stroke="#ffffff"
-                  strokeWidth="2"
+                  strokeWidth="1"
+                  rx="2"
                 />
                 <text
-                  x="30"
+                  x="18"
                   y="19"
                   fontSize="13"
                   fill="#374151"
@@ -680,29 +760,23 @@ const GrowthTab = ({ studentId }) => {
               <g
                 transform={
                   activeChart === "both"
-                    ? "translate(150, 0)"
+                    ? "translate(140, 0)"
                     : "translate(0, 0)"
                 }
               >
-                <line
-                  x1="0"
-                  y1="15"
-                  x2="20"
-                  y2="15"
+                {/* Weight bar icon */}
+                <rect
+                  x="0"
+                  y="8"
+                  width="8"
+                  height="14"
+                  fill="url(#weightBarGradient)"
                   stroke="#dc2626"
-                  strokeWidth="3"
-                  strokeDasharray={activeChart === "both" ? "5,5" : "none"}
-                />
-                <circle
-                  cx="10"
-                  cy="15"
-                  r="4"
-                  fill="#dc2626"
-                  stroke="#ffffff"
-                  strokeWidth="2"
+                  strokeWidth="1"
+                  rx="2"
                 />
                 <text
-                  x="30"
+                  x="18"
                   y="19"
                   fontSize="13"
                   fill="#374151"

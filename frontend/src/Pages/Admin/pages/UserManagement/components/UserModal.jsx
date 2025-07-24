@@ -328,8 +328,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
       // Validation học sinh
       formData.students.forEach((student, index) => {
         if (!student.fullName.trim())
-          newErrors[`student_${index}_fullName`] =
-            "Vui lòng nhập tên học sinh";
+          newErrors[`student_${index}_fullName`] = "Vui lòng nhập tên học sinh";
 
         if (!student.dateOfBirth)
           newErrors[`student_${index}_dateOfBirth`] = "Vui lòng chọn ngày sinh";
@@ -507,80 +506,89 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Hiển thị ID khi edit hoặc view */}
-          {(mode === "edit" || mode === "view") && (
-            <div className="form-group">
-              <label htmlFor="id">ID</label>
-              <input
-                type="text"
-                id="id"
-                name="id"
-                value={formData.id}
-                disabled
-                className="disabled-field"
-              />
-            </div>
-          )}
+          {/* Admin Form Header Section - Thông tin cơ bản */}
+          <div className="admin-form-header-section">
+            <h3>
+              <FaUser /> Thông tin cơ bản
+            </h3>
 
-          {/* Role Selection */}
-          <div className="form-group">
-            <label htmlFor="role">Vai trò</label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={mode === "view" || mode === "edit"}
-            >
-              <option value="ADMIN">Quản trị viên</option>
-              <option value="NURSE">Y tá trường</option>
-              <option value="PARENT">Phụ huynh</option>
-            </select>
-            {mode === "add" && (
-              <small className="field-note">
-                Chọn vai trò sẽ hiển thị form phù hợp
-              </small>
+            {/* Hiển thị ID khi edit hoặc view */}
+            {(mode === "edit" || mode === "view") && (
+              <div className="admin-form-group">
+                <label htmlFor="id">ID</label>
+                <input
+                  type="text"
+                  id="id"
+                  name="id"
+                  value={formData.id}
+                  disabled
+                  className="disabled-field"
+                />
+              </div>
             )}
-          </div>
 
-          {/* Common Fields */}
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="email">
-                Email <span className="required">*</span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
+            {/* Role Selection */}
+            <div className="admin-form-group">
+              <label htmlFor="role">Vai trò</label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
                 onChange={handleChange}
-                disabled={mode === "view"}
-                className={errors.email ? "error" : ""}
-                placeholder="Nhập địa chỉ email"
-              />
-              {errors.email && (
-                <span className="error-message">{errors.email}</span>
+                disabled={mode === "view" || mode === "edit"}
+              >
+                <option value="ADMIN">Quản trị viên</option>
+                <option value="NURSE">Y tá trường</option>
+                <option value="PARENT">Phụ huynh</option>
+              </select>
+              {mode === "add" && (
+                <small className="admin-field-note">
+                  Chọn vai trò sẽ hiển thị form phù hợp
+                </small>
               )}
             </div>
 
-            <div className="form-group">
-              <label htmlFor="phoneNumber">
-                Số điện thoại <span className="required">*</span>
-              </label>
-              <input
-                type="text"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                disabled={mode === "view"}
-                className={errors.phoneNumber ? "error" : ""}
-                placeholder="Nhập số điện thoại"
-              />
-              {errors.phoneNumber && (
-                <span className="error-message">{errors.phoneNumber}</span>
-              )}
+            {/* Common Fields */}
+            <div className="admin-form-row">
+              <div className="admin-form-group">
+                <label htmlFor="email">
+                  Email <span className="admin-required">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={mode === "view"}
+                  className={errors.email ? "error" : ""}
+                  placeholder="Nhập địa chỉ email"
+                />
+                {errors.email && (
+                  <span className="admin-error-message">{errors.email}</span>
+                )}
+              </div>
+
+              <div className="admin-form-group">
+                <label htmlFor="phoneNumber">
+                  Số điện thoại <span className="admin-required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  disabled={mode === "view"}
+                  className={errors.phoneNumber ? "error" : ""}
+                  placeholder="Nhập số điện thoại"
+                />
+                {errors.phoneNumber && (
+                  <span className="admin-error-message">
+                    {errors.phoneNumber}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -945,19 +953,19 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                       (student, index) => (
                         <div
                           key={student.id || index}
-                          className="existing-student-card"
+                          className="admin-existing-student-card"
                         >
                           <div
-                            className="student-card-header"
+                            className="admin-student-card-header"
                             onClick={() => toggleStudentDetails(index)}
                             style={{ cursor: "pointer" }}
                           >
-                            <div className="student-basic-info">
-                              <span className="student-name">
+                            <div className="admin-student-basic-info">
+                              <span className="admin-student-name">
                                 {student.fullName}
                               </span>
                             </div>
-                            <div className="expand-icon">
+                            <div className="admin-expand-icon">
                               {expandedStudents.has(index) ? (
                                 <FaChevronDown />
                               ) : (
@@ -967,12 +975,12 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                           </div>
 
                           {expandedStudents.has(index) && (
-                            <div className="student-details">
+                            <div className="admin-student-details">
                               {mode === "edit" ? (
                                 // Editable form for edit mode
-                                <div className="student-edit-form">
+                                <div className="admin-student-edit-form">
                                   {/* Student Image Upload */}
-                                  <div className="form-group">
+                                  <div className="admin-form-group">
                                     <label>Ảnh học sinh</label>
                                     <StudentImageUpload
                                       student={student}
@@ -982,11 +990,13 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                     />
                                   </div>
 
-                                  <div className="form-row">
-                                    <div className="form-group">
+                                  <div className="admin-form-row">
+                                    <div className="admin-form-group">
                                       <label>
                                         Họ tên{" "}
-                                        <span className="required">*</span>
+                                        <span className="admin-required">
+                                          *
+                                        </span>
                                       </label>
                                       <input
                                         type="text"
@@ -1010,7 +1020,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                       {errors[
                                         `existingStudent_${index}_fullName`
                                       ] && (
-                                        <span className="error-message">
+                                        <span className="admin-error-message">
                                           {
                                             errors[
                                               `existingStudent_${index}_fullName`
@@ -1019,10 +1029,12 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                         </span>
                                       )}
                                     </div>
-                                    <div className="form-group">
+                                    <div className="admin-form-group">
                                       <label>
                                         Ngày sinh{" "}
-                                        <span className="required">*</span>
+                                        <span className="admin-required">
+                                          *
+                                        </span>
                                       </label>
                                       <input
                                         type="date"
@@ -1045,7 +1057,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                       {errors[
                                         `existingStudent_${index}_dateOfBirth`
                                       ] && (
-                                        <span className="error-message">
+                                        <span className="admin-error-message">
                                           {
                                             errors[
                                               `existingStudent_${index}_dateOfBirth`
@@ -1056,8 +1068,8 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                     </div>
                                   </div>
 
-                                  <div className="form-row">
-                                    <div className="form-group">
+                                  <div className="admin-form-row">
+                                    <div className="admin-form-group">
                                       <label>Giới tính</label>
                                       <select
                                         value={student.gender || "Male"}
@@ -1073,9 +1085,12 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                         <option value="Female">Nữ</option>
                                       </select>
                                     </div>
-                                    <div className="form-group">
+                                    <div className="admin-form-group">
                                       <label>
-                                        Lớp <span className="required">*</span>
+                                        Lớp{" "}
+                                        <span className="admin-required">
+                                          *
+                                        </span>
                                       </label>
                                       <input
                                         type="text"
@@ -1099,7 +1114,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                       {errors[
                                         `existingStudent_${index}_className`
                                       ] && (
-                                        <span className="error-message">
+                                        <span className="admin-error-message">
                                           {
                                             errors[
                                               `existingStudent_${index}_className`
@@ -1108,7 +1123,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                         </span>
                                       )}
                                       {student.className && (
-                                        <small className="field-note">
+                                        <small className="admin-field-note">
                                           Khối:{" "}
                                           {generateGradeLevel(
                                             student.className
@@ -1118,8 +1133,8 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                     </div>
                                   </div>
 
-                                  <div className="form-row">
-                                    <div className="form-group">
+                                  <div className="admin-form-row">
+                                    <div className="admin-form-group">
                                       <label>Mã học sinh</label>
                                       <input
                                         type="text"
@@ -1128,11 +1143,11 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                         className="disabled-field"
                                         placeholder="Tự động tạo"
                                       />
-                                      <small className="field-note">
+                                      <small className="admin-field-note">
                                         Mã học sinh không thể thay đổi
                                       </small>
                                     </div>
-                                    <div className="form-group">
+                                    <div className="admin-form-group">
                                       <label>Năm học</label>
                                       <input
                                         type="text"
@@ -1151,9 +1166,9 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                 </div>
                               ) : (
                                 // Read-only display for view mode
-                                <div className="student-view-container">
+                                <div className="admin-student-view-container">
                                   {/* Student Image Display */}
-                                  <div className="student-image-section">
+                                  <div className="admin-student-image-section">
                                     <label>Ảnh học sinh</label>
                                     <StudentImageUpload
                                       student={student}
@@ -1163,52 +1178,54 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                     />
                                   </div>
 
-                                  <div className="student-detail-grid">
-                                    <div className="detail-item">
-                                      <span className="detail-label">
+                                  <div className="admin-student-detail-grid">
+                                    <div className="admin-detail-item">
+                                      <span className="admin-detail-label">
                                         Mã học sinh:
                                       </span>
-                                      <span className="detail-value">
+                                      <span className="admin-detail-value">
                                         {student.studentId}
                                       </span>
                                     </div>
-                                    <div className="detail-item">
-                                      <span className="detail-label">
+                                    <div className="admin-detail-item">
+                                      <span className="admin-detail-label">
                                         Ngày sinh:
                                       </span>
-                                      <span className="detail-value">
+                                      <span className="admin-detail-value">
                                         {formatDate(student.dateOfBirth)}
                                       </span>
                                     </div>
-                                    <div className="detail-item">
-                                      <span className="detail-label">
+                                    <div className="admin-detail-item">
+                                      <span className="admin-detail-label">
                                         Giới tính:
                                       </span>
-                                      <span className="detail-value">
+                                      <span className="admin-detail-value">
                                         {student.gender === "Male"
                                           ? "Nam"
                                           : "Nữ"}
                                       </span>
                                     </div>
-                                    <div className="detail-item">
-                                      <span className="detail-label">Lớp:</span>
-                                      <span className="detail-value">
+                                    <div className="admin-detail-item">
+                                      <span className="admin-detail-label">
+                                        Lớp:
+                                      </span>
+                                      <span className="admin-detail-value">
                                         {student.className}
                                       </span>
                                     </div>
-                                    <div className="detail-item">
-                                      <span className="detail-label">
+                                    <div className="admin-detail-item">
+                                      <span className="admin-detail-label">
                                         Khối:
                                       </span>
-                                      <span className="detail-value">
+                                      <span className="admin-detail-value">
                                         {student.gradeLevel}
                                       </span>
                                     </div>
-                                    <div className="detail-item">
-                                      <span className="detail-label">
+                                    <div className="admin-detail-item">
+                                      <span className="admin-detail-label">
                                         Năm học:
                                       </span>
-                                      <span className="detail-value">
+                                      <span className="admin-detail-value">
                                         {student.schoolYear}
                                       </span>
                                     </div>
@@ -1552,7 +1569,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
           {/* Username field cho NURSE/ADMIN hoặc trong view mode */}
           {(mode === "view" ||
             (mode === "edit" && formData.role !== "PARENT")) && (
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="username">Tên đăng nhập</label>
               <input
                 type="text"
@@ -1565,7 +1582,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                 placeholder="Tên đăng nhập"
               />
               {mode === "edit" && (
-                <small className="field-note">
+                <small className="admin-field-note">
                   Tên đăng nhập không thể thay đổi khi chỉnh sửa
                 </small>
               )}
@@ -1574,9 +1591,9 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
 
           {/* Status toggle */}
           {(mode === "edit" || mode === "view") && (
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="isActive">Trạng thái</label>
-              <div className="status-toggle">
+              <div className="admin-status-toggle">
                 <input
                   type="checkbox"
                   id="isActive"
@@ -1585,7 +1602,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                   onChange={handleChange}
                   disabled={mode === "view"}
                 />
-                <label htmlFor="isActive" className="toggle-label">
+                <label htmlFor="isActive" className="admin-toggle-label">
                   {formData.isActive ? "Hoạt động" : "Tạm ngưng"}
                 </label>
               </div>
@@ -1594,9 +1611,9 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
 
           {/* Edit mode password */}
           {mode === "edit" && (
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="password">
-                Mật khẩu mới <span className="optional">(tùy chọn)</span>
+                Mật khẩu mới <span className="admin-optional">(tùy chọn)</span>
               </label>
               <input
                 type="password"
@@ -1607,12 +1624,12 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                 className={errors.password ? "error" : ""}
                 placeholder="Để trống nếu không muốn thay đổi mật khẩu"
               />
-              <small className="field-note">
+              <small className="admin-field-note">
                 Chỉ nhập mật khẩu mới nếu muốn thay đổi. Để trống sẽ giữ nguyên
                 mật khẩu cũ.
               </small>
               {errors.password && (
-                <span className="error-message">{errors.password}</span>
+                <span className="admin-error-message">{errors.password}</span>
               )}
             </div>
           )}

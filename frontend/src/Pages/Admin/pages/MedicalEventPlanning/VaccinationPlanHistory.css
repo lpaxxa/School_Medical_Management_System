@@ -616,6 +616,306 @@
   border-color: #cbd5e1;
 }
 
+/* Status Badge for Dropdown */
+.admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  border: 2px solid;
+}
+
+.admin-status-badge.admin-clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-status-badge.admin-clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-status-badge.admin-status-waiting {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fbbf24;
+}
+
+.admin-status-badge.admin-status-waiting.admin-clickable:hover {
+  background: #fde68a;
+  border-color: #f59e0b;
+}
+
+.admin-status-badge.admin-status-progress {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #3b82f6;
+}
+
+.admin-status-badge.admin-status-progress.admin-clickable:hover {
+  background: #bfdbfe;
+  border-color: #2563eb;
+}
+
+.admin-status-badge.admin-status-completed {
+  background: #d1fae5;
+  color: #047857;
+  border-color: #10b981;
+}
+
+.admin-status-badge.admin-status-completed.admin-clickable:hover {
+  background: #a7f3d0;
+  border-color: #059669;
+}
+
+.admin-status-badge.admin-status-canceled {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #ef4444;
+}
+
+.admin-status-badge.admin-status-canceled.admin-clickable:hover {
+  background: #fecaca;
+  border-color: #dc2626;
+}
+
+/* Status Dropdown */
+.admin-status-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.admin-status-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 160px;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-status-dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.admin-status-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.admin-status-dropdown-item:hover {
+  background: #f8fafc;
+  transform: translateX(2px);
+}
+
+.admin-status-dropdown-item .admin-status-badge {
+  margin: 0;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+}
+
+/* Admin Error Banner */
+.admin-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.admin-error-banner-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.admin-error-close-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.admin-error-close-btn:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+/* Admin Loading, Error, No Data States */
+.admin-loading-section,
+.admin-error-section,
+.admin-no-data-section {
+  text-align: center;
+  padding: 60px 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  margin: 16px 0;
+}
+
+.admin-loading-section p,
+.admin-error-section p,
+.admin-no-data-section p {
+  color: #64748b;
+  font-size: 1rem;
+  margin: 16px 0;
+}
+
+.admin-loading-section .admin-spinning,
+.admin-error-section .admin-error-icon,
+.admin-no-data-section .admin-no-data-icon {
+  font-size: 3rem;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+.admin-loading-section .admin-spinning.admin-large {
+  font-size: 4rem;
+}
+
+.admin-retry-button {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+}
+
+.admin-retry-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Admin Pagination Styles */
+.admin-pagination-info {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.admin-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.admin-pagination-btn:hover:not(.admin-disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #1f2937;
+}
+
+.admin-pagination-btn.admin-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f9fafb;
+}
+
+.admin-pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 12px;
+}
+
+.admin-pagination-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.admin-pagination-page:hover:not(.admin-active) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #1f2937;
+}
+
+.admin-pagination-page.admin-active {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+}
+
+.admin-pagination-ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
 /* Time Status Styles */
 .time-status {
   margin-top: 10px;
@@ -1028,14 +1328,39 @@
 .admin-plans-table-container {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: auto; /* Thêm thanh cuộn ngang */
+  overflow-y: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   border: 1px solid #e2e8f0;
   margin-top: 24px;
+  /* Styling cho thanh cuộn */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* Webkit scrollbar styling */
+.admin-plans-table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.admin-plans-table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.admin-plans-table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.admin-plans-table-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .admin-plans-table {
   width: 100%;
+  min-width: 1200px; /* Đảm bảo table có độ rộng tối thiểu */
   border-collapse: collapse;
   font-size: 0.9rem;
   background: transparent;
@@ -1091,8 +1416,8 @@
 /* Cell Specific Styles */
 .admin-plan-id-cell {
   font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #000000;
+  /* background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); */
   width: 80px;
   text-align: center;
   border-radius: 8px;

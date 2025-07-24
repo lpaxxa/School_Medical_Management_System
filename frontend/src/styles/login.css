@@ -196,7 +196,53 @@ body {
   margin-bottom: 0;
 }
 
-/* Thông báo lỗi */
+/* Thông báo lỗi - Login Error Styles */
+.loginErrorMessage {
+  display: flex;
+  align-items: center;
+  background-color: #fef2f2;
+  color: #dc2626;
+  padding: 0.875rem 1rem;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  margin-bottom: 1.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.1);
+  animation: loginErrorSlideIn 0.3s ease-out;
+}
+
+.loginErrorIcon {
+  margin-right: 0.75rem;
+  font-size: 1rem;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.loginErrorText {
+  flex: 1;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+@keyframes loginErrorSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover effect for better UX */
+.loginErrorMessage:hover {
+  background-color: #fef1f1;
+  border-color: #f9a8a8;
+}
+
+/* Legacy error-alert class (keep for backward compatibility) */
 .error-alert {
   background-color: #fef0f0;
   color: #e53e3e;
