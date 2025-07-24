@@ -7,9 +7,7 @@ import {
   Card
 } from 'react-bootstrap';
 import {
-  FaPlus,
-  FaCheckCircle,
-  FaTimesCircle
+  FaPlus
 } from 'react-icons/fa';
 import './MedicineDetailModal.css';
 
@@ -19,8 +17,7 @@ const MedicineDetailModal = ({
   selectedReceipt,
   getStatusInfo,
   canRecordAdministration,
-  onRecordAdministration,
-  onProcessClick
+  onRecordAdministration
 }) => {
   if (!selectedReceipt) return null;
 
@@ -184,39 +181,16 @@ const MedicineDetailModal = ({
         </Button>
         
         {canRecordAdministration(selectedReceipt?.status, selectedReceipt) && (
-          <Button 
+          <Button
             variant="success"
             onClick={() => {
               onHide();
               onRecordAdministration(selectedReceipt);
             }}
           >
-            <FaPlus className="me-2" /> 
+            <FaPlus className="me-2" />
             {selectedReceipt?.status === "PARTIALLY_TAKEN" ? "Tiếp tục ghi nhận" : "Ghi nhận cung cấp"}
           </Button>
-        )}
-        
-        {(selectedReceipt?.status === "PENDING_APPROVAL" || selectedReceipt?.status === 0) && (
-          <>
-            <Button 
-              variant="success"
-              onClick={() => {
-                onHide();
-                onProcessClick(selectedReceipt.id, "APPROVED");
-              }}
-            >
-              <FaCheckCircle className="me-2" /> Phê duyệt
-            </Button>
-            <Button 
-              variant="danger"
-              onClick={() => {
-                onHide();
-                onProcessClick(selectedReceipt.id, "REJECTED");
-              }}
-            >
-              <FaTimesCircle className="me-2" /> Từ chối
-            </Button>
-          </>
         )}
       </Modal.Footer>
     </Modal>

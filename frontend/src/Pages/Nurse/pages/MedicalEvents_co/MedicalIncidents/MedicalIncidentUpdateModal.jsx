@@ -308,12 +308,12 @@ const MedicalIncidentUpdateModal = ({
       setImageFile(null);
       setImageUploadError('');
 
-      // Set existing image preview like EditHealthArticle
-      if (selectedEvent.imageMedicalUrl) {
-        setImagePreview(selectedEvent.imageMedicalUrl);
-      } else {
+      // Set existing image preview - COMMENTED OUT URL SUPPORT
+      // if (selectedEvent.imageMedicalUrl) {
+      //   setImagePreview(selectedEvent.imageMedicalUrl);
+      // } else {
         setImagePreview('');
-      }
+      // }
     }
   }, [show, selectedEvent]);
   
@@ -1409,8 +1409,8 @@ const MedicalIncidentUpdateModal = ({
                         )}
                       </div>
 
-                      {/* Manual URL input section */}
-                      <div className="mb-3">
+                      {/* Manual URL input section - COMMENTED OUT */}
+                      {/* <div className="mb-3">
                         <Form.Label className="fw-semibold">
                           <i className="fas fa-link me-2 text-info"></i>
                           Hoặc nhập link ảnh
@@ -1422,10 +1422,10 @@ const MedicalIncidentUpdateModal = ({
                           onChange={handleInputChange}
                           placeholder="Nhập link ảnh sự cố y tế (http://... hoặc https://...)"
                         />
-                      </div>
+                      </div> */}
 
-                      {/* Image preview section */}
-                      {(imagePreview || formData.imageMedicalUrl) && (
+                      {/* Image preview section - ONLY FOR COMPUTER UPLOAD */}
+                      {imagePreview && (
                         <div className="medical-image-preview">
                           <h6 className="text-info fw-bold mb-3 text-center">
                             <i className="fas fa-eye me-2"></i>Preview ảnh sự cố
@@ -1433,7 +1433,7 @@ const MedicalIncidentUpdateModal = ({
                           <div className="d-flex justify-content-center align-items-center">
                             <div className="position-relative">
                               <img
-                                src={imagePreview || formData.imageMedicalUrl}
+                                src={imagePreview}
                                 alt="Preview ảnh sự cố"
                                 className="img-fluid rounded shadow-lg border border-2 border-info"
                                 style={{
@@ -1445,20 +1445,7 @@ const MedicalIncidentUpdateModal = ({
                                   display: 'block',
                                   margin: '0 auto'
                                 }}
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                  e.target.nextSibling.style.display = 'block';
-                                }}
-                                onLoad={(e) => {
-                                  e.target.style.display = 'block';
-                                  e.target.nextSibling.style.display = 'none';
-                                }}
                               />
-                              <Alert variant="warning" className="text-center mx-auto" style={{ display: 'none', maxWidth: '350px' }}>
-                                <i className="fas fa-exclamation-triangle fs-2 text-warning mb-2"></i>
-                                <h6>Không thể tải ảnh từ link này</h6>
-                                <small className="text-muted">Vui lòng kiểm tra lại link ảnh</small>
-                              </Alert>
                             </div>
                           </div>
                         </div>
