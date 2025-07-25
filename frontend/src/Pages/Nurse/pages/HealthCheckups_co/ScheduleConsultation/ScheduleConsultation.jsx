@@ -420,7 +420,7 @@ const MedicalCheckupList = ({ refreshData }) => {
     setSubmitting(true);
     try {
       const checkupIds = filteredCheckups
-        .filter(c => c.checkupStatus === 'COMPLETED' || c.checkupStatus === 'NEED_FOLLOW_UP')
+        .filter(c => c.checkupStatus === 'NEED_FOLLOW_UP')
         .map(c => c.id);
         
       if (checkupIds.length === 0) {
@@ -506,10 +506,12 @@ const MedicalCheckupList = ({ refreshData }) => {
           <span className="text-muted">
             Hiển thị {currentCheckups.length} / {filteredCheckups.length} bản ghi
           </span>
-          <Button variant="info" className="me-2" onClick={() => handleBatchNotification()} style={{color : 'white'}}>
-            <i className="fas fa-paper-plane me-2"></i>
-            Gửi thông báo cho {filteredCheckups.filter(c => c.checkupStatus === 'NEED_FOLLOW_UP').length} học sinh cần theo dõi
-          </Button>
+          {filteredCheckups.filter(c => c.checkupStatus === 'NEED_FOLLOW_UP').length > 0 && (
+            <Button variant="info" className="me-2" onClick={() => handleBatchNotification()} style={{color : 'white'}}>
+              <i className="fas fa-paper-plane me-2"></i>
+              Gửi thông báo cho {filteredCheckups.filter(c => c.checkupStatus === 'NEED_FOLLOW_UP').length} học sinh cần theo dõi
+            </Button>
+          )}
           <Button variant="outline-secondary" onClick={handleRefresh}>
             <i className="fas fa-sync-alt"></i>
           </Button>
