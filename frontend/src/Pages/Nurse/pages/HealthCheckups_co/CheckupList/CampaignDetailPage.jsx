@@ -442,7 +442,7 @@ const CampaignDetailPage = () => {
             <tbody>
               {currentStudents.map((student, index) => (
                 <tr key={student.studentId}>
-                  <td>{indexOfFirstStudent + index + 1}</td>
+                  <td>{startIndex + index + 1}</td>
                   <td>{student.studentName}</td>
                   <td>{student.studentClass}</td>
                   <td>{student.parentName}</td>
