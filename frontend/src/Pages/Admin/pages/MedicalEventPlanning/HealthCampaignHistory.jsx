@@ -265,6 +265,11 @@ const HealthCampaignHistory = () => {
       return;
     }
 
+    if (!editFormData.description.trim()) {
+      showError("Thiếu thông tin", "Vui lòng nhập mô tả chiến dịch!");
+      return;
+    }
+
     if (!editFormData.startDate) {
       showError("Thiếu thông tin", "Vui lòng chọn ngày bắt đầu!");
       return;
@@ -275,14 +280,33 @@ const HealthCampaignHistory = () => {
       return;
     }
 
-    if (
-      safeParseDate(editFormData.startDate) >
-      safeParseDate(editFormData.endDate)
-    ) {
+    // Enhanced date validation like CreateHealthCampaign
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+    const startDate = new Date(editFormData.startDate);
+    const endDate = new Date(editFormData.endDate);
+
+    // Check if start date is from today onwards (only for new campaigns or future campaigns)
+    if (startDate < today && selectedCampaign.status === "PREPARING") {
       showError(
         "Ngày không hợp lệ",
-        "Ngày bắt đầu không thể sau ngày kết thúc!"
+        "Ngày bắt đầu phải từ ngày hôm nay trở đi cho chiến dịch đang chuẩn bị!"
       );
+      return;
+    }
+
+    // Check if end date is on or after start date
+    if (endDate < startDate) {
+      showError(
+        "Ngày không hợp lệ",
+        "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu!"
+      );
+      return;
+    }
+
+    // Validate notes - required
+    if (!editFormData.notes.trim()) {
+      showError("Thiếu thông tin", "Vui lòng nhập ghi chú chiến dịch!");
       return;
     }
 
@@ -294,7 +318,10 @@ const HealthCampaignHistory = () => {
         import.meta.env.VITE_BACKEND_URL
       }/api/v1/health-campaigns/${selectedCampaign.id}`;
       console.log("📡 PUT API URL:", url);
-      console.log("📡 Request body:", JSON.stringify(editFormData, null, 2));
+      console.log(
+        "📡 Original form data:",
+        JSON.stringify(editFormData, null, 2)
+      );
 
       // Get auth token from localStorage
       const token = localStorage.getItem("authToken");
@@ -307,10 +334,23 @@ const HealthCampaignHistory = () => {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
+      // Prepare data for API - reverse translate Vietnamese items back to English
+      const apiData = {
+        ...editFormData,
+        specialCheckupItems: editFormData.specialCheckupItems.map((item) =>
+          reverseTranslateCheckupItem(item)
+        ),
+      };
+
+      console.log(
+        "📡 API data (translated):",
+        JSON.stringify(apiData, null, 2)
+      );
+
       const response = await fetch(url, {
         method: "PUT",
         headers,
-        body: JSON.stringify(editFormData),
+        body: JSON.stringify(apiData),
       });
 
       console.log("📊 Response status:", response.status);
@@ -776,6 +816,59 @@ const HealthCampaignHistory = () => {
     }
   }, [statusDropdownOpen]);
 
+  // Translation mapping for special checkup items
+  const checkupItemTranslations = {
+    // English to Vietnamese
+    allergy_test: "Xét nghiệm dị ứng",
+    blood_test: "Xét nghiệm máu",
+    eye_exam: "Khám mắt chuyên sâu",
+    dental_exam: "Khám răng miệng",
+    heart_ultrasound: "Siêu âm tim",
+    bone_density: "Đo loãng xương",
+    height_weight: "Đo chiều cao, cân nặng",
+    blood_pressure: "Kiểm tra huyết áp",
+    ent_exam: "Khám tai mũi họng",
+    vision_test: "Kiểm tra thị lực",
+    hearing_test: "Kiểm tra thính lực",
+    skin_test: "Kiểm tra da",
+    respiratory_test: "Kiểm tra hô hấp",
+    cardiovascular_test: "Kiểm tra tim mạch",
+    neurological_test: "Kiểm tra thần kinh",
+    general_checkup: "Khám tổng quát",
+    // Add more translations as needed
+  };
+
+  // Function to translate checkup items (English to Vietnamese)
+  const translateCheckupItem = (item) => {
+    if (!item) return item;
+    // Return Vietnamese translation if exists, otherwise return original
+    return checkupItemTranslations[item] || item;
+  };
+
+  // Reverse translation mapping (Vietnamese to English)
+  const reverseCheckupItemTranslations = Object.fromEntries(
+    Object.entries(checkupItemTranslations).map(([key, value]) => [value, key])
+  );
+
+  // Function to reverse translate checkup items (Vietnamese to English)
+  const reverseTranslateCheckupItem = (item) => {
+    if (!item) return item;
+    // Return English key if exists, otherwise return original
+    return reverseCheckupItemTranslations[item] || item;
+  };
+
+  // Predefined special checkup items (same as CreateHealthCampaign)
+  const predefinedEditItems = [
+    "Khám mắt chuyên sâu",
+    "Khám răng miệng",
+    "Xét nghiệm máu",
+    "Siêu âm tim",
+    "Đo loãng xương",
+    "Đo chiều cao, cân nặng",
+    "Kiểm tra huyết áp",
+    "Khám tai mũi họng",
+  ];
+
   // Add special checkup item to edit form
   const addEditCheckupItem = () => {
     if (
@@ -790,6 +883,16 @@ const HealthCampaignHistory = () => {
         ],
       }));
       setNewEditCheckupItem("");
+    }
+  };
+
+  // Add predefined item to edit form
+  const addPredefinedEditItem = (item) => {
+    if (!editFormData.specialCheckupItems.includes(item)) {
+      setEditFormData((prev) => ({
+        ...prev,
+        specialCheckupItems: [...prev.specialCheckupItems, item],
+      }));
     }
   };
 
@@ -1303,7 +1406,7 @@ const HealthCampaignHistory = () => {
                         {selectedCampaign.specialCheckupItems.map(
                           (item, index) => (
                             <span key={index} className="hch-checkup-item">
-                              {item}
+                              {translateCheckupItem(item)}
                             </span>
                           )
                         )}
@@ -1369,6 +1472,11 @@ const HealthCampaignHistory = () => {
                   <input
                     type="date"
                     value={editFormData.startDate}
+                    min={
+                      selectedCampaign?.status === "PREPARING"
+                        ? new Date().toISOString().split("T")[0]
+                        : undefined
+                    }
                     onChange={(e) =>
                       setEditFormData({
                         ...editFormData,
@@ -1382,6 +1490,12 @@ const HealthCampaignHistory = () => {
                   <input
                     type="date"
                     value={editFormData.endDate}
+                    min={
+                      editFormData.startDate ||
+                      (selectedCampaign?.status === "PREPARING"
+                        ? new Date().toISOString().split("T")[0]
+                        : undefined)
+                    }
                     onChange={(e) =>
                       setEditFormData({
                         ...editFormData,
@@ -1431,7 +1545,7 @@ const HealthCampaignHistory = () => {
                       <div className="hch-edit-items-list">
                         {editFormData.specialCheckupItems.map((item, index) => (
                           <div key={index} className="hch-edit-item-tag">
-                            <span>{item}</span>
+                            <span>{translateCheckupItem(item)}</span>
                             <button
                               type="button"
                               onClick={() => removeEditCheckupItem(index)}
@@ -1451,6 +1565,38 @@ const HealthCampaignHistory = () => {
                     </div>
                   )}
 
+                  {/* Predefined items */}
+                  <div className="hch-predefined-edit-items">
+                    <h4>Mục kiểm tra phổ biến:</h4>
+                    <div className="hch-predefined-edit-list">
+                      {predefinedEditItems.map((item, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`hch-predefined-edit-item ${
+                            editFormData.specialCheckupItems.includes(item)
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={() => addPredefinedEditItem(item)}
+                          disabled={editFormData.specialCheckupItems.includes(
+                            item
+                          )}
+                          title={
+                            editFormData.specialCheckupItems.includes(item)
+                              ? "Đã được thêm"
+                              : "Click để thêm"
+                          }
+                        >
+                          {editFormData.specialCheckupItems.includes(item) && (
+                            <FaCheck style={{ marginRight: "5px" }} />
+                          )}
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Add new item */}
                   <div className="hch-add-edit-item-section">
                     <div className="hch-edit-input-with-button">
@@ -1459,7 +1605,7 @@ const HealthCampaignHistory = () => {
                         placeholder="Nhập tên mục kiểm tra mới..."
                         value={newEditCheckupItem}
                         onChange={(e) => setNewEditCheckupItem(e.target.value)}
-                        onKeyPress={(e) =>
+                        onKeyDown={(e) =>
                           e.key === "Enter" &&
                           (e.preventDefault(), addEditCheckupItem())
                         }

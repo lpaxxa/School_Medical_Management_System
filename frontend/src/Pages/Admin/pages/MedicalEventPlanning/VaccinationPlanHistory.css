@@ -692,17 +692,17 @@
 }
 
 .admin-status-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
+  position: fixed;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
   min-width: 160px;
-  overflow: hidden;
+  max-height: 200px;
+  overflow-y: auto;
   animation: dropdownFadeIn 0.2s ease-out;
+  padding: 4px 0;
 }
 
 @keyframes dropdownFadeIn {

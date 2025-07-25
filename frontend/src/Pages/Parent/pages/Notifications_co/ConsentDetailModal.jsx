@@ -13,6 +13,7 @@ const ConsentDetailModal = ({
   const [data, setData] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
   const [parentNotes, setParentNotes] = useState("");
+  const [showRejectModal, setShowRejectModal] = useState(false);
 
   // Load chi tiết consent khi modal mở
   useEffect(() => {
@@ -122,7 +123,7 @@ const ConsentDetailModal = ({
 
       // Callback để cập nhật danh sách
       if (onConsentUpdated) {
-        onConsentUpdated();
+        onConsentUpdated("APPROVED");
       }
 
       onClose();
@@ -136,14 +137,14 @@ const ConsentDetailModal = ({
     }
   };
 
-  // Từ chối consent
-  const handleRejectConsent = async () => {
-    if (!data) return;
+  // Hiển thị modal xác nhận từ chối
+  const handleRejectConsent = () => {
+    setShowRejectModal(true);
+  };
 
-    const confirmReject = window.confirm(
-      "Bạn có chắc chắn muốn từ chối tham gia kiểm tra sức khỏe này không?"
-    );
-    if (!confirmReject) return;
+  // Xác nhận từ chối consent
+  const confirmRejectConsent = async () => {
+    if (!data) return;
 
     setSubmitting(true);
     try {
@@ -178,9 +179,10 @@ const ConsentDetailModal = ({
 
       // Callback để cập nhật danh sách
       if (onConsentUpdated) {
-        onConsentUpdated();
+        onConsentUpdated("REJECTED");
       }
 
+      setShowRejectModal(false);
       onClose();
     } catch (error) {
       toast.error("Có lỗi xảy ra khi từ chối: " + error.message, {
@@ -190,6 +192,11 @@ const ConsentDetailModal = ({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Đóng modal xác nhận từ chối
+  const handleCloseRejectModal = () => {
+    setShowRejectModal(false);
   };
 
   if (!isOpen) return null;
@@ -503,6 +510,125 @@ const ConsentDetailModal = ({
           )}
         </div>
       </div>
+
+      {/* Modal xác nhận từ chối */}
+      {showRejectModal && (
+        <div className="pn-modal-overlay" style={{ zIndex: 1001 }}>
+          <div
+            className="pn-modal-content"
+            style={{
+              maxWidth: "400px",
+              padding: "24px",
+              borderRadius: "12px",
+              backgroundColor: "white",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+            }}
+          >
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              <div
+                style={{
+                  width: "60px",
+                  height: "60px",
+                  borderRadius: "50%",
+                  backgroundColor: "#fee2e2",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px auto",
+                }}
+              >
+                <i
+                  className="fas fa-exclamation-triangle"
+                  style={{
+                    fontSize: "24px",
+                    color: "#dc2626",
+                  }}
+                ></i>
+              </div>
+              <h3
+                style={{
+                  margin: "0 0 8px 0",
+                  color: "#1f2937",
+                  fontSize: "18px",
+                  fontWeight: "600",
+                }}
+              >
+                Xác nhận từ chối
+              </h3>
+              <p
+                style={{
+                  margin: "0",
+                  color: "#6b7280",
+                  fontSize: "14px",
+                  lineHeight: "1.5",
+                }}
+              >
+                Bạn có chắc chắn muốn từ chối tham gia kiểm tra sức khỏe này
+                không?
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                justifyContent: "center",
+              }}
+            >
+              <button
+                onClick={handleCloseRejectModal}
+                disabled={submitting}
+                style={{
+                  padding: "10px 20px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: submitting ? "not-allowed" : "pointer",
+                  opacity: submitting ? 0.6 : 1,
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmRejectConsent}
+                disabled={submitting}
+                style={{
+                  padding: "10px 20px",
+                  border: "none",
+                  borderRadius: "8px",
+                  backgroundColor: "#dc2626",
+                  color: "white",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: submitting ? "not-allowed" : "pointer",
+                  opacity: submitting ? 0.6 : 1,
+                }}
+              >
+                {submitting ? (
+                  <>
+                    <i
+                      className="fas fa-spinner fa-spin"
+                      style={{ marginRight: "8px" }}
+                    ></i>
+                    Đang xử lý...
+                  </>
+                ) : (
+                  <>
+                    <i
+                      className="fas fa-times"
+                      style={{ marginRight: "8px" }}
+                    ></i>
+                    Từ chối
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

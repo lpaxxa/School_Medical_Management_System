@@ -33,6 +33,7 @@ const VaccinationPlanHistory = () => {
 
   // Dropdown states
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(null); // ID của plan đang mở dropdown
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 }); // Vị trí dropdown
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -156,9 +157,39 @@ const VaccinationPlanHistory = () => {
   // Handle status click - toggle dropdown
   const handleStatusClick = (plan, event) => {
     event.stopPropagation(); // Prevent row click
+    console.log("Status clicked for plan:", plan.id); // Debug log
+
     if (statusDropdownOpen === plan.id) {
+      console.log("Closing dropdown"); // Debug log
       setStatusDropdownOpen(null); // Close if already open
     } else {
+      console.log("Opening dropdown"); // Debug log
+
+      // Get the clicked element (could be span or its children)
+      const targetElement = event.currentTarget; // Use currentTarget instead of target
+      const rect = targetElement.getBoundingClientRect();
+
+      console.log("Element rect:", rect); // Debug log
+
+      const dropdownWidth = 160; // min-width from CSS
+      const dropdownHeight = 200; // estimated height
+
+      let top = rect.bottom + window.scrollY + 5; // 5px spacing
+      let left = rect.left + window.scrollX;
+
+      // Adjust if dropdown would go off-screen horizontally
+      if (left + dropdownWidth > window.innerWidth) {
+        left = rect.right + window.scrollX - dropdownWidth;
+      }
+
+      // Adjust if dropdown would go off-screen vertically
+      if (top + dropdownHeight > window.innerHeight + window.scrollY) {
+        top = rect.top + window.scrollY - dropdownHeight - 5;
+      }
+
+      console.log("Dropdown position:", { top, left }); // Debug log
+
+      setDropdownPosition({ top, left });
       setStatusDropdownOpen(plan.id); // Open dropdown for this plan
     }
   };
@@ -486,56 +517,6 @@ const VaccinationPlanHistory = () => {
                             {getStatusLabel(plan.status)}
                           </span>
 
-                          {/* Status Dropdown */}
-                          {statusDropdownOpen === plan.id && (
-                            <div
-                              className="admin-status-dropdown"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {[
-                                {
-                                  value: "WAITING_PARENT",
-                                  label: "Chờ phụ huynh",
-                                  color: "admin-status-waiting",
-                                },
-                                {
-                                  value: "IN_PROGRESS",
-                                  label: "Đang triển khai",
-                                  color: "admin-status-progress",
-                                },
-                                {
-                                  value: "COMPLETED",
-                                  label: "Hoàn thành",
-                                  color: "admin-status-completed",
-                                },
-                                {
-                                  value: "CANCELED",
-                                  label: "Đã hủy",
-                                  color: "admin-status-canceled",
-                                },
-                              ]
-                                .filter(
-                                  (status) => status.value !== plan.status
-                                ) // Loại bỏ trạng thái hiện tại
-                                .map((status) => (
-                                  <div
-                                    key={status.value}
-                                    className={`admin-status-dropdown-item ${status.color}`}
-                                    onClick={() => {
-                                      handleStatusChange(plan.id, status.value);
-                                      setStatusDropdownOpen(null);
-                                    }}
-                                  >
-                                    <span
-                                      className={`admin-status-badge ${status.color}`}
-                                    >
-                                      {status.label}
-                                    </span>
-                                  </div>
-                                ))}
-                            </div>
-                          )}
-
                           {statusChanging[plan.id] && (
                             <FaSpinner className="admin-status-spinner spinning" />
                           )}
@@ -654,6 +635,62 @@ const VaccinationPlanHistory = () => {
           <button className="admin-retry-button" onClick={loadVaccinationPlans}>
             Thử tải lại từ API
           </button>
+        </div>
+      )}
+
+      {/* Global Status Dropdown - Rendered outside table to avoid overflow issues */}
+      {statusDropdownOpen && (
+        <div
+          className="admin-status-dropdown"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {[
+            {
+              value: "WAITING_PARENT",
+              label: "Chờ phụ huynh",
+              color: "admin-status-waiting",
+            },
+            {
+              value: "IN_PROGRESS",
+              label: "Đang triển khai",
+              color: "admin-status-progress",
+            },
+            {
+              value: "COMPLETED",
+              label: "Hoàn thành",
+              color: "admin-status-completed",
+            },
+            {
+              value: "CANCELED",
+              label: "Đã hủy",
+              color: "admin-status-canceled",
+            },
+          ]
+            .filter((status) => {
+              // Find current plan to filter out current status
+              const currentPlan = filteredPlans.find(
+                (p) => p.id === statusDropdownOpen
+              );
+              return currentPlan ? status.value !== currentPlan.status : true;
+            })
+            .map((status) => (
+              <div
+                key={status.value}
+                className={`admin-status-dropdown-item ${status.color}`}
+                onClick={() => {
+                  handleStatusChange(statusDropdownOpen, status.value);
+                  setStatusDropdownOpen(null);
+                }}
+              >
+                <span className={`admin-status-badge ${status.color}`}>
+                  {status.label}
+                </span>
+              </div>
+            ))}
         </div>
       )}
     </div>

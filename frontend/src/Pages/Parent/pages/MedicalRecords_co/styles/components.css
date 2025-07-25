@@ -2212,6 +2212,18 @@
   border-color: #fecaca;
 }
 
+.status-badge.in_progress {
+  background: #e0f2fe;
+  color: #0277bd;
+  border-color: #81d4fa;
+}
+
+.status-badge.canceled {
+  background: #f3e5f5;
+  color: #7b1fa2;
+  border-color: #ce93d8;
+}
+
 /* ================================================
    VACCINES LIST STYLING - MODERN CLEAN DESIGN
    ================================================ */
