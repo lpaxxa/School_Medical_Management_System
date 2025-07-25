@@ -224,58 +224,90 @@ const CampaignDetailPage = () => {
   });
 
   // Pagination logic
-  const indexOfLastStudent = currentPage * studentsPerPage;
-  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+  const startIndex = (currentPage - 1) * studentsPerPage;
+  const endIndex = startIndex + studentsPerPage;
+  const currentStudents = filteredStudents.slice(startIndex, endIndex);
+
+  // Handle page change with smooth scroll
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Render pagination
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
-    const pageNumbers = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(i);
-    }
-
     return (
-      <div className="pagination-container">
-        <Button
-          variant="outline-primary"
-          size="sm"
-          onClick={() => setCurrentPage(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          Trước
-        </Button>
-        
-        {pageNumbers.map(number => (
-          <Button
-            key={number}
-            variant={currentPage === number ? "primary" : "outline-primary"}
-            size="sm"
-            onClick={() => setCurrentPage(number)}
+      <div className="d-flex justify-content-between align-items-center mt-4 px-3">
+        {/* Showing entries info */}
+        <div className="text-muted">
+          <small>
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredStudents.length)} of {filteredStudents.length} students
+          </small>
+        </div>
+
+        {/* Pagination controls */}
+        <div className="d-flex align-items-center gap-2">
+          {/* First page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(1)}
+            title="Trang đầu"
+            style={{ minWidth: '40px' }}
           >
-            {number}
-          </Button>
-        ))}
-        
-        <Button
-          variant="outline-primary"
-          size="sm"
-          onClick={() => setCurrentPage(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          Sau
-        </Button>
+            <i className="fas fa-angle-double-left"></i>
+          </button>
+
+          {/* Previous page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+            title="Trang trước"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-left"></i>
+          </button>
+
+          {/* Current page indicator */}
+          <div
+            className="px-3 py-1 text-white rounded"
+            style={{
+              minWidth: '60px',
+              textAlign: 'center',
+              fontSize: '14px',
+              fontWeight: '500',
+              background: 'linear-gradient(135deg, #015C92 0%, #2D82B5 100%)'
+            }}
+          >
+            {currentPage} / {totalPages}
+          </div>
+
+          {/* Next page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+            title="Trang tiếp"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-right"></i>
+          </button>
+
+          {/* Last page button */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(totalPages)}
+            title="Trang cuối"
+            style={{ minWidth: '40px' }}
+          >
+            <i className="fas fa-angle-double-right"></i>
+          </button>
+        </div>
       </div>
     );
   };
