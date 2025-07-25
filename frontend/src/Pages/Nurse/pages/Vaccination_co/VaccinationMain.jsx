@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Nav, Card, Row, Col } from 'react-bootstrap';
 import CreateVaccinationRecord from './CreateRecord/CreateVaccinationRecord';
+import VaccinationPlanDetailPage from './CreateRecord/VaccinationPlanDetailPage';
 import PostVaccinationMonitoring from './PostMonitoring/PostVaccinationMonitoring';
+import PostVaccinationDetailPage from './PostMonitoring/PostVaccinationDetailPage';
 import './VaccinationMain.css';
 import { VaccinationProvider } from '../../../../context/NurseContext/VaccinationContext';
 
@@ -112,6 +114,7 @@ const VaccinationMain = () => {
                   </Card.Body>
                 </Card>
               } />
+              <Route path="plan-detail/:planId" element={<VaccinationPlanDetailPage />} />
               <Route path="monitoring" element={
                 <Card style={{ border: 'none', background: 'transparent' }}>
                   <Card.Header style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', border: 'none', borderRadius: '12px', padding: '1.5rem 2rem', marginBottom: '2rem', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
@@ -125,6 +128,7 @@ const VaccinationMain = () => {
                   </Card.Body>
                 </Card>
               } />
+              <Route path="monitoring-detail/:planId" element={<PostVaccinationDetailPage />} />
             </Routes>
           </div>
         </Card>

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import { Container, Nav, Card, Row, Col } from 'react-bootstrap';
 import { HealthCheckupProvider } from '../../../../context/NurseContext/HealthCheckupContext';
 import CheckupList from './CheckupList/CheckupList';
+import CampaignDetailPage from './CheckupList/CampaignDetailPage';
 import './HealthCheckupsMain.css';
 
 // Import renamed component
@@ -286,6 +287,7 @@ const HealthCheckupsMain = () => {
                     </Card.Body>
                   </Card>
                 } />
+                <Route path="campaign-detail/:campaignId" element={<CampaignDetailPage />} />
                 <Route path="schedule-consultation" element={
                   <Card className="lukhang-healthcheckup-content-card">
                     <Card.Header className="lukhang-healthcheckup-content-header">

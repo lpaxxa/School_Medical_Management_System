@@ -371,9 +371,9 @@ const MedicalCheckupList = ({ refreshData }) => {
   
   // Handle open batch notification modal
   const handleBatchNotification = () => {
-    const checkupsToNotify = filteredCheckups.filter(c => c.checkupStatus === 'COMPLETED' || c.checkupStatus === 'NEED_FOLLOW_UP');
+    const checkupsToNotify = filteredCheckups.filter(c => c.checkupStatus === 'NEED_FOLLOW_UP');
     if(checkupsToNotify.length === 0) {
-        Swal.fire('Không có hồ sơ nào', 'Không có hồ sơ nào ở trạng thái "Đã hoàn thành" hoặc "Cần theo dõi" để gửi thông báo.', 'info');
+        Swal.fire('Không có hồ sơ nào', 'Không có hồ sơ nào ở trạng thái "Cần theo dõi" để gửi thông báo.', 'info');
         return;
     }
 
@@ -508,7 +508,7 @@ const MedicalCheckupList = ({ refreshData }) => {
           </span>
           <Button variant="info" className="me-2" onClick={() => handleBatchNotification()} style={{color : 'white'}}>
             <i className="fas fa-paper-plane me-2"></i>
-            Gửi thông báo cho {filteredCheckups.length} người
+            Gửi thông báo cho {filteredCheckups.filter(c => c.checkupStatus === 'NEED_FOLLOW_UP').length} học sinh cần theo dõi
           </Button>
           <Button variant="outline-secondary" onClick={handleRefresh}>
             <i className="fas fa-sync-alt"></i>

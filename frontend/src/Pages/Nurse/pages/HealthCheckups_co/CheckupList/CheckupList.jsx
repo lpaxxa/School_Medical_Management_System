@@ -1,51 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Modal, Table, Badge, Alert, Spinner, ProgressBar, Form, ListGroup } from 'react-bootstrap';
+import { Card, Button, Modal, Badge, Alert, Spinner, ListGroup, Form } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
-import { useAuth } from '../../../../../context/AuthContext';
 import Swal from 'sweetalert2';
 import {
-  FaCalendarAlt, FaUsers, FaChild, FaCheckCircle, FaTimesCircle, FaClock, FaStethoscope,
-  FaFileMedical, FaEye, FaInfoCircle, FaSearch, FaNotesMedical, FaListOl,
+  FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaClock,
+  FaFileMedical, FaEye, FaInfoCircle, FaNotesMedical, FaListOl,
 } from 'react-icons/fa';
-import CreateCheckupFormModal from './CreateCheckupFormModal';
 import './CheckupList.css';
 
 const CheckupList = () => {
-  const { getHealthCampaigns, getCampaignStudents, getConsentDetails, addHealthCheckup } = useHealthCheckup();
-  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { getHealthCampaigns, getConsentDetails } = useHealthCheckup();
 
   // Loading states
   const [loading, setLoading] = useState(true);
-  const [detailsLoading, setDetailsLoading] = useState(false);
   const [consentLoading, setConsentLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Data states
   const [campaigns, setCampaigns] = useState([]);
-  const [campaignStudents, setCampaignStudents] = useState([]);
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedConsent, setSelectedConsent] = useState(null);
 
   // Modal states
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [studentForCheckup, setStudentForCheckup] = useState(null);
-  
-  // Details view states
-  const [showDetailsSection, setShowDetailsSection] = useState(false);
-  const [detailsRef, setDetailsRef] = useState(null);
-  
+
   // Search state
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Status filter state
   const [statusFilter, setStatusFilter] = useState('');
-  
-  // Filter states for student details
-  const [nameFilter, setNameFilter] = useState('');
-  const [responseFilter, setResponseFilter] = useState('');
-  const [classFilter, setClassFilter] = useState('');
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,52 +55,12 @@ const CheckupList = () => {
     loadCampaigns();
   }, [getHealthCampaigns]);
 
-  // Handle opening the campaign details section
-  const handleViewDetails = async (campaign) => {
-    setSelectedCampaign(campaign);
-    setShowDetailsSection(true);
-    setDetailsLoading(true);
-    
-    try {
-      const studentsData = await getCampaignStudents(campaign.id);
-      setCampaignStudents(studentsData);
-    } catch (err) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Lỗi tải danh sách học sinh',
-        text: `Lỗi tải danh sách học sinh cho chiến dịch: ${campaign.title}`,
-      });
-      console.error(err);
-    } finally {
-      setDetailsLoading(false);
-    }
-
-    // Auto-scroll to details section after a short delay
-    setTimeout(() => {
-      if (detailsRef) {
-        detailsRef.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
+  // Handle opening the campaign details page
+  const handleViewDetails = (campaign) => {
+    navigate(`/nurse/health-checkups/campaign-detail/${campaign.id}`);
   };
 
-  // Handle closing the details section
-  const handleCloseDetails = () => {
-    setShowDetailsSection(false);
-    setSelectedCampaign(null);
-    setCampaignStudents([]);
-  };
 
-  // Handle reset filters
-  const handleResetFilters = () => {
-    setNameFilter('');
-    setClassFilter('');
-    setResponseFilter('');
-  };
-
-  // Check if any student filters are active
-  const hasActiveStudentFilters = () => {
-    return nameFilter.trim() !== "" || classFilter.trim() !== "" || responseFilter !== "";
-  };
 
   // Handle reset main filters
   const handleResetMainFilters = () => {
@@ -157,44 +101,7 @@ const CheckupList = () => {
     }
   };
 
-  // Handle opening the create health profile modal
-  const handleCreateHealthProfile = (student) => {
-    setStudentForCheckup(student);
-    setShowCreateModal(true);
-  };
 
-  // Handle form submission from the modal
-  const handleCreateCheckupSubmit = async (formData) => {
-    try {
-      await addHealthCheckup(formData);
-      Swal.fire({
-        icon: 'success',
-        title: 'Thành công!',
-        text: `Đã tạo hồ sơ khám cho học sinh ${studentForCheckup.studentName} thành công!`,
-        timer: 2000,
-        showConfirmButton: false
-      });
-      
-      // Refresh campaign students data to show updated status
-      if (selectedCampaign) {
-        try {
-          const studentsData = await getCampaignStudents(selectedCampaign.id);
-          setCampaignStudents(studentsData);
-        } catch (refreshError) {
-          console.error("Error refreshing students data:", refreshError);
-        }
-      }
-    } catch (error) {
-      console.error("Lỗi khi tạo hồ sơ khám:", error);
-      const errorMessage = error?.response?.data || error?.message || 'Tạo hồ sơ khám thất bại do lỗi không xác định.';
-      Swal.fire({
-        icon: 'error',
-        title: 'Tạo hồ sơ thất bại',
-        text: errorMessage,
-      });
-      throw error; // Re-throw to keep modal open on error
-    }
-  };
   
   // Helper to format date
   const formatDate = (dateString) => {
@@ -323,17 +230,7 @@ const CheckupList = () => {
     return dateB - dateA; // Ngày mới nhất trước
   });
 
-  // Filter students based on search criteria
-  const filteredStudents = campaignStudents.filter(student => {
-    const matchesName = student.studentName.toLowerCase().includes(nameFilter.toLowerCase());
-    const matchesClass = student.studentClass.toLowerCase().includes(classFilter.toLowerCase());
-    const matchesResponse = responseFilter === '' || 
-      (responseFilter === 'APPROVED' && student.consentStatus === 'APPROVED') ||
-      (responseFilter === 'REJECTED' && student.consentStatus === 'REJECTED') ||
-      (responseFilter === 'PENDING' && student.consentStatus === 'PENDING');
-    
-    return matchesName && matchesClass && matchesResponse;
-  });
+
 
   // Pagination logic
   const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
@@ -615,214 +512,7 @@ const CheckupList = () => {
       
       {renderPagination()}
       
-      {/* Campaign Details Section */}
-      {showDetailsSection && selectedCampaign && (
-        <div 
-          className="campaign-details-section"
-          ref={(el) => setDetailsRef(el)}
-        >
-          <div className="details-header">
-            <h3>
-              <FaCalendarAlt className="me-2" />
-              Chi tiết chiến dịch: {selectedCampaign.title}
-            </h3>
-            <Button variant="outline-secondary" onClick={handleCloseDetails}>
-              <FaTimesCircle className="me-2" />
-              Đóng
-            </Button>
-          </div>
-          
-          <div className="details-content">
-            {detailsLoading ? (
-              <div className="loading-container">
-                <Spinner animation="border" />
-                <p>Đang tải danh sách học sinh...</p>
-              </div>
-            ) : (
-              <div className="students-table-container">
-                {/* Enhanced Student Filter Section */}
-                <div className="card shadow-sm mb-4">
-                  <div className="card-header" style={{background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)'}}>
-                    <h6 className="mb-0 text-white">
-                      <i className="fas fa-filter me-2"></i>
-                      Lọc danh sách học sinh
-                    </h6>
-                  </div>
-                  <div className="card-body">
-                    <div className="row g-3 align-items-end">
-                      {/* Name Filter */}
-                      <div className="col-md-4">
-                        <label htmlFor="nameFilter" className="form-label fw-bold">
-                          <i className="fas fa-user me-1"></i>
-                          Tên học sinh
-                        </label>
-                        <Form.Control
-                          id="nameFilter"
-                          type="text"
-                          className="form-control form-control-lg"
-                          placeholder="Nhập tên học sinh..."
-                          value={nameFilter}
-                          onChange={(e) => setNameFilter(e.target.value)}
-                        />
-                      </div>
 
-                      {/* Class Filter */}
-                      <div className="col-md-3">
-                        <label htmlFor="classFilter" className="form-label fw-bold">
-                          <i className="fas fa-users me-1"></i>
-                          Lớp
-                        </label>
-                        <Form.Control
-                          id="classFilter"
-                          type="text"
-                          className="form-control form-control-lg"
-                          placeholder="Nhập lớp..."
-                          value={classFilter}
-                          onChange={(e) => setClassFilter(e.target.value)}
-                        />
-                      </div>
-
-                      {/* Response Filter */}
-                      <div className={hasActiveStudentFilters() ? "col-md-3" : "col-md-5"}>
-                        <label htmlFor="responseFilter" className="form-label fw-bold">
-                          <i className="fas fa-comment-dots me-1"></i>
-                          Phản hồi
-                        </label>
-                        <Form.Select
-                          id="responseFilter"
-                          className="form-select form-select-lg"
-                          value={responseFilter}
-                          onChange={(e) => setResponseFilter(e.target.value)}
-                        >
-                          <option value="">Tất cả</option>
-                          <option value="APPROVED">Đã đồng ý</option>
-                          <option value="REJECTED">Đã từ chối</option>
-                          <option value="PENDING">Chờ phản hồi</option>
-                        </Form.Select>
-                      </div>
-
-                      {/* Reset Button - Only show when filters are active */}
-                      {hasActiveStudentFilters() && (
-                        <div className="col-md-2">
-                          <Button
-                            variant="outline-secondary"
-                            className="btn btn-outline-secondary btn-lg w-100"
-                            onClick={handleResetFilters}
-                            title="Xóa bộ lọc học sinh"
-                          >
-                            <i className="fas fa-redo me-2"></i>
-                            Đặt lại
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Student Filter Summary */}
-                    {hasActiveStudentFilters() && (
-                      <div className="row mt-3">
-                        <div className="col-12">
-                          <div className="alert alert-success mb-0">
-                            <i className="fas fa-info-circle me-2"></i>
-                            Tìm thấy <strong>{filteredStudents.length}</strong> học sinh
-                            {nameFilter.trim() !== "" && (
-                              <span> có tên chứa "<strong>{nameFilter}</strong>"</span>
-                            )}
-                            {classFilter.trim() !== "" && (
-                              <span> thuộc lớp "<strong>{classFilter}</strong>"</span>
-                            )}
-                            {responseFilter !== "" && (
-                              <span> với phản hồi <strong>
-                                {responseFilter === 'APPROVED' && 'Đã đồng ý'}
-                                {responseFilter === 'REJECTED' && 'Đã từ chối'}
-                                {responseFilter === 'PENDING' && 'Chờ phản hồi'}
-                              </strong></span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th>STT</th>
-                      <th>Tên học sinh</th>
-                      <th>Lớp</th>
-                      <th>Tên phụ huynh</th>
-                      <th>Phản hồi</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredStudents.map((student, index) => (
-                      <tr key={student.studentId}>
-                        <td>{index + 1}</td>
-                        <td>{student.studentName}</td>
-                        <td>{student.studentClass}</td>
-                        <td>{student.parentName}</td>
-                        <td>{getConsentStatus(student.consentStatus)}</td>
-                        <td>
-                          <Button variant="outline-info" size="sm" className="me-2" onClick={() => handleViewConsent(student.parentConsentId)}>
-                            <FaInfoCircle /> Xem
-                          </Button>
-                          {renderCheckupActions(student)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      
-      {/* Campaign Details Modal - Keep for other uses */}
-      <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)} size="xl">
-        <Modal.Header closeButton>
-          <Modal.Title>Chi tiết chiến dịch: {selectedCampaign?.title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {detailsLoading ? (
-            <div className="loading-container">
-              <Spinner animation="border" />
-              <p>Đang tải danh sách học sinh...</p>
-            </div>
-          ) : (
-            <Table striped bordered hover responsive>
-              <thead>
-                <tr>
-                  <th>STT</th>
-                  <th>Tên học sinh</th>
-                  <th>Lớp</th>
-                  <th>Tên phụ huynh</th>
-                  <th>Phản hồi</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {campaignStudents.map((student, index) => (
-                  <tr key={student.studentId}>
-                    <td>{index + 1}</td>
-                    <td>{student.studentName}</td>
-                    <td>{student.studentClass}</td>
-                    <td>{student.parentName}</td>
-                    <td>{getConsentStatus(student.consentStatus)}</td>
-                    <td>
-                      <Button variant="outline-info" size="sm" className="me-2" onClick={() => handleViewConsent(student.parentConsentId)}>
-                        <FaInfoCircle /> Xem
-                      </Button>
-                      {renderCheckupActions(student)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
-        </Modal.Body>
-      </Modal>
 
       {/* Consent Details Modal - Redesigned */}
       <Modal 
@@ -890,16 +580,7 @@ const CheckupList = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Create Checkup Form Modal */}
-      {studentForCheckup && (
-        <CreateCheckupFormModal
-          show={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          student={studentForCheckup}
-          campaign={selectedCampaign}
-          onSubmit={handleCreateCheckupSubmit}
-        />
-      )}
+
       </div>
     </>
   );
