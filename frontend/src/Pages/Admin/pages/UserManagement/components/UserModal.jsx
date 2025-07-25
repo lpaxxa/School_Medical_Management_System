@@ -10,7 +10,7 @@ import {
   FaChevronRight,
   FaGraduationCap,
 } from "react-icons/fa";
-import StudentImageUpload from "../../../../../components/StudentImageUpload";
+import AdminStudentImageUpload from "./AdminStudentImageUpload";
 import "./UserModal.css";
 
 const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
@@ -107,6 +107,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
       if (user.students && (mode === "edit" || mode === "view")) {
         const initialStudents = user.students.map((student) => ({
           ...student,
+          dateOfBirth: formatDateForInput(student.dateOfBirth),
           gradeLevel:
             student.gradeLevel || generateGradeLevel(student.className || ""),
         }));
@@ -171,6 +172,14 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
     if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleDateString("vi-VN");
+  };
+
+  // Format date for input type="date" (YYYY-MM-DD)
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    return date.toISOString().split("T")[0];
   };
 
   // Handle editable student changes
@@ -982,7 +991,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                   {/* Student Image Upload */}
                                   <div className="admin-form-group">
                                     <label>Ảnh học sinh</label>
-                                    <StudentImageUpload
+                                    <AdminStudentImageUpload
                                       student={student}
                                       onImageUpload={handleImageUpload}
                                       onImageDelete={handleImageDelete}
@@ -1170,7 +1179,7 @@ const UserModal = ({ mode, user, onClose, onSave, getRoleDisplayName }) => {
                                   {/* Student Image Display */}
                                   <div className="admin-student-image-section">
                                     <label>Ảnh học sinh</label>
-                                    <StudentImageUpload
+                                    <AdminStudentImageUpload
                                       student={student}
                                       onImageUpload={handleImageUpload}
                                       onImageDelete={handleImageDelete}

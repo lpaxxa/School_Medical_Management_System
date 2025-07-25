@@ -17,9 +17,92 @@ import { formatDate } from "../../../utils/dateUtils";
 const StudentDetailView = ({ student, onBack, theme = "teal" }) => {
   if (!student) return null;
 
+  // Helper function to normalize gender display
+  const normalizeGender = (gender) => {
+    if (!gender) return "Chưa có";
+    const genderLower = gender.toLowerCase();
+    if (genderLower === "male" || genderLower === "nam") return "Nam";
+    if (
+      genderLower === "female" ||
+      genderLower === "nữ" ||
+      genderLower === "nu"
+    )
+      return "Nữ";
+    return gender; // Return original if not recognized
+  };
+
+  // Helper function to validate and format image URL
+  const getValidImageUrl = (imageUrl) => {
+    if (!imageUrl) {
+      console.log("🔍 No image URL provided");
+      return null;
+    }
+
+    console.log("🔍 Checking image URL:", imageUrl);
+
+    // Blacklist problematic domains that don't allow hotlinking
+    const blacklistedDomains = [
+      "freepik.com",
+      "shutterstock.com",
+      "getty.com",
+      "istockphoto.com",
+    ];
+
+    // Check if it's a valid URL format
+    try {
+      const url = new URL(imageUrl);
+      console.log("🔍 Parsed URL:", {
+        protocol: url.protocol,
+        hostname: url.hostname,
+        pathname: url.pathname,
+      });
+
+      // Check for blacklisted domains
+      const isBlacklisted = blacklistedDomains.some((domain) =>
+        url.hostname.includes(domain)
+      );
+
+      if (isBlacklisted) {
+        console.log(
+          "❌ Blacklisted domain (no hotlinking allowed):",
+          url.hostname
+        );
+        return null;
+      }
+
+      // Check if it's a supported image format
+      const supportedFormats = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+      const hasValidExtension = supportedFormats.some((format) =>
+        url.pathname.toLowerCase().includes(format)
+      );
+
+      console.log("🔍 Has valid extension:", hasValidExtension);
+      console.log("🔍 Contains 'image':", url.pathname.includes("image"));
+      console.log("🔍 Contains 'photo':", url.pathname.includes("photo"));
+
+      if (
+        hasValidExtension ||
+        url.pathname.includes("image") ||
+        url.pathname.includes("photo")
+      ) {
+        console.log("✅ Valid image URL:", imageUrl);
+        return imageUrl;
+      } else {
+        console.log("❌ URL doesn't match image criteria:", imageUrl);
+      }
+    } catch (e) {
+      console.warn("❌ Invalid image URL format:", imageUrl, e.message);
+    }
+
+    return null;
+  };
+
   // Debug: Log student data
   console.log("Student data:", student);
-  console.log("Image URL:", student.imageUrl);
+  console.log("Original Image URL:", student.imageUrl);
+
+  const validImageUrl = getValidImageUrl(student.imageUrl);
+  console.log("Valid Image URL:", validImageUrl);
 
   return (
     <div className={`reports-student-detail-page theme-${theme}`}>
@@ -38,29 +121,55 @@ const StudentDetailView = ({ student, onBack, theme = "teal" }) => {
         <div className="reports-student-detail-left-column">
           {/* Ảnh học sinh */}
           <div className="reports-student-detail-photo">
-            {student.imageUrl ? (
+            {validImageUrl ? (
               <img
-                src={student.imageUrl}
+                src={validImageUrl}
                 alt={student.fullName || student.name}
                 onLoad={() => {
-                  console.log("Image loaded successfully:", student.imageUrl);
+                  console.log("✅ Image loaded successfully:", validImageUrl);
                 }}
                 onError={(e) => {
-                  console.error("Image failed to load:", student.imageUrl);
+                  console.error("❌ Image failed to load:", validImageUrl);
                   console.error("Error details:", e);
                   if (e && e.target) {
                     e.target.onerror = null;
+                    // Use a more reliable fallback - data URL
                     e.target.src =
-                      "https://via.placeholder.com/200x200/cccccc/666666?text=Student";
+                      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzBDOTQuNDc3MiA3MCA5MCA3NC40NzcyIDkwIDgwVjEyMEM5MCA5NC40NzcyIDk0LjQ3NzIgOTAgMTAwIDkwSDEwMEMxMDUuNTIzIDkwIDExMCA5NC40NzcyIDExMCAxMjBWODBDMTEwIDc0LjQ3NzIgMTA1LjUyMyA3MCAxMDAgNzBaIiBmaWxsPSIjOUI5QjlCIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjUwIiByPSIxNSIgZmlsbD0iIzlCOUI5QiIvPgo8dGV4dCB4PSIxMDAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOUI5QjlCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
                   }
                 }}
                 crossOrigin="anonymous"
                 referrerPolicy="no-referrer"
+                style={{
+                  width: "100%",
+                  height: "200px",
+                  objectFit: "cover",
+                  borderRadius: "8px",
+                }}
               />
             ) : (
               <div className="reports-student-detail-photo-placeholder">
                 <FaUser size={60} />
                 <p>Không có hình ảnh</p>
+                {student.imageUrl && (
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#999",
+                      marginTop: "5px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <p>
+                      Lý do: URL không hợp lệ hoặc không cho phép hotlinking
+                    </p>
+                    <p style={{ wordBreak: "break-all", marginTop: "3px" }}>
+                      {student.imageUrl.length > 60
+                        ? `${student.imageUrl.substring(0, 60)}...`
+                        : student.imageUrl}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -104,7 +213,15 @@ const StudentDetailView = ({ student, onBack, theme = "teal" }) => {
                 Giới tính
               </span>
               <span className="reports-student-detail-value">
-                {student.gender || "Chưa có"}
+                <span
+                  className={`reports-student-gender-badge ${
+                    normalizeGender(student.gender) === "Nam"
+                      ? "male"
+                      : "female"
+                  }`}
+                >
+                  {normalizeGender(student.gender)}
+                </span>
               </span>
             </div>
 

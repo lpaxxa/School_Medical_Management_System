@@ -952,6 +952,7 @@ select.parentfix-filter-select {
 .pn-modal-header {
   padding: var(--pn-space-6);
   border-bottom: 1px solid var(--pn-gray-200);
+  background: var(--pn-gradient);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -960,7 +961,7 @@ select.parentfix-filter-select {
 .pn-modal-title {
   font-size: var(--pn-text-xl);
   font-weight: 600;
-  color: var(--pn-gray-900);
+  color: #ffffff;
 }
 
 .pn-modal-close {
