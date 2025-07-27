@@ -204,10 +204,10 @@ const Notifications = () => {
     // Sắp xếp theo sort order
     filtered.sort((a, b) => {
       const dateA = parseDate(
-        a.createdAt || a.campaignStartDate || a.updatedAt || 0
+        a.campaignStartDate || a.createdAt || a.updatedAt || 0
       );
       const dateB = parseDate(
-        b.createdAt || b.campaignStartDate || b.updatedAt || 0
+        b.campaignStartDate || b.createdAt || b.updatedAt || 0
       );
 
       if (healthCheckupSortOrder === "newest") {
@@ -496,7 +496,7 @@ const Notifications = () => {
   useEffect(() => {
     const filtered = getFilteredData();
     setFilteredConsentList(filtered);
-  }, [consentList, filters, students]);
+  }, [consentList, filters, students, healthCheckupSortOrder]);
 
   // Load danh sách consent kiểm tra sức khỏe
   const loadHealthCheckupList = async () => {
@@ -793,17 +793,29 @@ const Notifications = () => {
   };
 
   // Callback khi consent được cập nhật
-  const handleConsentUpdated = () => {
-    // Simulate updating the consent status in the list
+  const handleConsentUpdated = (newStatus = null) => {
+    // Nếu không có newStatus, fetch lại data để đảm bảo đồng bộ
+    if (!newStatus) {
+      loadHealthCheckupList();
+      return;
+    }
+
+    // Cập nhật trạng thái trong danh sách
     const updatedList = consentList.map((consent) =>
       consent.id === selectedConsentId
-        ? { ...consent, consentStatus: "APPROVED" }
+        ? { ...consent, consentStatus: newStatus }
         : consent
     );
     setConsentList(updatedList);
 
     // Cập nhật filteredConsentList sẽ được tự động xử lý bởi useEffect
-    toast.info("Danh sách đã được cập nhật");
+    const statusText =
+      newStatus === "APPROVED"
+        ? "đồng ý"
+        : newStatus === "REJECTED"
+        ? "từ chối"
+        : "cập nhật";
+    toast.info(`Trạng thái đã được ${statusText}`);
   };
 
   // Render status badge cho consentStatus mới

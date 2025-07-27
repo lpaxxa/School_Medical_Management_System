@@ -812,6 +812,10 @@ const VaccinationsTab = ({ studentId, parentInfo, studentCode }) => {
                         ? "Đã được phụ huynh đồng ý"
                         : plan.status === "REJECTED"
                         ? "Đã bị phụ huynh từ chối"
+                        : plan.status === "IN_PROGRESS"
+                        ? "Đang thực hiện"
+                        : plan.status === "CANCELED"
+                        ? "Đã hủy"
                         : plan.status}
                     </span>
                   </div>

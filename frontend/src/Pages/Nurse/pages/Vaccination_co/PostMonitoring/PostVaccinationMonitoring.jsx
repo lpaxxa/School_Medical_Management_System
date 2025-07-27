@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, Button, Container, Row, Col, Spinner, Alert, Form, InputGroup } from 'react-bootstrap';
 import { useVaccination } from '../../../../../context/NurseContext/VaccinationContext';
-import StudentListModal from './StudentListModal';
 import HistoryModal from './HistoryModal';
 import UpdateNoteModal from './UpdateNoteModal';
 import CustomPagination from './CustomPagination';
@@ -59,12 +59,12 @@ const formatDate = (dateInput) => {
 };
 
 const PostVaccinationMonitoring = () => {
-  const { 
-    vaccinationPlans, 
-    loading, 
-    error, 
-    fetchPlanDetails, 
-    handleShowStudentListModal,
+  const navigate = useNavigate();
+  const {
+    vaccinationPlans,
+    loading,
+    error,
+    fetchPlanDetails,
     handleShowHistoryModal
   } = useVaccination();
   
@@ -435,37 +435,8 @@ const PostVaccinationMonitoring = () => {
     setStudentCurrentPage(1);
   };
 
-  const handleViewDetails = async (planId) => {
-    setDetailsLoading(true);
-    setDetailsError(null);
-    
-    try {
-      // First, fetch the full plan details which include the list of students.
-      const fullPlanDetails = await fetchPlanDetails(planId);
-      
-      if (fullPlanDetails) {
-        setSelectedPlan(planId);
-        setPlanDetails(fullPlanDetails);
-        
-        // Fetch student statuses for the plan
-        await fetchStudentStatuses(fullPlanDetails);
-        
-        // Scroll to details section after a short delay to ensure it's rendered
-        setTimeout(() => {
-          const detailsElement = document.getElementById('plan-details-section');
-          if (detailsElement) {
-            detailsElement.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      } else {
-        setDetailsError("Không thể tải chi tiết kế hoạch tiêm chủng.");
-      }
-    } catch (error) {
-      setDetailsError("Có lỗi xảy ra khi tải chi tiết kế hoạch tiêm chủng.");
-      console.error("Error fetching plan details:", error);
-    } finally {
-      setDetailsLoading(false);
-    }
+  const handleViewDetails = (planId) => {
+    navigate(`/nurse/vaccination/monitoring-detail/${planId}`);
   };
 
   const handleCloseDetails = () => {
@@ -715,355 +686,14 @@ const PostVaccinationMonitoring = () => {
             itemName="vaccination plans"
           />
 
-          {/* Plan Details Section */}
-          {selectedPlan && (
-            <div 
-              id="plan-details-section"
-              style={{
-                marginTop: '40px',
-                marginBottom: '20px',
-                padding: '20px',
-                backgroundColor: '#fff',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                border: '1px solid #e5e7eb',
-                animation: 'slideDown 0.3s ease-out'
-              }}
-            >
-              <style>
-                {`
-                  @keyframes slideDown {
-                    from {
-                      opacity: 0;
-                      transform: translateY(-20px);
-                    }
-                    to {
-                      opacity: 1;
-                      transform: translateY(0);
-                    }
-                  }
-                `}
-              </style>
-              
-              {/* Header */}
-              <div className="d-flex justify-content-between align-items-center pb-3 mb-4" style={{
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <h2 className="mb-0" style={{
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  color: '#000'
-                }}>
-                  Chi tiết: {planDetails ? planDetails.name : 'Đang tải...'}
-                </h2>
-                <button 
-                  onClick={handleCloseDetails}
-                  style={{
-                    background: 'linear-gradient(to right, #ef4444, #dc2626)',
-                    border: 'none',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    color: 'white',
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    fontWeight: '500',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  ✖ Đóng chi tiết
-                </button>
-              </div>
 
-              {/* Body */}
-              <div style={{
-                fontSize: '14px',
-                color: '#374151'
-              }}>
-                {detailsLoading && (
-                  <div className="text-center p-5">
-                    <Spinner animation="border" />
-                    <p className="mt-2">Đang tải chi tiết...</p>
-                  </div>
-                )}
-                {detailsError && <Alert variant="danger">{detailsError}</Alert>}
-                {planDetails && !detailsLoading && (
-                  <PlanDetailsContent 
-                    planDetails={planDetails} 
-                    handleShowHistoryModal={handleShowHistoryModal}
-                    studentStatuses={studentStatuses}
-                    statusLoading={statusLoading}
-                    studentSearchTerm={studentSearchTerm}
-                    setStudentSearchTerm={setStudentSearchTerm}
-                    studentStatusFilter={studentStatusFilter}
-                    setStudentStatusFilter={setStudentStatusFilter}
-                    studentCurrentPage={studentCurrentPage}
-                    setStudentCurrentPage={setStudentCurrentPage}
-                    studentsPerPage={studentsPerPage}
-                  />
-                )}
-              </div>
-            </div>
-          )}
         </>
       )}
 
       {/* Modals for the Post-Monitoring Flow */}
-      <StudentListModal />
       <HistoryModal />
       <UpdateNoteModal />
     </Container>
-  );
-};
-
-// Plan Details Content Component giống format của StudentListModal
-const PlanDetailsContent = ({ 
-  planDetails, 
-  handleShowHistoryModal, 
-  studentStatuses, 
-  statusLoading,
-  studentSearchTerm,
-  setStudentSearchTerm,
-  studentStatusFilter,
-  setStudentStatusFilter,
-  studentCurrentPage,
-  setStudentCurrentPage,
-  studentsPerPage
-}) => {
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'Hoàn thành':
-        return <span className="badge bg-success">🟢 Hoàn thành</span>;
-      case 'Cần theo dõi':
-        return <span className="badge bg-warning text-dark">🟡 Cần theo dõi</span>;
-      case 'Chưa hoàn thành':
-        return <span className="badge bg-danger">🔴 Chưa hoàn thành</span>;
-      case 'Đang tải':
-        return <Spinner animation="border" size="sm" />;
-      default:
-        return <span className="badge bg-warning text-dark">🟡 Cần theo dõi</span>;
-    }
-  };
-
-  // Filtered students (without pagination)
-  const filteredStudents = useMemo(() => {
-    let students = planDetails.students || [];
-
-    // Filter by search term
-    if (studentSearchTerm) {
-      students = students.filter(student => 
-        student.fullName.toLowerCase().includes(studentSearchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by status
-    if (studentStatusFilter) {
-      students = students.filter(student => {
-        const status = studentStatuses[student.healthProfileId];
-        return status === studentStatusFilter;
-      });
-    }
-
-    return students;
-  }, [planDetails.students, studentSearchTerm, studentStatusFilter, studentStatuses]);
-
-  // Paginated students
-  const paginatedStudents = useMemo(() => {
-    const startIndex = (studentCurrentPage - 1) * studentsPerPage;
-    return filteredStudents.slice(startIndex, startIndex + studentsPerPage);
-  }, [filteredStudents, studentCurrentPage, studentsPerPage]);
-
-  // Calculate pagination info
-  const totalStudentPages = Math.ceil(filteredStudents.length / studentsPerPage);
-  const isFirstPage = studentCurrentPage === 1;
-  const isLastPage = studentCurrentPage === totalStudentPages;
-
-  return (
-    <>
-      {/* General Info */}
-      <div style={{ marginBottom: '20px' }}>
-        <p style={{
-          fontSize: '14px',
-          marginBottom: '8px'
-        }}>
-          {planDetails.description}
-        </p>
-        <p style={{
-          fontSize: '14px',
-          marginBottom: '8px'
-        }}>
-          📅 Ngày tiêm: <span style={{
-            fontWeight: 'bold',
-            color: '#2563eb'
-          }}>{formatDate(planDetails.vaccinationDate)}</span>
-        </p>
-      </div>
-
-      {/* Vaccine Details */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3 style={{
-          fontWeight: 'bold',
-          marginBottom: '10px',
-          fontSize: '16px'
-        }}>
-          Vaccine sử dụng:
-        </h3>
-        <p>
-          {planDetails.vaccines?.map((vaccine, index) => (
-            <span key={vaccine.id}>
-              {index > 0 && ', '}
-              {vaccine.name}
-              {vaccine.description && `: ${vaccine.description}`}
-            </span>
-          ))}
-        </p>
-      </div>
-
-      {/* Student List - giống format của StudentListModal */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3 style={{
-          fontWeight: 'bold',
-          marginBottom: '10px',
-          fontSize: '16px'
-        }}>
-          Danh sách học sinh - {planDetails.name}
-        </h3>
-        
-        {/* Filter and Pagination Controls */}
-        <div className="mb-3">
-          <Row className="g-2 align-items-center">
-            {/* Search Input */}
-            <Col md={5}>
-              <Form.Control
-                type="text"
-                placeholder="🔍 Tìm theo tên học sinh..."
-                value={studentSearchTerm}
-                onChange={(e) => setStudentSearchTerm(e.target.value)}
-                style={{ fontSize: '14px' }}
-              />
-            </Col>
-            
-            {/* Status Filter */}
-            <Col md={3}>
-              <Form.Select
-                value={studentStatusFilter}
-                onChange={(e) => setStudentStatusFilter(e.target.value)}
-                style={{ fontSize: '14px' }}
-              >
-                <option value="">Tất cả trạng thái</option>
-                <option value="Hoàn thành">✅ Hoàn thành</option>
-                <option value="Cần theo dõi">⚠️ Cần theo dõi</option>
-                <option value="Chưa hoàn thành">❌ Chưa hoàn thành</option>
-              </Form.Select>
-            </Col>
-            
-            {/* Reset Button */}
-            <Col md={4}>
-              {(studentSearchTerm || studentStatusFilter) && (
-                <Button
-                  variant="outline-danger"
-                  onClick={() => {
-                    setStudentSearchTerm('');
-                    setStudentStatusFilter('');
-                    setStudentCurrentPage(1);
-                  }}
-                  className="w-100"
-                  style={{ fontSize: '14px' }}
-                >
-                  <i className="fas fa-times me-1"></i>
-                  Xóa bộ lọc
-                </Button>
-              )}
-            </Col>
-          </Row>
-        </div>
-        
-        <div style={{ overflowX: 'auto' }}>
-          {statusLoading ? (
-            <div className="text-center">
-              <Spinner animation="border" />
-              <p>Đang tải trạng thái theo dõi...</p>
-            </div>
-          ) : filteredStudents.length === 0 ? (
-            <div className="text-center py-4">
-              <p className="text-muted">
-                {(studentSearchTerm || studentStatusFilter) ? 
-                  'Không có học sinh nào phù hợp với bộ lọc.' : 
-                  'Không có học sinh nào trong kế hoạch này.'}
-              </p>
-              {(studentSearchTerm || studentStatusFilter) && (
-                <Button
-                  variant="outline-primary"
-                  onClick={() => {
-                    setStudentSearchTerm('');
-                    setStudentStatusFilter('');
-                    setStudentCurrentPage(1);
-                  }}
-                >
-                  Xóa bộ lọc
-                </Button>
-              )}
-            </div>
-          ) : (
-            <table className="table table-striped table-bordered table-hover">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Tên học sinh</th>
-                  <th>Ghi chú từ phụ huynh</th>
-                  <th>Trạng thái theo dõi</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedStudents.map((student, index) => (
-                  <tr key={student.healthProfileId || student.id}>
-                    <td>{(studentCurrentPage - 1) * studentsPerPage + index + 1}</td>
-                    <td>{student.fullName}</td>
-                    <td>{student.parentNotes || 'Không có'}</td>
-                    <td>{getStatusBadge(studentStatuses[student.healthProfileId])}</td>
-                    <td>
-                      <button
-                        className="btn btn-info btn-sm"
-                        onClick={() => handleShowHistoryModal({
-                          ...student,
-                          studentId: student.id || student.healthProfileId,
-                          studentName: student.fullName
-                        }, planDetails.vaccinationDate)}
-                        style={{
-                          fontSize: '12px',
-                          padding: '4px 8px'
-                        }}
-                      >
-                        <i className="fas fa-eye"></i> Xem lịch sử
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-        
-        {/* Student Pagination */}
-        <CustomPagination
-          currentPage={studentCurrentPage}
-          totalPages={totalStudentPages}
-          onPageChange={setStudentCurrentPage}
-          startIndex={(studentCurrentPage - 1) * studentsPerPage}
-          endIndex={studentCurrentPage * studentsPerPage}
-          totalItems={filteredStudents.length}
-          itemName="học sinh"
-        />
-      </div>
-    </>
   );
 };
 

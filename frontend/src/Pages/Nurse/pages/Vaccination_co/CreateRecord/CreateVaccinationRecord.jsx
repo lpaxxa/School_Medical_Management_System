@@ -1,20 +1,15 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useVaccination } from '../../../../../context/NurseContext/VaccinationContext';
 import { Card, Spinner, Alert, Row, Col, Badge, Button, Form, InputGroup, Pagination } from 'react-bootstrap';
-import VaccinationPlanDetailsModal from './VaccinationPlanDetailsModal';
 import CreateRecordModal from './CreateRecordModal';
 
 const CreateVaccinationRecord = () => {
+  const navigate = useNavigate();
   const {
     vaccinationPlans,
     loading,
     error,
-    selectedPlanDetails,
-    detailsLoading,
-    detailsError,
-    showDetailsModal,
-    handleShowDetailsModal,
-    handleCloseDetailsModal,
     // Create Record Modal
     showCreateRecordModal,
     studentForRecord,
@@ -31,8 +26,7 @@ const CreateVaccinationRecord = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  // Ref for details section
-  const detailsSectionRef = useRef(null);
+
 
   // Save and restore scroll position
   useEffect(() => {
@@ -138,18 +132,9 @@ const CreateVaccinationRecord = () => {
     sessionStorage.removeItem('createVaccinationRecordFilters');
   };
 
-  // Function to handle showing details and scrolling to details section
+  // Function to handle showing details by navigating to detail page
   const handleShowDetailsWithScroll = (planId) => {
-    handleShowDetailsModal(planId);
-    // Wait for modal to show, then scroll to details section
-    setTimeout(() => {
-      if (detailsSectionRef.current) {
-        detailsSectionRef.current.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
-      }
-    }, 300); // Delay to ensure modal has time to render
+    navigate(`/nurse/vaccination/plan-detail/${planId}`);
   };
 
   const getStatusBadge = (status) => {
@@ -522,23 +507,11 @@ const CreateVaccinationRecord = () => {
         )}
       </div>
 
-      {/* Chi tiết kế hoạch tiêm chủng hiển thị dưới danh sách */}
-      <div ref={detailsSectionRef}>
-        <VaccinationPlanDetailsModal 
-          show={showDetailsModal}
-          handleClose={handleCloseDetailsModal}
-          planDetails={selectedPlanDetails}
-          loading={detailsLoading}
-          error={detailsError}
-        />
-      </div>
-
       {/* This modal is also managed here */}
-      <CreateRecordModal 
+      <CreateRecordModal
         show={showCreateRecordModal}
         handleClose={handleCloseCreateRecordModal}
         student={studentForRecord}
-        plan={selectedPlanDetails}
       />
     </>
   );
