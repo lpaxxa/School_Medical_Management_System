@@ -120,7 +120,8 @@ public class SecurityConfig {
             "https://www.medically.site",
             "https://medically-backend.southeastasia.cloudapp.azure.com",
             "https://medically-backend.southeastasia.cloudapp.azure.com",
-            "https://school-medical-management-system-9xmaxdhl3.vercel.app"
+            "https://school-medical-management-system-9xmaxdhl3.vercel.app",
+                "https://school-medical-management-system-red.vercel.app"
         ));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
