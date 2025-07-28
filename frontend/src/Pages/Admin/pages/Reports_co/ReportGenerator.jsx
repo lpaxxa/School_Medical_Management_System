@@ -9,6 +9,7 @@ import StudentDetailView from "./components/StudentDetailView";
 import MedicationListView from "./components/MedicationListView";
 import VaccineListView from "./components/VaccineListView";
 import { reportService } from "./services/reportService";
+import sessionService from '../../../../services/sessionService';
 
 const ReportGenerator = () => {
   const [reportType, setReportType] = useState("health");
@@ -80,7 +81,7 @@ const ReportGenerator = () => {
       if (reportType === "health") {
         setDetailViewType("student");
         // Gọi API lấy danh sách học sinh
-        const token = localStorage.getItem("authToken");
+        const token = sessionService.getToken();
         if (!token) {
           throw new Error("Chưa đăng nhập. Vui lòng đăng nhập lại.");
         }
@@ -144,7 +145,7 @@ const ReportGenerator = () => {
     console.log("🔄 handleStudentDeleted called with ID:", studentId);
     try {
       setIsLoadingDetail(true);
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const backendUrl =
         import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
       const refreshUrl = `${backendUrl}/api/v1/students`;

@@ -1,4 +1,5 @@
 import api from '../api.js';
+import sessionService from '../sessionService';
 
 // For backward compatibility, create an alias
 const axiosInstance = api;
@@ -366,31 +367,26 @@ const testBackendConnection = async () => {
 };
 
 // Thêm vào file studentRecordsService.js
+// Updated debug function using sessionService
 const debugAuthToken = () => {
+  if (!import.meta.env.DEV) return; // Only debug in development
+
   console.log('=== AUTH TOKEN DEBUG ===');
-  const token = localStorage.getItem('authToken');
-  const user = localStorage.getItem('currentUser');
-  
-  console.log('Token exists:', !!token);
-  console.log('User exists:', !!user);
-  
+  const sessionInfo = sessionService.getSessionInfo();
+
+  console.log('Session Info:', sessionInfo);
+  console.log('Is Authenticated:', sessionService.isAuthenticated());
+
+  const token = sessionService.getToken();
   if (token) {
     console.log('Auth token preview:', token.substring(0, 15) + '...');
-    // Try to decode the token payload
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log('Token payload:', payload);
-      console.log('Token expires at:', new Date(payload.exp * 1000));
-      console.log('Token is expired:', Date.now() > payload.exp * 1000);
-    } catch (e) {
-      console.log('Could not decode token payload');
-    }
   } else {
-    console.warn('No authentication token found');
+    console.warn('No valid authentication token found');
   }
-  
-  if (user) {
-    console.log('Current user:', JSON.parse(user));
+
+  const userData = sessionService.getUserData();
+  if (userData) {
+    console.log('Current user:', userData);
   }
   
   console.log('=== END AUTH TOKEN DEBUG ===');

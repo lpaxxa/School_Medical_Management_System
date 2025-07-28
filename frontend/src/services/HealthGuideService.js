@@ -1,4 +1,5 @@
 import axios from "axios";
+import sessionService from './sessionService';
 
 const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api`;
 
@@ -14,12 +15,18 @@ const HealthGuideService = {
     try {
       console.log("🏥 Fetching health articles from API:", `${BASE_URL}/health-articles`);
       
+      const token = sessionService.getToken();
       const response = await axios.get(`${BASE_URL}/health-articles`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+
+      // Extend session on API activity
+      if (token) {
+        sessionService.extendSession();
+      }
       
       console.log("✅ Health articles response:", response);
       console.log("✅ Health articles data:", response.data);
@@ -62,7 +69,7 @@ const HealthGuideService = {
       
       const response = await axios.get(`${BASE_URL}/health-articles/${articleId}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Authorization': `Bearer ${sessionService.getToken()}`,
           'Content-Type': 'application/json'
         }
       });

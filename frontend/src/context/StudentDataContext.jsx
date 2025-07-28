@@ -2,11 +2,14 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import axios from "axios";
 import api from "../services/api";
+import sessionService from "../services/sessionService";
 
 const StudentDataContext = createContext();
 
 // API URLs
-const STUDENTS_API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/parents/my-students`;
+const STUDENTS_API_URL = `${
+  import.meta.env.VITE_BACKEND_URL
+}/api/v1/parents/my-students`;
 const PARENT_API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/parents/`;
 
 export function useStudentData() {
@@ -38,7 +41,7 @@ export const StudentDataProvider = ({ children }) => {
         setError(null);
 
         // Get token from localStorage
-        const token = localStorage.getItem("authToken");
+        const token = sessionService.getToken();
         if (!token) {
           throw new Error("Authentication token not found");
         }
@@ -95,7 +98,7 @@ export const StudentDataProvider = ({ children }) => {
       setIsLoadingParent(true);
       setParentError(null);
 
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       if (!token) {
         throw new Error("Authentication token not found");
       }
@@ -121,7 +124,7 @@ export const StudentDataProvider = ({ children }) => {
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const response = await axios.get(STUDENTS_API_URL, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -154,7 +157,7 @@ export const StudentDataProvider = ({ children }) => {
           setTimeout(() => reject(new Error("Request timeout")), 10000) // 10 giây timeout
       );
 
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const response = await Promise.race([
         axios.get(STUDENTS_API_URL, {
           headers: {
@@ -219,7 +222,7 @@ export const StudentDataProvider = ({ children }) => {
   const updateHealthProfile = async (healthProfileData) => {
     try {
       // Kiểm tra token trước khi gửi
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       if (!token) {
         throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
       }

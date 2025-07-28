@@ -1,8 +1,10 @@
+import sessionService from '../../../../../services/sessionService';
+
 const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/account-members`;
 
-// Helper function để lấy auth token
+// Helper function để lấy auth token using sessionService
 const getAuthToken = () => {
-  return localStorage.getItem('authToken');
+  return sessionService.getToken();
 };
 
 // Helper function để tạo headers với authentication
@@ -20,6 +22,8 @@ const createHeaders = (includeContentType = false) => {
   const token = getAuthToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+    // Extend session on API activity
+    sessionService.extendSession();
   }
 
   return headers;

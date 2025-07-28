@@ -6,6 +6,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { StudentDataProvider } from "./context/StudentDataContext";
 import LocalhostRedirectHandler from "./components/LocalhostRedirectHandler";
+import SessionWarningModal from "./components/SessionWarningModal";
 
 // Import CSS theo thứ tự: reset -> global -> layout-fixes -> conflict-fixes
 import "./styles/reset.css";
@@ -25,6 +26,7 @@ const AppContent = () => {
     <div className="app">
       <LocalhostRedirectHandler />
       <Routes>{AppRoutes({ currentUser })}</Routes>
+      <SessionWarningModal />
     </div>
   );
 };

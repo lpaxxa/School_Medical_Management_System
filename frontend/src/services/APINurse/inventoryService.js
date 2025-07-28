@@ -1,4 +1,5 @@
 import axios from 'axios';
+import sessionService from '../sessionService';
 
 // Khởi tạo axios với cấu hình CORS
 const axiosInstance = axios.create({
@@ -9,12 +10,14 @@ const axiosInstance = axios.create({
   }
 });
 
-// Add authentication interceptor
+// Add authentication interceptor using sessionService
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Extend session on API activity
+      sessionService.extendSession();
     }
     return config;
   },

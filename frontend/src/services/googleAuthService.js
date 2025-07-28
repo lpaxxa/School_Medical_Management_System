@@ -1,4 +1,6 @@
 // Google OAuth2 Configuration
+import sessionService from './sessionService';
+
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id';
 const GOOGLE_REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI || 'https://school-medical-management-system-red.vercel.app/auth/oauth2/callback';
 const BACKEND_OAUTH_URL = import.meta.env.VITE_BACKEND_URL || `${import.meta.env.VITE_BACKEND_URL}`;
@@ -27,9 +29,6 @@ class GoogleAuthService {
    */
   handleOAuthCallback(token, userInfo) {
     try {
-      // Lưu token vào localStorage
-      localStorage.setItem('authToken', token);
-      
       // Tạo user object với format phù hợp
       const user = {
         id: userInfo.id || userInfo.memberId,
@@ -41,8 +40,17 @@ class GoogleAuthService {
         provider: 'google'
       };
 
-      // Lưu thông tin user
-      localStorage.setItem('userData', JSON.stringify(user));
+      // Lưu token và user data sử dụng sessionService
+      const success = sessionService.setAuthData(
+        token,
+        user,
+        false, // rememberMe = false for OAuth
+        null   // no refresh token from OAuth
+      );
+
+      if (!success) {
+        throw new Error('Failed to store OAuth session data');
+      }
       
       console.log('✅ Google OAuth callback processed successfully:', user);
       return user;
@@ -57,10 +65,9 @@ class GoogleAuthService {
    */
   logout() {
     try {
-      // Xóa thông tin đăng nhập
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
-      
+      // Xóa thông tin đăng nhập sử dụng sessionService
+      sessionService.clearSession();
+
       console.log('✅ Google OAuth logout completed');
     } catch (error) {
       console.error('❌ Error during Google logout:', error);

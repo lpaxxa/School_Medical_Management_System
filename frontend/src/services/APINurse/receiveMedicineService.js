@@ -1,5 +1,6 @@
 // Service API cho quản lý thuốc từ phụ huynh
 import api from './../api.js';
+import sessionService from '../sessionService';
 import axios from 'axios';
 
 // BASE_URL cho tab "Đơn nhận thuốc"
@@ -23,13 +24,15 @@ const apiService1 = axios.create({
   }
 });
 
-// Thêm interceptor cho cả hai instance nếu cần token
+// Thêm interceptor cho cả hai instance nếu cần token using sessionService
 [apiService, apiService1].forEach(service => {
   service.interceptors.request.use(
     (config) => {
-      const token = localStorage.getItem('authToken');
+      const token = sessionService.getToken();
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
+        // Extend session on API activity
+        sessionService.extendSession();
       }
       return config;
     },
@@ -38,37 +41,17 @@ const apiService1 = axios.create({
 });
 
 // Thay thế hàm checkAuthToken hiện tại
+// Simplified token check using sessionService
 const checkAuthToken = () => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
+  const isAuthenticated = sessionService.isAuthenticated();
+  const token = sessionService.getToken();
+
+  if (isAuthenticated && token) {
     console.log(`Token exists: ${token.substring(0, 15)}...`);
-    
-    // Kiểm tra định dạng JWT
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      console.warn('Token không có định dạng JWT hợp lệ!');
-      return false;
-    }
-    
-    // Kiểm tra thời hạn token
-    try {
-      const payload = JSON.parse(atob(parts[1]));
-      const expiration = payload.exp * 1000; // Chuyển đổi từ giây sang mili giây
-      const now = Date.now();
-      
-      if (expiration < now) {
-        console.warn('Token đã hết hạn!');
-        return false;
-      }
-      
-      console.log('Token hợp lệ và chưa hết hạn.');
-      return true;
-    } catch (err) {
-      console.warn('Không thể giải mã JWT payload:', err);
-      return false;
-    }
+    console.log('Token hợp lệ và chưa hết hạn.');
+    return true;
   } else {
-    console.warn('No authentication token found in localStorage');
+    console.warn('Không tìm thấy token hợp lệ!');
     return false;
   }
 };
@@ -107,7 +90,7 @@ const receiveMedicineService = {
   getAllMedicineRequests: async () => {
     try {
       console.log('Gọi API lấy danh sách yêu cầu thuốc...');
-      console.log('Auth token status:', localStorage.getItem('authToken') ? 'Token exists' : 'No token');
+      console.log('Auth token status:', sessionService.getToken() ? 'Token exists' : 'No token');
       
       // SỬA ĐỔI: Sử dụng apiService thay vì api và điều chỉnh endpoint
       const response = await apiService.get('/all-requests');

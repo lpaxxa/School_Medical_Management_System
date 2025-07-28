@@ -3,19 +3,34 @@
 
 const testHealthArticleAPI = async () => {
   console.log('=== TESTING HEALTH ARTICLE API ===');
-  
-  // Get auth info
-  const token = localStorage.getItem('authToken');
-  const userRole = localStorage.getItem('userRole');
-  const currentUserId = localStorage.getItem('currentUserId');
-  
+
+  // Get auth info using sessionService if available, fallback to localStorage
+  let token, userRole, currentUserId;
+
+  try {
+    // Try to use sessionService if available
+    if (window.sessionService || (window.require && window.require('../src/services/sessionService'))) {
+      const sessionService = window.sessionService || window.require('../src/services/sessionService').default;
+      token = sessionService.getToken();
+    } else {
+      // Fallback to localStorage
+      token = localStorage.getItem('authToken');
+    }
+  } catch (error) {
+    console.warn('SessionService not available, using localStorage fallback');
+    token = localStorage.getItem('authToken');
+  }
+
+  userRole = localStorage.getItem('userRole');
+  currentUserId = localStorage.getItem('currentUserId');
+
   console.log('Auth info:', {
     hasToken: !!token,
     userRole,
     currentUserId,
     tokenLength: token?.length
   });
-  
+
   if (!token) {
     console.error('❌ No auth token found. Please login first.');
     return;

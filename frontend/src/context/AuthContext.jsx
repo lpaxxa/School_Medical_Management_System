@@ -2,10 +2,10 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 
 import axios from "axios";
 import googleAuthService from "../services/googleAuthService";
+import sessionService from "../services/sessionService";
 
 // Base API URL
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 
 // Comprehensive API endpoints configuration
 const API_ENDPOINTS = {
@@ -121,25 +121,49 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   // Removed reference to mockUserData as we're using real API now
 
-  // Kiểm tra nếu người dùng đã đăng nhập (từ localStorage)
+  // Kiểm tra nếu người dùng đã đăng nhập (sử dụng sessionService)
   useEffect(() => {
     const checkLoggedInUser = () => {
-      const token = localStorage.getItem("authToken");
-      const userData = localStorage.getItem("userData");
+      const userData = sessionService.getUserData();
 
-      if (token && userData) {
-        setCurrentUser(JSON.parse(userData));
+      if (userData && sessionService.isAuthenticated()) {
+        setCurrentUser(userData);
+        console.log("✅ User session restored:", userData);
+      } else {
+        console.log("ℹ️ No valid session found");
       }
 
       setLoading(false);
     };
 
     checkLoggedInUser();
+
+    // Setup session callbacks
+    const handleSessionExpired = () => {
+      console.log("🔔 Session expired, logging out user");
+      setCurrentUser(null);
+      setAuthError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+    };
+
+    const handleSessionWarning = (timeLeft) => {
+      const minutes = Math.floor(timeLeft / (1000 * 60));
+      console.log(`⚠️ Session expires in ${minutes} minutes`);
+      // You can show a warning modal here
+    };
+
+    sessionService.onSessionExpired(handleSessionExpired);
+    sessionService.onSessionWarning(handleSessionWarning);
+
+    // Cleanup callbacks on unmount
+    return () => {
+      sessionService.removeCallback(handleSessionExpired);
+      sessionService.removeCallback(handleSessionWarning);
+    };
   }, []);
 
   // Hàm đăng nhập sử dụng exact API URL
 
-  const login = async (username, password) => {
+  const login = async (username, password, rememberMe = false) => {
     try {
       setAuthError(null);
       console.log("🔑 Attempting login with username:", username);
@@ -174,13 +198,21 @@ export const AuthProvider = ({ children }) => {
           userData.token.substring(0, 20) + "..."
         );
 
-        // Lưu thông tin đăng nhập
-        localStorage.setItem("authToken", userData.token);
-        localStorage.setItem("userData", JSON.stringify(user));
+        // Lưu thông tin đăng nhập sử dụng sessionService
+        const success = sessionService.setAuthData(
+          userData.token,
+          user,
+          rememberMe,
+          userData.refreshToken // if available
+        );
 
-        // Cập nhật state
-        setCurrentUser(user);
-        return user;
+        if (success) {
+          // Cập nhật state
+          setCurrentUser(user);
+          return user;
+        } else {
+          throw new Error("Không thể lưu thông tin đăng nhập");
+        }
       } else {
         console.error("❌ Login response missing token:", userData);
         throw new Error("Đăng nhập thất bại, không nhận được token");
@@ -213,18 +245,22 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(user);
   };
 
-  // Hàm để set auth token
+  // Hàm để set auth token (deprecated, use sessionService instead)
   const setAuthToken = (token) => {
-    localStorage.setItem("authToken", token);
+    console.warn(
+      "⚠️ setAuthToken is deprecated, use sessionService.setAuthData instead"
+    );
+    // Use sessionService instead of direct localStorage
+    sessionService.setAuthData(token, currentUser || {}, false);
   };
 
   // Hàm đăng xuất
   const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
+    sessionService.clearSession();
     setCurrentUser(null);
+    setAuthError(null);
     googleAuthService.logout();
-
+    console.log("👋 User logged out successfully");
   };
 
   const value = {

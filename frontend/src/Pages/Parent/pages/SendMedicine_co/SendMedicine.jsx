@@ -5,6 +5,7 @@ import "./styles/SendMedicineFixed.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import { useAuth } from "../../../../context/AuthContext";
 import medicationRequestService from "../../../../services/medicationRequestService";
+import sessionService from "../../../../services/sessionService";
 // import NotificationModal from "./components/NotificationModal";
 // import {
 //   // handleApiError,
@@ -429,11 +430,14 @@ const SendMedicine = () => {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       if (!token) {
         showNotification("error", "Lỗi xác thực", "Vui lòng đăng nhập lại");
         return;
       }
+
+      // Extend session on API activity
+      sessionService.extendSession();
 
       const response = await fetch(
         `${
@@ -678,18 +682,20 @@ const SendMedicine = () => {
     }
     setLoading(true);
     try {
-      const token = localStorage.getItem("authToken");
-      console.log("🔍 Checking localStorage for authToken...");
-      console.log("🔍 All localStorage keys:", Object.keys(localStorage));
+      const token = sessionService.getToken();
+      console.log("🔍 Checking sessionService for authToken...");
       console.log("🔍 AuthToken exists:", !!token);
       console.log("🔍 AuthToken length:", token ? token.length : 0);
 
       if (!token) {
-        console.error("❌ No auth token found in localStorage");
+        console.error("❌ No auth token found");
         showNotification("error", "Lỗi xác thực", "Vui lòng đăng nhập lại");
         setLoading(false);
         return;
       }
+
+      // Extend session on API activity
+      sessionService.extendSession();
       const requestData = {
         studentId: parseInt(formData.studentId),
         medicineName: formData.medicineName,
@@ -975,12 +981,15 @@ const SendMedicine = () => {
   const fetchConfirmationData = async (requestId) => {
     setConfirmationLoading(true);
     try {
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       if (!token) {
         showNotification("error", "Lỗi xác thực", "Vui lòng đăng nhập lại");
         setConfirmationLoading(false);
         return;
       }
+
+      // Extend session on API activity
+      sessionService.extendSession();
 
       const response = await fetch(
         `${
@@ -1355,8 +1364,8 @@ const SendMedicine = () => {
         formData.append("prescriptionImage", modalTempImageUpload.file);
       }
 
-      // Lấy token xác thực
-      const token = localStorage.getItem("authToken");
+      // Lấy token xác thực sử dụng sessionService
+      const token = sessionService.getToken();
       if (!token) {
         showNotification(
           "error",
@@ -1366,6 +1375,9 @@ const SendMedicine = () => {
         setLoading(false);
         return;
       }
+
+      // Extend session on API activity
+      sessionService.extendSession();
 
       // Xử lý hình ảnh nếu có (using new modal temp upload)
       let imageBase64 = null;

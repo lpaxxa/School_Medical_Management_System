@@ -7,6 +7,7 @@ import SearchBox from "../../../../components/SearchBox/SearchBox"; // Import Se
 import { useAuth } from "../../../../context/AuthContext";
 import { useNotification } from "../../../../context/NotificationContext";
 import communityService from "../../../../services/communityService"; // Import communityService
+import sessionService from "../../../../services/sessionService";
 import {
   formatDate,
   safeParseDate,
@@ -36,7 +37,7 @@ const Community = () => {
       return `user_${currentUser.id}_${suffix}`;
     }
 
-    const token = localStorage.getItem("authToken");
+    const token = sessionService.getToken();
     if (token) {
       const tokenSuffix = token.slice(-10);
       return `token_${tokenSuffix}_${suffix}`;
@@ -68,14 +69,14 @@ const Community = () => {
   // API URL
   const API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1`;
 
-  // Function to check authentication
+  // Function to check authentication using sessionService
   const checkAuthentication = () => {
-    const token = localStorage.getItem("authToken");
-    const userData = localStorage.getItem("userData");
+    const token = sessionService.getToken();
+    const userData = sessionService.getUserData();
 
     console.log("🔐 Authentication check:", {
       token: token ? `${token.substring(0, 20)}...` : null,
-      userData: userData ? JSON.parse(userData) : null,
+      userData: userData,
       currentUser,
     });
 
@@ -193,7 +194,7 @@ const Community = () => {
 
   // Effect để lưu trạng thái liked posts vào localStorage theo user info
   useEffect(() => {
-    if (currentUser?.id || localStorage.getItem("authToken")) {
+    if (currentUser?.id || sessionService.getToken()) {
       localStorage.setItem(
         getUserStorageKey("likedPosts"),
         JSON.stringify(likedPosts)
@@ -203,7 +204,7 @@ const Community = () => {
 
   // Effect để lưu trạng thái bookmarked posts vào localStorage theo user info
   useEffect(() => {
-    if (currentUser?.id || localStorage.getItem("authToken")) {
+    if (currentUser?.id || sessionService.getToken()) {
       localStorage.setItem(
         getUserStorageKey("bookmarkedPosts"),
         JSON.stringify(bookmarkedPosts)

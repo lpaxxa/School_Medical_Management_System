@@ -1,4 +1,5 @@
 import axios from 'axios';
+import sessionService from '../sessionService';
 
 // Cấu hình sử dụng dữ liệu giả hay API thật
 const config = {
@@ -15,7 +16,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export const getAllMedicalCheckups = async () => {
   try {
     // Lấy token xác thực từ localStorage
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     
     // Gọi API với token trong header
     const response = await axios.get(`${API_BASE_URL}/medical-checkups`, {
@@ -49,7 +50,7 @@ export const getAllMedicalCheckups = async () => {
 export const getMedicalCheckupById = async (id) => {
   try {
     // Lấy token xác thực từ localStorage
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     
     // Gọi API với token trong header
     const response = await axios.get(`${API_BASE_URL}/medical-checkups/${id}`, {
@@ -83,7 +84,7 @@ export const getMedicalCheckupById = async (id) => {
 export const updateMedicalCheckup = async (id, checkupData) => {
   try {
     // Lấy token xác thực từ localStorage
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     
     // Gọi API với token trong header
     const response = await axios.put(`${API_BASE_URL}/medical-checkups/${id}`, checkupData, {
@@ -117,7 +118,7 @@ export const updateMedicalCheckup = async (id, checkupData) => {
 export const sendParentNotification = async (studentId, message) => {
   try {
     // Lấy token xác thực từ localStorage
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     
     // Chuẩn bị dữ liệu thông báo
     const notificationData = {
@@ -159,7 +160,7 @@ export const sendParentNotification = async (studentId, message) => {
 export const notifyParent = async (checkupId) => {
   try {
     // Lấy token xác thực từ localStorage
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     
     // Gọi API với token trong header
     const response = await axios.post(`${API_BASE_URL}/medical-checkups/${checkupId}/notify-parent`, {}, {
@@ -193,7 +194,7 @@ export const notifyParent = async (checkupId) => {
 export const notifyAllParents = async (message) => {
   try {
     // Lấy token xác thực từ localStorage
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     
     // API này sẽ được cập nhật sau khi có API thật
     const response = await axios.post(`${API_BASE_URL}/medical-checkups/notify-all-parents`, { message }, {
@@ -227,7 +228,7 @@ export const notifyAllParents = async (message) => {
 export const batchNotifyParents = async (medicalCheckupIds) => {
   try {
     // Lấy token xác thực từ localStorage
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     
     // Gọi API batch notification với danh sách ID hồ sơ khám
     const response = await axios.post(`${API_BASE_URL}/medical-checkups/batch-notify-parents`, medicalCheckupIds, {
@@ -390,7 +391,7 @@ export const addHealthCheckup = async (checkupData) => {
       console.log('API URL:', config.apiUrl);
 
       // Lấy token xác thực từ localStorage
-      const token = localStorage.getItem('authToken');
+      const token = sessionService.getToken();
 
       // Sử dụng axios để gọi API
       const response = await axios({
@@ -531,7 +532,7 @@ export const getParents = async () => {
 // Lấy thông tin chi tiết phụ huynh theo ID
 export const getParentById = async (id) => {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/parents/${id}`, {
       method: 'GET',
       headers: {
@@ -560,7 +561,7 @@ export const sendNotification = async (notificationData) => {
 export const sendHealthCheckupNotification = async (notificationData) => {
   try {
     // Get auth token from localStorage
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     
     // Ensure senderId is a number and not null
     const senderId = notificationData.senderId ? parseInt(notificationData.senderId) : 1;
@@ -622,7 +623,7 @@ export const sendHealthCheckupNotification = async (notificationData) => {
 // Get student list for a specific campaign (API cũ)
 export const getCampaignStudents = async (campaignId) => {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/health-campaigns/${campaignId}/students`, {
       method: 'GET',
       headers: {
@@ -643,7 +644,7 @@ export const getCampaignStudents = async (campaignId) => {
 // Get parent consent details (API cũ)
 export const getConsentDetails = async (consentId) => {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/parent-consents/${consentId}/details`, {
       method: 'GET',
       headers: {
@@ -664,7 +665,7 @@ export const getConsentDetails = async (consentId) => {
 // Get students requiring follow-up
 export const getStudentsRequiringFollowup = async () => {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     const response = await axios.get(`${API_BASE_URL}/medical-checkups/requiring-follow-up`, {
       headers: {
         'Content-Type': 'application/json',
