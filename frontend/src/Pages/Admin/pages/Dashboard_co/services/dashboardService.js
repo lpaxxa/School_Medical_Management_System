@@ -3,21 +3,44 @@ import { formatDate as safeDateFormat, safeParseDate } from '../../../utils/date
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// Helper function to get auth token using sessionService
+const getAuthToken = async () => {
+  try {
+    const { default: sessionService } = await import('../../../../../services/sessionService');
+    const token = sessionService.getToken();
+
+    if (token) {
+      // Extend session on API activity
+      sessionService.extendSession();
+    }
+
+    return token;
+  } catch (error) {
+    console.warn('SessionService not available, using localStorage fallback:', error);
+    return localStorage.getItem('authToken'); // Fallback for compatibility
+  }
+};
+
 // Dashboard service để lấy dữ liệu cho các biểu đồ
 export const dashboardService = {
   // 1. Lấy thống kê người dùng theo vai trò
   getUserStatistics: async () => {
     try {
-      // Use the same token key as User Management
-      const token = localStorage.getItem('authToken');
-      
+      // Import sessionService dynamically to avoid circular dependencies
+      const { default: sessionService } = await import('../../../../../services/sessionService');
+
+      const token = sessionService.getToken();
+
       if (!token) {
         console.warn('No authentication token found');
         throw new Error('Authentication token not found');
       }
-      
+
       console.log('Fetching user statistics with authToken:', token ? 'Token exists' : 'No token');
-      
+
+      // Extend session on API activity
+      sessionService.extendSession();
+
       // Use the same headers and credentials as User Management
       const response = await fetch(`${API_BASE_URL}/account-members/getAll`, {
         method: 'GET',
@@ -154,8 +177,8 @@ export const dashboardService = {
   // 3. Lấy báo cáo tiêm chủng
   getVaccinationReport: async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      
+      const token = await getAuthToken();
+
       if (!token) {
         console.warn('No authentication token found for vaccination plans');
         throw new Error('Authentication token not found');
@@ -252,8 +275,8 @@ export const dashboardService = {
   // 4. Lấy thống kê sự cố y tế
   getMedicalEventsStatistics: async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      
+      const token = await getAuthToken();
+
       if (!token) {
         console.warn('No authentication token found for medical incidents');
         throw new Error('Authentication token not found');
@@ -418,8 +441,8 @@ export const dashboardService = {
   // 6. Lấy thống kê BMI theo khối lớp (từ medical checkups API)
   getBMIStatisticsByGrade: async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      
+      const token = await getAuthToken();
+
       if (!token) {
         console.warn('No authentication token found for medical checkups');
         throw new Error('Authentication token not found');
@@ -582,7 +605,7 @@ export const dashboardService = {
   // Helper function to test medical incidents API
   testMedicalIncidentsAPI: async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = await getAuthToken();
       
       if (!token) {
         throw new Error('No authentication token');
@@ -626,7 +649,7 @@ export const dashboardService = {
    // Helper function to test vaccination plans API
    testVaccinationPlansAPI: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          throw new Error('No authentication token');
@@ -670,7 +693,7 @@ export const dashboardService = {
    // Helper function to test medical checkups API
    testMedicalCheckupsAPI: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          throw new Error('No authentication token');
@@ -715,7 +738,7 @@ export const dashboardService = {
    // Helper function to test health campaigns API
    testHealthCampaignsAPI: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          throw new Error('No authentication token');
@@ -759,7 +782,7 @@ export const dashboardService = {
    // 8. Lấy thống kê chiến dịch sức khỏe theo trạng thái
    getHealthCampaignStatistics: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          console.warn('No authentication token found for health campaigns');
@@ -850,7 +873,7 @@ export const dashboardService = {
    // 9. Lấy danh sách chiến dịch sức khỏe gần đây cho bảng sự kiện
    getRecentHealthCampaigns: async (limit = 10) => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          console.warn('No authentication token found for health campaigns');
@@ -940,7 +963,7 @@ export const dashboardService = {
    // 10. Lấy thống kê số lượng học sinh theo khối lớp
    getStudentsByGradeLevel: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          console.warn('No authentication token found for students');
@@ -1062,7 +1085,7 @@ export const dashboardService = {
    // Helper function to test students API
    testStudentsAPI: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          throw new Error('No authentication token');
@@ -1106,7 +1129,7 @@ export const dashboardService = {
    // 11. Lấy thống kê medication instructions theo trạng thái
    getMedicationInstructionStatistics: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          console.warn('No authentication token found for medication instructions');
@@ -1250,7 +1273,7 @@ export const dashboardService = {
    // Helper function to test medication instructions API
    testMedicationInstructionsAPI: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          throw new Error('No authentication token');
@@ -1294,7 +1317,7 @@ export const dashboardService = {
    // 12. Lấy thống kê vaccinations theo loại
    getVaccinationTypeStatistics: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          console.warn('No authentication token found for vaccinations');
@@ -1393,7 +1416,7 @@ export const dashboardService = {
    // Helper function to test vaccinations API
    testVaccinationsAPI: async () => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          throw new Error('No authentication token');
@@ -1437,7 +1460,7 @@ export const dashboardService = {
    // 13. Lấy danh sách kế hoạch tiêm chủng gần đây cho bảng vaccine campaigns
    getRecentVaccinationPlans: async (limit = 10) => {
      try {
-       const token = localStorage.getItem('authToken');
+       const token = await getAuthToken();
        
        if (!token) {
          console.warn('No authentication token found for vaccination plans');

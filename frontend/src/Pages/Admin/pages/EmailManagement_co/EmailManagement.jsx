@@ -4,6 +4,7 @@ import EmailTable from "./components/EmailTable";
 import EditUserModal from "./components/EditUserModal";
 import ConfirmModal from "./components/ConfirmModal";
 import axios from "axios";
+import sessionService from "../../../../services/sessionService";
 
 const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1`;
 
@@ -12,7 +13,7 @@ const emailApiService = {
   // Get all users pending email
   getUsersPendingEmail: async () => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const response = await axios.get(
         `${BASE_URL}/account-members/getAllToSendEmail`,
         {
@@ -32,7 +33,7 @@ const emailApiService = {
   // Get user details by ID
   getUserById: async (userId) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const response = await axios.get(
         `${BASE_URL}/account-members/${userId}`,
         {
@@ -52,7 +53,7 @@ const emailApiService = {
   // Update user information
   updateUser: async (userId, userData) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       console.log("Updating user:", userId, "with data:", userData);
 
       // Thử với PATCH trước
@@ -97,7 +98,7 @@ const emailApiService = {
   // Send email to single user
   sendEmailToUser: async (userId) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const response = await axios.post(
         `${BASE_URL}/email/sendAccountEmail/${userId}`,
         {},
@@ -118,7 +119,7 @@ const emailApiService = {
   // Send email to multiple users
   sendEmailToMultipleUsers: async (userIds) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const response = await axios.post(
         `${BASE_URL}/email/sendAccountEmail`,
         userIds,

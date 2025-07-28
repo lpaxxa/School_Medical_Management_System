@@ -1,4 +1,5 @@
 import axios from "axios";
+import sessionService from './sessionService';
 
 // API Configuration - sử dụng env variables với fallback
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `${import.meta.env.VITE_BACKEND_URL}/api/v1`;
@@ -40,19 +41,21 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor để thêm auth token
+// Request interceptor để thêm auth token using sessionService
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("authToken");
+    const token = sessionService.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Extend session on API activity
+      sessionService.extendSession();
     }
-    
+
     // Log request cho debugging (chỉ trong development)
     if (import.meta.env.NODE_ENV === 'development') {
       console.log(`🚀 [Community API] ${config.method?.toUpperCase()} ${config.url}`);
     }
-    
+
     return config;
   },
   (error) => {

@@ -23,6 +23,7 @@ import SuccessModal from "../../../components/SuccessModal";
 import { useErrorModal } from "../../../hooks/useErrorModal";
 import { useConfirmModal } from "../../../hooks/useConfirmModal";
 import { useSuccessModal } from "../../../hooks/useSuccessModal";
+import sessionService from "../../../../../services/sessionService";
 
 const StudentListView = ({
   students,
@@ -112,7 +113,7 @@ const StudentListView = ({
             name: student.fullName,
             studentId: student.studentId,
           });
-          const token = localStorage.getItem("authToken");
+          const token = sessionService.getToken();
           if (!token) {
             showError(
               "Chưa đăng nhập",

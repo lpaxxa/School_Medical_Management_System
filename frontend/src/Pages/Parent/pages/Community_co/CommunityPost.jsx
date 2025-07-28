@@ -4,6 +4,7 @@ import "./CommunityPost.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
 import communityService from "../../../../services/communityService"; // Import communityService
+import sessionService from "../../../../services/sessionService";
 import {
   formatDate,
   safeParseDate,
@@ -38,7 +39,7 @@ const CommunityPost = () => {
       return `user_${currentUser.id}_${suffix}`;
     }
 
-    const token = localStorage.getItem("authToken");
+    const token = sessionService.getToken();
     if (token) {
       const tokenSuffix = token.slice(-10);
       return `token_${tokenSuffix}_${suffix}`;
@@ -68,7 +69,7 @@ const CommunityPost = () => {
 
   // ✅ SYNC FIX: Effect để lưu trạng thái liked posts vào localStorage theo user info
   useEffect(() => {
-    if (currentUser?.id || localStorage.getItem("authToken")) {
+    if (currentUser?.id || sessionService.getToken()) {
       localStorage.setItem(
         getUserStorageKey("likedPosts"),
         JSON.stringify(likedPosts)
@@ -288,7 +289,7 @@ const CommunityPost = () => {
     }
 
     // ✅ SYNC FIX: Check authentication like Community.jsx
-    const token = localStorage.getItem("authToken");
+    const token = sessionService.getToken();
     if (!token) {
       alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
       return;

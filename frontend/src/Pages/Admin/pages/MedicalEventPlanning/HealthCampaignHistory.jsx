@@ -29,6 +29,7 @@ import { useSuccessModal } from "../../hooks/useSuccessModal";
 import { useErrorModal } from "../../hooks/useErrorModal";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
 import { formatDate, safeParseDate } from "../../utils/dateUtils";
+import sessionService from "../../../../services/sessionService";
 import "./HealthCampaignHistory.css";
 
 const HealthCampaignHistory = () => {
@@ -142,7 +143,7 @@ const HealthCampaignHistory = () => {
       console.log("🔄 Loading health campaigns...");
 
       // Get auth token from localStorage
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const headers = {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -324,7 +325,7 @@ const HealthCampaignHistory = () => {
       );
 
       // Get auth token from localStorage
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const headers = {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -406,7 +407,7 @@ const HealthCampaignHistory = () => {
       console.log("🗑️ Deleting campaign:", selectedCampaign.id);
 
       // Get auth token from localStorage
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const headers = {
         Accept: "application/json",
       };
@@ -486,7 +487,7 @@ const HealthCampaignHistory = () => {
       console.log("� Loading students...");
 
       // Get auth token from localStorage
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const headers = {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -619,7 +620,7 @@ const HealthCampaignHistory = () => {
       });
 
       // Get auth token from localStorage
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const headers = {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -715,7 +716,7 @@ const HealthCampaignHistory = () => {
       console.log("📡 PATCH API URL:", url);
 
       // Get auth token from localStorage
-      const token = localStorage.getItem("authToken");
+      const token = sessionService.getToken();
       const headers = {
         "Content-Type": "application/json",
         Accept: "*/*",

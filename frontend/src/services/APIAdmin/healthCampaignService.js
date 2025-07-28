@@ -1,4 +1,5 @@
 import axios from 'axios';
+import sessionService from '../sessionService';
 
 const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1`;
 
@@ -11,12 +12,14 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor để thêm auth token cho Admin
+// Request interceptor để thêm auth token cho Admin using sessionService
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Extend session on API activity
+      sessionService.extendSession();
     }
     console.log('🚀 [Admin] Health Campaign API Request:', config.method?.toUpperCase(), config.url);
     return config;

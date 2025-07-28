@@ -172,9 +172,12 @@ export const API_ENDPOINTS = {
 // Google OAuth Configuration
 export const GOOGLE_OAUTH_CONFIG = GOOGLE_CONFIG;
 
+// Import sessionService for better token management
+import sessionService from '../services/sessionService';
+
 // Helper function to get auth headers
 export const getAuthHeaders = () => {
-  const token = localStorage.getItem('authToken');
+  const token = sessionService.getToken();
   return {
     'Content-Type': 'application/json',
     'Authorization': token ? `Bearer ${token}` : ''
@@ -183,7 +186,7 @@ export const getAuthHeaders = () => {
 
 // Helper function to get auth headers for multipart/form-data
 export const getAuthHeadersMultipart = () => {
-  const token = localStorage.getItem('authToken');
+  const token = sessionService.getToken();
   return {
     'Authorization': token ? `Bearer ${token}` : ''
   };

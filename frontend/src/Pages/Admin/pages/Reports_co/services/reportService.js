@@ -1,11 +1,17 @@
+import sessionService from '../../../../../services/sessionService';
+
 const API_BASE_URL = '/api/v1';
 
-// Helper function to get auth headers
+// Helper function to get auth headers using sessionService
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('authToken');
+  const token = sessionService.getToken();
   if (!token) {
     throw new Error('Chưa đăng nhập. Vui lòng đăng nhập lại.');
   }
+
+  // Extend session on API activity
+  sessionService.extendSession();
+
   return {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`

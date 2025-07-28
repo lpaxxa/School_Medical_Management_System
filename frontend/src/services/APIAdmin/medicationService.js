@@ -1,4 +1,5 @@
 import axios from 'axios';
+import sessionService from '../sessionService';
 
 const API_URL = '/api/v1';
 
@@ -10,12 +11,14 @@ const apiService = axios.create({
   }
 });
 
-// Interceptor để xử lý token cho Admin
+// Interceptor để xử lý token cho Admin using sessionService
 apiService.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
+      // Extend session on API activity
+      sessionService.extendSession();
     }
     return config;
   },

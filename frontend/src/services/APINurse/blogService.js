@@ -1,4 +1,5 @@
 import axios from 'axios';
+import sessionService from '../sessionService';
 
 // Cấu hình URL base
 const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/health-articles`;
@@ -42,32 +43,37 @@ const communityApi = axios.create({
   }
 });
 
-// Thêm interceptor để tự động đính kèm token xác thực
+// Thêm interceptor để tự động đính kèm token xác thực using sessionService
 const addAuthToken = (config) => {
-  const token = localStorage.getItem('authToken');
-  const userRole = localStorage.getItem('userRole');
-  const currentUserId = localStorage.getItem('currentUserId');
-  
+  const token = sessionService.getToken();
+  const userRole = localStorage.getItem('userRole'); // User metadata, not auth token
+  const currentUserId = localStorage.getItem('currentUserId'); // User metadata, not auth token
+
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
+    // Extend session on API activity
+    sessionService.extendSession();
   }
-  
+
   // Add user context to headers if available
   if (userRole) {
     config.headers['X-User-Role'] = userRole;
   }
-  
+
   if (currentUserId) {
     config.headers['X-User-ID'] = currentUserId;
   }
-  
-  console.log('Request config:', {
-    url: config.url,
-    method: config.method,
-    headers: config.headers,
-    params: config.params
-  });
-  
+
+  // Only log in development mode
+  if (import.meta.env.DEV) {
+    console.log('Request config:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      params: config.params
+    });
+  }
+
   return config;
 };
 
@@ -174,7 +180,7 @@ export const uploadImage = async (file, articleId = null) => {
       const response = await axios.post(endpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${sessionService.getToken()}`
         }
       });
       
@@ -186,7 +192,7 @@ export const uploadImage = async (file, articleId = null) => {
       const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/upload-temp-image`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${sessionService.getToken()}`
         }
       });
       
@@ -242,7 +248,7 @@ export const createHealthArticle = async (articleData) => {
   try {
     console.log('Creating health article:', articleData);
     console.log('Request URL:', `${BASE_URL}`);
-    console.log('Auth token exists:', !!localStorage.getItem('authToken'));
+    console.log('Auth token exists:', !!sessionService.getToken());
     console.log('User role:', localStorage.getItem('userRole'));
     console.log('User ID:', localStorage.getItem('currentUserId'));
 
@@ -266,7 +272,7 @@ export const createHealthArticle = async (articleData) => {
       response = await axios.post(v1Url, articleData, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Authorization': `Bearer ${sessionService.getToken()}`,
           'X-User-Role': localStorage.getItem('userRole'),
           'X-User-ID': localStorage.getItem('currentUserId')
         }
@@ -520,7 +526,7 @@ export const getPostComments = async (postId, page = 1, size = 10) => {
     console.log('Getting comments for post:', postId, 'page:', page, 'size:', size);
     
     // Check if token exists
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     console.log('Auth token exists:', !!token);
     
     // Try different approaches for the API call

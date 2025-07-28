@@ -1,4 +1,5 @@
 import axios from 'axios';
+import sessionService from '../sessionService';
 
 const API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1`;
 
@@ -11,9 +12,11 @@ const apiService = axios.create({
 
 apiService.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
+      // Extend session on API activity
+      sessionService.extendSession();
     }
     return config;
   },

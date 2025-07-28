@@ -7,6 +7,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./HealthDeclarationModern.css";
+import sessionService from '../../../../services/sessionService';
 
 // Các tùy chọn cho nhóm máu
 const BLOOD_TYPE_OPTIONS = [
@@ -335,7 +336,7 @@ const HealthDeclaration = () => {
           }/api/v1/health-profiles/getStudentProfileByID/${studentId}`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+              Authorization: `Bearer ${sessionService.getToken()}`,
             },
           }
         );
@@ -755,7 +756,7 @@ const HealthDeclaration = () => {
           //     {
           //       headers: {
           //         "Content-Type": "application/json",
-          //         Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          //         Authorization: `Bearer ${sessionService.getToken()}`,
           //       },
           //     }
           //   );
@@ -1035,7 +1036,7 @@ const HealthDeclaration = () => {
     }
 
     // Kiểm tra token đăng nhập
-    const token = localStorage.getItem("authToken");
+    const token = sessionService.getToken();
     if (!token) {
       showErrorToast(
         "Bạn cần đăng nhập để khai báo sức khỏe. Vui lòng đăng nhập lại!"
@@ -1159,7 +1160,7 @@ const HealthDeclaration = () => {
             headers: {
               accept: "*/*",
               "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+              Authorization: `Bearer ${sessionService.getToken()}`,
             },
           }
         );
@@ -1228,7 +1229,7 @@ const HealthDeclaration = () => {
                 headers: {
                   accept: "*/*",
                   "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                  Authorization: `Bearer ${sessionService.getToken()}`,
                 },
               }
             );

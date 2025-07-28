@@ -34,6 +34,7 @@ import {
   testApiConnection,
 } from "./services/userService";
 import "./UserManagement.css";
+import sessionService from '../../../../services/sessionService';
 
 const UserManagement = () => {
   const { currentUser } = useAuth(); // Lấy thông tin user hiện tại
@@ -633,7 +634,7 @@ const UserManagement = () => {
           setIsSendingEmail(true);
           setSendingUserId(user.id);
 
-          const token = localStorage.getItem("authToken");
+          const token = sessionService.getToken();
           if (!token) {
             throw new Error("Không tìm thấy token xác thực");
           }
@@ -735,7 +736,7 @@ const UserManagement = () => {
         try {
           setIsSendingBulkEmail(true);
 
-          const token = localStorage.getItem("authToken");
+          const token = sessionService.getToken();
           if (!token) {
             throw new Error("Không tìm thấy token xác thực");
           }

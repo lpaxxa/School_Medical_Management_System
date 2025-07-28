@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import "./HealthArticleTab.css";
 import SuccessModal from "./SuccessModal";
+import sessionService from "../../../../../services/sessionService";
 // import APITester from "./APITester";
 
 const HealthArticleTab = ({ onView, onEdit, onAdd }) => {
@@ -27,9 +28,9 @@ const HealthArticleTab = ({ onView, onEdit, onAdd }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState(null);
 
-  // Check authentication status
+  // Check authentication status using sessionService
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = sessionService.getToken();
     setIsAuthenticated(!!token);
   }, []);
 
@@ -106,7 +107,7 @@ const HealthArticleTab = ({ onView, onEdit, onAdd }) => {
         }
 
         const response = await fetch(
-           `${import.meta.env.VITE_BACKEND_URL}/api/health-articles`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/health-articles`,
           {
             method: "GET",
             headers: headers,
@@ -134,12 +135,16 @@ const HealthArticleTab = ({ onView, onEdit, onAdd }) => {
     }
   };
 
-  // Helper function to get auth headers
+  // Helper function to get auth headers using sessionService
   const getAuthHeaders = () => {
-    const token = localStorage.getItem("authToken");
+    const token = sessionService.getToken();
     if (!token) {
       throw new Error("Chưa đăng nhập. Vui lòng đăng nhập lại.");
     }
+
+    // Extend session on API activity
+    sessionService.extendSession();
+
     return {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,

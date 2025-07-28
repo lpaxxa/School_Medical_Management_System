@@ -1,4 +1,5 @@
 import axios from 'axios';
+import sessionService from './sessionService';
 
 // Base API URL for your backend
 const API_URL = import.meta.env.VITE_API_BASE_URL;
@@ -12,12 +13,14 @@ const api = axios.create({
   timeout: 10000, // 10 seconds timeout
 });
 
-// Request interceptor - add auth token to requests
+// Request interceptor - add auth token to requests using sessionService
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = sessionService.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Extend session on API activity
+      sessionService.extendSession();
     }
     return config;
   },
@@ -36,10 +39,19 @@ api.interceptors.response.use(
       
       // Kiểm tra mã lỗi
       if (error.response.status === 401) {
-        // Unauthorized - Có thể làm mới token hoặc đăng xuất người dùng
-        console.warn("Authentication error, redirecting to login...");
-        // Có thể gọi hàm logout ở đây
-      } 
+        // Unauthorized - Clear session and redirect to login
+        console.warn("Authentication error, clearing session...");
+        sessionService.clearSession();
+
+        // Redirect to login if not already there
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      } else if (error.response.status === 403) {
+        // Forbidden - User doesn't have permission
+        console.warn("Access forbidden");
+        error.message = "Bạn không có quyền truy cập tài nguyên này.";
+      }
       
       // Tùy chỉnh thông báo lỗi dựa trên response từ server
       if (error.response.data && error.response.data.message) {

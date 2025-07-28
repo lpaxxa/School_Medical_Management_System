@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import sessionService from "../services/sessionService";
 import "../styles/login.css";
 import loginImage from "../assets/A1.jpg";
 import googleIcon from "../assets/google.png";
@@ -21,13 +22,15 @@ const Login = () => {
   // Kích hoạt animation sau khi component mount
   useEffect(() => {
     setShowAnimation(true);
-    const remembered = localStorage.getItem("rememberMe") === "true";
+
+    // Sử dụng sessionService để lấy remember me settings
+    const { rememberMe: remembered, savedUsername } =
+      sessionService.getRememberMeSettings();
     setRememberMe(remembered);
 
     // Nếu có thông tin ghi nhớ đăng nhập, tự động điền username
-    if (remembered) {
-      const savedUsername = localStorage.getItem("savedUsername");
-      if (savedUsername) setUsername(savedUsername);
+    if (remembered && savedUsername) {
+      setUsername(savedUsername);
     }
 
     // Check for OAuth2 error from location state (redirected from OAuthCallback)
@@ -42,17 +45,11 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const user = await login(username, password);
+      const user = await login(username, password, rememberMe);
       console.log("Login successful, user:", user);
 
-      // Lưu trạng thái "ghi nhớ đăng nhập" và username
-      if (rememberMe) {
-        localStorage.setItem("rememberMe", "true");
-        localStorage.setItem("savedUsername", username);
-      } else {
-        localStorage.removeItem("rememberMe");
-        localStorage.removeItem("savedUsername");
-      }
+      // Remember me settings are now handled by sessionService in AuthContext
+      // No need to manually manage localStorage here
 
       // Điều hướng dựa trên vai trò người dùng
       let redirectPath = from;

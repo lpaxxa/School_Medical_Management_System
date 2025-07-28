@@ -1,4 +1,5 @@
 import axios from 'axios';
+import sessionService from './sessionService';
 
 /**
  * Service for medication request operations
@@ -6,21 +7,28 @@ import axios from 'axios';
 const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/parent-medication-requests`;
 
 /**
- * Get auth token from localStorage
+ * Get auth token using sessionService
  * @returns {string|null} The auth token
  */
-const getAuthToken = () => localStorage.getItem('authToken');
+const getAuthToken = () => sessionService.getToken();
 
 /**
  * Get request headers with authentication
  * @returns {Object} Headers object
  */
-const getHeaders = () => ({
-  headers: {
-    Authorization: `Bearer ${getAuthToken()}`,
-    'Content-Type': 'application/json',
-  },
-});
+const getHeaders = () => {
+  const token = getAuthToken();
+  if (token) {
+    // Extend session on API activity
+    sessionService.extendSession();
+  }
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  };
+};
 
 /**
  * Fetch medication request history for the logged-in parent
