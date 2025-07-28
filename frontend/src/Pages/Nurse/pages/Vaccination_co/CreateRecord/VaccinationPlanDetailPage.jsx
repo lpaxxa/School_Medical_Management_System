@@ -108,7 +108,22 @@ const VaccinationPlanDetailPage = () => {
 
   // Handle create record
   const handleCreateRecord = (student) => {
-    handleShowCreateRecordModal(student);
+    // Get the first vaccine from plan details
+    const firstVaccine = planDetails?.vaccines?.[0];
+    if (!firstVaccine) {
+      console.error('No vaccine found in plan details');
+      return;
+    }
+
+    // Create vaccine object with correct structure
+    const vaccine = {
+      vaccineId: firstVaccine.id,
+      name: firstVaccine.name,
+      description: firstVaccine.description
+    };
+
+    console.log('Creating record with vaccine:', vaccine);
+    handleShowCreateRecordModal(student, vaccine);
   };
 
   // Format date
