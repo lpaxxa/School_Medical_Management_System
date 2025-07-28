@@ -22,35 +22,6 @@ import { formatDate, formatDateTime } from "../../utils/formatters";
 import { getBMIStatus } from "../../utils/helpers";
 import medicalService from "../../../../../../services/medicalService";
 
-// Function để lấy status và màu cho tình trạng tiêm chủng
-const getImmunizationStatus = (status) => {
-  if (!status)
-    return { text: "Chưa có thông tin", className: "status-unknown" };
-
-  const statusLower = status.toLowerCase();
-
-  if (
-    statusLower.includes("đầy đủ") ||
-    statusLower.includes("hoàn thành") ||
-    statusLower.includes("bình thường")
-  ) {
-    return { text: status, className: "status-complete" };
-  } else if (
-    statusLower.includes("đang cập nhật") ||
-    statusLower.includes("cập nhật")
-  ) {
-    return { text: status, className: "status-updating" };
-  } else if (
-    statusLower.includes("chưa đầy đủ") ||
-    statusLower.includes("thiếu") ||
-    statusLower.includes("chưa hoàn thành")
-  ) {
-    return { text: status, className: "status-incomplete" };
-  } else {
-    return { text: status, className: "status-unknown" };
-  }
-};
-
 const GeneralTab = ({
   healthProfileData,
   isLoading,
@@ -365,14 +336,23 @@ const GeneralTab = ({
               <div className="info-card-content">
                 <div className="immunization-status">
                   {(() => {
-                    const statusInfo = getImmunizationStatus(
-                      displayHealthData?.immunizationStatus
-                    );
-                    return (
-                      <span className={`status-badge ${statusInfo.className}`}>
-                        {statusInfo.text}
-                      </span>
-                    );
+                    // Kiểm tra dữ liệu từ Lịch sử tiêm chủng
+                    const hasVaccinationHistory =
+                      vaccinationsData && vaccinationsData.length > 0;
+
+                    if (hasVaccinationHistory) {
+                      return (
+                        <span className="status-badge status-completed">
+                          Đã tiêm ({vaccinationsData.length} mũi)
+                        </span>
+                      );
+                    } else {
+                      return (
+                        <span className="status-badge status-pending">
+                          Chưa tiêm
+                        </span>
+                      );
+                    }
                   })()}
                 </div>
               </div>

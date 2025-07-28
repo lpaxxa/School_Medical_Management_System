@@ -209,6 +209,7 @@ const VaccineListView = ({ onBack }) => {
 
       {/* Toolbar */}
       <div className="admin-history-toolbar">
+        {/* First Row: Search and Status Filter */}
         <div className="admin-search-filter-group">
           <div className="admin-search-box">
             <FaSearch className="admin-search-icon" />
@@ -231,7 +232,26 @@ const VaccineListView = ({ onBack }) => {
               <option value="inactive">Tạm dừng</option>
             </select>
           </div>
+        </div>
 
+        <div className="admin-toolbar-buttons">
+          <div className="admin-results-count">
+            Tổng cộng {filteredVaccines.length} / {vaccines.length} vaccine
+          </div>
+          <button
+            className="admin-refresh-button"
+            onClick={fetchVaccines}
+            disabled={loading}
+          >
+            <FaSync />
+            Làm mới
+          </button>
+        </div>
+      </div>
+
+      {/* Second Row: Additional Filters */}
+      <div className="admin-secondary-toolbar">
+        <div className="admin-filter-row">
           <div className="admin-filter-dropdown">
             <FaFilter className="admin-filter-icon" />
             <select
@@ -256,20 +276,6 @@ const VaccineListView = ({ onBack }) => {
               <option value="multiple">Nhiều liều</option>
             </select>
           </div>
-        </div>
-
-        <div className="admin-toolbar-buttons">
-          <div className="admin-results-count">
-            Tổng cộng {filteredVaccines.length} / {vaccines.length} vaccine
-          </div>
-          <button
-            className="admin-refresh-button"
-            onClick={fetchVaccines}
-            disabled={loading}
-          >
-            <FaSync />
-            Làm mới
-          </button>
         </div>
       </div>
 

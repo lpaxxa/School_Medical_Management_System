@@ -32,15 +32,16 @@ const StudentListView = ({
   onStudentDeleted,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [gradeFilter, setGradeFilter] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Reset to first page when search term changes
+  // Reset to first page when search term or filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, gradeFilter]);
 
   // Modal hooks
   const {
@@ -280,18 +281,41 @@ const StudentListView = ({
     { male: 0, female: 0 }
   );
 
+  // Helper function để extract số từ gradeLevel
+  const extractGradeNumber = (gradeLevel) => {
+    if (!gradeLevel) return "";
+    // Extract số từ string như "Lớp 1" -> "1", "1A" -> "1", etc.
+    const match = gradeLevel.toString().match(/\d+/);
+    return match ? match[0] : "";
+  };
+
   // Lấy danh sách lớp duy nhất
   const classes = [
     ...new Set(students.map((s) => s.className).filter(Boolean)),
   ];
 
-  // Lọc học sinh theo tìm kiếm
+  // Lấy danh sách khối duy nhất
+  const grades = [
+    ...new Set(
+      students
+        .map((s) => extractGradeNumber(s.gradeLevel))
+        .filter(Boolean)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+    ),
+  ];
+
+  // Lọc học sinh theo tìm kiếm và khối
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
       searchTerm === "" ||
       student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.studentId?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+
+    const matchesGrade =
+      gradeFilter === "" ||
+      extractGradeNumber(student.gradeLevel) === gradeFilter;
+
+    return matchesSearch && matchesGrade;
   });
 
   return (
@@ -363,6 +387,23 @@ const StudentListView = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+          </div>
+
+          {/* Grade Filter */}
+          <div className="admin-filter-dropdown">
+            <FaFilter className="admin-filter-icon" />
+            <select
+              value={gradeFilter}
+              onChange={(e) => setGradeFilter(e.target.value)}
+              className="admin-filter-select"
+            >
+              <option value="">Tất cả khối</option>
+              {grades.map((grade) => (
+                <option key={grade} value={grade}>
+                  Khối {grade}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -437,7 +478,7 @@ const StudentListView = ({
                         </td>
                         <td className="reports-student-table-grade">
                           <span className="reports-student-grade-badge">
-                            {student.gradeLevel}
+                            {extractGradeNumber(student.gradeLevel)}
                           </span>
                         </td>
                         <td className="reports-student-table-gender">
