@@ -112,6 +112,24 @@ export const HealthCheckupProvider = ({ children }) => {
     }
   };
 
+  // Delete medical checkup (API mới)
+  const deleteMedicalCheckup = async (id) => {
+    try {
+      setLoading(true);
+      await healthCheckupService.deleteMedicalCheckup(id);
+
+      // Remove from state
+      setMedicalCheckups(medicalCheckups.filter(checkup => checkup.id !== id));
+
+      return { success: true, message: 'Xóa hồ sơ khám sức khỏe thành công' };
+    } catch (err) {
+      console.error(`Error deleting medical checkup with ID ${id}:`, err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Update health checkup (API cũ)
   const updateHealthCheckupData = async (id, checkupData) => {
     try {
@@ -282,6 +300,7 @@ export const HealthCheckupProvider = ({ children }) => {
     medicalCheckups,
     fetchMedicalCheckupById,
     updateMedicalCheckup,
+    deleteMedicalCheckup,
     sendParentNotification,
     refreshMedicalCheckups,
     notifyParent,
