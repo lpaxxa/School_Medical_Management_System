@@ -4,7 +4,8 @@ import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import healthCheckupConsentService from "../../../../services/APIParent/healthCheckupConsentService";
-import notificationService from "../../../../services/APIParent/notificationService";
+// import notificationService from "../../../../services/APIParent/notificationService";
+import notificationService from "../../../../services/notificationService";
 import { toast } from "react-toastify";
 import ConsentDetailModal from "./ConsentDetailModal";
 import VaccinationDetailModal from "./VaccinationDetailModal";
