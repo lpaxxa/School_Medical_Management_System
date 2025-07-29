@@ -36,6 +36,7 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
         notes: '',
     });
     const [validated, setValidated] = useState(false);
+    const [dateError, setDateError] = useState('');
 
     // Helper function to format date from backend with timezone handling
     const formatDate = (dateInput) => {
@@ -118,6 +119,44 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
         return new Date();
     };
 
+    // Validate vaccination date matches plan date
+    const validateVaccinationDate = () => {
+        if (!formData.vaccinationDate || !plan || !plan.vaccinationDate) {
+            setDateError('Vui lòng chọn thời gian tiêm.');
+            return false;
+        }
+
+        // Get date part from form input (YYYY-MM-DD)
+        const inputDate = formData.vaccinationDate.split('T')[0];
+
+        // Get plan date - handle array format [year, month, day]
+        let planDateString;
+        if (Array.isArray(plan.vaccinationDate)) {
+            // Format: [2025, 7, 29] -> "2025-07-29"
+            const [year, month, day] = plan.vaccinationDate;
+            planDateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        } else {
+            // Handle other date formats
+            const planDate = getVaccinationDateFromPlan();
+            planDateString = planDate.toISOString().split('T')[0];
+        }
+
+        console.log('[DEBUG] Date validation:', {
+            inputDate,
+            planDateString,
+            planVaccinationDate: plan.vaccinationDate,
+            match: inputDate === planDateString
+        });
+
+        if (inputDate !== planDateString) {
+            setDateError(`Ngày tiêm phải là ${formatDateForDisplay(plan.vaccinationDate)}. Bạn chỉ được phép thay đổi giờ tiêm.`);
+            return false;
+        }
+
+        setDateError('');
+        return true;
+    };
+
     // Set vaccination date from plan when modal opens
     useEffect(() => {
         if (plan && plan.vaccinationDate) {
@@ -127,6 +166,7 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
                 vaccinationDate: toDateTimeLocalString(planDate),
                 nurseId: '1' // Ensure nurse ID remains 1
             }));
+            setDateError(''); // Clear any previous errors
         }
     }, [plan]);
 
@@ -135,7 +175,10 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
         event.preventDefault();
         event.stopPropagation();
 
-        if (form.checkValidity() === false) {
+        // Custom validation: Check if vaccination date matches plan date
+        const isDateValid = validateVaccinationDate();
+
+        if (form.checkValidity() === false || !isDateValid) {
             setValidated(true);
             return;
         }
@@ -180,6 +223,7 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
                 notes: '',
             });
             setValidated(false);
+            setDateError('');
 
             // Close modal
             handleClose();
@@ -202,6 +246,10 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
         if (name === 'vaccinationDate') {
             // Store the datetime-local value directly without timezone conversion
             setFormData(prev => ({ ...prev, [name]: value }));
+            // Clear validation error when user changes the date
+            if (dateError) {
+                setDateError('');
+            }
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -242,7 +290,7 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
                         <h6>Học sinh: <span className="fw-normal">{student.fullName} (Lớp: {student.className})</span></h6>
                         <h6>Kế hoạch: <span className="fw-normal">{plan.name}</span></h6>
                         <h6>Ngày tiêm: <span className="fw-normal text-info">{formatDateForDisplay(plan.vaccinationDate)}</span></h6>
-                        <h6>Vaccine đang tạo: <span className="fw-normal text-primary">{vaccineForRecord.vaccineName}</span></h6>
+                        <h6>Vaccine đang tạo: <span className="fw-normal text-primary">{vaccineForRecord.name || vaccineForRecord.vaccineName || 'Không xác định'}</span></h6>
                         <hr />
                     </div>
 
@@ -255,11 +303,20 @@ const CreateRecordModal = ({ show, handleClose, student, plan }) => {
                                     value={formData.vaccinationDate || ''}
                                     onChange={handleChange}
                                     required
+                                    isInvalid={!!dateError}
                                 />
-                                <Form.Control.Feedback type="invalid">
-                                    Vui lòng chọn thời gian tiêm.
-                                </Form.Control.Feedback>
+                                {!dateError && (
+                                    <Form.Control.Feedback type="invalid">
+                                        Vui lòng chọn thời gian tiêm.
+                                    </Form.Control.Feedback>
+                                )}
                             </FloatingLabel>
+                            {dateError && (
+                                <div className="text-danger mt-1" style={{ fontSize: '0.875rem' }}>
+                                    <i className="fas fa-exclamation-triangle me-1"></i>
+                                    {dateError}
+                                </div>
+                            )}
                             <small className="text-muted">
                                 <i className="fas fa-info-circle me-1"></i>
                                 Lưu ý: Ngày tiêm được lấy từ kế hoạch, bạn chỉ có thể thay đổi giờ tiêm.

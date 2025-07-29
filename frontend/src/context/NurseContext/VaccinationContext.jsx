@@ -31,6 +31,7 @@ export const VaccinationProvider = ({ children }) => {
   const [showCreateRecordModal, setShowCreateRecordModal] = useState(false);
   const [studentForRecord, setStudentForRecord] = useState(null);
   const [vaccineForRecord, setVaccineForRecord] = useState(null); // To store the specific vaccine
+  const [onRecordCreatedCallback, setOnRecordCreatedCallback] = useState(null); // Callback after record creation
 
   // --- States for Post-Monitoring Flow ---
 
@@ -122,12 +123,13 @@ export const VaccinationProvider = ({ children }) => {
   };
 
   // Handlers for Create Record Modal
-  const handleShowCreateRecordModal = (student, vaccine) => {
+  const handleShowCreateRecordModal = (student, vaccine, onRecordCreated = null) => {
     setStudentForRecord({
       ...student,
       vaccinationDate: selectedPlanDetails?.vaccinationDate || null
     });
     setVaccineForRecord(vaccine); // Set the specific vaccine
+    setOnRecordCreatedCallback(() => onRecordCreated); // Store callback
     setShowCreateRecordModal(true);
     // We close the details modal to avoid stacking modals
     setShowDetailsModal(false);
@@ -137,6 +139,7 @@ export const VaccinationProvider = ({ children }) => {
     setShowCreateRecordModal(false);
     setStudentForRecord(null);
     setVaccineForRecord(null); // Clear the vaccine
+    setOnRecordCreatedCallback(null); // Clear callback
     // Re-open the details modal if there's a plan selected
     if (selectedPlanDetails) {
       setShowDetailsModal(true);
@@ -182,10 +185,12 @@ export const VaccinationProvider = ({ children }) => {
 
       handleCloseCreateRecordModal();
 
-      // Reload the page after successful creation
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000); // Wait 2 seconds for user to see the success message
+      // Call the callback if provided to refresh monitoring statuses
+      if (onRecordCreatedCallback) {
+        setTimeout(() => {
+          onRecordCreatedCallback();
+        }, 1000); // Wait 1 second for user to see the success message
+      }
     } catch (error) {
       // Show error notification with SweetAlert2
       Swal.fire({
