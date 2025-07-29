@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import "./CommunityPost.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
-import communityService from "../../../../services/APIParent/communityService"; // Import communityService
+import communityService from "../../../../services/communityService"; // Import communityService
 import sessionService from "../../../../services/sessionService";
 import {
   formatDate,
@@ -66,6 +66,26 @@ const CommunityPost = () => {
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [editReplyContent, setEditReplyContent] = useState("");
   const [commentReplies, setCommentReplies] = useState({}); // Store replies by commentId
+
+  // States cho custom confirmation dialog
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState({
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
+  });
+
+  // Helper function để hiển thị custom confirmation dialog
+  const showCustomConfirm = (title, message, onConfirm) => {
+    setConfirmDialogData({
+      title,
+      message,
+      onConfirm,
+      onCancel: () => setShowConfirmDialog(false),
+    });
+    setShowConfirmDialog(true);
+  };
 
   // ✅ SYNC FIX: Effect để lưu trạng thái liked posts vào localStorage theo user info
   useEffect(() => {
@@ -503,32 +523,38 @@ const CommunityPost = () => {
   };
 
   // Xử lý delete comment
-  const handleDeleteComment = async (commentId) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) return;
+  const handleDeleteComment = (commentId) => {
+    showCustomConfirm(
+      "Xác nhận xóa",
+      "Bạn có chắc chắn muốn xóa bình luận này?",
+      async () => {
+        try {
+          console.log("🗑️ Deleting comment:", commentId);
+          const result = await communityService.deleteComment(commentId);
+          console.log("🗑️ Delete comment result:", result);
 
-    try {
-      console.log("🗑️ Deleting comment:", commentId);
-      const result = await communityService.deleteComment(commentId);
-      console.log("🗑️ Delete comment result:", result);
+          if (result.status === "success") {
+            // Xóa comment khỏi danh sách
+            setComments((prev) =>
+              prev.filter((comment) => comment.id !== commentId)
+            );
 
-      if (result.status === "success") {
-        // Xóa comment khỏi danh sách
-        setComments((prev) =>
-          prev.filter((comment) => comment.id !== commentId)
-        );
-
-        // Cập nhật số lượng comments trong post
-        if (post) {
-          setPost((prev) => ({
-            ...prev,
-            commentsCount: Math.max(0, (prev.commentsCount || 0) - 1),
-          }));
+            // Cập nhật số lượng comments trong post
+            if (post) {
+              setPost((prev) => ({
+                ...prev,
+                commentsCount: Math.max(0, (prev.commentsCount || 0) - 1),
+              }));
+            }
+          }
+          setShowConfirmDialog(false);
+        } catch (error) {
+          console.error("❌ Error deleting comment:", error);
+          alert("Không thể xóa bình luận. Vui lòng thử lại sau.");
+          setShowConfirmDialog(false);
         }
       }
-    } catch (error) {
-      console.error("❌ Error deleting comment:", error);
-      alert("Không thể xóa bình luận. Vui lòng thử lại sau.");
-    }
+    );
   };
 
   // Xử lý gửi reply
@@ -651,6 +677,88 @@ const CommunityPost = () => {
       console.error("❌ Error liking reply:", error);
       alert("Không thể thực hiện thao tác. Vui lòng thử lại sau.");
     }
+  };
+
+  // Xử lý edit reply
+  const handleEditReply = async (replyId, commentId) => {
+    if (!editReplyContent.trim()) return;
+
+    try {
+      console.log("✏️ Updating reply:", replyId);
+      const result = await communityService.updateReply(
+        replyId,
+        editReplyContent
+      );
+      console.log("✏️ Update reply result:", result);
+
+      if (result.status === "success") {
+        // Cập nhật reply trong danh sách
+        setCommentReplies((prev) => ({
+          ...prev,
+          [commentId]: prev[commentId].map((reply) =>
+            reply.id === replyId
+              ? {
+                  ...reply,
+                  content: result.data.content,
+                  updatedAt: result.data.updatedAt,
+                }
+              : reply
+          ),
+        }));
+
+        // Reset edit state
+        setEditingReplyId(null);
+        setEditReplyContent("");
+      }
+    } catch (error) {
+      console.error("❌ Error updating reply:", error);
+      alert("Không thể cập nhật phản hồi. Vui lòng thử lại sau.");
+    }
+  };
+
+  // Xử lý delete reply
+  const handleDeleteReply = (replyId, commentId) => {
+    showCustomConfirm(
+      "Xác nhận xóa",
+      "Bạn có chắc chắn muốn xóa phản hồi này?",
+      async () => {
+        try {
+          console.log("🗑️ Deleting reply:", replyId);
+          const result = await communityService.deleteReply(replyId);
+          console.log("🗑️ Delete reply result:", result);
+
+          if (result.status === "success") {
+            // Xóa reply khỏi danh sách
+            setCommentReplies((prev) => ({
+              ...prev,
+              [commentId]: prev[commentId].filter(
+                (reply) => reply.id !== replyId
+              ),
+            }));
+
+            // Cập nhật số lượng replies trong comment
+            setComments((prev) =>
+              prev.map((comment) =>
+                comment.id === commentId
+                  ? {
+                      ...comment,
+                      repliesCount: Math.max(
+                        0,
+                        (comment.repliesCount || 0) - 1
+                      ),
+                    }
+                  : comment
+              )
+            );
+          }
+          setShowConfirmDialog(false);
+        } catch (error) {
+          console.error("❌ Error deleting reply:", error);
+          alert("Không thể xóa phản hồi. Vui lòng thử lại sau.");
+          setShowConfirmDialog(false);
+        }
+      }
+    );
   };
 
   if (loading) {
@@ -868,27 +976,52 @@ const CommunityPost = () => {
                     </div>
 
                     {/* Actions menu cho comment của current user */}
-                    {currentUser && currentUser.id === comment.author.id && (
-                      <div className="comment-actions-menu">
-                        <button
-                          onClick={() => {
-                            setEditingCommentId(comment.id);
-                            setEditCommentContent(comment.content);
-                          }}
-                          className="edit-comment-btn"
-                          title="Chỉnh sửa"
-                        >
-                          <i className="fas fa-edit"></i>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          className="delete-comment-btn"
-                          title="Xóa"
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    )}
+                    {(() => {
+                      const canEdit =
+                        currentUser &&
+                        (currentUser.id === comment.author.id ||
+                          currentUser.memberId === comment.author.id ||
+                          currentUser.id === comment.author.memberId ||
+                          currentUser.memberId === comment.author.memberId);
+
+                      // Debug log
+                      console.log("🔍 Comment permission check:", {
+                        commentId: comment.id,
+                        currentUser: currentUser
+                          ? {
+                              id: currentUser.id,
+                              memberId: currentUser.memberId,
+                              name: currentUser.fullName || currentUser.name,
+                            }
+                          : null,
+                        commentAuthor: comment.author,
+                        canEdit,
+                      });
+
+                      return (
+                        canEdit && (
+                          <div className="comment-actions-menu">
+                            <button
+                              onClick={() => {
+                                setEditingCommentId(comment.id);
+                                setEditCommentContent(comment.content);
+                              }}
+                              className="edit-comment-btn"
+                              title="Chỉnh sửa"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              className="delete-comment-btn"
+                              title="Xóa"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        )
+                      );
+                    })()}
                   </div>
 
                   <div className="comment-content">
@@ -1028,13 +1161,84 @@ const CommunityPost = () => {
                                 </span>
                                 <span className="reply-time">
                                   {formatDate(reply.createdAt)}
+                                  {areDatesDifferent(
+                                    reply.updatedAt,
+                                    reply.createdAt
+                                  ) && (
+                                    <span className="parent-edited-indicator">
+                                      {" "}
+                                      • đã chỉnh sửa
+                                    </span>
+                                  )}
                                 </span>
                               </div>
                             </div>
+
+                            {/* Actions menu cho reply của current user */}
+                            {currentUser &&
+                              (currentUser.id === reply.author.id ||
+                                currentUser.memberId === reply.author.id ||
+                                currentUser.id === reply.author.memberId ||
+                                currentUser.memberId ===
+                                  reply.author.memberId) && (
+                                <div className="reply-actions-menu">
+                                  <button
+                                    onClick={() => {
+                                      setEditingReplyId(reply.id);
+                                      setEditReplyContent(reply.content);
+                                    }}
+                                    className="edit-reply-btn"
+                                    title="Chỉnh sửa"
+                                  >
+                                    <i className="fas fa-edit"></i>
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteReply(reply.id, comment.id)
+                                    }
+                                    className="delete-reply-btn"
+                                    title="Xóa"
+                                  >
+                                    <i className="fas fa-trash"></i>
+                                  </button>
+                                </div>
+                              )}
                           </div>
 
                           <div className="reply-content">
-                            <p>{reply.content}</p>
+                            {editingReplyId === reply.id ? (
+                              <div className="edit-reply-form">
+                                <textarea
+                                  value={editReplyContent}
+                                  onChange={(e) =>
+                                    setEditReplyContent(e.target.value)
+                                  }
+                                  className="edit-reply-textarea"
+                                  rows="3"
+                                />
+                                <div className="edit-reply-actions">
+                                  <button
+                                    onClick={() =>
+                                      handleEditReply(reply.id, comment.id)
+                                    }
+                                    className="save-edit-btn"
+                                  >
+                                    Lưu
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingReplyId(null);
+                                      setEditReplyContent("");
+                                    }}
+                                    className="cancel-edit-btn"
+                                  >
+                                    Hủy
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p>{reply.content}</p>
+                            )}
                           </div>
 
                           <div className="reply-actions">
@@ -1136,6 +1340,34 @@ const CommunityPost = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Custom Confirmation Dialog */}
+        {showConfirmDialog && (
+          <div className="custom-confirm-overlay">
+            <div className="custom-confirm-dialog">
+              <div className="custom-confirm-header">
+                <h3>{confirmDialogData.title}</h3>
+              </div>
+              <div className="custom-confirm-body">
+                <p>{confirmDialogData.message}</p>
+              </div>
+              <div className="custom-confirm-actions">
+                <button
+                  onClick={confirmDialogData.onCancel}
+                  className="custom-confirm-cancel"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={confirmDialogData.onConfirm}
+                  className="custom-confirm-ok"
+                >
+                  OK
+                </button>
+              </div>
             </div>
           </div>
         )}

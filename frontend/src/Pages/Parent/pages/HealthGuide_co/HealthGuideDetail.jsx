@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import "./HealthGuideDetail.css";
-import HealthGuideService from "../../../../services/APIParent/healthGuideService";
+// import HealthGuideService from "../../../../services/APIParent/healthGuideService";
+import HealthGuideService from "../../../../services/HealthGuideService";
 
 const HealthGuideDetail = () => {
   const { articleId } = useParams();

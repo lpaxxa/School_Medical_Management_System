@@ -5,7 +5,9 @@ import "../shared/Search.css"; // Giữ cái này cho các thành phần search 
 import "./HealthGuide.css";
 import SearchBox from "../../../../components/SearchBox/SearchBox"; // Import SearchBox component
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
-import HealthGuideService from "../../../../services/APIParent/healthGuideService";
+// import HealthGuideService from "../../../../services/APIParent/healthGuideService";
+import HealthGuideService from "../../../../services/HealthGuideService";
+
 
 // Danh mục bài viết
 export const CATEGORIES = [
