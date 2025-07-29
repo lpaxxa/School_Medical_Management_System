@@ -20,7 +20,7 @@ import {
   FaSortAmountUp,
   FaSync,
 } from "react-icons/fa";
-import medicalService from "../../../../../../services/medicalService";
+import medicalService from "../../../../../../services/APIParent/medicalService";
 import { formatDate } from "../../utils/formatters";
 import { cacheData, getCachedData } from "../../utils/helpers";
 import VaccinationModal from "../modals/VaccinationModal";

@@ -20,7 +20,7 @@ import {
 } from "react-icons/fa";
 import { formatDate, formatDateTime } from "../../utils/formatters";
 import { getBMIStatus } from "../../utils/helpers";
-import medicalService from "../../../../../../services/medicalService";
+import medicalService from "../../../../../../services/APIParent/medicalService";
 
 const GeneralTab = ({
   healthProfileData,

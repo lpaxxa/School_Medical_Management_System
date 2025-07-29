@@ -7,7 +7,7 @@ import {
   FaCalendarAlt,
   FaSync,
 } from "react-icons/fa";
-import medicalService from "../../../../../../services/medicalService";
+import medicalService from "../../../../../../services/APIParent/medicalService";
 import { formatDate } from "../../utils/formatters";
 
 const GrowthTab = ({ studentId }) => {

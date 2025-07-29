@@ -5,6 +5,38 @@ import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner
 import { useAuth } from "../../../../context/AuthContext";
 import { useStudentData } from "../../../../context/StudentDataContext";
 
+// Helper functions
+const formatGradeLevel = (gradeLevel, grade) => {
+  // Lấy số từ gradeLevel (loại bỏ "Lớp " prefix nếu có)
+  const level = gradeLevel || grade || "1";
+  if (typeof level === "string" && level.startsWith("Lớp ")) {
+    return level.replace("Lớp ", "");
+  }
+  return level;
+};
+
+const translateRelationshipType = (relationshipType) => {
+  // Chuyển đổi relationshipType từ tiếng Anh sang tiếng Việt
+  switch (relationshipType) {
+    case "Father":
+      return "Bố";
+    case "Mother":
+      return "Mẹ";
+    case "Guardian":
+      return "Người giám hộ";
+    case "Grandfather":
+      return "Ông";
+    case "Grandmother":
+      return "Bà";
+    case "Uncle":
+      return "Chú/Bác";
+    case "Aunt":
+      return "Cô/Dì";
+    default:
+      return relationshipType || "Bố/Mẹ";
+  }
+};
+
 export default function StudentProfile() {
   const { currentUser } = useAuth();
   const {
@@ -211,9 +243,10 @@ export default function StudentProfile() {
                     </div>
                     <div>
                       Khối:{" "}
-                      {extendedStudent.gradeLevel ||
-                        "Lớp " + extendedStudent.grade ||
-                        "1"}
+                      {formatGradeLevel(
+                        extendedStudent.gradeLevel,
+                        extendedStudent.grade
+                      )}
                     </div>
                   </div>
                 </div>
@@ -289,7 +322,7 @@ export default function StudentProfile() {
                     <div className="sp-info-item">
                       <span className="sp-info-label">Mối quan hệ:</span>
                       <span className="sp-info-value">
-                        {parentInfo.relationshipType || "Bố/Mẹ"}
+                        {translateRelationshipType(parentInfo.relationshipType)}
                       </span>
                     </div>
                     <div className="sp-info-item sp-full-width">
