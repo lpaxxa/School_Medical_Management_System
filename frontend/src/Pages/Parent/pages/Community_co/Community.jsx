@@ -6,7 +6,8 @@ import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner
 import SearchBox from "../../../../components/SearchBox/SearchBox"; // Import SearchBox component
 import { useAuth } from "../../../../context/AuthContext";
 import { useNotification } from "../../../../context/NotificationContext";
-import communityService from "../../../../services/APIParent/communityService"; // Import communityService
+// import communityService from "../../../../services/APIParent/communityService"; // Import communityService
+import communityService from "../../../../services/communityService"; // Import communityService
 import sessionService from "../../../../services/sessionService";
 import {
   formatDate,

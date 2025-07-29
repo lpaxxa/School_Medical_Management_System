@@ -219,72 +219,99 @@ const communityService = {
   /**
    * 5. Lấy bình luận của một bài đăng
    * GET /community/posts/{postId}/comments?page=1&size=10
+   * Backend response: { status: "success", data: PageResponse<CommentDTO> }
    */
   getComments: async (postId, page = 1, size = 10) => {
     try {
       if (!postId || isNaN(postId)) {
         throw new Error('ID bài viết không hợp lệ');
       }
-      
+
       const params = { page, size };
       const url = buildUrl(ENDPOINTS.COMMENTS.GET_BY_POST(postId), params);
       const response = await apiClient.get(url);
-      
+
+      // Backend trả về: { status: "success", data: PageResponse<CommentDTO> }
+      // PageResponse có: { content: CommentDTO[], totalPages, totalElements, ... }
       return validateResponse(response);
     } catch (error) {
-      console.error(`❌ Error fetching comments for post ${postId}:`, error);
-      throw new Error(error.response?.data?.message || error.message || 'Không thể tải bình luận');
+      // Return empty array instead of throwing to prevent UI crash
+      return {
+        status: 'success',
+        data: {
+          content: [],
+          totalPages: 0,
+          totalElements: 0,
+          currentPage: page
+        }
+      };
     }
   },
 
   /**
    * 6. Thêm bình luận mới cho bài đăng
    * POST /community/posts/{postId}/comments
+   * Request body: CommentRequest { content: string }
+   * Backend response: { status: "success", data: CommentDTO }
    */
   addComment: async (postId, content) => {
     try {
       if (!postId || isNaN(postId)) {
         throw new Error('ID bài viết không hợp lệ');
       }
-      
+
       if (!content || content.trim().length === 0) {
         throw new Error('Nội dung bình luận không được để trống');
       }
-      
+
+      // Backend expects CommentRequest format
+      const commentRequest = {
+        content: content.trim()
+      };
+
       const response = await apiClient.post(
         ENDPOINTS.COMMENTS.CREATE(postId),
-        { content: content.trim() }
+        commentRequest
       );
-      
+
+      // Backend trả về: { status: "success", data: CommentDTO }
       return validateResponse(response);
     } catch (error) {
-      console.error(`❌ Error adding comment to post ${postId}:`, error);
       throw new Error(error.response?.data?.message || error.message || 'Không thể thêm bình luận');
     }
   },
 
+
+
   /**
    * 7. Cập nhật bình luận
    * PUT /community/comments/{commentId}
+   * Request body: CommentRequest { content: string }
+   * Backend response: { status: "success", data: CommentDTO }
    */
   updateComment: async (commentId, content) => {
     try {
       if (!commentId || isNaN(commentId)) {
         throw new Error('ID bình luận không hợp lệ');
       }
-      
+
       if (!content || content.trim().length === 0) {
         throw new Error('Nội dung bình luận không được để trống');
       }
-      
+
+      // Backend expects CommentRequest format
+      const commentRequest = {
+        content: content.trim()
+      };
+
       const response = await apiClient.put(
         ENDPOINTS.COMMENTS.UPDATE(commentId),
-        { content: content.trim() }
+        commentRequest
       );
-      
+
+      // Backend trả về: { status: "success", data: CommentDTO }
       return validateResponse(response);
     } catch (error) {
-      console.error(`❌ Error updating comment ${commentId}:`, error);
       throw new Error(error.response?.data?.message || error.message || 'Không thể cập nhật bình luận');
     }
   },
@@ -292,17 +319,19 @@ const communityService = {
   /**
    * 8. Xóa bình luận
    * DELETE /community/comments/{commentId}
+   * Backend response: { status: "success", message: "Bình luận đã được xóa thành công" }
    */
   deleteComment: async (commentId) => {
     try {
       if (!commentId || isNaN(commentId)) {
         throw new Error('ID bình luận không hợp lệ');
       }
-      
+
       const response = await apiClient.delete(ENDPOINTS.COMMENTS.DELETE(commentId));
+
+      // Backend trả về: { status: "success", message: "Bình luận đã được xóa thành công" }
       return validateResponse(response);
     } catch (error) {
-      console.error(`❌ Error deleting comment ${commentId}:`, error);
       throw new Error(error.response?.data?.message || error.message || 'Không thể xóa bình luận');
     }
   },
