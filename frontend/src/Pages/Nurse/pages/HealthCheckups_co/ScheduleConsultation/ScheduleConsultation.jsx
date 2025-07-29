@@ -64,6 +64,14 @@ const MedicalCheckupList = ({ refreshData }) => {
     loadStudentIds();
   }, []);
 
+  // Refresh data when refreshData prop changes
+  useEffect(() => {
+    if (refreshData) {
+      console.log('🔄 [ScheduleConsultation] Refreshing due to external trigger');
+      refreshMedicalCheckups();
+    }
+  }, [refreshData]);
+
   // Load student IDs for name lookup
   const loadStudentIds = async () => {
     try {
