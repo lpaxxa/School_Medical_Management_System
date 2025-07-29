@@ -98,7 +98,7 @@ const PostVaccinationDetailPage = () => {
               const notes = record.notes;
               return notes && notes.toLowerCase().trim().includes('không có phản ứng phụ');
             });
-            
+
             if (allCompleted) {
               statuses[student.healthProfileId] = 'Hoàn thành';
             } else {
@@ -107,7 +107,7 @@ const PostVaccinationDetailPage = () => {
           }
         } catch (error) {
           console.error(`Could not fetch status for student ${student.fullName}`, error);
-          statuses[student.healthProfileId] = 'Cần theo dõi';
+          statuses[student.healthProfileId] = 'Chưa hoàn thành'; // Default to 'Chưa hoàn thành' when error occurs
         }
       }
       
@@ -152,17 +152,21 @@ const PostVaccinationDetailPage = () => {
     }, planDetails.vaccinationDate);
   };
 
-  // Filter students
+  // Filter students - only show students who have vaccination records
   const filteredStudents = useMemo(() => {
     if (!planDetails?.students) return [];
-    
+
     return planDetails.students.filter(student => {
       const matchesSearch = student.fullName.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const studentStatus = studentStatuses[student.healthProfileId] || 'Cần theo dõi';
+
+      const studentStatus = studentStatuses[student.healthProfileId] || 'Chưa hoàn thành';
+
+      // Only show students who have vaccination records (not 'Chưa hoàn thành')
+      const hasVaccinationRecord = studentStatus !== 'Chưa hoàn thành';
+
       const matchesStatus = !statusFilter || studentStatus === statusFilter;
-      
-      return matchesSearch && matchesStatus;
+
+      return matchesSearch && matchesStatus && hasVaccinationRecord;
     });
   }, [planDetails?.students, searchTerm, statusFilter, studentStatuses]);
 
@@ -331,7 +335,6 @@ const PostVaccinationDetailPage = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="">Tất cả trạng thái</option>
-                <option value="Chưa hoàn thành">Chưa hoàn thành</option>
                 <option value="Cần theo dõi">Cần theo dõi</option>
                 <option value="Hoàn thành">Hoàn thành</option>
               </Form.Select>
@@ -351,7 +354,7 @@ const PostVaccinationDetailPage = () => {
             </thead>
             <tbody>
               {currentStudents.map((student, index) => {
-                const status = studentStatuses[student.healthProfileId] || 'Cần theo dõi';
+                const status = studentStatuses[student.healthProfileId] || 'Chưa hoàn thành';
                 
                 return (
                   <tr key={student.healthProfileId}>
@@ -384,7 +387,12 @@ const PostVaccinationDetailPage = () => {
 
           {filteredStudents.length === 0 && (
             <div className="text-center py-4">
-              <p className="text-muted">Không có học sinh nào phù hợp với bộ lọc.</p>
+              <p className="text-muted">
+                {planDetails?.students?.length > 0
+                  ? "Không có học sinh nào có lịch sử tiêm chủng cần theo dõi."
+                  : "Không có học sinh nào phù hợp với bộ lọc."
+                }
+              </p>
             </div>
           )}
 
