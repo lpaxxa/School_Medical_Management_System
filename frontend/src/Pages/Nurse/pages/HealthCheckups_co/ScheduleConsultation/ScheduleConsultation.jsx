@@ -8,12 +8,13 @@ import ScheduleEditModal from './ScheduleEditModal';
 
 const MedicalCheckupList = ({ refreshData }) => {
   // Get data from context
-  const { 
-    medicalCheckups, 
-    loading, 
-    error, 
-    fetchMedicalCheckupById, 
+  const {
+    medicalCheckups,
+    loading,
+    error,
+    fetchMedicalCheckupById,
     updateMedicalCheckup,
+    deleteMedicalCheckup,
     sendParentNotification,
     refreshMedicalCheckups,
     notifyParent,
@@ -454,6 +455,51 @@ const MedicalCheckupList = ({ refreshData }) => {
     }
   };
 
+  // Handle delete checkup
+  const handleDeleteCheckup = (checkup) => {
+    Swal.fire({
+      title: 'Xác nhận xóa hồ sơ',
+      html: `Bạn có chắc chắn muốn xóa hồ sơ khám sức khỏe của em <strong>${checkup.studentName}</strong> không?<br><br><span style="color: red; font-weight: bold;">⚠️ Hành động này không thể hoàn tác!</span>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Đúng, xóa đi!',
+      cancelButtonText: 'Hủy',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        confirmDeleteCheckup(checkup);
+      }
+    });
+  };
+
+  // Handle confirm delete checkup
+  const confirmDeleteCheckup = async (checkup) => {
+    setSubmitting(true);
+    try {
+      await deleteMedicalCheckup(checkup.id);
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã xóa!',
+        text: `Hồ sơ khám sức khỏe của em ${checkup.studentName} đã được xóa thành công.`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      refreshMedicalCheckups(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting checkup:', error);
+      const errorMessage = error?.response?.data || error?.message || 'Xóa hồ sơ thất bại. Vui lòng thử lại.';
+      Swal.fire({
+        icon: 'error',
+        title: 'Xóa thất bại',
+        text: errorMessage,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // Handle refresh button - reset all filters and reload data
   const handleRefresh = () => {
     setSearchTerm('');
@@ -639,6 +685,9 @@ const MedicalCheckupList = ({ refreshData }) => {
                                 <i className="fas fa-paper-plane"></i>
                               </Button>
                             )}
+                            <Button variant="danger" size="sm" onClick={() => handleDeleteCheckup(checkup)} title="Xóa hồ sơ">
+                              <i className="fas fa-trash"></i>
+                            </Button>
                           </div>
                         </td>
                       </tr>

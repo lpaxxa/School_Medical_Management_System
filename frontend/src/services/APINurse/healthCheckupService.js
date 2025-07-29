@@ -114,6 +114,41 @@ export const updateMedicalCheckup = async (id, checkupData) => {
   }
 };
 
+// Delete medical checkup by ID
+export const deleteMedicalCheckup = async (id) => {
+  try {
+    // Lấy token xác thực từ localStorage
+    const token = sessionService.getToken();
+
+    // Gọi API DELETE với token trong header
+    const response = await axios.delete(`${API_BASE_URL}/medical-checkups/${id}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+
+    console.log('Medical checkup deleted successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting medical checkup:', error);
+
+    // Hiển thị chi tiết lỗi từ API để debug
+    if (error.response) {
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+      console.error('Response error headers:', error.response.headers);
+      throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      console.error('Request was made but no response received:', error.request);
+      throw new Error('Không nhận được phản hồi từ máy chủ');
+    } else {
+      console.error('Error setting up request:', error.message);
+      throw error;
+    }
+  }
+};
+
 // Send notification to parent
 export const sendParentNotification = async (studentId, message) => {
   try {
