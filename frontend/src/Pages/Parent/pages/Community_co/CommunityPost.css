@@ -703,8 +703,8 @@
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 
-/* Related Posts */
-.related-posts-section {
+/* Parent Related Posts */
+.parent-related-posts-section {
   background-color: var(--bg-white);
   border-radius: var(--border-radius);
   padding: 24px 30px;
@@ -712,7 +712,7 @@
   border: 1px solid var(--border-light);
 }
 
-.related-posts-section h3 {
+.parent-related-posts-section h3 {
   margin: 0 0 20px 0;
   font-size: 1.4rem;
   color: var(--text-dark);
@@ -720,13 +720,13 @@
   font-weight: 600;
 }
 
-.related-posts {
+.parent-related-posts {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 }
 
-.related-post-card {
+.parent-related-post-card {
   background-color: #f9f9f9;
   border: 1px solid var(--border-light);
   border-radius: var(--border-radius);
@@ -734,13 +734,13 @@
   transition: all 0.3s;
 }
 
-.related-post-card:hover {
+.parent-related-post-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   background-color: white;
 }
 
-.related-post-category {
+.parent-related-post-category {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -750,24 +750,24 @@
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 
-.related-post-card h4 {
+.parent-related-post-card h4 {
   margin: 0 0 12px 0;
   font-size: 1.05rem;
   line-height: 1.4;
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 
-.related-post-card h4 a {
+.parent-related-post-card h4 a {
   color: var(--text-dark);
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.related-post-card h4 a:hover {
+.parent-related-post-card h4 a:hover {
   color: var(--primary-color);
 }
 
-.related-post-meta {
+.parent-related-post-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -775,16 +775,46 @@
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 
-.related-post-author {
+.parent-related-post-author {
   display: flex;
   align-items: center;
 }
 
-.related-author-icon {
+.parent-related-author-icon {
   width: 30px;
   height: 30px;
   font-size: 14px;
   margin-right: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.parent-related-author-icon.parent-icon {
+  background-color: var(--primary-color);
+}
+
+.parent-related-author-icon.nurse-icon {
+  background-color: var(--success-color);
+}
+
+.parent-related-author-icon.default-icon {
+  background-color: var(--text-muted);
+}
+
+.parent-related-post-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.parent-related-post-stats span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Error Container */
@@ -1383,6 +1413,30 @@
 
   .reply-actions-menu {
     opacity: 1; /* Always visible on mobile */
+  }
+
+  /* Parent Related Posts Mobile */
+  .parent-related-posts {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .parent-related-posts-section {
+    padding: 16px 20px;
+  }
+
+  .parent-related-post-card {
+    padding: 12px;
+  }
+
+  .parent-related-post-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .parent-related-post-stats {
+    align-self: flex-end;
   }
 }
 

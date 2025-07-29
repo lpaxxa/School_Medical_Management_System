@@ -1293,12 +1293,12 @@ const CommunityPost = () => {
 
         {/* Bài viết liên quan */}
         {relatedPosts.length > 0 && (
-          <div className="related-posts-section">
+          <div className="parent-related-posts-section">
             <h3>Bài viết liên quan</h3>
-            <div className="related-posts">
+            <div className="parent-related-posts">
               {relatedPosts.map((relatedPost) => (
-                <div key={relatedPost.id} className="related-post-card">
-                  <div className="related-post-category">
+                <div key={relatedPost.id} className="parent-related-post-card">
+                  <div className="parent-related-post-category">
                     <i
                       className={`fas ${getCategoryIcon(relatedPost.category)}`}
                     ></i>
@@ -1311,24 +1311,24 @@ const CommunityPost = () => {
                     </Link>
                   </h4>
 
-                  <div className="related-post-meta">
-                    <div className="related-post-author">
+                  <div className="parent-related-post-meta">
+                    <div className="parent-related-post-author">
                       {relatedPost.author.role === "PARENT" ? (
-                        <div className="related-author-icon parent-icon">
+                        <div className="parent-related-author-icon parent-icon">
                           <i className="fas fa-user-friends"></i>
                         </div>
                       ) : relatedPost.author.role === "NURSE" ? (
-                        <div className="related-author-icon nurse-icon">
+                        <div className="parent-related-author-icon nurse-icon">
                           <i className="fas fa-user-nurse"></i>
                         </div>
                       ) : (
-                        <div className="related-author-icon default-icon">
+                        <div className="parent-related-author-icon default-icon">
                           <i className="fas fa-user"></i>
                         </div>
                       )}
                       <span>{relatedPost.author.name}</span>
                     </div>
-                    <div className="related-post-stats">
+                    <div className="parent-related-post-stats">
                       <span>
                         <i className="fas fa-heart"></i> {relatedPost.likes}
                       </span>
