@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import notificationService from "../../../../services/notificationService";
+import notificationService from "../../../../services/APIParent/notificationService";
 import "./VaccinationDetailModal.css";
 
 const VaccinationDetailModal = ({
@@ -433,7 +433,10 @@ const VaccinationDetailModal = ({
 
                 <div className="modaldetailofnotivaccine-message">
                   <div className="modaldetailofnotivaccine-content-card-title">
-                    <i style={{ color: 'gray' }} className="fas fa-file-alt"></i>
+                    <i
+                      style={{ color: "gray" }}
+                      className="fas fa-file-alt"
+                    ></i>
                     Chi tiết thông báo
                   </div>
                   <div className="modaldetailofnotivaccine-message-content">

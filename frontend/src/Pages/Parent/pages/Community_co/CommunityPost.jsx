@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import "./CommunityPost.css";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import { useAuth } from "../../../../context/AuthContext";
-import communityService from "../../../../services/communityService"; // Import communityService
+import communityService from "../../../../services/APIParent/communityService"; // Import communityService
 import sessionService from "../../../../services/sessionService";
 import {
   formatDate,

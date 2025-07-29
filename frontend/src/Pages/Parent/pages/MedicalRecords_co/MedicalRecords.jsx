@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 // Import mới của CSS
 import "./styles/index.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
-import medicalService from "../../../../services/medicalService";
+import medicalService from "../../../../services/APIParent/medicalService";
 import eventBus from "../../../../services/eventBus";
 import {
   FaPrint,

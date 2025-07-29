@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./styles/SendMedicineFixed.css";
 import { useStudentData } from "../../../../context/StudentDataContext";
 import { useAuth } from "../../../../context/AuthContext";
-import medicationRequestService from "../../../../services/medicationRequestService";
+import medicationRequestService from "../../../../services/APIParent/medicationRequestService";
 import sessionService from "../../../../services/sessionService";
 // import NotificationModal from "./components/NotificationModal";
 // import {
@@ -481,6 +481,8 @@ const SendMedicine = () => {
       console.log("📋 Medication History Data:", medicationHistory);
       if (medicationHistory && medicationHistory.length > 0) {
         console.log("📋 First item timeOfDay:", medicationHistory[0].timeOfDay);
+        console.log("📋 First item startDate:", medicationHistory[0].startDate);
+        console.log("📋 First item endDate:", medicationHistory[0].endDate);
         console.log(
           "📋 First item responseDate:",
           medicationHistory[0].responseDate
@@ -489,6 +491,16 @@ const SendMedicine = () => {
           "🖼️ First item prescriptionImageUrl:",
           medicationHistory[0].prescriptionImageUrl
         );
+
+        // Debug all items' dates
+        medicationHistory.forEach((item, index) => {
+          console.log(`📅 Item ${index} (ID: ${item.id}) dates:`, {
+            startDate: item.startDate,
+            endDate: item.endDate,
+            startDateType: typeof item.startDate,
+            endDateType: typeof item.endDate,
+          });
+        });
 
         // Debug all items' image URLs
         medicationHistory.forEach((item, index) => {
@@ -517,6 +529,15 @@ const SendMedicine = () => {
       fetchMedicationHistory();
     }
   }, [activeTab]);
+
+  // Debug useEffect để log editFormData changes
+  useEffect(() => {
+    if (isModalOpen) {
+      console.log("🔍 editFormData changed:", editFormData);
+      console.log("🔍 editFormData.startDate:", editFormData.startDate);
+      console.log("🔍 editFormData.endDate:", editFormData.endDate);
+    }
+  }, [editFormData, isModalOpen]);
 
   const refreshData = () => {
     if (activeTab === "history") fetchMedicationHistory();
@@ -912,19 +933,70 @@ const SendMedicine = () => {
       }
     }
 
-    // Safely parse dates
-    const startDate = requestToUpdate.startDate
-      ? typeof requestToUpdate.startDate === "string"
-        ? requestToUpdate.startDate.substring(0, 10)
-        : ""
-      : "";
-    const endDate = requestToUpdate.endDate
-      ? typeof requestToUpdate.endDate === "string"
-        ? requestToUpdate.endDate.substring(0, 10)
-        : ""
-      : "";
+    // Safely parse dates với nhiều format khác nhau
+    const parseDate = (dateValue) => {
+      if (!dateValue) return "";
 
-    console.log("📅 Parsed dates:", { startDate, endDate });
+      try {
+        // Nếu là array format [year, month, day] từ API
+        if (Array.isArray(dateValue) && dateValue.length === 3) {
+          const [year, month, day] = dateValue;
+          // Đảm bảo month và day có 2 chữ số
+          const formattedMonth = month.toString().padStart(2, "0");
+          const formattedDay = day.toString().padStart(2, "0");
+          const dateString = `${year}-${formattedMonth}-${formattedDay}`;
+          console.log(
+            `📅 Parsed array date [${year}, ${month}, ${day}] → ${dateString}`
+          );
+          return dateString;
+        }
+
+        // Nếu là string
+        if (typeof dateValue === "string") {
+          // Nếu đã là format YYYY-MM-DD
+          if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return dateValue;
+          }
+          // Nếu có timestamp hoặc ISO string
+          if (dateValue.includes("T") || dateValue.length > 10) {
+            return dateValue.substring(0, 10);
+          }
+          // Nếu là format khác, thử parse
+          const parsed = new Date(dateValue);
+          if (!isNaN(parsed.getTime())) {
+            return parsed.toISOString().substring(0, 10);
+          }
+        }
+
+        // Nếu là Date object
+        if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
+          return dateValue.toISOString().substring(0, 10);
+        }
+
+        // Nếu là timestamp number
+        if (typeof dateValue === "number") {
+          const date = new Date(dateValue);
+          if (!isNaN(date.getTime())) {
+            return date.toISOString().substring(0, 10);
+          }
+        }
+
+        console.warn("⚠️ Could not parse date:", dateValue, typeof dateValue);
+        return "";
+      } catch (error) {
+        console.error("❌ Error parsing date:", dateValue, error);
+        return "";
+      }
+    };
+
+    const startDate = parseDate(requestToUpdate.startDate);
+    const endDate = parseDate(requestToUpdate.endDate);
+
+    console.log("📅 Original dates from API:", {
+      startDate: requestToUpdate.startDate,
+      endDate: requestToUpdate.endDate,
+    });
+    console.log("📅 Parsed dates for form:", { startDate, endDate });
 
     // Debug: Check timeToTakeArray before setting to form
     console.log("🔧 Setting timeToTake to form:", timeToTakeArray);
@@ -935,7 +1007,7 @@ const SendMedicine = () => {
       JSON.stringify(timeToTakeArray)
     );
 
-    setEditFormData({
+    const formDataToSet = {
       id: requestToUpdate.id,
       medicationName: requestToUpdate.medicationName || "",
       dosageInstructions: requestToUpdate.dosageInstructions || "",
@@ -954,7 +1026,13 @@ const SendMedicine = () => {
       studentId: requestToUpdate.studentId,
       prescriptionImage: null,
       prescriptionImageUrl: requestToUpdate.prescriptionImageUrl || null,
-    });
+    };
+
+    console.log("🔧 Form data being set to editFormData:", formDataToSet);
+    console.log("🔧 Specifically - startDate:", formDataToSet.startDate);
+    console.log("🔧 Specifically - endDate:", formDataToSet.endDate);
+
+    setEditFormData(formDataToSet);
 
     // Reset modal image upload state
     setModalTempImageUpload({
@@ -975,6 +1053,13 @@ const SendMedicine = () => {
 
     console.log("✅ Opening update modal");
     setIsModalOpen(true);
+
+    // Debug: Log editFormData after modal opens
+    setTimeout(() => {
+      console.log("🔍 editFormData after modal opened:", editFormData);
+      console.log("🔍 editFormData.startDate:", editFormData.startDate);
+      console.log("🔍 editFormData.endDate:", editFormData.endDate);
+    }, 100);
   };
 
   // Function to fetch confirmation data
@@ -1212,25 +1297,169 @@ const SendMedicine = () => {
 
   const handleModalInputChange = (e) => {
     const { name, value } = e.target;
-    setEditFormData({
+
+    // Cập nhật form data
+    const updatedFormData = {
       ...editFormData,
       [name]: value,
-    });
+    };
+
+    setEditFormData(updatedFormData);
+
+    // Real-time validation cho ngày tháng
+    if (name === "startDate" || name === "endDate") {
+      const newErrors = { ...modalErrors };
+
+      if (name === "startDate") {
+        // Xóa lỗi cũ
+        delete newErrors.startDate;
+
+        if (value) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const startDate = new Date(value);
+
+          // Chỉ kiểm tra ngày trong quá khứ nếu không phải đang cập nhật yêu cầu đã tồn tại
+          if (startDate < today && !updatedFormData.id) {
+            newErrors.startDate =
+              "Ngày bắt đầu không được là ngày trong quá khứ";
+          }
+
+          // Kiểm tra với ngày kết thúc nếu có
+          if (updatedFormData.endDate) {
+            const endDate = new Date(updatedFormData.endDate);
+            if (endDate <= startDate) {
+              newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+            } else {
+              delete newErrors.endDate;
+            }
+          }
+        }
+      }
+
+      if (name === "endDate") {
+        // Xóa lỗi cũ
+        delete newErrors.endDate;
+
+        if (value && updatedFormData.startDate) {
+          const startDate = new Date(updatedFormData.startDate);
+          const endDate = new Date(value);
+
+          if (endDate <= startDate) {
+            newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+          } else {
+            // Kiểm tra khoảng thời gian không quá dài
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 90) {
+              newErrors.endDate =
+                "Thời gian điều trị không được vượt quá 90 ngày";
+            }
+          }
+        }
+      }
+
+      setModalErrors(newErrors);
+    }
+
+    // Real-time validation cho các trường khác
+    if (name === "medicationName") {
+      const newErrors = { ...modalErrors };
+      delete newErrors.medicationName;
+
+      if (!value || value.trim() === "") {
+        newErrors.medicationName = "Vui lòng nhập tên thuốc";
+      } else if (value.trim().length < 2) {
+        newErrors.medicationName = "Tên thuốc phải có ít nhất 2 ký tự";
+      }
+
+      setModalErrors(newErrors);
+    }
+
+    if (name === "dosageInstructions") {
+      const newErrors = { ...modalErrors };
+      delete newErrors.dosageInstructions;
+
+      if (!value || value.trim() === "") {
+        newErrors.dosageInstructions = "Vui lòng nhập liều lượng";
+      } else if (value.trim().length < 3) {
+        newErrors.dosageInstructions = "Liều lượng phải có ít nhất 3 ký tự";
+      }
+
+      setModalErrors(newErrors);
+    }
+
+    if (name === "frequencyPerDay") {
+      const newErrors = { ...modalErrors };
+      delete newErrors.frequencyPerDay;
+      delete newErrors.timeToTake;
+
+      if (
+        !value ||
+        isNaN(Number(value)) ||
+        Number(value) < 1 ||
+        Number(value) > 10
+      ) {
+        newErrors.frequencyPerDay =
+          "Số lần dùng thuốc phải từ 1 đến 10 lần/ngày";
+      } else {
+        // Kiểm tra với timeToTake hiện tại
+        if (
+          updatedFormData.timeToTake &&
+          updatedFormData.timeToTake.length > 0
+        ) {
+          if (updatedFormData.timeToTake.length !== Number(value)) {
+            newErrors.timeToTake = `Số thời điểm uống thuốc (${updatedFormData.timeToTake.length}) phải bằng số lần dùng mỗi ngày (${value})`;
+          }
+        }
+      }
+
+      setModalErrors(newErrors);
+    }
   };
 
   const handleModalTimeChange = (e) => {
     const { value, checked } = e.target;
+
+    let updatedTimeToTake;
     if (checked) {
-      setEditFormData({
-        ...editFormData,
-        timeToTake: [...editFormData.timeToTake, value],
-      });
+      updatedTimeToTake = [...editFormData.timeToTake, value];
     } else {
-      setEditFormData({
-        ...editFormData,
-        timeToTake: editFormData.timeToTake.filter((time) => time !== value),
-      });
+      updatedTimeToTake = editFormData.timeToTake.filter(
+        (time) => time !== value
+      );
     }
+
+    const updatedFormData = {
+      ...editFormData,
+      timeToTake: updatedTimeToTake,
+    };
+
+    setEditFormData(updatedFormData);
+
+    // Real-time validation cho timeToTake
+    const newErrors = { ...modalErrors };
+    delete newErrors.timeToTake;
+
+    if (updatedTimeToTake.length === 0) {
+      newErrors.timeToTake = "Vui lòng chọn ít nhất một thời điểm uống thuốc";
+    } else if (
+      editFormData.frequencyPerDay &&
+      updatedTimeToTake.length !== Number(editFormData.frequencyPerDay)
+    ) {
+      newErrors.timeToTake = `Số thời điểm uống thuốc (${updatedTimeToTake.length}) phải bằng số lần dùng mỗi ngày (${editFormData.frequencyPerDay})`;
+    }
+
+    setModalErrors(newErrors);
+
+    console.log("🔧 Time selection updated:", {
+      value,
+      checked,
+      updatedTimeToTake,
+      frequencyPerDay: editFormData.frequencyPerDay,
+      hasError: Object.keys(newErrors).includes("timeToTake"),
+    });
   };
 
   // Handler cho modal image upload (similar to main form)
@@ -1294,34 +1523,86 @@ const SendMedicine = () => {
   const validateModalForm = () => {
     const newErrors = {};
 
-    if (!editFormData.medicationName) {
+    // Validation cho tên thuốc
+    if (
+      !editFormData.medicationName ||
+      editFormData.medicationName.trim() === ""
+    ) {
       newErrors.medicationName = "Vui lòng nhập tên thuốc";
+    } else if (editFormData.medicationName.trim().length < 2) {
+      newErrors.medicationName = "Tên thuốc phải có ít nhất 2 ký tự";
     }
 
-    if (!editFormData.dosageInstructions) {
+    // Validation cho liều lượng
+    if (
+      !editFormData.dosageInstructions ||
+      editFormData.dosageInstructions.trim() === ""
+    ) {
       newErrors.dosageInstructions = "Vui lòng nhập liều lượng";
+    } else if (editFormData.dosageInstructions.trim().length < 3) {
+      newErrors.dosageInstructions = "Liều lượng phải có ít nhất 3 ký tự";
     }
 
-    // Sửa lỗi xác thực frequencyPerDay
+    // Validation cho số lần dùng thuốc
     if (
       !editFormData.frequencyPerDay ||
       isNaN(Number(editFormData.frequencyPerDay)) ||
-      Number(editFormData.frequencyPerDay) < 1
+      Number(editFormData.frequencyPerDay) < 1 ||
+      Number(editFormData.frequencyPerDay) > 10
     ) {
-      newErrors.frequencyPerDay = "Vui lòng nhập số lần dùng thuốc hợp lệ";
+      newErrors.frequencyPerDay = "Số lần dùng thuốc phải từ 1 đến 10 lần/ngày";
     }
 
+    // Validation cho ngày bắt đầu
     if (!editFormData.startDate) {
       newErrors.startDate = "Vui lòng chọn ngày bắt đầu";
+    } else {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startDate = new Date(editFormData.startDate);
+
+      // Chỉ kiểm tra ngày trong quá khứ nếu không phải đang cập nhật yêu cầu đã tồn tại
+      // (cho phép cập nhật yêu cầu có ngày bắt đầu trong quá khứ)
+      if (startDate < today && !editFormData.id) {
+        newErrors.startDate = "Ngày bắt đầu không được là ngày trong quá khứ";
+      }
     }
 
+    // Validation cho ngày kết thúc
     if (!editFormData.endDate) {
       newErrors.endDate = "Vui lòng chọn ngày kết thúc";
+    } else if (editFormData.startDate && editFormData.endDate) {
+      const startDate = new Date(editFormData.startDate);
+      const endDate = new Date(editFormData.endDate);
+
+      if (endDate <= startDate) {
+        newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+      }
+
+      // Kiểm tra khoảng thời gian không quá dài (ví dụ: không quá 90 ngày)
+      const diffTime = Math.abs(endDate - startDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays > 90) {
+        newErrors.endDate = "Thời gian điều trị không được vượt quá 90 ngày";
+      }
     }
 
-    if (editFormData.timeToTake.length === 0) {
-      newErrors.timeToTake = "Vui lòng chọn thời điểm uống thuốc";
+    // Validation cho thời điểm uống thuốc
+    if (!editFormData.timeToTake || editFormData.timeToTake.length === 0) {
+      newErrors.timeToTake = "Vui lòng chọn ít nhất một thời điểm uống thuốc";
+    } else if (
+      editFormData.frequencyPerDay &&
+      editFormData.timeToTake.length !== Number(editFormData.frequencyPerDay)
+    ) {
+      newErrors.timeToTake = `Số thời điểm uống thuốc (${editFormData.timeToTake.length}) phải bằng số lần dùng mỗi ngày (${editFormData.frequencyPerDay})`;
     }
+
+    console.log("🔍 Modal form validation result:", {
+      hasErrors: Object.keys(newErrors).length > 0,
+      errors: newErrors,
+      formData: editFormData,
+    });
 
     setModalErrors(newErrors);
     return Object.keys(newErrors).length === 0;
