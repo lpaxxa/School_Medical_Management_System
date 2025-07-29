@@ -124,7 +124,8 @@ const MedicalIncidentUpdateModal = ({
       // Fetch all inventory items first
       const fetchInventory = async () => {
         try {
-          const items = await inventoryService.getAllItems();
+          // Force refresh để đảm bảo có thuốc mới nhất
+          const items = await inventoryService.getAllItems(true);
           if (Array.isArray(items)) {
             setAllInventoryItems(items);
             
@@ -205,7 +206,7 @@ const MedicalIncidentUpdateModal = ({
                 }
                 
                 if (!inventoryItem) {
-                  console.warn(`Medication with itemID ${med.itemID} / name ${med.itemName} not found in inventory. Using default display.`);
+                  console.warn(`Medication with itemID ${med.itemID} / name ${med.itemName} not found in inventory. Using saved medication name.`);
                   
                   // Log chi tiết để debug
                   console.log(`Detailed comparison for medication:`);
@@ -217,10 +218,11 @@ const MedicalIncidentUpdateModal = ({
                 }
                 
                 // Tạo thông tin thuốc dựa trên kết quả tìm kiếm
+                // Ưu tiên hiển thị tên thuốc đã lưu trong sự kiện để đảm bảo tính nhất quán
                 return {
                   itemID: inventoryItem ? (inventoryItem.itemID || inventoryItem.itemId || inventoryItem.id) : (med.itemID || ''),
                   quantityUsed: med.quantityUsed || 1,
-                  itemName: inventoryItem ? inventoryItem.itemName : (med.itemName || `Thuốc #${med.itemID}`),
+                  itemName: med.itemName || (inventoryItem ? inventoryItem.itemName : `Thuốc #${med.itemID}`),
                   stockQuantity: inventoryItem ? (inventoryItem.stockQuantity || 0) : 0,
                   unit: inventoryItem ? (inventoryItem.unit || 'viên') : (med.unit || 'viên'),
                   isTemporary: !inventoryItem // Đánh dấu thuốc không có trong kho
@@ -308,12 +310,12 @@ const MedicalIncidentUpdateModal = ({
       setImageFile(null);
       setImageUploadError('');
 
-      // Set existing image preview - COMMENTED OUT URL SUPPORT
-      // if (selectedEvent.imageMedicalUrl) {
-      //   setImagePreview(selectedEvent.imageMedicalUrl);
-      // } else {
+      // Set existing image preview if available
+      if (selectedEvent.imageMedicalUrl && selectedEvent.imageMedicalUrl.trim() !== '') {
+        setImagePreview(selectedEvent.imageMedicalUrl);
+      } else {
         setImagePreview('');
-      // }
+      }
     }
   }, [show, selectedEvent]);
   
@@ -441,7 +443,7 @@ const MedicalIncidentUpdateModal = ({
           if (!isNaN(itemID) && !isNaN(quantityUsed)) {
             return {
               itemID,
-              itemName: foundItem.itemName,
+              itemName: name, // Ưu tiên tên thuốc gốc từ sự kiện để đảm bảo tính nhất quán
               quantityUsed,
               stockQuantity: foundItem.stockQuantity || 0,
               unit: foundItem.unit || 'viên',
@@ -562,6 +564,7 @@ const MedicalIncidentUpdateModal = ({
 
     setSearchingMedications(true);
     try {
+      // Force refresh cache để đảm bảo có thuốc mới nhất
       const results = await inventoryService.searchItemsByName(searchTerm);
       let filteredResults = [];
 
@@ -1205,6 +1208,13 @@ const MedicalIncidentUpdateModal = ({
                       </h6>
                     </Card.Header>
                     <Card.Body>
+                      {/* Thông báo giải thích về hiển thị thuốc */}
+                      <Alert variant="info" className="mb-3">
+                        <i className="fas fa-info-circle me-2"></i>
+                        <strong>Lưu ý:</strong> Danh sách hiển thị thuốc đã được sử dụng trong sự kiện này.
+                        Thuốc có thể không còn trong kho hiện tại nhưng vẫn được hiển thị để đảm bảo tính chính xác của hồ sơ y tế.
+                      </Alert>
+
                       <div className="position-relative mb-3">
                         <Form.Control
                           type="text"
@@ -1273,9 +1283,9 @@ const MedicalIncidentUpdateModal = ({
                                     <Col md={6}>
                                       <h6 className="text-primary mb-1">{medication.itemName}</h6>
                                       {medication.isTemporary && (
-                                        <Badge bg="warning" className="mb-2">
+                                        <Badge bg="warning" className="mb-2" title="Thuốc này đã được sử dụng trong sự kiện nhưng hiện không còn trong kho">
                                           <i className="fas fa-exclamation-triangle me-1"></i>
-                                          Không có trong kho
+                                          Không có trong kho hiện tại
                                         </Badge>
                                       )}
                                       <div className="d-flex align-items-center gap-2">
