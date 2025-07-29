@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import notificationService from "../../../../services/APIParent/notificationService";
+// import notificationService from "../../../../services/APIParent/notificationService";
+import notificationService from "../../../../services/notificationService";
 import "./VaccinationDetailModal.css";
 
 const VaccinationDetailModal = ({

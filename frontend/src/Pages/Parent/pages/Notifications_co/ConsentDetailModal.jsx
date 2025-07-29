@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import healthCheckupConsentService from "../../../../services/APIParent/healthCheckupConsentService";
+// import healthCheckupConsentService from "../../../../services/APIParent/healthCheckupConsentService";
+import healthCheckupConsentService from "../../../../services/healthCheckupConsentService";
 
 const ConsentDetailModal = ({
   isOpen,
