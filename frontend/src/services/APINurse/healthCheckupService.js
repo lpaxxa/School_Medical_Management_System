@@ -634,7 +634,18 @@ export const getCampaignStudents = async (campaignId) => {
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
-    return await response.json();
+
+    const data = await response.json();
+    console.log('🔍 [API] getCampaignStudents response:', data);
+
+    // Ensure hasCheckupRecord field exists for each student
+    const studentsWithCheckupStatus = data.map(student => ({
+      ...student,
+      hasCheckupRecord: student.hasCheckupRecord || false // Default to false if not provided
+    }));
+
+    console.log('🔍 [API] Students with checkup status:', studentsWithCheckupStatus);
+    return studentsWithCheckupStatus;
   } catch (error) {
     console.error(`Error fetching students for campaign ${campaignId}:`, error);
     throw error;

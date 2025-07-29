@@ -137,8 +137,13 @@ export const HealthCheckupProvider = ({ children }) => {
     try {
       setLoading(true);
       const newCheckup = await healthCheckupService.addHealthCheckup(checkupData);
-      // Refresh the main list to reflect any changes in stats
-      fetchHealthCheckups(); 
+      // Refresh both old and new API lists to reflect changes
+      console.log('🔄 [Context] Refreshing both healthCheckups and medicalCheckups after creation');
+      fetchHealthCheckups();
+      fetchMedicalCheckups(); // Also refresh medical checkups for ScheduleConsultation
+
+      // Note: Checkup status cache will be invalidated in the component level
+
       return newCheckup;
     } catch (err) {
       console.error('Error creating health checkup:', err);

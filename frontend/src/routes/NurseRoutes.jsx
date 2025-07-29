@@ -22,7 +22,7 @@ const NurseRoutes = () => {
         <ProtectedRoute allowedRoles={["nurse"]}>
           <NurseLayout>
             <Routes>
-              <Route index element={<Navigate to="vaccination" replace />} />
+              <Route index element={<Navigate to="blog-management" replace />} />
               <Route
                 path="student-records"
                 element={<StudentRecordsPage />}

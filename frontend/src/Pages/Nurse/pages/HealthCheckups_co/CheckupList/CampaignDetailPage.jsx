@@ -15,6 +15,7 @@ import {
 import { useHealthCheckup } from '../../../../../context/NurseContext/HealthCheckupContext';
 import { useAuth } from '../../../../../context/AuthContext';
 import CreateCheckupFormModal from './CreateCheckupFormModal';
+import checkupStatusService from './checkupStatusService';
 import Swal from 'sweetalert2';
 import './CheckupList.css';
 
@@ -73,8 +74,18 @@ const CampaignDetailPage = () => {
         setCampaign(foundCampaign);
 
         // Load students for this campaign
-        const studentsData = await getCampaignStudents(foundCampaign.id);
-        setCampaignStudents(studentsData);
+        const rawStudentsData = await getCampaignStudents(foundCampaign.id);
+        console.log('🔍 [DEBUG] Raw students data loaded:', rawStudentsData);
+
+        // Enrich students with checkup status using our service
+        const enrichedStudentsData = await checkupStatusService.enrichStudentsWithCheckupStatus(
+          rawStudentsData,
+          foundCampaign.id
+        );
+        console.log('🔍 [DEBUG] Enriched students data:', enrichedStudentsData);
+        console.log('🔍 [DEBUG] Sample student hasCheckupRecord:', enrichedStudentsData[0]?.hasCheckupRecord);
+
+        setCampaignStudents(enrichedStudentsData);
         
       } catch (err) {
         setError('Lỗi tải dữ liệu chiến dịch');
@@ -135,13 +146,30 @@ const CampaignDetailPage = () => {
       setShowCreateModal(false);
       setStudentForCheckup(null);
 
-      // Reload students data to reflect changes
-      try {
-        const studentsData = await getCampaignStudents(campaign.id);
-        setCampaignStudents(studentsData);
-      } catch (err) {
-        console.error('Error reloading students:', err);
-      }
+      // Update checkup status service cache and student state
+      console.log('🔄 [DEBUG] Updating checkup status after creation...');
+      console.log('🔍 [DEBUG] FormData studentId:', formData.studentId);
+      console.log('🔍 [DEBUG] New checkup response:', response);
+
+      // Add new checkup to service cache and invalidate for fresh data
+      checkupStatusService.addCheckupToCache(response);
+      checkupStatusService.invalidateCache(); // Force fresh data on next load
+
+      // Update the specific student's hasCheckupRecord to true
+      setCampaignStudents(prevStudents => {
+        return prevStudents.map(student => {
+          if (student.studentId === formData.studentId) {
+            console.log('✅ [DEBUG] Updating student:', student.studentName, 'hasCheckupRecord: true');
+            return {
+              ...student,
+              hasCheckupRecord: true
+            };
+          }
+          return student;
+        });
+      });
+
+      console.log('✅ [DEBUG] Student status updated successfully');
 
       Swal.fire({
         icon: 'success',
@@ -186,6 +214,8 @@ const CampaignDetailPage = () => {
 
   // Render checkup actions
   const renderCheckupActions = (student) => {
+    console.log('🔍 [DEBUG] Rendering actions for student:', student.studentName, 'hasCheckupRecord:', student.hasCheckupRecord);
+
     if (student.hasCheckupRecord) {
       return (
         <Button variant="outline-success" size="sm" disabled>
