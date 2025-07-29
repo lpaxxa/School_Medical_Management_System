@@ -246,7 +246,7 @@ const HistoryModal = () => {
             >
               <span style={{ fontSize: '20px' }}>💉</span>
               <h3 style={{ margin: 0, color: '#1e293b', fontSize: '18px', fontWeight: '600' }}>
-                Lịch sử tiêm chủng
+                Lịch sử tiêm chủng ({history?.length || 0} vaccine đã tiêm)
               </h3>
             </div>
 
@@ -301,7 +301,7 @@ const HistoryModal = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '18px' }}>💉</span>
                         <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600',color: 'white' }}>
-                          Lần tiêm {record.doseNumber}
+                          {record.vaccineName} - Mũi {record.doseNumber}
                         </h4>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -340,31 +340,64 @@ const HistoryModal = () => {
 
                     {/* Record Content */}
                     <div style={{ padding: '20px' }}>
-                      <div style={{ marginBottom: '16px' }}>
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            marginBottom: '8px'
-                          }}
-                        >
-                          <span style={{ fontSize: '16px' }}>💊</span>
-                          <span style={{
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            color: '#64748b'
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                        <div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              marginBottom: '8px'
+                            }}
+                          >
+                            <span style={{ fontSize: '16px' }}>💊</span>
+                            <span style={{
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              color: '#64748b'
+                            }}>
+                              Tên vaccine:
+                            </span>
+                          </div>
+                          <div style={{
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: '#1e293b',
+                            paddingLeft: '24px'
                           }}>
-                            Tên vaccine:
-                          </span>
+                            {record.vaccineName}
+                          </div>
                         </div>
-                        <div style={{
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          color: '#1e293b',
-                          paddingLeft: '24px'
-                        }}>
-                          {record.vaccineName}
+
+                        <div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              marginBottom: '8px'
+                            }}
+                          >
+                            <span style={{ fontSize: '16px' }}>📅</span>
+                            <span style={{
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              color: '#64748b'
+                            }}>
+                              Ngày tiêm:
+                            </span>
+                          </div>
+                          <div style={{
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: '#1e293b',
+                            paddingLeft: '24px'
+                          }}>
+                            {record.vaccinationDate ?
+                              new Date(record.vaccinationDate).toLocaleDateString('vi-VN') :
+                              'N/A'
+                            }
+                          </div>
                         </div>
                       </div>
 

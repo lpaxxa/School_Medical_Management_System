@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Card, Button, Table, Spinner, Alert, Badge, Form, Row, Col } from 'react-bootstrap';
 import { 
@@ -10,11 +10,12 @@ import {
 } from 'react-icons/fa';
 import { useVaccination } from '../../../../../context/NurseContext/VaccinationContext';
 import CreateRecordModal from './CreateRecordModal';
-import { 
-  calculateStudentsMonitoringStatus, 
-  canCreateVaccinationRecord, 
-  getVaccinationRecordStatusText, 
-  getVaccinationRecordStatusColor 
+import {
+  calculateStudentsMonitoringStatus,
+  calculateStudentsVaccineMonitoringStatus,
+  canCreateVaccinationRecord,
+  getVaccinationRecordStatusText,
+  getVaccinationRecordStatusColor
 } from './monitoringStatusUtils';
 import Swal from 'sweetalert2';
 
@@ -36,6 +37,7 @@ const VaccinationPlanDetailPage = () => {
   // Data states
   const [planDetails, setPlanDetails] = useState(null);
   const [monitoringStatuses, setMonitoringStatuses] = useState({});
+  const [vaccineMonitoringStatuses, setVaccineMonitoringStatuses] = useState({});
   const [monitoringStatusLoading, setMonitoringStatusLoading] = useState(false);
 
   // Filter states
@@ -82,15 +84,24 @@ const VaccinationPlanDetailPage = () => {
   // Load monitoring statuses when plan details change
   useEffect(() => {
     const loadMonitoringStatuses = async () => {
-      if (!planDetails?.students || !planDetails?.vaccinationDate) return;
-      
+      if (!planDetails?.students || !planDetails?.vaccinationDate || !planDetails?.vaccines) return;
+
       setMonitoringStatusLoading(true);
       try {
+        // Load general monitoring statuses (for overall status display)
         const statuses = await calculateStudentsMonitoringStatus(
-          planDetails.students, 
+          planDetails.students,
           planDetails.vaccinationDate
         );
         setMonitoringStatuses(statuses);
+
+        // Load vaccine-specific monitoring statuses (for individual vaccine buttons)
+        const vaccineStatuses = await calculateStudentsVaccineMonitoringStatus(
+          planDetails.students,
+          planDetails.vaccinationDate,
+          planDetails.vaccines
+        );
+        setVaccineMonitoringStatuses(vaccineStatuses);
       } catch (error) {
         console.error('Error loading monitoring statuses:', error);
       } finally {
@@ -99,31 +110,58 @@ const VaccinationPlanDetailPage = () => {
     };
 
     loadMonitoringStatuses();
-  }, [planDetails?.students, planDetails?.vaccinationDate]);
+  }, [planDetails?.students, planDetails?.vaccinationDate, planDetails?.vaccines]);
 
   // Handle back navigation
   const handleBack = () => {
     navigate('/nurse/vaccination/create-record');
   };
 
+  // Function to reload monitoring statuses
+  const reloadMonitoringStatuses = useCallback(async () => {
+    if (!planDetails?.students || !planDetails?.vaccinationDate || !planDetails?.vaccines) return;
+
+    setMonitoringStatusLoading(true);
+    try {
+      // Load general monitoring statuses (for overall status display)
+      const statuses = await calculateStudentsMonitoringStatus(
+        planDetails.students,
+        planDetails.vaccinationDate
+      );
+      setMonitoringStatuses(statuses);
+
+      // Load vaccine-specific monitoring statuses (for individual vaccine buttons)
+      const vaccineStatuses = await calculateStudentsVaccineMonitoringStatus(
+        planDetails.students,
+        planDetails.vaccinationDate,
+        planDetails.vaccines
+      );
+      setVaccineMonitoringStatuses(vaccineStatuses);
+    } catch (error) {
+      console.error('Error reloading monitoring statuses:', error);
+    } finally {
+      setMonitoringStatusLoading(false);
+    }
+  }, [planDetails?.students, planDetails?.vaccinationDate, planDetails?.vaccines]);
+
   // Handle create record
-  const handleCreateRecord = (student) => {
-    // Get the first vaccine from plan details
-    const firstVaccine = planDetails?.vaccines?.[0];
-    if (!firstVaccine) {
+  const handleCreateRecord = (student, vaccineInfo) => {
+    // Use the passed vaccine info or get the first vaccine from plan details
+    const selectedVaccine = vaccineInfo || planDetails?.vaccines?.[0];
+    if (!selectedVaccine) {
       console.error('No vaccine found in plan details');
       return;
     }
 
     // Create vaccine object with correct structure
     const vaccine = {
-      vaccineId: firstVaccine.id,
-      name: firstVaccine.name,
-      description: firstVaccine.description
+      vaccineId: selectedVaccine.id,
+      name: selectedVaccine.name,
+      description: selectedVaccine.description
     };
 
     console.log('Creating record with vaccine:', vaccine);
-    handleShowCreateRecordModal(student, vaccine);
+    handleShowCreateRecordModal(student, vaccine, reloadMonitoringStatuses);
   };
 
   // Format date
@@ -151,31 +189,28 @@ const VaccinationPlanDetailPage = () => {
     );
   };
 
-  // Get response badge
-  const getResponseBadge = (response) => {
+  // Get response badge with vaccine name
+  const getResponseBadge = (response, vaccineName) => {
     switch (response) {
       case 'ACCEPTED':
-        return <Badge bg="success">Đồng ý</Badge>;
+        return <Badge bg="success">Đồng ý - {vaccineName}</Badge>;
       case 'REJECTED':
-        return <Badge bg="danger">Từ chối</Badge>;
+        return <Badge bg="danger">Từ chối - {vaccineName}</Badge>;
       case 'PENDING':
-        return <Badge bg="secondary">Chờ phản hồi</Badge>;
+        return <Badge bg="secondary">Chờ phản hồi - {vaccineName}</Badge>;
       default:
-        return <Badge bg="light" text="dark">{response || 'Chưa có'}</Badge>;
+        return <Badge bg="light" text="dark">{response || 'Chưa có'} - {vaccineName}</Badge>;
     }
   };
 
-  // Render action buttons
+  // Render action buttons for each accepted vaccine
   const renderActionButtons = (student) => {
-    const status = monitoringStatuses[student.healthProfileId] || 'Đang kiểm tra...';
-    const canCreate = canCreateVaccinationRecord(status);
-
-    // Kiểm tra phản hồi phụ huynh - chỉ hiển thị nút khi có ít nhất 1 vaccine được ACCEPTED
-    const hasAcceptedResponse = student.vaccineResponses?.some(response =>
+    // Lấy danh sách vaccine được đồng ý
+    const acceptedVaccines = student.vaccineResponses?.filter(response =>
       response.response === 'ACCEPTED'
-    );
+    ) || [];
 
-    if (!hasAcceptedResponse) {
+    if (acceptedVaccines.length === 0) {
       return (
         <Badge bg="warning" text="dark">
           Chờ phụ huynh đồng ý
@@ -183,25 +218,48 @@ const VaccinationPlanDetailPage = () => {
       );
     }
 
-    if (canCreate) {
-      return (
-        <Button
-          variant="outline-primary"
-          size="sm"
-          onClick={() => handleCreateRecord(student)}
-        >
-          <FaPlus className="me-1" />
-          Tạo hồ sơ
-        </Button>
-      );
-    } else {
-      return (
-        <Button variant="outline-secondary" size="sm" disabled>
-          <FaEdit className="me-1" />
-          Đã có hồ sơ
-        </Button>
-      );
-    }
+    return (
+      <div className="d-flex flex-column gap-1">
+        {acceptedVaccines.map((vaccineResponse) => {
+          // Tìm thông tin vaccine từ plan details
+          const vaccineInfo = planDetails?.vaccines?.find(v => v.id === vaccineResponse.vaccineId);
+          const vaccineName = vaccineInfo?.name || `Vaccine ${vaccineResponse.vaccineId}`;
+
+          // Kiểm tra status riêng cho từng vaccine
+          const vaccineStatusKey = `${student.healthProfileId}_${vaccineResponse.vaccineId}`;
+          const vaccineStatus = vaccineMonitoringStatuses[vaccineStatusKey] || 'Đang kiểm tra...';
+          const canCreateThisVaccine = canCreateVaccinationRecord(vaccineStatus);
+
+          if (canCreateThisVaccine) {
+            return (
+              <Button
+                key={vaccineResponse.vaccineId}
+                variant="outline-primary"
+                size="sm"
+                onClick={() => handleCreateRecord(student, vaccineInfo)}
+                className="text-start"
+              >
+                <FaPlus className="me-1" />
+                Tạo HS - {vaccineName}
+              </Button>
+            );
+          } else {
+            return (
+              <Button
+                key={vaccineResponse.vaccineId}
+                variant="outline-secondary"
+                size="sm"
+                disabled
+                className="text-start"
+              >
+                <FaEdit className="me-1" />
+                Đã có HS - {vaccineName}
+              </Button>
+            );
+          }
+        })}
+      </div>
+    );
   };
 
   // Filter students
@@ -429,11 +487,17 @@ const VaccinationPlanDetailPage = () => {
                     <td>{student.fullName}</td>
                     <td>{student.className}</td>
                     <td>
-                      {student.vaccineResponses?.map(response => (
-                        <div key={response.vaccineId} className="mb-1">
-                          {getResponseBadge(response.response)}
-                        </div>
-                      ))}
+                      {student.vaccineResponses?.map(response => {
+                        // Tìm thông tin vaccine từ plan details
+                        const vaccineInfo = planDetails?.vaccines?.find(v => v.id === response.vaccineId);
+                        const vaccineName = vaccineInfo?.name || `Vaccine ${response.vaccineId}`;
+
+                        return (
+                          <div key={response.vaccineId} className="mb-1">
+                            {getResponseBadge(response.response, vaccineName)}
+                          </div>
+                        );
+                      })}
                     </td>
                     <td>
                       {monitoringStatusLoading ? (
