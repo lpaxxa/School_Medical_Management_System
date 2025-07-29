@@ -142,6 +142,21 @@ const StudentList = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Hàm chuyển đổi giới tính sang tiếng Việt
+  const formatGender = (gender) => {
+    if (!gender) return 'N/A';
+
+    const genderLower = gender.toLowerCase();
+    switch (genderLower) {
+      case 'male':
+        return 'Nam';
+      case 'female':
+        return 'Nữ';
+      default:
+        return gender; // Trả về giá trị gốc nếu không phải male/female
+    }
+  };
+
   // Hiển thị trạng thái loading
   if (loading) {
     return (
@@ -231,7 +246,14 @@ const StudentList = () => {
                       <td>
                         <Badge bg="light" text="dark">{student.className || student.class}</Badge>
                       </td>
-                      <td>{student.gender}</td>
+                      <td>
+                        <Badge
+                          bg={formatGender(student.gender) === 'Nam' ? 'primary' : formatGender(student.gender) === 'Nữ' ? 'danger' : 'secondary'}
+                          pill
+                        >
+                          {formatGender(student.gender)}
+                        </Badge>
+                      </td>
                       <td>{new Date(student.dateOfBirth).toLocaleDateString('vi-VN')}</td>
                     </tr>
                   ))}

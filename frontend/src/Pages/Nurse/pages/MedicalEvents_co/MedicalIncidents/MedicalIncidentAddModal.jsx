@@ -355,6 +355,7 @@ const MedicalIncidentAddModal = ({
 
     setSearchingMedications(true);
     try {
+      // Force refresh cache để đảm bảo có thuốc mới nhất
       const results = await inventoryService.searchItemsByName(searchTerm);
       let filteredResults = [];
 
@@ -601,7 +602,7 @@ const MedicalIncidentAddModal = ({
     
     try {
       // Process image if selected - ONLY FROM COMPUTER UPLOAD
-      let imageUrl = ''; // Removed manual URL support
+      let imageUrl = null; // Use null instead of empty string to avoid sending empty image data
       if (imageFile) {
         // Convert image to base64 if file is selected
         imageUrl = await processImageForSubmit();
@@ -624,7 +625,7 @@ const MedicalIncidentAddModal = ({
           itemID: med.itemID,
           name: med.name  // Include name for string conversion in service
         })),
-        imageMedicalUrl: imageUrl, // Use processed image URL
+        imageMedicalUrl: imageUrl || '', // Only send image if actually selected
         handledById: 1 // Default handler ID
       };
 
