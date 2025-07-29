@@ -21,6 +21,23 @@ const VaccinationModal = ({ isOpen, onClose, vaccination }) => {
     return value || "Chưa có thông tin";
   };
 
+  const formatNoteValue = (value) => {
+    if (
+      !value ||
+      value.trim() === "" ||
+      value.toLowerCase().trim() === "string"
+    ) {
+      return null; // Return null to hide the note
+    }
+    return value;
+  };
+
+  const hasValidNotes = () => {
+    const medicalNote = formatNoteValue(vaccination.notes);
+    const parentNote = formatNoteValue(vaccination.parentNotes);
+    return medicalNote || parentNote;
+  };
+
   const getVaccinationStatusInfo = (vaccination) => {
     if (vaccination.vaccinationDate) {
       return {
@@ -206,36 +223,50 @@ const VaccinationModal = ({ isOpen, onClose, vaccination }) => {
           </div>
 
           {/* Notes Section */}
-          {(vaccination.notes || vaccination.parentNotes) && (
+          {hasValidNotes() ? (
             <div className="modal-section">
               <h3 className="section-title">
                 <FaNotesMedical />
                 Ghi chú
               </h3>
               <div className="notes-section">
-                {vaccination.notes && (
+                {formatNoteValue(vaccination.notes) && (
                   <div className="note-item">
                     <div className="note-header">
                       <FaNotesMedical className="note-icon" />
                       <span className="note-label">Ghi chú y tế</span>
                     </div>
                     <div className="note-content medical-note">
-                      {vaccination.notes}
+                      {formatNoteValue(vaccination.notes)}
                     </div>
                   </div>
                 )}
 
-                {vaccination.parentNotes && (
+                {formatNoteValue(vaccination.parentNotes) && (
                   <div className="note-item">
                     <div className="note-header">
                       <FaUserEdit className="note-icon" />
                       <span className="note-label">Ghi chú của phụ huynh</span>
                     </div>
                     <div className="note-content parent-note">
-                      {vaccination.parentNotes}
+                      {formatNoteValue(vaccination.parentNotes)}
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          ) : (
+            <div className="modal-section">
+              <h3 className="section-title">
+                <FaNotesMedical />
+                Ghi chú
+              </h3>
+              <div className="notes-section">
+                <div className="note-item">
+                  <div className="note-content no-notes">
+                    <span className="no-notes-text">Không có ghi chú</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
