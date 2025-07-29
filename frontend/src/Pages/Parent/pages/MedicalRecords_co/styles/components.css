@@ -484,6 +484,13 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.no-incidents .positive-note {
+  color: var(--color-green-600);
+  font-weight: var(--font-weight-medium);
+  font-style: italic;
+  margin-top: var(--space-2);
+}
+
 .no-incidents p {
   color: var(--color-gray-500);
   margin: 0;
@@ -3180,6 +3187,20 @@
   padding: var(--space-3);
   border-radius: var(--radius-sm);
   border-left: 3px solid var(--color-green-400);
+}
+
+.no-notes {
+  background-color: var(--color-gray-50);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-200);
+  text-align: center;
+}
+
+.no-notes-text {
+  color: var(--color-gray-500);
+  font-style: italic;
+  font-size: var(--text-sm);
 }
 
 /* Next dose date styling */

@@ -75,11 +75,21 @@ const IncidentsTab = ({ studentId }) => {
           // data là array trực tiếp theo cấu trúc JSON mới
           setMedicalIncidents(Array.isArray(data) ? data : []);
           setLastUpdated(new Date());
+          setIncidentsError(null); // Clear any previous errors
         }
       } catch (error) {
         console.error("Error fetching incidents data:", error);
         if (componentMountedRef.current) {
-          setIncidentsError("Không thể tải dữ liệu sự cố y tế");
+          // Check if it's a 404 error (no data found) vs other errors
+          if (error.response && error.response.status === 404) {
+            // 404 means no incidents found - this is normal, not an error
+            setMedicalIncidents([]);
+            setIncidentsError(null);
+            console.log("No incidents found for student - this is normal");
+          } else {
+            // Other errors are actual problems
+            setIncidentsError("Không thể tải dữ liệu sự cố y tế");
+          }
         }
       } finally {
         if (componentMountedRef.current) {
@@ -306,9 +316,9 @@ const IncidentsTab = ({ studentId }) => {
         </div>
       ) : medicalIncidents.length === 0 ? (
         <div className="no-incidents">
-          <FaBandAid />
-          <h4>Không có sự cố y tế</h4>
-          <p>Học sinh chưa có ghi nhận sự cố y tế nào trong hệ thống.</p>
+          <FaExclamationCircle />
+          <h4>Không có dữ liệu</h4>
+          <p>Medical Incidents not found for Student with id: {studentId}</p>
         </div>
       ) : (
         <div className="incidents-list">
